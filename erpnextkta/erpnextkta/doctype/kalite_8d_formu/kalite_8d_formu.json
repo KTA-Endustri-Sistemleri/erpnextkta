@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "autoname": "format:QA-8D-{#####}",
+ "creation": "2024-12-20 17:00:27.401001",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "subject",
+  "column_break_krww",
+  "status",
+  "section_break_yrcn",
+  "1d",
+  "2d",
+  "3d",
+  "4d",
+  "5d",
+  "6d",
+  "7d",
+  "8d"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_yrcn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Ba\u015fl\u0131k",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_krww",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Durum",
+   "options": "\nOpen\nResolved",
+   "reqd": 1
+  },
+  {
+   "fieldname": "1d",
+   "fieldtype": "Text Editor",
+   "label": "1D"
+  },
+  {
+   "fieldname": "2d",
+   "fieldtype": "Text Editor",
+   "label": "2D"
+  },
+  {
+   "fieldname": "3d",
+   "fieldtype": "Text Editor",
+   "label": "3D"
+  },
+  {
+   "fieldname": "4d",
+   "fieldtype": "Text Editor",
+   "label": "4D"
+  },
+  {
+   "fieldname": "5d",
+   "fieldtype": "Text Editor",
+   "label": "5D"
+  },
+  {
+   "fieldname": "6d",
+   "fieldtype": "Text Editor",
+   "label": "6D"
+  },
+  {
+   "fieldname": "7d",
+   "fieldtype": "Text Editor",
+   "label": "7D"
+  },
+  {
+   "fieldname": "8d",
+   "fieldtype": "Text Editor",
+   "label": "8D"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-12-20 17:09:31.545361",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "Kalite 8D Formu",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

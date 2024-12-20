@@ -1,0 +1,9 @@
+# Copyright (c) 2024, Framras AS and contributors
+# For license information, please see license.txt
+
+# import frappe
+from frappe.model.document import Document
+
+
+class Kalite8DFormu(Document):
+	pass
