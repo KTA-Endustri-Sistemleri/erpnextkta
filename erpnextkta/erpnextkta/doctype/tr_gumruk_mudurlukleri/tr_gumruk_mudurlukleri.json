@@ -1,0 +1,71 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{gumruk_mudurlugu}",
+ "creation": "2024-12-21 02:15:25.699454",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "gumruk_mud_kodu",
+  "gumruk_mudurlugu",
+  "section_break_hdeg",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_hdeg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "TR Gumruk Mudurlukleri",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "gumruk_mud_kodu",
+   "fieldtype": "Data",
+   "label": "G\u00fcmr\u00fck M\u00fcd.Kodu"
+  },
+  {
+   "fieldname": "gumruk_mudurlugu",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "G\u00fcmr\u00fck M\u00fcd\u00fcrl\u00fc\u011f\u00fc",
+   "reqd": 1,
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-12-21 02:18:26.837572",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "TR Gumruk Mudurlukleri",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
