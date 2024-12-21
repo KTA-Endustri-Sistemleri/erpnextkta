@@ -1,0 +1,114 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Görsel",
+  "modified": "2024-12-21 14:50:07.695789",
+  "name": "Görsel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Mikrometre",
+  "modified": "2024-12-21 14:50:19.632087",
+  "name": "Mikrometre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Yüksek Voltaj Test Cihazı",
+  "modified": "2024-12-21 14:50:30.720177",
+  "name": "Yüksek Voltaj Test Cihazı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Vida Tampon Mastarı",
+  "modified": "2024-12-21 14:50:41.916236",
+  "name": "Vida Tampon Mastarı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Vida Halka Mastarı",
+  "modified": "2024-12-21 14:50:51.360933",
+  "name": "Vida Halka Mastarı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Torkmetre",
+  "modified": "2024-12-21 14:51:01.965585",
+  "name": "Torkmetre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Shore Metre",
+  "modified": "2024-12-21 14:51:14.374996",
+  "name": "Shore Metre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Sentil",
+  "modified": "2024-12-21 14:51:42.043012",
+  "name": "Sentil"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Radyus Mastarı",
+  "modified": "2024-12-21 14:51:55.504006",
+  "name": "Radyus Mastarı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Profil Projeksiyon",
+  "modified": "2024-12-21 14:52:07.026441",
+  "name": "Profil Projeksiyon"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "NTC Test Fırını",
+  "modified": "2024-12-21 14:52:17.891928",
+  "name": "NTC Test Fırını"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Kumpas",
+  "modified": "2024-12-21 14:52:27.112968",
+  "name": "Kumpas"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Halka Mastar",
+  "modified": "2024-12-21 14:52:36.949019",
+  "name": "Halka Mastar"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Dijital Multimetre",
+  "modified": "2024-12-21 14:52:46.113541",
+  "name": "Dijital Multimetre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Çekme Cihazı",
+  "modified": "2024-12-21 14:53:00.039094",
+  "name": "Çekme Cihazı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Çelik Cetvel",
+  "modified": "2024-12-21 14:53:08.567385",
+  "name": "Çelik Cetvel"
+ }
+]
