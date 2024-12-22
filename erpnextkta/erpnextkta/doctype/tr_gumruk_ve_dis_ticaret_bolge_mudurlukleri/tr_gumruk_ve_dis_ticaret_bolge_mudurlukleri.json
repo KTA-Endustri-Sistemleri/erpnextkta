@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{gumruk_bolge_mudurlugu}",
+ "creation": "2024-12-21 23:33:39.039588",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "gumruk_bolge_mudurlugu",
+  "liste_tarihi",
+  "section_break_6mjs",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_6mjs",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "liste_tarihi",
+   "fieldtype": "Date",
+   "label": "Liste Tarihi"
+  },
+  {
+   "fieldname": "gumruk_bolge_mudurlugu",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "G\u00fcmr\u00fck M\u00fcd\u00fcrl\u00fc\u011f\u00fc",
+   "reqd": 1,
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-12-22 00:11:11.534060",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "show_name_in_global_search": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "gumruk_bolge_mudurlugu",
+ "track_changes": 1
+}

@@ -246,5 +246,7 @@ app_license = "mit"
 # --------------------------------
 
 fixtures = [
-    "Olcu Metodu"
+    "Olcu Metodu",
+    "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri",
+    "TR Gumruk Idareleri"
 ]

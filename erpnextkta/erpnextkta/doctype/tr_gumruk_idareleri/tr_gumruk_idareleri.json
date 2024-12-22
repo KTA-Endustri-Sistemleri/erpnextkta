@@ -1,13 +1,20 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:{gumruk_mudurlugu}",
  "creation": "2024-12-21 02:15:25.699454",
  "doctype": "DocType",
+ "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
-  "gumruk_mud_kodu",
   "gumruk_mudurlugu",
+  "bulundugu_il",
+  "is_active",
+  "column_break_5foy",
+  "gumruk_bolge_mudurlugu",
+  "liste_tarihi",
+  "gumruk_mud_kodu",
   "section_break_hdeg",
   "amended_from"
  ],
@@ -21,7 +28,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "TR Gumruk Mudurlukleri",
+   "options": "TR Gumruk Idareleri",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
@@ -38,15 +45,43 @@
    "label": "G\u00fcmr\u00fck M\u00fcd\u00fcrl\u00fc\u011f\u00fc",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "bulundugu_il",
+   "fieldtype": "Data",
+   "label": "Bulundugu il"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Etkin"
+  },
+  {
+   "fieldname": "liste_tarihi",
+   "fieldtype": "Date",
+   "label": "Liste tarihi"
+  },
+  {
+   "fieldname": "column_break_5foy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "gumruk_bolge_mudurlugu",
+   "fieldtype": "Link",
+   "label": "Ba\u011fl\u0131 Oldu\u011fu",
+   "options": "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-21 02:18:26.837572",
+ "modified": "2024-12-22 01:04:48.450757",
  "modified_by": "Administrator",
  "module": "erpnextkta",
- "name": "TR Gumruk Mudurlukleri",
+ "name": "TR Gumruk Idareleri",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
@@ -64,8 +99,10 @@
    "write": 1
   }
  ],
+ "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
+ "title_field": "gumruk_mudurlugu",
  "track_changes": 1
 }

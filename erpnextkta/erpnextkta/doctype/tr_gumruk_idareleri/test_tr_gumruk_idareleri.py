@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestTRGumrukMudurlukleri(FrappeTestCase):
+class TestTRGumrukIdareleri(FrappeTestCase):
 	pass
