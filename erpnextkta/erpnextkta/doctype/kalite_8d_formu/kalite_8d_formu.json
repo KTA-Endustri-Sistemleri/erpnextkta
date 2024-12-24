@@ -6,32 +6,96 @@
  "engine": "InnoDB",
  "field_order": [
   "subject",
+  "workflow_state",
   "custom_8d_durumu",
   "column_break_krww",
-  "status",
-  "section_break_yrcn",
   "kalite_8d_formu_1d_sekmesi",
+  "d1_musteri",
+  "d1_malzeme_no",
+  "column_break_9beb",
+  "d1_rapor_tarihi",
+  "baslangic_tarihi",
+  "column_break_r9cu",
+  "d1_musteri_sikayet_no",
+  "d1_reddedilen_adet",
+  "section_break_h3wm",
+  "d1_sponsor",
+  "column_break_4zei",
+  "d1_takim_lideri",
+  "tak\u0131m_\u00fcyeleri_section",
+  "d1_takim_uyeleri",
+  "section_break_anuu",
   "1d",
   "kalite_8d_formu_2d_sekmesi",
+  "d2_claim_accepted",
+  "section_break_bqtg",
+  "d2_repeated_failure",
+  "column_break_yqqq",
+  "d2_previous_8d",
+  "section_break_pror",
   "2d",
   "kalite_8d_formu_3d_sekmesi",
-  "3d",
+  "stok_kontrol_section",
+  "d3_stock_responsible",
+  "column_break_b14b",
+  "d3_stock_due_date",
+  "column_break_bl9f",
+  "d3_stock_completion_date",
+  "rework_section",
+  "d3_rework_responsible",
+  "column_break_m9yu",
+  "d3_rework_due_date",
+  "column_break_1zuc",
+  "d3_rework_completion_date",
+  "new_parts_shipment_section",
+  "d3_new_parts_responsible",
+  "column_break_qnis",
+  "d3_new_parts_due_date",
+  "column_break_wpuk",
+  "d3_new_parts_completion_date",
+  "others_section",
+  "d3_others",
+  "section_break_pkjp",
   "kalite_8d_formu_4d_sekmesi",
-  "4d",
+  "d4_why_occured",
+  "d4_occured_1",
+  "d4_occured_2",
+  "d4_occured_3",
+  "d4_occured_4",
+  "d4_occured_5",
+  "d4_why_not_detected",
+  "d4_not_detected_1",
+  "d4_not_detected_2",
+  "d4_not_detected_3",
+  "d4_not_detected_4",
+  "d4_not_detected_5",
+  "d4_why_not_forecasted",
+  "d4_not_forecasted_1",
+  "d4_not_forecasted_2",
+  "d4_not_forecasted_3",
+  "d4_not_forecasted_4",
+  "d4_not_forecasted_5",
   "kalite_8d_formu_5d_sekmesi",
-  "5d",
+  "d5_corrective_action",
   "kalite_8d_formu_6d_sekmesi",
   "6d",
   "kalite_8d_formu_7d_sekmesi",
-  "7d",
+  "d7_preventive_action",
+  "section_break_ov3h",
+  "fmea_g\u00fcncellemesi_column",
+  "d7_fmea_update_check",
+  "column_break_noih",
+  "d7_fmea_update_date",
+  "section_break_csrk",
+  "kontrol_plan\u0131_g\u00fcncellemesi_column",
+  "d7_control_plan_check",
+  "kontrol_planlama_g\u00fcncelleme_tarihi_column",
+  "d7_control_plan_date",
   "kalite_8d_formu_8d_sekmesi",
-  "8d"
+  "d8_date_of_closure",
+  "d8_signature_person_in_charge"
  ],
  "fields": [
-  {
-   "fieldname": "section_break_yrcn",
-   "fieldtype": "Section Break"
-  },
   {
    "fieldname": "subject",
    "fieldtype": "Data",
@@ -45,18 +109,9 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "Open",
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Durum",
-   "options": "\nOpen\nResolved",
-   "reqd": 1
-  },
-  {
    "fieldname": "1d",
    "fieldtype": "Text Editor",
-   "label": "1D"
+   "label": "Hata A\u00e7\u0131klamas\u0131"
   },
   {
    "fieldname": "2d",
@@ -64,40 +119,16 @@
    "label": "2D"
   },
   {
-   "fieldname": "3d",
-   "fieldtype": "Text Editor",
-   "label": "3D"
-  },
-  {
-   "fieldname": "4d",
-   "fieldtype": "Text Editor",
-   "label": "4D"
-  },
-  {
-   "fieldname": "5d",
-   "fieldtype": "Text Editor",
-   "label": "5D"
-  },
-  {
    "fieldname": "6d",
    "fieldtype": "Text Editor",
    "label": "6D"
   },
   {
-   "fieldname": "7d",
-   "fieldtype": "Text Editor",
-   "label": "7D"
-  },
-  {
-   "fieldname": "8d",
-   "fieldtype": "Text Editor",
-   "label": "8D"
-  },
-  {
    "fieldname": "custom_8d_durumu",
    "fieldtype": "Int",
    "hidden": 1,
-   "label": "8D Durumu"
+   "label": "8D Durumu",
+   "print_hide": 1
   },
   {
    "depends_on": "eval:doc.custom_8d_durumu>=1",
@@ -146,11 +177,383 @@
    "fieldname": "kalite_8d_formu_8d_sekmesi",
    "fieldtype": "Tab Break",
    "label": "8D"
+  },
+  {
+   "fieldname": "d1_takim_uyeleri",
+   "fieldtype": "Table",
+   "label": "Tak\u0131m \u00dcyeleri",
+   "options": "D1 Takim Uyeleri"
+  },
+  {
+   "fieldname": "workflow_state",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "workflow_state",
+   "no_copy": 1,
+   "options": "Workflow State",
+   "print_hide": 1,
+   "report_hide": 1
+  },
+  {
+   "fieldname": "tak\u0131m_\u00fcyeleri_section",
+   "fieldtype": "Section Break",
+   "label": "Tak\u0131m \u00dcyeleri"
+  },
+  {
+   "fieldname": "d1_sponsor",
+   "fieldtype": "Link",
+   "label": "Sponsor",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "d1_takim_lideri",
+   "fieldtype": "Link",
+   "label": "Tak\u0131m Lideri",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_4zei",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_h3wm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "d1_musteri",
+   "fieldtype": "Link",
+   "label": "M\u00fc\u015fteri",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "d1_malzeme_no",
+   "fieldtype": "Link",
+   "label": "Malzeme No.",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_9beb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "d1_rapor_tarihi",
+   "fieldtype": "Date",
+   "label": "Rapor Tarihi"
+  },
+  {
+   "fieldname": "baslangic_tarihi",
+   "fieldtype": "Date",
+   "label": "8D Ba\u015flang\u0131\u00e7 Tarihi"
+  },
+  {
+   "fieldname": "column_break_r9cu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "d1_musteri_sikayet_no",
+   "fieldtype": "Data",
+   "label": "M\u00fc\u015fteri \u015eikayet No."
+  },
+  {
+   "fieldname": "section_break_anuu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "d1_reddedilen_adet",
+   "fieldtype": "Int",
+   "label": "Reddedilen Par\u00e7a Adedi"
+  },
+  {
+   "default": "0",
+   "fieldname": "d2_claim_accepted",
+   "fieldtype": "Check",
+   "label": "Claim Accepted?"
+  },
+  {
+   "fieldname": "section_break_bqtg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "d2_repeated_failure",
+   "fieldtype": "Check",
+   "label": "Repeated Failure?"
+  },
+  {
+   "depends_on": "d2_repeated_failure",
+   "fieldname": "d2_previous_8d",
+   "fieldtype": "Link",
+   "label": "Previous 8D No.",
+   "mandatory_depends_on": "d2_repeated_failure",
+   "options": "Kalite 8D Formu"
+  },
+  {
+   "fieldname": "column_break_yqqq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_pror",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "stok_kontrol_section",
+   "fieldtype": "Section Break",
+   "label": "Stok Kontrol"
+  },
+  {
+   "fieldname": "d3_stock_responsible",
+   "fieldtype": "Link",
+   "label": "Sorumlu",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_b14b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "d3_stock_due_date",
+   "fieldtype": "Date",
+   "label": "Termin"
+  },
+  {
+   "fieldname": "column_break_bl9f",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "d3_stock_completion_date",
+   "fieldtype": "Date",
+   "label": "Tamamlama Tarihi"
+  },
+  {
+   "fieldname": "rework_section",
+   "fieldtype": "Section Break",
+   "label": "Rework"
+  },
+  {
+   "fieldname": "d3_rework_responsible",
+   "fieldtype": "Link",
+   "label": "Sorumlu",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_m9yu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "d3_rework_due_date",
+   "fieldtype": "Date",
+   "label": "Termin"
+  },
+  {
+   "fieldname": "column_break_1zuc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "d3_rework_completion_date",
+   "fieldtype": "Date",
+   "label": "Tamamlama Tarihi"
+  },
+  {
+   "fieldname": "new_parts_shipment_section",
+   "fieldtype": "Section Break",
+   "label": "New Parts Shipment"
+  },
+  {
+   "fieldname": "d3_new_parts_responsible",
+   "fieldtype": "Link",
+   "label": "Sorumlu",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_qnis",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "d3_new_parts_due_date",
+   "fieldtype": "Date",
+   "label": "Termin"
+  },
+  {
+   "fieldname": "column_break_wpuk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "d3_new_parts_completion_date",
+   "fieldtype": "Date",
+   "label": "Tamamlama Tarihi"
+  },
+  {
+   "fieldname": "section_break_pkjp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "others_section",
+   "fieldtype": "Section Break",
+   "label": "Di\u011ferleri"
+  },
+  {
+   "columns": 5,
+   "fieldname": "d3_others",
+   "fieldtype": "Table",
+   "label": "Di\u011ferleri",
+   "options": "D3 Digerleri"
+  },
+  {
+   "fieldname": "d4_occured_1",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_occured_2",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_occured_3",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_occured_4",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_occured_5",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_why_not_detected",
+   "fieldtype": "Column Break",
+   "label": "Why has it not been detected?"
+  },
+  {
+   "fieldname": "d4_not_detected_1",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_not_detected_2",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_not_detected_3",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_not_detected_4",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_not_detected_5",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_why_not_forecasted",
+   "fieldtype": "Column Break",
+   "label": "Why has it not been forecasted?"
+  },
+  {
+   "fieldname": "d4_not_forecasted_1",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_not_forecasted_2",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_not_forecasted_3",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_not_forecasted_4",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_not_forecasted_5",
+   "fieldtype": "Small Text"
+  },
+  {
+   "fieldname": "d4_why_occured",
+   "fieldtype": "Column Break",
+   "label": "Why has it occured?"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "columns": 4,
+   "fieldname": "d5_corrective_action",
+   "fieldtype": "Table",
+   "options": "D5 Duzeltici Faaliyet"
+  },
+  {
+   "columns": 4,
+   "fieldname": "d7_preventive_action",
+   "fieldtype": "Table",
+   "label": "Preventive Action",
+   "options": "D7 Onleyici Faaliyet"
+  },
+  {
+   "fieldname": "section_break_ov3h",
+   "fieldtype": "Section Break",
+   "label": "FMEA"
+  },
+  {
+   "default": "0",
+   "fieldname": "d7_fmea_update_check",
+   "fieldtype": "Check"
+  },
+  {
+   "default": "0",
+   "fieldname": "d7_control_plan_check",
+   "fieldtype": "Check"
+  },
+  {
+   "fieldname": "column_break_noih",
+   "fieldtype": "Column Break",
+   "label": "G\u00fcncelleme Tarihi"
+  },
+  {
+   "depends_on": "d7_fmea_update_check",
+   "fieldname": "d7_fmea_update_date",
+   "fieldtype": "Date",
+   "mandatory_depends_on": "d7_fmea_update_check"
+  },
+  {
+   "depends_on": "d7_control_plan_check",
+   "fieldname": "d7_control_plan_date",
+   "fieldtype": "Date",
+   "mandatory_depends_on": "d7_control_plan_check"
+  },
+  {
+   "fieldname": "fmea_g\u00fcncellemesi_column",
+   "fieldtype": "Column Break",
+   "label": "G\u00fcncelleme"
+  },
+  {
+   "fieldname": "section_break_csrk",
+   "fieldtype": "Section Break",
+   "label": "Kontrol Plan\u0131"
+  },
+  {
+   "fieldname": "kontrol_plan\u0131_g\u00fcncellemesi_column",
+   "fieldtype": "Column Break",
+   "label": "G\u00fcncelleme"
+  },
+  {
+   "default": "0",
+   "fieldname": "kontrol_planlama_g\u00fcncelleme_tarihi_column",
+   "fieldtype": "Column Break",
+   "label": "G\u00fcncelleme Tarihi"
+  },
+  {
+   "fieldname": "d8_date_of_closure",
+   "fieldtype": "Date",
+   "label": "Date of closure"
+  },
+  {
+   "fieldname": "d8_signature_person_in_charge",
+   "fieldtype": "Signature",
+   "label": "\u0130mza"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-24 10:43:41.733039",
+ "modified": "2024-12-24 20:00:10.422262",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Kalite 8D Formu",
