@@ -6,16 +6,25 @@
  "engine": "InnoDB",
  "field_order": [
   "subject",
+  "custom_8d_durumu",
   "column_break_krww",
   "status",
   "section_break_yrcn",
+  "kalite_8d_formu_1d_sekmesi",
   "1d",
+  "kalite_8d_formu_2d_sekmesi",
   "2d",
+  "kalite_8d_formu_3d_sekmesi",
   "3d",
+  "kalite_8d_formu_4d_sekmesi",
   "4d",
+  "kalite_8d_formu_5d_sekmesi",
   "5d",
+  "kalite_8d_formu_6d_sekmesi",
   "6d",
+  "kalite_8d_formu_7d_sekmesi",
   "7d",
+  "kalite_8d_formu_8d_sekmesi",
   "8d"
  ],
  "fields": [
@@ -83,11 +92,65 @@
    "fieldname": "8d",
    "fieldtype": "Text Editor",
    "label": "8D"
+  },
+  {
+   "fieldname": "custom_8d_durumu",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "8D Durumu"
+  },
+  {
+   "depends_on": "eval:doc.custom_8d_durumu>=1",
+   "fieldname": "kalite_8d_formu_1d_sekmesi",
+   "fieldtype": "Tab Break",
+   "label": "1D"
+  },
+  {
+   "depends_on": "eval:doc.custom_8d_durumu>=2",
+   "fieldname": "kalite_8d_formu_2d_sekmesi",
+   "fieldtype": "Tab Break",
+   "label": "2D"
+  },
+  {
+   "depends_on": "eval:doc.custom_8d_durumu>=3",
+   "fieldname": "kalite_8d_formu_3d_sekmesi",
+   "fieldtype": "Tab Break",
+   "label": "3D"
+  },
+  {
+   "depends_on": "eval:doc.custom_8d_durumu>=4",
+   "fieldname": "kalite_8d_formu_4d_sekmesi",
+   "fieldtype": "Tab Break",
+   "label": "4D"
+  },
+  {
+   "depends_on": "eval:doc.custom_8d_durumu>=5",
+   "fieldname": "kalite_8d_formu_5d_sekmesi",
+   "fieldtype": "Tab Break",
+   "label": "5D"
+  },
+  {
+   "depends_on": "eval:doc.custom_8d_durumu>=6",
+   "fieldname": "kalite_8d_formu_6d_sekmesi",
+   "fieldtype": "Tab Break",
+   "label": "6D"
+  },
+  {
+   "depends_on": "eval:doc.custom_8d_durumu>=7",
+   "fieldname": "kalite_8d_formu_7d_sekmesi",
+   "fieldtype": "Tab Break",
+   "label": "7D"
+  },
+  {
+   "depends_on": "eval:doc.custom_8d_durumu>=8",
+   "fieldname": "kalite_8d_formu_8d_sekmesi",
+   "fieldtype": "Tab Break",
+   "label": "8D"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-20 17:09:31.545361",
+ "modified": "2024-12-24 10:43:41.733039",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Kalite 8D Formu",
