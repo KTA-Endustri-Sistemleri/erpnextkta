@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-12-24 16:32:06.896328",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "d1_takim_uyesi",
+  "d1_takim_uyesi_adi",
+  "d1_calisan_bolum"
+ ],
+ "fields": [
+  {
+   "fieldname": "d1_takim_uyesi",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u00c7al\u0131\u015fan",
+   "options": "Employee",
+   "print_hide": 1,
+   "report_hide": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "d1_takim_uyesi.department",
+   "fieldname": "d1_calisan_bolum",
+   "fieldtype": "Data",
+   "is_virtual": 1,
+   "label": "B\u00f6l\u00fcm",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "d1_takim_uyesi.employee_name",
+   "fieldname": "d1_takim_uyesi_adi",
+   "fieldtype": "Data",
+   "is_virtual": 1,
+   "label": "Ad",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-12-24 17:45:44.334328",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "D1 Takim Uyeleri",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
