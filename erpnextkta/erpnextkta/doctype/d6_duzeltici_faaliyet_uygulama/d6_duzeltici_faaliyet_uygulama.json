@@ -1,35 +1,35 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2024-12-24 19:24:56.818282",
+ "creation": "2024-12-25 11:11:11.446192",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "d5_corrective_action_item",
-  "d5_corrective_action_responsible",
-  "d5_corrective_action_due_date",
-  "d5_corrective_action_completion_date"
+  "d6_verification_result",
+  "d6_verification_responsible",
+  "d6_verification_due_date",
+  "d6_verification_completion_date"
  ],
  "fields": [
   {
-   "fieldname": "d5_corrective_action_item",
+   "fieldname": "d6_verification_result",
    "fieldtype": "Small Text",
-   "label": "D\u00fczeltici Faaliyet"
+   "label": "Do\u011frulama"
   },
   {
-   "fieldname": "d5_corrective_action_responsible",
+   "fieldname": "d6_verification_responsible",
    "fieldtype": "Link",
    "label": "Sorumlu",
    "options": "Employee"
   },
   {
-   "fieldname": "d5_corrective_action_due_date",
+   "fieldname": "d6_verification_due_date",
    "fieldtype": "Date",
    "label": "Termin"
   },
   {
-   "fieldname": "d5_corrective_action_completion_date",
+   "fieldname": "d6_verification_completion_date",
    "fieldtype": "Date",
    "label": "Tamamlanma Tarihi"
   }
@@ -37,10 +37,10 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-12-25 11:18:09.969560",
+ "modified": "2024-12-25 11:18:27.297652",
  "modified_by": "Administrator",
  "module": "erpnextkta",
- "name": "D5 Duzeltici Faaliyet",
+ "name": "D6 Duzeltici Faaliyet Uygulama",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

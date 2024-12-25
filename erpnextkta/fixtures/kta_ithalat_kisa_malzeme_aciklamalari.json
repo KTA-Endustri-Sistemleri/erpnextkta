@@ -1,0 +1,1330 @@
+[
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kablo",
+  "modified": "2024-12-25 18:12:36.478750",
+  "name": "Kablo"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kontak",
+  "modified": "2024-12-25 18:12:36.496967",
+  "name": "Kontak"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Bant",
+  "modified": "2024-12-25 18:12:36.502068",
+  "name": "Bant"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kablo Bağçık",
+  "modified": "2024-12-25 18:12:36.506131",
+  "name": "Kablo Bağçık"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kör tapa",
+  "modified": "2024-12-25 18:12:36.510517",
+  "name": "Kör tapa"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Soket",
+  "modified": "2024-12-25 18:12:36.516263",
+  "name": "Soket"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "ETİKET",
+  "modified": "2024-12-25 18:12:36.520823",
+  "name": "ETİKET"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "KONDANSATÖR",
+  "modified": "2024-12-25 18:12:36.524420",
+  "name": "KONDANSATÖR"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Tek Gözlü Soket",
+  "modified": "2024-12-25 18:12:36.527921",
+  "name": "Tek Gözlü Soket"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "TERMİSTÖR",
+  "modified": "2024-12-25 18:12:36.532695",
+  "name": "TERMİSTÖR"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Sipiral Hortum",
+  "modified": "2024-12-25 18:12:36.539202",
+  "name": "Sipiral Hortum"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Hortum",
+  "modified": "2024-12-25 18:12:36.543190",
+  "name": "Hortum"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Isıl Hortum",
+  "modified": "2024-12-25 18:12:36.548080",
+  "name": "Isıl Hortum"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Fişli Kablo",
+  "modified": "2024-12-25 18:12:36.552755",
+  "name": "Fişli Kablo"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Direnç",
+  "modified": "2024-12-25 18:12:36.557262",
+  "name": "Direnç"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Tülle",
+  "modified": "2024-12-25 18:12:36.561276",
+  "name": "Tülle"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Seal",
+  "modified": "2024-12-25 18:12:36.567296",
+  "name": "Seal"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Pim",
+  "modified": "2024-12-25 18:12:36.573502",
+  "name": "Pim"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Şalter",
+  "modified": "2024-12-25 18:12:36.577509",
+  "name": "Şalter"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Vida",
+  "modified": "2024-12-25 18:12:36.581190",
+  "name": "Vida"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kapak",
+  "modified": "2024-12-25 18:12:36.586052",
+  "name": "Kapak"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Temperaturfühler",
+  "modified": "2024-12-25 18:12:36.590622",
+  "name": "Temperaturfühler"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Temperatursicherung",
+  "modified": "2024-12-25 18:12:36.596592",
+  "name": "Temperatursicherung"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Rakor",
+  "modified": "2024-12-25 18:12:36.602363",
+  "name": "Rakor"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Makaron",
+  "modified": "2024-12-25 18:12:36.607338",
+  "name": "Makaron"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kilit",
+  "modified": "2024-12-25 18:12:36.614696",
+  "name": "Kilit"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Nüve",
+  "modified": "2024-12-25 18:12:36.620268",
+  "name": "Nüve"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Somun",
+  "modified": "2024-12-25 18:12:36.625151",
+  "name": "Somun"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Çok Gözlü Soket",
+  "modified": "2024-12-25 18:12:36.630849",
+  "name": "Çok Gözlü Soket"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Sıcak Silikon",
+  "modified": "2024-12-25 18:12:36.635873",
+  "name": "Sıcak Silikon"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "TERMİK SİGORTA",
+  "modified": "2024-12-25 18:12:36.638836",
+  "name": "TERMİK SİGORTA"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "PAKET BAĞCIĞI",
+  "modified": "2024-12-25 18:12:36.643638",
+  "name": "PAKET BAĞCIĞI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "TERMİK",
+  "modified": "2024-12-25 18:12:36.648131",
+  "name": "TERMİK"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "ALGILAMA SWITCHI",
+  "modified": "2024-12-25 18:12:36.653738",
+  "name": "ALGILAMA SWITCHI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Numaratör",
+  "modified": "2024-12-25 18:12:36.659060",
+  "name": "Numaratör"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Bakır Tel",
+  "modified": "2024-12-25 18:12:36.663329",
+  "name": "Bakır Tel"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Selenoıd",
+  "modified": "2024-12-25 18:12:36.668306",
+  "name": "Selenoıd"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Numaralı Tülle",
+  "modified": "2024-12-25 18:12:36.672152",
+  "name": "Numaralı Tülle"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Sensör",
+  "modified": "2024-12-25 18:12:36.678439",
+  "name": "Sensör"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "MANYETIK VALF",
+  "modified": "2024-12-25 18:12:36.682669",
+  "name": "MANYETIK VALF"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Pompa",
+  "modified": "2024-12-25 18:12:36.686865",
+  "name": "Pompa"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Yağ",
+  "modified": "2024-12-25 18:12:36.691666",
+  "name": "Yağ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Sigorta",
+  "modified": "2024-12-25 18:12:36.696108",
+  "name": "Sigorta"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Klemens",
+  "modified": "2024-12-25 18:12:36.700788",
+  "name": "Klemens"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Enj. Hammaddesi",
+  "modified": "2024-12-25 18:12:36.704123",
+  "name": "Enj. Hammaddesi"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "4polig (Brücke)",
+  "modified": "2024-12-25 18:12:36.707708",
+  "name": "4polig (Brücke)"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Schrumpfschlauch",
+  "modified": "2024-12-25 18:12:36.711604",
+  "name": "Schrumpfschlauch"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Jumper",
+  "modified": "2024-12-25 18:12:36.715941",
+  "name": "Jumper"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "8polig (Ende)",
+  "modified": "2024-12-25 18:12:36.719870",
+  "name": "8polig (Ende)"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Krep Bant",
+  "modified": "2024-12-25 18:12:36.724436",
+  "name": "Krep Bant"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "CONTA",
+  "modified": "2024-12-25 18:12:36.728172",
+  "name": "CONTA"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Vidalı soket",
+  "modified": "2024-12-25 18:12:36.732002",
+  "name": "Vidalı soket"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "YAY TABAKASI",
+  "modified": "2024-12-25 18:12:36.735264",
+  "name": "YAY TABAKASI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "PUL",
+  "modified": "2024-12-25 18:12:36.738344",
+  "name": "PUL"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "MEBRAN ÇİVİSİ",
+  "modified": "2024-12-25 18:12:36.741655",
+  "name": "MEBRAN ÇİVİSİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "MEMBRANTELLER",
+  "modified": "2024-12-25 18:12:36.744984",
+  "name": "MEMBRANTELLER"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "METAL TUTUCU",
+  "modified": "2024-12-25 18:12:36.748246",
+  "name": "METAL TUTUCU"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "BASKI PALETİ",
+  "modified": "2024-12-25 18:12:36.751762",
+  "name": "BASKI PALETİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "VANA ÇİVİSİ",
+  "modified": "2024-12-25 18:12:36.754927",
+  "name": "VANA ÇİVİSİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Baskı Yayı",
+  "modified": "2024-12-25 18:12:36.759414",
+  "name": "Baskı Yayı"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "4X12 PASLANMAZ VIDA",
+  "modified": "2024-12-25 18:12:36.763376",
+  "name": "4X12 PASLANMAZ VIDA"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Vana Ayarı",
+  "modified": "2024-12-25 18:12:36.768676",
+  "name": "Vana Ayarı"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "O-RING/HN67F74 1203B",
+  "modified": "2024-12-25 18:12:36.772277",
+  "name": "O-RING/HN67F74 1203B"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "KOVAN",
+  "modified": "2024-12-25 18:12:36.776914",
+  "name": "KOVAN"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "EMNİYET PULU",
+  "modified": "2024-12-25 18:12:36.781730",
+  "name": "EMNİYET PULU"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Oring",
+  "modified": "2024-12-25 18:12:36.785036",
+  "name": "Oring"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "TUTAMAK",
+  "modified": "2024-12-25 18:12:36.789123",
+  "name": "TUTAMAK"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "REKOR",
+  "modified": "2024-12-25 18:12:36.792877",
+  "name": "REKOR"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "EMNİYET HALKASI",
+  "modified": "2024-12-25 18:12:36.796686",
+  "name": "EMNİYET HALKASI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Silikon Hortum",
+  "modified": "2024-12-25 18:12:36.800083",
+  "name": "Silikon Hortum"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "TTR Kablo",
+  "modified": "2024-12-25 18:12:36.803966",
+  "name": "TTR Kablo"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Demet Bağcığı",
+  "modified": "2024-12-25 18:12:36.808094",
+  "name": "Demet Bağcığı"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Poşet",
+  "modified": "2024-12-25 18:12:36.811121",
+  "name": "Poşet"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "İPLİ ÜRÜN",
+  "modified": "2024-12-25 18:12:36.815142",
+  "name": "İPLİ ÜRÜN"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Elektrod",
+  "modified": "2024-12-25 18:12:36.820068",
+  "name": "Elektrod"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Clip",
+  "modified": "2024-12-25 18:12:36.824858",
+  "name": "Clip"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "FİLTRE",
+  "modified": "2024-12-25 18:12:36.827959",
+  "name": "FİLTRE"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Filter Unit",
+  "modified": "2024-12-25 18:12:36.831598",
+  "name": "Filter Unit"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "O-Ring 15.54 X 2.62",
+  "modified": "2024-12-25 18:12:36.834876",
+  "name": "O-Ring 15.54 X 2.62"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "8716771119 CAP",
+  "modified": "2024-12-25 18:12:36.837913",
+  "name": "8716771119 CAP"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "O-Ring 17.12 X 2.62",
+  "modified": "2024-12-25 18:12:36.841984",
+  "name": "O-Ring 17.12 X 2.62"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "8716771118 RESTRICTOR CARDRIDGE",
+  "modified": "2024-12-25 18:12:36.845432",
+  "name": "8716771118 RESTRICTOR CARDRIDGE"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "AKIŞ SINIRLAYICI 8 Lt.BEYAZ",
+  "modified": "2024-12-25 18:12:36.849254",
+  "name": "AKIŞ SINIRLAYICI 8 Lt.BEYAZ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Unisilikon L641",
+  "modified": "2024-12-25 18:12:36.852742",
+  "name": "Unisilikon L641"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kombischraube M5X30",
+  "modified": "2024-12-25 18:12:36.855965",
+  "name": "Kombischraube M5X30"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "8716771383 RESTRICTOR CARDRIDGE",
+  "modified": "2024-12-25 18:12:36.860454",
+  "name": "8716771383 RESTRICTOR CARDRIDGE"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "LIMITER",
+  "modified": "2024-12-25 18:12:36.865751",
+  "name": "LIMITER"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "KTW Lİ ÜRÜN",
+  "modified": "2024-12-25 18:12:36.872075",
+  "name": "KTW Lİ ÜRÜN"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "O-RING",
+  "modified": "2024-12-25 18:12:36.876334",
+  "name": "O-RING"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "MAVİ KOVAN",
+  "modified": "2024-12-25 18:12:36.879982",
+  "name": "MAVİ KOVAN"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Mikro Şalter",
+  "modified": "2024-12-25 18:12:36.891461",
+  "name": "Mikro Şalter"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "plastik vida",
+  "modified": "2024-12-25 18:12:36.896867",
+  "name": "plastik vida"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "FIRDÖNDÜ ÇİVİSİ",
+  "modified": "2024-12-25 18:12:36.900636",
+  "name": "FIRDÖNDÜ ÇİVİSİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "FORMLU SAC",
+  "modified": "2024-12-25 18:12:36.903931",
+  "name": "FORMLU SAC"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Salter Yayi",
+  "modified": "2024-12-25 18:12:36.907046",
+  "name": "Salter Yayi"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "REGU YAYI",
+  "modified": "2024-12-25 18:12:36.910075",
+  "name": "REGU YAYI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "SU PARÇASI SOKETİ",
+  "modified": "2024-12-25 18:12:36.913215",
+  "name": "SU PARÇASI SOKETİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "BASINÇLI TAHLİYE VALFİ",
+  "modified": "2024-12-25 18:12:36.917962",
+  "name": "BASINÇLI TAHLİYE VALFİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "BAĞLANTI REKORU",
+  "modified": "2024-12-25 18:12:36.927519",
+  "name": "BAĞLANTI REKORU"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "MERCİMEK VİDA",
+  "modified": "2024-12-25 18:12:36.932074",
+  "name": "MERCİMEK VİDA"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "SU FİLTRESİ",
+  "modified": "2024-12-25 18:12:36.937578",
+  "name": "SU FİLTRESİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "PLAKA",
+  "modified": "2024-12-25 18:12:36.941880",
+  "name": "PLAKA"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Samandra Konisi",
+  "modified": "2024-12-25 18:12:36.945998",
+  "name": "Samandra Konisi"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "REGU SOKETİ",
+  "modified": "2024-12-25 18:12:36.949096",
+  "name": "REGU SOKETİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "BUGEL BİMETAL",
+  "modified": "2024-12-25 18:12:36.952115",
+  "name": "BUGEL BİMETAL"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "LASTİK KAPAK",
+  "modified": "2024-12-25 18:12:36.955561",
+  "name": "LASTİK KAPAK"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kağıt",
+  "modified": "2024-12-25 18:12:36.959994",
+  "name": "Kağıt"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "METAL KABLO TUTUCU",
+  "modified": "2024-12-25 18:12:36.963850",
+  "name": "METAL KABLO TUTUCU"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Plastik Vidası",
+  "modified": "2024-12-25 18:12:36.968300",
+  "name": "Plastik Vidası"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Komple Boru",
+  "modified": "2024-12-25 18:12:36.971207",
+  "name": "Komple Boru"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Bağlantı Parçası",
+  "modified": "2024-12-25 18:12:36.973793",
+  "name": "Bağlantı Parçası"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "FLAT KABLO",
+  "modified": "2024-12-25 18:12:36.976986",
+  "name": "FLAT KABLO"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Ray",
+  "modified": "2024-12-25 18:12:36.980311",
+  "name": "Ray"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kapasitör",
+  "modified": "2024-12-25 18:12:36.983535",
+  "name": "Kapasitör"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Terminal Köprüsü",
+  "modified": "2024-12-25 18:12:36.986692",
+  "name": "Terminal Köprüsü"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Metal Saç",
+  "modified": "2024-12-25 18:12:36.990502",
+  "name": "Metal Saç"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Perçin",
+  "modified": "2024-12-25 18:12:36.994774",
+  "name": "Perçin"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "SİVİÇ YAYI",
+  "modified": "2024-12-25 18:12:36.997970",
+  "name": "SİVİÇ YAYI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Buzzer",
+  "modified": "2024-12-25 18:12:37.005556",
+  "name": "Buzzer"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Röle",
+  "modified": "2024-12-25 18:12:37.009266",
+  "name": "Röle"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "End Cover",
+  "modified": "2024-12-25 18:12:37.013787",
+  "name": "End Cover"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kelepçe",
+  "modified": "2024-12-25 18:12:37.018729",
+  "name": "Kelepçe"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Körtıpa",
+  "modified": "2024-12-25 18:12:37.021833",
+  "name": "Körtıpa"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Sigorta Yuvası",
+  "modified": "2024-12-25 18:12:37.027171",
+  "name": "Sigorta Yuvası"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Sigorta teli",
+  "modified": "2024-12-25 18:12:37.031833",
+  "name": "Sigorta teli"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Silindir Kafası Kapağı (tutuculu)",
+  "modified": "2024-12-25 18:12:37.037271",
+  "name": "Silindir Kafası Kapağı (tutuculu)"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Lehim Malzemesi",
+  "modified": "2024-12-25 18:12:37.046395",
+  "name": "Lehim Malzemesi"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Led",
+  "modified": "2024-12-25 18:12:37.050647",
+  "name": "Led"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "LEHİM PASTASI",
+  "modified": "2024-12-25 18:12:37.054051",
+  "name": "LEHİM PASTASI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "PTC",
+  "modified": "2024-12-25 18:12:37.059351",
+  "name": "PTC"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "ISITICI SACI",
+  "modified": "2024-12-25 18:12:37.063214",
+  "name": "ISITICI SACI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Braket",
+  "modified": "2024-12-25 18:12:37.066854",
+  "name": "Braket"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "PTC ısıtıc",
+  "modified": "2024-12-25 18:12:37.070685",
+  "name": "PTC ısıtıc"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Saç",
+  "modified": "2024-12-25 18:12:37.074764",
+  "name": "Saç"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kablo Tutucu",
+  "modified": "2024-12-25 18:12:37.078625",
+  "name": "Kablo Tutucu"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Fiş Kafası",
+  "modified": "2024-12-25 18:12:37.082485",
+  "name": "Fiş Kafası"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Kontak (Ferrule)",
+  "modified": "2024-12-25 18:12:37.086811",
+  "name": "Kontak (Ferrule)"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Halka",
+  "modified": "2024-12-25 18:12:37.091031",
+  "name": "Halka"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Isıtıcı",
+  "modified": "2024-12-25 18:12:37.095302",
+  "name": "Isıtıcı"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "KISMA VALFİ 12 Lt. KIRMIZI",
+  "modified": "2024-12-25 18:12:37.098763",
+  "name": "KISMA VALFİ 12 Lt. KIRMIZI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "AKIŞ SINIRLAYICI 12 Lt.KIRMIZI",
+  "modified": "2024-12-25 18:12:37.103622",
+  "name": "AKIŞ SINIRLAYICI 12 Lt.KIRMIZI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "BAĞLANTI FLANSI",
+  "modified": "2024-12-25 18:12:37.107575",
+  "name": "BAĞLANTI FLANSI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "O-Ring 7.75 X 2.1",
+  "modified": "2024-12-25 18:12:37.111047",
+  "name": "O-Ring 7.75 X 2.1"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Sicherungsfeder 10mm",
+  "modified": "2024-12-25 18:12:37.115339",
+  "name": "Sicherungsfeder 10mm"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "THROTTLE ÜNİTESİ",
+  "modified": "2024-12-25 18:12:37.119702",
+  "name": "THROTTLE ÜNİTESİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Sicherungsfeder 18mm",
+  "modified": "2024-12-25 18:12:37.123665",
+  "name": "Sicherungsfeder 18mm"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "O-Ring 6 X 2.5",
+  "modified": "2024-12-25 18:12:37.128555",
+  "name": "O-Ring 6 X 2.5"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "8716771097 BLANKING PLUG",
+  "modified": "2024-12-25 18:12:37.132368",
+  "name": "8716771097 BLANKING PLUG"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "O-Ring 13.87 X 3.53",
+  "modified": "2024-12-25 18:12:37.136420",
+  "name": "O-Ring 13.87 X 3.53"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "O-Ring 17 X 4",
+  "modified": "2024-12-25 18:12:37.140982",
+  "name": "O-Ring 17 X 4"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Schnellverschl.clip",
+  "modified": "2024-12-25 18:12:37.145956",
+  "name": "Schnellverschl.clip"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "UYARI ETIKETI",
+  "modified": "2024-12-25 18:12:37.150785",
+  "name": "UYARI ETIKETI"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "ÇEKVALF",
+  "modified": "2024-12-25 18:12:37.154180",
+  "name": "ÇEKVALF"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "O-Ring 7 X 2.75",
+  "modified": "2024-12-25 18:12:37.158255",
+  "name": "O-Ring 7 X 2.75"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "BASINÇ ŞALTERİ",
+  "modified": "2024-12-25 18:12:37.163921",
+  "name": "BASINÇ ŞALTERİ"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Hammadde",
+  "modified": "2024-12-25 18:12:37.171542",
+  "name": "Hammadde"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "KONTAKTÖR",
+  "modified": "2024-12-25 18:12:37.176423",
+  "name": "KONTAKTÖR"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Cam Sigorta",
+  "modified": "2024-12-25 18:12:37.179836",
+  "name": "Cam Sigorta"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Metal Blok",
+  "modified": "2024-12-25 18:12:37.184478",
+  "name": "Metal Blok"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Yükselteç",
+  "modified": "2024-12-25 18:12:37.187872",
+  "name": "Yükselteç"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Gromet",
+  "modified": "2024-12-25 18:12:37.192145",
+  "name": "Gromet"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "PCB",
+  "modified": "2024-12-25 18:12:37.196497",
+  "name": "PCB"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Sonlandırıcı",
+  "modified": "2024-12-25 18:12:37.200411",
+  "name": "Sonlandırıcı"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Klemensli Soket",
+  "modified": "2024-12-25 18:12:37.204511",
+  "name": "Klemensli Soket"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Durdurucu",
+  "modified": "2024-12-25 18:12:37.208764",
+  "name": "Durdurucu"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 0,
+  "doctype": "KTA Ithalat Kisa Malzeme Aciklamalari",
+  "kta_ithalat_tanimi": "Seramik Resistör",
+  "modified": "2024-12-25 18:12:37.213635",
+  "name": "Seramik Resistör"
+ }
+]

@@ -249,5 +249,6 @@ fixtures = [
     "Olcu Metodu",
     "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri",
     "TR Gumruk Idareleri",
-    "Asset Category"
+    "Asset Category",
+    "KTA Ithalat Kisa Malzeme Aciklamalari"
 ]

@@ -56,6 +56,7 @@
   "others_section",
   "d3_others",
   "section_break_pkjp",
+  "3d",
   "kalite_8d_formu_4d_sekmesi",
   "d4_why_occured",
   "d4_occured_1",
@@ -75,10 +76,12 @@
   "d4_not_forecasted_3",
   "d4_not_forecasted_4",
   "d4_not_forecasted_5",
+  "section_break_y7xr",
+  "4d",
   "kalite_8d_formu_5d_sekmesi",
   "d5_corrective_action",
   "kalite_8d_formu_6d_sekmesi",
-  "6d",
+  "d6_verification",
   "kalite_8d_formu_7d_sekmesi",
   "d7_preventive_action",
   "section_break_ov3h",
@@ -91,6 +94,8 @@
   "d7_control_plan_check",
   "kontrol_planlama_g\u00fcncelleme_tarihi_column",
   "d7_control_plan_date",
+  "section_break_ilnt",
+  "7d",
   "kalite_8d_formu_8d_sekmesi",
   "d8_date_of_closure",
   "d8_signature_person_in_charge"
@@ -117,11 +122,6 @@
    "fieldname": "2d",
    "fieldtype": "Text Editor",
    "label": "2D"
-  },
-  {
-   "fieldname": "6d",
-   "fieldtype": "Text Editor",
-   "label": "6D"
   },
   {
    "fieldname": "custom_8d_durumu",
@@ -549,11 +549,36 @@
    "fieldname": "d8_signature_person_in_charge",
    "fieldtype": "Signature",
    "label": "\u0130mza"
+  },
+  {
+   "fieldname": "d6_verification",
+   "fieldtype": "Table",
+   "options": "D6 Duzeltici Faaliyet Uygulama"
+  },
+  {
+   "fieldname": "3d",
+   "fieldtype": "Text Editor"
+  },
+  {
+   "fieldname": "section_break_y7xr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "4d",
+   "fieldtype": "Text Editor"
+  },
+  {
+   "fieldname": "section_break_ilnt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "7d",
+   "fieldtype": "Text Editor"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-24 20:00:10.422262",
+ "modified": "2024-12-25 12:44:43.333211",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Kalite 8D Formu",
