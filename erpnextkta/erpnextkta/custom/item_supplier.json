@@ -25,7 +25,7 @@
    "hide_border": 0,
    "hide_days": 0,
    "hide_seconds": 0,
-   "idx": 2,
+   "idx": 3,
    "ignore_user_permissions": 0,
    "ignore_xss_filter": 0,
    "in_global_search": 1,
@@ -74,7 +74,7 @@
    "_comments": null,
    "_liked_by": null,
    "_user_tags": null,
-   "creation": "2024-11-28 08:16:32.243589",
+   "creation": "2024-12-30 16:49:46.866260",
    "default_value": null,
    "doc_type": "Item Supplier",
    "docstatus": 0,
@@ -82,7 +82,7 @@
    "field_name": null,
    "idx": 0,
    "is_system_generated": 0,
-   "modified": "2024-12-22 08:42:25.484862",
+   "modified": "2024-12-30 16:49:46.866260",
    "modified_by": "Administrator",
    "module": null,
    "name": "Item Supplier-main-field_order",
@@ -90,7 +90,7 @@
    "property": "field_order",
    "property_type": "Data",
    "row_name": null,
-   "value": "[\"supplier\", \"supplier_part_no\", \"custom_supplier_part_description\"]"
+   "value": "[\"supplier\", \"supplier_part_no\", \"custom_tedarikci_parca_aciklamasi\"]"
   }
  ],
  "sync_on_migrate": 1
