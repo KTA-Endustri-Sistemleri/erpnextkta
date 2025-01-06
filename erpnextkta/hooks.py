@@ -251,5 +251,11 @@ fixtures = [
     "TR Gumruk Idareleri",
     "Asset Category",
     "KTA Ithalat Kisa Malzeme Aciklamalari",
-    "KTA Operasyon Grubu"
+    "KTA Operasyon Grubu",
+    {
+        "doctype": "Client Script",
+        "filters": [
+            ["name", "in", ["KTA Degerlendirme Toplami"]]
+        ]
+    }
 ]
