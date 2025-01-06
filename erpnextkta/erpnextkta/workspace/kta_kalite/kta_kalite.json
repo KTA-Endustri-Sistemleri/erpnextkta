@@ -1,0 +1,53 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"jAYD5OUc8O\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">KTA Kalite</span>\",\"col\":12}},{\"id\":\"015YM6c5lQ\",\"type\":\"card\",\"data\":{\"card_name\":\"8D\",\"col\":4}}]",
+ "creation": "2025-01-06 12:53:51.532678",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "right",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "KTA Kalite",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "8D",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "8D Formlar\u0131",
+   "link_count": 0,
+   "link_to": "Kalite 8D Formu",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-01-06 13:03:56.993437",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "KTA Kalite",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "Quality",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Quality Manager"
+  }
+ ],
+ "sequence_id": 32.0,
+ "shortcuts": [],
+ "title": "KTA Kalite"
+}
