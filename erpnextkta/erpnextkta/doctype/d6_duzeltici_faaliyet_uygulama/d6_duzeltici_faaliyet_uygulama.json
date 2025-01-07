@@ -15,6 +15,7 @@
   {
    "fieldname": "d6_verification_result",
    "fieldtype": "Small Text",
+   "in_list_view": 1,
    "label": "Do\u011frulama"
   },
   {
@@ -40,7 +41,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-01-07 08:32:17.634623",
+ "modified": "2025-01-07 08:51:19.873533",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "D6 Duzeltici Faaliyet Uygulama",
