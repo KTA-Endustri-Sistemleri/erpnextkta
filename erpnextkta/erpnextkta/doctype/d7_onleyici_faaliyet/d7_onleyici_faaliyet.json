@@ -15,29 +15,33 @@
   {
    "fieldname": "d7_preventive_action_item",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "\u00d6nleyici Faaliyet"
   },
   {
    "fieldname": "d7_preventive_action_responsible",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Sorumlu",
    "options": "Employee"
   },
   {
    "fieldname": "d7_preventive_action_due_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Termin"
   },
   {
    "fieldname": "d7_preventive_action_completion_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Tamamlanma Tarihi"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-12-24 19:38:19.001452",
+ "modified": "2025-01-07 08:51:05.419335",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "D7 Onleyici Faaliyet",
