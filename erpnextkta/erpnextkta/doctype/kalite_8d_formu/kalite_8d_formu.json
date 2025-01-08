@@ -5,12 +5,13 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "1d_section",
+  "8d_details",
   "subject",
   "workflow_state",
   "custom_8d_durumu",
   "column_break_krww",
   "kalite_8d_formu_1d_sekmesi",
+  "1d_section",
   "d1_musteri",
   "d1_malzeme_no",
   "column_break_9beb",
@@ -627,11 +628,15 @@
    "fieldname": "new_parts_shipment_column",
    "fieldtype": "Column Break",
    "label": "New Parts Shipment"
+  },
+  {
+   "fieldname": "8d_details",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-08 18:39:22.482836",
+ "modified": "2025-01-08 18:47:24.839046",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Kalite 8D Formu",
