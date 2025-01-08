@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "1d_section",
   "subject",
   "workflow_state",
   "custom_8d_durumu",
@@ -27,27 +28,30 @@
   "section_break_anuu",
   "1d",
   "kalite_8d_formu_2d_sekmesi",
+  "2d_section",
   "d2_claim_accepted",
-  "section_break_bqtg",
   "d2_repeated_failure",
-  "column_break_yqqq",
+  "column_break_mlam",
   "d2_previous_8d",
   "section_break_pror",
   "2d",
   "kalite_8d_formu_3d_sekmesi",
   "stok_kontrol_section",
+  "stok_kontrol_column",
   "d3_stock_responsible",
   "column_break_b14b",
   "d3_stock_due_date",
   "column_break_bl9f",
   "d3_stock_completion_date",
   "rework_section",
+  "rework_column",
   "d3_rework_responsible",
   "column_break_m9yu",
   "d3_rework_due_date",
   "column_break_1zuc",
   "d3_rework_completion_date",
   "new_parts_shipment_section",
+  "new_parts_shipment_column",
   "d3_new_parts_responsible",
   "column_break_qnis",
   "d3_new_parts_due_date",
@@ -58,6 +62,7 @@
   "section_break_pkjp",
   "3d",
   "kalite_8d_formu_4d_sekmesi",
+  "4d_section",
   "d4_why_occured",
   "d4_occured_1",
   "d4_occured_2",
@@ -79,10 +84,13 @@
   "section_break_y7xr",
   "4d",
   "kalite_8d_formu_5d_sekmesi",
+  "5d_section",
   "d5_corrective_action",
   "kalite_8d_formu_6d_sekmesi",
+  "6d_section",
   "d6_verification",
   "kalite_8d_formu_7d_sekmesi",
+  "7d_section",
   "d7_preventive_action",
   "section_break_ov3h",
   "fmea_g\u00fcncellemesi_column",
@@ -97,6 +105,7 @@
   "section_break_ilnt",
   "7d",
   "kalite_8d_formu_8d_sekmesi",
+  "8d_section",
   "d8_date_of_closure",
   "d8_signature_person_in_charge"
  ],
@@ -120,8 +129,7 @@
   },
   {
    "fieldname": "2d",
-   "fieldtype": "Text Editor",
-   "label": "2D"
+   "fieldtype": "Text Editor"
   },
   {
    "fieldname": "custom_8d_durumu",
@@ -270,10 +278,6 @@
    "label": "Claim Accepted?"
   },
   {
-   "fieldname": "section_break_bqtg",
-   "fieldtype": "Section Break"
-  },
-  {
    "default": "0",
    "fieldname": "d2_repeated_failure",
    "fieldtype": "Check",
@@ -288,17 +292,13 @@
    "options": "Kalite 8D Formu"
   },
   {
-   "fieldname": "column_break_yqqq",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "section_break_pror",
    "fieldtype": "Section Break"
   },
   {
    "fieldname": "stok_kontrol_section",
    "fieldtype": "Section Break",
-   "label": "Stok Kontrol"
+   "label": "3D"
   },
   {
    "fieldname": "d3_stock_responsible",
@@ -326,8 +326,7 @@
   },
   {
    "fieldname": "rework_section",
-   "fieldtype": "Section Break",
-   "label": "Rework"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "d3_rework_responsible",
@@ -355,8 +354,7 @@
   },
   {
    "fieldname": "new_parts_shipment_section",
-   "fieldtype": "Section Break",
-   "label": "New Parts Shipment"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "d3_new_parts_responsible",
@@ -478,67 +476,68 @@
    "columns": 4,
    "fieldname": "d5_corrective_action",
    "fieldtype": "Table",
+   "label": "\u00d6nleyici Faaliyet",
    "options": "D5 Duzeltici Faaliyet"
   },
   {
    "columns": 4,
    "fieldname": "d7_preventive_action",
    "fieldtype": "Table",
-   "label": "Preventive Action",
+   "label": "\u00d6nleyici Faaliyet",
    "options": "D7 Onleyici Faaliyet"
   },
   {
    "fieldname": "section_break_ov3h",
-   "fieldtype": "Section Break",
-   "label": "FMEA"
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
    "fieldname": "d7_fmea_update_check",
-   "fieldtype": "Check"
+   "fieldtype": "Check",
+   "label": "G\u00fcncelleme"
   },
   {
    "default": "0",
    "fieldname": "d7_control_plan_check",
-   "fieldtype": "Check"
+   "fieldtype": "Check",
+   "label": "G\u00fcncelleme Tarihi"
   },
   {
    "fieldname": "column_break_noih",
-   "fieldtype": "Column Break",
-   "label": "G\u00fcncelleme Tarihi"
+   "fieldtype": "Column Break"
   },
   {
    "depends_on": "d7_fmea_update_check",
    "fieldname": "d7_fmea_update_date",
    "fieldtype": "Date",
+   "label": "G\u00fcncelleme Tarihi",
    "mandatory_depends_on": "d7_fmea_update_check"
   },
   {
    "depends_on": "d7_control_plan_check",
    "fieldname": "d7_control_plan_date",
    "fieldtype": "Date",
+   "label": "G\u00fcncelleme Tarihi",
    "mandatory_depends_on": "d7_control_plan_check"
   },
   {
    "fieldname": "fmea_g\u00fcncellemesi_column",
    "fieldtype": "Column Break",
-   "label": "G\u00fcncelleme"
+   "label": "FMEA"
   },
   {
    "fieldname": "section_break_csrk",
-   "fieldtype": "Section Break",
-   "label": "Kontrol Plan\u0131"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "kontrol_plan\u0131_g\u00fcncellemesi_column",
    "fieldtype": "Column Break",
-   "label": "G\u00fcncelleme"
+   "label": "Kontrol Plan\u0131"
   },
   {
    "default": "0",
    "fieldname": "kontrol_planlama_g\u00fcncelleme_tarihi_column",
-   "fieldtype": "Column Break",
-   "label": "G\u00fcncelleme Tarihi"
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "d8_date_of_closure",
@@ -574,11 +573,65 @@
   {
    "fieldname": "7d",
    "fieldtype": "Text Editor"
+  },
+  {
+   "fieldname": "1d_section",
+   "fieldtype": "Section Break",
+   "label": "1D"
+  },
+  {
+   "fieldname": "2d_section",
+   "fieldtype": "Section Break",
+   "label": "2D"
+  },
+  {
+   "fieldname": "column_break_mlam",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "4d_section",
+   "fieldtype": "Section Break",
+   "label": "4D"
+  },
+  {
+   "fieldname": "5d_section",
+   "fieldtype": "Section Break",
+   "label": "5D"
+  },
+  {
+   "fieldname": "6d_section",
+   "fieldtype": "Section Break",
+   "label": "6D"
+  },
+  {
+   "fieldname": "7d_section",
+   "fieldtype": "Section Break",
+   "label": "7D"
+  },
+  {
+   "fieldname": "8d_section",
+   "fieldtype": "Section Break",
+   "label": "8D"
+  },
+  {
+   "fieldname": "stok_kontrol_column",
+   "fieldtype": "Column Break",
+   "label": "Stok Kontrol"
+  },
+  {
+   "fieldname": "rework_column",
+   "fieldtype": "Column Break",
+   "label": "Rework"
+  },
+  {
+   "fieldname": "new_parts_shipment_column",
+   "fieldtype": "Column Break",
+   "label": "New Parts Shipment"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-25 12:44:43.333211",
+ "modified": "2025-01-08 18:39:22.482836",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Kalite 8D Formu",
