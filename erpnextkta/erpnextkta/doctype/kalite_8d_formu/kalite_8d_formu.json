@@ -37,6 +37,8 @@
   "section_break_pror",
   "2d",
   "kalite_8d_formu_3d_sekmesi",
+  "section_break_pkjp",
+  "3d",
   "stok_kontrol_section",
   "stok_kontrol_column",
   "d3_stock_responsible",
@@ -60,9 +62,9 @@
   "d3_new_parts_completion_date",
   "others_section",
   "d3_others",
-  "section_break_pkjp",
-  "3d",
   "kalite_8d_formu_4d_sekmesi",
+  "section_break_y7xr",
+  "4d",
   "4d_section",
   "d4_why_occured",
   "d4_occured_1",
@@ -82,8 +84,6 @@
   "d4_not_forecasted_3",
   "d4_not_forecasted_4",
   "d4_not_forecasted_5",
-  "section_break_y7xr",
-  "4d",
   "kalite_8d_formu_5d_sekmesi",
   "5d_section",
   "d5_corrective_action",
@@ -92,6 +92,7 @@
   "d6_verification",
   "kalite_8d_formu_7d_sekmesi",
   "7d_section",
+  "7d",
   "d7_preventive_action",
   "section_break_ov3h",
   "fmea_g\u00fcncellemesi_column",
@@ -103,8 +104,6 @@
   "d7_control_plan_check",
   "kontrol_planlama_g\u00fcncelleme_tarihi_column",
   "d7_control_plan_date",
-  "section_break_ilnt",
-  "7d",
   "kalite_8d_formu_8d_sekmesi",
   "8d_section",
   "d8_date_of_closure",
@@ -143,49 +142,49 @@
    "depends_on": "eval:doc.custom_8d_durumu>=1",
    "fieldname": "kalite_8d_formu_1d_sekmesi",
    "fieldtype": "Tab Break",
-   "label": "1D"
+   "label": "D1"
   },
   {
    "depends_on": "eval:doc.custom_8d_durumu>=2",
    "fieldname": "kalite_8d_formu_2d_sekmesi",
    "fieldtype": "Tab Break",
-   "label": "2D"
+   "label": "D2"
   },
   {
    "depends_on": "eval:doc.custom_8d_durumu>=3",
    "fieldname": "kalite_8d_formu_3d_sekmesi",
    "fieldtype": "Tab Break",
-   "label": "3D"
+   "label": "D3"
   },
   {
    "depends_on": "eval:doc.custom_8d_durumu>=4",
    "fieldname": "kalite_8d_formu_4d_sekmesi",
    "fieldtype": "Tab Break",
-   "label": "4D"
+   "label": "D4"
   },
   {
    "depends_on": "eval:doc.custom_8d_durumu>=5",
    "fieldname": "kalite_8d_formu_5d_sekmesi",
    "fieldtype": "Tab Break",
-   "label": "5D"
+   "label": "D5"
   },
   {
    "depends_on": "eval:doc.custom_8d_durumu>=6",
    "fieldname": "kalite_8d_formu_6d_sekmesi",
    "fieldtype": "Tab Break",
-   "label": "6D"
+   "label": "D6"
   },
   {
    "depends_on": "eval:doc.custom_8d_durumu>=7",
    "fieldname": "kalite_8d_formu_7d_sekmesi",
    "fieldtype": "Tab Break",
-   "label": "7D"
+   "label": "D7"
   },
   {
    "depends_on": "eval:doc.custom_8d_durumu>=8",
    "fieldname": "kalite_8d_formu_8d_sekmesi",
    "fieldtype": "Tab Break",
-   "label": "8D"
+   "label": "D8"
   },
   {
    "fieldname": "d1_takim_uyeleri",
@@ -205,8 +204,7 @@
   },
   {
    "fieldname": "tak\u0131m_\u00fcyeleri_section",
-   "fieldtype": "Section Break",
-   "label": "Tak\u0131m \u00dcyeleri"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "d1_sponsor",
@@ -298,8 +296,7 @@
   },
   {
    "fieldname": "stok_kontrol_section",
-   "fieldtype": "Section Break",
-   "label": "3D"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "d3_stock_responsible",
@@ -383,12 +380,12 @@
   },
   {
    "fieldname": "section_break_pkjp",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "D3"
   },
   {
    "fieldname": "others_section",
-   "fieldtype": "Section Break",
-   "label": "Di\u011ferleri"
+   "fieldtype": "Section Break"
   },
   {
    "columns": 5,
@@ -399,7 +396,8 @@
   },
   {
    "fieldname": "d4_occured_1",
-   "fieldtype": "Small Text"
+   "fieldtype": "Small Text",
+   "label": "Why has it occured?"
   },
   {
    "fieldname": "d4_occured_2",
@@ -419,12 +417,12 @@
   },
   {
    "fieldname": "d4_why_not_detected",
-   "fieldtype": "Column Break",
-   "label": "Why has it not been detected?"
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "d4_not_detected_1",
-   "fieldtype": "Small Text"
+   "fieldtype": "Small Text",
+   "label": "Why has it not been detected?"
   },
   {
    "fieldname": "d4_not_detected_2",
@@ -444,12 +442,12 @@
   },
   {
    "fieldname": "d4_why_not_forecasted",
-   "fieldtype": "Column Break",
-   "label": "Why has it not been forecasted?"
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "d4_not_forecasted_1",
-   "fieldtype": "Small Text"
+   "fieldtype": "Small Text",
+   "label": "Why has it not been forecasted?"
   },
   {
    "fieldname": "d4_not_forecasted_2",
@@ -469,8 +467,7 @@
   },
   {
    "fieldname": "d4_why_occured",
-   "fieldtype": "Column Break",
-   "label": "Why has it occured?"
+   "fieldtype": "Column Break"
   },
   {
    "allow_bulk_edit": 1,
@@ -484,7 +481,7 @@
    "columns": 4,
    "fieldname": "d7_preventive_action",
    "fieldtype": "Table",
-   "label": "\u00d6nleyici Faaliyet",
+   "label": "\u00d6nleyici \u0130\u015flem",
    "options": "D7 Onleyici Faaliyet"
   },
   {
@@ -561,15 +558,12 @@
   },
   {
    "fieldname": "section_break_y7xr",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "D4"
   },
   {
    "fieldname": "4d",
    "fieldtype": "Text Editor"
-  },
-  {
-   "fieldname": "section_break_ilnt",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "7d",
@@ -578,12 +572,12 @@
   {
    "fieldname": "1d_section",
    "fieldtype": "Section Break",
-   "label": "1D"
+   "label": "D1"
   },
   {
    "fieldname": "2d_section",
    "fieldtype": "Section Break",
-   "label": "2D"
+   "label": "D2"
   },
   {
    "fieldname": "column_break_mlam",
@@ -591,28 +585,27 @@
   },
   {
    "fieldname": "4d_section",
-   "fieldtype": "Section Break",
-   "label": "4D"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "5d_section",
    "fieldtype": "Section Break",
-   "label": "5D"
+   "label": "D5"
   },
   {
    "fieldname": "6d_section",
    "fieldtype": "Section Break",
-   "label": "6D"
+   "label": "D6"
   },
   {
    "fieldname": "7d_section",
    "fieldtype": "Section Break",
-   "label": "7D"
+   "label": "D7"
   },
   {
    "fieldname": "8d_section",
    "fieldtype": "Section Break",
-   "label": "8D"
+   "label": "D8"
   },
   {
    "fieldname": "stok_kontrol_column",
@@ -636,7 +629,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-08 18:47:24.839046",
+ "modified": "2025-01-08 19:40:35.845314",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Kalite 8D Formu",
