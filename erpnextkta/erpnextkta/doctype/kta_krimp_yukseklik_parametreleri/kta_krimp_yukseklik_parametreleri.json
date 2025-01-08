@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-09 00:23:55.874422",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_zc0v",
+  "amended_from",
+  "kablo_grubu",
+  "terminal",
+  "column_break_gjnm",
+  "krimp_yuksekligi",
+  "cekme_kuvveti_n",
+  "krimp_genisligi",
+  "section_break_olea",
+  "table_kalip"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_zc0v",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "KTA Krimp Yukseklik Parametreleri",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "kablo_grubu",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "KTA Kablo Grubu",
+   "options": "KTA Kablo Gruplari",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_gjnm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "terminal",
+   "fieldtype": "Link",
+   "label": "Terminal",
+   "options": "Item"
+  },
+  {
+   "fieldname": "krimp_yuksekligi",
+   "fieldtype": "Data",
+   "label": "Krimp Y\u00fckseli\u011fi",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cekme_kuvveti_n",
+   "fieldtype": "Data",
+   "label": "\u00c7ekme Kuvveti (N)"
+  },
+  {
+   "fieldname": "krimp_genisligi",
+   "fieldtype": "Data",
+   "label": "Krimp Geni\u015fli\u011fi"
+  },
+  {
+   "fieldname": "section_break_olea",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "table_kalip",
+   "fieldtype": "Table",
+   "label": "Kal\u0131p",
+   "options": "KTA Amboss Takimlari"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-01-09 00:35:25.904874",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "KTA Krimp Yukseklik Parametreleri",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

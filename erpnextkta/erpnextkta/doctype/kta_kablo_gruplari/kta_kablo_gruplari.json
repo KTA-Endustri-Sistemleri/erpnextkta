@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:kablo_grup_adi",
+ "creation": "2025-01-09 00:25:20.096583",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_tjd1",
+  "amended_from",
+  "kablo_grup_adi",
+  "kablo_grubu_kesit_bilgisi_section",
+  "kablo_kesiti",
+  "column_break_frrh",
+  "kablo_kesit_olcu_birimi"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_tjd1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "KTA Kablo Gruplari",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "kablo_grup_adi",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Kablo Grup Ad\u0131",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "kablo_grubu_kesit_bilgisi_section",
+   "fieldtype": "Section Break",
+   "label": "Kablo Grubu Kesit Bilgisi"
+  },
+  {
+   "fieldname": "kablo_kesiti",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Kablo Kesiti"
+  },
+  {
+   "fieldname": "column_break_frrh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "kablo_kesit_olcu_birimi",
+   "fieldtype": "Link",
+   "label": "Kablo Kesit \u00d6l\u00e7\u00fc Birimi",
+   "options": "UOM"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-01-09 00:29:26.160228",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "KTA Kablo Gruplari",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
