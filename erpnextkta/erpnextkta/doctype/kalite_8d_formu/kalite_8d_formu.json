@@ -107,7 +107,8 @@
   "kalite_8d_formu_8d_sekmesi",
   "8d_section",
   "d8_date_of_closure",
-  "d8_signature_person_in_charge"
+  "d8_signature_person_in_charge",
+  "amended_from"
  ],
  "fields": [
   {
@@ -625,11 +626,22 @@
   {
    "fieldname": "8d_details",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Kalite 8D Formu",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-01-08 19:40:35.845314",
+ "modified": "2025-01-09 12:05:44.502796",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Kalite 8D Formu",
@@ -656,13 +668,27 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Employee",
+   "role": "KTA Kalite Kullan\u0131c\u0131s\u0131",
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Quality Manager",
+   "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "track_views": 1
 }
