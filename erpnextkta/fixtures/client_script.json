@@ -9,5 +9,16 @@
   "name": "KTA Degerlendirme Toplami",
   "script": "frappe.ui.form.on('Quality Feedback', {\n\tvalidate(frm) {\n        // calculate points for parameters on the feedback\n        degerlendirme_toplam = 0;\n        $.each(frm.doc.parameters,  function(i,  d) {\n            // calculate total\n            degerlendirme_toplam += flt(d.rating);\n        });\n        frm.doc.degerlendirme_toplami = degerlendirme_toplam;\n\t}\n});",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer",
+  "enabled": 1,
+  "modified": "2025-01-09 17:41:35.114236",
+  "module": "erpnextkta",
+  "name": "KTA Müşteri Gelir Hesabı",
+  "script": "frappe.ui.form.on('Customer', {\n\tsetup(frm) {\n\t\tfrm.set_query(\"customer_income_account\", \"accounts\", function (doc, cdt, cdn) {\n\t\t\tlet d = locals[cdt][cdn];\n\t\t\treturn {\n\t\t\t\tfilters: {\n\t\t\t\t\taccount_type: \"Income Account\",\n\t\t\t\t\troot_type: \"Income\",\n\t\t\t\t\tcompany: d.company,\n\t\t\t\t\tis_group: 0,\n\t\t\t\t},\n\t\t\t};\n\t\t});\n\t}\n});",
+  "view": "Form"
  }
 ]
