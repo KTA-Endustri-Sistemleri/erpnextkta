@@ -129,9 +129,9 @@ app_license = "mit"
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+    "PurchaseReceipt": "erpnextkta.overrides.KTAPurchaseReceipt"
+}
 
 # Document Events
 # ---------------
@@ -256,6 +256,12 @@ fixtures = [
         "doctype": "Client Script",
         "filters": [
             ["name", "in", ["KTA Degerlendirme Toplami"]]
+        ]
+    },
+    {
+        "doctype": "Role Profile",
+        "filters": [
+            ["name", "like", "KTA%"]
         ]
     }
 ]
