@@ -255,7 +255,7 @@ fixtures = [
     {
         "doctype": "Client Script",
         "filters": [
-            ["name", "in", ["KTA Degerlendirme Toplami"]]
+            ["name", "like", "KTA%"]
         ]
     },
     {
