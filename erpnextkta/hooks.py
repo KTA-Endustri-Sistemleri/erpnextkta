@@ -130,7 +130,7 @@ app_license = "mit"
 # Override standard doctype classes
 
 override_doctype_class = {
-    "PurchaseReceipt": "erpnextkta.overrides.KTAPurchaseReceipt"
+    "Purchase Receipt": "erpnextkta.overrides.KTAPurchaseReceipt.KTAPurchaseReceipt"
 }
 
 # Document Events
