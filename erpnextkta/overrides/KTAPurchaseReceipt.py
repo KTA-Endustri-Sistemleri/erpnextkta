@@ -15,10 +15,6 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                         errors.append(
                             f"Row {row.idx}: custom_split_qty must be a positive number. Please set a valid value for custom_split_qty."
                         )
-                    elif split_qty >= row.stock_qty:
-                        errors.append(
-                            f"Row {row.idx}: split_qty is greater than or equal to the total quantity. No splitting required."
-                        )
 
             # If there are errors, throw them as a single message
             if errors:
