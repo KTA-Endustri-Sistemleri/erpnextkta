@@ -28,14 +28,16 @@
    "unique": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "antrepo_beyanname_tarihi",
    "fieldtype": "Date",
+   "in_preview": 1,
    "label": "Antrepo Beyanname Tarihi"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-17 12:33:58.794449",
+ "modified": "2025-01-17 13:11:48.362243",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Antrepo Beyanname No",
