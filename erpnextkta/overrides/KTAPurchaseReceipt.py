@@ -29,6 +29,15 @@ class KTAPurchaseReceipt(PurchaseReceipt):
     def split_kta_batches(self, table_name=None):
         from erpnext.stock.doctype.batch.batch import split_batch
 
+        def _split_batch(row, batch_no, qty):
+            """Helper function to split a batch."""
+            split_batch(
+                batch_no=batch_no,
+                item_code=row.item_code,
+                warehouse=row.warehouse,
+                qty=qty
+            )
+
         for row in self.get(table_name):
             if row.serial_and_batch_bundle:
                 row_batch_number = frappe.db.get_value(
@@ -44,18 +53,8 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 remainder_qty = row.stock_qty % split_qty
 
                 if remainder_qty > 0:
-                    split_batch(
-                        batch_no=row_batch_number,
-                        item_code=row.item_code,
-                        warehouse=row.warehouse,
-                        qty=remainder_qty
-                    )
+                    _split_batch(row, row_batch_number, remainder_qty)
 
                 # Use range(num_splits) to run the loop exactly num_splits times
                 for _ in range(num_splits):
-                    split_batch(
-                        batch_no=row_batch_number,
-                        item_code=row.item_code,
-                        warehouse=row.warehouse,
-                        qty=split_qty
-                    )
+                    _split_batch(row, row_batch_number, split_qty)
