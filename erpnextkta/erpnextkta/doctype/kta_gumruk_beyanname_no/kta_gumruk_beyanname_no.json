@@ -2,43 +2,44 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:antrepo_beyanname_no",
- "creation": "2025-01-15 02:37:26.801110",
+ "autoname": "field:gumruk_beyanname_no",
+ "creation": "2025-01-17 11:27:44.497443",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_7b4d",
-  "antrepo_beyanname_no",
-  "antrepo_beyanname_tarihi"
+  "section_break_6jvt",
+  "gumruk_beyanname_no",
+  "gumruk_beyanname_tarihi"
  ],
  "fields": [
   {
-   "fieldname": "section_break_7b4d",
+   "fieldname": "section_break_6jvt",
    "fieldtype": "Section Break"
   },
   {
    "allow_in_quick_entry": 1,
-   "fieldname": "antrepo_beyanname_no",
+   "fieldname": "gumruk_beyanname_no",
    "fieldtype": "Data",
    "ignore_user_permissions": 1,
+   "in_global_search": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Antrepo Beyanname No",
+   "label": "G\u00fcmr\u00fck Beyanname No",
    "reqd": 1,
    "unique": 1
   },
   {
-   "fieldname": "antrepo_beyanname_tarihi",
+   "fieldname": "gumruk_beyanname_tarihi",
    "fieldtype": "Date",
-   "label": "Antrepo Beyanname Tarihi"
+   "label": "G\u00fcmr\u00fck Beyanname Tarihi"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-17 12:33:58.794449",
+ "modified": "2025-01-17 12:34:19.619588",
  "modified_by": "Administrator",
  "module": "erpnextkta",
- "name": "KTA Antrepo Beyanname No",
+ "name": "KTA Gumruk Beyanname No",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
@@ -101,7 +102,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Purchase Manager",
+   "role": "Purchase Master Manager",
    "share": 1,
    "write": 1
   },
@@ -113,7 +114,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Purchase Master Manager",
+   "role": "Purchase Manager",
    "share": 1,
    "write": 1
   }
