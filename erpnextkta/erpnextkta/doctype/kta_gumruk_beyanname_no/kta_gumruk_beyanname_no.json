@@ -32,13 +32,15 @@
    "allow_in_quick_entry": 1,
    "fieldname": "gumruk_beyanname_tarihi",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "G\u00fcmr\u00fck Beyanname Tarihi"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-17 13:12:30.231511",
+ "modified": "2025-01-19 19:33:20.734672",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Gumruk Beyanname No",
