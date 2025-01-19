@@ -251,12 +251,6 @@ fixtures = [
     "TR Gumruk Idareleri",
     "Asset Category",
     "KTA Ithalat Kisa Malzeme Aciklamalari",
-    "KTA Operasyon Grubu",
-    "KTA Antrepo Beyanname No",
-    "KTA Gumruk Beyanname No",
-    "KTA Krimp Yukseklik Parametreleri",
-    "KTA Kablo Gruplari",
-    "KTA Amboss Takimlari",
     {
         "doctype": "Client Script",
         "filters": [
