@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:antrepo_beyanname_no",
  "creation": "2025-01-15 02:37:26.801110",
@@ -36,7 +37,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-19 07:45:41.077579",
+ "modified": "2025-01-19 07:46:07.241730",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Antrepo Beyanname No",
