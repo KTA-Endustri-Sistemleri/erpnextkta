@@ -31,12 +31,23 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
         def _split_batch(row, batch_no, qty):
             """Helper function to split a batch."""
-            split_batch(
+            batch = split_batch(
                 batch_no=batch_no,
                 item_code=row.item_code,
                 warehouse=row.warehouse,
                 qty=qty
             )
+            # now we prepare our custom content for labels
+            frappe.get_doc(
+                dict(
+                    doctype="KTA Depo Etiketleri",
+                    satınalma_irsaliyesi=row.parent,
+                    malzeme=row.item_code,
+                    qty=qty,
+                    uom=row.stock_uom,
+                    sut_barcode=batch
+                )
+            ).insert()
 
         for row in self.get(table_name):
             if row.serial_and_batch_bundle:
@@ -58,3 +69,10 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 # Use range(num_splits) to run the loop exactly num_splits times
                 for _ in range(num_splits):
                     _split_batch(row, row_batch_number, split_qty)
+
+                sut_codes = frappe.db.get_value(
+                    "Batch",
+                    {"parent_batch": row_batch_number},
+                    ["batch_id", "batch_qty", "stock_uom"],
+                    as_dict=True
+                )
