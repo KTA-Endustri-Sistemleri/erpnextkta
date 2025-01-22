@@ -33,18 +33,21 @@
    "type": "Link"
   }
  ],
- "modified": "2025-01-06 14:07:05.672673",
+ "modified": "2025-01-23 00:54:50.659445",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Kalite",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "",
+ "parent_page": "Quality",
  "public": 1,
  "quick_lists": [],
  "roles": [
   {
    "role": "Quality Manager"
+  },
+  {
+   "role": "KTA Kalite Kullan\u0131c\u0131s\u0131"
   }
  ],
  "sequence_id": 32.0,
