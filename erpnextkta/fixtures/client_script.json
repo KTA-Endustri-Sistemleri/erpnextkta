@@ -42,5 +42,27 @@
   "name": "KTA Müşteri Gelir Hesabı Ataması",
   "script": "frappe.ui.form.on('Sales Invoice', {\r\n    onload: function(frm) {\r\n        // Populate income account for all items when the form is loaded\r\n        frm.doc.items.forEach(function(item) {\r\n            if (item.item_code && frm.doc.company && frm.doc.customer) {\r\n                fetch_customer_income_account(frm, item);\r\n            }\r\n        });\r\n    },\r\n    refresh: function(frm) {\r\n        // Populate income account for all items when the form is refreshed\r\n        frm.doc.items.forEach(function(item) {\r\n            if (item.item_code && frm.doc.company && frm.doc.customer) {\r\n                fetch_customer_income_account(frm, item);\r\n            }\r\n        });\r\n    }\r\n});\r\n\r\nfrappe.ui.form.on('Sales Invoice Item', {\r\n    item_code: function(frm, cdt, cdn) {\r\n        let item = frappe.get_doc(cdt, cdn);\r\n        if (item.item_code && frm.doc.company && frm.doc.customer) {\r\n            frappe.call({\r\n                method: 'erpnextkta.api.get_customer_income_account', // Updated method path\r\n                args: {\r\n                    'customer': frm.doc.customer,\r\n                    'company': frm.doc.company\r\n                },\r\n                callback: function(r) {\r\n                    if (r.message) {\r\n                        frappe.model.set_value(cdt, cdn, 'income_account', r.message);\r\n                    } else {\r\n                        frappe.msgprint(__(\"No customer income account found for the selected customer and company.\"));\r\n                    }\r\n                }\r\n            });\r\n        }\r\n    }\r\n});\r\n\r\nfunction fetch_customer_income_account(frm, item) {\r\n    frappe.call({\r\n        method: 'erpnextkta.api.get_customer_income_account', // Updated method path\r\n        args: {\r\n            'customer': frm.doc.customer,\r\n            'company': frm.doc.company\r\n        },\r\n        callback: function(r) {\r\n            if (r.message) {\r\n                frappe.model.set_value(item.doctype, item.name, 'income_account', r.message);\r\n            } else {\r\n                frappe.msgprint(__(\"No customer income account found for the selected customer and company.\"));\r\n            }\r\n        }\r\n    });\r\n}",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Job Card",
+  "enabled": 1,
+  "modified": "2025-01-23 01:46:54.882008",
+  "module": "erpnextkta",
+  "name": "KTA Job Card employee ignore_user_permissions",
+  "script": "frappe.ui.form.on('Job Card', {\n    refresh: function(frm) {\n        // Set \"Ignore User Permissions\" for the field\n        frm.set_df_property('employee', 'ignore_user_permissions', 1);\n    }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Kalite 8D Formu",
+  "enabled": 1,
+  "modified": "2025-01-23 02:07:31.420310",
+  "module": "erpnextkta",
+  "name": "KTA Kalite 8D Formu d1_takim_uyesi",
+  "script": "frappe.ui.form.on('D1 Takim Uyeleri', {\n    refresh: function(frm) {\n        // Set \"Ignore User Permissions\" for the field in the child table\n        frm.set_df_property('d1_takim_uyesi', 'ignore_user_permissions', 1);\n    }\n});",
+  "view": "Form"
  }
 ]
