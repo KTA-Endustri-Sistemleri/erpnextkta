@@ -21,6 +21,7 @@
   {
    "fieldname": "d3_others_responsible",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "in_list_view": 1,
    "label": "Sorumlu",
    "options": "Employee"
@@ -41,7 +42,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-01-07 08:38:13.025016",
+ "modified": "2025-02-07 09:00:12.700327",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "D3 Digerleri",

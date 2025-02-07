@@ -210,12 +210,14 @@
   {
    "fieldname": "d1_sponsor",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Sponsor",
    "options": "Employee"
   },
   {
    "fieldname": "d1_takim_lideri",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Tak\u0131m Lideri",
    "options": "Employee"
   },
@@ -230,12 +232,14 @@
   {
    "fieldname": "d1_musteri",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "M\u00fc\u015fteri",
    "options": "Customer"
   },
   {
    "fieldname": "d1_malzeme_no",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Malzeme No.",
    "options": "Item"
   },
@@ -287,6 +291,7 @@
    "depends_on": "d2_repeated_failure",
    "fieldname": "d2_previous_8d",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Previous 8D No.",
    "mandatory_depends_on": "d2_repeated_failure",
    "options": "Kalite 8D Formu"
@@ -302,6 +307,7 @@
   {
    "fieldname": "d3_stock_responsible",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Sorumlu",
    "options": "Employee"
   },
@@ -330,6 +336,7 @@
   {
    "fieldname": "d3_rework_responsible",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Sorumlu",
    "options": "Employee"
   },
@@ -358,6 +365,7 @@
   {
    "fieldname": "d3_new_parts_responsible",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Sorumlu",
    "options": "Employee"
   },
@@ -641,7 +649,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-09 12:05:44.502796",
+ "modified": "2025-02-07 09:02:52.300774",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Kalite 8D Formu",
@@ -662,7 +670,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,

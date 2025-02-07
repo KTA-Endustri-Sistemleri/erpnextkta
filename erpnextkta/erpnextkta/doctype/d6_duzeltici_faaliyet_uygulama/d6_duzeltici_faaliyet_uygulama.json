@@ -21,6 +21,7 @@
   {
    "fieldname": "d6_verification_responsible",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "in_list_view": 1,
    "label": "Sorumlu",
    "options": "Employee"
@@ -41,7 +42,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-01-07 08:51:19.873533",
+ "modified": "2025-02-07 09:01:23.683515",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "D6 Duzeltici Faaliyet Uygulama",

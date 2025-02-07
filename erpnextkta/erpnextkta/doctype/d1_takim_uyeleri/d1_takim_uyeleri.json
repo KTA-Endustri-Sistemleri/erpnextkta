@@ -14,6 +14,7 @@
   {
    "fieldname": "d1_takim_uyesi",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "\u00c7al\u0131\u015fan",
@@ -40,7 +41,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-01-19 13:13:35.948913",
+ "modified": "2025-02-07 08:53:04.987538",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "D1 Takim Uyeleri",
