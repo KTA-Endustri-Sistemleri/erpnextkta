@@ -5,3 +5,8 @@
 tags
 node_modules
 __pycache__
+/.idea/erpnextkta.iml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/vcs.xml
+/.idea/workspace.xml
