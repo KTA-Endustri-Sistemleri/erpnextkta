@@ -8,7 +8,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
     def send_data_to_zebra(self, data, ip, port):
         pass
 
-    def zebra_formatter(data):
+    def zebra_formatter(self, data):
         pass
         """
             ^XA
@@ -17,17 +17,20 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         """
 
     def print_zebra(self):
-        data =frappe.db.get_value(
+        data = frappe.db.get_value(
             "KTA Depo Etiketleri",
             {"satınalma_irsaliyesi": self.name},
             ["item_code", "qty", "uom", "goods_receipt_date", "sut"],
             as_dict=True
         )
-        
+
+        print(data)
+        print("123123")
+
+        # TODO: SUT
         # description, item tablosundan alınacak
         # self.supplier_delivery_note
-        
-        print(data)
+
         # formatted_data = self.zebra_formatter(data)
         # send_data_to_zebra(formatted_data, ip, port)
 
@@ -44,12 +47,13 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             dict(
                 doctype="KTA Depo Etiketleri",
                 satınalma_irsaliyesi=row.parent,
-                malzeme=row.item_code,
+                item_code=row.item_code,
                 qty=qty,
                 uom=row.stock_uom,
                 sut_barcode=batch
             )
         ).insert()
+        frappe.db.commit()
 
     def custom_split_kta_batches(self, table_name=None):
         for row in self.get(table_name):
