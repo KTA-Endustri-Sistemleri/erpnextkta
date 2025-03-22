@@ -52,7 +52,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             qty=qty
         )
 
-        frappe.get_doc(
+        etiket = frappe.get_doc(
             dict(
                 doctype="KTA Depo Etiketleri",
                 gr_number=row.parent,
@@ -66,7 +66,9 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 supplier_delivery_note=self.supplier_delivery_note,
                 gr_posting_date=self.posting_date
             )
-        ).insert()
+        )
+        etiket.insert()
+
         frappe.db.commit()
 
     def custom_split_kta_batches(self, table_name=None):
