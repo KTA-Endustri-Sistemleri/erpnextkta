@@ -5,30 +5,22 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_nhrt",
-  "sat\u0131nalma_irsaliyesi",
+  "gr_number",
+  "supplier_delivery_note",
+  "item_name",
   "item_code",
   "qty",
   "uom",
   "sut",
   "column_break_jdyk",
-  "goods_receipt_date",
-  "malzeme",
+  "gr_posting_date",
+  "item_code_barcode",
   "sut_barcode"
  ],
  "fields": [
   {
    "fieldname": "section_break_nhrt",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "sat\u0131nalma_irsaliyesi",
-   "fieldtype": "Link",
-   "in_filter": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "GR NUMBER",
-   "options": "Purchase Receipt",
-   "set_only_once": 1
   },
   {
    "fieldname": "sut",
@@ -55,19 +47,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "malzeme",
-   "fieldtype": "Barcode",
-   "label": "Malzeme"
-  },
-  {
-   "fetch_from": "sat\u0131nalma_irsaliyesi.posting_date",
-   "fieldname": "goods_receipt_date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "GR DATE"
-  },
-  {
    "fieldname": "sut_barcode",
    "fieldtype": "Barcode",
    "label": "SUT Barcode"
@@ -77,13 +56,47 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Mat. Number:",
+   "label": "Item Code",
    "options": "Item"
+  },
+  {
+   "fieldname": "gr_number",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "GR NUMBER",
+   "options": "Purchase Receipt",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "supplier_delivery_note",
+   "fieldtype": "Data",
+   "label": "Supplier Delivery Note"
+  },
+  {
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Item Name"
+  },
+  {
+   "fieldname": "item_code_barcode",
+   "fieldtype": "Barcode",
+   "label": "Item Code Barcode"
+  },
+  {
+   "fetch_from": "sat\u0131nalma_irsaliyesi.posting_date",
+   "fieldname": "gr_posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "GR DATE"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-20 09:12:49.597930",
+ "modified": "2025-03-22 09:18:18.202221",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Depo Etiketleri",

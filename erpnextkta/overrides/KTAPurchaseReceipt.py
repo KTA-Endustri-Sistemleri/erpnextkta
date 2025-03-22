@@ -6,11 +6,23 @@ import socket
 class KTAPurchaseReceipt(PurchaseReceipt):
 
     def send_data_to_zebra(self, data, ip, port):
-        pass
+        message = """
+            ^XA
+            ^FO50,50^A0N,40,40^FD*Batch No: 123456*^FS
+            ^XZ
+        """
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(5)
+                s.connect((ip, port))
+                s.sendall(message.encode("utf-8"))
+        except Exception as e:
+            frappe.log_error(f"ZPL Print Error {str(e)}", "Printer Error")
+            return {"status": "error", "message": f"Failed to send label {str(e)}"}
+
 
     def zebra_formatter(self, data):
-        pass
-        """
+       return """
             ^XA
             ^FO50,50^A0N,40,40^FD*Batch No: 123456*^FS
             ^XZ
@@ -19,20 +31,17 @@ class KTAPurchaseReceipt(PurchaseReceipt):
     def print_zebra(self):
         data = frappe.db.get_value(
             "KTA Depo Etiketleri",
-            {"satınalma_irsaliyesi": self.name},
-            ["item_code", "qty", "uom", "goods_receipt_date", "sut"],
+            {"gr_number": self.name},
+            ["item_code", "qty", "uom", "sut", "item_name", "supplier_delivery_note", "gr_posting_date"],
             as_dict=True
         )
 
-        print(data)
-        print("123123")
+        formatted_data = self.zebra_formatter(data)
+        self.send_data_to_zebra(formatted_data, "10.41.10.23", 9100)
 
-        # TODO: SUT
-        # description, item tablosundan alınacak
-        # self.supplier_delivery_note
+        self.send_data_to_zebra(formatted_data, "10.41.10.23", 9100)
 
-        # formatted_data = self.zebra_formatter(data)
-        # send_data_to_zebra(formatted_data, ip, port)
+        self.send_data_to_zebra(formatted_data, "10.41.10.23", 9100)
 
     def custom_split_batch(self, row, batch_no, qty):
         """Helper function to split a batch."""
@@ -46,11 +55,16 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         frappe.get_doc(
             dict(
                 doctype="KTA Depo Etiketleri",
-                satınalma_irsaliyesi=row.parent,
+                gr_number=row.parent,
                 item_code=row.item_code,
+                item_code_barcode=row.item_code,
                 qty=qty,
                 uom=row.stock_uom,
-                sut_barcode=batch
+                sut=batch,
+                sut_barcode=batch,
+                item_name=row.item_name,
+                supplier_delivery_note=self.supplier_delivery_note,
+                gr_posting_date=self.posting_date
             )
         ).insert()
         frappe.db.commit()
