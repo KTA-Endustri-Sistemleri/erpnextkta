@@ -17,9 +17,10 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
 
     def zebra_formatter(self, data):
-       return f"""
+        return f"""
             CT~~CD,~CC^~CT~
             ^XA
+            ^POI
             ~TA000
             ~JSN
             ^LT0
@@ -38,8 +39,8 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             ^XZ
             ^XA
             ^MMT
-            ^PW448
-            ^LL812
+            ^PW812
+            ^LL448
             ^LS0
             ^FO9,29^GB409,747,1^FS
             ^FO9,512^GB407,0,1^FS
@@ -64,14 +65,14 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             ^FO376,200^GFA,289,498,3,:Z64:eJy1UDuuAyEMHB5Stnuk3CJaXyTi3WyXLmVukFwlRyE3IB0FgjfeaPNvY40QtmewGWlVFsAUdBku4i9gumfyyHmPKZgWu5YJ14o7FQmjwN8RRhbZIsG2TDIlN/Ua6IEBkAA5QRIc57ZqOGvSk3dWWNduUGY/q57CRrPL3b444ljlMMrgFdsZZXSluly6VGzMQFxkK8DDVDidZfWDSXFOYpJc0jW18ybKIZN8Vd2W/+nxu4EfUMVW2fMFmkA3gr3SJ9DMRwO/4eES/iNepv8Dr3atUw==:5A94
             ^FO95,189^GB323,0,1^FS
             ^FO181,29^GB0,161,1^FS
-            ^BY2,2,25^FT126,442^BEB,,Y,N
+            ^BY2,3,39^FT140,450^BCB,,Y,N,,A
             ^FD{data.item_code}^FS
-            ^FPH,3^FT189,504^AQB,28,9^FH\^FD{data.item_name}^FS
-            ^FPH,3^FT233,507^AQB,28,9^FH\^FD{data.supplier_delivery_note}^FS
-            ^FPH,3^FT341,507^AQB,28,9^FH\^FD{data.qty}^FS
-            ^FPH,3^FT398,507^AQB,28,9^FH\^FD{data.gr_posting_date}^FS
-            ^FPH,3^FT341,341^AQB,28,9^FH\^FD{data.uom}^FS
-            ^BY2,2,14^FT269,450^BEB,,Y,N
+            ^FPH,3^FT190,504^A@B,22,22,TT0003M_^FH\^CI28^FD{data.item_name}^FS^CI27
+            ^FPH,3^FT234,507^A@B,22,22,TT0003M_^FH\^CI28^FD{data.supplier_delivery_note}^FS^CI27
+            ^FPH,6^FT352,507^A@B,32,31,TT0003M_^FH\^CI28^FD{data.qty}^FS^CI27
+            ^FPH,3^FT399,507^A@B,22,22,TT0003M_^FH\^CI28^FD{data.gr_posting_date}^FS^CI27
+            ^FPH,3^FT342,341^A@B,22,22,TT0003M_^FH\^CI28^FD{data.uom}^FS^CI27
+            ^BY2,3,26^FT279,454^BCB,,Y,N,,A
             ^FD{data.sut}^FS
             ^PQ1,,,Y
             ^XZ
