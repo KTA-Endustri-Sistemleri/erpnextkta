@@ -7,28 +7,19 @@
   "section_break_nhrt",
   "gr_number",
   "supplier_delivery_note",
-  "item_name",
-  "item_code",
   "qty",
   "uom",
-  "sut",
+  "batch",
   "column_break_jdyk",
   "gr_posting_date",
-  "item_code_barcode",
-  "sut_barcode"
+  "item_code",
+  "sut_barcode",
+  "item_name"
  ],
  "fields": [
   {
    "fieldname": "section_break_nhrt",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "sut",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "SUT",
-   "options": "Batch"
   },
   {
    "fieldname": "qty",
@@ -53,11 +44,8 @@
   },
   {
    "fieldname": "item_code",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Item Code",
-   "options": "Item"
+   "fieldtype": "Barcode",
+   "label": "Malzeme"
   },
   {
    "fieldname": "gr_number",
@@ -70,33 +58,35 @@
    "set_only_once": 1
   },
   {
-   "fieldname": "supplier_delivery_note",
-   "fieldtype": "Data",
-   "label": "Supplier Delivery Note"
-  },
-  {
-   "fieldname": "item_name",
-   "fieldtype": "Data",
-   "label": "Item Name"
-  },
-  {
-   "fieldname": "item_code_barcode",
-   "fieldtype": "Barcode",
-   "label": "Item Code Barcode"
-  },
-  {
-   "fetch_from": "sat\u0131nalma_irsaliyesi.posting_date",
    "fieldname": "gr_posting_date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "GR DATE"
+  },
+  {
+   "fieldname": "supplier_delivery_note",
+   "fieldtype": "Data",
+   "label": "Tedarik\u00e7i \u0130rsaliyesi"
+  },
+  {
+   "fieldname": "batch",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Parti No",
+   "options": "Batch"
+  },
+  {
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Malzeme Ad\u0131"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-22 09:18:18.202221",
+ "modified": "2025-04-02 16:19:57.955655",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Depo Etiketleri",

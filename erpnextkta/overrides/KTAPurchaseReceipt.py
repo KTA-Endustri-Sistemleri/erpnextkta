@@ -79,12 +79,20 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         """
 
     def print_zebra(self):
+        printer = frappe.db.get_value(
+            "KTA User Zebra Printers",
+            {"disabled": 0},
+            ["item_code", "qty", "uom", "sut", "item_name", "supplier_delivery_note", "gr_posting_date"],
+            as_dict=True
+        )
+
         data = frappe.db.get_value(
             "KTA Depo Etiketleri",
             {"gr_number": self.name},
             ["item_code", "qty", "uom", "sut", "item_name", "supplier_delivery_note", "gr_posting_date"],
             as_dict=True
         )
+        # "10.41.10.23", 9100
         formatted_data = self.zebra_formatter(data)
         self.send_data_to_zebra(formatted_data, "10.41.10.23", 9100)
 
@@ -101,15 +109,33 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             dict(
                 doctype="KTA Depo Etiketleri",
                 gr_number=row.parent,
-                item_code=row.item_code,
-                item_code_barcode=row.item_code,
+                supplier_delivery_note=self.supplier_delivery_note,
                 qty=qty,
                 uom=row.stock_uom,
-                sut=batch,
+                batch=batch_no,
+                gr_posting_date=self.posting_date,
+                item_code=row.item_code,
                 sut_barcode=batch,
-                item_name=row.item_name,
+                item_name=row.item_name
+            )
+        )
+        etiket.insert()
+
+        frappe.db.commit()
+
+    def custom_create_packages(self, row, batch_no, qty, pack_no):
+        etiket = frappe.get_doc(
+            dict(
+                doctype="KTA Depo Etiketleri",
+                gr_number=row.parent,
                 supplier_delivery_note=self.supplier_delivery_note,
-                gr_posting_date=self.posting_date
+                qty=qty,
+                uom=row.stock_uom,
+                batch=batch_no,
+                gr_posting_date=self.posting_date,
+                item_code=row.item_code,
+                sut_barcode=f"{batch_no}{pack_no:03d}",
+                item_name=row.item_name
             )
         )
         etiket.insert()
@@ -129,15 +155,16 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                     frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
 
                 split_qty = row.custom_split_qty
-                num_splits = frappe.cint(row.stock_qty // split_qty)  # Use row.stock_qty directly
+                num_packs = frappe.cint(row.stock_qty // split_qty)  # Use row.stock_qty directly
                 remainder_qty = row.stock_qty % split_qty
 
-                if remainder_qty > 0:
-                    self.custom_split_batch(row, row_batch_number, remainder_qty)
-
                 # Use range(num_splits) to run the loop exactly num_splits times
-                for _ in range(num_splits):
-                    self.custom_split_batch(row, row_batch_number, split_qty)
+                for pack in range(1, num_packs):
+                    self.custom_create_packages(row, row_batch_number, split_qty, pack)
+
+                if remainder_qty > 0:
+                    self.custom_create_packages(row, row_batch_number, remainder_qty, num_packs+1)
+
 
     def verify_batch(self):
         errors = []
@@ -160,7 +187,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 self.verify_batch()
                 super().on_submit()
                 self.custom_split_kta_batches(table_name="items")
-                self.print_zebra()
+                # self.print_zebra()
             else:
                 super().on_submit()
         except Exception as e:
