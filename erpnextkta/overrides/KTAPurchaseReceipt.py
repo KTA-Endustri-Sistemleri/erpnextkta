@@ -170,9 +170,12 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 num_packs = frappe.cint(row.stock_qty // split_qty)  # Use row.stock_qty directly
                 remainder_qty = row.stock_qty % split_qty
 
-                # Use range(num_splits) to run the loop exactly num_splits times
-                for pack in range(1, num_packs):
-                    self.custom_create_packages(row, row_batch_number, split_qty, pack)
+                if num_packs > 1:
+                    # Use range(num_splits) to run the loop exactly num_splits times
+                    for pack in range(1, num_packs):
+                        self.custom_create_packages(row, row_batch_number, split_qty, pack)
+                elif num_packs == 1:
+                    self.custom_create_packages(row, row_batch_number, split_qty, 1)
 
                 if remainder_qty > 0:
                     self.custom_create_packages(row, row_batch_number, remainder_qty, num_packs + 1)
