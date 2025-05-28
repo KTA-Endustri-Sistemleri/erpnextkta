@@ -110,5 +110,26 @@
   "kta_olcu_metodu": "Çelik Cetvel",
   "modified": "2024-12-21 14:53:08.567385",
   "name": "Çelik Cetvel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "İrsaliye Bilgileri",
+  "modified": "2025-04-08 22:21:22.935786",
+  "name": "İrsaliye Bilgileri"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Elle",
+  "modified": "2025-04-08 22:22:28.948602",
+  "name": "Elle"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Olcu Metodu",
+  "kta_olcu_metodu": "Test Bord",
+  "modified": "2025-04-08 21:41:45.639653",
+  "name": "Test Bord"
  }
 ]

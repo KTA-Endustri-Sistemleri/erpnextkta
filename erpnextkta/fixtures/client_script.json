@@ -64,5 +64,49 @@
   "name": "KTA Kalite 8D Formu d1_takim_uyesi",
   "script": "frappe.ui.form.on('D1 Takim Uyeleri', {\n    refresh: function(frm) {\n        // Set \"Ignore User Permissions\" for the field in the child table\n        frm.set_df_property('d1_takim_uyesi', 'ignore_user_permissions', 1);\n    }\n});",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Work Order",
+  "enabled": 1,
+  "modified": "2025-05-28 13:44:47.910100",
+  "module": "erpnextkta",
+  "name": "KTA Kesim Formu Butonu",
+  "script": "frappe.ui.form.on('Work Order', {\n    refresh: function(frm) {\n        if (frm.doc.custom_kesim_formu_link) {\n            frm.add_custom_button('Kesim Formunu Aç', function () {\n                window.open(frm.doc.custom_kesim_formu_link, '_blank');\n            }, 'View');  // View altına geldi\n        }\n    }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Project",
+  "enabled": 1,
+  "modified": "2025-05-28 13:45:11.599923",
+  "module": "erpnextkta",
+  "name": "KTA Proje Klasörü",
+  "script": "frappe.ui.form.on('Project', {\n    refresh(frm) {\n        if (frm.doc.project_name) {\n            const folderName = encodeURIComponent(frm.doc.project_name);\n            const path = `/app/file?folder=Home/Projeler/${folderName}`;\n            \n            frm.add_custom_button(__('Proje Klasörü'), function () {\n                window.open(path, '_blank');\n            });\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Item Price",
+  "enabled": 1,
+  "modified": "2025-05-28 13:45:34.251458",
+  "module": "erpnextkta",
+  "name": "KTA Ara Malzeme Grubu",
+  "script": "frappe.ui.form.on(\"Item Price\", {\n    item_code: function(frm) {\n        if (frm.doc.item_code) {\n            frappe.call({\n                method: \"frappe.client.get_value\",\n                args: {\n                    doctype: \"Item\",\n                    filters: {\n                        name: frm.doc.item_code\n                    },\n                    fieldname: [\"custom_ara_malzeme_grubu\"]\n                },\n                callback: function(r) {\n                    if (r.message && r.message.custom_ara_malzeme_grubu) {\n                        frm.set_value(\"custom_ara_malzeme_kodu\", r.message.custom_ara_malzeme_grubu);\n                        console.log(\"Ara malzeme grubu güncellendi:\", r.message.custom_ara_malzeme_grubu);\n                    } else {\n                        frm.set_value(\"custom_ara_malzeme_kodu\", \"\");\n                        console.warn(\"Ürün bulundu ama 'custom_ara_malzeme_grubu' boş.\");\n                    }\n                }\n            });\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Work Order",
+  "enabled": 1,
+  "modified": "2025-05-28 13:45:53.648264",
+  "module": "erpnextkta",
+  "name": "KTA Work Order Material Group",
+  "script": "frappe.ui.form.on('Work Order', {\n    refresh: function(frm) {\n        // Sadece taslak durumda ve kapatılmamış belgelerde çalıştır\n        if (\n            frm.doc.docstatus === 0 &&\n            frm.doc.production_item &&\n            !frm.doc.__islocal &&\n            frm.doc.status !== \"Closed\"\n        ) {\n            set_item_group(frm);\n        }\n    },\n    production_item: function(frm) {\n        // Ürün değiştiğinde sadece taslak ve kapatılmamış belgelerde çalıştır\n        if (frm.doc.docstatus === 0 && frm.doc.status !== \"Closed\") {\n            set_item_group(frm);\n        }\n    },\n    onload: function(frm) {\n        frm.set_df_property('custom_ürün_grubu', 'read_only', 1);\n    }\n});\n\n// Yardımcı fonksiyon\nfunction set_item_group(frm) {\n    if (frm.doc.production_item) {\n        frappe.db.get_value(\"Item\", frm.doc.production_item, \"item_group\")\n            .then(r => {\n                if (r.message && r.message.item_group) {\n                    frm.set_value(\"custom_ürün_grubu\", r.message.item_group);\n                }\n            });\n    }\n}\n",
+  "view": "Form"
  }
 ]
