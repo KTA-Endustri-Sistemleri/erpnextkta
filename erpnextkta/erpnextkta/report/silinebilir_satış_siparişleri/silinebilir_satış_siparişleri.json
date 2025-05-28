@@ -1,0 +1,42 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2025-04-30 10:45:44.803615",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "",
+ "letterhead": null,
+ "modified": "2025-05-28 13:59:35.375247",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "Silinebilir Sat\u0131\u015f Sipari\u015fleri",
+ "owner": "alpkan.ozturk@kta-endustri.com.tr",
+ "prepared_report": 0,
+ "query": "SELECT\n    `tabSales Order`.name AS \"Sat\u0131\u015f Sipari\u015fi\",\n    `tabSales Order`.customer AS \"M\u00fc\u015fteri\",\n    `tabSales Order`.transaction_date AS \"Tarih\",\n    `tabSales Order`.status AS \"Durum\",\n    `tabSales Order`.per_delivered AS \"Teslimat Oran\u0131\",\n    `tabSales Order`.per_billed AS \"Fatura Oran\u0131\",\n    `tabSales Order`.grand_total AS \"Tutar\"\nFROM\n    `tabSales Order`\nWHERE\n    `tabSales Order`.docstatus = 1\n    AND `tabSales Order`.status = 'Closed'\n    AND `tabSales Order`.per_delivered = 0\n    AND `tabSales Order`.per_billed = 0\n    AND NOT EXISTS (\n        SELECT 1 FROM `tabDelivery Note Item`\n        WHERE `tabDelivery Note Item`.against_sales_order = `tabSales Order`.name\n    )\nORDER BY\n    `tabSales Order`.transaction_date DESC\n",
+ "ref_doctype": "Sales Order",
+ "report_name": "Silinebilir Sat\u0131\u015f Sipari\u015fleri",
+ "report_type": "Query Report",
+ "roles": [
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Maintenance User"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Stock User"
+  }
+ ],
+ "timeout": 0
+}

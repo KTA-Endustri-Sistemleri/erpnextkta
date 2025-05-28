@@ -1,0 +1,36 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2025-04-11 16:32:31.354903",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 2,
+ "is_standard": "Yes",
+ "letter_head": "",
+ "letterhead": null,
+ "modified": "2025-05-28 14:02:44.301956",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "Teslimat Tarihi Bazl\u0131 Sat\u0131nalma Sipari\u015f Analizi",
+ "owner": "alpkan.ozturk@kta-endustri.com.tr",
+ "prepared_report": 0,
+ "query": "SELECT\n    poi.parent AS \"Purchase Order:Link/Purchase Order:220\",\n    po.status AS \"PO Status::120\",\n    poi.item_code AS \"Item Code:Link/Item:120\",\n    poi.item_name AS \"Item Name::180\",\n    po.supplier AS \"Supplier:Link/Supplier:130\",\n    poi.qty AS \"Ordered Qty:Float:100\",\n    poi.uom AS \"UOM:Link/UOM:80\",\n    IFNULL(agg_pri.received_qty, 0) AS \"Received Qty (Total):Float:100\",\n    pri2.received_qty AS \"Received Qty (Per Receipt):Float:100\",\n    (poi.qty - IFNULL(agg_pri.received_qty, 0)) AS \"Pending Qty:Float:100\",\n    poi.schedule_date AS \"Expected Delivery Date:Date:130\",\n    pr2.posting_date AS \"Receipt Date:Date:130\",\n    pr2.name AS \"Purchase Receipt:Link/Purchase Receipt:160\",\n    poi.price_list_rate AS \"Fiyat:Currency/po.currency:100\",\n    po.currency AS \"Para Birimi::80\",\n    CONCAT('KW', WEEK(poi.schedule_date, 1), ' ', YEAR(poi.schedule_date)) AS \"Expected Delivery Week::110\",\n    MONTHNAME(poi.schedule_date) AS \"Expected Delivery Month::110\",\n    po.transaction_date AS \"PO Date:Date:100\",\n    poi.warehouse AS \"Target Warehouse:Link/Warehouse:130\",\n    isup.supplier_part_no AS \"Supplier Part No::140\",\n    isup.custom_tedarikci_parca_aciklamasi AS \"Supplier Part Description::200\",\n    i.item_group AS \"Item Group:Link/Item Group:140\",\n    ig.parent_item_group AS \"\u00dcst Malzeme Grubu::160\",\n    su.supplier_group AS \"Tedarik Tipi::120\",\n    pr2.workflow_state AS \"\u0130rsaliye Durumu (G\u00fcncel)::150\"\nFROM\n    `tabPurchase Order Item` poi\nLEFT JOIN `tabPurchase Order` po ON po.name = poi.parent\nLEFT JOIN (\n    SELECT\n        pri.purchase_order_item,\n        SUM(pri.received_qty) AS received_qty\n    FROM\n        `tabPurchase Receipt Item` pri\n    INNER JOIN `tabPurchase Receipt` pr ON pr.name = pri.parent\n    WHERE\n        pr.docstatus = 1\n    GROUP BY\n        pri.purchase_order_item\n) agg_pri ON agg_pri.purchase_order_item = poi.name\nLEFT JOIN `tabPurchase Receipt Item` pri2 ON pri2.purchase_order_item = poi.name\nLEFT JOIN `tabPurchase Receipt` pr2 ON pr2.name = pri2.parent AND pr2.docstatus IN (0, 1)\nLEFT JOIN `tabItem Supplier` isup ON isup.parent = poi.item_code AND isup.supplier = po.supplier\nLEFT JOIN `tabSupplier` su ON su.name = po.supplier\nLEFT JOIN `tabItem` i ON i.name = poi.item_code\nLEFT JOIN `tabItem Group` ig ON ig.name = i.item_group\nWHERE\n    po.docstatus = 1\n    AND poi.schedule_date IS NOT NULL\n    AND (pr2.docstatus IN (0,1) OR pr2.name IS NULL)\nORDER BY\n    poi.schedule_date ASC, pr2.modified DESC;\n",
+ "ref_doctype": "Purchase Order",
+ "report_name": "Teslimat Tarihi Bazl\u0131 Sat\u0131nalma Sipari\u015f Analizi",
+ "report_type": "Query Report",
+ "roles": [
+  {
+   "role": "Purchase Manager"
+  },
+  {
+   "role": "Purchase User"
+  },
+  {
+   "role": "Stock User"
+  }
+ ],
+ "timeout": 0
+}

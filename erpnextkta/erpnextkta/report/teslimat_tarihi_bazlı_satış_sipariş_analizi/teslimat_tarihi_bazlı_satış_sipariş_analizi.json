@@ -1,0 +1,42 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2025-04-11 10:49:22.639322",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 5,
+ "is_standard": "Yes",
+ "letter_head": "",
+ "letterhead": null,
+ "modified": "2025-05-28 13:59:35.439354",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "Teslimat Tarihi Bazl\u0131 Sat\u0131\u015f Sipari\u015f Analizi",
+ "owner": "alpkan.ozturk@kta-endustri.com.tr",
+ "prepared_report": 0,
+ "query": "SELECT\n    so.name AS \"Sales Order:Link/Sales Order:275\",\n    soi.item_code AS \"Item Code:Link/Item:120\",\n    so.customer AS \"Customer:Link/Customer:120\",\n    soi.delivery_date AS \"Delivery Date:Date:150\",\n    (soi.qty - soi.delivered_qty) AS \"Pending Qty:Float:140\",\n    soi.delivered_qty AS \"Delivered Qty:Float:140\",\n    soi.qty AS \"Qty:Float:140\",\n    so.status AS \"Sales Order Status::150\",\n    so.po_no AS \"Customer PO No::150\",\n    CONCAT('KW', LPAD(WEEK(soi.delivery_date,1), 2, '0'), ' ', YEAR(soi.delivery_date)) AS \"Delivery Week::110\",\n    DATE_FORMAT(soi.delivery_date, '%%Y-%%m') AS \"Delivery Month::100\",\n    soi.item_name AS \"Item Name::150\",\n    soi.base_amount AS \"Base Amount:Currency:100\",\n    soi.billed_amt AS \"Billed Amount:Currency:100\",\n    soi.warehouse AS \"Warehouse:Link/Warehouse:130\",\n    so.transaction_date AS \"Sales Order Transaction Date:Date:100\",\n    c.customer_group AS \"Customer Group::120\",\n    i.item_group AS \"Item Group::120\",\n\n\n    -- \u0130lgili sevk irsaliyesi bilgileri\n    dni.parent AS \"Delivery Note:Link/Delivery Note:160\",\n    dn.posting_date AS \"Delivery Note Date:Date:130\",\n    dn.status AS \"Delivery Note Status::150\",\n    dni.qty AS \"Delivered Qty (Per DN):Float:130\"\n\nFROM\n    `tabSales Order Item` soi\nJOIN\n    `tabSales Order` so ON soi.parent = so.name\n\nLEFT JOIN `tabDelivery Note Item` dni ON dni.so_detail = soi.name\nLEFT JOIN `tabDelivery Note` dn ON dn.name = dni.parent\nLEFT JOIN `tabCustomer` c ON so.customer = c.name\nLEFT JOIN `tabItem` i ON soi.item_code = i.name\n\n\nWHERE\n    so.docstatus = 1\n    AND soi.delivery_date IS NOT NULL\n    AND (dn.status IS NULL OR dn.status <> 'Cancelled')\n\nORDER BY\n    soi.delivery_date ASC\n",
+ "ref_doctype": "Sales Order",
+ "report_name": "Teslimat Tarihi Bazl\u0131 Sat\u0131\u015f Sipari\u015f Analizi",
+ "report_type": "Query Report",
+ "roles": [
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Maintenance User"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Stock User"
+  }
+ ],
+ "timeout": 0
+}
