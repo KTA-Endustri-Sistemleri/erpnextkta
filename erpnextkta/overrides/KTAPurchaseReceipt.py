@@ -33,9 +33,9 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                         errors.append(
                             f"Row {item.idx}: custom_split_qty must be a positive number. Please set a valid value for custom_split_qty."
                         )
-                    item.use_serial_batch_fields = 1
-                    batch = frappe.get_doc(dict(doctype="Batch", item=item.item_code)).insert()
-                    item.batch_no = batch
+                    # item.use_serial_batch_fields = 1
+                    # batch = frappe.get_doc(dict(doctype="Batch", item=item.item_code)).insert()
+                    # item.batch_no = batch
 
                     # company = frappe.db.get_value("Warehouse", warehouse, "company")
                     #
