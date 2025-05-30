@@ -130,7 +130,6 @@ app_license = "mit"
 # Override standard doctype classes
 
 override_doctype_class = {
-    "Stock Controller": "erpnextkta.overrides.KTAStockController.KTAStockController",
     "Purchase Receipt": "erpnextkta.overrides.KTAPurchaseReceipt.KTAPurchaseReceipt",
     "BOM": "erpnextkta.overrides.KTAbom.KTAbom"
 }
