@@ -3,9 +3,7 @@ import socket
 
 from babel.numbers import format_decimal
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
-from erpnext.stock.doctype.batch.batch import split_batch, make_batch_bundle
-from erpnext.stock.doctype.serial_and_batch_bundle.serial_and_batch_bundle import get_auto_batch_nos
-from frappe.utils import nowdate, nowtime
+from erpnext.stock.doctype.batch.batch import split_batch
 
 
 class KTAPurchaseReceipt(PurchaseReceipt):
@@ -133,7 +131,9 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
         frappe.db.commit()
 
-
+    def validate_items_quality_inspection(self):
+        if self.docstatus == 2 and self.is_return == 0:
+            super().validate_items_quality_inspection()
 
     def on_submit(self):
         try:
