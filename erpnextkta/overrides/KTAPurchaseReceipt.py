@@ -4,20 +4,10 @@ import socket
 from babel.numbers import format_decimal
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
 from erpnext.stock.doctype.batch.batch import split_batch
+from frappe.model.docstatus import DocStatus
 
 
 class KTAPurchaseReceipt(PurchaseReceipt):
-
-    def prepare_warehouse_labels(self):
-        try:
-            if self.is_return == 0:
-                self.verify_batch()
-                self.custom_split_kta_batches(table_name="items")
-                self.print_zebra()
-
-        except Exception as e:
-            frappe.log_error(f"Purchase Receipt Submit Error {str(e)}", "Purchase Receipt Submit Error")
-            frappe.throw(f"Purchase Receipt Submit Error {str(e)}")
 
     def verify_batch(self):
         errors = []
@@ -132,12 +122,12 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         frappe.db.commit()
 
     def validate_items_quality_inspection(self):
-        if self.docstatus == 2 and self.is_return == 0:
+        if self.docstatus == DocStatus.cancelled() and self.is_return == 0:
             super().validate_items_quality_inspection()
 
     def on_submit(self):
         try:
-            if self.docstatus == 1 and self.is_return == 0:
+            if self.docstatus == DocStatus.submitted() and self.is_return == 0:
                 self.verify_batch()
                 super().on_submit()
                 self.custom_split_kta_batches(table_name="items")
