@@ -5,6 +5,7 @@ from babel.numbers import format_decimal
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
 from erpnext.stock.doctype.batch.batch import split_batch
 from frappe.model.docstatus import DocStatus
+from erpnext.controllers.stock_controller import make_quality_inspections
 
 
 class KTAPurchaseReceipt(PurchaseReceipt):
@@ -132,6 +133,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 super().on_submit()
                 self.custom_split_kta_batches(table_name="items")
                 self.print_zebra()
+                make_quality_inspections(self.doctype, self.name, self.items)
             else:
                 super().on_submit()
         except Exception as e:
