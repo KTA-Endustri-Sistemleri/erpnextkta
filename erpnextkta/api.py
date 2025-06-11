@@ -36,7 +36,7 @@ def print_to_zebra_kta(gr_number=None, label=None):
         {
             "user": user,
             "disabled": 0
-            #        "is_default": 1  # Assuming there's a field to mark default printers
+            # "is_default": 1 # Assuming there's a field to mark default printers
         },
         ["printer"]
     )
@@ -44,9 +44,9 @@ def print_to_zebra_kta(gr_number=None, label=None):
         frappe.msgprint("Either `gr_number` or `label` must be provided.")
         return
     if printer:
-        zebra_printer = frappe.get_doc("KTA Zebra Printers", {"printer_name": printer})
-        ip_address = zebra_printer.ip
-        port = zebra_printer.port
+        zebra_printer = frappe.get_doc({"doctype": "KTA Zebra Printers", "printer_name": printer})
+        ip_address = zebra_printer.get("ip")
+        port = zebra_printer.get("port")
 
         query_filter = {}
         if gr_number:
@@ -78,6 +78,7 @@ def send_data_to_zebra(data, ip, port):
             s.settimeout(5)
             s.connect((ip, port))
             s.sendall(data.encode("utf-8"))
+            return None
     except Exception as e:
         frappe.log_error(f"ZPL Print Error {str(e)}", "Printer Error")
         return {"status": "error", "message": f"Failed to send label {str(e)}"}
