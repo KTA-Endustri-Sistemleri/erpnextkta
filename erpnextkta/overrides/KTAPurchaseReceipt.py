@@ -1,61 +1,10 @@
-import json
 import frappe
-import erpnextkta.api
-
-from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
-from erpnext.stock.doctype.batch.batch import split_batch
 from frappe.model.docstatus import DocStatus
-from frappe.utils import flt
 
-
-def custom_make_quality_inspections(doctype, docname, items):
-    if isinstance(items, str):
-        items = json.loads(items)
-
-    def validate_sample_size(qi_item):
-        if flt(qi_item.get("sample_size")) > flt(qi_item.get("qty")):
-            frappe.throw(
-                (
-                    "{item_name}'s Sample Size ({sample_size}) cannot be greater than the Accepted Quantity ({accepted_quantity})"
-                ).format(
-                    item_name=qi_item.get("item_name"),
-                    sample_size=qi_item.get("sample_size"),
-                    accepted_quantity=qi_item.get("qty"),
-                )
-            )
-
-    def create_quality_inspection(pr_item, pr_docname):
-        quality_inspection = frappe.get_doc(
-            {
-                "doctype": "Quality Inspection",
-                "inspection_type": "Incoming",
-                "inspected_by": frappe.session.user,
-                "reference_type": doctype,
-                "reference_name": pr_docname,
-                "item_code": pr_item.get("item_code"),
-                "description": pr_item.get("description"),
-                "sample_size": flt(pr_item.get("sample_size")),
-                "item_serial_no": pr_item.get("serial_no").split("\n")[0] if pr_item.get("serial_no") else None,
-                "batch_no": pr_item.get("batch_no"),
-            }
-        ).insert()
-        quality_inspection.save()
-
-    for item in items:
-        doc = frappe.get_doc('Item', item.get("item_code"))
-        if doc.get("inspection_required_before_purchase"):
-            meta = frappe.get_meta('Item')
-            if meta.has_field('custom_atlama_sayisi'):
-                atlama_sayisi = doc.get("custom_atlama_sayisi")
-                atlama_sirasi = doc.get("custom_atlama_sirasi")
-                if atlama_sayisi > 0:
-                    doc.db_set('custom_atlama_sirasi', atlama_sirasi + 1, commit=True)
-                    if atlama_sirasi % atlama_sayisi == 0 or atlama_sirasi < atlama_sayisi:
-                        validate_sample_size(item)
-                        create_quality_inspection(item, docname)
-                else:
-                    validate_sample_size(item)
-                    create_quality_inspection(item, docname)
+import erpnextkta.api
+from erpnext.controllers.stock_controller import make_quality_inspections
+from erpnext.stock.doctype.batch.batch import split_batch
+from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
 
 
 class KTAPurchaseReceipt(PurchaseReceipt):
@@ -183,7 +132,21 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 super().on_submit()
                 self.custom_split_kta_batches(table_name="items")
                 self.print_zebra()
-                custom_make_quality_inspections(self.doctype, self.name, self.items)
+                qi_items = []
+                for item in self.items:
+                    doc = frappe.get_doc('Item', item.get("item_code"))
+                    if doc.get("inspection_required_before_purchase"):
+                        meta = frappe.get_meta('Item')
+                        if meta.has_field('custom_atlama_sayisi'):
+                            atlama_sayisi = doc.get("custom_atlama_sayisi")
+                            atlama_sirasi = doc.get("custom_atlama_sirasi")
+                            if atlama_sayisi > 0:
+                                doc.db_set('custom_atlama_sirasi', atlama_sirasi + 1, commit=True)
+                                if atlama_sirasi % atlama_sayisi == 0 or atlama_sayisi > atlama_sirasi:
+                                    qi_items.append(item)
+                            else:
+                                qi_items.append(item)
+                make_quality_inspections(self.doctype, self.name, qi_items)
             else:
                 super().on_submit()
         except Exception as e:
