@@ -42,17 +42,20 @@ def custom_make_quality_inspections(doctype, docname, items):
         quality_inspection.save()
 
     for item in items:
-        if item.get("inspection_required_before_purchase"):
+        doc = frappe.get_doc('Item', item.get("item_code"))
+        if doc.get("inspection_required_before_purchase"):
             meta = frappe.get_meta('Item')
             if meta.has_field('custom_atlama_sayisi'):
-                doc = frappe.get_doc('Item', item.get("item_code"))
                 atlama_sayisi = doc.get("custom_atlama_sayisi")
                 atlama_sirasi = doc.get("custom_atlama_sirasi")
-                doc.db_set('custom_atlama_sirasi', atlama_sirasi + 1, commit=True)
-                if atlama_sirasi % atlama_sayisi > 0:
-                    continue
-            validate_sample_size(item)
-            create_quality_inspection(item, docname)
+                if atlama_sayisi > 0:
+                    doc.db_set('custom_atlama_sirasi', atlama_sirasi + 1, commit=True)
+                    if atlama_sirasi % atlama_sayisi == 0:
+                        validate_sample_size(item)
+                        create_quality_inspection(item, docname)
+                else:
+                    validate_sample_size(item)
+                    create_quality_inspection(item, docname)
 
 
 class KTAPurchaseReceipt(PurchaseReceipt):
