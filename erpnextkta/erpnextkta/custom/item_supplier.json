@@ -93,5 +93,5 @@
    "value": "[\"supplier\", \"supplier_part_no\", \"custom_supplier_part_description\"]"
   }
  ],
- "sync_on_migrate": 0
+ "sync_on_migrate": 1
 }

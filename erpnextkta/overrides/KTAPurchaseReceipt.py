@@ -1,10 +1,11 @@
+import json
 import frappe
 import erpnextkta.api
 
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
 from erpnext.stock.doctype.batch.batch import split_batch
 from frappe.model.docstatus import DocStatus
-from erpnext.controllers.stock_controller import make_quality_inspections
+from frappe.utils import cint, cstr, flt, get_link_to_form, getdate
 
 
 class KTAPurchaseReceipt(PurchaseReceipt):
@@ -132,7 +133,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 super().on_submit()
                 self.custom_split_kta_batches(table_name="items")
                 self.print_zebra()
-                make_quality_inspections(self.doctype, self.name, self.items)
+                self.custom_make_quality_inspections(self.doctype, self.name, self.items)
             else:
                 super().on_submit()
         except Exception as e:
@@ -141,3 +142,49 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
     def print_zebra(self):
         erpnextkta.api.print_to_zebra_kta(gr_number=self.name)
+
+    def custom_make_quality_inspections(doctype, docname, items):
+        if isinstance(items, str):
+            items = json.loads(items)
+
+        def validate_sample_size(qi_item):
+            if flt(qi_item.get("sample_size")) > flt(qi_item.get("qty")):
+                frappe.throw(
+                    (
+                        "{item_name}'s Sample Size ({sample_size}) cannot be greater than the Accepted Quantity ({accepted_quantity})"
+                    ).format(
+                        item_name=qi_item.get("item_name"),
+                        sample_size=qi_item.get("sample_size"),
+                        accepted_quantity=qi_item.get("qty"),
+                    )
+                )
+        def create_quality_inspection(pr_item):
+            quality_inspection = frappe.get_doc(
+                {
+                    "doctype": "Quality Inspection",
+                    "inspection_type": "Incoming",
+                    "inspected_by": frappe.session.user,
+                    "reference_type": doctype,
+                    "reference_name": docname,
+                    "item_code": pr_item.get("item_code"),
+                    "description": pr_item.get("description"),
+                    "sample_size": flt(pr_item.get("sample_size")),
+                    "item_serial_no": pr_item.get("serial_no").split("\n")[0] if pr_item.get("serial_no") else None,
+                    "batch_no": pr_item.get("batch_no"),
+                }
+            ).insert()
+            quality_inspection.save()
+
+        for item in items:
+            if item.get("inspection_required_before_purchase"):
+                meta = frappe.get_meta('Item')
+                if meta.has_field('custom_atlama_sayisi'):
+                    doc = frappe.get_doc('Item', item.get("item_code"))
+                    atlama_sayisi = doc.custom_atlama_sayisi
+                    atlama_sirasi = doc.custom_atlama_sirasi
+                    doc.db_set('custom_atlama_sirasi', atlama_sirasi + 1)
+                    if  atlama_sirasi % atlama_sayisi > 0:
+                        continue
+                validate_sample_size(item)
+                create_quality_inspection(item)
+
