@@ -131,6 +131,7 @@ app_license = "mit"
 
 override_doctype_class = {
     "Purchase Receipt": "erpnextkta.overrides.KTAPurchaseReceipt.KTAPurchaseReceipt",
+    #     "Quality Inspection": "erpnextkta.overrides.KTAQualityInspection.KTAQualityInspection",
     "BOM": "erpnextkta.overrides.KTAbom.KTAbom"
 }
 

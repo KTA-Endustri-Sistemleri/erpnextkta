@@ -43,8 +43,8 @@ def print_to_zebra_kta(gr_number=None, label=None):
     if not gr_number and not label:
         frappe.msgprint("Either `gr_number` or `label` must be provided.")
         return
-    if printer:
-        zebra_printer = frappe.get_doc({"doctype": "KTA Zebra Printers", "printer_name": printer})
+    if printer is not None:
+        zebra_printer = frappe.get_doc("KTA Zebra Printers", printer)
         ip_address = zebra_printer.get("ip")
         port = zebra_printer.get("port")
 
