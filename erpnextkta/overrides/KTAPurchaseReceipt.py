@@ -106,6 +106,8 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         frappe.db.commit()
 
     def custom_create_packages(self, row, batch_no, qty, pack_no):
+        item = frappe.get_doc("Item", row.item_code)
+
         etiket = frappe.get_doc(
             dict(
                 doctype="KTA Depo Etiketleri",
@@ -117,8 +119,10 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 gr_posting_date=self.posting_date,
                 item_code=row.item_code,
                 sut_barcode=f"{batch_no}{pack_no:04d}",
-                item_name=row.item_name
-            )
+                item_name=row.item_name,
+                item_group = item.item_group,
+                quality_ref = "QUALITY"
+        )
         )
         etiket.insert()
 
