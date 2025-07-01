@@ -3,7 +3,6 @@ from frappe.model.docstatus import DocStatus
 
 import erpnextkta.api
 from erpnext.controllers.stock_controller import make_quality_inspections
-from erpnext.stock.doctype.batch.batch import split_batch
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
 
 
@@ -21,29 +20,6 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                         errors.append(
                             f"Row {item.idx}: custom_split_qty must be a positive number. Please set a valid value for custom_split_qty."
                         )
-                    # item.use_serial_batch_fields = 1
-                    # batch = frappe.get_doc(dict(doctype="Batch", item=item.item_code)).insert()
-                    # item.batch_no = batch
-
-                    # company = frappe.db.get_value("Warehouse", warehouse, "company")
-                    #
-                    # from_bundle_id = make_batch_bundle(
-                    #     item_code=item_code,
-                    #     warehouse=warehouse,
-                    #     batches=frappe._dict({batch_no: qty}),
-                    #     company=company,
-                    #     type_of_transaction="Outward",
-                    #     qty=qty,
-                    # )
-                    #
-                    # to_bundle_id = make_batch_bundle(
-                    #     item_code=item_code,
-                    #     warehouse=warehouse,
-                    #     batches=frappe._dict({batch.name: qty}),
-                    #     company=company,
-                    #     type_of_transaction="Inward",
-                    #     qty=qty,
-                    # )
         if errors:
             frappe.throw("\n".join(errors))
 
@@ -75,38 +51,8 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 if remainder_qty > 0:
                     self.custom_create_packages(row, row_batch_number, remainder_qty, num_packs + 1)
 
-    def custom_split_batch(self, row, batch_no, qty):
-        """Helper function to split a batch."""
-        batch = split_batch(
-            batch_no=batch_no,
-            item_code=row.item_code,
-            warehouse=row.warehouse,
-            qty=qty
-        )
-        item = frappe.get_doc("Item", row.item_code)
-
-        etiket = frappe.get_doc(
-            dict(
-                doctype="KTA Depo Etiketleri",
-                gr_number=row.parent,
-                supplier_delivery_note=self.supplier_delivery_note,
-                qty=qty,
-                uom=row.stock_uom,
-                batch=batch_no,
-                gr_posting_date=self.posting_date,
-                item_code=row.item_code,
-                sut_barcode=batch,
-                item_name=row.item_name,
-                item_group=item.item_group,
-                quality_ref="QUALITY"
-            )
-        )
-        etiket.insert()
-
-        frappe.db.commit()
-
-    def custom_create_packages(self, row, batch_no, qty, pack_no):
-        item = frappe.get_doc("Item", row.item_code)
+    def custom_create_packages(self, row, batch_no, qty, pack_no, q_ref="ATLA 5/1"):
+        etiket_item_group = frappe.db.get_value("Item", row.item_code, 'item_group')
 
         etiket = frappe.get_doc(
             dict(
@@ -120,8 +66,8 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 item_code=row.item_code,
                 sut_barcode=f"{batch_no}{pack_no:04d}",
                 item_name=row.item_name,
-                item_group=item.item_group,
-                quality_ref="QUALITY"
+                item_group=etiket_item_group,
+                quality_ref=q_ref
             )
         )
         etiket.insert()
