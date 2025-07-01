@@ -120,9 +120,9 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 item_code=row.item_code,
                 sut_barcode=f"{batch_no}{pack_no:04d}",
                 item_name=row.item_name,
-                item_group = item.item_group,
-                quality_ref = "QUALITY"
-        )
+                item_group=item.item_group,
+                quality_ref="QUALITY"
+            )
         )
         etiket.insert()
 
