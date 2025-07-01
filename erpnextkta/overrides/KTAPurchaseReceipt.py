@@ -83,6 +83,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             warehouse=row.warehouse,
             qty=qty
         )
+        item = frappe.get_doc("Item", row.item_code)
 
         etiket = frappe.get_doc(
             dict(
@@ -95,7 +96,9 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 gr_posting_date=self.posting_date,
                 item_code=row.item_code,
                 sut_barcode=batch,
-                item_name=row.item_name
+                item_name=row.item_name,
+                item_group=item.item_group,
+                quality_ref="QUALITY"
             )
         )
         etiket.insert()
