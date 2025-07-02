@@ -797,5 +797,5 @@
    "value": "[\"item_code\", \"item_name\", \"operation\", \"column_break_3\", \"do_not_explode\", \"bom_no\", \"source_warehouse\", \"allow_alternative_item\", \"is_stock_item\", \"section_break_5\", \"description\", \"col_break1\", \"image\", \"image_view\", \"quantity_and_rate\", \"qty\", \"uom\", \"col_break2\", \"stock_qty\", \"stock_uom\", \"conversion_factor\", \"rate_amount_section\", \"rate\", \"base_rate\", \"column_break_21\", \"amount\", \"base_amount\", \"section_break_18\", \"qty_consumed_per_unit\", \"custom_section_break_5vpsd\", \"custom_kablo_no\", \"custom_kta\", \"custom_1kontak_no\", \"custom_1siyirma\", \"custom_buradan\", \"custom_column_break_zlhwi\", \"custom_2kontak_no\", \"custom_2siyirma\", \"custom_buraya\", \"custom_section_break_q5vfv\", \"custom_hortum\", \"section_break_27\", \"has_variants\", \"include_item_in_manufacturing\", \"original_item\", \"column_break_33\", \"sourced_by_supplier\"]"
   }
  ],
- "sync_on_migrate": 0
+ "sync_on_migrate": 1
 }

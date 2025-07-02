@@ -40,8 +40,8 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
         },
         ["printer"]
     )
-    if not gr_number and not label:
-        frappe.msgprint("Either `gr_number` or `label` must be provided.")
+    if not gr_number and not label and not q_ref:
+        frappe.msgprint("Either `gr_number`, `label` or 'q_ref' must be provided.")
         return
     if printer is not None:
         zebra_printer = frappe.get_doc("KTA Zebra Printers", printer)
@@ -70,8 +70,6 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
                 data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
             else:
                 data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
-            # "10.41.10.23", 9100
-            # formatted_data = zebra_formatter(data)
             formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
             send_data_to_zebra(formatted_data, ip_address, port)
 
@@ -96,7 +94,7 @@ def zebra_formatter(doctype_name, data):
     return doc.get("zebra_template").format(data=data)
 
 
-def custom_split_kta_batches(self, row=None, q_ref="ATLA 5/1"):
+def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     # for row in self.get(table_name):
     if row.serial_and_batch_bundle:
         row_batch_number = frappe.db.get_value(
@@ -119,24 +117,25 @@ def custom_split_kta_batches(self, row=None, q_ref="ATLA 5/1"):
         if num_packs >= 1:
             # Use range to run the loop exactly num_packs times
             for pack in range(1, num_packs + 1):
-                self.custom_create_packages(row, row_batch_number, split_qty, pack, q_ref)
+                custom_create_packages(row, row_batch_number, split_qty, pack, q_ref)
 
         if remainder_qty > 0:
-            self.custom_create_packages(row, row_batch_number, remainder_qty, num_packs + 1, q_ref)
+            custom_create_packages(row, row_batch_number, remainder_qty, num_packs + 1, q_ref)
 
 
-def custom_create_packages(self, row, batch_no, qty, pack_no, q_ref):
+def custom_create_packages(row, batch_no, qty, pack_no, q_ref):
     etiket_item_group = frappe.db.get_value("Item", row.item_code, 'item_group')
+    purchase_receipt = frappe.get_doc("Purchase Receipt", row.parent)
 
     etiket = frappe.get_doc(
         dict(
             doctype="KTA Depo Etiketleri",
             gr_number=row.parent,
-            supplier_delivery_note=self.supplier_delivery_note,
+            supplier_delivery_note=purchase_receipt.supplier_delivery_note,
             qty=qty,
             uom=row.stock_uom,
             batch=batch_no,
-            gr_posting_date=self.posting_date,
+            gr_posting_date=purchase_receipt.posting_date,
             item_code=row.item_code,
             sut_barcode=f"{batch_no}{pack_no:04d}",
             item_name=row.item_name,

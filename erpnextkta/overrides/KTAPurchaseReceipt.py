@@ -45,7 +45,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                                 if atlama_sirasi % atlama_sayisi == 0 or atlama_sayisi > atlama_sirasi:
                                     qi_items.append(item)
                                 else:
-                                    erpnextkta.api.custom_split_kta_batches(self, row=item)
+                                    erpnextkta.api.custom_split_kta_batches(row=item)
                             else:
                                 doc.db_set('custom_atlama_sirasi', 2, commit=True)
                                 qi_items.append(item)
@@ -58,4 +58,4 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             frappe.throw(f"Purchase Receipt Submit Error {str(e)}")
 
     def print_zebra(self):
-        erpnextkta.api.print_to_zebra_kta(gr_number=self.namee)
+        erpnextkta.api.print_to_zebra_kta(gr_number=self.name)
