@@ -1,9 +1,25 @@
 import frappe
-from frappe import _
+from frappe.model.docstatus import DocStatus
+
+import erpnextkta.api
 from erpnext.stock.doctype.quality_inspection.quality_inspection import QualityInspection
 
 
 class KTAQualityInspection(QualityInspection):
+    def on_submit(self):
+        try:
+            if self.docstatus == DocStatus.submitted() and self.reference_type == "Purchase Receipt":
+                super().on_submit()
+
+                doc = frappe.get_doc('Purchase Receipt Item', self.child_row_reference)
+                erpnextkta.api.custom_split_kta_batches(self, row=doc)
+                self.print_zebra()
+            else:
+                super().on_submit()
+        except Exception as e:
+            frappe.log_error(f"Quality Inspection Submit Error {str(e)}", "Quality Inspection Submit Error")
+            frappe.throw(f"Quality Inspection Submit Error {str(e)}")
+
     def validate(self):
         super().validate()
         if self.should_validate_template():
@@ -17,7 +33,7 @@ class KTAQualityInspection(QualityInspection):
                 and self.quality_inspection_template)
 
     def validate_quality_inspection_template(self):
-        """Validate and prompt to set default template if different"""
+        """Validate and prompt to set the default template if different"""
         default_qi_template = frappe.db.get_value(
             "Item",
             self.item_code,
@@ -36,14 +52,14 @@ class KTAQualityInspection(QualityInspection):
             )
 
     def show_template_mismatch_prompt(self, default_template=None, existing_template=True):
-        """Show appropriate message based on whether template exists"""
+        """Show the appropriate message based on whether the template exists"""
         message = self.get_template_message(default_template, existing_template)
 
         frappe.msgprint(
             msg=message,
-            title=_("Kalite Kontrol Planı Uyarısı"),
+            title="Kalite Kontrol Planı Uyarısı",
             primary_action={
-                'label': _('Varsayılanı Değiştir'),
+                'label': 'Varsayılanı Değiştir',
                 'server_action': 'set_default_qi_template',
                 'args': {
                     'item': self.item_code,
@@ -53,9 +69,9 @@ class KTAQualityInspection(QualityInspection):
         )
 
     def get_template_message(self, default_template, existing_template):
-        """Generate appropriate message based on template status"""
+        """Generate the appropriate message based on template status"""
         if existing_template:
-            return _("""
+            return ("""
                     Kullanılan Kalite Kontrol Planı <b>{item_code}</b> üzerinde tanımlı varsayılandan farklı.<br><br>
                     Tanımlı Kalite Kontrol Planı: {default_template}<br>
                     Kullanılan Kalite Kontrol Planı: {current_template}<br><br>
@@ -66,7 +82,7 @@ class KTAQualityInspection(QualityInspection):
                 current_template=self.quality_inspection_template
             )
         else:
-            return _("""
+            return ("""
                     <b>{item_code}</b> üzerinde Kalite Kontrol Planı tanımlı değil.<br>
                     Kullanılan Kalite Kontrol Planı: {current_template}<br>
                     Bu Kalite Kontrol Planını varsayılan yapmak ister misiniz?
@@ -75,31 +91,34 @@ class KTAQualityInspection(QualityInspection):
                 current_template=self.quality_inspection_template
             )
 
+    def print_zebra(self):
+        erpnextkta.api.print_to_zebra_kta(q_ref=self.name)
+
 
 @frappe.whitelist()
 def set_default_qi_template(**kwargs):
-    """Set default quality inspection template for an item"""
+    """Set the default quality inspection template for an item"""
     try:
         item = kwargs.get('item')
         template = kwargs.get('template')
 
         if not item or not template:
-            frappe.throw(_("Gerekli parametreler eksik: item ve template"))
+            frappe.throw("Gerekli parametreler eksik: item ve template")
 
         doc = frappe.get_doc('Item', item)
         doc.db_set('quality_inspection_template', template, commit=True)
 
         frappe.msgprint(
-            _("Varsayılan kalite kontrol planı başarıyla güncellendi"),
+            "Varsayılan kalite kontrol planı başarıyla güncellendi",
             indicator="green",
             alert=True
         )
 
     except Exception as e:
         frappe.log_error(
-            _("Kalite kontrol planı güncelleme hatası"),
+            "Kalite kontrol planı güncelleme hatası",
             "set_default_qi_template\n{0}".format(frappe.get_traceback())
         )
         frappe.throw(
-            _("Varsayılan plan güncellenirken hata oluştu: {0}").format(str(e))
+            "Varsayılan plan güncellenirken hata oluştu: {0}".format(str(e))
         )

@@ -23,57 +23,6 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         if errors:
             frappe.throw("\n".join(errors))
 
-    def custom_split_kta_batches(self, row=None, q_ref="ATLA 5/1"):
-        # for row in self.get(table_name):
-        if row.serial_and_batch_bundle:
-            row_batch_number = frappe.db.get_value(
-                "Serial and Batch Entry",
-                {"parent": row.serial_and_batch_bundle},
-                "batch_no"
-            )
-
-            if not row_batch_number:
-                frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
-
-            num_packs = 1
-            remainder_qty = 0
-            split_qty = row.custom_split_qty
-
-            if row.custom_do_not_split == 0:
-                num_packs = frappe.cint(row.stock_qty // split_qty)  # Use row.stock_qty directly
-                remainder_qty = row.stock_qty % split_qty
-
-            if num_packs >= 1:
-                # Use range to run the loop exactly num_packs times
-                for pack in range(1, num_packs + 1):
-                    self.custom_create_packages(row, row_batch_number, split_qty, pack, q_ref)
-
-            if remainder_qty > 0:
-                self.custom_create_packages(row, row_batch_number, remainder_qty, num_packs + 1, q_ref)
-
-    def custom_create_packages(self, row, batch_no, qty, pack_no, q_ref):
-        etiket_item_group = frappe.db.get_value("Item", row.item_code, 'item_group')
-
-        etiket = frappe.get_doc(
-            dict(
-                doctype="KTA Depo Etiketleri",
-                gr_number=row.parent,
-                supplier_delivery_note=self.supplier_delivery_note,
-                qty=qty,
-                uom=row.stock_uom,
-                batch=batch_no,
-                gr_posting_date=self.posting_date,
-                item_code=row.item_code,
-                sut_barcode=f"{batch_no}{pack_no:04d}",
-                item_name=row.item_name,
-                item_group=etiket_item_group,
-                quality_ref=q_ref
-            )
-        )
-        etiket.insert()
-
-        frappe.db.commit()
-
     def validate_items_quality_inspection(self):
         if self.docstatus == DocStatus.cancelled() and self.is_return == 0:
             super().validate_items_quality_inspection()
@@ -96,11 +45,11 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                                 if atlama_sirasi % atlama_sayisi == 0 or atlama_sayisi > atlama_sirasi:
                                     qi_items.append(item)
                                 else:
-                                    self.custom_split_kta_batches(row=item)
-                                    self.print_zebra()
+                                    erpnextkta.api.custom_split_kta_batches(self, row=item)
                             else:
                                 doc.db_set('custom_atlama_sirasi', 2, commit=True)
                                 qi_items.append(item)
+                self.print_zebra()
                 make_quality_inspections(self.doctype, self.name, qi_items)
             else:
                 super().on_submit()
@@ -109,4 +58,4 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             frappe.throw(f"Purchase Receipt Submit Error {str(e)}")
 
     def print_zebra(self):
-        erpnextkta.api.print_to_zebra_kta(gr_number=self.name)
+        erpnextkta.api.print_to_zebra_kta(gr_number=self.namee)

@@ -26,7 +26,7 @@ def get_customer_income_account(customer, company):
 
 
 @frappe.whitelist()
-def print_to_zebra_kta(gr_number=None, label=None):
+def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
     # Get the current logged-in user
     user = frappe.session.user
 
@@ -53,11 +53,19 @@ def print_to_zebra_kta(gr_number=None, label=None):
             query_filter = {"gr_number": gr_number}
         elif label:
             query_filter = {"name": label}
+        elif q_ref:
+            query_filter = {"quality_ref": q_ref}
 
         for data in frappe.get_all("KTA Depo Etiketleri", filters=query_filter,
-                                   fields={"item_code", "qty", "uom", "sut_barcode", "item_name",
+                                   fields={"item_code",
+                                           "item_name",
+                                           "item_group",
+                                           "qty",
+                                           "uom",
                                            "supplier_delivery_note",
-                                           "gr_posting_date"}):
+                                           "sut_barcode",
+                                           "gr_posting_date",
+                                           "quality_ref"}):
             if data.qty % 1 == 0:
                 data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
             else:
@@ -86,3 +94,56 @@ def send_data_to_zebra(data, ip, port):
 def zebra_formatter(doctype_name, data):
     doc = frappe.get_doc("KTA Zebra Templates", doctype_name)
     return doc.get("zebra_template").format(data=data)
+
+
+def custom_split_kta_batches(self, row=None, q_ref="ATLA 5/1"):
+    # for row in self.get(table_name):
+    if row.serial_and_batch_bundle:
+        row_batch_number = frappe.db.get_value(
+            "Serial and Batch Entry",
+            {"parent": row.serial_and_batch_bundle},
+            "batch_no"
+        )
+
+        if not row_batch_number:
+            frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
+
+        num_packs = 1
+        remainder_qty = 0
+        split_qty = row.custom_split_qty
+
+        if row.custom_do_not_split == 0:
+            num_packs = frappe.cint(row.stock_qty // split_qty)  # Use row.stock_qty directly
+            remainder_qty = row.stock_qty % split_qty
+
+        if num_packs >= 1:
+            # Use range to run the loop exactly num_packs times
+            for pack in range(1, num_packs + 1):
+                self.custom_create_packages(row, row_batch_number, split_qty, pack, q_ref)
+
+        if remainder_qty > 0:
+            self.custom_create_packages(row, row_batch_number, remainder_qty, num_packs + 1, q_ref)
+
+
+def custom_create_packages(self, row, batch_no, qty, pack_no, q_ref):
+    etiket_item_group = frappe.db.get_value("Item", row.item_code, 'item_group')
+
+    etiket = frappe.get_doc(
+        dict(
+            doctype="KTA Depo Etiketleri",
+            gr_number=row.parent,
+            supplier_delivery_note=self.supplier_delivery_note,
+            qty=qty,
+            uom=row.stock_uom,
+            batch=batch_no,
+            gr_posting_date=self.posting_date,
+            item_code=row.item_code,
+            sut_barcode=f"{batch_no}{pack_no:04d}",
+            item_name=row.item_name,
+            item_group=etiket_item_group,
+            quality_ref=q_ref
+        )
+    )
+    etiket.insert()
+
+    frappe.db.commit()
