@@ -16,26 +16,22 @@ class KTAQualityInspection(QualityInspection):
                 self.print_zebra()
             else:
                 super().on_submit()
+            if self.custom_set_item_default_qi_template == 1:
+                self.set_default_qi_template()
         except Exception as e:
             frappe.log_error(f"Quality Inspection Submit Error {str(e)}", "Quality Inspection Submit Error")
             frappe.throw(f"Quality Inspection Submit Error {str(e)}")
 
-    def validate(self):
-        super().validate()
-        if self.custom_set_item_default_qi_template == 1:
-            self.set_default_qi_template(item=self.item_code,
-                                         template=self.quality_inspection_template)
-
     def print_zebra(self):
         erpnextkta.api.print_to_zebra_kta(q_ref=self.name)
 
-    def set_default_qi_template(**kwargs):
+    def set_default_qi_template(self):
         """Set the default quality inspection template for an item
         :param changes:
         """
         try:
-            item = kwargs.get('item')
-            template = kwargs.get('template')
+            item = self.item_code
+            template = self.quality_inspection_template
 
             if not item or not template:
                 frappe.throw("Gerekli parametreler eksik: item ve template")
