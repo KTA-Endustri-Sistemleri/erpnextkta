@@ -1,0 +1,157 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-03 09:32:04.691902",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_asmr",
+  "workstation",
+  "item",
+  "manufacturer",
+  "inspector",
+  "reviewer",
+  "inspection_date",
+  "characteristic",
+  "nominal_value",
+  "unit",
+  "mean_value",
+  "standard_deviation",
+  "upper_limit",
+  "lower_limit",
+  "cm_value",
+  "cmk_value",
+  "cpk_value",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_asmr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "workstation",
+   "fieldtype": "Link",
+   "label": "Makine",
+   "options": "Workstation"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "\u00dcr\u00fcn",
+   "options": "Item"
+  },
+  {
+   "fieldname": "manufacturer",
+   "fieldtype": "Link",
+   "label": "\u00dcretici",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "inspector",
+   "fieldtype": "Link",
+   "label": "Kontrolc\u00fc Ad\u0131",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "reviewer",
+   "fieldtype": "Link",
+   "label": "De\u011ferlendiren",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "inspection_date",
+   "fieldtype": "Date",
+   "label": "Kontrol Tarihi"
+  },
+  {
+   "fieldname": "characteristic",
+   "fieldtype": "Data",
+   "label": "Karakteristik"
+  },
+  {
+   "fieldname": "nominal_value",
+   "fieldtype": "Float",
+   "label": "Nominal De\u011fer"
+  },
+  {
+   "fieldname": "upper_limit",
+   "fieldtype": "Float",
+   "label": "\u00dcst Limit"
+  },
+  {
+   "fieldname": "lower_limit",
+   "fieldtype": "Float",
+   "label": "Alt Limit"
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Link",
+   "label": "Birim",
+   "options": "UOM"
+  },
+  {
+   "fieldname": "cm_value",
+   "fieldtype": "Float",
+   "label": "CM"
+  },
+  {
+   "fieldname": "cmk_value",
+   "fieldtype": "Float",
+   "label": "CMK"
+  },
+  {
+   "fieldname": "mean_value",
+   "fieldtype": "Float",
+   "label": "Ortalama"
+  },
+  {
+   "fieldname": "standard_deviation",
+   "fieldtype": "Float",
+   "label": "Standart Sapma"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "KTA machine capability study",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "cpk_value",
+   "fieldtype": "Float",
+   "label": "CPK"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-07-03 11:27:36.370269",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "KTA machine capability study",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
