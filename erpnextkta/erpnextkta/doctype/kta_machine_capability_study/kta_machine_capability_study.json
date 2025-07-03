@@ -6,23 +6,42 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_asmr",
-  "workstation",
   "item",
+  "workstation",
   "manufacturer",
+  "amended_from",
+  "column_break_dtni",
   "inspector",
   "reviewer",
   "inspection_date",
+  "section_break_jrlk",
   "characteristic",
-  "nominal_value",
+  "column_break_vdbc",
   "unit",
-  "mean_value",
-  "standard_deviation",
-  "upper_limit",
+  "section_break_nwgg",
+  "nominal_value",
+  "column_break_libj",
   "lower_limit",
+  "column_break_xmkq",
+  "upper_limit",
+  "section_break_btfz",
+  "mean_value",
+  "column_break_gjda",
+  "standard_deviation",
+  "section_break_euwz",
+  "tepe_degerixq",
+  "column_break_uuci",
+  "dip_degerixq",
+  "column_break_adfb",
+  "tepe_deger",
+  "column_break_pusk",
+  "dip_deger",
+  "section_break_rijv",
   "cm_value",
+  "column_break_fuha",
   "cmk_value",
-  "cpk_value",
-  "amended_from"
+  "column_break_ygsf",
+  "cpk_value"
  ],
  "fields": [
   {
@@ -124,13 +143,93 @@
    "fieldname": "cpk_value",
    "fieldtype": "Float",
    "label": "CPK"
+  },
+  {
+   "fieldname": "column_break_dtni",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_jrlk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_vdbc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_nwgg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_libj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xmkq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_btfz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_gjda",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_rijv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fuha",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ygsf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_euwz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "tepe_degerixq",
+   "fieldtype": "Float",
+   "label": "Tepe De\u011feri Xq"
+  },
+  {
+   "fieldname": "column_break_uuci",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dip_degerixq",
+   "fieldtype": "Float",
+   "label": "Dip De\u011feri Xq"
+  },
+  {
+   "fieldname": "column_break_adfb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tepe_deger",
+   "fieldtype": "Float",
+   "label": "Tek De\u011ferin Tepe De\u011feri"
+  },
+  {
+   "fieldname": "column_break_pusk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dip_deger",
+   "fieldtype": "Float",
+   "label": "Tek De\u011ferin Dip De\u011feri"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-03 11:27:36.370269",
+ "modified": "2025-07-03 14:18:27.608337",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA machine capability study",
@@ -145,6 +244,19 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Quality Manager",
    "share": 1,
    "submit": 1,
    "write": 1
