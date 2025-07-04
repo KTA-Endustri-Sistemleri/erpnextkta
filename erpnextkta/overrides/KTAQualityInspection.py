@@ -8,14 +8,11 @@ from erpnext.stock.doctype.quality_inspection.quality_inspection import QualityI
 class KTAQualityInspection(QualityInspection):
     def on_submit(self):
         try:
+            super().on_submit()
             if self.docstatus == DocStatus.submitted() and self.reference_type == "Purchase Receipt" and self.status == "Accepted":
-                super().on_submit()
-
                 doc = frappe.get_doc('Purchase Receipt Item', self.child_row_reference)
                 erpnextkta.api.custom_split_kta_batches(row=doc, q_ref=self.name)
                 self.print_zebra()
-            else:
-                super().on_submit()
             if self.custom_set_item_default_qi_template == 1:
                 self.set_default_qi_template()
         except Exception as e:
