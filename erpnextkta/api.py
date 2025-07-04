@@ -48,13 +48,13 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
         ip_address = zebra_printer.get("ip")
         port = zebra_printer.get("port")
 
-        query_filter = {}
+        query_filter = {"do_not_split": 0}
         if gr_number:
-            query_filter = {"gr_number": gr_number}
+            query_filter["gr_number"] = gr_number
         elif label:
-            query_filter = {"name": label}
+            query_filter["name"] = label
         elif q_ref:
-            query_filter = {"quality_ref": q_ref}
+            query_filter["quality_ref"] = q_ref
 
         for data in frappe.get_all("KTA Depo Etiketleri", filters=query_filter,
                                    fields={"item_code",
@@ -66,13 +66,12 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
                                            "sut_barcode",
                                            "gr_posting_date",
                                            "quality_ref"}):
-            if data.sut_barcode[-4:] != "0000":
-                if data.qty % 1 == 0:
-                    data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
-                else:
-                    data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
-                formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
-                send_data_to_zebra(formatted_data, ip_address, port)
+            if data.qty % 1 == 0:
+                data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
+            else:
+                data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
+            formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
+            send_data_to_zebra(formatted_data, ip_address, port)
 
     else:
         frappe.msgprint("No default printer found for the current user.")
@@ -140,7 +139,8 @@ def custom_create_packages(row, batch_no, qty, pack_no, q_ref):
             sut_barcode=f"{batch_no}{pack_no:04d}",
             item_name=row.item_name,
             item_group=etiket_item_group,
-            quality_ref=q_ref
+            quality_ref=q_ref,
+            do_not_split=row.custom_do_not_split
         )
     )
     etiket.insert()
