@@ -24,7 +24,6 @@ class KTAQualityInspection(QualityInspection):
 
     def set_default_qi_template(self):
         """Set the default quality inspection template for an item
-        :param changes:
         """
         try:
             item = self.item_code
