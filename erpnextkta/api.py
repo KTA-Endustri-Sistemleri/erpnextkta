@@ -66,12 +66,13 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
                                            "sut_barcode",
                                            "gr_posting_date",
                                            "quality_ref"}):
-            if data.qty % 1 == 0:
-                data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
-            else:
-                data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
-            formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
-            send_data_to_zebra(formatted_data, ip_address, port)
+            if data.sut_barcode[-4:] != "0000":
+                if data.qty % 1 == 0:
+                    data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
+                else:
+                    data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
+                formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
+                send_data_to_zebra(formatted_data, ip_address, port)
 
     else:
         frappe.msgprint("No default printer found for the current user.")
@@ -106,21 +107,20 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
         if not row_batch_number:
             frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
 
-        num_packs = 1
-        remainder_qty = 0
-        split_qty = row.custom_split_qty
-
         if row.custom_do_not_split == 0:
+            split_qty = row.custom_split_qty
             num_packs = frappe.cint(row.stock_qty // split_qty)  # Use row.stock_qty directly
             remainder_qty = row.stock_qty % split_qty
 
-        if num_packs >= 1:
-            # Use range to run the loop exactly num_packs times
-            for pack in range(1, num_packs + 1):
-                custom_create_packages(row, row_batch_number, split_qty, pack, q_ref)
+            if num_packs >= 1:
+                # Use range to run the loop exactly num_packs times
+                for pack in range(1, num_packs + 1):
+                    custom_create_packages(row, row_batch_number, split_qty, pack, q_ref)
 
-        if remainder_qty > 0:
-            custom_create_packages(row, row_batch_number, remainder_qty, num_packs + 1, q_ref)
+            if remainder_qty > 0:
+                custom_create_packages(row, row_batch_number, remainder_qty, num_packs + 1, q_ref)
+        elif row.custom_do_not_split == 1:
+            custom_create_packages(row, row_batch_number, row.stock_qty, 0, q_ref)
 
 
 def custom_create_packages(row, batch_no, qty, pack_no, q_ref):

@@ -4,19 +4,27 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "custom_print_label_to_zebra_kta",
   "section_break_nhrt",
   "gr_number",
   "supplier_delivery_note",
-  "qty",
-  "uom",
-  "batch",
-  "quality_ref",
   "column_break_jdyk",
   "gr_posting_date",
-  "item_code",
+  "do_not_split",
+  "section_break_auoj",
+  "item_name",
   "item_group",
+  "batch",
+  "column_break_gyqj",
+  "item_code",
+  "section_break_aoac",
+  "qty",
+  "column_break_guft",
+  "uom",
+  "section_break_vyki",
   "sut_barcode",
-  "item_name"
+  "column_break_oxmr",
+  "quality_ref"
  ],
  "fields": [
   {
@@ -57,6 +65,7 @@
    "in_standard_filter": 1,
    "label": "GR NUMBER",
    "options": "Purchase Receipt",
+   "search_index": 1,
    "set_only_once": 1
   },
   {
@@ -93,12 +102,47 @@
    "fieldname": "item_group",
    "fieldtype": "Data",
    "label": "Malzeme Grubu"
+  },
+  {
+   "default": "0",
+   "fieldname": "do_not_split",
+   "fieldtype": "Check",
+   "label": "B\u00f6lme!"
+  },
+  {
+   "fieldname": "section_break_auoj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_gyqj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_aoac",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_guft",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_vyki",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_oxmr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_print_label_to_zebra_kta",
+   "fieldtype": "Button",
+   "label": "Etiketi bas"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-01 17:19:31.058923",
+ "modified": "2025-07-04 22:58:38.340052",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Depo Etiketleri",
