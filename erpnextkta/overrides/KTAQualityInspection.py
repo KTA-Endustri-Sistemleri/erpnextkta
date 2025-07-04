@@ -8,7 +8,7 @@ from erpnext.stock.doctype.quality_inspection.quality_inspection import QualityI
 class KTAQualityInspection(QualityInspection):
     def on_submit(self):
         try:
-            if self.docstatus == DocStatus.submitted() and self.reference_type == "Purchase Receipt":
+            if self.docstatus == DocStatus.submitted() and self.reference_type == "Purchase Receipt" and self.status == "Accepted":
                 super().on_submit()
 
                 doc = frappe.get_doc('Purchase Receipt Item', self.child_row_reference)

@@ -119,5 +119,16 @@
   "name": "KTA Depo Etiketi Bas",
   "script": "frappe.ui.form.on('KTA Depo Etiketleri', {\n// refresh(frm) {\ncustom_print_label_to_zebra_kta: function(frm){\nfrappe.call({\n            method: \"erpnextkta.api.print_to_zebra_kta\",\n            args:{\n                \"label\": frm.doc.name\n            },\n            callback: function(r){\n                frm.set_value(\"custom_print_status\", r.message);\n            }\n        });\n}\n});",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "KTA machine capability study",
+  "enabled": 1,
+  "modified": "2025-07-03 14:47:20.925055",
+  "module": "erpnextkta",
+  "name": "KTA Kalite CMK CM CPK",
+  "script": "frappe.ui.form.on('KTA machine capability study', {\r\n    refresh: function(frm) {\r\n        calculateCapability(frm);\r\n    },\r\n    mean_value: function(frm) {\r\n        calculateCapability(frm);\r\n    },\r\n    standard_deviation: function(frm) {\r\n        calculateCapability(frm);\r\n    },\r\n    upper_limit: function(frm) {\r\n        calculateCapability(frm);\r\n    },\r\n    lower_limit: function(frm) {\r\n        calculateCapability(frm);\r\n    },\r\n    tepe_degerixq: function(frm) {  // Yeni alan için event\r\n        calculateCapability(frm);\r\n    },\r\n    dip_degerixq: function(frm) {    // Yeni alan için event\r\n        calculateCapability(frm);\r\n    }\r\n});\r\n\r\nfunction calculateCapability(frm) {\r\n    // Temel değerler\r\n    const mean = parseFloat(frm.doc.mean_value);\r\n    const std = parseFloat(frm.doc.standard_deviation);\r\n    const usl = parseFloat(frm.doc.upper_limit);\r\n    const lsl = parseFloat(frm.doc.lower_limit);\r\n    \r\n    // Yeni eklenen özel değerler\r\n    const tepe = parseFloat(frm.doc.tepe_degerixq);\r\n    const dip = parseFloat(frm.doc.dip_degerixq);\r\n\r\n    // Validasyonlar\r\n    if ([mean, std, usl, lsl, tepe, dip].some(isNaN)) {\r\n        clearResults(frm);\r\n        return;\r\n    }\r\n\r\n    if (std <= 0) {\r\n        frappe.msgprint(__('Standart sapma sıfırdan büyük olmalıdır'));\r\n        clearResults(frm);\r\n        return;\r\n    }\r\n\r\n    if (usl <= lsl) {\r\n        frappe.msgprint(__('Üst limit alt limitten büyük olmalıdır'));\r\n        clearResults(frm);\r\n        return;\r\n    }\r\n\r\n    // CM Hesaplaması (Orijinal formül)\r\n    const cm = (usl - lsl) / (6 * std);\r\n\r\n    // CMK Hesaplaması (Yeni özel değerlerle)\r\n    const cpu = (usl - tepe) / (3 * std);  // Üst limit için tepe değeri kullanılıyor\r\n    const cpl = (dip - lsl) / (3 * std);   // Alt limit için dip değeri kullanılıyor\r\n    const cmk = Math.min(cpu, cpl);\r\n\r\n    // CPK Hesaplaması (Orijinal mean ile)\r\n    const cpk_cpu = (usl - mean) / (3 * std);\r\n    const cpk_cpl = (mean - lsl) / (3 * std);\r\n    const cpk = Math.min(cpk_cpu, cpk_cpl);\r\n\r\n    // Sonuçları ata\r\n    frm.set_value('cm_value', cm);\r\n    frm.set_value('cmk_value', cmk);\r\n    frm.set_value('cpk_value', cpk);\r\n    \r\n    frm.refresh_fields();\r\n}\r\n\r\nfunction clearResults(frm) {\r\n    frm.set_value('cm_value', null);\r\n    frm.set_value('cmk_value', null);\r\n    frm.set_value('cpk_value', null);\r\n    frm.refresh_fields();\r\n}",
+  "view": "Form"
  }
 ]
