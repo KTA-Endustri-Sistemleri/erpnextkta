@@ -4,7 +4,6 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "custom_print_label_to_zebra_kta",
   "section_break_nhrt",
   "gr_number",
   "supplier_delivery_note",
@@ -24,7 +23,11 @@
   "section_break_vyki",
   "sut_barcode",
   "column_break_oxmr",
-  "quality_ref"
+  "quality_ref",
+  "section_break_iquo",
+  "custom_print_label_to_zebra_kta",
+  "column_break_kcus",
+  "custom_print_status"
  ],
  "fields": [
   {
@@ -137,12 +140,24 @@
    "fieldname": "custom_print_label_to_zebra_kta",
    "fieldtype": "Button",
    "label": "Etiketi bas"
+  },
+  {
+   "fieldname": "section_break_iquo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_kcus",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_print_status",
+   "fieldtype": "Data"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-04 22:58:38.340052",
+ "modified": "2025-07-04 23:00:55.461000",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Depo Etiketleri",
