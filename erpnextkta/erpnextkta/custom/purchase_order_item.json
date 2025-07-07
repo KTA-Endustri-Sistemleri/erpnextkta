@@ -17,7 +17,7 @@
    "description": null,
    "docstatus": 0,
    "dt": "Purchase Order Item",
-   "fetch_from": "bom.custom_musteri_indeksi",
+   "fetch_from": "bom.custom_musteri_indeksi_no",
    "fetch_if_empty": 0,
    "fieldname": "custom_musteri_index",
    "fieldtype": "Data",
