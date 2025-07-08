@@ -40,6 +40,8 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
         query_filter["quality_ref"] = q_ref
 
     zebra_printer = get_zebra_printer_for_user()
+    zebra_ip_address = zebra_printer.get("ip")
+    zebra_port = zebra_printer.get("port")
     for data in frappe.get_all("KTA Depo Etiketleri", filters=query_filter,
                                fields={"item_code",
                                        "item_name",
@@ -52,7 +54,7 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
                                        "quality_ref"}):
         data.qty = format_kta_label_qty(data.qty)
         formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
-        send_data_to_zebra(formatted_data, zebra_printer.get("ip"), zebra_printer.get("port"))
+        send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
 
 @frappe.whitelist()
@@ -61,14 +63,14 @@ def print_split_kta_labels(label=None):
         frappe.msgprint("`label` must be provided.")
         return
 
-    query_filter = {"do_not_split": 1}
-    split_query_filter = dict()
-    query_filter["name"] = label
-    split_query_filter["parent"] = label
+    split_query_filter = {"parent": label}
 
     splits = frappe.get_all("KTA Depo Etiketleri Bolme",
                             filters=split_query_filter,
-                            fields={"qty"})
+                            fields={"idx",
+                                    "qty"})
+
+    query_filter = {"do_not_split": 1, "name": label}
 
     label = frappe.db.get_value("KTA Depo Etiketleri",
                                 filters=query_filter,
@@ -78,16 +80,20 @@ def print_split_kta_labels(label=None):
                                            "qty",
                                            "uom",
                                            "supplier_delivery_note",
+                                           "batch",
                                            "sut_barcode",
                                            "gr_posting_date",
                                            "quality_ref"],
                                 as_dict=True)
 
     zebra_printer = get_zebra_printer_for_user()
+    zebra_ip_address = zebra_printer.get("ip")
+    zebra_port = zebra_printer.get("port")
     for split in splits:
         label.qty = format_kta_label_qty(split.qty)
+        label.sut_barcode = f"{label.batch}{split.idx:04d}"
         formatted_data = zebra_formatter("KTA Depo Etiketleri", label)
-        send_data_to_zebra(formatted_data, zebra_printer.get("ip"), zebra_printer.get("port"))
+        send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
     else:
         frappe.msgprint("No default printer found for the current user.")
