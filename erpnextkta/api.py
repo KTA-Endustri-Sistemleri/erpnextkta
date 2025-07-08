@@ -66,10 +66,12 @@ def print_split_kta_labels(label=None):
     query_filter["name"] = label
     split_query_filter["parent"] = label
 
-    splits = frappe.get_all("KTA Depo Etiketleri Bolme", filters=split_query_filter,
+    splits = frappe.get_all("KTA Depo Etiketleri Bolme",
+                            filters=split_query_filter,
                             fields={"qty"})
 
-    label = frappe.db.get_value("KTA Depo Etiketleri", filters=query_filter,
+    label = frappe.db.get_value("KTA Depo Etiketleri",
+                                filters=query_filter,
                                 fieldname=["item_code",
                                            "item_name",
                                            "item_group",

@@ -184,7 +184,7 @@
    "label": "Etiketi b\u00f6l"
   },
   {
-   "depends_on": "do_not_split",
+   "depends_on": "eval:doc.do_not_split==0;",
    "fieldname": "section_break_tzcg",
    "fieldtype": "Section Break"
   }
@@ -192,7 +192,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-08 17:10:41.071101",
+ "modified": "2025-07-08 18:22:06.594235",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Depo Etiketleri",
