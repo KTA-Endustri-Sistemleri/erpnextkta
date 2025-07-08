@@ -85,13 +85,11 @@ def print_split_kta_labels(label=None):
                                 as_dict=True)
 
     for split in splits:
-        data = label
-        data["qty"] = split.get("qty")
-        if data.qty % 1 == 0:
-            data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
+        if split.qty % 1 == 0:
+            label.qty = format_decimal(f"{split.qty:g}", locale='tr_TR')
         else:
-            data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
-        formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
+            label.qty = format_decimal(f"{split.qty:.2f}", locale='tr_TR')
+        formatted_data = zebra_formatter("KTA Depo Etiketleri", label)
         zebra_printer = get_zebra_printer_for_user()
         send_data_to_zebra(formatted_data, zebra_printer.get("ip"), zebra_printer.get("port"))
 
