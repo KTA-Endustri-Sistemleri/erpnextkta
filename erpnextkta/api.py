@@ -49,10 +49,7 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
                                        "sut_barcode",
                                        "gr_posting_date",
                                        "quality_ref"}):
-        if data.qty % 1 == 0:
-            data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
-        else:
-            data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
+        data.qty = format_kta_label_qty(data.qty)
         formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
         zebra_printer = get_zebra_printer_for_user()
         send_data_to_zebra(formatted_data, zebra_printer.get("ip"), zebra_printer.get("port"))
@@ -85,10 +82,7 @@ def print_split_kta_labels(label=None):
                                 as_dict=True)
 
     for split in splits:
-        if split.qty % 1 == 0:
-            label.qty = format_decimal(f"{split.qty:g}", locale='tr_TR')
-        else:
-            label.qty = format_decimal(f"{split.qty:.2f}", locale='tr_TR')
+        label.qty = format_kta_label_qty(split.qty)
         formatted_data = zebra_formatter("KTA Depo Etiketleri", label)
         zebra_printer = get_zebra_printer_for_user()
         send_data_to_zebra(formatted_data, zebra_printer.get("ip"), zebra_printer.get("port"))
@@ -188,3 +182,10 @@ def get_zebra_printer_for_user():
     else:
         frappe.msgprint("No default printer found for the current user.")
         return None
+
+
+def format_kta_label_qty(qty):
+    if qty % 1 == 0:
+        return format_decimal(f"{qty:g}", locale='tr_TR')
+    else:
+        return format_decimal(f"{qty:.2f}", locale='tr_TR')
