@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "custom_print_label_to_zebra_kta",
+  "print_label_to_zebra_kta",
   "section_break_nhrt",
   "gr_number",
   "supplier_delivery_note",
@@ -26,6 +26,10 @@
   "sut_barcode",
   "column_break_oxmr",
   "quality_ref",
+  "section_break_wbgs",
+  "table_gydm",
+  "column_break_amdo",
+  "print_split_labels_to_zebra_kta",
   "section_break_iquo",
   "column_break_kcus",
   "custom_print_status"
@@ -138,11 +142,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "custom_print_label_to_zebra_kta",
-   "fieldtype": "Button",
-   "label": "Etiketi bas"
-  },
-  {
    "fieldname": "section_break_iquo",
    "fieldtype": "Section Break"
   },
@@ -158,12 +157,36 @@
   {
    "fieldname": "custom_section_break_bx7af",
    "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "do_not_split",
+   "fieldname": "section_break_wbgs",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "table_gydm",
+   "fieldtype": "Table",
+   "options": "KTA Depo Etiketleri Bolme"
+  },
+  {
+   "fieldname": "column_break_amdo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "print_label_to_zebra_kta",
+   "fieldtype": "Button",
+   "label": "Etiketi bas"
+  },
+  {
+   "fieldname": "print_split_labels_to_zebra_kta",
+   "fieldtype": "Button",
+   "label": "Etiketi b\u00f6l"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-08 13:59:07.051902",
+ "modified": "2025-07-08 15:17:06.641965",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Depo Etiketleri",

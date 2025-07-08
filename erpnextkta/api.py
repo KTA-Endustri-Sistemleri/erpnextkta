@@ -27,37 +27,53 @@ def get_customer_income_account(customer, company):
 
 @frappe.whitelist()
 def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
-    # Get the current logged-in user
-    user = frappe.session.user
-
-    # Query the printer for this user that is both enabled and marked as default
-    printer = frappe.db.get_value(
-        "KTA User Zebra Printers",
-        {
-            "user": user,
-            "disabled": 0
-            # "is_default": 1 # Assuming there's a field to mark default printers
-        },
-        ["printer"]
-    )
     if not gr_number and not label and not q_ref:
         frappe.msgprint("Either `gr_number`, `label` or 'q_ref' must be provided.")
         return
-    if printer is not None:
-        zebra_printer = frappe.get_doc("KTA Zebra Printers", printer)
-        ip_address = zebra_printer.get("ip")
-        port = zebra_printer.get("port")
 
-        query_filter = {"do_not_split": 0}
-        if gr_number:
-            query_filter["gr_number"] = gr_number
-        elif label:
-            query_filter["name"] = label
-        elif q_ref:
-            query_filter["quality_ref"] = q_ref
+    query_filter = {"do_not_split": 0}
+    if gr_number:
+        query_filter["gr_number"] = gr_number
+    elif label:
+        query_filter["name"] = label
+    elif q_ref:
+        query_filter["quality_ref"] = q_ref
 
-        for data in frappe.get_all("KTA Depo Etiketleri", filters=query_filter,
-                                   fields={"item_code",
+    for data in frappe.get_all("KTA Depo Etiketleri", filters=query_filter,
+                               fields={"item_code",
+                                       "item_name",
+                                       "item_group",
+                                       "qty",
+                                       "uom",
+                                       "supplier_delivery_note",
+                                       "sut_barcode",
+                                       "gr_posting_date",
+                                       "quality_ref"}):
+        if data.qty % 1 == 0:
+            data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
+        else:
+            data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
+        formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
+        zebra_printer = get_zebra_printer_for_user()
+        send_data_to_zebra(formatted_data, zebra_printer.get("ip"), zebra_printer.get("port"))
+
+
+@frappe.whitelist()
+def print_split_kta_labels(label=None):
+    if not label:
+        frappe.msgprint("`label` must be provided.")
+        return
+
+    query_filter = {"do_not_split": 1}
+    split_query_filter = dict()
+    query_filter["name"] = label
+    split_query_filter["parent"] = label
+
+    splits = frappe.get_all("KTA Depo Etiketleri Bolme", filters=split_query_filter,
+                            fields={"qty"})
+
+    label = frappe.db.get_value("KTA Depo Etiketleri", filters=query_filter,
+                                fieldname=["item_code",
                                            "item_name",
                                            "item_group",
                                            "qty",
@@ -65,13 +81,19 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
                                            "supplier_delivery_note",
                                            "sut_barcode",
                                            "gr_posting_date",
-                                           "quality_ref"}):
-            if data.qty % 1 == 0:
-                data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
-            else:
-                data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
-            formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
-            send_data_to_zebra(formatted_data, ip_address, port)
+                                           "quality_ref"],
+                                as_dict=True)
+
+    for split in splits:
+        data = label
+        data["qty"] = split.get("qty")
+        if data.qty % 1 == 0:
+            data.qty = format_decimal(f"{data.qty:g}", locale='tr_TR')
+        else:
+            data.qty = format_decimal(f"{data.qty:.2f}", locale='tr_TR')
+        formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
+        zebra_printer = get_zebra_printer_for_user()
+        send_data_to_zebra(formatted_data, zebra_printer.get("ip"), zebra_printer.get("port"))
 
     else:
         frappe.msgprint("No default printer found for the current user.")
@@ -146,3 +168,25 @@ def custom_create_packages(row, batch_no, qty, pack_no, q_ref):
     etiket.insert()
 
     frappe.db.commit()
+
+
+def get_zebra_printer_for_user():
+    # Get the current logged-in user
+    user = frappe.session.user
+
+    # Query the printer for this user that is both enabled and marked as default
+    printer = frappe.db.get_value(
+        "KTA User Zebra Printers",
+        {
+            "user": user,
+            "disabled": 0
+            # "is_default": 1 # Assuming there's a field to mark default printers
+        },
+        ["printer"]
+    )
+    if get_zebra_printer_for_user() is not None:
+        zebra_printer = frappe.get_doc("KTA Zebra Printers", printer)
+        return zebra_printer
+    else:
+        frappe.msgprint("No default printer found for the current user.")
+        return None
