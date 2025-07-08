@@ -39,6 +39,7 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
     elif q_ref:
         query_filter["quality_ref"] = q_ref
 
+    zebra_printer = get_zebra_printer_for_user()
     for data in frappe.get_all("KTA Depo Etiketleri", filters=query_filter,
                                fields={"item_code",
                                        "item_name",
@@ -51,7 +52,6 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
                                        "quality_ref"}):
         data.qty = format_kta_label_qty(data.qty)
         formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
-        zebra_printer = get_zebra_printer_for_user()
         send_data_to_zebra(formatted_data, zebra_printer.get("ip"), zebra_printer.get("port"))
 
 
@@ -83,10 +83,10 @@ def print_split_kta_labels(label=None):
                                            "quality_ref"],
                                 as_dict=True)
 
+    zebra_printer = get_zebra_printer_for_user()
     for split in splits:
         label.qty = format_kta_label_qty(split.qty)
         formatted_data = zebra_formatter("KTA Depo Etiketleri", label)
-        zebra_printer = get_zebra_printer_for_user()
         send_data_to_zebra(formatted_data, zebra_printer.get("ip"), zebra_printer.get("port"))
 
     else:
