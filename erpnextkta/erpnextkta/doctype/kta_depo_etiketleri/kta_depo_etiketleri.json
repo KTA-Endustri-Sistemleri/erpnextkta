@@ -4,6 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_tzcg",
   "print_label_to_zebra_kta",
   "section_break_nhrt",
   "gr_number",
@@ -181,12 +182,17 @@
    "fieldname": "print_split_labels_to_zebra_kta",
    "fieldtype": "Button",
    "label": "Etiketi b\u00f6l"
+  },
+  {
+   "depends_on": "do_not_split",
+   "fieldname": "section_break_tzcg",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-08 15:17:06.641965",
+ "modified": "2025-07-08 17:10:41.071101",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Depo Etiketleri",
