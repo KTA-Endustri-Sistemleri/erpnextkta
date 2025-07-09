@@ -26,7 +26,7 @@ def get_customer_income_account(customer, company):
 
 
 @frappe.whitelist()
-def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
+def print_kta_pr_labels(gr_number=None, label=None, q_ref=None):
     if not gr_number and not label and not q_ref:
         frappe.msgprint("Either `gr_number`, `label` or 'q_ref' must be provided.")
         return
@@ -58,7 +58,7 @@ def print_to_zebra_kta(gr_number=None, label=None, q_ref=None):
 
 
 @frappe.whitelist()
-def print_split_kta_labels(label=None):
+def print_split_kta_pr_labels(label=None):
     if not label:
         frappe.msgprint("`label` must be provided.")
         return

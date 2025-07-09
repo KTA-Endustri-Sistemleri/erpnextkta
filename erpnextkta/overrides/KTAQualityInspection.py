@@ -3,7 +3,7 @@ from frappe.model.docstatus import DocStatus
 
 from erpnext.stock.doctype.quality_inspection.quality_inspection import QualityInspection
 from erpnextkta.api import custom_split_kta_batches
-from erpnextkta.api import print_to_zebra_kta
+from erpnextkta.api import print_kta_pr_labels
 
 
 class KTAQualityInspection(QualityInspection):
@@ -21,7 +21,7 @@ class KTAQualityInspection(QualityInspection):
             frappe.throw(f"Quality Inspection Submit Error {str(e)}")
 
     def print_zebra(self):
-        print_to_zebra_kta(q_ref=self.name)
+        print_kta_pr_labels(q_ref=self.name)
 
     def set_default_qi_template(self):
         """Set the default quality inspection template for an item

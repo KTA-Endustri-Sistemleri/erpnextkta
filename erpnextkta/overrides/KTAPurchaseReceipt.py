@@ -58,4 +58,4 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             frappe.throw(f"Purchase Receipt Submit Error {str(e)}")
 
     def print_zebra(self):
-        erpnextkta.api.print_to_zebra_kta(gr_number=self.name)
+        erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
