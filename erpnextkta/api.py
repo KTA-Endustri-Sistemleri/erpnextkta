@@ -184,7 +184,8 @@ def get_zebra_printer_for_user():
         },
         ["printer"]
     )
-    if get_zebra_printer_for_user() is not None:
+
+    if printer is not None:  # Check if a printer was found
         zebra_printer = frappe.get_doc("KTA Zebra Printers", printer)
         return zebra_printer
     else:
