@@ -96,6 +96,32 @@ def print_split_kta_pr_labels(label=None):
         send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
 
+@frappe.whitelist()
+def print_kta_wo_labels(work_order=None):
+    # Constants for DocTypes
+    ITEM_DOCTYPE = 'Item'
+    BOM_DOCTYPE = 'BOM'
+    MATERIAL_REQUEST_DOCTYPE = 'Material Request'
+    MATERIAL_REQUEST_ITEM_DOCTYPE = 'Material Request Item'
+
+
+    # Retrieve related documents
+    item_doc = get_document(ITEM_DOCTYPE, work_order.production_item)
+    bom_doc = get_document(BOM_DOCTYPE, work_order.bom_no)
+    material_request_doc = get_document(MATERIAL_REQUEST_DOCTYPE, work_order.material_request)
+    material_request_item_doc = get_document(MATERIAL_REQUEST_ITEM_DOCTYPE, work_order.material_request_item)
+
+def get_document(doctype, docname):
+    """
+    Retrieves a Frappe document by its DocType and name.
+
+    :param doctype: The DocType of the document.
+    :param docname: The name/ID of the document.
+    :return: Frappe document object.
+    """
+    return frappe.get_doc(doctype, docname)
+
+
 def send_data_to_zebra(data, ip, port):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
