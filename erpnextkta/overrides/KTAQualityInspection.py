@@ -1,8 +1,9 @@
 import frappe
 from frappe.model.docstatus import DocStatus
 
-import erpnextkta.api
 from erpnext.stock.doctype.quality_inspection.quality_inspection import QualityInspection
+from erpnextkta.api import custom_split_kta_batches
+from erpnextkta.api import print_to_zebra_kta
 
 
 class KTAQualityInspection(QualityInspection):
@@ -11,7 +12,7 @@ class KTAQualityInspection(QualityInspection):
             super().on_submit()
             if self.docstatus == DocStatus.submitted() and self.reference_type == "Purchase Receipt" and self.status == "Accepted":
                 doc = frappe.get_doc('Purchase Receipt Item', self.child_row_reference)
-                erpnextkta.api.custom_split_kta_batches(row=doc, q_ref=self.name)
+                custom_split_kta_batches(row=doc, q_ref=self.name)
                 self.print_zebra()
             if self.custom_set_item_default_qi_template == 1:
                 self.set_default_qi_template()
@@ -20,7 +21,7 @@ class KTAQualityInspection(QualityInspection):
             frappe.throw(f"Quality Inspection Submit Error {str(e)}")
 
     def print_zebra(self):
-        erpnextkta.api.print_to_zebra_kta(q_ref=self.name)
+        print_to_zebra_kta(q_ref=self.name)
 
     def set_default_qi_template(self):
         """Set the default quality inspection template for an item
