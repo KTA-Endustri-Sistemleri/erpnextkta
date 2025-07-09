@@ -1,5 +1,6 @@
-import frappe
 import socket
+
+import frappe
 from babel.numbers import format_decimal
 
 
@@ -42,16 +43,16 @@ def print_kta_pr_labels(gr_number=None, label=None, q_ref=None):
     zebra_printer = get_zebra_printer_for_user()
     zebra_ip_address = zebra_printer.get("ip")
     zebra_port = zebra_printer.get("port")
-    for data in frappe.get_all("KTA Depo Etiketleri", filters=query_filter,
-                               fields={"item_code",
-                                       "item_name",
-                                       "item_group",
-                                       "qty",
-                                       "uom",
-                                       "supplier_delivery_note",
-                                       "sut_barcode",
-                                       "gr_posting_date",
-                                       "quality_ref"}):
+    for data in frappe.get_all('KTA Depo Etiketleri', filters=query_filter,
+                               fields={'item_code',
+                                       'item_name',
+                                       'item_group',
+                                       'qty',
+                                       'uom',
+                                       'supplier_delivery_note',
+                                       'sut_barcode',
+                                       'gr_posting_date',
+                                       'quality_ref'}):
         data.qty = format_kta_label_qty(data.qty)
         formatted_data = zebra_formatter("KTA Depo Etiketleri", data)
         send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
@@ -59,31 +60,34 @@ def print_kta_pr_labels(gr_number=None, label=None, q_ref=None):
 
 @frappe.whitelist()
 def print_split_kta_pr_labels(label=None):
+    kta_depo_etiketleri_bolme_doctype = "KTA Depo Etiketleri Bolme"
+    kta_depo_etiketleri_doctype = "KTA Depo Etiketleri"
+
     if not label:
         frappe.msgprint("`label` must be provided.")
         return
 
     split_query_filter = {"parent": label}
 
-    splits = frappe.get_all("KTA Depo Etiketleri Bolme",
+    splits = frappe.get_all(kta_depo_etiketleri_bolme_doctype,
                             filters=split_query_filter,
-                            fields={"idx",
-                                    "qty"})
+                            fields={'idx',
+                                    'qty'})
 
     query_filter = {"do_not_split": 1, "name": label}
 
-    label = frappe.db.get_value("KTA Depo Etiketleri",
+    label = frappe.db.get_value(kta_depo_etiketleri_doctype,
                                 filters=query_filter,
-                                fieldname=["item_code",
-                                           "item_name",
-                                           "item_group",
-                                           "qty",
-                                           "uom",
-                                           "supplier_delivery_note",
-                                           "batch",
-                                           "sut_barcode",
-                                           "gr_posting_date",
-                                           "quality_ref"],
+                                fieldname=['item_code',
+                                           'item_name',
+                                           'item_group',
+                                           'qty',
+                                           'uom',
+                                           'supplier_delivery_note',
+                                           'batch',
+                                           'sut_barcode',
+                                           'gr_posting_date',
+                                           'quality_ref'],
                                 as_dict=True)
 
     zebra_printer = get_zebra_printer_for_user()
@@ -92,35 +96,138 @@ def print_split_kta_pr_labels(label=None):
     for split in splits:
         label.qty = format_kta_label_qty(split.qty)
         label.sut_barcode = f"{label.batch}{split.idx:04d}"
-        formatted_data = zebra_formatter("KTA Depo Etiketleri", label)
+        formatted_data = zebra_formatter(kta_depo_etiketleri_doctype, label)
         send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
 
 @frappe.whitelist()
 def print_kta_wo_labels(work_order=None):
     # Constants for DocTypes
-    ITEM_DOCTYPE = 'Item'
-    BOM_DOCTYPE = 'BOM'
-    MATERIAL_REQUEST_DOCTYPE = 'Material Request'
-    MATERIAL_REQUEST_ITEM_DOCTYPE = 'Material Request Item'
+    bom_doctype = 'BOM'
+    item_doctype = 'Item'
+    item_customer_detail_doctype = 'Item Customer Detail'
+    item_customer_detail_parentfield = 'customer_items'
+    stock_entry_doctype = 'Stock Entry'
+    stock_entry_type_manufacture = 'Manufacture'
+    stock_entry_detail_doctype = 'Stock Entry Detail'
+    stock_entry_detail_parentfield = 'items'
+    work_order_doctype = 'Work Order'
+    kta_is_emri_etiketleri_name = "KTA İş Emri Etiketleri"
 
+    work_order_doc = frappe.get_doc(work_order_doctype, work_order)
+
+    stock_entry_data = frappe.db.get_value(
+        stock_entry_doctype,
+        filters={
+            'stock_entry_type': stock_entry_type_manufacture,
+            'work_order': work_order
+        },
+        fieldname=[
+            'name',
+            'posting_date',
+            'to_warehouse'
+        ],
+        as_dict=True
+    )
+    source_warehouse = frappe.db.get_list(
+        stock_entry_detail_doctype,
+        filters={
+            'parent': stock_entry_data.get("name"),
+            'stock_entry_type': stock_entry_type_manufacture,
+            's_warehouse': ['is not null']
+        },
+        fieldname=[
+            's_warehouse'
+        ],
+        group_by='s_warehouse'
+    )
+
+    if len(source_warehouse) > 1:
+        frappe.throw(f"More than one source warehouse found for Work Order: {work_order}")
+        return
+
+    destination_warehouse = frappe.db.get_list(
+        stock_entry_detail_doctype,
+        filters={
+            'parent': stock_entry_data.get("name"),
+            'stock_entry_type': stock_entry_type_manufacture,
+            't_warehouse': ['is not null']
+        },
+        fieldname=[
+            't_warehouse'
+        ],
+        group_by='t_warehouse'
+    )
+
+    if len(destination_warehouse) > 1:
+        frappe.throw(f"More than one destination warehouse found for Work Order: {work_order}")
+        return
+
+    batch_no = frappe.db.get_value(
+        stock_entry_detail_doctype,
+        filters={
+            'parent': stock_entry_data.get("name"),
+            'parenttype': stock_entry_doctype,
+            'parentfield': stock_entry_detail_parentfield,
+            'stock_entry_type': stock_entry_type_manufacture,
+            't_warehouse': ['is not null']
+        },
+        fieldname=[
+            'batch_no'
+        ],
+        as_dict=True
+    )
 
     # Retrieve related documents
-    item_doc = get_document(ITEM_DOCTYPE, work_order.production_item)
-    bom_doc = get_document(BOM_DOCTYPE, work_order.bom_no)
-    material_request_doc = get_document(MATERIAL_REQUEST_DOCTYPE, work_order.material_request)
-    material_request_item_doc = get_document(MATERIAL_REQUEST_ITEM_DOCTYPE, work_order.material_request_item)
+    bom_doc = frappe.get_doc(bom_doctype, work_order_doc.get("bom_no"))
 
-def get_document(doctype, docname):
-    """
-    Retrieves a Frappe document by its DocType and name.
+    data = dict()
+    data["print_date"] = frappe.utils.nowdate()
+    data["material_number"] = work_order_doc.get("production_item")
+    data["material_description"] = work_order_doc.get("description")
+    meta = frappe.get_meta('BOM')
+    if meta.has_field('custom_musteri_indeksi_no'):
+        data["material_index"] = bom_doc.get("custom_musteri_indeksi_no")
+    data["work_order"] = work_order_doc.get("name")
+    data["gr_posting_date"] = stock_entry_data.get("posting_date")
+    data["gr_number"] = stock_entry_data.get("name")
+    data["gr_source_warehouse"] = source_warehouse[0]
+    data["to_warehouse"] = destination_warehouse[0]
+    data["stock_uom"] = work_order_doc.get("stock_uom")
+    data["batch_no"] = batch_no
 
-    :param doctype: The DocType of the document.
-    :param docname: The name/ID of the document.
-    :return: Frappe document object.
-    """
-    return frappe.get_doc(doctype, docname)
+    custom_musteri_paketleme_miktari = frappe.db.get_value(
+        item_customer_detail_doctype,
+        filters={
+            'parent': work_order_doc.get("production_item"),
+            'parenttype': item_doctype,
+            'parentfield': item_customer_detail_parentfield,
+            't_warehouse': ['is not null']
+        },
+        fieldname=[
+            'custom_musteri_paketleme_miktari'
+        ]
+    )
+    num_packs = frappe.cint(work_order_doc.get("qty") // custom_musteri_paketleme_miktari)
+    remainder_qty = work_order_doc.get("qty") % custom_musteri_paketleme_miktari
 
+    zebra_printer = get_zebra_printer_for_user()
+    zebra_ip_address = zebra_printer.get("ip")
+    zebra_port = zebra_printer.get("port")
+
+    if num_packs >= 1:
+        # Use range to run the loop exactly num_packs times
+        for pack in range(1, num_packs + 1):
+            data["qty"] = format_kta_label_qty(custom_musteri_paketleme_miktari)
+            data["sut_no"] = f"{batch_no}{pack:04d}"
+            formatted_data = zebra_formatter(kta_is_emri_etiketleri_name, data)
+            send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
+
+    if remainder_qty > 0:
+        data["qty"] = format_kta_label_qty(work_order_doc.get("remainder_qty"))
+        data["sut_no"] = f"{batch_no}{num_packs + 1:04d}"
+        formatted_data = zebra_formatter(kta_is_emri_etiketleri_name, data)
+        send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
 def send_data_to_zebra(data, ip, port):
     try:
@@ -135,7 +242,7 @@ def send_data_to_zebra(data, ip, port):
 
 
 def zebra_formatter(doctype_name, data):
-    doc = frappe.get_doc("KTA Zebra Templates", doctype_name)
+    doc = frappe.get_doc('KTA Zebra Templates', doctype_name)
     return doc.get("zebra_template").format(data=data)
 
 
@@ -143,9 +250,9 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     # for row in self.get(table_name):
     if row.serial_and_batch_bundle:
         row_batch_number = frappe.db.get_value(
-            "Serial and Batch Entry",
-            {"parent": row.serial_and_batch_bundle},
-            "batch_no"
+            'Serial and Batch Entry',
+            {'parent': row.serial_and_batch_bundle},
+            'batch_no'
         )
 
         if not row_batch_number:
@@ -168,18 +275,18 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
 
 
 def custom_create_packages(row, batch_no, qty, pack_no, q_ref):
-    etiket_item_group = frappe.db.get_value("Item", row.item_code, 'item_group')
-    purchase_receipt = frappe.get_doc("Purchase Receipt", row.parent)
+    etiket_item_group = frappe.db.get_value('Item', row.item_code, 'item_group')
+    purchase_receipt = frappe.get_doc('Purchase Receipt', row.parent)
 
     etiket = frappe.get_doc(
         dict(
             doctype="KTA Depo Etiketleri",
             gr_number=row.parent,
-            supplier_delivery_note=purchase_receipt.supplier_delivery_note,
+            supplier_delivery_note=purchase_receipt.get("supplier_delivery_note"),
             qty=qty,
             uom=row.stock_uom,
             batch=batch_no,
-            gr_posting_date=purchase_receipt.posting_date,
+            gr_posting_date=purchase_receipt.get("posting_date"),
             item_code=row.item_code,
             sut_barcode=f"{batch_no}{pack_no:04d}",
             item_name=row.item_name,
@@ -199,17 +306,16 @@ def get_zebra_printer_for_user():
 
     # Query the printer for this user that is both enabled and marked as default
     printer = frappe.db.get_value(
-        "KTA User Zebra Printers",
+        'KTA User Zebra Printers',
         {
-            "user": user,
-            "disabled": 0
-            # "is_default": 1 # Assuming there's a field to mark default printers
+            'user': user,
+            'disabled': 0
         },
-        ["printer"]
+        ['printer']
     )
 
     if printer is not None:  # Check if a printer was found
-        zebra_printer = frappe.get_doc("KTA Zebra Printers", printer)
+        zebra_printer = frappe.get_doc('KTA Zebra Printers', printer)
         return zebra_printer
     else:
         frappe.msgprint("No default printer found for the current user.")
