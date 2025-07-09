@@ -95,9 +95,6 @@ def print_split_kta_labels(label=None):
         formatted_data = zebra_formatter("KTA Depo Etiketleri", label)
         send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
-    else:
-        frappe.msgprint("No default printer found for the current user.")
-
 
 def send_data_to_zebra(data, ip, port):
     try:
