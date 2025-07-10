@@ -192,7 +192,7 @@ def print_kta_wo_labels(work_order=None):
     data["stock_uom"] = work_order_doc.get("stock_uom")
     data["batch_no"] = batch_no
 
-    custom_musteri_paketleme_miktari = frappe.db.get_value(
+    musteri_paketleme_miktari = frappe.db.get_value(
         item_customer_detail_doctype,
         filters={
             "parent": work_order_doc.get("production_item"),
@@ -204,7 +204,9 @@ def print_kta_wo_labels(work_order=None):
         ]
     )
 
-    musteri_paketleme_miktari = custom_musteri_paketleme_miktari[0]
+    if not musteri_paketleme_miktari:
+        frappe.throw(f"No custom_musteri_paketleme_miktari found for Item: {work_order_doc.get('production_item')}")
+        return
 
     num_packs = frappe.cint(work_order_doc.get("qty") // musteri_paketleme_miktari)
     remainder_qty = work_order_doc.get("qty") % musteri_paketleme_miktari
