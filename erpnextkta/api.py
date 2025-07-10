@@ -171,6 +171,7 @@ def print_kta_wo_labels(work_order=None):
     )
 
     stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail_data)
+
     batch_no = get_batch_from_stock_entry_detail(stock_entry_detail_doc)
 
     bom_doc = frappe.get_doc(bom_doctype, work_order_doc.get("bom_no"))
@@ -344,12 +345,12 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
             "parentfield": serial_and_batch_entry_parentfield,
             "is_outward": serial_and_batch_entry_is_outward,
             "warehouse": stock_entry_detail.get("t_warehouse"),
-            "batch_no": ["not in", None]
+            "batch_no": ["is", "set"]
         },
         fieldname="batch_no"
     )
-    if len(batch_no) > 1:
+    if not batch_no:
         frappe.throw(f"More than one batch found for Work Order")
         return None
 
-    return batch_no[0]
+    return batch_no
