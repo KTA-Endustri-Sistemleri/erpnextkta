@@ -134,6 +134,7 @@ def print_kta_wo_labels(work_order=None):
     source_warehouse = work_order
 
     destination_warehouse = stock_entry_data.to_warehouse
+
     if not destination_warehouse:
         destination_warehouse = frappe.db.get_all(
             stock_entry_detail_doctype,
@@ -156,20 +157,20 @@ def print_kta_wo_labels(work_order=None):
     stock_entry_detail_data = frappe.db.get_value(
         stock_entry_detail_doctype,
         filters={
-            "parent": stock_entry_data.get("name"),
+            "parent": stock_entry_data.name,
             "parenttype": stock_entry_doctype,
             "parentfield": stock_entry_detail_parentfield,
             "item_code": work_order_doc.get("production_item"),
             "is_finished_item": stock_entry_detail_is_finished_item,
             "docstatus": stock_entry_detail_docstatus,
-            "t_warehouse": ["not in", None]
+            "t_warehouse": ["is", "set"]
         },
         fieldname=[
             "name"
         ]
     )
 
-    stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail_data.get("name"))
+    stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail_data)
     batch_no = get_batch_from_stock_entry_detail(stock_entry_detail_doc)
 
     bom_doc = frappe.get_doc(bom_doctype, work_order_doc.get("bom_no"))
