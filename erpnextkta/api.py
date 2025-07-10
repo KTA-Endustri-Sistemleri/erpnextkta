@@ -177,20 +177,23 @@ def print_kta_wo_labels(work_order=None):
     bom_doc = frappe.get_doc(bom_doctype, work_order_doc.get("bom_no"))
 
     # Construct data
-    data = dict()
-    data["print_date"] = frappe.utils.nowdate()
-    data["material_number"] = work_order_doc.get("production_item")
-    data["material_description"] = work_order_doc.get("description")
+    data = frappe.new_doc("KTA Depo Etiketleri")
+    data = {
+        'print_date': frappe.utils.nowdate(),
+        'material_number': work_order_doc.get("production_item"),
+        'material_description': work_order_doc.get("description"),
+        'work_order': work_order_doc.get("name"),
+        'gr_posting_date': frappe.utils.get_date_str(stock_entry_data.get("posting_date")),
+        'gr_number': stock_entry_data.get("name"),
+        'gr_source_warehouse': source_warehouse,
+        'to_warehouse': destination_warehouse,
+        'stock_uom': work_order_doc.get("stock_uom"),
+        'batch_no': batch_no
+    }
+
     meta = frappe.get_meta("BOM")
     if meta.has_field("custom_musteri_indeksi_no"):
-        data["material_index"] = bom_doc.get("custom_musteri_indeksi_no")
-    data["work_order"] = work_order_doc.get("name")
-    data["gr_posting_date"] = stock_entry_data.get("posting_date")
-    data["gr_number"] = stock_entry_data.get("name")
-    data["gr_source_warehouse"] = source_warehouse[0]
-    data["to_warehouse"] = destination_warehouse[0]
-    data["stock_uom"] = work_order_doc.get("stock_uom")
-    data["batch_no"] = batch_no
+        data['material_index'] = bom_doc.get("custom_musteri_indeksi_no")
 
     musteri_paketleme_miktari = frappe.db.get_value(
         item_customer_detail_doctype,
@@ -218,14 +221,14 @@ def print_kta_wo_labels(work_order=None):
     if num_packs >= 1:
         # Use range to run the loop exactly num_packs times
         for pack in range(1, num_packs + 1):
-            data["qty"] = format_kta_label_qty(musteri_paketleme_miktari)
-            data["sut_no"] = f"{batch_no}{pack:04d}"
+            data['qty'] = format_kta_label_qty(musteri_paketleme_miktari)
+            data['sut_no'] = f"{batch_no}{pack:04d}"
             formatted_data = zebra_formatter(kta_is_emri_etiketleri_name, data)
             send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
     if remainder_qty > 0:
-        data["qty"] = format_kta_label_qty(work_order_doc.get("remainder_qty"))
-        data["sut_no"] = f"{batch_no}{num_packs + 1:04d}"
+        data['qty'] = format_kta_label_qty(work_order_doc.get("remainder_qty"))
+        data['sut_no'] = f"{batch_no}{num_packs + 1:04d}"
         formatted_data = zebra_formatter(kta_is_emri_etiketleri_name, data)
         send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
