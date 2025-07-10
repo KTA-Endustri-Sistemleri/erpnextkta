@@ -133,12 +133,12 @@ def print_kta_wo_labels(work_order=None):
     )
     source_warehouse = work_order
 
-    destination_warehouse = stock_entry_data.get("to_warehouse")
+    destination_warehouse = stock_entry_data.to_warehouse
     if not destination_warehouse:
         destination_warehouse = frappe.db.get_all(
             stock_entry_detail_doctype,
             filters={
-                "parent": stock_entry_data.get("name"),
+                "parent": stock_entry_data.name,
                 "parenttype": stock_entry_doctype,
                 "parentfield": stock_entry_detail_parentfield,
                 "t_warehouse": ["not in", None]
