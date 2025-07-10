@@ -82,8 +82,9 @@
   },
   {
    "fieldname": "qty",
-   "fieldtype": "Data",
-   "label": "qty"
+   "fieldtype": "Float",
+   "label": "qty",
+   "precision": "2"
   },
   {
    "fieldname": "sut_no",
@@ -95,7 +96,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2025-07-10 20:02:18.484914",
+ "modified": "2025-07-10 20:13:12.811782",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Is Emri Etiketleri",
