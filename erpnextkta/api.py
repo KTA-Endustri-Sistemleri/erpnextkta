@@ -350,7 +350,7 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
         fieldname="batch_no"
     )
     if not batch_no:
-        frappe.throw(f"More than one batch found for Work Order")
+        frappe.throw(f"More than one batch found for Stock Entry Detail: {stock_entry_detail.name}")
         return None
 
     return batch_no
