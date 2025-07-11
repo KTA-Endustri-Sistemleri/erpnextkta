@@ -101,10 +101,12 @@ def print_split_kta_pr_labels(label=None):
 
 
 @frappe.whitelist()
-def print_kta_wo_labels(work_order=None):
+def print_kta_wo_labels(work_order):
     # Constants for DocTypes
     stock_entry_doctype = "Stock Entry"
     stock_entry_type = "Manufacture"
+
+    details_of_wo = get_details_of_wo_for_label(work_order)
 
     stock_entries = frappe.db.get_all(
         doctype=stock_entry_doctype,
@@ -118,13 +120,13 @@ def print_kta_wo_labels(work_order=None):
             "work_order": work_order
         }
     )
-    details_of_wo = get_details_of_wo_for_label(work_order)
+
     for stock_entry in stock_entries:
         print_kta_wo_label(details_of_wo, stock_entry)
 
 
 @frappe.whitelist()
-def print_kta_wo_labels_of_stock_entry(stock_entry=None):
+def print_kta_wo_labels_of_stock_entry(stock_entry):
     # Constants for DocTypes
     stock_entry_doctype = "Stock Entry"
 
@@ -201,9 +203,9 @@ def print_kta_wo_label(work_order_details, stock_entry):
             "name"
         ]
     )
-    if len(stock_entry_detail) > 0:
-        frappe.throw(f"More than one Inward Type of Transaction found for Stock Entry: {stock_entry}")
-        return
+    # if len(stock_entry_detail) > 0:
+    #     frappe.throw(f"More than one Inward Type of Transaction found for Stock Entry: {stock_entry}")
+    #     return
 
     stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail)
 
