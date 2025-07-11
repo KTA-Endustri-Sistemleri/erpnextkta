@@ -128,9 +128,9 @@ def print_kta_wo_labels_of_stock_entry(stock_entry=None):
     # Constants for DocTypes
     stock_entry_doctype = "Stock Entry"
 
-    work_order_doc = frappe.get_doc(stock_entry_doctype, stock_entry)
+    stock_entry_doc = frappe.get_doc(stock_entry_doctype, stock_entry)
 
-    print_kta_wo_label(get_details_of_wo_for_label(work_order_doc), stock_entry)
+    print_kta_wo_label(get_details_of_wo_for_label(stock_entry_doc.get("work_order")), stock_entry)
 
 
 def get_details_of_wo_for_label(work_order):
