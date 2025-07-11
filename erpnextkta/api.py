@@ -110,11 +110,6 @@ def print_kta_wo_labels(work_order):
 
     stock_entries = frappe.db.get_all(
         doctype=stock_entry_doctype,
-        fields=[
-            "name",
-            "posting_date",
-            "to_warehouse"
-        ],
         filters={
             "stock_entry_type": stock_entry_type,
             "work_order": work_order
