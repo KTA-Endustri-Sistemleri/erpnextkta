@@ -186,8 +186,8 @@ def print_kta_wo_label(work_order_details, stock_entry):
 
     source_warehouse = stock_entry
 
-    stock_entry_detail = frappe.db.get_value(
-        stock_entry_detail_doctype,
+    stock_entry_detail = frappe.db.get_all(
+        doctype=stock_entry_detail_doctype,
         filters={
             "parent": stock_entry,
             "parenttype": stock_entry_doctype,
@@ -197,15 +197,16 @@ def print_kta_wo_label(work_order_details, stock_entry):
             "docstatus": stock_entry_detail_docstatus,
             "t_warehouse": ["is", "set"]
         },
-        fieldname=[
+        fields=[
             "name"
-        ]
+        ],
+        as_list=True
     )
-    if isinstance(stock_entry_detail, list):
+    if len(stock_entry_detail) > 1:
         frappe.throw(f"More than one Inward Type of Transaction found for Stock Entry: {stock_entry}")
         return
 
-    stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail)
+    stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail[0])
 
     stock_entry_doc = frappe.get_doc(stock_entry_doctype, stock_entry)
 
