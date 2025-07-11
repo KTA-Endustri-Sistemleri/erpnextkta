@@ -113,7 +113,10 @@ def print_kta_wo_labels(work_order):
         filters={
             "stock_entry_type": stock_entry_type,
             "work_order": work_order
-        }
+        },
+        fields=[
+            "name"
+        ]
     )
 
     for stock_entry in stock_entries:
