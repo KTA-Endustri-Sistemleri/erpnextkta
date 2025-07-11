@@ -117,7 +117,7 @@ def print_kta_wo_labels(work_order):
     )
 
     for stock_entry in stock_entries:
-        print_kta_wo_label(details_of_wo, stock_entry)
+        print_kta_wo_label(details_of_wo, stock_entry.name)
 
 
 @frappe.whitelist()
