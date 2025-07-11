@@ -108,18 +108,16 @@ def print_kta_wo_labels(work_order):
 
     details_of_wo = get_details_of_wo_for_label(work_order)
 
-    stock_entries = frappe.db.get_all(
-        doctype=stock_entry_doctype,
-        filters={
-            "stock_entry_type": stock_entry_type,
-            "work_order": work_order
-        },
-        fields=[
-            "name"
-        ]
-    )
-
-    for stock_entry in stock_entries:
+    for stock_entry in frappe.db.get_all(
+            doctype=stock_entry_doctype,
+            filters={
+                "stock_entry_type": stock_entry_type,
+                "work_order": work_order
+            },
+            fields=[
+                "name"
+            ]
+    ):
         print_kta_wo_label(details_of_wo, stock_entry.name)
 
 
@@ -338,7 +336,7 @@ def get_zebra_printer_for_user():
             "user": user,
             "disabled": 0
         },
-        ["printer"]
+        "printer"
     )
 
     if printer is not None:  # Check if a printer was found
