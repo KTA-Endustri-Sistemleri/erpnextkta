@@ -203,9 +203,9 @@ def print_kta_wo_label(work_order_details, stock_entry):
             "name"
         ]
     )
-    # if len(stock_entry_detail) > 0:
-    #     frappe.throw(f"More than one Inward Type of Transaction found for Stock Entry: {stock_entry}")
-    #     return
+    if isinstance(stock_entry_detail, list):
+        frappe.throw(f"More than one Inward Type of Transaction found for Stock Entry: {stock_entry}")
+        return
 
     stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail)
 
