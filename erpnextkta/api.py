@@ -103,98 +103,51 @@ def print_split_kta_pr_labels(label=None):
 @frappe.whitelist()
 def print_kta_wo_labels(work_order=None):
     # Constants for DocTypes
-    bom_doctype = "BOM"
-    item_doctype = "Item"
-    item_customer_detail_doctype = "Item Customer Detail"
-    item_customer_detail_parentfield = "customer_items"
     stock_entry_doctype = "Stock Entry"
-    stock_entry_type_manufacture = "Manufacture"
-    stock_entry_detail_doctype = "Stock Entry Detail"
-    stock_entry_detail_docstatus = 1
-    stock_entry_detail_is_finished_item = 1
-    stock_entry_detail_parentfield = "items"
-    work_order_doctype = "Work Order"
-    kta_is_emri_etiketleri_name = "KTA İş Emri Etiketleri"
-    virtual_doctype = "KTA Is Emri Etiketleri"
+    stock_entry_type = "Manufacture"
 
-    work_order_doc = frappe.get_doc(work_order_doctype, work_order)
-
-    stock_entry_data = frappe.db.get_value(
-        stock_entry_doctype,
-        filters={
-            "stock_entry_type": stock_entry_type_manufacture,
-            "work_order": work_order
-        },
-        fieldname=[
+    stock_entries = frappe.db.get_all(
+        doctype=stock_entry_doctype,
+        fields=[
             "name",
             "posting_date",
             "to_warehouse"
         ],
-        as_dict=True
-    )
-    source_warehouse = work_order
-
-    destination_warehouse = stock_entry_data.to_warehouse
-
-    if not destination_warehouse:
-        destination_warehouse = frappe.db.get_all(
-            stock_entry_detail_doctype,
-            filters={
-                "parent": stock_entry_data.name,
-                "parenttype": stock_entry_doctype,
-                "parentfield": stock_entry_detail_parentfield,
-                "t_warehouse": ["not in", None]
-            },
-            fields=[
-                "t_warehouse"
-            ],
-            group_by="t_warehouse"
-        )
-
-        if len(destination_warehouse) > 1:
-            frappe.throw(f"More than one destination warehouse found for Work Order: {work_order}")
-            return
-
-    stock_entry_detail_data = frappe.db.get_value(
-        stock_entry_detail_doctype,
         filters={
-            "parent": stock_entry_data.name,
-            "parenttype": stock_entry_doctype,
-            "parentfield": stock_entry_detail_parentfield,
-            "item_code": work_order_doc.get("production_item"),
-            "is_finished_item": stock_entry_detail_is_finished_item,
-            "docstatus": stock_entry_detail_docstatus,
-            "t_warehouse": ["is", "set"]
-        },
-        fieldname=[
-            "name"
-        ]
+            "stock_entry_type": stock_entry_type,
+            "work_order": work_order
+        }
     )
+    details_of_wo = get_details_of_wo_for_label(work_order)
+    for stock_entry in stock_entries:
+        print_kta_wo_label(details_of_wo, stock_entry)
 
-    stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail_data)
 
-    batch_no = get_batch_from_stock_entry_detail(stock_entry_detail_doc)
+@frappe.whitelist()
+def print_kta_wo_labels_of_stock_entry(stock_entry=None):
+    # Constants for DocTypes
+    stock_entry_doctype = "Stock Entry"
+
+    work_order_doc = frappe.get_doc(stock_entry_doctype, stock_entry)
+
+    print_kta_wo_label(get_details_of_wo_for_label(work_order_doc), stock_entry)
+
+
+def get_details_of_wo_for_label(work_order):
+    # Constants for DocTypes
+    bom_doctype = "BOM"
+    item_doctype = "Item"
+    item_customer_detail_doctype = "Item Customer Detail"
+    item_customer_detail_parentfield = "customer_items"
+    work_order_doctype = "Work Order"
+
+    work_order_doc = frappe.get_doc(work_order_doctype, work_order)
 
     bom_doc = frappe.get_doc(bom_doctype, work_order_doc.get("bom_no"))
-
-    # Construct data
-    data = frappe.get_doc({
-        'doctype': virtual_doctype,
-        'print_date': frappe.utils.nowdate(),
-        'material_number': work_order_doc.get("production_item"),
-        'material_description': work_order_doc.get("description"),
-        'work_order': work_order_doc.get("name"),
-        'gr_posting_date': frappe.utils.get_date_str(stock_entry_data.get("posting_date")),
-        'gr_number': stock_entry_data.get("name"),
-        'gr_source_warehouse': source_warehouse,
-        'to_warehouse': destination_warehouse,
-        'stock_uom': work_order_doc.get("stock_uom"),
-        'batch_no': batch_no
-    })
-
+    material_index = "-"
     meta = frappe.get_meta("BOM")
     if meta.has_field("custom_musteri_indeksi_no"):
-        data.material_index = bom_doc.get("custom_musteri_indeksi_no")
+        material_index = bom_doc.get("custom_musteri_indeksi_no")
 
     musteri_paketleme_miktari = frappe.db.get_value(
         item_customer_detail_doctype,
@@ -210,10 +163,74 @@ def print_kta_wo_labels(work_order=None):
 
     if not musteri_paketleme_miktari:
         frappe.throw(f"No custom_musteri_paketleme_miktari found for Item: {work_order_doc.get('production_item')}")
+        return None
+
+    return {
+        "work_order": work_order_doc.get("name"),
+        "description": work_order_doc.get("description"),
+        "stock_uom": work_order_doc.get("stock_uom"),
+        "production_item": work_order_doc.get("production_item"),
+        "material_index": material_index,
+        "musteri_paketleme_miktari": musteri_paketleme_miktari
+    }
+
+
+def print_kta_wo_label(work_order_details, stock_entry):
+    stock_entry_detail_doctype = "Stock Entry Detail"
+    stock_entry_detail_docstatus = 1
+    stock_entry_detail_is_finished_item = 1
+    stock_entry_detail_parentfield = "items"
+    stock_entry_doctype = "Stock Entry"
+    kta_is_emri_etiketleri_name = "KTA İş Emri Etiketleri"
+    virtual_doctype = "KTA Is Emri Etiketleri"
+
+    source_warehouse = stock_entry.name
+
+    stock_entry_detail = frappe.db.get_value(
+        stock_entry_detail_doctype,
+        filters={
+            "parent": stock_entry.name,
+            "parenttype": stock_entry_doctype,
+            "parentfield": stock_entry_detail_parentfield,
+            "item_code": work_order_details.get("production_item"),
+            "is_finished_item": stock_entry_detail_is_finished_item,
+            "docstatus": stock_entry_detail_docstatus,
+            "t_warehouse": ["is", "set"]
+        },
+        fieldname=[
+            "name"
+        ]
+    )
+    if len(stock_entry_detail) > 0:
+        frappe.throw(f"More than one Inward Type of Transaction found for Stock Entry: {stock_entry.name}")
         return
 
-    num_packs = frappe.cint(work_order_doc.get("qty") // musteri_paketleme_miktari)
-    remainder_qty = work_order_doc.get("qty") % musteri_paketleme_miktari
+    stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail)
+
+    destination_warehouse = stock_entry.to_warehouse
+    if not destination_warehouse:
+        destination_warehouse = stock_entry_detail_doc.get("t_warehouse")
+
+    batch_no = get_batch_from_stock_entry_detail(stock_entry_detail_doc)
+
+    # Construct data
+    data = frappe.get_doc({
+        'doctype': virtual_doctype,
+        'print_date': frappe.utils.nowdate(),
+        'material_number': work_order_details.get("production_item"),
+        'material_description': work_order_details.get("description"),
+        'material_index': work_order_details.get("material_index"),
+        'work_order': work_order_details.get("work_order"),
+        'gr_posting_date': frappe.utils.get_date_str(stock_entry.get("posting_date")),
+        'gr_number': stock_entry.get("name"),
+        'gr_source_warehouse': source_warehouse,
+        'to_warehouse': destination_warehouse,
+        'stock_uom': work_order_details.get("stock_uom"),
+        'batch_no': batch_no
+    })
+    musteri_paketleme_miktari = work_order_details.get("musteri_paketleme_miktari")
+    num_packs = frappe.cint(stock_entry_detail_doc.get("qty") // musteri_paketleme_miktari)
+    remainder_qty = stock_entry_detail_doc.get("qty") % musteri_paketleme_miktari
 
     zebra_printer = get_zebra_printer_for_user()
     zebra_ip_address = zebra_printer.get("ip")
