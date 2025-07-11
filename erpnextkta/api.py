@@ -184,12 +184,12 @@ def print_kta_wo_label(work_order_details, stock_entry):
     kta_is_emri_etiketleri_name = "KTA İş Emri Etiketleri"
     virtual_doctype = "KTA Is Emri Etiketleri"
 
-    source_warehouse = stock_entry.name
+    source_warehouse = stock_entry
 
     stock_entry_detail = frappe.db.get_value(
         stock_entry_detail_doctype,
         filters={
-            "parent": stock_entry.name,
+            "parent": stock_entry,
             "parenttype": stock_entry_doctype,
             "parentfield": stock_entry_detail_parentfield,
             "item_code": work_order_details.get("production_item"),
@@ -202,12 +202,14 @@ def print_kta_wo_label(work_order_details, stock_entry):
         ]
     )
     if len(stock_entry_detail) > 0:
-        frappe.throw(f"More than one Inward Type of Transaction found for Stock Entry: {stock_entry.name}")
+        frappe.throw(f"More than one Inward Type of Transaction found for Stock Entry: {stock_entry}")
         return
 
     stock_entry_detail_doc = frappe.get_doc(stock_entry_detail_doctype, stock_entry_detail)
 
-    destination_warehouse = stock_entry.to_warehouse
+    stock_entry_doc = frappe.get_doc(stock_entry_doctype, stock_entry)
+
+    destination_warehouse = stock_entry_doc.get("to_warehouse")
     if not destination_warehouse:
         destination_warehouse = stock_entry_detail_doc.get("t_warehouse")
 
@@ -221,8 +223,8 @@ def print_kta_wo_label(work_order_details, stock_entry):
         'material_description': work_order_details.get("description"),
         'material_index': work_order_details.get("material_index"),
         'work_order': work_order_details.get("work_order"),
-        'gr_posting_date': frappe.utils.get_date_str(stock_entry.get("posting_date")),
-        'gr_number': stock_entry.get("name"),
+        'gr_posting_date': frappe.utils.get_date_str(stock_entry_doc.get("posting_date")),
+        'gr_number': stock_entry,
         'gr_source_warehouse': source_warehouse,
         'to_warehouse': destination_warehouse,
         'stock_uom': work_order_details.get("stock_uom"),

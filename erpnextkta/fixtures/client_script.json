@@ -141,5 +141,16 @@
   "name": "KTA Ürün Tanıtım Etiketi Bas",
   "script": "frappe.ui.form.on('Work Order', {\n\tcustom_etiket_bas: function(frm){\n        frappe.call({\n                    method: \"erpnextkta.api.print_kta_wo_labels\",\n                    args:{\n                        \"work_order\": frm.doc.name\n                    }\n                });\n    }\n});",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Stock Entry",
+  "enabled": 1,
+  "modified": "2025-07-11 16:29:16.305841",
+  "module": "erpnextkta",
+  "name": "KTA Hareketten Ürün Tanıtım Etiketi Bas",
+  "script": "frappe.ui.form.on('Stock Entry', {\n\tcustom_etiket_bas: function(frm){\n        frappe.call({\n                    method: \"erpnextkta.api.print_kta_wo_labels_of_stock_entry\",\n                    args:{\n                        \"stock_entry\": frm.doc.name\n                    }\n                });\n    }\n});",
+  "view": "Form"
  }
 ]
