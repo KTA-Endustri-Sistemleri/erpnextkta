@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "tab_stats",
   "section_break_asmr",
   "item",
   "workstation",
@@ -24,6 +25,8 @@
   "lower_limit",
   "column_break_xmkq",
   "upper_limit",
+  "column_break_psip",
+  "soll_cmk",
   "section_break_btfz",
   "mean_value",
   "column_break_gjda",
@@ -41,7 +44,11 @@
   "column_break_fuha",
   "cmk_value",
   "column_break_ygsf",
-  "cpk_value"
+  "cpk_value",
+  "tab_data",
+  "button_hesapla",
+  "section_break_0tjw",
+  "table_data"
  ],
  "fields": [
   {
@@ -94,11 +101,13 @@
    "label": "Nominal De\u011fer"
   },
   {
+   "description": "Upper Specification Limit",
    "fieldname": "upper_limit",
    "fieldtype": "Float",
    "label": "\u00dcst Limit"
   },
   {
+   "description": "Lower Specification Limit",
    "fieldname": "lower_limit",
    "fieldtype": "Float",
    "label": "Alt Limit"
@@ -112,22 +121,26 @@
   {
    "fieldname": "cm_value",
    "fieldtype": "Float",
-   "label": "CM"
+   "label": "CM",
+   "read_only": 1
   },
   {
    "fieldname": "cmk_value",
    "fieldtype": "Float",
-   "label": "CMK"
+   "label": "CMK",
+   "read_only": 1
   },
   {
    "fieldname": "mean_value",
    "fieldtype": "Float",
-   "label": "Ortalama"
+   "label": "Ortalama",
+   "read_only": 1
   },
   {
    "fieldname": "standard_deviation",
    "fieldtype": "Float",
-   "label": "Standart Sapma"
+   "label": "Standart Sapma",
+   "read_only": 1
   },
   {
    "fieldname": "amended_from",
@@ -142,7 +155,8 @@
   {
    "fieldname": "cpk_value",
    "fieldtype": "Float",
-   "label": "CPK"
+   "label": "CPK",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_dtni",
@@ -195,7 +209,8 @@
   {
    "fieldname": "tepe_degerixq",
    "fieldtype": "Float",
-   "label": "Tepe De\u011feri Xq"
+   "label": "Tepe De\u011feri Xq",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_uuci",
@@ -204,7 +219,8 @@
   {
    "fieldname": "dip_degerixq",
    "fieldtype": "Float",
-   "label": "Dip De\u011feri Xq"
+   "label": "Dip De\u011feri Xq",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_adfb",
@@ -213,7 +229,8 @@
   {
    "fieldname": "tepe_deger",
    "fieldtype": "Float",
-   "label": "Tek De\u011ferin Tepe De\u011feri"
+   "label": "Tek De\u011ferin Tepe De\u011feri",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_pusk",
@@ -222,14 +239,51 @@
   {
    "fieldname": "dip_deger",
    "fieldtype": "Float",
-   "label": "Tek De\u011ferin Dip De\u011feri"
+   "label": "Tek De\u011ferin Dip De\u011feri",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tab_stats",
+   "fieldtype": "Tab Break",
+   "label": "Stats"
+  },
+  {
+   "fieldname": "tab_data",
+   "fieldtype": "Tab Break",
+   "label": "Data"
+  },
+  {
+   "fieldname": "section_break_0tjw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "fieldname": "table_data",
+   "fieldtype": "Table",
+   "options": "KTA machine capability study data"
+  },
+  {
+   "fieldname": "button_hesapla",
+   "fieldtype": "Button",
+   "label": "Hesapla"
+  },
+  {
+   "fieldname": "column_break_psip",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1.33",
+   "fieldname": "soll_cmk",
+   "fieldtype": "Float",
+   "label": "\u0130stenen De\u011fer Cmk",
+   "precision": "2"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-03 14:18:27.608337",
+ "modified": "2025-07-13 09:43:15.050082",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA machine capability study",

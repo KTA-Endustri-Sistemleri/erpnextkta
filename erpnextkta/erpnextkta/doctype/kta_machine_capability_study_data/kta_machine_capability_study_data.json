@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-12 12:06:22.593042",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_s9ht",
+  "veri",
+  "limit_disi",
+  "besli_ortalamasi"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_s9ht",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "veri",
+   "fieldtype": "Float",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Veri",
+   "precision": "6"
+  },
+  {
+   "fieldname": "besli_ortalamasi",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "5li Ortalamas\u0131",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "limit_disi",
+   "fieldtype": "Check",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Limit d\u0131\u015f\u0131",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-12 17:11:30.087297",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "KTA machine capability study data",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
