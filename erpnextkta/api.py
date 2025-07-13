@@ -383,7 +383,7 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
 
     return batch_no
 
-
+@frappe.whitelist()
 def calculate_machine_capability(doc):
     main_doctype = "KTA machine capability study"
     child_table = "table_data"

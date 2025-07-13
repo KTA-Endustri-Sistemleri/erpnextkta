@@ -48,7 +48,7 @@
   "tab_data",
   "button_hesapla",
   "section_break_0tjw",
-  "table_data"
+  "veri_tablosu"
  ],
  "fields": [
   {
@@ -257,12 +257,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "allow_bulk_edit": 1,
-   "fieldname": "table_data",
-   "fieldtype": "Table",
-   "options": "KTA machine capability study data"
-  },
-  {
    "fieldname": "button_hesapla",
    "fieldtype": "Button",
    "label": "Hesapla"
@@ -277,13 +271,19 @@
    "fieldtype": "Float",
    "label": "\u0130stenen De\u011fer Cmk",
    "precision": "2"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "fieldname": "veri_tablosu",
+   "fieldtype": "Table",
+   "options": "KTA machine capability study data"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-13 09:43:15.050082",
+ "modified": "2025-07-13 10:44:10.314574",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA machine capability study",
