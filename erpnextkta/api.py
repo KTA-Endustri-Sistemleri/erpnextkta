@@ -430,7 +430,7 @@ def calculate_machine_capability(doc):
     # Soll OGW - Soll UGW
     toleranzbreite = upper_limit - lower_limit
 
-    soll_standard = toleranzbreite / (6 + 1, 67)
+    soll_standard = toleranzbreite / (6 + 1.67)
 
     sollmittelwert = lower_limit + soll_standard / 2
 

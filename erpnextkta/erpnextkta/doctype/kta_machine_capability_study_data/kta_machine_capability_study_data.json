@@ -9,7 +9,8 @@
   "section_break_s9ht",
   "veri",
   "out_of_spec",
-  "ara_olcum_ortalamasi"
+  "ara_olcum_ortalamasi",
+  "ara_olcum_std_sapmasi"
  ],
  "fields": [
   {
@@ -45,13 +46,22 @@
    "label": "Ara Ortalamas\u0131",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "ara_olcum_std_sapmasi",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Ara Std.Sapmas\u0131",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-13 12:44:29.976937",
+ "modified": "2025-07-14 14:54:33.082409",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA machine capability study data",

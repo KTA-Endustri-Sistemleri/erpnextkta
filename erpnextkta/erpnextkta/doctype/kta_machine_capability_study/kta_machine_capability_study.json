@@ -41,10 +41,16 @@
   "dip_deger",
   "section_break_rijv",
   "cm_value",
+  "cm_capable",
+  "xq_deviation",
   "column_break_fuha",
   "cmk_value",
+  "cmk_capable",
+  "cmk_performance_oeg",
+  "cmk_performance_ueg",
   "column_break_ygsf",
   "cpk_value",
+  "cpk_capable",
   "tab_data",
   "button_hesapla",
   "section_break_0tjw",
@@ -98,19 +104,22 @@
   {
    "fieldname": "nominal_value",
    "fieldtype": "Float",
-   "label": "Nominal De\u011fer"
+   "label": "Nominal De\u011fer",
+   "reqd": 1
   },
   {
    "description": "Upper Specification Limit",
    "fieldname": "upper_limit",
    "fieldtype": "Float",
-   "label": "\u00dcst Limit"
+   "label": "\u00dcst Limit",
+   "reqd": 1
   },
   {
    "description": "Lower Specification Limit",
    "fieldname": "lower_limit",
    "fieldtype": "Float",
-   "label": "Alt Limit"
+   "label": "Alt Limit",
+   "reqd": 1
   },
   {
    "fieldname": "unit",
@@ -192,7 +201,8 @@
   },
   {
    "fieldname": "section_break_rijv",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Sonu\u00e7"
   },
   {
    "fieldname": "column_break_fuha",
@@ -270,20 +280,58 @@
    "fieldname": "soll_cmk",
    "fieldtype": "Float",
    "label": "\u0130stenen De\u011fer Cmk",
-   "precision": "2"
+   "precision": "2",
+   "reqd": 1
   },
   {
    "allow_bulk_edit": 1,
    "fieldname": "veri_tablosu",
    "fieldtype": "Table",
    "options": "KTA machine capability study data"
+  },
+  {
+   "fieldname": "cm_capable",
+   "fieldtype": "Data",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "cmk_capable",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "cpk_capable",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "cmk_performance_ueg",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "cmk_performance_oeg",
+   "fieldtype": "Data"
+  },
+  {
+   "fieldname": "xq_deviation",
+   "fieldtype": "Data",
+   "label": "Xq deviation",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-13 10:44:10.314574",
+ "modified": "2025-07-14 22:08:11.968122",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA machine capability study",
