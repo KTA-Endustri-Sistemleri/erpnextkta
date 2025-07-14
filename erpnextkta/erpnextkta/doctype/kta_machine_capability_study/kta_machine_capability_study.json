@@ -42,15 +42,14 @@
   "section_break_rijv",
   "cm_value",
   "cm_capable",
-  "xq_deviation",
   "column_break_fuha",
   "cmk_value",
   "cmk_capable",
+  "section_break_egqu",
+  "xq_deviation",
+  "column_break_jfsy",
   "cmk_performance_oeg",
   "cmk_performance_ueg",
-  "column_break_ygsf",
-  "cpk_value",
-  "cpk_capable",
   "tab_data",
   "button_hesapla",
   "section_break_0tjw",
@@ -165,13 +164,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "cpk_value",
-   "fieldtype": "Float",
-   "label": "CPK",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
    "fieldname": "column_break_dtni",
    "fieldtype": "Column Break"
   },
@@ -210,10 +202,6 @@
   },
   {
    "fieldname": "column_break_fuha",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_ygsf",
    "fieldtype": "Column Break"
   },
   {
@@ -313,15 +301,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "cpk_capable",
-   "fieldtype": "Data",
-   "in_filter": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
    "fieldname": "cmk_performance_ueg",
    "fieldtype": "Data",
    "label": "ueg",
@@ -341,13 +320,21 @@
    "label": "Xq deviation",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_egqu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_jfsy",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-14 22:46:28.678198",
+ "modified": "2025-07-14 23:14:50.374492",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA machine capability study",
