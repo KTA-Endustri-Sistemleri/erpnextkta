@@ -131,6 +131,7 @@
    "fieldname": "cm_value",
    "fieldtype": "Float",
    "label": "CM",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -143,12 +144,14 @@
    "fieldname": "mean_value",
    "fieldtype": "Float",
    "label": "Ortalama",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "standard_deviation",
    "fieldtype": "Float",
    "label": "Standart Sapma",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -165,6 +168,7 @@
    "fieldname": "cpk_value",
    "fieldtype": "Float",
    "label": "CPK",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -220,6 +224,7 @@
    "fieldname": "tepe_degerixq",
    "fieldtype": "Float",
    "label": "Tepe De\u011feri Xq",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -230,6 +235,7 @@
    "fieldname": "dip_degerixq",
    "fieldtype": "Float",
    "label": "Dip De\u011feri Xq",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -240,6 +246,7 @@
    "fieldname": "tepe_deger",
    "fieldtype": "Float",
    "label": "Tek De\u011ferin Tepe De\u011feri",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -250,6 +257,7 @@
    "fieldname": "dip_deger",
    "fieldtype": "Float",
    "label": "Tek De\u011ferin Dip De\u011feri",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -301,6 +309,7 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -309,15 +318,22 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "cmk_performance_ueg",
-   "fieldtype": "Data"
+   "fieldtype": "Data",
+   "label": "ueg",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "cmk_performance_oeg",
-   "fieldtype": "Data"
+   "fieldtype": "Data",
+   "label": "oeg",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "xq_deviation",
@@ -331,7 +347,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-14 22:08:11.968122",
+ "modified": "2025-07-14 22:46:28.678198",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA machine capability study",
