@@ -31,13 +31,9 @@
   "mean_value",
   "column_break_gjda",
   "standard_deviation",
-  "section_break_euwz",
-  "tepe_degerixq",
-  "column_break_uuci",
-  "dip_degerixq",
-  "column_break_adfb",
+  "column_break_ncsq",
   "tepe_deger",
-  "column_break_pusk",
+  "column_break_ihyj",
   "dip_deger",
   "section_break_rijv",
   "cm_value",
@@ -45,9 +41,13 @@
   "column_break_fuha",
   "cmk_value",
   "cmk_capable",
-  "section_break_egqu",
+  "section_break_euwz",
+  "tepe_degerixq",
+  "column_break_uuci",
+  "dip_degerixq",
+  "column_break_adfb",
   "xq_deviation",
-  "column_break_jfsy",
+  "column_break_pusk",
   "cmk_performance_oeg",
   "cmk_performance_ueg",
   "tab_data",
@@ -206,7 +206,8 @@
   },
   {
    "fieldname": "section_break_euwz",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Xq"
   },
   {
    "fieldname": "tepe_degerixq",
@@ -322,11 +323,11 @@
    "read_only": 1
   },
   {
-   "fieldname": "section_break_egqu",
-   "fieldtype": "Section Break"
+   "fieldname": "column_break_ncsq",
+   "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_jfsy",
+   "fieldname": "column_break_ihyj",
    "fieldtype": "Column Break"
   }
  ],
@@ -334,7 +335,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-14 23:14:50.374492",
+ "modified": "2025-07-15 01:04:30.505360",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA machine capability study",
