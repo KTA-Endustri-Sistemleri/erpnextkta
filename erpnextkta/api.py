@@ -388,7 +388,7 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
 def find_bins_of_sut(sut):
     # Constants for DocTypes
     if len(sut) > 4:
-        batch = sut[:-4].lstrip('0')
+        batch = sut[:4].lstrip('0')
     else:
         return None
 
