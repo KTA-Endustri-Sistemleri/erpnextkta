@@ -373,7 +373,8 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
             "parentfield": serial_and_batch_entry_parentfield,
             "is_outward": serial_and_batch_entry_is_outward,
             "warehouse": stock_entry_detail.get("t_warehouse"),
-            "batch_no": ["is", "set"]
+            "batch_no": ["is", "set"],
+            "docstatus": 1,
         },
         fieldname="batch_no"
     )
