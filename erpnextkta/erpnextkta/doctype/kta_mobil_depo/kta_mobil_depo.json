@@ -1,8 +1,10 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "allow_copy": 1,
  "creation": "2025-07-15 19:04:44.449814",
+ "default_view": "List",
  "doctype": "DocType",
+ "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
   "section_break_qqlx",
@@ -58,10 +60,10 @@
   }
  ],
  "grid_page_length": 50,
- "index_web_pages_for_search": 1,
+ "hide_toolbar": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-15 22:25:13.622210",
+ "modified": "2025-07-15 22:59:01.025829",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Mobil Depo",
@@ -79,8 +81,37 @@
    "share": 1,
    "submit": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock User",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
   }
  ],
+ "queue_in_background": 1,
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
