@@ -387,22 +387,18 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
 @frappe.whitelist()
 def find_bins_of_sut(sut):
     # Constants for DocTypes
-    if len(sut) > 4:
-        batch = sut[:4].lstrip('0')
-    else:
-        return None
 
     label_doctype = "KTA Depo Etiketleri"
     items = frappe.db.get_all(
         doctype=label_doctype,
         filters={
-            "batch": batch,
-            "do_not_split": 0
+            "sut_barcode": sut,
+            "do_not_split": 0,
         },
         fields=[
-            "item_code"
-        ],
-        as_list=True
+            "item_code",
+            "batch"
+        ]
     )
     number_of_items = len(items)
     if number_of_items == 1:
