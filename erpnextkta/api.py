@@ -408,7 +408,6 @@ def find_bins_of_sut(sut, mobil):
 
     parent_doctype = "KTA Mobil Depo"
     # Get the parent document
-    parent = frappe.get_doc(parent_doctype, mobil)
 
     child_doctype = "KTA Mobil Depo Kalemi"
     child_table_name = "mobile_items"
