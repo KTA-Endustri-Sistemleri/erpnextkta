@@ -374,7 +374,7 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
             "is_outward": serial_and_batch_entry_is_outward,
             "warehouse": stock_entry_detail.get("t_warehouse"),
             "batch_no": ["is", "set"],
-            "docstatus": 1,
+            "docstatus": 1
         },
         fieldname="batch_no"
     )
@@ -384,16 +384,42 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
 
     return batch_no
 
+
 @frappe.whitelist()
 def find_bins_of_sut(sut):
     # Constants for DocTypes
+    label = get_label_item_batch(sut)
 
+    sabe_parents = get_sabe_parents_of_bins_for_batch(get_bins_of_item(label.item_code), label.batch)
+
+    sle_doctype = "Stock Ledger Entry"
+    sle_entries = frappe.db.get_all(
+        doctype=sle_doctype,
+        filters={
+            "serial_and_batch_bundle": ["in", sabe_parents],
+            "docstatus": 1,
+            "is_cancelled": 0
+        },
+        fields=[
+            "item_code",
+            "warehouse",
+            "sum(actual_qty) as balance_qty"
+        ],
+        group_by=[
+            "item_code",
+            "warehouse"
+        ],
+        as_list=True
+    )
+
+
+def get_label_item_batch(sut):
     label_doctype = "KTA Depo Etiketleri"
     items = frappe.db.get_all(
         doctype=label_doctype,
         filters={
             "sut_barcode": sut,
-            "do_not_split": 0,
+            "do_not_split": 0
         },
         fields=[
             "item_code",
@@ -401,82 +427,43 @@ def find_bins_of_sut(sut):
         ]
     )
     number_of_items = len(items)
-    if number_of_items == 1:
-        item = items[0]
-    elif number_of_items > 1:
+    if number_of_items > 1:
         return None
     elif number_of_items == 0:
         return None
-    else:
-        return None
+    return items[0]
 
-    item_doctype = "Item"
-    item_doc = frappe.get_doc(item_doctype, item)
 
+def get_bins_of_item(item):
     bin_doctype = "Bin"
-    bins = frappe.db.get_all(
+    return frappe.db.get_all(
         doctype=bin_doctype,
         filters={
-            "item_code": item_doc.name,
+            "item_code": item,
             "actual_qty": [">", 0]
         },
         fields=[
             "warehouse"
         ],
-        as_list=True
+        pluck="warehouse"
     )
 
+
+def get_sabe_parents_of_bins_for_batch(bins, batch):
+    sabb_doctype = "Serial and Batch Bundle"
     sabe_doctype = "Serial and Batch Entry"
-    sle_doctype = "Stock Ledger Entry"
-    sle_parentfield = "entries"
-    sabe_entries = frappe.db.get_all(
+    sabe_parentfield = "entries"
+    return frappe.db.get_all(
         doctype=sabe_doctype,
         filters={
             "warehouse": ["in", bins],
             "batch_no": batch,
-            "parenttype": sle_doctype,
-            "parentfield": sle_parentfield,
+            "parenttype": sabb_doctype,
+            "parentfield": sabe_parentfield,
             "docstatus": 1
         },
         fields=[
-            "parent",
-            "batch_no"
+            "parent"
         ],
-        as_list=True
+        pluck="parent"
     )
-
-    sle_entries = frappe.db.get_all(
-        doctype=sle_doctype,
-        filters={
-            "name": ["in", sabe_entries],
-            "docstatus": 1,
-            "is_cancelled": 0
-        },
-        fields=[
-            "item_code",
-            "warehouse"
-            "sum(qty) as balance_qty"
-        ],
-        group_by=["item_code", "warehouse"],
-        as_list=True
-    )
-
-    ch_table = frappe.qb.DocType("Serial and Batch Entry")
-    table = frappe.qb.DocType("Stock Ledger Entry")
-    batch = frappe.qb.DocType("Batch")
-    query = (
-		frappe.qb.from_(table)
-		.inner_join(ch_table)
-		.on(table.serial_and_batch_bundle == ch_table.parent)
-		.inner_join(batch)
-		.on(ch_table.batch_no == batch.name)
-		.select(
-			table.item_code,
-			ch_table.batch_no,
-			table.warehouse,
-			batch.expiry_date,
-			Sum(ch_table.qty).as_("balance_qty"),
-		)
-		.where((table.is_cancelled == 0) & (table.docstatus == 1))
-		.groupby(ch_table.batch_no, table.item_code, ch_table.warehouse)
-	)
