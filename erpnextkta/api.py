@@ -382,3 +382,104 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
         return None
 
     return batch_no
+
+@frappe.whitelist()
+def find_bins_of_sut(sut):
+    # Constants for DocTypes
+    if len(sut) > 4:
+        batch = sut[4:].lstrip('0')
+    else:
+        return None
+
+    label_doctype = "KTA Depo Etiketleri"
+    items = frappe.db.get_all(
+        doctype=label_doctype,
+        filters={
+            "batch": batch,
+            "do_not_split": 0
+        },
+        fields=[
+            "item_code"
+        ],
+        as_list=True
+    )
+    number_of_items = len(items)
+    if number_of_items == 1:
+        item = items[0]
+    elif number_of_items > 1:
+        return None
+    elif number_of_items == 0:
+        return None
+    else:
+        return None
+
+    item_doctype = "Item"
+    item_doc = frappe.get_doc(item_doctype, item)
+
+    bin_doctype = "Bin"
+    bins = frappe.db.get_all(
+        doctype=bin_doctype,
+        filters={
+            "item_code": item_doc.name,
+            "actual_qty": [">", 0]
+        },
+        fields=[
+            "warehouse"
+        ],
+        as_list=True
+    )
+
+    sabe_doctype = "Serial and Batch Entry"
+    sle_doctype = "Stock Ledger Entry"
+    sle_parentfield = "entries"
+    sabe_entries = frappe.db.get_all(
+        doctype=sabe_doctype,
+        filters={
+            "warehouse": ["in", bins],
+            "batch_no": batch,
+            "parenttype": sle_doctype,
+            "parentfield": sle_parentfield,
+            "docstatus": 1
+        },
+        fields=[
+            "parent",
+            "batch_no"
+        ],
+        as_list=True
+    )
+
+    sle_entries = frappe.db.get_all(
+        doctype=sle_doctype,
+        filters={
+            "name": ["in", sabe_entries],
+            "docstatus": 1,
+            "is_cancelled": 0
+        },
+        fields=[
+            "item_code",
+            "warehouse"
+            "sum(qty) as balance_qty"
+        ],
+        group_by=["item_code", "warehouse"],
+        as_list=True
+    )
+
+    ch_table = frappe.qb.DocType("Serial and Batch Entry")
+    table = frappe.qb.DocType("Stock Ledger Entry")
+    batch = frappe.qb.DocType("Batch")
+    query = (
+		frappe.qb.from_(table)
+		.inner_join(ch_table)
+		.on(table.serial_and_batch_bundle == ch_table.parent)
+		.inner_join(batch)
+		.on(ch_table.batch_no == batch.name)
+		.select(
+			table.item_code,
+			ch_table.batch_no,
+			table.warehouse,
+			batch.expiry_date,
+			Sum(ch_table.qty).as_("balance_qty"),
+		)
+		.where((table.is_cancelled == 0) & (table.docstatus == 1))
+		.groupby(ch_table.batch_no, table.item_code, ch_table.warehouse)
+	)
