@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"type\":\"header\",\"data\":{\"text\":\"KTA\"}}]",
+ "content": "[{\"id\":\"X2zLSpmUvL\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">KTA</span>\",\"col\":12}},{\"id\":\"JoIkubl0bN\",\"type\":\"card\",\"data\":{\"card_name\":\"Etiketler\",\"col\":4}},{\"id\":\"UJ3e3zhkKl\",\"type\":\"card\",\"data\":{\"card_name\":\"G\u00fcmr\u00fck \u0130\u015flemleri\",\"col\":4}},{\"id\":\"fjrh91gx9v\",\"type\":\"card\",\"data\":{\"card_name\":\"Zebra Yaz\u0131c\u0131 Ayarlar\u0131\",\"col\":4}}]",
  "creation": "2025-07-15 11:04:03.689540",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,15 +13,6 @@
  "is_hidden": 0,
  "label": "KTA",
  "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Zebra Ayarlar\u0131",
-   "link_count": 0,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
   {
    "hidden": 0,
    "is_query_report": 0,
@@ -55,8 +46,28 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Etiketler",
+   "label": "Antrepo Beyanname No",
    "link_count": 0,
+   "link_to": "KTA Antrepo Beyanname No",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "G\u00fcmr\u00fck Beyanname no",
+   "link_count": 0,
+   "link_to": "KTA Gumruk Beyanname No",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Etiketler",
+   "link_count": 1,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -74,8 +85,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "\u0130thalat",
-   "link_count": 0,
+   "label": "G\u00fcmr\u00fck \u0130\u015flemleri",
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -83,7 +94,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Antrepo Beyanname No",
+   "label": "Antrepo Beyannameleri",
    "link_count": 0,
    "link_to": "KTA Antrepo Beyanname No",
    "link_type": "DocType",
@@ -93,15 +104,84 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "G\u00fcmr\u00fck Beyanname no",
+   "label": "G\u00fcmr\u00fck Beyannameleri",
    "link_count": 0,
    "link_to": "KTA Gumruk Beyanname No",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "G\u00fcmr\u00fck K\u0131sa Malzeme A\u00e7\u0131klamalar\u0131",
+   "link_count": 0,
+   "link_to": "KTA Ithalat Kisa Malzeme Aciklamalari",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "G\u00fcmr\u00fck ve D\u0131\u015f Ticaret B\u00f6lge M\u00fcd\u00fcrl\u00fckleri",
+   "link_count": 0,
+   "link_to": "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "G\u00fcmr\u00fck \u0130dareleri",
+   "link_count": 0,
+   "link_to": "TR Gumruk Idareleri",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Zebra Yaz\u0131c\u0131 Ayarlar\u0131",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Zebra Yaz\u0131c\u0131lar",
+   "link_count": 0,
+   "link_to": "KTA Zebra Printers",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Zebra Yaz\u0131c\u0131 Kullan\u0131c\u0131 Atamas\u0131",
+   "link_count": 0,
+   "link_to": "KTA User Zebra Printers",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Zebra \u00c7\u0131kt\u0131 \u015eablonlar\u0131",
+   "link_count": 0,
+   "link_to": "KTA Zebra Templates",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-07-15 11:30:16.449471",
+ "modified": "2025-07-15 11:37:54.163195",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA",
@@ -112,13 +192,6 @@
  "quick_lists": [],
  "roles": [],
  "sequence_id": 33.0,
- "shortcuts": [
-  {
-   "doc_view": "List",
-   "label": "Zebra Yaz\u0131c\u0131 Kullan\u0131c\u0131 Atamas\u0131",
-   "link_to": "KTA User Zebra Printers",
-   "type": "DocType"
-  }
- ],
+ "shortcuts": [],
  "title": "KTA"
 }

@@ -41,6 +41,10 @@
   "column_break_fuha",
   "cmk_value",
   "cmk_capable",
+  "tab_data",
+  "button_hesapla",
+  "section_break_0tjw",
+  "veri_tablosu",
   "section_break_euwz",
   "tepe_degerixq",
   "column_break_uuci",
@@ -49,11 +53,7 @@
   "xq_deviation",
   "column_break_pusk",
   "cmk_performance_oeg",
-  "cmk_performance_ueg",
-  "tab_data",
-  "button_hesapla",
-  "section_break_0tjw",
-  "veri_tablosu"
+  "cmk_performance_ueg"
  ],
  "fields": [
   {
@@ -335,7 +335,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-15 01:04:30.505360",
+ "modified": "2025-07-15 11:40:58.302334",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA machine capability study",
