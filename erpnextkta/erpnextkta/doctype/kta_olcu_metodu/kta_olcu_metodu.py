@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class OlcuMetodu(Document):
+class KTAOlcuMetodu(Document):
 	pass
