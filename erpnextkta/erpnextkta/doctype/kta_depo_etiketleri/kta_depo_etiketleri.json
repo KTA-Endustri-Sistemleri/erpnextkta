@@ -58,13 +58,14 @@
   },
   {
    "fieldname": "sut_barcode",
-   "fieldtype": "Barcode",
+   "fieldtype": "Data",
    "label": "SUT Barcode"
   },
   {
    "fieldname": "item_code",
-   "fieldtype": "Barcode",
-   "label": "Malzeme"
+   "fieldtype": "Link",
+   "label": "Malzeme",
+   "options": "Item"
   },
   {
    "fieldname": "gr_number",
@@ -190,9 +191,8 @@
   }
  ],
  "grid_page_length": 50,
- "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-08 18:22:06.594235",
+ "modified": "2025-07-15 18:25:45.643149",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Depo Etiketleri",
