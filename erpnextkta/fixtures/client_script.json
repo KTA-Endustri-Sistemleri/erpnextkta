@@ -158,10 +158,10 @@
   "doctype": "Client Script",
   "dt": "KTA Mobil Depo",
   "enabled": 1,
-  "modified": "2025-07-15 19:32:47.374539",
+  "modified": "2025-07-15 22:28:32.802822",
   "module": "erpnextkta",
   "name": "KTA Mobil Depo Uygulamaları",
-  "script": "frappe.ui.form.on('KTA Mobil Depo', {\n\tsut_ara: function(frm){\n        frappe.call({\n            method: \"erpnextkta.api.find_bins_of_sut\",\n            args:{\n                \"sut\": frm.doc.sut_barcode\n            }\n        });\n    }\n});",
+  "script": "frappe.ui.form.on('KTA Mobil Depo', {\n\tsut_ara: function(frm){\n        frappe.call({\n            method: \"erpnextkta.api.find_bins_of_sut\",\n            args:{\n                \"sut\": frm.doc.sut_barcode,\n                \"mobil\": frm.doc.name\n            }\n        });\n    }\n});",
   "view": "Form"
  }
 ]
