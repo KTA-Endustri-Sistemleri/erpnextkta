@@ -1,6 +1,4 @@
 import socket
-import math
-import statistics
 
 import frappe
 from babel.numbers import format_decimal
@@ -110,7 +108,7 @@ def print_kta_wo_labels(work_order):
 
     details_of_wo = get_details_of_wo_for_label(work_order)
 
-    for stock_entry in frappe.db.get_all(
+    for stock_entry in frappe.get_all(
             doctype=stock_entry_doctype,
             filters={
                 "stock_entry_type": stock_entry_type,
@@ -186,7 +184,7 @@ def print_kta_wo_label(work_order_details, stock_entry):
 
     source_warehouse = stock_entry
 
-    stock_entry_detail = frappe.db.get_all(
+    stock_entry_detail = frappe.get_all(
         doctype=stock_entry_detail_doctype,
         filters={
             "parent": stock_entry,
@@ -386,14 +384,14 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
 
 
 @frappe.whitelist()
-def find_bins_of_sut(sut):
+def find_bins_of_sut(sut, mobil):
     # Constants for DocTypes
     label = get_label_item_batch(sut)
 
     sabe_parents = get_sabe_parents_of_bins_for_batch(get_bins_of_item(label.item_code), label.batch)
 
     sle_doctype = "Stock Ledger Entry"
-    sle_entries = frappe.db.get_all(
+    sle_entries = frappe.get_all(
         doctype=sle_doctype,
         filters={
             "serial_and_batch_bundle": ["in", sabe_parents],
@@ -401,21 +399,38 @@ def find_bins_of_sut(sut):
             "is_cancelled": 0
         },
         fields=[
-            "item_code",
             "warehouse",
             "sum(actual_qty) as balance_qty"
-        ],
-        group_by=[
-            "item_code",
-            "warehouse"
-        ],
-        as_list=True
+        ]
     )
+    if len(sle_entries) == 0:
+        frappe.throw(f"No Stock Ledger Entries found for SUT: {sut}")
+
+    parent_doctype = "KTA Mobil Depo"
+    # Get the parent document
+    parent = frappe.get_doc(parent_doctype, mobil)
+
+    child_doctype = "KTA Mobil Depo Kalemi"
+    child_table_name = "mobile_items"
+    for sle_entry in sle_entries:
+        # Append to child table
+        child = frappe.new_doc(
+            doctype=child_doctype,
+            parent=mobil,
+            parentfield=child_table_name,
+            parenttype=parent_doctype,
+            sut_barcode=sut,
+            item_code=label.item_code,
+            batch=label.batch,
+            source_warehouse=sle_entry.warehouse,
+            qty=sle_entry.balance_qty
+        )
+        child.insert()
 
 
 def get_label_item_batch(sut):
     label_doctype = "KTA Depo Etiketleri"
-    items = frappe.db.get_all(
+    items = frappe.get_all(
         doctype=label_doctype,
         filters={
             "sut_barcode": sut,
@@ -436,7 +451,7 @@ def get_label_item_batch(sut):
 
 def get_bins_of_item(item):
     bin_doctype = "Bin"
-    return frappe.db.get_all(
+    return frappe.get_all(
         doctype=bin_doctype,
         filters={
             "item_code": item,
@@ -453,7 +468,7 @@ def get_sabe_parents_of_bins_for_batch(bins, batch):
     sabb_doctype = "Serial and Batch Bundle"
     sabe_doctype = "Serial and Batch Entry"
     sabe_parentfield = "entries"
-    return frappe.db.get_all(
+    return frappe.get_all(
         doctype=sabe_doctype,
         filters={
             "warehouse": ["in", bins],

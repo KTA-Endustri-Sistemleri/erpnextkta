@@ -10,7 +10,9 @@
   "section_break_lyrk",
   "sut_barcode",
   "column_break_eytt",
-  "sut_ara"
+  "sut_ara",
+  "section_break_jbvg",
+  "mobile_items"
  ],
  "fields": [
   {
@@ -44,13 +46,22 @@
    "fieldname": "sut_ara",
    "fieldtype": "Button",
    "label": "SUT ara"
+  },
+  {
+   "fieldname": "section_break_jbvg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "mobile_items",
+   "fieldtype": "Table",
+   "options": "KTA Mobil Depo Kalemi"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-15 19:06:42.745273",
+ "modified": "2025-07-15 22:25:13.622210",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Mobil Depo",
