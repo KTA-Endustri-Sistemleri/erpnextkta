@@ -505,9 +505,9 @@ def clear_warehouse_labels():
     ).run(as_dict=True)
 
     for result in results:
-        sabe_parents = get_sabe_parents_of_bins_for_batch(get_bins_of_item(result.item_code, True), result.batch)
-        sle_entries = get_warehouse_quantity_for_sabe_parents(sabe_parents)
-        if len(sle_entries) == 0:
+        if len(get_sabe_parents_of_bins_for_batch(get_bins_of_item(result.item_code), result.batch)) > 0:
+            return frappe.utils.nowdate()
+        else:
             labels_to_delete = (
                 frappe.qb.from_(label_doctype)
                 .select("name")
