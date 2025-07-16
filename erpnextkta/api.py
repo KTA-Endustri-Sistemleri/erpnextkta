@@ -390,19 +390,8 @@ def find_bins_of_sut(sut, mobil):
 
     sabe_parents = get_sabe_parents_of_bins_for_batch(get_bins_of_item(label.item_code), label.batch)
 
-    sle_doctype = "Stock Ledger Entry"
-    sle_entries = frappe.get_all(
-        doctype=sle_doctype,
-        filters={
-            "serial_and_batch_bundle": ["in", sabe_parents],
-            "docstatus": 1,
-            "is_cancelled": 0
-        },
-        fields=[
-            "warehouse",
-            "sum(actual_qty) as balance_qty"
-        ]
-    )
+    sle_entries = get_warehouse_quantity_for_sabe_parents(sabe_parents)
+
     if len(sle_entries) == 0:
         frappe.throw(f"No Stock Ledger Entries found for SUT: {sut}")
 
@@ -448,14 +437,17 @@ def get_label_item_batch(sut):
     return items[0]
 
 
-def get_bins_of_item(item):
+def get_bins_of_item(item, empty=None):
     bin_doctype = "Bin"
+    query_filter = {"item_code": item}
+    if empty:
+        query_filter["actual_qty"] = 0
+    else:
+        query_filter["actual_qty"] = [">", 0]
+
     return frappe.get_all(
         doctype=bin_doctype,
-        filters={
-            "item_code": item,
-            "actual_qty": [">", 0]
-        },
+        filters=query_filter,
         fields=[
             "warehouse"
         ],
@@ -481,3 +473,46 @@ def get_sabe_parents_of_bins_for_batch(bins, batch):
         ],
         pluck="parent"
     )
+
+
+def get_warehouse_quantity_for_sabe_parents(sabe_parents):
+    sle_doctype = "Stock Ledger Entry"
+    return frappe.get_all(
+        doctype=sle_doctype,
+        filters={
+            "serial_and_batch_bundle": ["in", sabe_parents],
+            "docstatus": 1,
+            "is_cancelled": 0
+        },
+        fields=[
+            "warehouse",
+            "sum(actual_qty) as balance_qty"
+        ]
+    )
+
+
+@frappe.whitelist()
+def clear_warehouse_labels():
+    label_doctype_name = "KTA Depo Etiketleri"
+    label_doctype = frappe.qb.DocType(label_doctype_name)
+    item_code = frappe.qb.Field("item_code")
+    batch = frappe.qb.Field("batch")
+
+    results = (
+        frappe.qb.from_(label_doctype)
+        .select(item_code, batch)
+        .groupby(item_code, batch)
+    ).run(as_dict=True)
+
+    for result in results:
+        sabe_parents = get_sabe_parents_of_bins_for_batch(get_bins_of_item(result.item_code, True), result.batch)
+        sle_entries = get_warehouse_quantity_for_sabe_parents(sabe_parents)
+        if len(sle_entries) == 0:
+            labels_to_delete = (
+                frappe.qb.from_(label_doctype)
+                .select("name")
+                .where((item_code == result.item_code) & (batch == result.batch))
+            ).run()
+            frappe.db.delete(label_doctype_name, {"name": labels_to_delete})
+
+    return frappe.utils.nowdate()

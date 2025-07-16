@@ -150,7 +150,7 @@ override_doctype_class = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
 # 	"all": [
 # 		"erpnextkta.tasks.all"
 # 	],
@@ -160,13 +160,13 @@ override_doctype_class = {
 # 	"hourly": [
 # 		"erpnextkta.tasks.hourly"
 # 	],
-# 	"weekly": [
-# 		"erpnextkta.tasks.weekly"
-# 	],
+    "weekly": [
+        "erpnextkta.tasks.weekly"
+    ],
 # 	"monthly": [
 # 		"erpnextkta.tasks.monthly"
 # 	],
-# }
+}
 
 # Testing
 # -------
