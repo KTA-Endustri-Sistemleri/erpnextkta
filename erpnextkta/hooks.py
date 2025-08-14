@@ -27,6 +27,7 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/erpnextkta/css/erpnextkta.css"
 # app_include_js = "/assets/erpnextkta/js/erpnextkta.js"
+app_include_js = ["assets/erpnextkta/js/stock_entry_get_items_from_calisma_karti.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/erpnextkta/css/erpnextkta.css"
@@ -134,7 +135,11 @@ override_doctype_class = {
     "Quality Inspection": "erpnextkta.overrides.KTAQualityInspection.KTAQualityInspection",
     "BOM": "erpnextkta.overrides.KTAbom.KTAbom"
 }
-
+doc_events = {
+    "Kalite Kontrol": {
+        "on_submit": "erpnextkta.erpnextkta.doctype.calisma_karti.calisma_karti.qc_on_submit"
+    }
+}
 # Document Events
 # ---------------
 # Hook on document methods and events
@@ -248,11 +253,30 @@ scheduler_events = {
 # --------------------------------
 
 fixtures = [
-#    "Olcu Metodu",
-#    "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri",
-#    "TR Gumruk Idareleri",
-#    "Asset Category",
-#    "KTA Ithalat Kisa Malzeme Aciklamalari",
+    {
+        "doctype": "DocType",
+        "filters": [
+            ["name", "in", ["Calisma Karti", "Operasyon Duruslari", "Calisma Karti Hurda"]]
+        ]
+    },
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            ["name", "=", "Item-custom_weekly_production"]
+        ]
+    },
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            ["dt", "in", ["Calisma Karti", "Operasyon Duruslari"]]
+        ]
+    },
+    {
+        "doctype": "Property Setter",
+        "filters": [
+            ["doc_type", "in", ["Calisma Karti", "Operasyon Duruslari"]]
+        ]
+    },
     {
         "doctype": "Client Script",
         "filters": [
@@ -264,5 +288,17 @@ fixtures = [
         "filters": [
             ["name", "like", "KTA%"]
         ]
+    },
+
+        {
+        "doctype": "DocType",
+        "filters": [
+            ["name", "like", "KTA%"]
+        ]
     }
 ]
+
+doctype_js = {
+    "Calisma Karti": "erpnextkta/erpnextkta/doctype/calisma_karti/calisma_karti.js"
+}
+

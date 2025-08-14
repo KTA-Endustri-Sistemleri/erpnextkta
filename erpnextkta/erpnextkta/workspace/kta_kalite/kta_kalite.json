@@ -52,7 +52,11 @@
    "type": "Link"
   }
  ],
+<<<<<<< HEAD
  "modified": "2025-07-15 11:53:27.911051",
+=======
+ "modified": "2025-06-02 10:08:42.896916",
+>>>>>>> 8a9f6af (alpkan gelistirmeler calisma karti + mrp)
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Kalite",
@@ -69,7 +73,11 @@
    "role": "KTA Kalite Kullan\u0131c\u0131s\u0131"
   }
  ],
+<<<<<<< HEAD
  "sequence_id": 3.0,
+=======
+ "sequence_id": 19.0,
+>>>>>>> 8a9f6af (alpkan gelistirmeler calisma karti + mrp)
  "shortcuts": [],
  "title": "KTA Kalite"
 }
