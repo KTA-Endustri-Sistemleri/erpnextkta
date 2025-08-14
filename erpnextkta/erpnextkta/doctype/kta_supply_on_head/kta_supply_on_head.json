@@ -6,8 +6,14 @@
  "engine": "InnoDB",
  "field_order": [
   "supply_on_date",
+  "process_supply_on",
+  "column_break_uyng",
+  "last_process_date",
+  "data_tab",
   "section_break_keed",
-  "table_hbuq"
+  "table_supply_on",
+  "evaluation_tab",
+  "table_evaluation"
  ],
  "fields": [
   {
@@ -19,16 +25,44 @@
    "fieldtype": "Section Break"
   },
   {
+   "fieldname": "process_supply_on",
+   "fieldtype": "Button",
+   "label": "Veriyi i\u015fle"
+  },
+  {
+   "fieldname": "column_break_uyng",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_process_date",
+   "fieldtype": "Date"
+  },
+  {
    "allow_bulk_edit": 1,
-   "fieldname": "table_hbuq",
+   "fieldname": "table_supply_on",
    "fieldtype": "Table",
    "options": "KTA Supply On"
+  },
+  {
+   "fieldname": "data_tab",
+   "fieldtype": "Tab Break",
+   "label": "Data"
+  },
+  {
+   "fieldname": "evaluation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Evaluation"
+  },
+  {
+   "fieldname": "table_evaluation",
+   "fieldtype": "Table",
+   "options": "KTA Supply On Evaluation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 16:42:58.495476",
+ "modified": "2025-08-06 15:40:36.032411",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "KTA Supply On Head",

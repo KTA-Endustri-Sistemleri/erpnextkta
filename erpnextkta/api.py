@@ -43,7 +43,8 @@ def print_kta_pr_labels(gr_number=None, label=None, q_ref=None):
     zebra_printer = get_zebra_printer_for_user()
     zebra_ip_address = zebra_printer.get("ip")
     zebra_port = zebra_printer.get("port")
-    for data in frappe.get_all("KTA Depo Etiketleri", filters=query_filter,
+    for data in frappe.get_all(doctype="KTA Depo Etiketleri",
+                               filters=query_filter,
                                fields={"item_code",
                                        "item_name",
                                        "item_group",
@@ -69,14 +70,14 @@ def print_split_kta_pr_labels(label=None):
 
     split_query_filter = {"parent": label}
 
-    splits = frappe.get_all(kta_depo_etiketleri_bolme_doctype,
+    splits = frappe.get_all(doctype=kta_depo_etiketleri_bolme_doctype,
                             filters=split_query_filter,
                             fields={"idx",
                                     "qty"})
 
     query_filter = {"do_not_split": 1, "name": label}
 
-    label = frappe.db.get_value(kta_depo_etiketleri_doctype,
+    label = frappe.db.get_value(doctype=kta_depo_etiketleri_doctype,
                                 filters=query_filter,
                                 fieldname=["item_code",
                                            "item_name",
@@ -148,7 +149,7 @@ def get_details_of_wo_for_label(work_order):
         material_index = bom_doc.get("custom_musteri_indeksi_no")
 
     musteri_paketleme_miktari = frappe.db.get_value(
-        item_customer_detail_doctype,
+        doctype=item_customer_detail_doctype,
         filters={
             "parent": work_order_doc.get("production_item"),
             "parenttype": item_doctype,
@@ -262,7 +263,7 @@ def send_data_to_zebra(data, ip, port):
             s.sendall(data.encode("utf-8"))
             return None
     except Exception as e:
-        frappe.log_error(f"ZPL Print Error {str(e)}", "Printer Error")
+        frappe.log_error(title=f"ZPL Print Error {str(e)}", message="Printer Error")
         return {"status": "error", "message": f"Failed to send label {str(e)}"}
 
 
@@ -275,9 +276,9 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     # for row in self.get(table_name):
     if row.serial_and_batch_bundle:
         row_batch_number = frappe.db.get_value(
-            "Serial and Batch Entry",
-            {"parent": row.serial_and_batch_bundle},
-            "batch_no"
+            doctype="Serial and Batch Entry",
+            filters={"parent": row.serial_and_batch_bundle},
+            fieldname="batch_no"
         )
 
         if not row_batch_number:
@@ -331,12 +332,12 @@ def get_zebra_printer_for_user():
 
     # Query the printer for this user that is both enabled and marked as default
     printer = frappe.db.get_value(
-        "KTA User Zebra Printers",
-        {
+        doctype="KTA User Zebra Printers",
+        filters={
             "user": user,
             "disabled": 0
         },
-        "printer"
+        fieldname="printer"
     )
 
     if printer is not None:  # Check if a printer was found
@@ -511,6 +512,179 @@ def clear_warehouse_labels():
                 .select("name")
                 .where((item_code == result.item_code) & (batch == result.batch))
             ).run()
-            frappe.db.delete(label_doctype_name, {"name": labels_to_delete})
+            frappe.db.delete(label_doctype_name, filters={"name": labels_to_delete})
 
     return frappe.utils.nowdate()
+
+
+@frappe.whitelist()
+def process_supply_on(supply_on):
+    supply_on_doctype = "KTA Supply On Head"
+    supply_on = frappe.get_doc(supply_on_doctype, supply_on)
+    supply_on_eval_table = "table_evaluation"
+    supply_on_balances = get_balances_from_supply_on(supply_on.name)
+    if len(supply_on_balances) == 0:
+        frappe.throw(f"No supply on balances found for supply on: {supply_on}")
+        return
+    customer_doctype = "Customer"
+    item_doctype = "Item"
+    for supply_on_balance in supply_on_balances:
+        customer_no = supply_on_balance.plant_no_customer
+        part_no = supply_on_balance.part_no_customer
+        # customer part
+        customer = None
+        try:
+            customer_doc = frappe.get_all(customer_doctype, filters={"custom_eski_kod": customer_no}, fields=["name"])
+        except frappe.DoesNotExistError:
+            # Handle the case when the document doesn't exist
+            return
+        # except Exception as e:
+        # Handle other potential exceptions
+        # frappe.throw(f"An error occurred: {str(e)}")
+        if len(customer_doc) > 1:
+            # frappe.throw(f"More than one customer found for ID {customer_no}")
+            return
+        else:
+            customer = frappe.get_doc(customer_doctype, customer_doc[0].name)
+        # item part
+        try:
+            item_doc = frappe.get_all(item_doctype, filters={"name": part_no}, fields=["name"])
+        except frappe.DoesNotExistError:
+            # If not found by name, try searching by another field
+            item_customer_detail_doctype = "Item Customer Detail"
+            item_detail_doc = frappe.get_all(
+                item_customer_detail_doctype,
+                filters={"ref_code": part_no,
+                         "parenttype": "Item",
+                         "parentfield": "customer_items",
+                         "customer_name": customer
+                         },
+                fields=["parent"]
+            )
+            if len(item_detail_doc) > 1:
+                # frappe.throw(f"More than one item found for customer {customer_no} and part {part_no}")
+                return
+            else:
+                item_doc = frappe.get_doc(item_doctype, item_detail_doc[0].parent)
+        item = frappe.get_doc(item_doctype, item_doc[0].name) if item_doc else None
+        last_delivery_note = [{'max_custom_irsaliye_no': None, 'lr_date': None}]
+        if not item:
+            item = "Item %(part_no)s bulunamadı"
+        else:
+            item = item.name
+            last_delivery_note = get_last_delivery_note(customer.name, item)
+        supply_on.append(
+            supply_on_eval_table,
+            {
+                "plant_no_customer": supply_on_balance.plant_no_customer,
+                "part_no_customer": supply_on_balance.part_no_customer,
+                "total_qty": supply_on_balance.total_qty,
+                "closed_qty": supply_on_balance.closed_qty,
+                "balance_qty": supply_on_balance.balance_qty,
+                "customer": customer.name,
+                "item": item,
+                "last_delivery_note": last_delivery_note[0].max_custom_irsaliye_no,
+                "last_delivery_date": last_delivery_note[0].lr_date
+            }
+        )
+        supply_on.save()
+
+def get_last_delivery_note(customer_name, item_name):
+    return frappe.db.sql("""SELECT MAX(tdn.custom_irsaliye_no) AS max_custom_irsaliye_no,
+                                   tdn.lr_date
+                            FROM `tabDelivery Note` tdn
+                                     LEFT JOIN `tabDelivery Note Item` tdni ON
+                                tdn.name = tdni.parent
+                                    AND tdni.parenttype = 'Delivery Note'
+                                    AND tdni.parentfield = 'items'
+                                    AND tdni.item_code = %s
+                            WHERE tdn.customer = %s
+                              AND tdn.is_return = 0
+                              AND tdn.docstatus = 1
+                              AND tdn.lr_date = (SELECT MAX(dn.lr_date)
+                                                 FROM `tabDelivery Note` dn
+                                                          LEFT JOIN `tabDelivery Note Item` dni ON
+                                                     dn.name = dni.parent
+                                                         AND dni.parenttype = 'Delivery Note'
+                                                         AND dni.parentfield = 'items'
+                                                         AND dni.item_code = %s
+                                                 WHERE dn.customer = %s
+                                                   AND dn.docstatus = 1
+                                                   AND dn.is_return = 0)
+                         """, (item_name, customer_name, item_name, customer_name), as_dict=True)
+
+
+def get_data(conditions, filters):
+    conditions = ""
+    if filters.get("from_date") and filters.get("to_date"):
+        conditions += " and so.transaction_date between %(from_date)s and %(to_date)s"
+
+    if filters.get("company"):
+        conditions += " and so.company = %(company)s"
+
+    if filters.get("sales_order"):
+        conditions += " and so.name in %(sales_order)s"
+
+    if filters.get("status"):
+        conditions += " and so.status in %(status)s"
+
+    if filters.get("warehouse"):
+        conditions += " and soi.warehouse = %(warehouse)s"
+
+    data = frappe.db.sql(
+        f"""
+        SELECT
+            so.transaction_date as date,
+            soi.delivery_date AS `delivery_date`,
+            so.name AS `sales_order`,
+            so.status,
+            so.customer,
+            soi.item_code,
+            DATEDIFF(CURRENT_DATE, soi.delivery_date) AS `delay_days`,
+            IF(so.status in ('Completed','To Bill'), 0, (SELECT delay_days)) AS `delay`,
+            soi.qty,
+            soi.delivered_qty,
+            (soi.qty - soi.delivered_qty) AS `pending_qty`,
+            IFNULL(SUM(sii.qty), 0) AS `billed_qty`,
+            soi.base_amount AS `amount`,
+            (soi.delivered_qty * soi.base_rate) AS `delivered_qty_amount`,
+            (soi.billed_amt * IFNULL(so.conversion_rate, 1)) AS `billed_amount`,
+            (soi.base_amount - (soi.billed_amt * IFNULL(so.conversion_rate, 1))) AS `pending_amount`,
+            soi.warehouse AS `warehouse`,
+            so.company,
+            soi.name,
+            soi.description AS `description`
+        FROM
+            `tabSales Order` so,
+            `tabSales Order Item` soi
+        LEFT JOIN `tabSales Invoice Item` sii
+            ON sii.so_detail = soi.name and sii.docstatus = 1
+        WHERE
+            soi.parent = so.name
+            and so.status not in ('Stopped', 'On Hold')
+            and so.docstatus = 1
+            and soi.item_code = 
+            {conditions}
+        GROUP BY soi.name, so.transaction_date, soi.item_code
+    """,
+        filters,
+        as_dict=1,
+    )
+
+    return data
+
+
+def get_balances_from_supply_on(supply_on):
+    supply_on_doctype = "KTA Supply On Head"
+    return frappe.db.sql("""
+                         SELECT plant_no_customer,
+                                part_no_customer,
+                                MAX(EFZ)                     AS `total_qty`,
+                                MAX(EFZ_customer)            AS `closed_qty`,
+                                MAX(EFZ) - MAX(EFZ_customer) AS `balance_qty`
+                         FROM `tabKTA Supply On`
+                         WHERE parent = %s
+                           AND parenttype = %s
+                         GROUP BY plant_no_customer,
+                                  part_no_customer
+                         """, (supply_on, supply_on_doctype), as_dict=True)
