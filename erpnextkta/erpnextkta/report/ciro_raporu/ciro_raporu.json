@@ -11,7 +11,7 @@
  "is_standard": "Yes",
  "letter_head": "",
  "letterhead": null,
- "modified": "2025-05-28 13:59:11.568229",
+ "modified": "2025-06-04 17:19:02.059509",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Ciro Raporu",
@@ -20,7 +20,7 @@
  "query": "SELECT\n    so.name AS `Sat\u0131\u015f Sipari\u015fi:Link/Sales Order:125`,\n    soi.item_code AS `\u00dcr\u00fcn Kodu:80`,\n    i.item_group AS `Malzeme Grubu:110`,\n    so.customer AS `M\u00fc\u015fteri:110`,\n    c.customer_group AS `M\u00fc\u015fteri Grubu:110`,\n    soi.delivery_date AS `Teslimat Tarihi:110`,\n    dn.posting_date AS `\u0130rsaliye Tarihi:110`,\n    soi.qty AS `Sipari\u015f Miktar\u0131:110`,\n    soi.delivered_qty AS `Teslim Edilen Miktar:110`,\n    dni.qty AS `\u0130rsaliye Miktar\u0131:110`,\n    so.status AS `Durum:110`,\n    CONCAT(\n        CASE so.currency\n            WHEN 'USD' THEN '$'\n            WHEN 'EUR' THEN '\u20ac'\n            WHEN 'TRY' THEN '\u20ba'\n            ELSE so.currency\n        END, ' ',\n        FORMAT(soi.price_list_rate, 6)\n    ) AS `Fiyat:110`,\n    so.currency AS `Para Birimi:110`,\n    CONCAT(\n        CASE so.currency\n            WHEN 'USD' THEN '$'\n            WHEN 'EUR' THEN '\u20ac'\n            WHEN 'TRY' THEN '\u20ba'\n            ELSE so.currency\n        END, ' ',\n        FORMAT(IFNULL(dni.qty, 0) * soi.price_list_rate, 6)\n    ) AS `\u0130rsaliye Bazl\u0131 Tutar:110`,\n    CONCAT(\n        CASE so.currency\n            WHEN 'USD' THEN '$'\n            WHEN 'EUR' THEN '\u20ac'\n            WHEN 'TRY' THEN '\u20ba'\n            ELSE so.currency\n        END, ' ',\n        FORMAT((soi.qty - soi.delivered_qty) * soi.price_list_rate, 6)\n    ) AS `Kalan Sipari\u015f Tutar\u0131:110`,\n    ip.lead_time_days AS `Lead Time (G\u00fcn):110`,\n    dn.name AS `Sevk \u0130rsaliyesi:110`\nFROM\n    `tabSales Order` so\nJOIN\n    `tabSales Order Item` soi ON soi.parent = so.name\nLEFT JOIN\n    `tabItem` i ON i.name = soi.item_code\nLEFT JOIN\n    `tabCustomer` c ON c.name = so.customer\nLEFT JOIN\n    `tabItem Price` ip ON ip.item_code = soi.item_code\n                       AND ip.customer = so.customer\n                       AND ip.price_list = so.selling_price_list\n                       AND (ip.valid_upto IS NULL OR ip.valid_upto >= CURDATE())\nLEFT JOIN\n    `tabDelivery Note Item` dni ON dni.so_detail = soi.name\nLEFT JOIN\n    `tabDelivery Note` dn ON dn.name = dni.parent\nWHERE\n    so.docstatus = 1\n    AND (\n        so.status != 'Closed'\n        OR (so.status = 'Closed' AND dn.name IS NOT NULL)\n    )\n",
  "ref_doctype": "Sales Order",
  "report_name": "Ciro Raporu",
- "report_type": "Query Report",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "Sales User"

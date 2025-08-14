@@ -1,0 +1,196 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-22 14:13:57.617992",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "istasyon_section",
+  "is_istasyonu",
+  "column_break_omdn",
+  "operator",
+  "operasyon_section",
+  "operasyon",
+  "is_karti",
+  "column_break_uqsm",
+  "kalite_kontrol",
+  "durum",
+  "zaman_section",
+  "baslangic_saati",
+  "bitis_saati",
+  "column_break_jbpu",
+  "toplam_sure",
+  "toplam_durus",
+  "net_calisma_suresi",
+  "operasyon_duruslari_section",
+  "column_break_sqky",
+  "hurdalar",
+  "duruslar"
+ ],
+ "fields": [
+  {
+   "fieldname": "istasyon_section",
+   "fieldtype": "Section Break",
+   "label": "\u0130stasyon"
+  },
+  {
+   "fieldname": "is_istasyonu",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u0130\u015f \u0130stasyonu",
+   "options": "Workstation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_omdn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "operator",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Operat\u00f6r",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "operasyon_section",
+   "fieldtype": "Section Break",
+   "label": "Operasyon"
+  },
+  {
+   "fieldname": "operasyon",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Operasyon",
+   "options": "KTA Calisma Karti Operasyonlari",
+   "reqd": 1
+  },
+  {
+   "fieldname": "is_karti",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u0130\u015f Karti",
+   "options": "Job Card",
+   "reqd": 1
+  },
+  {
+   "fieldname": "zaman_section",
+   "fieldtype": "Section Break",
+   "label": "Calisma Suresi"
+  },
+  {
+   "fieldname": "baslangic_saati",
+   "fieldtype": "Datetime",
+   "label": "Ba\u015flang\u0131\u00e7 Saati",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bitis_saati",
+   "fieldtype": "Datetime",
+   "label": "Biti\u015f Saati",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_jbpu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "toplam_sure",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Toplam S\u00fcre (dk:sn)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "toplam_durus",
+   "fieldtype": "Data",
+   "label": "Toplam Duru\u015f S\u00fcresi (dk:sn)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "net_calisma_suresi",
+   "fieldtype": "Data",
+   "label": "Net \u00c7al\u0131\u015fma S\u00fcresi (dk:sn)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "operasyon_duruslari_section",
+   "fieldtype": "Section Break",
+   "label": "Operasyon Duru\u015flar\u0131"
+  },
+  {
+   "fieldname": "duruslar",
+   "fieldtype": "Table",
+   "label": "Duru\u015flar",
+   "options": "Operasyon Duruslari"
+  },
+  {
+   "fieldname": "column_break_sqky",
+   "fieldtype": "Column Break",
+   "options": "Calisma Karti Hurda"
+  },
+  {
+   "fieldname": "hurdalar",
+   "fieldtype": "Table",
+   "label": "Hurdalar",
+   "options": "Calisma Karti Hurda"
+  },
+  {
+   "fieldname": "column_break_uqsm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Onay Bekliyor",
+   "fieldname": "kalite_kontrol",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Kalite Kontrol",
+   "options": "Onay Bekliyor\nOnayland\u0131\nReddedildi"
+  },
+  {
+   "fieldname": "durum",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Durum",
+   "options": "Haz\u0131r\n\u00c7al\u0131\u015f\u0131yor\nDuru\u015fta\nBitmi\u015f",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-08-08 10:49:00.337315",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "Calisma Karti",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Manufacturing User",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+}
