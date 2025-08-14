@@ -688,3 +688,83 @@ def get_balances_from_supply_on(supply_on):
                          GROUP BY plant_no_customer,
                                   part_no_customer
                          """, (supply_on, supply_on_doctype), as_dict=True)
+
+@frappe.whitelist()
+def get_items_from_calisma_karti(source_name: str, target_doc=None):
+    """
+    Stock Entry > Get Items From > Calisma Karti
+    'Calisma Karti' içindeki 'Calisma Karti Hurda' satırlarını,
+    Stock Entry 'items' formatında döndürür.
+    NOTE: map_current_doc bu fonksiyonu (source_name, target_doc) imzasıyla çağırır.
+    """
+    if not source_name:
+        frappe.throw("Çalışma Kartı seçilmedi.")
+
+    doc = frappe.get_doc("Calisma Karti", source_name)
+
+
+    # Parent'tan varsayılan kaynak depo (alan adın farklıysa buraya ekleyebilirsin)
+    parent_src_wh = (
+        getattr(doc, "source_warehouse", None)
+        or getattr(doc, "s_warehouse", None)
+        or getattr(doc, "warehouse", None)
+        or None
+    )
+
+    items = []
+    # Parent'taki tablo alan adını bilmesek de güvenli yöntemi kullan:
+    for row in doc.get_all_children():
+        if row.doctype != "Calisma Karti Hurda":
+            continue
+
+        item_code = row.parca_no
+        qty = row.miktar
+        uom = row.birim               # Link → UOM
+        row_src_wh = getattr(row, "depo", None)  # Link → Warehouse
+        s_wh = row_src_wh or parent_src_wh
+
+        if not item_code or not qty:
+            continue
+
+        item = frappe.db.get_value(
+            "Item", item_code, ["item_name", "stock_uom", "description"], as_dict=True
+        )
+        if not item:
+            frappe.throw(f"Item bulunamadı: {item_code}")
+
+        stock_uom = item.stock_uom
+        uom_final = uom or stock_uom
+
+        # UOM dönüşüm faktörü
+        conv = 1.0
+        if uom and uom != stock_uom:
+            conv_row = frappe.db.get_value(
+                "UOM Conversion Detail",
+                {"parent": item_code, "uom": uom},
+                "conversion_factor",
+            )
+            conv = float(conv_row) if conv_row else 1.0
+
+        # Açıklama + hurda nedeni
+        desc_bits = []
+        if item.description:
+            desc_bits.append(item.description)
+        if getattr(row, "hurda_nedeni", None):
+            desc_bits.append(f"Hurda Nedeni: {row.hurda_nedeni}")
+        description = " | ".join(desc_bits) if desc_bits else item.item_name
+
+        items.append({
+            "item_code": item_code,
+            "item_name": item.item_name,
+            "description": description,
+            "uom": uom_final,
+            "stock_uom": stock_uom,
+            "conversion_factor": conv,
+            "qty": qty,
+            "s_warehouse": s_wh,   # Material Issue mantığı: kaynak depo
+        })
+
+    if not items:
+        frappe.throw("Seçilen Çalışma Kartında aktarılabilir hurda satırı yok.")
+
+    return items
