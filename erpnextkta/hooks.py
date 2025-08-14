@@ -254,30 +254,6 @@ scheduler_events = {
 
 fixtures = [
     {
-        "doctype": "DocType",
-        "filters": [
-            ["name", "in", ["Calisma Karti", "Operasyon Duruslari", "Calisma Karti Hurda"]]
-        ]
-    },
-    {
-        "doctype": "Custom Field",
-        "filters": [
-            ["name", "=", "Item-custom_weekly_production"]
-        ]
-    },
-    {
-        "doctype": "Custom Field",
-        "filters": [
-            ["dt", "in", ["Calisma Karti", "Operasyon Duruslari"]]
-        ]
-    },
-    {
-        "doctype": "Property Setter",
-        "filters": [
-            ["doc_type", "in", ["Calisma Karti", "Operasyon Duruslari"]]
-        ]
-    },
-    {
         "doctype": "Client Script",
         "filters": [
             ["name", "like", "KTA%"]
@@ -289,16 +265,7 @@ fixtures = [
             ["name", "like", "KTA%"]
         ]
     },
-
-        {
-        "doctype": "DocType",
-        "filters": [
-            ["name", "like", "KTA%"]
-        ]
-    }
 ]
-
 doctype_js = {
     "Calisma Karti": "erpnextkta/erpnextkta/doctype/calisma_karti/calisma_karti.js"
 }
-
