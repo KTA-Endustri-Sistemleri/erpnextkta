@@ -2,34 +2,12 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
-  "dt": "Calisma Karti",
+  "dt": "KTA Mobil Depo",
   "enabled": 1,
-  "modified": "2025-08-08 14:50:21.247009",
+  "modified": "2025-07-15 18:11:25.711846",
   "module": "erpnextkta",
-  "name": "KTA Calisma Karti",
-  "script": "frappe.ui.form.on('Calisma Karti', {\r\n  is_karti: function (frm) {\r\n    if (frm.doc.is_karti) {\r\n      frappe.db.get_doc('Job Card', frm.doc.is_karti)\r\n        .then(doc => {\r\n          frm.set_value('urun_kodu', doc.production_item);\r\n          frm.set_value('uretilecek_miktar', doc.for_quantity);\r\n          frm.set_value('is_istasyonu', doc.workstation);\r\n        });\r\n    }\r\n  }\r\n});\r\n",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "KTA Depo Etiketleri",
-  "enabled": 1,
-  "modified": "2025-06-10 13:27:49.439380",
-  "module": "erpnextkta",
-  "name": "KTA Depo Etiketi Bas",
-  "script": "frappe.ui.form.on('KTA Depo Etiketleri', {\n// refresh(frm) {\ncustom_print_label_to_zebra_kta: function(frm){\nfrappe.call({\n            method: \"erpnextkta.api.print_to_zebra_kta\",\n            args:{\n                \"label\": frm.doc.name\n            },\n            callback: function(r){\n                frm.set_value(\"custom_print_status\", r.message);\n            }\n        });\n}\n});",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
-  "dt": "Item Price",
-  "enabled": 1,
-  "modified": "2025-07-07 17:33:50.452069",
-  "module": "erpnextkta",
-  "name": "KTA Tedarikci Parça numarası",
-  "script": "function fetch_supplier_part_info(frm) {\r\n    if (frm.doc.item_code && frm.doc.supplier) {\r\n        console.log(\"Fetching supplier info for:\", frm.doc.item_code, frm.doc.supplier);\r\n        frappe.call({\r\n            method: \"frappe.client.get\",\r\n            args: {\r\n                doctype: \"Item\",\r\n                name: frm.doc.item_code\r\n            },\r\n            callback: function(r) {\r\n                if (!r.message) {\r\n                    console.log(\"Item not found\");\r\n                    return;\r\n                }\r\n\r\n                const supplier_items = r.message.supplier_items || [];\r\n                console.log(\"Supplier items:\", supplier_items);\r\n\r\n                const match = supplier_items.find(row => row.supplier === frm.doc.supplier);\r\n\r\n                if (!match) {\r\n                    console.log(\"No supplier match found\");\r\n                    return;\r\n                }\r\n\r\n                console.log(\"Match:\", match);\r\n\r\n                let part_no = match.supplier_part_no || '';\r\n                let part_desc = match.custom_tedarikci_parca_aciklamasi || '';\r\n\r\n                const current_part_no = frm.doc.custom_supplier_part_no || '';\r\n                const current_part_desc = frm.doc.custom_supplier_part_desc || '';\r\n\r\n                if (part_no !== current_part_no) {\r\n                    frm.doc.custom_supplier_part_no = part_no;\r\n                    frm.refresh_field('custom_supplier_part_no');\r\n                }\r\n\r\n                if (part_desc !== current_part_desc) {\r\n                    frm.doc.custom_supplier_part_desc = part_desc;\r\n                    frm.refresh_field('custom_supplier_part_desc');\r\n                }\r\n            }\r\n        });\r\n    }\r\n}\r\n",
+  "name": "KTA Mobil Depo Yonetimi",
+  "script": "frappe.ui.form.on('KTA Mobil Depo', {\n\trefresh(frm) {\n        frappe.call({\n            method: \"erpnextkta.api.find_bins_of_sut\",\n            args:{\n                \"sut\": frm.doc.sut_barcode\n            }\n        });\n\t}\n});",
   "view": "Form"
  },
  {
@@ -173,6 +151,17 @@
   "module": "erpnextkta",
   "name": "KTA Work Order Client Scripts",
   "script": "frappe.ui.form.on('Work Order', {\r\n    custom_etiket_bas: function(frm){\r\n        frappe.call({\r\n                    method: \"erpnextkta.api.print_kta_wo_labels\",\r\n                    args:{\r\n                        \"work_order\": frm.doc.name\r\n                    }\r\n        });\r\n    },\r\n    refresh: function(frm) {\r\n       if (frm.doc.custom_kesim_formu_link) {\r\n            frm.add_custom_button('Kesim Formunu Aç', function () {\r\n                window.open(frm.doc.custom_kesim_formu_link, '_blank');\r\n            }, 'View');  // View altına geldi\r\n        }\r\n        // Sadece taslak durumda ve kapatılmamış belgelerde çalıştır\r\n        if (\r\n            frm.doc.docstatus === 0 &&\r\n            frm.doc.production_item &&\r\n            !frm.doc.__islocal &&\r\n            frm.doc.status !== \"Closed\"\r\n        ) {\r\n            set_item_group(frm);\r\n        }\r\n    },\r\n    production_item: function(frm) {\r\n        // Ürün değiştiğinde sadece taslak ve kapatılmamış belgelerde çalıştır\r\n        if (frm.doc.docstatus === 0 && frm.doc.status !== \"Closed\") {\r\n            set_item_group(frm);\r\n        }\r\n    },\r\n    onload: function(frm) {\r\n        frm.set_df_property('custom_ürün_grubu', 'read_only', 1);\r\n    }\r\n});\r\n\r\n// Yardımcı fonksiyon\r\nfunction set_item_group(frm) {\r\n    if (frm.doc.production_item) {\r\n        frappe.db.get_value(\"Item\", frm.doc.production_item, \"item_group\")\r\n            .then(r => {\r\n                if (r.message && r.message.item_group) {\r\n                    frm.set_value(\"custom_ürün_grubu\", r.message.item_group);\r\n                }\r\n            });\r\n    }\r\n}\r\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "KTA Supply On Head",
+  "enabled": 1,
+  "modified": "2025-07-30 14:00:39.487714",
+  "module": "erpnextkta",
+  "name": "KTA Supply On Head Client Script",
+  "script": "frappe.ui.form.on('KTA Supply On Head', {\n// refresh(frm) {\n    process_supply_on: function(frm){\n        frappe.call({\n                    method: \"erpnextkta.api.process_supply_on\",\n                    args:{\n                        \"supply_on\": frm.doc.name\n                    },\n                    callback: function(r){\n                        frm.set_value(\"last_process_date\", r.message);\n                    }\n                });\n    }\n});",
   "view": "Form"
  }
 ]
