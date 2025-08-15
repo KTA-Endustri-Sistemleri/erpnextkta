@@ -44,9 +44,9 @@ def execute(filters=None):
     if finished_items:
         item_meta = frappe.db.get_all(
             "Item",filters={"name": ["in", finished_items]},
-            fields=["name", "kta_musteri_grubu"]
+            fields=["name", "custom_musteri_grubu"]
         )
-        item_customer_group_map = {i.name: i.kta_musteri_grubu for i in item_meta}
+        item_customer_group_map = {i.name: i.custom_musteri_grubu_musteri_grubu for i in item_meta}
 
     
     # BOM'ları toplu al
