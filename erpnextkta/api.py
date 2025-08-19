@@ -595,8 +595,8 @@ def process_supply_on(supply_on):
                 "item": item,
                 "last_delivery_note": balance.delivery_note_no,
                 "last_delivery_date": balance.delivery_note_date,
-                "kta_last_delivery_note": last_delivery[0]['max_custom_irsaliye_no'],
-                "kta_last_delivery_date": last_delivery[0]['lr_date']
+                "kta_last_delivery_note": last_delivery[0]['max_custom_irsaliye_no'] if last_delivery else None,
+                "kta_last_delivery_date": last_delivery[0]['lr_date'] if last_delivery else None
             }
         )
 
