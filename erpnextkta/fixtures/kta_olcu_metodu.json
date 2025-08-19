@@ -1,0 +1,156 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Görsel",
+  "modified": "2025-07-16 08:36:19.896514",
+  "name": "Görsel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Mikrometre",
+  "modified": "2025-07-16 08:40:27.167111",
+  "name": "Mikrometre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Yüksek Voltaj Test Cihazı",
+  "modified": "2025-07-16 08:40:37.341701",
+  "name": "Yüksek Voltaj Test Cihazı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Vida Tampon Mastarı",
+  "modified": "2025-07-16 08:40:51.717982",
+  "name": "Vida Tampon Mastarı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Vida Halka Mastarı",
+  "modified": "2025-07-16 08:41:03.554782",
+  "name": "Vida Halka Mastarı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Torkmetre",
+  "modified": "2025-07-16 08:41:12.007159",
+  "name": "Torkmetre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Shore Metre",
+  "modified": "2025-07-16 08:41:28.875175",
+  "name": "Shore Metre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Sentil",
+  "modified": "2025-07-16 08:41:38.220657",
+  "name": "Sentil"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Radyus Mastarı",
+  "modified": "2025-07-16 08:41:46.701447",
+  "name": "Radyus Mastarı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Profil Projeksiyon",
+  "modified": "2025-07-16 08:41:58.685904",
+  "name": "Profil Projeksiyon"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "NTC Test Fırını",
+  "modified": "2025-07-16 08:42:07.783825",
+  "name": "NTC Test Fırını"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Halka Mastar",
+  "modified": "2025-07-16 08:42:25.597140",
+  "name": "Halka Mastar"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Dijital Multimetre",
+  "modified": "2025-07-16 08:42:33.683046",
+  "name": "Dijital Multimetre"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Çekme Cihazı",
+  "modified": "2025-07-16 08:42:47.209588",
+  "name": "Çekme Cihazı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "İrsaliye Bilgileri",
+  "modified": "2025-07-16 08:43:02.918527",
+  "name": "İrsaliye Bilgileri"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Elle",
+  "modified": "2025-07-16 08:43:11.514621",
+  "name": "Elle"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Test Bord",
+  "modified": "2025-07-16 08:43:21.801906",
+  "name": "Test Bord"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "İş Standardı",
+  "modified": "2025-07-16 08:49:10.442525",
+  "name": "İş Standardı"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Kesim Formu",
+  "modified": "2025-07-16 08:49:20.666395",
+  "name": "Kesim Formu"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Printer",
+  "modified": "2025-07-16 08:49:44.342571",
+  "name": "Printer"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Çelik Cetvel",
+  "modified": "2025-07-16 08:42:55.093589",
+  "name": "Çelik Cetvel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Kumpas",
+  "modified": "2025-07-16 08:42:17.759384",
+  "name": "Kumpas"
+ }
+]
