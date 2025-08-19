@@ -522,85 +522,86 @@ def process_supply_on(supply_on):
     supply_on_doctype = "KTA Supply On Head"
     supply_on = frappe.get_doc(supply_on_doctype, supply_on)
     supply_on_eval_table = "table_evaluation"
-    supply_on_balances = get_balances_from_supply_on(supply_on.name)
-    if len(supply_on_balances) == 0:
-        frappe.throw(f"No supply on balances found for supply on: {supply_on}")
-        return
-    customer_doctype = "Customer"
-    item_doctype = "Item"
-    part_no_error_message = None
-    part_no_bom_error_message = None
-    for supply_on_balance in supply_on_balances:
-        customer_no = supply_on_balance.plant_no_customer
-        try:
-            customer_doc = frappe.get_all(customer_doctype, filters={"custom_eski_kod": customer_no}, fields=["name"])
-        except frappe.DoesNotExistError:
-            plant_no_error_message = f"{customer_no} ile Müşteri Bulunamadı"
-            continue
-        # except Exception as e:
-        # Handle other potential exceptions
-        # frappe.throw(f"An error occurred: {str(e)}")
-        if len(customer_doc) > 1:
-            plant_no_error_message = f"More than one customer found for ID {customer_no}"
-            continue
-        else:
-            customer = frappe.get_doc(customer_doctype, customer_doc[0].name)
-            customer = customer.name
-            plant_no_error_message = None
-        part_no = supply_on_balance.part_no_customer
-        try:
-            item_doc = frappe.get_all(item_doctype, filters={"name": part_no}, fields=["name"])
-        except frappe.DoesNotExistError:
-            # If not found by name, try searching by another field
-            item_customer_detail_doctype = "Item Customer Detail"
-            item_detail_doc = frappe.get_all(
-                item_customer_detail_doctype,
-                filters={"ref_code": part_no,
-                         "parenttype": "Item",
-                         "parentfield": "customer_items",
-                         "customer_name": customer
-                         },
-                fields=["parent"]
-            )
-            if len(item_detail_doc) > 1:
-                part_no_error_message = f"More than one item found for customer {customer_no} and part {part_no}"
-                continue
-            else:
-                item_doc = frappe.get_doc(item_doctype, item_detail_doc[0].parent)
-                part_no_error_message = None
-        if item_doc:
-            item = frappe.get_doc(item_doctype, item_doc[0].name)
-            item = item.name
-            last_delivery_note = [{'max_custom_irsaliye_no': None, 'lr_date': None}]
-            last_delivery_note = get_last_delivery_note(customer, item)
-        else:
-            item = None
-            part_no_error_message = f"Item {part_no} bulunamadı"
-        try:
-            frappe.get_all("BOM", filters={"item": item, "is_default": 1}, fields=["name"])
-        except frappe.DoesNotExistError:
-            part_no_bom_error_message = "Varsayılan BOM bulunamadı"
 
+    # Clear all existing child table items before processing new ones
+    supply_on.set("table_evaluation", [])
+    supply_on.save()
+
+    supply_on_balances = get_balances_from_supply_on(supply_on.name)
+
+    if not supply_on_balances:
+        frappe.throw(f"No supply on balances found for supply on: {supply_on.name}")
+        return
+
+    for balance in supply_on_balances:
+        # Initialize error messages
+        errors = {
+            "plant_no": None,
+            "part_no": None,
+            "bom": None
+        }
+
+        # Process customer
+        customer = None
+        if balance.plant_no_customer:
+            customer = frappe.get_value("Customer",
+                                        {"custom_eski_kod": balance.plant_no_customer},
+                                        "name")
+            if not customer:
+                errors["plant_no"] = f"{balance.plant_no_customer} ile Müşteri Bulunamadı"
+            elif isinstance(customer, list):
+                errors["plant_no"] = f"Multiple customers found for ID {balance.plant_no_customer}"
+                customer = None
+
+        # Process item
+        item = None
+        if balance.part_no_customer and customer:
+            # First try direct item match
+            item = frappe.get_value("Item", balance.part_no_customer, "name")
+
+            # If not found, try customer reference
+            if not item:
+                ref_item = frappe.get_value("Item Customer Detail",
+                                            {"ref_code": balance.part_no_customer,
+                                             "customer_name": customer},
+                                            "parent")
+                if ref_item:
+                    item = ref_item
+                else:
+                    errors["part_no"] = f"Item {balance.part_no_customer} bulunamadı"
+
+        # Get last delivery note if item exists
+        last_delivery = [{'max_custom_irsaliye_no': None, 'lr_date': None}]
+        if item:
+            last_delivery = get_last_delivery_note(customer, item)
+
+            # Check for BOM
+            if not frappe.get_all("BOM", filters={"item": item, "is_default": 1}, limit=1):
+                errors["bom"] = "Varsayılan BOM bulunamadı"
+
+        # Append evaluation data
         supply_on.append(
             supply_on_eval_table,
             {
-                "plant_no_customer": supply_on_balance.plant_no_customer,
-                "plant_no_error_message": plant_no_error_message,
-                "part_no_customer": supply_on_balance.part_no_customer,
-                "part_no_error_message": part_no_error_message,
-                "part_no_bom_error_message": part_no_bom_error_message,
-                "total_qty": supply_on_balance.total_qty,
-                "closed_qty": supply_on_balance.closed_qty,
-                "balance_qty": supply_on_balance.balance_qty,
+                "plant_no_customer": balance.plant_no_customer,
+                "plant_no_error_message": errors["plant_no"],
+                "part_no_customer": balance.part_no_customer,
+                "part_no_error_message": errors["part_no"],
+                "part_no_bom_error_message": errors["bom"],
+                "total_qty": balance.total_qty,
+                "closed_qty": balance.closed_qty,
+                "balance_qty": balance.balance_qty,
                 "customer": customer,
                 "item": item,
-                "last_delivery_note": supply_on_balance.delivery_note_no,
-                "last_delivery_date": supply_on_balance.delivery_note_date,
-                "kta_last_delivery_note": last_delivery_note[0].max_custom_irsaliye_no,
-                "kta_last_delivery_date": last_delivery_note[0].lr_date
+                "last_delivery_note": balance.delivery_note_no,
+                "last_delivery_date": balance.delivery_note_date,
+                "kta_last_delivery_note": last_delivery[0]['max_custom_irsaliye_no'],
+                "kta_last_delivery_date": last_delivery[0]['lr_date']
             }
         )
-        supply_on.save()
+
+    supply_on.save()
+    return True
 
 
 def get_last_delivery_note(customer_name, item_name):
