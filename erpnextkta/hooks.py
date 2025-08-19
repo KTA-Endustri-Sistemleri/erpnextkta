@@ -253,6 +253,12 @@ scheduler_events = {
 # --------------------------------
 
 fixtures = [
+#    "KTA Olcu Metodu",
+#    "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri",
+#    "TR Gumruk Idareleri",
+#    "Asset Category",
+#    "KTA Ithalat Kisa Malzeme Aciklamalari",
+    "Customs Tariff Number",
     {
         "doctype": "Client Script",
         "filters": [

@@ -528,25 +528,26 @@ def process_supply_on(supply_on):
         return
     customer_doctype = "Customer"
     item_doctype = "Item"
+    part_no_error_message = None
+    part_no_bom_error_message = None
     for supply_on_balance in supply_on_balances:
         customer_no = supply_on_balance.plant_no_customer
-        part_no = supply_on_balance.part_no_customer
-        # customer part
-        customer = None
         try:
             customer_doc = frappe.get_all(customer_doctype, filters={"custom_eski_kod": customer_no}, fields=["name"])
         except frappe.DoesNotExistError:
-            # Handle the case when the document doesn't exist
-            return
+            plant_no_error_message = f"{customer_no} ile Müşteri Bulunamadı"
+            continue
         # except Exception as e:
         # Handle other potential exceptions
         # frappe.throw(f"An error occurred: {str(e)}")
         if len(customer_doc) > 1:
-            # frappe.throw(f"More than one customer found for ID {customer_no}")
-            return
+            plant_no_error_message = f"More than one customer found for ID {customer_no}"
+            continue
         else:
             customer = frappe.get_doc(customer_doctype, customer_doc[0].name)
-        # item part
+            customer = customer.name
+            plant_no_error_message = None
+        part_no = supply_on_balance.part_no_customer
         try:
             item_doc = frappe.get_all(item_doctype, filters={"name": part_no}, fields=["name"])
         except frappe.DoesNotExistError:
@@ -562,32 +563,45 @@ def process_supply_on(supply_on):
                 fields=["parent"]
             )
             if len(item_detail_doc) > 1:
-                # frappe.throw(f"More than one item found for customer {customer_no} and part {part_no}")
-                return
+                part_no_error_message = f"More than one item found for customer {customer_no} and part {part_no}"
+                continue
             else:
                 item_doc = frappe.get_doc(item_doctype, item_detail_doc[0].parent)
-        item = frappe.get_doc(item_doctype, item_doc[0].name) if item_doc else None
-        last_delivery_note = [{'max_custom_irsaliye_no': None, 'lr_date': None}]
-        if not item:
-            item = "Item %(part_no)s bulunamadı"
-        else:
+                part_no_error_message = None
+        if item_doc:
+            item = frappe.get_doc(item_doctype, item_doc[0].name)
             item = item.name
-            last_delivery_note = get_last_delivery_note(customer.name, item)
+            last_delivery_note = [{'max_custom_irsaliye_no': None, 'lr_date': None}]
+            last_delivery_note = get_last_delivery_note(customer, item)
+        else:
+            item = None
+            part_no_error_message = f"Item {part_no} bulunamadı"
+        try:
+            frappe.get_all("BOM", filters={"item": item, "is_default": 1}, fields=["name"])
+        except frappe.DoesNotExistError:
+            part_no_bom_error_message = "Varsayılan BOM bulunamadı"
+
         supply_on.append(
             supply_on_eval_table,
             {
                 "plant_no_customer": supply_on_balance.plant_no_customer,
+                "plant_no_error_message": plant_no_error_message,
                 "part_no_customer": supply_on_balance.part_no_customer,
+                "part_no_error_message": part_no_error_message,
+                "part_no_bom_error_message": part_no_bom_error_message,
                 "total_qty": supply_on_balance.total_qty,
                 "closed_qty": supply_on_balance.closed_qty,
                 "balance_qty": supply_on_balance.balance_qty,
-                "customer": customer.name,
+                "customer": customer,
                 "item": item,
-                "last_delivery_note": last_delivery_note[0].max_custom_irsaliye_no,
-                "last_delivery_date": last_delivery_note[0].lr_date
+                "last_delivery_note": supply_on_balance.delivery_note_no,
+                "last_delivery_date": supply_on_balance.delivery_note_date,
+                "kta_last_delivery_note": last_delivery_note[0].max_custom_irsaliye_no,
+                "kta_last_delivery_date": last_delivery_note[0].lr_date
             }
         )
         supply_on.save()
+
 
 def get_last_delivery_note(customer_name, item_name):
     return frappe.db.sql("""SELECT MAX(tdn.custom_irsaliye_no) AS max_custom_irsaliye_no,
@@ -679,6 +693,8 @@ def get_balances_from_supply_on(supply_on):
     return frappe.db.sql("""
                          SELECT plant_no_customer,
                                 part_no_customer,
+                                delivery_note_no,
+                                delivery_note_date,
                                 MAX(EFZ)                     AS `total_qty`,
                                 MAX(EFZ_customer)            AS `closed_qty`,
                                 MAX(EFZ) - MAX(EFZ_customer) AS `balance_qty`
@@ -686,8 +702,11 @@ def get_balances_from_supply_on(supply_on):
                          WHERE parent = %s
                            AND parenttype = %s
                          GROUP BY plant_no_customer,
-                                  part_no_customer
+                                  part_no_customer,
+                                  delivery_note_no,
+                                  delivery_note_date
                          """, (supply_on, supply_on_doctype), as_dict=True)
+
 
 @frappe.whitelist()
 def get_items_from_calisma_karti(source_name: str, target_doc=None):
@@ -702,13 +721,12 @@ def get_items_from_calisma_karti(source_name: str, target_doc=None):
 
     doc = frappe.get_doc("Calisma Karti", source_name)
 
-
     # Parent'tan varsayılan kaynak depo (alan adın farklıysa buraya ekleyebilirsin)
     parent_src_wh = (
-        getattr(doc, "source_warehouse", None)
-        or getattr(doc, "s_warehouse", None)
-        or getattr(doc, "warehouse", None)
-        or None
+            getattr(doc, "source_warehouse", None)
+            or getattr(doc, "s_warehouse", None)
+            or getattr(doc, "warehouse", None)
+            or None
     )
 
     items = []
@@ -719,7 +737,7 @@ def get_items_from_calisma_karti(source_name: str, target_doc=None):
 
         item_code = row.parca_no
         qty = row.miktar
-        uom = row.birim               # Link → UOM
+        uom = row.birim  # Link → UOM
         row_src_wh = getattr(row, "depo", None)  # Link → Warehouse
         s_wh = row_src_wh or parent_src_wh
 
@@ -761,7 +779,7 @@ def get_items_from_calisma_karti(source_name: str, target_doc=None):
             "stock_uom": stock_uom,
             "conversion_factor": conv,
             "qty": qty,
-            "s_warehouse": s_wh,   # Material Issue mantığı: kaynak depo
+            "s_warehouse": s_wh,  # Material Issue mantığı: kaynak depo
         })
 
     if not items:

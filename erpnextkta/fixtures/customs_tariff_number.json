@@ -1,0 +1,554 @@
+[
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.266953",
+  "name": "3917.32.00.80.00",
+  "tariff_number": "3917.32.00.80.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.301531",
+  "name": "3917.40.00.00.19",
+  "tariff_number": "3917.40.00.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.311380",
+  "name": "3917.39.00.80.00",
+  "tariff_number": "3917.39.00.80.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.319698",
+  "name": "3919.10.80.90.00",
+  "tariff_number": "3919.10.80.90.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.434159",
+  "name": "3919.90.80.90.00",
+  "tariff_number": "3919.90.80.90.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.444893",
+  "name": "3919.10.15.00.00",
+  "tariff_number": "3919.10.15.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.454827",
+  "name": "3926.90.97.90.18",
+  "tariff_number": "3926.90.97.90.18"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.465305",
+  "name": "4016.93.00.22.00",
+  "tariff_number": "4016.93.00.22.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.477194",
+  "name": "4009.11.00.00.00",
+  "tariff_number": "4009.11.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.508042",
+  "name": "4819.10.00.00.00",
+  "tariff_number": "4819.10.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.517975",
+  "name": "4415.20.20.00.00",
+  "tariff_number": "4415.20.20.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.527046",
+  "name": "4821.10.10.00.00",
+  "tariff_number": "4821.10.10.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.542818",
+  "name": "5609.00.00.00.00",
+  "tariff_number": "5609.00.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.551532",
+  "name": "6815.99.00.00.00",
+  "tariff_number": "6815.99.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.560265",
+  "name": "7318.15.35.00.11",
+  "tariff_number": "7318.15.35.00.11"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.569314",
+  "name": "7019.90.00.90.00",
+  "tariff_number": "7019.90.00.90.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.579093",
+  "name": "7318.15.58.00.00",
+  "tariff_number": "7318.15.58.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.587328",
+  "name": "7318.16.92.00.00",
+  "tariff_number": "7318.16.92.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.596743",
+  "name": "7318.22.00.00.00",
+  "tariff_number": "7318.22.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.608804",
+  "name": "7318.29.00.00.00",
+  "tariff_number": "7318.29.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.617585",
+  "name": "7318.21.00.00.00",
+  "tariff_number": "7318.21.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.627400",
+  "name": "7320.90.90.00.00",
+  "tariff_number": "7320.90.90.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.637242",
+  "name": "7320.20.81.00.00",
+  "tariff_number": "7320.20.81.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.646586",
+  "name": "7320.20.89.00.00",
+  "tariff_number": "7320.20.89.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.655897",
+  "name": "7326.90.98.00.19",
+  "tariff_number": "7326.90.98.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.769009",
+  "name": "7419.80.90.90.00",
+  "tariff_number": "7419.80.90.90.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.776915",
+  "name": "8302.49.00.00.00",
+  "tariff_number": "8302.49.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.788591",
+  "name": "8203.20.00.00.19",
+  "tariff_number": "8203.20.00.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.800677",
+  "name": "8205.59.80.00.19",
+  "tariff_number": "8205.59.80.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.808419",
+  "name": "8419.90.85.90.12",
+  "tariff_number": "8419.90.85.90.12"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.827004",
+  "name": "8416.90.00.00.19",
+  "tariff_number": "8416.90.00.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.843130",
+  "name": "8421.29.20.00.00",
+  "tariff_number": "8421.29.20.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.852507",
+  "name": "8443.32.80.00.00",
+  "tariff_number": "8443.32.80.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.862616",
+  "name": "8466.10.20.00.00",
+  "tariff_number": "8466.10.20.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.872742",
+  "name": "8466.94.00.90.00",
+  "tariff_number": "8466.94.00.90.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.880918",
+  "name": "8481.40.90.00.00",
+  "tariff_number": "8481.40.90.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.890574",
+  "name": "8479.90.70.90.19",
+  "tariff_number": "8479.90.70.90.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.899875",
+  "name": "8481.90.00.00.19",
+  "tariff_number": "8481.90.00.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.909580",
+  "name": "8505.19.10.00.00",
+  "tariff_number": "8505.19.10.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.919325",
+  "name": "8504.90.11.00.00",
+  "tariff_number": "8504.90.11.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.929008",
+  "name": "8532.25.00.00.31",
+  "tariff_number": "8532.25.00.00.31"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:29.938497",
+  "name": "8532.24.00.00.00",
+  "tariff_number": "8532.24.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.394845",
+  "name": "8533.21.00.00.19",
+  "tariff_number": "8533.21.00.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.404969",
+  "name": "8532.29.00.00.19",
+  "tariff_number": "8532.29.00.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.414859",
+  "name": "8535.90.00.00.19",
+  "tariff_number": "8535.90.00.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.425089",
+  "name": "8536.10.10.00.11",
+  "tariff_number": "8536.10.10.00.11"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.436259",
+  "name": "8536.10.50.00.19",
+  "tariff_number": "8536.10.50.00.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.446029",
+  "name": "8536.10.90.00.11",
+  "tariff_number": "8536.10.90.00.11"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.552030",
+  "name": "8536.41.90.00.00",
+  "tariff_number": "8536.41.90.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.562594",
+  "name": "8536.49.00.00.11",
+  "tariff_number": "8536.49.00.00.11"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.572152",
+  "name": "8536.49.00.00.29",
+  "tariff_number": "8536.49.00.00.29"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.585076",
+  "name": "8536.50.19.00.00",
+  "tariff_number": "8536.50.19.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.594368",
+  "name": "8536.50.80.00.18",
+  "tariff_number": "8536.50.80.00.18"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.601982",
+  "name": "8536.69.30.00.00",
+  "tariff_number": "8536.69.30.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.608921",
+  "name": "8536.69.90.00.18",
+  "tariff_number": "8536.69.90.00.18"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.616723",
+  "name": "8536.69.90.00.13",
+  "tariff_number": "8536.69.90.00.13"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.627599",
+  "name": "8536.90.10.00.00",
+  "tariff_number": "8536.90.10.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.637629",
+  "name": "8536.70.00.50.00",
+  "tariff_number": "8536.70.00.50.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.646428",
+  "name": "8536.90.95.00.00",
+  "tariff_number": "8536.90.95.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.655602",
+  "name": "8538.90.99.00.00",
+  "tariff_number": "8538.90.99.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.666327",
+  "name": "8544.20.00.90.19",
+  "tariff_number": "8544.20.00.90.19"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.676352",
+  "name": "8544.42.90.00.00",
+  "tariff_number": "8544.42.90.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.685658",
+  "name": "8544.49.91.00.00",
+  "tariff_number": "8544.49.91.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.695618",
+  "name": "8544.49.93.19.11",
+  "tariff_number": "8544.49.93.19.11"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.705303",
+  "name": "8547.20.00.00.00",
+  "tariff_number": "8547.20.00.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.714291",
+  "name": "8544.49.95.00.00",
+  "tariff_number": "8544.49.95.00.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.724505",
+  "name": "9032.90.00.10.00",
+  "tariff_number": "9032.90.00.10.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.733449",
+  "name": "8548.00.90.90.00",
+  "tariff_number": "8548.00.90.90.00"
+ },
+ {
+  "description": null,
+  "docstatus": 0,
+  "doctype": "Customs Tariff Number",
+  "modified": "2025-08-19 11:16:30.741697",
+  "name": "8547.90.00.90.19",
+  "tariff_number": "8547.90.00.90.19"
+ }
+]
