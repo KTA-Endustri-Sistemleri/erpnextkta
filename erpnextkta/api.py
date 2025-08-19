@@ -572,9 +572,9 @@ def process_supply_on(supply_on):
 
         # Get last delivery note if item exists
         last_delivery = [{'max_custom_irsaliye_no': None, 'lr_date': None}]
-        if item:
+        if item and customer:
             last_delivery = get_last_delivery_note(customer, item)
-
+        if item:
             # Check for BOM
             if not frappe.get_all("BOM", filters={"item": item, "is_default": 1}, limit=1):
                 errors["bom"] = "Varsayılan BOM bulunamadı"
@@ -608,25 +608,22 @@ def get_last_delivery_note(customer_name, item_name):
     return frappe.db.sql("""SELECT MAX(tdn.custom_irsaliye_no) AS max_custom_irsaliye_no,
                                    tdn.lr_date
                             FROM `tabDelivery Note` tdn
-                                     LEFT JOIN `tabDelivery Note Item` tdni ON
-                                tdn.name = tdni.parent
-                                    AND tdni.parenttype = 'Delivery Note'
-                                    AND tdni.parentfield = 'items'
-                                    AND tdni.item_code = %s
+                                     INNER JOIN `tabDelivery Note Item` tdni
+                                                ON tdn.name = tdni.parent
+                                                    AND tdni.item_code = %s
+                                     INNER JOIN (SELECT MAX(dn.lr_date) as max_date
+                                                 FROM `tabDelivery Note` dn
+                                                          INNER JOIN `tabDelivery Note Item` dni
+                                                                     ON dn.name = dni.parent
+                                                                         AND dni.item_code = %s
+                                                 WHERE dn.customer = %s
+                                                   AND dn.docstatus = 1
+                                                   AND dn.is_return = 0) latest ON tdn.lr_date = latest.max_date
                             WHERE tdn.customer = %s
                               AND tdn.is_return = 0
                               AND tdn.docstatus = 1
-                              AND tdn.lr_date = (SELECT MAX(dn.lr_date)
-                                                 FROM `tabDelivery Note` dn
-                                                          LEFT JOIN `tabDelivery Note Item` dni ON
-                                                     dn.name = dni.parent
-                                                         AND dni.parenttype = 'Delivery Note'
-                                                         AND dni.parentfield = 'items'
-                                                         AND dni.item_code = %s
-                                                 WHERE dn.customer = %s
-                                                   AND dn.docstatus = 1
-                                                   AND dn.is_return = 0)
-                         """, (item_name, customer_name, item_name, customer_name), as_dict=True)
+                            GROUP BY tdn.lr_date;
+                         """, (item_name, item_name, customer_name, customer_name), as_dict=True)
 
 
 def get_data(conditions, filters):
