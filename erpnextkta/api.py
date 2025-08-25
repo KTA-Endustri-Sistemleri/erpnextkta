@@ -567,10 +567,10 @@ def process_supply_on(supply_on):
         # Process customer
         customer = None
         if balance.plant_no_customer:
-            # First find the address using custom_eski_kod field
+            # find the address
             address = frappe.get_value(DOCTYPE_ADDRESS, {"custom_eski_kod": balance.plant_no_customer}, "name")
             if address:
-                # Then find the customer through the links child table
+                # Find the customer through the child table
                 address_doc = frappe.get_doc(DOCTYPE_ADDRESS, address)
                 customer = None
                 links = address_doc.get("links") or []
@@ -683,7 +683,7 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
     against DOCTYPE_KTA_SUPPLY_ON_HEAD and query relevant sales orders
     """
     try:
-        # Get the supply on head document
+        # Get the supply on head
         supply_on_doc = frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on_head_name)
         
         if not supply_on_doc.get(VALUE_TABLE_EVALUATION):
@@ -709,7 +709,6 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
             if not customer or not item:
                 continue
             
-            # Find matching supply on records with same customer and item from child table
             matching_supply_ons = frappe.db.sql("""
                 SELECT 
                     parent as supply_on_head,
@@ -743,7 +742,7 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
                 AND soi.item_code = %s
                 AND so.docstatus = 1
                 AND so.status NOT IN ('Closed', 'Cancelled')
-                ORDER BY so.delivery_date ASC
+                ORDER BY so.delivery_date
             """, (customer, item), as_dict=True)
 
             # Calculate total pending quantity from sales orders (qty - delivered_qty)
@@ -794,9 +793,10 @@ def get_items_from_calisma_karti(source_name: str, target_doc=None):
         if row.doctype != DOCTYPE_CALISMA_KARTI_HURDA:
             continue
 
-        item_code = row.parca_no
-        qty = row.miktar
-        uom = row.birim
+        # Field names may vary across deployments; use safe access with fallbacks
+        item_code = getattr(row, "parca_no", None) or getattr(row, FIELD_ITEM_CODE, None)
+        qty = getattr(row, "miktar", None) or getattr(row, FIELD_QTY, None)
+        uom = getattr(row, "birim", None) or getattr(row, FIELD_UOM, None)
         row_src_wh = getattr(row, FIELD_DEPO, None)
         s_wh = row_src_wh or parent_src_wh
 
@@ -826,8 +826,9 @@ def get_items_from_calisma_karti(source_name: str, target_doc=None):
         desc_bits = []
         if item.description:
             desc_bits.append(item.description)
-        if getattr(row, FIELD_HURDA_NEDENI, None):
-            desc_bits.append(f"Hurda Nedeni: {row.hurda_nedeni}")
+        hurda_nedeni_val = getattr(row, FIELD_HURDA_NEDENI, None)
+        if hurda_nedeni_val:
+            desc_bits.append(f"Hurda Nedeni: {hurda_nedeni_val}")
         description = " | ".join(desc_bits) if desc_bits else item.item_name
 
         items.append({
