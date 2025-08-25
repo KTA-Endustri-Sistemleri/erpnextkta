@@ -711,63 +711,19 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
             
             matching_supply_ons = frappe.db.sql("""
                 SELECT 
-                    parent as supply_on_head,
-                    plant_no_customer,
-                    part_no_customer,
-                    EFZ as total_qty,
-                    EFZ_customer as closed_qty,
-                    EFZ - EFZ_customer as balance_qty
+                    delivery_date,
+                    delivery_quantity,
+                    quantity,
+                    efz,
+                    efz_customer
                 FROM `tabKTA Supply On`
                 WHERE plant_no_customer = %s 
                 AND part_no_customer = %s
                 AND parenttype = %s
-                AND parent != %s
+                AND parent = %s
             """, (eval_row.plant_no_customer, eval_row.part_no_customer, DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on_head_name), as_dict=True)
 
-            # Query relevant sales orders for this customer and item
-            sales_orders = frappe.db.sql("""
-                SELECT 
-                    so.name as sales_order,
-                    so.transaction_date,
-                    so.delivery_date,
-                    so.status,
-                    soi.item_code,
-                    soi.qty,
-                    soi.delivered_qty,
-                    soi.rate,
-                    soi.amount
-                FROM `tabSales Order` so
-                INNER JOIN `tabSales Order Item` soi ON so.name = soi.parent
-                WHERE so.customer = %s 
-                AND soi.item_code = %s
-                AND so.docstatus = 1
-                AND so.status NOT IN ('Closed', 'Cancelled')
-                ORDER BY so.delivery_date
-            """, (customer, item), as_dict=True)
-
-            # Calculate total pending quantity from sales orders (qty - delivered_qty)
-            total_pending_qty = sum(float(order.qty or 0) - float(order.delivered_qty or 0) for order in sales_orders)
-
-            result = {
-                "evaluation_row": {
-                    "plant_no_customer": eval_row.plant_no_customer,
-                    "part_no_customer": eval_row.part_no_customer,
-                    "balance_qty": balance_qty,
-                    "customer": customer,
-                    "item": item
-                },
-                "matching_supply_ons": matching_supply_ons,
-                "sales_orders": sales_orders,
-                "total_pending_qty": total_pending_qty,
-                "analysis": {
-                    "can_fulfill": total_pending_qty <= balance_qty,
-                    "shortage": max(0, total_pending_qty - balance_qty),
-                    "excess": max(0, balance_qty - total_pending_qty)
-                }
-            }
-
-            results.append(result)
-
+            
         return results
 
     except Exception as e:
