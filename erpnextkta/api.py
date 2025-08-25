@@ -559,7 +559,7 @@ def process_supply_on(supply_on):
 
     if not supply_on_balances:
         frappe.throw(f"No supply on balances found for supply on: {supply_on}")
-        return
+        return None
 
     for balance in supply_on_balances:
         errors = {"plant_no": None, "part_no": None, "bom": None}
@@ -573,10 +573,11 @@ def process_supply_on(supply_on):
                 # Then find the customer through the links child table
                 address_doc = frappe.get_doc(DOCTYPE_ADDRESS, address)
                 customer = None
-                for link in address_doc.links:
-                    if link.link_doctype == DOCTYPE_CUSTOMER:
-                        customer = link.link_name
-                        break
+                links = address_doc.get("links") or []
+                for link in links:
+                     if link.link_doctype == DOCTYPE_CUSTOMER:
+                         customer = link.link_name
+                         break
                 
                 if not customer:
                     errors["plant_no"] = f"Address {address} için Customer linki bulunamadı"
@@ -687,7 +688,7 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
         
         if not supply_on_doc.get(VALUE_TABLE_EVALUATION):
             frappe.throw("No evaluation data found in the supply on head document")
-            return
+            return []
         
         results = []
         
@@ -723,7 +724,7 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
                 AND parenttype = %s
                 AND parent != %s
             """, (eval_row.plant_no_customer, eval_row.part_no_customer, DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on_head_name), as_dict=True)
-            
+
             # Query relevant sales orders for this customer and item
             sales_orders = frappe.db.sql("""
                 SELECT 
@@ -744,10 +745,10 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
                 AND so.status NOT IN ('Closed', 'Cancelled')
                 ORDER BY so.delivery_date ASC
             """, (customer, item), as_dict=True)
-            
+
             # Calculate total pending quantity from sales orders (qty - delivered_qty)
             total_pending_qty = sum(float(order.qty or 0) - float(order.delivered_qty or 0) for order in sales_orders)
-            
+
             result = {
                 "evaluation_row": {
                     "plant_no_customer": eval_row.plant_no_customer,
@@ -765,11 +766,11 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
                     "excess": max(0, balance_qty - total_pending_qty)
                 }
             }
-            
+
             results.append(result)
-        
+
         return results
-        
+
     except Exception as e:
         frappe.log_error(f"Error in evaluate_supply_on_sales_orders: {str(e)}")
         frappe.throw(f"Error evaluating supply on sales orders: {str(e)}")
