@@ -88,6 +88,7 @@ FIELD_HURDA_NEDENI = "hurda_nedeni"
 # Global value constants
 VALUE_MANUFACTURE = "Manufacture"
 VALUE_CUSTOMER_ITEMS = "customer_items"
+STOCK_ENTRY_DETAIL_PARENTFIELD = "items"
 VALUE_ENTRIES = "entries"
 VALUE_TABLE_EVALUATION = "table_evaluation"
 
@@ -260,7 +261,7 @@ def print_kta_wo_label(work_order_details, stock_entry):
         filters={
             FIELD_PARENT: stock_entry,
             FIELD_PARENTTYPE: DOCTYPE_STOCK_ENTRY,
-            FIELD_PARENTFIELD: VALUE_ENTRIES,
+            FIELD_PARENTFIELD: STOCK_ENTRY_DETAIL_PARENTFIELD,
             FIELD_ITEM_CODE: work_order_details.get(FIELD_PRODUCTION_ITEM),
             FIELD_IS_FINISHED_ITEM: 1,
             FIELD_DOCSTATUS: 1,
@@ -311,13 +312,13 @@ def print_kta_wo_label(work_order_details, stock_entry):
         for pack in range(1, num_packs + 1):
             data.qty = format_kta_label_qty(musteri_paketleme_miktari)
             data.sut_no = f"{batch_no}{pack:04d}"
-            formatted_data = zebra_formatter(DOCTYPE_KTA_DEPO_ETIKETLERI, data)
+            formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
             send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
     if remainder_qty > 0:
         data.qty = format_kta_label_qty(remainder_qty)
         data.sut_no = f"{batch_no}{num_packs + 1:04d}"
-        formatted_data = zebra_formatter(DOCTYPE_KTA_DEPO_ETIKETLERI, data)
+        formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
         send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
     data.delete()
