@@ -89,9 +89,11 @@ FIELD_HURDA_NEDENI = "hurda_nedeni"
 # Global value constants
 VALUE_MANUFACTURE = "Manufacture"
 VALUE_CUSTOMER_ITEMS = "customer_items"
-STOCK_ENTRY_DETAIL_PARENTFIELD = "items"
 VALUE_ENTRIES = "entries"
 VALUE_TABLE_EVALUATION = "table_evaluation"
+
+# Global parent field constants
+PARENT_FIELD_STOCK_ENTRY_DETAIL = "items"
 
 
 @frappe.whitelist()
@@ -262,7 +264,7 @@ def print_kta_wo_label(work_order_details, stock_entry):
         filters={
             FIELD_PARENT: stock_entry,
             FIELD_PARENTTYPE: DOCTYPE_STOCK_ENTRY,
-            FIELD_PARENTFIELD: STOCK_ENTRY_DETAIL_PARENTFIELD,
+            FIELD_PARENTFIELD: PARENT_FIELD_STOCK_ENTRY_DETAIL,
             FIELD_ITEM_CODE: work_order_details.get(FIELD_PRODUCTION_ITEM),
             FIELD_IS_FINISHED_ITEM: 1,
             FIELD_DOCSTATUS: 1,
