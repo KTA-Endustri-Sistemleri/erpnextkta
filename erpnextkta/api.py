@@ -5,6 +5,7 @@ from babel.numbers import format_decimal
 # Global doctype constants
 DOCTYPE_PARTY_ACCOUNT = "Party Account"
 DOCTYPE_CUSTOMER = "Customer"
+DOCTYPE_ADDRESS = "Address"
 DOCTYPE_KTA_DEPO_ETIKETLERI = "KTA Depo Etiketleri"
 DOCTYPE_KTA_DEPO_ETIKETLERI_BOLME = "KTA Depo Etiketleri Bolme"
 DOCTYPE_STOCK_ENTRY = "Stock Entry"
@@ -564,11 +565,22 @@ def process_supply_on(supply_on):
         # Process customer
         customer = None
         if balance.plant_no_customer:
-            customer = frappe.get_value(DOCTYPE_CUSTOMER, {"custom_eski_kod": balance.plant_no_customer}, FIELD_NAME)
-            if not customer:
-                errors["plant_no"] = f"{balance.plant_no_customer} ile Müşteri Bulunamadı"
-            elif isinstance(customer, list):
-                errors["plant_no"] = f"Multiple customers found for ID {balance.plant_no_customer}"
+            # First find the address using custom_eski_kod field
+            address = frappe.get_value(DOCTYPE_ADDRESS, {"custom_eski_kod": balance.plant_no_customer}, "name")
+            if address:
+                # Then find the customer through the links child table
+                address_doc = frappe.get_doc(DOCTYPE_ADDRESS, address)
+                customer = None
+                for link in address_doc.links:
+                    if link.link_doctype == DOCTYPE_CUSTOMER:
+                        customer = link.link_name
+                        break
+                
+                if not customer:
+                    errors["plant_no"] = f"Address {address} için Customer linki bulunamadı"
+            else:
+                # No address found with custom_eski_kod
+                errors["plant_no"] = f"{balance.plant_no_customer} ile Address bulunamadı"
                 customer = None
 
         # Process item
