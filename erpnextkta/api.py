@@ -631,7 +631,7 @@ def process_supply_on(supply_on):
         )
 
     supply_on_doc.save()
-    return True
+    evaluate_supply_on_sales_orders(supply_on_doc.name)
 
 
 def get_last_delivery_note(customer_name, item_name):
@@ -673,6 +673,106 @@ def get_balances_from_supply_on(supply_on):
                                   delivery_note_no,
                                   delivery_note_date
                          """, (supply_on, DOCTYPE_KTA_SUPPLY_ON_HEAD), as_dict=True)
+
+
+@frappe.whitelist()
+def evaluate_supply_on_sales_orders(supply_on_head_name):
+    """
+    Evaluate each row of VALUE_TABLE_EVALUATION where balance_qty is not zero
+    against DOCTYPE_KTA_SUPPLY_ON_HEAD and query relevant sales orders
+    """
+    try:
+        # Get the supply on head document
+        supply_on_doc = frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on_head_name)
+        
+        if not supply_on_doc.get(VALUE_TABLE_EVALUATION):
+            frappe.throw("No evaluation data found in the supply on head document")
+            return
+        
+        results = []
+        
+        # Process each evaluation row where balance_qty is not zero
+        for eval_row in supply_on_doc.get(VALUE_TABLE_EVALUATION):
+            # Convert balance_qty to float for proper comparison
+            try:
+                balance_qty = float(eval_row.balance_qty or 0)
+            except (ValueError, TypeError):
+                balance_qty = 0
+                
+            if balance_qty <= 0:
+                continue
+                
+            customer = eval_row.customer
+            item = eval_row.item
+            
+            if not customer or not item:
+                continue
+            
+            # Find matching supply on records with same customer and item from child table
+            matching_supply_ons = frappe.db.sql("""
+                SELECT 
+                    parent as supply_on_head,
+                    plant_no_customer,
+                    part_no_customer,
+                    EFZ as total_qty,
+                    EFZ_customer as closed_qty,
+                    EFZ - EFZ_customer as balance_qty
+                FROM `tabKTA Supply On`
+                WHERE plant_no_customer = %s 
+                AND part_no_customer = %s
+                AND parenttype = %s
+                AND parent != %s
+            """, (eval_row.plant_no_customer, eval_row.part_no_customer, DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on_head_name), as_dict=True)
+            
+            # Query relevant sales orders for this customer and item
+            sales_orders = frappe.db.sql("""
+                SELECT 
+                    so.name as sales_order,
+                    so.transaction_date,
+                    so.delivery_date,
+                    so.status,
+                    soi.item_code,
+                    soi.qty,
+                    soi.delivered_qty,
+                    soi.rate,
+                    soi.amount
+                FROM `tabSales Order` so
+                INNER JOIN `tabSales Order Item` soi ON so.name = soi.parent
+                WHERE so.customer = %s 
+                AND soi.item_code = %s
+                AND so.docstatus = 1
+                AND so.status NOT IN ('Closed', 'Cancelled')
+                ORDER BY so.delivery_date ASC
+            """, (customer, item), as_dict=True)
+            
+            # Calculate total pending quantity from sales orders (qty - delivered_qty)
+            total_pending_qty = sum(float(order.qty or 0) - float(order.delivered_qty or 0) for order in sales_orders)
+            
+            result = {
+                "evaluation_row": {
+                    "plant_no_customer": eval_row.plant_no_customer,
+                    "part_no_customer": eval_row.part_no_customer,
+                    "balance_qty": balance_qty,
+                    "customer": customer,
+                    "item": item
+                },
+                "matching_supply_ons": matching_supply_ons,
+                "sales_orders": sales_orders,
+                "total_pending_qty": total_pending_qty,
+                "analysis": {
+                    "can_fulfill": total_pending_qty <= balance_qty,
+                    "shortage": max(0, total_pending_qty - balance_qty),
+                    "excess": max(0, balance_qty - total_pending_qty)
+                }
+            }
+            
+            results.append(result)
+        
+        return results
+        
+    except Exception as e:
+        frappe.log_error(f"Error in evaluate_supply_on_sales_orders: {str(e)}")
+        frappe.throw(f"Error evaluating supply on sales orders: {str(e)}")
 
 
 @frappe.whitelist()
