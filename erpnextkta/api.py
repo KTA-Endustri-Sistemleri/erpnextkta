@@ -723,7 +723,26 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
                 AND parent = %s
             """, (eval_row.plant_no_customer, eval_row.part_no_customer, DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on_head_name), as_dict=True)
 
-            
+            for supply_on in matching_supply_ons:
+                sales_orders = frappe.db.sql("""
+                                             SELECT soi.name,
+                                                    soi.delivery_date,
+                                                    soi.qty,
+                                                    soi.delivered_qty,
+                                                    soi.pending_qty,
+                                                    so.name as sales_order,
+                                                    so.transaction_date
+                                             FROM `tabSales Order Item` soi
+                                                      INNER JOIN `tabSales Order` so on so.name = soi.parent
+                                             WHERE soi.item_code = %s
+                                               AND so.customer = %s
+                                               AND so.docstatus = 1
+                                               AND so.status not in ('Closed', 'Cancelled')
+                                               AND soi.pending_qty > 0
+                                             ORDER BY soi.delivery_date
+                                             """, (item, customer), as_dict=True)
+
+
         return results
 
     except Exception as e:
