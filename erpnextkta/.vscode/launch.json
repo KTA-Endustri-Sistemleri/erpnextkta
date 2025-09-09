@@ -1,0 +1,19 @@
+{
+    "window.commandCenter": true,
+    "git.autofetch": true,
+    "python.defaultInterpreterPath": "/home/ublts/frappe-bench-dev/env/bin/python3.12",
+    "launch": {
+        "configurations": [
+            {
+                "name": "Frappe",
+                "type": "debugpy",
+                "request": "launch",
+                "stopOnEntry": false,
+                "python": "/home/ublts/frappe-bench-dev/env/bin/python3.12",
+                "args": ["PYTHONUNBUFFERED=1", "DEVSERVER=1"],
+                "program": "/home/ublts/frappe-bench-dev/apps/frappe/debug.py",
+                "cwd": "/home/ublts/frappe-bench-dev/sites"
+            }
+        ]
+    }
+}

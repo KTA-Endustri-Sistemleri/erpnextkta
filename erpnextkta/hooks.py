@@ -133,7 +133,8 @@ app_include_js = ["assets/erpnextkta/js/stock_entry_get_items_from_calisma_karti
 override_doctype_class = {
     "Purchase Receipt": "erpnextkta.overrides.KTAPurchaseReceipt.KTAPurchaseReceipt",
     "Quality Inspection": "erpnextkta.overrides.KTAQualityInspection.KTAQualityInspection",
-    "BOM": "erpnextkta.overrides.KTAbom.KTAbom"
+    "BOM": "erpnextkta.overrides.KTAbom.KTAbom",
+    "Purchase Order": "erpnextkta.overrides.KTAPurchaseOrder.KTAPurchaseOrder"
 }
 doc_events = {
     "Kalite Kontrol": {
