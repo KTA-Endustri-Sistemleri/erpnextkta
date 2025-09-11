@@ -49,6 +49,7 @@
    "fieldname": "operator",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Operat\u00f6r",
    "options": "Employee",
    "reqd": 1
@@ -152,6 +153,7 @@
    "fieldname": "durum",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Durum",
    "options": "Haz\u0131r\n\u00c7al\u0131\u015f\u0131yor\nDuru\u015fta\nBitmi\u015f",
    "read_only": 1
@@ -160,7 +162,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-08 10:49:00.337315",
+ "modified": "2025-09-10 15:28:57.575652",
  "modified_by": "Administrator",
  "module": "erpnextkta",
  "name": "Calisma Karti",

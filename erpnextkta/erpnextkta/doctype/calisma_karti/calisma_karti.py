@@ -1,3 +1,4 @@
+import re
 import frappe
 from frappe.model.document import Document
 from frappe.utils import now_datetime, get_datetime
@@ -11,26 +12,47 @@ STATU_HARITASI = {
 
 class CalismaKarti(Document):
     def autoname(self):
-        operator = (self.operator or '').replace('_', ' ').title().replace(' ', '_')
-        is_karti_full = (self.is_karti or '').replace(' ', '')
-        is_karti = is_karti_full.split('-')[-1] if '-' in is_karti_full else is_karti_full
-        operasyon = (self.operasyon or '').replace(' ', '')
-        prefix = f"{operator}_{is_karti}_{operasyon}"
+        """Yeni format: <WO_last5>-<operasyon>-<01..>
+        - WO son 5 hane: custom_work_order varsa onu, yoksa is_karti -> work_order
+        - Operasyon: boşluk ve '-' temizlenir
+        - Sıra: mevcut en büyük sayının +1 (iki haneli, zfill(2))
+        """
+        # 1) İş Emri (Work Order) değerini bul
+        wo_name = (self.get("custom_work_order") or "").strip()
+        if not wo_name and (self.get("is_karti") or "").strip():
+            wo_name = frappe.db.get_value("Job Card", self.is_karti, "work_order") or ""
 
-        existing = frappe.db.sql(f"""
-            SELECT name FROM `tabCalisma Karti`
-            WHERE name LIKE %s
-            ORDER BY name DESC
-            LIMIT 1
-        """, (f"{prefix}_%",), as_dict=1)
-
-        if existing:
-            last_number = int(existing[0]["name"].split("_")[-1])
-            new_number = last_number + 1
+        # 2) Son 5 hane (öncelik: sadece rakamlar; yoksa ismin son 5 karakteri)
+        digits = re.sub(r"\D", "", wo_name or "")
+        if digits:
+            wo_tail = digits[-5:]
         else:
-            new_number = 1
+            wo_tail = (wo_name or "WO")[-5:] or "WO"
 
-        self.name = f"{prefix}_{str(new_number).zfill(2)}"
+        # 3) Operasyon temizliği (boşluk ve tireleri kaldır)
+        op_raw = self.get("operasyon") or ""
+        op_clean = re.sub(r"[\s\-]+", "", op_raw).strip() or "OP"
+
+        # 4) Prefix: <WO5>-<OP>
+        prefix = f"{wo_tail}-{op_clean}"
+
+        # 5) Mevcut en büyük sayıyı bul (sayı olarak)
+        existing = frappe.db.sql(
+            """
+            SELECT CAST(SUBSTRING_INDEX(name, '-', -1) AS UNSIGNED) AS idx
+            FROM `tabCalisma Karti`
+            WHERE name LIKE %s
+            ORDER BY idx DESC
+            LIMIT 1
+            """,
+            (f"{prefix}-%",),
+            as_dict=1,
+        )
+        last_number = (existing[0]["idx"] if existing and existing[0]["idx"] else 0)
+        new_number = int(last_number) + 1
+
+        # 6) İsim ata: <WO5>-<OP>-<NN>
+        self.name = f"{prefix}-{str(new_number).zfill(2)}"
 
     def validate(self):
         self.hesapla_durus_suresi()
@@ -87,8 +109,6 @@ def format_sure(seconds):
     minutes = int(seconds // 60)
     seconds = int(seconds % 60)
     return f"{minutes}:{seconds:02d}"
-
-
 
 @frappe.whitelist()
 def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None):
