@@ -12,46 +12,59 @@ STATU_HARITASI = {
 
 class CalismaKarti(Document):
     def autoname(self):
-        """Yeni format: <WO_last5>-<operasyon>-<01..>
-        - WO son 5 hane: custom_work_order varsa onu, yoksa is_karti -> work_order
-        - Operasyon: boşluk ve '-' temizlenir
-        - Sıra: mevcut en büyük sayının +1 (iki haneli, zfill(2))
-        """
-        # 1) İş Emri (Work Order) değerini bul
+        import re
+
+
+        def esc_like(s: str) -> str:
+            # MySQL LIKE için \, %, _ kaçışları
+            return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
         wo_name = (self.get("custom_work_order") or "").strip()
         if not wo_name and (self.get("is_karti") or "").strip():
             wo_name = frappe.db.get_value("Job Card", self.is_karti, "work_order") or ""
 
-        # 2) Son 5 hane (öncelik: sadece rakamlar; yoksa ismin son 5 karakteri)
+
         digits = re.sub(r"\D", "", wo_name or "")
         if digits:
             wo_tail = digits[-5:]
         else:
             wo_tail = (wo_name or "WO")[-5:] or "WO"
 
-        # 3) Operasyon temizliği (boşluk ve tireleri kaldır)
+
         op_raw = self.get("operasyon") or ""
         op_clean = re.sub(r"[\s\-]+", "", op_raw).strip() or "OP"
 
-        # 4) Prefix: <WO5>-<OP>
-        prefix = f"{wo_tail}-{op_clean}"
+        op_full_raw = (
+            (self.get("operatorismi_soyismi") or "")
+            or (self.get("operator_ismi_soyismi") or "")
+        ).strip()
+        if op_full_raw:
+            op_full = re.sub(r"[\s_–—−]+", "-", op_full_raw)
+            op_full = re.sub(r"-+", "-", op_full)
+            op_full = re.sub(r"[^0-9A-Za-z\-ÇĞİÖŞÜçğıöşü]", "", op_full)
+            op_full = op_full.strip("-") or "OPR"
+        else:
+            op_full = "OPR"
 
-        # 5) Mevcut en büyük sayıyı bul (sayı olarak)
+        prefix_core = f"{wo_tail}-{op_clean}"
+        prefix = f"{op_full}-{prefix_core}"
+
+        like_prefix = f"{esc_like(prefix)}-%"
         existing = frappe.db.sql(
             """
             SELECT CAST(SUBSTRING_INDEX(name, '-', -1) AS UNSIGNED) AS idx
             FROM `tabCalisma Karti`
-            WHERE name LIKE %s
+            WHERE name LIKE %s ESCAPE '\\'
             ORDER BY idx DESC
             LIMIT 1
             """,
-            (f"{prefix}-%",),
+            (like_prefix,),
             as_dict=1,
         )
         last_number = (existing[0]["idx"] if existing and existing[0]["idx"] else 0)
         new_number = int(last_number) + 1
 
-        # 6) İsim ata: <WO5>-<OP>-<NN>
         self.name = f"{prefix}-{str(new_number).zfill(2)}"
 
     def validate(self):

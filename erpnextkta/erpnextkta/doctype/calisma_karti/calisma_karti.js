@@ -16,8 +16,7 @@ frappe.ui.form.on('Calisma Karti', {
       const wo = frm.doc.custom_work_order || '';
       return {
         filters: {
-          work_order: wo,
-          status: ['in', ['Open', 'Work In Progress']]
+          work_order: wo
         }
       };
     });
@@ -112,13 +111,13 @@ function addBaslatButton(frm, isDurusDevami = false, customText = null) {
   const buttonText = customText || (isDurusDevami ? __('Devam Et') : __('Başlat'));
   const confirmText = isDurusDevami
     ? 'Duruş sonlandırılıp işleme devam edilecek.'
-    : 'İşlem başlatılacak ve süre tutulmaya başlanacak.';
+    : 'İşlem başlatılacak.';
 
   frm.add_custom_button(buttonText, () => {
     frappe.confirm(confirmText, () => {
       callIslemYap(frm, "Baslat", null, null, () => {
         if (!isDurusDevami) {
-          frappe.msgprint({ title: __("İşlem Başarılı"), message: 'İşlem başlatıldı, süre tutulmaya başlandı.', indicator: "green" });
+          frappe.msgprint({ title: __("İşlem Başarılı"), message: 'İşlem başlatıldı.', indicator: "green" });
         }
       });
     });
@@ -145,11 +144,11 @@ function addDurusButton(frm) {
 
 function addBitisButton(frm) {
   frm.add_custom_button(__('Bitir'), () => {
-    frappe.confirm(__('İşlem bitirilecek ve süre hesaplamaları yapılacak. Devam etmek istediğinizden emin misiniz?'), () => {
+    frappe.confirm(__('İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?'), () => {
       callIslemYap(frm, "Bitis", null, null, () => {
         frappe.msgprint({
           title: __("İşlem Tamamlandı"),
-          message: __("İşlem başarıyla bitirildi. Raporlar hazır."),
+          message: __("İşlem başarıyla bitirildi."),
           indicator: "blue"
         });
       });
