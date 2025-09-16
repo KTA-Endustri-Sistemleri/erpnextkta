@@ -2,6 +2,8 @@ import re
 import frappe
 from frappe.model.document import Document
 from frappe.utils import now_datetime, get_datetime
+from frappe.model.naming import make_autoname
+
 
 STATU_HARITASI = {
     "hazir": "Hazır",
@@ -12,32 +14,29 @@ STATU_HARITASI = {
 
 class CalismaKarti(Document):
     def autoname(self):
-        import re
-
-
-        def esc_like(s: str) -> str:
-            # MySQL LIKE için \, %, _ kaçışları
-            return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-
-
+        """
+        İsim formatı: <OPR>-<WO_last5>-<Operasyon>-<01..>
+        (Sayı üretimi Frappe tabSeries ile yapılır; SQL yok)
+        """
+        # 1) İş Emri (Work Order)
         wo_name = (self.get("custom_work_order") or "").strip()
         if not wo_name and (self.get("is_karti") or "").strip():
             wo_name = frappe.db.get_value("Job Card", self.is_karti, "work_order") or ""
 
-
+        # 2) WO son 5 hane (öncelik: rakamlar)
         digits = re.sub(r"\D", "", wo_name or "")
         if digits:
             wo_tail = digits[-5:]
         else:
             wo_tail = (wo_name or "WO")[-5:] or "WO"
 
-
+        # 3) Operasyon: boşluk ve '-' temizle
         op_raw = self.get("operasyon") or ""
         op_clean = re.sub(r"[\s\-]+", "", op_raw).strip() or "OP"
 
+        # 4) Operatör isim/soyisim (varsa), yoksa "OPR"
         op_full_raw = (
-            (self.get("operatorismi_soyismi") or "")
-            or (self.get("operator_ismi_soyismi") or "")
+            (self.get("operator") or "")
         ).strip()
         if op_full_raw:
             op_full = re.sub(r"[\s_–—−]+", "-", op_full_raw)
@@ -47,25 +46,12 @@ class CalismaKarti(Document):
         else:
             op_full = "OPR"
 
+        # 5) Prefix ve seri
         prefix_core = f"{wo_tail}-{op_clean}"
         prefix = f"{op_full}-{prefix_core}"
 
-        like_prefix = f"{esc_like(prefix)}-%"
-        existing = frappe.db.sql(
-            """
-            SELECT CAST(SUBSTRING_INDEX(name, '-', -1) AS UNSIGNED) AS idx
-            FROM `tabCalisma Karti`
-            WHERE name LIKE %s ESCAPE '\\'
-            ORDER BY idx DESC
-            LIMIT 1
-            """,
-            (like_prefix,),
-            as_dict=1,
-        )
-        last_number = (existing[0]["idx"] if existing and existing[0]["idx"] else 0)
-        new_number = int(last_number) + 1
-
-        self.name = f"{prefix}-{str(new_number).zfill(2)}"
+        # .## => 01, 02, 03 ...
+        self.name = make_autoname(f"{prefix}-.##")
 
     def validate(self):
         self.hesapla_durus_suresi()
