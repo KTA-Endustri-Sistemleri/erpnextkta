@@ -43,7 +43,7 @@ class ProductionStartWeekReport:
         if self.eşleşmeyen_müşteriler:
             example_list = list(self.eşleşmeyen_müşteriler)[:10]
             frappe.msgprint(
-                f"KTA Sevk Parametreleri'nde eşleşmeyen müşteriler (ilk 10):<br><br>"
+                f"KTA Sevk Parametreleri'nde eşleşmeyen müşteri/adres kayıtları (ilk 10):<br><br>"
                 + "<br>".join(example_list)
             )
 
@@ -101,6 +101,73 @@ class ProductionStartWeekReport:
             {"label": "Birim", "fieldname": "unit", "fieldtype": "Data", "width": 80}
         ]
 
+    def get_production_start_date(self, delivery_date, customer_name, shipping_address=None):
+        """
+        Teslimat tarihinden production_time + delivery_time kadar geriye giderek
+        üretim başlangıç tarihini hesaplar.
+
+        Eşleştirme önceliği:
+        1) customer_name (periodic_sales_orders'taki tree_key ile eşleşir)
+        2) customer_address (shipping_address_name ile eşleşir)
+        """
+        if not delivery_date:
+            return delivery_date
+
+        delivery_date = getdate(delivery_date)
+
+        # Önce müşteri adına göre, yoksa müşteri adresine göre sevk parametresini bul
+        sevk_params = None
+        key_used = None
+
+        if customer_name and customer_name in self.sevk_map:
+            sevk_params = self.sevk_map[customer_name]
+            key_used = customer_name
+        elif shipping_address and shipping_address in self.sevk_map:
+            sevk_params = self.sevk_map[shipping_address]
+            key_used = shipping_address
+
+        # Hiç kayıt yoksa: log'la ve tarihi değiştirme
+        if not sevk_params:
+            key_for_log = shipping_address or customer_name
+            if key_for_log:
+                self.eşleşmeyen_müşteriler.add(key_for_log)
+            return delivery_date
+
+        production_time = int(sevk_params.get("production_time") or 0)
+        delivery_time = int(sevk_params.get("delivery_time") or 0)
+        total_days = production_time + delivery_time
+
+        # Toplam gün 0 veya negatif ise de tarihi değiştirme
+        if total_days <= 0:
+            return delivery_date
+
+        # Toplam gün kadar geriye git
+        production_start = add_days(delivery_date, -total_days)
+
+        # Debug bilgisi
+        if len(self.debug_info) < 50:
+            self.debug_info.append(
+                f"Müşteri: {customer_name or '-'}, Adres: {shipping_address or '-'}, "
+                f"Kullanılan Key: {key_used or '-'}, Teslimat: {delivery_date}, "
+                f"Üretim Süresi: {production_time}, Sevk Süresi: {delivery_time}, "
+                f"Üretim Başlangıç: {production_start}"
+            )
+
+        return production_start
+
+    def get_customer_map(self):
+        """Müşteri veya Müşteri Grubu bilgisini döndürür"""
+        if self.filters.tree_type == "Müşteri":
+            return frappe._dict()  # tree_key zaten müşteri adı
+        else:
+            # Müşteri Grubu kullanılıyorsa, müşteri grubundan müşteriye mapping
+            query = """
+                SELECT name, customer_group
+                FROM `tabCustomer`
+            """
+            results = frappe.db.sql(query, as_dict=True)
+            return {r.customer_group: r.name for r in results if r.customer_group}
+
     def get_data(self):
         all_items = frappe.get_all("Item", fields=["name", "item_group"])
         item_group_map = {item.name: item.item_group or "" for item in all_items}
@@ -135,17 +202,30 @@ class ProductionStartWeekReport:
 
             tree_key = row.get("tree_key") or "Genel"
             item_name = row.get("item_name")
+            shipping_address = row.get("shipping_address_name")
             group_key = (
                 None if self.filters.group_by_item_only else tree_key,
                 item_code, item_name, item_group
             )
+
+            # tree_key = müşteri adı (tree_type="Müşteri" ise) veya müşteri grubu
+            customer_name = tree_key
 
             for _, end in self.periodic_ranges:
                 label = self.get_period_label(end)
                 key = scrub(label)
                 val = row.get(key, 0)
                 if val:
-                    self.weekly_demand_by_item[group_key][label] += int(val)
+                    # Hafta sonu tarihini üretim başlangıç tarihine çevir
+                    production_start_date = self.get_production_start_date(
+                        end, customer_name, shipping_address
+                    )
+                    production_label = self.get_period_label(production_start_date)
+
+                    if production_label:
+                        self.weekly_demand_by_item[group_key][production_label] += int(val)
+                    else:
+                        self.weekly_demand_by_item[group_key][label] += int(val)
 
     def apply_stock_consumption(self):
         if self.filters.group_by_item_only:
@@ -254,17 +334,31 @@ class ProductionStartWeekReport:
         return item_stock
 
     def get_sevk_parametreleri_map(self):
+        """
+        KTA Sevk Parametreleri:
+        - customer_name  -> periodic_sales_orders.tree_key (müşteri adı)
+        - customer_address -> shipping_address_name
+        """
         records = frappe.get_all(
             "KTA Sevk Parametreleri",
-            fields=["name", "production_time", "delivery_time"]
+            fields=["name", "customer_name", "customer_address", "production_time", "delivery_time"]
         )
 
         sevk_map = {}
         for r in records:
-            sevk_map[r.name] = {
-                "production_time": r.production_time or 0,
-                "delivery_time": r.delivery_time or 0
-            }
+            # customer_name ve customer_address'i ayrı ayrı key olarak kullan
+            keys = set()
+            if getattr(r, "customer_name", None):
+                keys.add(r.customer_name)
+            if getattr(r, "customer_address", None):
+                keys.add(r.customer_address)
+
+            for key in keys:
+                sevk_map[key] = {
+                    "production_time": r.production_time or 0,
+                    "delivery_time": r.delivery_time or 0
+                }
+
         return sevk_map
 
     def get_period_label(self, date_obj):
@@ -295,18 +389,29 @@ class ProductionStartWeekReport:
 
 
 def execute(filters=None):
+    """Frappe Script Report entry point."""
     return ProductionStartWeekReport(filters).run()
 
 
 @frappe.whitelist()
 def get_item_groups(from_date=None, to_date=None):
+    """
+    Report filter için item_group listesini döndürür.
+    periodic_sales_orders ile aynı mantık:
+    - Sadece açık (tam teslim edilmemiş) satış siparişi kalemleri
+    - Verilen tarih aralığında
+    """
     from frappe.utils import getdate
 
+    # Frontend'de "Sadece ürün bazında grupla" işaretliyse item_group filtresi boş kalsın
     if frappe.form_dict.get("group_by_item_only") == "1":
         return []
 
-    from_date = getdate(from_date)
-    to_date = getdate(to_date)
+    from_date = getdate(from_date) if from_date else None
+    to_date = getdate(to_date) if to_date else None
+
+    if not from_date or not to_date:
+        return []
 
     query = """
         SELECT DISTINCT soi.item_group
