@@ -104,6 +104,26 @@ def execute(filters=None):
                 material_totals[material_key][week_label] += qty
                 detailed_data[detailed_key][week_label] += qty
 
+    # YENİ: Hammadde item_name ve default_supplier bilgilerini toplu al
+    raw_material_items = list({key[0] for key in material_totals.keys()})
+    item_info_map = {}
+    default_supplier_map = {}
+    
+    if raw_material_items:
+        # Item name bilgilerini al
+        item_names = frappe.db.get_all(
+            "Item",
+            filters={"name": ["in", raw_material_items]},
+            fields=["name", "item_name"]
+        )
+        item_info_map = {i.name: i.item_name for i in item_names}
+        
+        # Default supplier bilgilerini al (toplu sorgulama ile optimize edilmiş)
+        for item_code in raw_material_items:
+            default_supplier = frappe.db.get_value("Item Default", {"parent": item_code}, "default_supplier")
+            if default_supplier:
+                default_supplier_map[item_code] = default_supplier
+
     # 4. OPTIMIZE: Stock ve PO verilerini tek seferde al
     remaining_stock_map = {}
     stock_map = {}
@@ -192,7 +212,9 @@ def execute(filters=None):
     # Kolon tanımlamaları
     columns = get_base_columns() if not group_only_material else [
         {"label": "Hammadde", "fieldname": "hammadde", "fieldtype": "Link", "options": "Item", "width": 140},
-        {"label": "Birim", "fieldname": "uom", "fieldtype": "Data", "width": 80}
+        {"label": "Ürün Açıklaması", "fieldname": "urun_aciklamasi", "fieldtype": "Data", "width": 180},
+        {"label": "Birim", "fieldname": "uom", "fieldtype": "Data", "width": 80},
+        {"label": "Varsayılan Tedarikçi", "fieldname": "varsayilan_tedarikci", "fieldtype": "Link", "options": "Supplier", "width": 150}
     ]
 
     if not group_only_material:
@@ -205,10 +227,14 @@ def execute(filters=None):
 
     columns += [{"label": label, "fieldname": label, "fieldtype": "Float", "width": 100} for label in sorted_week_labels]
     columns.append({"label": "Satır Toplamı", "fieldname": "satir_toplami", "fieldtype": "Float", "width": 120})
+    
+    # Yeni sütunlar her zaman görünür
+    columns += [
+        {"label": "Toplam İhtiyaç", "fieldname": "toplam_ihtiyac", "fieldtype": "Float", "width": 120}
+    ]
 
     if include_stock or include_po:
         columns += [
-            {"label": "Toplam İhtiyaç", "fieldname": "toplam_ihtiyac", "fieldtype": "Float", "width": 120},
             {"label": "Stok", "fieldname": "stok", "fieldtype": "Float", "width": 100},
             {"label": "PO Teslimat", "fieldname": "po_teslimat", "fieldtype": "Float", "width": 100},
             {"label": "Net İhtiyaç", "fieldname": "net_ihtiyac", "fieldtype": "Float", "width": 120},
@@ -225,7 +251,12 @@ def execute(filters=None):
 
     if group_only_material:
         for (raw_material, uom), week_map in material_totals.items():
-            row = {"hammadde": raw_material, "uom": uom}
+            row = {
+                "hammadde": raw_material,
+                "urun_aciklamasi": item_info_map.get(raw_material, ""),
+                "uom": uom,
+                "varsayilan_tedarikci": default_supplier_map.get(raw_material, "")
+            }
             toplam = net_total = satir_toplami = 0
             
             for week_label in sorted_week_labels:
@@ -260,7 +291,15 @@ def execute(filters=None):
             data.append(row)
     else:
         for (raw_material, uom, finished_item, bom), week_map in detailed_data.items():
-            row = {"bitmis_urun": finished_item, "bom": bom, "hammadde": raw_material, "uom": uom, "musteri_grubu": item_customer_group_map.get(finished_item, "")}
+            row = {
+                "bitmis_urun": finished_item,
+                "bom": bom,
+                "hammadde": raw_material,
+                "urun_aciklamasi": item_info_map.get(raw_material, ""),
+                "uom": uom,
+                "varsayilan_tedarikci": default_supplier_map.get(raw_material, ""),
+                "musteri_grubu": item_customer_group_map.get(finished_item, "")
+            }
             toplam = net_total = satir_toplami = 0
             key = (raw_material, uom)
             
@@ -311,12 +350,16 @@ def execute(filters=None):
     total_row = {}
     if group_only_material:
         total_row["hammadde"] = "<b>TOPLAM</b>"
+        total_row["urun_aciklamasi"] = ""
         total_row["uom"] = ""
+        total_row["varsayilan_tedarikci"] = ""
     else:
         total_row["bitmis_urun"] = "<b>TOPLAM</b>"
         total_row["bom"] = ""
         total_row["hammadde"] = ""
+        total_row["urun_aciklamasi"] = ""
         total_row["uom"] = ""
+        total_row["varsayilan_tedarikci"] = ""
     
     for week_label in sorted_week_labels:
         total_row[week_label] = round(column_totals[week_label], 2)
@@ -339,5 +382,7 @@ def get_base_columns():
         {"label": "Ürün", "fieldname": "bitmis_urun", "fieldtype": "Link", "options": "Item", "width": 140},
         {"label": "BOM", "fieldname": "bom", "fieldtype": "Link", "options": "BOM", "width": 120},
         {"label": "Hammadde", "fieldname": "hammadde", "fieldtype": "Link", "options": "Item", "width": 140},
-        {"label": "Birim", "fieldname": "uom", "fieldtype": "Data", "width": 80}
+        {"label": "Ürün Açıklaması", "fieldname": "urun_aciklamasi", "fieldtype": "Data", "width": 180},
+        {"label": "Birim", "fieldname": "uom", "fieldtype": "Data", "width": 80},
+        {"label": "Varsayılan Tedarikçi", "fieldname": "varsayilan_tedarikci", "fieldtype": "Link", "options": "Supplier", "width": 150}
     ]
