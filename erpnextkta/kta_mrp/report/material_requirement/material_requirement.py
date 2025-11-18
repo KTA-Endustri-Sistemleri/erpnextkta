@@ -104,26 +104,6 @@ def execute(filters=None):
                 material_totals[material_key][week_label] += qty
                 detailed_data[detailed_key][week_label] += qty
 
-    # YENİ: Hammadde item_name ve default_supplier bilgilerini toplu al
-    raw_material_items = list({key[0] for key in material_totals.keys()})
-    item_info_map = {}
-    default_supplier_map = {}
-    
-    if raw_material_items:
-        # Item name bilgilerini al
-        item_names = frappe.db.get_all(
-            "Item",
-            filters={"name": ["in", raw_material_items]},
-            fields=["name", "item_name"]
-        )
-        item_info_map = {i.name: i.item_name for i in item_names}
-        
-        # Default supplier bilgilerini al (toplu sorgulama ile optimize edilmiş)
-        for item_code in raw_material_items:
-            default_supplier = frappe.db.get_value("Item Default", {"parent": item_code}, "default_supplier")
-            if default_supplier:
-                default_supplier_map[item_code] = default_supplier
-
     # 4. OPTIMIZE: Stock ve PO verilerini tek seferde al
     remaining_stock_map = {}
     stock_map = {}
