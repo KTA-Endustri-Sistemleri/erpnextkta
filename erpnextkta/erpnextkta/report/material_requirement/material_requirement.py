@@ -118,16 +118,11 @@ def execute(filters=None):
         )
         item_info_map = {i.name: i.item_name for i in item_names}
         
-        # Default supplier bilgilerini al
-        default_suppliers = frappe.db.sql("""
-            SELECT parent, default_supplier
-            FROM `tabItem Default`
-            WHERE parent IN %s AND default_supplier IS NOT NULL AND default_supplier != ''
-        """, [tuple(raw_material_items)], as_dict=True)
-        
-        for ds in default_suppliers:
-            if ds.parent not in default_supplier_map:
-                default_supplier_map[ds.parent] = ds.default_supplier
+        # Default supplier bilgilerini al (toplu sorgulama ile optimize edilmiş)
+        for item_code in raw_material_items:
+            default_supplier = frappe.db.get_value("Item Default", {"parent": item_code}, "default_supplier")
+            if default_supplier:
+                default_supplier_map[item_code] = default_supplier
 
     # 4. OPTIMIZE: Stock ve PO verilerini tek seferde al
     remaining_stock_map = {}
@@ -232,10 +227,14 @@ def execute(filters=None):
 
     columns += [{"label": label, "fieldname": label, "fieldtype": "Float", "width": 100} for label in sorted_week_labels]
     columns.append({"label": "Satır Toplamı", "fieldname": "satir_toplami", "fieldtype": "Float", "width": 120})
+    
+    # Yeni sütunlar her zaman görünür
+    columns += [
+        {"label": "Toplam İhtiyaç", "fieldname": "toplam_ihtiyac", "fieldtype": "Float", "width": 120}
+    ]
 
     if include_stock or include_po:
         columns += [
-            {"label": "Toplam İhtiyaç", "fieldname": "toplam_ihtiyac", "fieldtype": "Float", "width": 120},
             {"label": "Stok", "fieldname": "stok", "fieldtype": "Float", "width": 100},
             {"label": "PO Teslimat", "fieldname": "po_teslimat", "fieldtype": "Float", "width": 100},
             {"label": "Net İhtiyaç", "fieldname": "net_ihtiyac", "fieldtype": "Float", "width": 120},
