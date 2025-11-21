@@ -41,7 +41,7 @@
    "mandatory_depends_on": null,
    "modified": "2025-08-15 08:07:11.090956",
    "modified_by": "alpkan.ozturk@kta-endustri.com.tr",
-   "module": "erpnextkta",
+   "module": "kta_mrp",
    "name": "Item-custom_weekly_production",
    "no_copy": 0,
    "non_negative": 0,
