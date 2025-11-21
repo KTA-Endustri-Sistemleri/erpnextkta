@@ -7,7 +7,7 @@ frappe.query_reports["Capacity Planning Report"] = {
       if (!from_date || !to_date) return;
 
       frappe.call({
-        method: "erpnextkta.erpnextkta.report.capacity_planning_report.capacity_planning_report.get_item_groups",
+        method: "erpnextkta.kta_mrp.report.capacity_planning_report.capacity_planning_report.get_item_groups",
         args: {
           from_date: from_date,
           to_date: to_date

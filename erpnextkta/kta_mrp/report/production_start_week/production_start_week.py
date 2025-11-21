@@ -5,7 +5,7 @@ from datetime import date
 from dateutil.relativedelta import MO, relativedelta
 from collections import defaultdict
 
-from erpnextkta.erpnextkta.report.periodic_sales_orders import periodic_sales_orders
+from erpnextkta.kta_mrp.report.periodic_sales_orders import periodic_sales_orders
 
 
 class ProductionStartWeekReport:

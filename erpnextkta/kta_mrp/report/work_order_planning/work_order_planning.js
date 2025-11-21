@@ -24,7 +24,7 @@ frappe.query_reports["Work Order Planning"] = {
 
     onload: function (report) {
         frappe.call({
-            method: "erpnextkta.erpnextkta.report.work_order_planning.work_order_planning.get_available_item_groups",
+            method: "erpnextkta.kta_mrp.report.work_order_planning.work_order_planning.get_available_item_groups",
             args: {
                 filters: frappe.query_report.get_filter_values()
             },

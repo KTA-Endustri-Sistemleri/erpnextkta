@@ -1,7 +1,7 @@
 import frappe
 from datetime import datetime
 from collections import defaultdict
-from erpnextkta.erpnextkta.report.capacity_planning_report.capacity_planning_report import execute as get_capacity_plan
+from erpnextkta.kta_mrp.report.capacity_planning_report.capacity_planning_report import execute as get_capacity_plan
 
 
 def execute(filters=None):

@@ -70,7 +70,7 @@ def execute(filters=None):
     columns = get_columns()
     data = []
 
-    from erpnextkta.erpnextkta.report.production_start_week.production_start_week import ProductionStartWeekReport
+    from erpnextkta.kta_mrp.report.production_start_week.production_start_week import ProductionStartWeekReport
 
     today = datetime.today().date()
     psw_filters = {
@@ -273,7 +273,7 @@ def get_columns():
 
 @frappe.whitelist()
 def get_item_groups():
-    from erpnextkta.erpnextkta.report.production_start_week.production_start_week import ProductionStartWeekReport
+    from erpnextkta.kta_mrp.report.production_start_week.production_start_week import ProductionStartWeekReport
     psw_filters = {
         "from_date": f"{datetime.today().year}-01-01",
         "to_date": datetime.today().strftime("%Y-%m-%d"),

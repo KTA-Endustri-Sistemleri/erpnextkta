@@ -2,7 +2,7 @@ frappe.query_reports["Production Start Week"] = {
   onload: function (report) {
     const update_item_groups = () => {
       frappe.call({
-        method: "erpnextkta.erpnextkta.report.production_start_week.production_start_week.get_item_groups",
+        method: "erpnextkta.kta_mrp.report.production_start_week.production_start_week.get_item_groups",
         args: {
           from_date: report.get_filter_value("from_date"),
           to_date: report.get_filter_value("to_date")
