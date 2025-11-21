@@ -13,7 +13,7 @@
  "letterhead": null,
  "modified": "2025-05-30 17:11:35.960386",
  "modified_by": "Administrator",
- "module": "erpnextkta",
+ "module": "kta_mrp",
  "name": "Periodic Sales Orders",
  "owner": "Administrator",
  "prepared_report": 0,

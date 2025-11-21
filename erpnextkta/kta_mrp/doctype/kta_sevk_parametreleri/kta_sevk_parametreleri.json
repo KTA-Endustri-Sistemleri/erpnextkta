@@ -58,7 +58,7 @@
  "links": [],
  "modified": "2025-06-02 12:40:46.803205",
  "modified_by": "Administrator",
- "module": "erpnextkta",
+ "module": "kta_mrp",
  "name": "KTA Sevk Parametreleri",
  "naming_rule": "Expression (old style)",
  "owner": "Administrator",

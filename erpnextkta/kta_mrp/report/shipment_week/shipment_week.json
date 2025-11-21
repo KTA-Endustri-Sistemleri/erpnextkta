@@ -13,7 +13,7 @@
  "letterhead": null,
  "modified": "2025-06-23 11:50:17.010619",
  "modified_by": "Administrator",
- "module": "erpnextkta",
+ "module": "kta_mrp",
  "name": "Shipment Week",
  "owner": "Administrator",
  "prepared_report": 0,

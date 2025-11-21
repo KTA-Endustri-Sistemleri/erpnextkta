@@ -13,7 +13,7 @@
  "letterhead": null,
  "modified": "2025-06-11 14:33:34.490482",
  "modified_by": "Administrator",
- "module": "erpnextkta",
+ "module": "kta_mrp",
  "name": "Capacity Planning Report",
  "owner": "Administrator",
  "prepared_report": 0,
