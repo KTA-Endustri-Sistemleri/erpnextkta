@@ -23,7 +23,7 @@
  "links": [],
  "modified": "2025-08-11 15:31:14.837383",
  "modified_by": "Administrator",
- "module": "erpnextkta",
+ "module": "kta_calisma_karti",
  "name": "KTA Calisma Karti Operasyonlari",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
