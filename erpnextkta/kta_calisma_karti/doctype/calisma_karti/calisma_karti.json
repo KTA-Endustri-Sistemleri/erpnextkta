@@ -165,7 +165,7 @@
  "links": [],
  "modified": "2025-09-12 10:54:18.528767",
  "modified_by": "Administrator",
- "module": "erpnextkta",
+ "module": "kta_calisma_karti",
  "name": "Calisma Karti",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
