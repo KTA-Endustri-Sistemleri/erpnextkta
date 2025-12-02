@@ -282,5 +282,5 @@ fixtures = [
     }
 ]
 doctype_js = {
-    "Calisma Karti": "erpnextkta/erpnextkta/doctype/calisma_karti/calisma_karti.js"
+    "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js"
 }
