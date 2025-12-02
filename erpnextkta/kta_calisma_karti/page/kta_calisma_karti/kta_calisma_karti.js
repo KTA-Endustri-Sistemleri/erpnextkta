@@ -11,7 +11,7 @@ frappe.pages['kta_calisma_karti'].on_page_load = function (wrapper) {
     frappe.hot_update.push(() => load_vue(wrapper));
   }
 };
-frappe.pages['test-vue'].on_page_show = (wrapper) => load_vue(wrapper);
+frappe.pages['kta_calisma_karti'].on_page_show = (wrapper) => load_vue(wrapper);
 
 // Simple callback function to load Vue in the page
 async function load_vue(wrapper) {
@@ -19,6 +19,6 @@ async function load_vue(wrapper) {
   $parent.empty();
 
   // Require the bundle and mount the Vue app
-  await frappe.require('test_vue.bundle.js');
+  await frappe.require('kta_calisma_karti.bundle.js');
   frappe.test_vue_app = frappe.ui.setup_vue($parent);
 }

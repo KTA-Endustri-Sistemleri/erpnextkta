@@ -1,5 +1,5 @@
 import { createApp } from 'vue';
-import TestVue from './TestVue.vue';
+import TestVue from './App.vue';
 
 // A simple function to mount your Vue app
 function setup_vue(wrapper) {
