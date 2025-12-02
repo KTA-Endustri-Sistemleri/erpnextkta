@@ -25,6 +25,8 @@ const selectedOperationName = ref(null);
 
 // Step 4: Workstation
 const selectedWorkstation = ref(null);
+// Step 4: Auto-fill highlight flag
+const workstationAutoFilled = ref(false);
 
 // Step 5: User
 const users = ref([]);
@@ -269,6 +271,11 @@ async function fetchUsers() {
 function syncWorkstationFromJobCard() {
   if (selectedJobCard.value && selectedJobCard.value.workstation) {
     selectedWorkstation.value = selectedJobCard.value.workstation;
+    // kısa süreli highlight için bayrağı aç
+    workstationAutoFilled.value = true;
+    setTimeout(() => {
+      workstationAutoFilled.value = false;
+    }, 1200); // 1.2 sn sonra highlight söner
   } else {
     selectedWorkstation.value = null;
   }
@@ -403,6 +410,7 @@ onMounted(() => {
         v-if="currentStep === 3"
         :job-card="selectedJobCard"
         v-model:workstation="selectedWorkstation"
+        :auto-filled="workstationAutoFilled"
       />
 
       <!-- STEP 4: Operation -->
