@@ -6,8 +6,6 @@ import StepOperation from './components/StepOperation.vue';
 import StepWorkstation from './components/StepWorkstation.vue';
 import StepUser from './components/StepUser.vue';
 
-const BASE_URL = "http://kta-dev-v15.erpnext.com:8001"; // Gerekirse değiştirin
-
 // ---- STATE ----
 const currentStep = ref(1);
 const totalSteps = 5;
@@ -40,26 +38,44 @@ const selectedJobCard = computed(() => {
 });
 
 const selectedOperation = computed(() => {
-  return operations.value.find(op => op.name === selectedOperationName.value) || null;
+  return (
+    operations.value.find(
+      (op) => op.calisma_karti_op === selectedOperationName.value
+    ) || null
+  );
 });
+
+// ---- HELPER: frappe.call'ı Promise'e sardık ----
+function callFrappe(method, args = {}) {
+  return new Promise((resolve, reject) => {
+    frappe.call({
+      method,
+      args,
+      callback: (r) => {
+        // r.message genelde payload
+        resolve(r.message);
+      },
+      error: (err) => {
+        // err.messages vs. olabilir, basitçe fırlatıyoruz
+        reject(err);
+      }
+    });
+  });
+}
 
 // ---- VALIDATION ----
 const isStepValid = computed(() => {
   switch (currentStep.value) {
     case 1:
-      // custom_work_order
       return !!workOrder.value;
     case 2:
-      // is_karti
       return !!selectedJobCard.value;
     case 3:
-      // operasyon
-      return !!selectedOperation.value;
+      // sadece bir operasyon seçilmiş olması yeterli
+      return !!selectedOperationName.value;
     case 4:
-      // is_istasyonu
       return !!selectedWorkstation.value;
     case 5:
-      // kullanıcı
       return !!selectedUser.value;
     default:
       return false;
@@ -76,20 +92,12 @@ async function fetchWorkOrderByBarcode() {
   errorMessage.value = null;
 
   try {
-    // Burada backend tarafında status/docstatus filtrelerini de uygulayabilirsin.
-    const res = await fetch(
-      `${BASE_URL}/api/method/erpnextkta.kta_calisma_karti.api.get_work_order_by_barcode?barcode=${encodeURIComponent(
-        workOrderBarcode.value.trim()
-      )}`,
-      { credentials: 'include' }
+    const msg = await callFrappe(
+      'erpnextkta.kta_calisma_karti.api.get_work_order_by_barcode',
+      { barcode: workOrderBarcode.value.trim() }
     );
 
-    if (!res.ok) {
-      throw new Error('Work Order bulunamadı veya yetkiniz yok.');
-    }
-
-    const data = await res.json();
-    workOrder.value = data.message || null;
+    workOrder.value = msg || null;
 
     if (!workOrder.value || !workOrder.value.name) {
       throw new Error('Work Order bulunamadı.');
@@ -100,7 +108,11 @@ async function fetchWorkOrderByBarcode() {
     currentStep.value = 2;
   } catch (err) {
     console.error(err);
-    errorMessage.value = err.message || 'Work Order alınırken hata oluştu.';
+    // frappe.call error objesi farklı formatta olabilir; basitçe mesaj çekiyoruz
+    errorMessage.value =
+      (err && err.message) ||
+      (err && err._server_messages) ||
+      'Work Order alınırken hata oluştu.';
     workOrder.value = null;
     jobCards.value = [];
     selectedJobCardName.value = null;
@@ -109,7 +121,7 @@ async function fetchWorkOrderByBarcode() {
   }
 }
 
-// 2) Work Order’a bağlı Job Card listesi
+// 2) Work Order’a bağlı Job Card listesi (frappe.client.get_list)
 async function fetchJobCardsForWorkOrder() {
   if (!workOrder.value || !workOrder.value.name) return;
 
@@ -117,28 +129,25 @@ async function fetchJobCardsForWorkOrder() {
   errorMessage.value = null;
 
   try {
-    const filters = encodeURIComponent(
-      JSON.stringify([['work_order', '=', workOrder.value.name]])
-    );
+    const list = await callFrappe('frappe.client.get_list', {
+      doctype: 'Job Card',
+      filters: {
+        work_order: workOrder.value.name
+      },
+      fields: ['name', 'operation', 'workstation'],
+      limit_page_length: 500
+    });
 
-    const res = await fetch(
-      `${BASE_URL}/api/resource/Job Card?filters=${filters}`,
-      { credentials: 'include' }
-    );
-
-    if (!res.ok) {
-      throw new Error('Job Card listesi alınamadı.');
-    }
-
-    const data = await res.json();
-    jobCards.value = data.data || [];
+    jobCards.value = list || [];
 
     if (jobCards.value.length === 1) {
       selectedJobCardName.value = jobCards.value[0].name;
     }
   } catch (err) {
     console.error(err);
-    errorMessage.value = err.message || 'Job Card listesi alınırken hata oluştu.';
+    errorMessage.value =
+      (err && err.message) ||
+      'Job Card listesi alınırken hata oluştu.';
     jobCards.value = [];
     selectedJobCardName.value = null;
   } finally {
@@ -146,26 +155,24 @@ async function fetchJobCardsForWorkOrder() {
   }
 }
 
-// 3) Operasyon listesi
+// 3) Operasyon listesi (KTA Calisma Karti Operasyonlari)
 async function fetchOperations() {
   loading.value = true;
   errorMessage.value = null;
 
   try {
-    const res = await fetch(
-      `${BASE_URL}/api/resource/KTA Calisma Karti Operasyonlari`,
-      { credentials: 'include' }
-    );
+    const list = await callFrappe('frappe.client.get_list', {
+      doctype: 'KTA Calisma Karti Operasyonlari',
+      fields: ['calisma_karti_op'],
+      limit_page_length: 500
+    });
 
-    if (!res.ok) {
-      throw new Error('Operasyon listesi alınamadı.');
-    }
-
-    const data = await res.json();
-    operations.value = data.data || [];
+    operations.value = list || [];
   } catch (err) {
     console.error(err);
-    errorMessage.value = err.message || 'Operasyon listesi alınırken hata oluştu.';
+    errorMessage.value =
+      (err && err.message) ||
+      'Operasyon listesi alınırken hata oluştu.';
     operations.value = [];
     selectedOperationName.value = null;
   } finally {
@@ -173,34 +180,28 @@ async function fetchOperations() {
   }
 }
 
-// 4) Kullanıcı listesi (görebildiği kullanıcılar)
-// Frappe permission tree zaten User listesini kısıtlayacağı için
-// normal /api/resource/User ile listeleyebilirsin.
+// 4) Kullanıcı listesi (User)
 async function fetchUsers() {
   loading.value = true;
   errorMessage.value = null;
 
   try {
-    // örnek: sadece aktif sistem kullanıcıları
-    const filters = encodeURIComponent(
-      JSON.stringify([['enabled', '=', 1]])
-    );
-    const fields = encodeURIComponent(JSON.stringify(['name', 'full_name', 'email']));
+    const list = await callFrappe('frappe.client.get_list', {
+      doctype: 'Employee',
+      filters: {
+        status: 'Active',           // aktif çalışanlar
+        user_id: ['is', 'set']
+      },
+      fields: ['name', 'employee_name', 'user_id', 'department'],
+      limit_page_length: 500
+    });
 
-    const res = await fetch(
-      `${BASE_URL}/api/resource/User?filters=${filters}&fields=${fields}`,
-      { credentials: 'include' }
-    );
-
-    if (!res.ok) {
-      throw new Error('Kullanıcı listesi alınamadı.');
-    }
-
-    const data = await res.json();
-    users.value = data.data || [];
+    users.value = list || [];
   } catch (err) {
     console.error(err);
-    errorMessage.value = err.message || 'Kullanıcı listesi alınırken hata oluştu.';
+    errorMessage.value =
+      (err && err.message) ||
+      'Kullanıcı listesi alınırken hata oluştu.';
     users.value = [];
     selectedUser.value = null;
   } finally {
@@ -217,53 +218,42 @@ function syncWorkstationFromJobCard() {
   }
 }
 
-// ---- SUBMIT: Calisma Karti create ----
+// ---- SUBMIT: Calisma Karti create (create_calisma_karti) ----
 async function submitWorkCard() {
   if (!isStepValid.value) return;
 
-  // !!! Buradaki "sorumlu_kullanici" alan adını,
-  // Calisma Karti doctype'ındaki gerçek fieldname'e göre güncelle.
+  // Doctype field namelerine göre payload
   const payload = {
     custom_work_order: workOrder.value.name,
     is_karti: selectedJobCard.value.name,
-    operasyon: selectedOperation.value.name,
+    operasyon: selectedOperationName.value,
     is_istasyonu: selectedWorkstation.value,
-    sorumlu_kullanici: selectedUser.value // örnek field
+    operator: selectedUser.value // field adını Doctype’a göre güncelle
   };
 
   loading.value = true;
   errorMessage.value = null;
 
   try {
-    const res = await fetch(
-      `${BASE_URL}/api/method/erpnextkta.kta_calisma_karti.api.create_calisma_karti`,
-      {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }
+    const msg = await callFrappe(
+      'erpnextkta.kta_calisma_karti.api.create_calisma_karti',
+      payload
     );
 
-    if (!res.ok) {
-      let msg = 'Çalışma Kartı oluşturulamadı.';
-      try {
-        const errData = await res.json();
-        msg = errData.exc || msg;
-      } catch (e) {}
-      throw new Error(msg);
-    }
+    const docname = msg && msg.name ? msg.name : JSON.stringify(msg);
 
-    const data = await res.json();
-    const docname = data.message && data.message.name
-      ? data.message.name
-      : JSON.stringify(data.message);
+    frappe.msgprint({
+      title: __('İşlem Başarılı'),
+      message: __('Çalışma Kartı oluşturuldu: {0}', [docname]),
+      indicator: 'green'
+    });
 
-    alert('Çalışma Kartı oluşturuldu: ' + docname);
     resetWizard();
   } catch (err) {
     console.error(err);
-    errorMessage.value = err.message || 'Çalışma Kartı oluşturulurken hata oluştu.';
+    errorMessage.value =
+      (err && err.message) ||
+      'Çalışma Kartı oluşturulurken hata oluştu.';
   } finally {
     loading.value = false;
   }
@@ -297,9 +287,9 @@ function resetWizard() {
   errorMessage.value = null;
 }
 
-// ---- EVENTS FROM CHILD ----
+// ---- CHILD EVENTS ----
 function handleWorkOrderBarcodeSubmit() {
-  // Barkod okutulup Enter gelince otomatik tetiklenir
+  // Barkod okutulup Enter gelince
   fetchWorkOrderByBarcode();
 }
 
@@ -308,7 +298,7 @@ watch(selectedJobCardName, () => {
   syncWorkstationFromJobCard();
 });
 
-// İlk açılışta operasyon ve kullanıcı listelerini çek
+// İlk açılışta operasyon + kullanıcı listeleri
 onMounted(() => {
   fetchOperations();
   fetchUsers();
@@ -415,5 +405,5 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Tailwind yoksa burada basit stil verebilirsin */
+/* İstersen burada minimal stil verebilirsin */
 </style>

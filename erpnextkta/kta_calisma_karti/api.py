@@ -67,9 +67,9 @@ def create_calisma_karti(**kwargs):
         {
             "custom_work_order": "...",  # Link to Work Order
             "is_karti": "...",           # Link to Job Card
-            "operasyon": "...",          # Link/Select to KTA Calisma Karti Operasyonlari
+            "operasyon": "...",          # Operation string (calisma_karti_op)
             "is_istasyonu": "...",       # Workstation
-            "sorumlu_kullanici": "..."   # (optional) responsible user (User doctype)
+            "operator": "EMP-0001"       # (optional) Employee.name (Link -> Employee)
         }
 
     Adjust fieldnames below if your DocType uses different names.
@@ -142,8 +142,21 @@ def create_calisma_karti(**kwargs):
             _("İş İstasyonu zorunludur (Job Card veya wizard tarafından sağlanmalı).")
         )
 
-    # Optional responsible user field (rename if your fieldname differs)
-    sorumlu_kullanici = data.get("sorumlu_kullanici")
+    # Optional operator (Employee) field
+    operator = data.get("operator")
+
+    # Try to resolve Employee.department and prepare tag value
+    operator_department_tag = None
+    if operator:
+        try:
+            emp = frappe.get_doc("Employee", operator)
+            dept = getattr(emp, "department", None)
+            if dept:
+                # Örn: "RATIONAL - KTA" -> "RATIONAL"
+                operator_department_tag = dept.split("-")[0].strip()
+        except frappe.DoesNotExistError:
+            # Employee yoksa tag üretmeyelim; link validation zaten insert'te patlar
+            operator_department_tag = None
 
     # Build document dict
     doc_dict = {
@@ -158,13 +171,26 @@ def create_calisma_karti(**kwargs):
     }
 
     # Add responsible user if field exists in your DocType
-    if sorumlu_kullanici:
+    if operator:
         # If your fieldname is different, change this key:
-        doc_dict["sorumlu_kullanici"] = sorumlu_kullanici
+        doc_dict["operator"] = operator
 
     # Create & insert document
     doc = frappe.get_doc(doc_dict)
     doc.insert()  # respect permissions
+
+    # Departmandan üretilen tag'i ekle (varsa)
+    if operator_department_tag:
+        try:
+            from frappe.desk.doctype.tag.tag import add_tag
+
+            add_tag(operator_department_tag, doc.doctype, doc.name)
+        except Exception:
+            # Tag ekleme hatası ana akışı bozmamalı
+            frappe.log_error(
+                frappe.get_traceback(),
+                _("Calisma Karti Tag Ekleme Hatası"),
+            )
 
     # Optionally submit automatically:
     # if you want Calisma Karti to start as submitted, uncomment:
