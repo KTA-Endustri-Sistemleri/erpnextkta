@@ -1,12 +1,29 @@
 {
-  "doctype": "Page",
-  "name": "kta_calisma_karti",
-  "module": "kta_calisma_karti",
-  "title": "Calisma Karti",
-  "standard": 1,
-  "roles": [
-    { "role": "System Manager" },
-    { "role": "QR Scanner User" },
-    { "role": "QR Scanner Manager" }
-  ]
+ "content": null,
+ "creation": "2025-12-02 15:23:04.889070",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2025-12-02 15:25:09.858416",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "kta_calisma_karti",
+ "owner": "Administrator",
+ "page_name": "kta_calisma_karti",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "QR Scanner User"
+  },
+  {
+   "role": "QR Scanner Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Calisma Karti"
 }
