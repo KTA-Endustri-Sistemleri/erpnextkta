@@ -1,10 +1,12 @@
 <script setup>
 const props = defineProps({
+  // Artık burada Employee listesi var:
+  // { name: "EMP-0001", employee_name: "UFUK KARAMALLI", user_id: "ufuk..." }
   users: {
     type: Array,
     default: () => []
   },
-  // v-model:selectedUser -> "selectedUser"
+  // v-model:selectedUser -> Employee.name (EMP-0001)
   selectedUser: {
     type: String,
     default: null
@@ -20,10 +22,9 @@ function onChange(event) {
 
 <template>
   <section class="space-y-3">
-    <h2 class="font-semibold text-lg">5️⃣ Kullanıcı Seçimi</h2>
+    <h2 class="font-semibold text-lg">5️⃣ Operatör / Çalışan Seçimi</h2>
     <p class="text-sm text-gray-600">
-      Bu Çalışma Kartı ile ilişkilendirilecek <strong>kullanıcıyı</strong> seç.
-      Liste, sistemde görme yetkin olan kullanıcıları içermelidir.
+      Bu Çalışma Kartı ile ilişkilendirilecek <strong>operatörü (Employee)</strong> seç.
     </p>
 
     <select
@@ -31,14 +32,16 @@ function onChange(event) {
       :value="selectedUser"
       @change="onChange"
     >
-      <option disabled value="">Kullanıcı seçin...</option>
+      <option disabled value="">Operatör seçin...</option>
+
       <option
-        v-for="u in users"
-        :key="u.name"
-        :value="u.name"
+        v-for="emp in users"
+        :key="emp.name"
+        :value="emp.name"
       >
-        <!-- Tercihe göre name / full_name / email gösterebilirsin -->
-        {{ u.full_name || u.name }}
+        <!-- Kullanıcıya sadece isim (ve istersen user_id) göster -->
+        {{ emp.employee_name }}
+        <span v-if="emp.user_id"> ({{ emp.user_id }})</span>
       </option>
     </select>
   </section>

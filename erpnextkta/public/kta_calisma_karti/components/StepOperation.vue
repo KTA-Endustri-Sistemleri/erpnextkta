@@ -4,7 +4,7 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
-  // v-model:selectedOperation -> "selectedOperation"
+  // v-model:selectedOperation -> string (calisma_karti_op)
   selectedOperation: {
     type: String,
     default: null
@@ -33,11 +33,11 @@ function onChange(event) {
     >
       <option disabled value="">Operasyon seçin...</option>
       <option
-        v-for="op in operations"
-        :key="op.name"
-        :value="op.name"
+        v-for="(op, index) in operations"
+        :key="index"
+        :value="op.calisma_karti_op"
       >
-        {{ op.operation_name || op.name }}
+        {{ op.calisma_karti_op }}
       </option>
     </select>
   </section>
