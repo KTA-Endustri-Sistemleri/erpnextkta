@@ -4,6 +4,7 @@
 *.swp
 tags
 node_modules
+dist
 __pycache__
 /.idea/erpnextkta.iml
 /.idea/modules.xml
@@ -11,3 +12,4 @@ __pycache__
 /.idea/vcs.xml
 /.idea/workspace.xml
 /.idea/dataSources/edeab490-568c-47de-b31f-08115e1231bc.xml
+
