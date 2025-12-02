@@ -5,6 +5,7 @@ import StepJobCard from './components/StepJobCard.vue';
 import StepOperation from './components/StepOperation.vue';
 import StepWorkstation from './components/StepWorkstation.vue';
 import StepUser from './components/StepUser.vue';
+import StepIndicator from './components/StepIndicator.vue';
 
 // ---- STATE ----
 const currentStep = ref(1);
@@ -32,6 +33,57 @@ const selectedUser = ref(null); // Link User (ör: "user@domain.com" ya da "Full
 const loading = ref(false);
 const errorMessage = ref(null);
 
+// 🔹 BURASI YENİ: tüm step açıklamalarını dinamik yapan computed
+const steps = computed(() => {
+  const wo = workOrder.value;
+  const jc = selectedJobCard.value;
+  const op = selectedOperation.value;
+  const emp = selectedEmployee.value;
+  const ws = selectedWorkstation.value;
+
+  // 1) İş Emri
+  let step1Desc = 'Work Order barkodu';
+  if (wo && wo.name) {
+    step1Desc = wo.name
+  }
+
+  // 2) İş Kartı
+  let step2Desc = 'Seçilecek İş Kartı';
+  if (jc) {
+    // Örn: "JC-00045 · Kesim · IST-01"
+    const parts = [jc.name];
+    step2Desc = parts.join(' · ');
+  }
+  // 3) İş İstasyonu
+  let step3Desc = 'Varsayılan veya manuel istasyon';
+  if (ws) {
+    step3Desc = ws;
+  }
+
+  // 4) Operasyon
+  let step4Desc = 'Operasyon seçimi';
+  if (op && op.calisma_karti_op) {
+    step4Desc = op.calisma_karti_op;
+  } else if (selectedOperationName.value) {
+    step4Desc = selectedOperationName.value;
+  }
+
+  // 5) Operatör (Employee)
+  let step5Desc = 'Operatör (Employee) seçimi';
+  if (emp) {
+    // Örn: "UFUK KARAMALLI (ufuk.karamalli@...)"
+    step5Desc = emp.employee_name;
+  }
+
+  return [
+    { id: 1, label: 'İş Emri',      description: step1Desc },
+    { id: 2, label: 'İş Kartı',     description: step2Desc },
+    { id: 3, label: 'İş İstasyonu', description: step3Desc },
+    { id: 4, label: 'Operasyon',    description: step4Desc },
+    { id: 5, label: 'Operatör',     description: step5Desc },
+  ];
+});
+
 // ---- DERIVED ----
 const selectedJobCard = computed(() => {
   return jobCards.value.find(jc => jc.name === selectedJobCardName.value) || null;
@@ -43,6 +95,10 @@ const selectedOperation = computed(() => {
       (op) => op.calisma_karti_op === selectedOperationName.value
     ) || null
   );
+});
+
+const selectedEmployee = computed(() => {
+  return users.value.find(emp => emp.name === selectedUser.value) || null;
 });
 
 // ---- HELPER: frappe.call'ı Promise'e sardık ----
@@ -71,10 +127,10 @@ const isStepValid = computed(() => {
     case 2:
       return !!selectedJobCard.value;
     case 3:
+      return !!selectedWorkstation.value;
+    case 4:
       // sadece bir operasyon seçilmiş olması yeterli
       return !!selectedOperationName.value;
-    case 4:
-      return !!selectedWorkstation.value;
     case 5:
       return !!selectedUser.value;
     default:
@@ -307,30 +363,24 @@ onMounted(() => {
 
 <template>
   <div class="w-full max-w-2xl mx-auto p-4 space-y-4">
-    <!-- PROGRESS -->
-    <div>
-      <div class="flex justify-between mb-1 text-sm">
-        <span>Aşama {{ currentStep }} / {{ totalSteps }}</span>
-        <span v-if="workOrder && workOrder.name">WO: {{ workOrder.name }}</span>
-      </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
-        <div
-          class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-          :style="{ width: (currentStep / totalSteps) * 100 + '%' }"
-        />
-      </div>
+    <!-- STEP INDICATOR + WO INFO -->
+    <div class="flex flex-col gap-1">
+      <StepIndicator
+        :current-step="currentStep"
+        :steps="steps"
+      />
     </div>
 
     <!-- HATA MESAJI -->
     <div
       v-if="errorMessage"
-      class="p-2 text-sm text-red-700 border border-red-300 rounded"
+      class="p-2 text-sm text-red-700 border border-red-300 rounded bg-red-50"
     >
       {{ errorMessage }}
     </div>
 
     <!-- STEPS CARD -->
-    <div class="border rounded-lg p-4 bg-white shadow-sm space-y-4">
+    <div class="wizard-card space-y-4">
       <!-- STEP 1: Work Order -->
       <StepWorkOrder
         v-if="currentStep === 1"
@@ -348,18 +398,18 @@ onMounted(() => {
         v-model:selectedJobCard="selectedJobCardName"
       />
 
-      <!-- STEP 3: Operation -->
-      <StepOperation
-        v-if="currentStep === 3"
-        :operations="operations"
-        v-model:selectedOperation="selectedOperationName"
-      />
-
-      <!-- STEP 4: Workstation -->
+      <!-- STEP 3: Workstation -->
       <StepWorkstation
-        v-if="currentStep === 4"
+        v-if="currentStep === 3"
         :job-card="selectedJobCard"
         v-model:workstation="selectedWorkstation"
+      />
+
+      <!-- STEP 4: Operation -->
+      <StepOperation
+        v-if="currentStep === 4"
+        :operations="operations"
+        v-model:selectedOperation="selectedOperationName"
       />
 
       <!-- STEP 5: User -->
@@ -405,5 +455,11 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* İstersen burada minimal stil verebilirsin */
+.wizard-card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb; /* gray-200 */
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+}
 </style>
