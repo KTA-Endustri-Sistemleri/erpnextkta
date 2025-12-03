@@ -58,7 +58,7 @@ def get_work_order_by_barcode(barcode: str):
     }
 
 @frappe.whitelist()
-def get_job_card_by_barcode(job_card: str):
+def get_job_card_by_barcode(barcode: str):
     """
     Job Card flow için erken validasyon.
     - Job Card'ı al
@@ -67,15 +67,15 @@ def get_job_card_by_barcode(job_card: str):
     - Uygun değilse HEMEN hata fırlat
     - Uygunsa frontend'e gerekli temel bilgileri döner
     """
-    if not job_card:
+    if not barcode:
         frappe.throw(_("İş Kartı boş olamaz."), title=_("Eksik Parametre"))
 
     # 1) Job Card'ı al
     try:
-        jc = frappe.get_doc("Job Card", job_card)
+        jc = frappe.get_doc("Job Card", barcode)
     except frappe.DoesNotExistError:
         frappe.throw(
-            _("Seçilen İş Kartı bulunamadı: {0}").format(job_card),
+            _("Seçilen İş Kartı bulunamadı: {0}").format(barcode),
             title=_("İş Kartı Bulunamadı"),
         )
 
@@ -266,6 +266,35 @@ def create_calisma_karti(**kwargs):
 
     doc = frappe.get_doc(doc_dict)
     doc.insert()  # izinlere saygılı
+
+    # --- 9) Operatör'ün departmanından tag üret ve ekle ---
+    operator_department_tag = None
+    if operator:
+        try:
+            emp = frappe.get_doc("Employee", operator)
+            dept = getattr(emp, "department", None)
+            if dept:
+                # Örn: "RATIONAL - KTA" -> "RATIONAL"
+                operator_department_tag = dept.split("-")[0].strip()
+        except frappe.DoesNotExistError:
+            # Employee yoksa tag üretmeyelim; link validation zaten insert'te patlar
+            operator_department_tag = None
+
+    # Departmandan üretilen tag'i ekle (varsa)
+    if operator_department_tag:
+        try:
+            from frappe.desk.doctype.tag.tag import add_tag
+
+            add_tag(operator_department_tag, doc.doctype, doc.name)
+        except Exception:
+            # Tag ekleme hatası ana akışı bozmamalı
+            frappe.log_error(
+                frappe.get_traceback(),
+                _("Calisma Karti Tag Ekleme Hatası"),
+            )
+
+    # İstersen otomatik submit:
+    # doc.submit()
 
     frappe.db.commit()
     return doc.as_dict()
