@@ -2,6 +2,17 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Stock Entry",
+  "enabled": 0,
+  "modified": "2025-11-19 16:29:04.432188",
+  "module": null,
+  "name": "KTA Stock entry",
+  "script": "frappe.ui.form.on('Stock Entry', {\r\n    refresh: function(frm) {\r\n        console.log(\"Stock Entry refreshed\");\r\n        console.log(\"Stock Entry Type:\", frm.doc.stock_entry_type);\r\n    }\r\n});\r\n\r\nfrappe.ui.form.on('Stock Entry Detail', {\r\n    item_code: function(frm, cdt, cdn) {\r\n        console.log(\"=== ITEM CODE FROM CLIENT SCRIPT ===\");\r\n        console.log(\"Stock Entry Type:\", frm.doc.stock_entry_type);\r\n        console.log(\"Flags:\", {\r\n            hide: frappe.flags.hide_serial_batch_dialog,\r\n            set: frappe.flags.dialog_set\r\n        });\r\n        \r\n        if (frm.doc.stock_entry_type === \"Material Transfer\") {\r\n            frappe.flags.hide_serial_batch_dialog = false;\r\n            frappe.flags.dialog_set = false;\r\n            console.log(\"Flags reset!\");\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Calisma Karti",
   "enabled": 1,
   "modified": "2025-08-08 14:50:21.247009",
@@ -185,5 +196,16 @@
   "name": "KTA Supply On Head Client Script",
   "script": "frappe.ui.form.on('KTA Supply On Head', {\n// refresh(frm) {\n    process_supply_on: function(frm){\n        frappe.call({\n                    method: \"erpnextkta.api.process_supply_on\",\n                    args:{\n                        \"supply_on\": frm.doc.name\n                    },\n                    callback: function(r){\n                        frm.set_value(\"last_process_date\", r.message);\n                    }\n                });\n    }\n});",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "QR Scan Record",
+  "enabled": 1,
+  "modified": "2025-11-27 16:22:29.350825",
+  "module": "QR Scanner",
+  "name": "KTA QR Scan Record",
+  "script": "frappe.listview_settings[\"QR Scan Record\"] = {\r\n    hide_name_column: true,\r\n    refresh: function(listview) {\r\n        $(\"div[data-fieldname = 'name']\").hide();\r\n    }\r\n};",
+  "view": "List"
  }
 ]

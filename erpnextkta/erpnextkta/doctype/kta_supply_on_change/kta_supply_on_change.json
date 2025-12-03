@@ -1,0 +1,138 @@
+{
+ "actions": [],
+ "creation": "2025-11-13 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "order_no",
+  "order_item",
+  "part_no_customer",
+  "plant_no_customer",
+  "column_break_1",
+  "customer",
+  "item",
+  "change_type",
+  "section_break_old",
+  "old_delivery_date",
+  "old_delivery_quantity",
+  "old_efz",
+  "column_break_new",
+  "new_delivery_date",
+  "new_delivery_quantity",
+  "new_efz",
+  "section_break_status",
+  "difference"
+ ],
+ "fields": [
+  {
+   "fieldname": "order_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sipariş No",
+   "width": "120"
+  },
+  {
+   "fieldname": "order_item",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sipariş Kalemi",
+   "width": "100"
+  },
+  {
+   "fieldname": "part_no_customer",
+   "fieldtype": "Data",
+   "label": "Müşteri Parça No"
+  },
+  {
+   "fieldname": "plant_no_customer",
+   "fieldtype": "Data",
+   "label": "Plant No"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Müşteri",
+   "options": "Customer",
+   "width": "150"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Ürün",
+   "options": "Item",
+   "width": "150"
+  },
+  {
+   "fieldname": "change_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Değişiklik Tipi",
+   "options": "Yeni Satır\nMiktar Artışı\nMiktar Azalışı\nTarih Değişikliği\nTarih ve Miktar Değişikliği\nSilinen Satır",
+   "width": "150"
+  },
+  {
+   "fieldname": "section_break_old",
+   "fieldtype": "Section Break",
+   "label": "Eski Değerler"
+  },
+  {
+   "fieldname": "old_delivery_date",
+   "fieldtype": "Date",
+   "label": "Eski Teslimat Tarihi"
+  },
+  {
+   "fieldname": "old_delivery_quantity",
+   "fieldtype": "Int",
+   "label": "Eski Miktar"
+  },
+  {
+   "fieldname": "old_efz",
+   "fieldtype": "Int",
+   "label": "Eski EFZ"
+  },
+  {
+   "fieldname": "column_break_new",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "new_delivery_date",
+   "fieldtype": "Date",
+   "label": "Yeni Teslimat Tarihi"
+  },
+  {
+   "fieldname": "new_delivery_quantity",
+   "fieldtype": "Int",
+   "label": "Yeni Miktar"
+  },
+  {
+   "fieldname": "new_efz",
+   "fieldtype": "Int",
+   "label": "Yeni EFZ"
+  },
+  {
+   "fieldname": "section_break_status",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "difference",
+   "fieldtype": "Int",
+   "label": "Fark"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2025-11-13 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "KTA Supply On Change",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

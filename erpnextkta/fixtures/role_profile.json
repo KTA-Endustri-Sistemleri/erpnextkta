@@ -187,5 +187,26 @@
     "role": "Purchase User"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2025-09-02 08:33:45.653406",
+  "name": "KTA Çalışma Kartı",
+  "role_profile": "KTA Çalışma Kartı ",
+  "roles": [
+   {
+    "parent": "KTA Çalışma Kartı",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "KTA Çalışma Kartı Kullanıcısı"
+   },
+   {
+    "parent": "KTA Çalışma Kartı",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Employee"
+   }
+  ]
  }
 ]

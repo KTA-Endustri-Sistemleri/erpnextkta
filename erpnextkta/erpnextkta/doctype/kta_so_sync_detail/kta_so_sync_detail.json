@@ -1,0 +1,128 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:",
+ "creation": "2025-11-20 18:35:20.307121",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "action",
+  "sales_order",
+  "customer",
+  "column_break_1",
+  "item",
+  "order_no",
+  "order_item",
+  "section_break_changes",
+  "old_qty",
+  "new_qty",
+  "column_break_2",
+  "old_date",
+  "new_date",
+  "section_break_status",
+  "change_type",
+  "error_message"
+ ],
+ "fields": [
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Action",
+   "options": "Created\nUpdated\nClosed\nNo Change\nError"
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sales Order"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "\u00dcr\u00fcn",
+   "options": "Item"
+  },
+  {
+   "fieldname": "order_no",
+   "fieldtype": "Data",
+   "label": "Sipari\u015f No"
+  },
+  {
+   "fieldname": "order_item",
+   "fieldtype": "Data",
+   "label": "Sipari\u015f Kalemi"
+  },
+  {
+   "fieldname": "section_break_changes",
+   "fieldtype": "Section Break",
+   "label": "De\u011fi\u015fiklikler"
+  },
+  {
+   "fieldname": "old_qty",
+   "fieldtype": "Float",
+   "label": "Eski Miktar"
+  },
+  {
+   "fieldname": "new_qty",
+   "fieldtype": "Float",
+   "label": "Yeni Miktar"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "old_date",
+   "fieldtype": "Date",
+   "label": "Eski Tarih"
+  },
+  {
+   "fieldname": "new_date",
+   "fieldtype": "Date",
+   "label": "Yeni Tarih"
+  },
+  {
+   "fieldname": "section_break_status",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "change_type",
+   "fieldtype": "Data",
+   "label": "De\u011fi\u015fiklik Tipi"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Text",
+   "label": "Hata Mesaj\u0131"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-11-20 18:57:35.722482",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "KTA SO Sync Detail",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
