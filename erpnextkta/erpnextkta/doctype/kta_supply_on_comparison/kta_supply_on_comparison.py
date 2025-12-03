@@ -1,5 +1,5 @@
 from frappe.model.document import Document
 
 
-class KTASupplyOnHead(Document):
+class KTASupplyOnComparison(Document):
 	pass

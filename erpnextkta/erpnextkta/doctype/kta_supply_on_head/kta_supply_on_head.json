@@ -9,6 +9,12 @@
   "process_supply_on",
   "column_break_uyng",
   "last_process_date",
+  "section_break_comparison",
+  "compare_with_previous",
+  "sync_to_sales_orders",
+  "column_break_comparison",
+  "last_comparison_date",
+  "last_sync_log",
   "data_tab",
   "section_break_keed",
   "table_supply_on",
@@ -57,6 +63,38 @@
    "fieldname": "table_evaluation",
    "fieldtype": "Table",
    "options": "KTA Supply On Evaluation"
+  },  
+  {
+   "fieldname": "section_break_comparison",
+   "fieldtype": "Section Break",
+   "label": "Karşılaştırma ve Senkronizasyon"
+  },
+  {
+   "fieldname": "compare_with_previous",
+   "fieldtype": "Button",
+   "label": "Önceki Verilerle Karşılaştır"
+  },
+  {
+   "fieldname": "sync_to_sales_orders",
+   "fieldtype": "Button",
+   "label": "Sales Order'ları Senkronize Et"
+  },
+  {
+   "fieldname": "column_break_comparison",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_comparison_date",
+   "fieldtype": "Datetime",
+   "label": "Son Karşılaştırma",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_sync_log",
+   "fieldtype": "Link",
+   "label": "Son Sync Log",
+   "options": "KTA SO Sync Log",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
