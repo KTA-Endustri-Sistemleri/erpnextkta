@@ -1,4 +1,6 @@
 <script setup>
+import { ref, onMounted, watch } from 'vue';
+
 const props = defineProps({
   barcode: {
     type: String,
@@ -16,48 +18,145 @@ const props = defineProps({
 
 const emit = defineEmits(['update:barcode', 'submit']);
 
-function onInput(event) {
-  emit('update:barcode', event.target.value);
+const inputRef = ref(null);
+
+// Input'u otomatik fokusla
+onMounted(() => {
+  focusInput();
+});
+
+// WO reset olursa tekrar fokus
+watch(
+  () => props.workOrder,
+  (val, oldVal) => {
+    if (!val && oldVal) focusInput();
+  }
+);
+
+function focusInput() {
+  if (inputRef.value) {
+    inputRef.value.focus();
+    inputRef.value.select();
+  }
 }
 
-function onKeyupEnter() {
-  // USB barkod okuyucu Enter gönderince
-  emit('submit');
+function onInput(event) {
+  emit('update:barcode', event.target.value || '');
+}
+
+function onKeydown(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    emit('submit');
+  }
 }
 </script>
 
 <template>
-  <section class="space-y-3">
-    <h2 class="font-semibold text-lg">1️⃣ İş Emri (Work Order)</h2>
-    <p class="text-sm text-gray-600">
-      Barkod okuyucu ile <strong>İş Emri</strong> etiketini okut. Okutma sonrası
-      genelde otomatik <code>Enter</code> geleceği için Work Order bilgileri
-      otomatik çekilecektir.
-    </p>
-
-    <input
-      type="text"
-      :value="barcode"
-      placeholder="Work Order barkod / numara"
-      class="w-full border rounded px-3 py-2"
-      @input="onInput"
-      @keyup.enter="onKeyupEnter"
-    />
-
-    <div
-      v-if="workOrder"
-      class="mt-3 text-sm text-gray-700 space-y-1"
-    >
-      <div><strong>WO:</strong> {{ workOrder.name }}</div>
-      <div v-if="workOrder.production_item">
-        <strong>Ürün:</strong> {{ workOrder.production_item }}
-      </div>
-      <div v-if="workOrder.qty != null">
-        <strong>Miktar:</strong> {{ workOrder.qty }}</div>
+  <section class="step-wo">
+    <div>
+      <h2 class="step-wo__title">1️⃣ İş Emri Barkodu</h2>
+      <p class="step-wo__subtitle">
+        Barkod okuyucu ile <strong>İş Emri barkodunu</strong> okut.
+        Okuyucu genelde Enter ile bittiği için ek işlem yapman gerekmez.
+      </p>
     </div>
 
-    <div v-if="loading" class="text-xs text-gray-500">
-      Work Order bilgileri yükleniyor...
+    <!-- Tek alan: Barkod giriş alanı -->
+    <div class="step-wo__input-wrapper">
+      <input
+        ref="inputRef"
+        type="text"
+        class="step-wo__input"
+        :readonly="loading"
+        :value="barcode"
+        placeholder="Barkodu okutun..."
+        @input="onInput"
+        @keydown="onKeydown"
+      />
+      <div class="step-wo__input-icon">
+        <div class="step-wo__scan-line" />
+      </div>
+    </div>
+
+    <!-- Loading sırasında mini açıklama -->
+    <div v-if="loading" class="step-wo__loading-text">
+      İş Emri doğrulanıyor...
     </div>
   </section>
 </template>
+
+<style scoped>
+.step-wo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.step-wo__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.step-wo__subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+/* Input alanı */
+.step-wo__input-wrapper {
+  position: relative;
+  flex: 1 1 auto;
+}
+
+.step-wo__input {
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.55rem 0.7rem;
+  padding-right: 2.4rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.step-wo__input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18);
+}
+
+.step-wo__input[readonly] {
+  background: #f3f4f6;
+}
+
+/* Scanner ikonu */
+.step-wo__input-icon {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.step-wo__scan-line {
+  width: 80%;
+  height: 2px;
+  background: #22c55e;
+}
+
+.step-wo__loading-text {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+</style>
