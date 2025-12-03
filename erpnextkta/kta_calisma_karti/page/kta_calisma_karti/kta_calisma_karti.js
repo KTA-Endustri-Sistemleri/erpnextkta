@@ -1,7 +1,7 @@
 frappe.pages['kta_calisma_karti'].on_page_load = function (wrapper) {
   const page = frappe.ui.make_app_page({
     parent: wrapper,
-    title: 'Barkod ile Çalışma Kartı Oluşturma',
+    title: null,
     single_column: true,
   });
 
