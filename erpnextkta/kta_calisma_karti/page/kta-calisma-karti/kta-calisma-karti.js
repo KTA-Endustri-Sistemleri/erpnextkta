@@ -1,4 +1,4 @@
-frappe.pages['kta_calisma_karti'].on_page_load = function (wrapper) {
+frappe.pages['kta-calisma-karti'].on_page_load = function (wrapper) {
   const page = frappe.ui.make_app_page({
     parent: wrapper,
     title: null,
@@ -21,7 +21,7 @@ frappe.pages['kta_calisma_karti'].on_page_load = function (wrapper) {
 };
 
 // Sayfa her gösterildiğinde Vue'yu tekrar yüklemek istersen:
-frappe.pages['kta_calisma_karti'].on_page_show = (wrapper) => load_vue(wrapper);
+frappe.pages['kta-calismakarti'].on_page_show = (wrapper) => load_vue(wrapper);
 
 // Vue app'i sayfaya yükleyen basit helper
 async function load_vue(wrapper) {
@@ -29,6 +29,6 @@ async function load_vue(wrapper) {
   $parent.empty();
 
   // Bundle'ı yükle ve Vue app'i mount et
-  await frappe.require('kta_calisma_karti.bundle.js');
+  await frappe.require('kta-calisma-karti.bundle.js');
   frappe.test_vue_app = frappe.ui.setup_vue($parent);
 }

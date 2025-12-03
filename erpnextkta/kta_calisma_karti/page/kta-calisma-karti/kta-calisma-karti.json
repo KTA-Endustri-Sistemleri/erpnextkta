@@ -7,9 +7,9 @@
  "modified": "2025-12-02 15:25:09.858416",
  "modified_by": "Administrator",
  "module": "kta_calisma_karti",
- "name": "kta_calisma_karti",
+ "name": "kta-calisma-karti",
  "owner": "Administrator",
- "page_name": "kta_calisma_karti",
+ "page_name": "kta-calisma-karti",
  "roles": [
   {
    "role": "System Manager"
