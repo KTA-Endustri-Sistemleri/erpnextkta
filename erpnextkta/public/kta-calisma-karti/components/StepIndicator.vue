@@ -1,5 +1,7 @@
 <!-- StepIndicator.vue -->
 <script setup>
+import { computed } from 'vue';
+
 const props = defineProps({
   currentStep: {
     type: Number,
@@ -8,13 +10,46 @@ const props = defineProps({
   steps: {
     type: Array,
     required: true,
-    // e.g. [{ id: 1, label: 'İş Emri' }, ...]
+    // e.g. [{ id: 1, label: 'İş Emri', description: '...' }, ...]
   },
 });
+
+const currentStepObj = computed(() =>
+  props.steps.find((s) => s.id === props.currentStep) || null
+);
+
+const totalSteps = computed(() => props.steps.length);
 </script>
 
 <template>
   <nav class="step-indicator">
+    <!-- Mobile compact görünüm -->
+    <div class="step-compact">
+      <div class="step-compact__row">
+        <span class="step-compact__stage">
+          Aşama {{ currentStep }} / {{ totalSteps }}
+        </span>
+        <span v-if="currentStepObj" class="step-compact__label">
+          · {{ currentStepObj.label }}
+        </span>
+      </div>
+
+      <!-- Çok segmentli mobil progress bar -->
+      <div class="step-compact__segments">
+        <div
+          v-for="step in steps"
+          :key="'mobile-' + step.id"
+          class="step-compact__segment"
+          :class="{
+            'segment--done': step.id < currentStep,
+            'segment--active': step.id === currentStep,
+            'segment--pending': step.id > currentStep
+          }"
+        />
+      </div>
+    </div>
+
+    <!-- 🔹 Desktop / geniş ekran tam step listesi -->
     <ol class="step-list">
       <li
         v-for="step in steps"
@@ -59,6 +94,8 @@ const props = defineProps({
   width: 100%;
   margin-bottom: 0.75rem;
 }
+
+/* ---------- Desktop step list (mevcut tasarım) ---------- */
 
 .step-list {
   display: flex;
@@ -150,13 +187,70 @@ const props = defineProps({
   background: #2563eb; /* blue-600 */
 }
 
-/* Mobile tweak */
+/* ---------- Mobile compact görünüm ---------- */
+
+.step-compact {
+  display: none; /* desktop'ta gizli */
+}
+
+.step-compact__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  color: #4b5563; /* gray-600 */
+  margin-bottom: 0.25rem;
+}
+
+.step-compact__stage {
+  font-weight: 600;
+  color: #111827; /* gray-900 */
+}
+
+.step-compact__label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* MOBILE multi-segment progress bar */
+.step-compact__segments {
+  display: flex;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  gap: 2px; /* segmentler arası mini boşluk */
+}
+
+.step-compact__segment {
+  flex: 1;
+  border-radius: 999px;
+  transition: background 0.2s ease-out;
+}
+
+/* Bitti -> Yeşil */
+.segment--done {
+  background: #16a34a; /* green-600 */
+}
+
+/* Şu anki aşama -> Mavi */
+.segment--active {
+  background: #2563eb; /* blue-600 */
+}
+
+/* Gelecek aşama -> Gri */
+.segment--pending {
+  background: #d1d5db; /* gray-300 */
+}
+
+/* 🔹 Ekran daraldığında: sadece compact görünüm kalsın */
 @media (max-width: 640px) {
-  .step-label__desc {
-    display: none;
+  .step-compact {
+    display: block;
   }
-  .step-label__title {
-    font-size: 0.75rem;
+
+  .step-list {
+    display: none;
   }
 }
 </style>

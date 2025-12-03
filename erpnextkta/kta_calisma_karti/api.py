@@ -65,21 +65,19 @@ def create_calisma_karti(**kwargs):
 
     Expected payload from frontend (JSON body):
         {
-            "custom_work_order": "...",  # Link to Work Order
-            "is_karti": "...",           # Link to Job Card
-            "operasyon": "...",          # Operation string (calisma_karti_op)
+            "custom_work_order": "...",  # (optional) Work Order name
+            "is_karti": "...",           # Job Card name (zorunlu)
+            "operasyon": "...",          # Operasyon
             "is_istasyonu": "...",       # Workstation
-            "operator": "EMP-0001"       # (optional) Employee.name (Link -> Employee)
+            "operator": "..."            # Employee.name (EMP-0001 vb., optional)
         }
-
-    Adjust fieldnames below if your DocType uses different names.
     """
     # Merge kwargs with form_dict for flexibility
     data = frappe._dict(frappe.local.form_dict or {})
-    # kwargs has precedence if both exist
     data.update(kwargs or {})
 
-    required_fields = ["custom_work_order", "is_karti", "operasyon", "is_istasyonu"]
+    required_fields = ["is_karti", "operasyon", "is_istasyonu"]
+    # custom_work_order'ı özellikle zorunlu yapmıyoruz; JC'den resolve edebiliriz
     for field in required_fields:
         if not data.get(field):
             frappe.throw(
@@ -87,17 +85,10 @@ def create_calisma_karti(**kwargs):
                 title=_("Eksik Zorunlu Alan"),
             )
 
-    # Fetch related documents
-    work_order_name = data.custom_work_order
     job_card_name = data.is_karti
+    work_order_name = data.get("custom_work_order")
 
-    try:
-        wo = frappe.get_doc("Work Order", work_order_name)
-    except frappe.DoesNotExistError:
-        frappe.throw(
-            _("Seçilen İş Emri bulunamadı: {0}").format(work_order_name)
-        )
-
+    # --- 1) Önce Job Card'ı al ---
     try:
         jc = frappe.get_doc("Job Card", job_card_name)
     except frappe.DoesNotExistError:
@@ -105,7 +96,29 @@ def create_calisma_karti(**kwargs):
             _("Seçilen İş Kartı bulunamadı: {0}").format(job_card_name)
         )
 
-    # Permission checks
+    # --- 2) İş Emri adını kesinleştir ---
+    # Eğer frontend'den WO gelmediyse, JC üzerindeki work_order'ı kullan
+    if not work_order_name:
+        work_order_name = getattr(jc, "work_order", None)
+
+    if not work_order_name:
+        frappe.throw(
+            _(
+                "İş Kartının bağlı olduğu bir İş Emri bulunamadı. "
+                "Lütfen İş Kartı ayarlarını kontrol edin."
+            ),
+            title=_("İş Emri Bulunamadı"),
+        )
+
+    # --- 3) Work Order'ı al ---
+    try:
+        wo = frappe.get_doc("Work Order", work_order_name)
+    except frappe.DoesNotExistError:
+        frappe.throw(
+            _("Seçilen İş Emri bulunamadı: {0}").format(work_order_name)
+        )
+
+    # --- 4) Yetki kontrolleri ---
     if not wo.has_permission("read"):
         frappe.throw(
             _("Bu İş Emri için okuma yetkiniz yok."),
@@ -118,7 +131,7 @@ def create_calisma_karti(**kwargs):
             frappe.PermissionError,
         )
 
-    # Ensure Job Card belongs to selected Work Order (same logic as JS form)
+    # --- 5) JC gerçekten bu WO'ya mı ait? ---
     if getattr(jc, "work_order", None) and jc.work_order != wo.name:
         frappe.throw(
             _(
@@ -128,75 +141,53 @@ def create_calisma_karti(**kwargs):
             title=_("Geçersiz İş Kartı"),
         )
 
-    # Derive some fields from Job Card / Work Order, like in calisma_karti.js
+    # --- 6) Work Order durum kontrolü (kritik kısım burası) ---
+    if wo.docstatus != 1:
+        frappe.throw(
+            _("İş Emri onaylanmamış (docstatus != 1)."),
+            title=_("Geçersiz İş Emri"),
+        )
+
+    # Sadece açık (Not Started / In Process) İş Emri için izin ver
+    if wo.status not in ("Not Started", "In Process"):
+        frappe.throw(
+            _("İş Emri açık değil. Mevcut durum: {0}").format(wo.status),
+            title=_("İş Emri Kapalı"),
+        )
+
+    # --- 7) Alan türetmeleri (ürün, miktar vs.) ---
     urun_kodu = getattr(jc, "production_item", None) or getattr(
         wo, "production_item", None
     )
-    uretilecek_miktar = getattr(jc, "for_quantity", None) or getattr(wo, "qty", None)
+    uretilecek_miktar = getattr(jc, "for_quantity", None) or getattr(
+        wo, "qty", None
+    )
 
-    # If frontend sent a workstation, trust that; otherwise fallback to Job Card workstation
+    # Workstation: wizard > Job Card fallback
     is_istasyonu = data.get("is_istasyonu") or getattr(jc, "workstation", None)
-
     if not is_istasyonu:
         frappe.throw(
             _("İş İstasyonu zorunludur (Job Card veya wizard tarafından sağlanmalı).")
         )
 
-    # Optional operator (Employee) field
-    operator = data.get("operator")
+    operator = data.get("operator")  # Employee.name
 
-    # Try to resolve Employee.department and prepare tag value
-    operator_department_tag = None
-    if operator:
-        try:
-            emp = frappe.get_doc("Employee", operator)
-            dept = getattr(emp, "department", None)
-            if dept:
-                # Örn: "RATIONAL - KTA" -> "RATIONAL"
-                operator_department_tag = dept.split("-")[0].strip()
-        except frappe.DoesNotExistError:
-            # Employee yoksa tag üretmeyelim; link validation zaten insert'te patlar
-            operator_department_tag = None
-
-    # Build document dict
+    # --- 8) Doküman dict'i inşa et ---
     doc_dict = {
         "doctype": "Calisma Karti",
         "custom_work_order": wo.name,
         "is_karti": jc.name,
         "operasyon": data.operasyon,
         "is_istasyonu": is_istasyonu,
-        # Derived fields (these exist in your JS logic)
         "urun_kodu": urun_kodu,
         "uretilecek_miktar": uretilecek_miktar,
     }
 
-    # Add responsible user if field exists in your DocType
     if operator:
-        # If your fieldname is different, change this key:
         doc_dict["operator"] = operator
 
-    # Create & insert document
     doc = frappe.get_doc(doc_dict)
-    doc.insert()  # respect permissions
-
-    # Departmandan üretilen tag'i ekle (varsa)
-    if operator_department_tag:
-        try:
-            from frappe.desk.doctype.tag.tag import add_tag
-
-            add_tag(operator_department_tag, doc.doctype, doc.name)
-        except Exception:
-            # Tag ekleme hatası ana akışı bozmamalı
-            frappe.log_error(
-                frappe.get_traceback(),
-                _("Calisma Karti Tag Ekleme Hatası"),
-            )
-
-    # Optionally submit automatically:
-    # if you want Calisma Karti to start as submitted, uncomment:
-    # doc.submit()
+    doc.insert()  # izinlere saygılı
 
     frappe.db.commit()
-
-    # Return the created doc for frontend
     return doc.as_dict()
