@@ -57,6 +57,84 @@ def get_work_order_by_barcode(barcode: str):
         "qty": getattr(wo, "qty", None),
     }
 
+@frappe.whitelist()
+def get_job_card_by_barcode(job_card: str):
+    """
+    Job Card flow için erken validasyon.
+    - Job Card'ı al
+    - Bağlı olduğu Work Order'ı al
+    - WO docstatus/status kontrolü yap
+    - Uygun değilse HEMEN hata fırlat
+    - Uygunsa frontend'e gerekli temel bilgileri döner
+    """
+    if not job_card:
+        frappe.throw(_("İş Kartı boş olamaz."), title=_("Eksik Parametre"))
+
+    # 1) Job Card'ı al
+    try:
+        jc = frappe.get_doc("Job Card", job_card)
+    except frappe.DoesNotExistError:
+        frappe.throw(
+            _("Seçilen İş Kartı bulunamadı: {0}").format(job_card),
+            title=_("İş Kartı Bulunamadı"),
+        )
+
+    if not jc.has_permission("read"):
+        frappe.throw(
+            _("Bu İş Kartı için okuma yetkiniz yok."),
+            frappe.PermissionError,
+        )
+
+    # 2) Bağlı olduğu Work Order
+    wo_name = getattr(jc, "work_order", None)
+    if not wo_name:
+        frappe.throw(
+            _(
+                "İş Kartının bağlı olduğu bir İş Emri bulunamadı. "
+                "Lütfen İş Kartı ayarlarını kontrol edin."
+            ),
+            title=_("İş Emri Bulunamadı"),
+        )
+
+    try:
+        wo = frappe.get_doc("Work Order", wo_name)
+    except frappe.DoesNotExistError:
+        frappe.throw(
+            _("Seçilen İş Emri bulunamadı: {0}").format(wo_name),
+            title=_("İş Emri Bulunamadı"),
+        )
+
+    if not wo.has_permission("read"):
+        frappe.throw(
+            _("Bu İş Emri için okuma yetkiniz yok."),
+            frappe.PermissionError,
+        )
+
+    # 3) WO docstatus + status kontrolü (create_calisma_karti ile aynı mantık)
+    if wo.docstatus != 1:
+        frappe.throw(
+            _("İş Emri onaylanmamış (docstatus != 1)."),
+            title=_("Geçersiz İş Emri"),
+        )
+
+    if wo.status not in ("Not Started", "In Process"):
+        frappe.throw(
+            _("İş Emri açık değil. Mevcut durum: {0}").format(wo.status),
+            title=_("İş Emri Kapalı"),
+        )
+
+    # 4) Frontend'e geri dönen minimal veri
+    return {
+        "job_card": jc.name,
+        "work_order": wo.name,
+        "operation": getattr(jc, "operation", None),
+        "workstation": getattr(jc, "workstation", None),
+        "production_item": getattr(jc, "production_item", None),
+        "for_quantity": getattr(jc, "for_quantity", None),
+        "wo_status": wo.status,
+        "wo_docstatus": wo.docstatus,
+    }
+
 
 @frappe.whitelist()
 def create_calisma_karti(**kwargs):
