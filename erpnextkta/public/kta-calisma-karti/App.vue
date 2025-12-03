@@ -241,45 +241,70 @@ async function fetchWorkOrderByBarcode() {
   }
 }
 
-// 1B) JC MODE: Barkod / ad -> Job Card
+// 1B) JC MODE: Barkod / ad -> Job Card (erken WO kontrolü backend'de)
 async function fetchJobCardByBarcode() {
   if (!jobCardBarcode.value.trim()) return;
   errorMessage.value = null;
 
   try {
     await withLoading(async () => {
-      // Basit haliyle: Job Card name = barkod
-      const jc = await callFrappe('frappe.client.get', {
-        doctype: 'Job Card',
-        name: jobCardBarcode.value.trim()
-      });
+      const msg = await callFrappe(
+        'erpnextkta.kta_calisma_karti.api.get_job_card_by_barcode',
+        { barcode: jobCardBarcode.value.trim() }
+      );
 
-      if (!jc || !jc.name) {
+      // Beklenen çıktı (örnek):
+      // {
+      //   job_card: "JC-00001",
+      //   work_order: "WO-00001",
+      //   workstation: "IST-01",
+      //   production_item: "ITEM-0001",
+      //   for_quantity: 100,
+      //   ...
+      // }
+      // (WO Completed / Stopped ise bu fonksiyon zaten frappe.throw ile hata fırlatmış olacak)
+
+      if (!msg) {
+        throw new Error('İş Kartı alınamadı.');
+      }
+
+      const jcName = msg.job_card || msg.name;
+      if (!jcName) {
         throw new Error('İş Kartı bulunamadı.');
       }
 
-      // Job Card'ı state'e oturt
-      jobCards.value = [jc];                // computed selectedJobCard için
+      const jc = {
+        name: jcName,
+        work_order: msg.work_order || msg.work_order_name || null,
+        workstation: msg.workstation || null,
+        production_item: msg.production_item || null,
+        for_quantity: msg.for_quantity || msg.qty || null,
+      };
+
+      // Job Card state
+      jobCards.value = [jc];
       selectedJobCardName.value = jc.name;
 
-      // İş Emri + İş İstasyonu'nu Job Card'dan türet
+      // Work Order state (StepIndicator vs. için)
       workOrder.value = jc.work_order
         ? {
             name: jc.work_order,
-            production_item: jc.production_item || null,
-            qty: jc.for_quantity || null,
+            production_item: jc.production_item,
+            qty: jc.for_quantity,
           }
         : null;
 
+      // İş istasyonu otomatik
       selectedWorkstation.value = jc.workstation || null;
 
-      // ilk step tamam -> operasyona geç
+      // JC flow'da 1. adım tamam → Operasyona geç
       currentStep.value = 2;
     }, 800);
   } catch (err) {
     console.error(err);
     errorMessage.value =
       (err && err.message) ||
+      (err && err._server_messages) ||
       'İş Kartı alınırken hata oluştu.';
     jobCards.value = [];
     selectedJobCardName.value = null;
