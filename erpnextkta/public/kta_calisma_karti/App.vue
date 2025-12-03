@@ -7,415 +7,439 @@ import StepWorkstation from './components/StepWorkstation.vue';
 import StepUser from './components/StepUser.vue';
 import StepIndicator from './components/StepIndicator.vue';
 
-// ---- STATE ----
-const currentStep = ref(1);
-const totalSteps = 5;
+  // ---- STATE ----
+  const currentStep = ref(1);
+  const totalSteps = 5;
 
-// Step 1: Work Order
-const workOrderBarcode = ref('');
-const workOrder = ref(null); // { name, production_item, qty, ... }
+  // Step 1: Work Order
+  const workOrderBarcode = ref('');
+  const workOrder = ref(null); // { name, production_item, qty, ... }
 
-// Step 2: Job Card
-const jobCards = ref([]);
-const selectedJobCardName = ref(null);
+  // Step 2: Job Card
+  const jobCards = ref([]);
+  const selectedJobCardName = ref(null);
 
-// Step 3: Operation
-const operations = ref([]);
-const selectedOperationName = ref(null);
+  // Step 3: Operation
+  const operations = ref([]);
+  const selectedOperationName = ref(null);
 
-// Step 4: Workstation
-const selectedWorkstation = ref(null);
-// Step 4: Auto-fill highlight flag
-const workstationAutoFilled = ref(false);
+  // Step 4: Workstation
+  const selectedWorkstation = ref(null);
+  // Step 4: Auto-fill highlight flag
+  const workstationAutoFilled = ref(false);
 
-// Step 5: User
-const users = ref([]);
-const selectedUser = ref(null); // Employee.name (EMP-0001 vb.)
+  // Step 5: User
+  const users = ref([]);
+  const selectedUser = ref(null); // Employee.name (EMP-0001 vb.)
 
-const loading = ref(false);
-const errorMessage = ref(null);
+  const loading = ref(false);
+  const errorMessage = ref(null);
 
-// ✅ Oluşturulan Çalışma Kartı
-const createdDoc = ref(null);
+  // ✅ Oluşturulan Çalışma Kartı
+  const createdDoc = ref(null);
 
-// ---- DERIVED ----
-const selectedJobCard = computed(() => {
-  return jobCards.value.find(jc => jc.name === selectedJobCardName.value) || null;
-});
-
-const selectedOperation = computed(() => {
-  return (
-    operations.value.find(
-      (op) => op.calisma_karti_op === selectedOperationName.value
-    ) || null
-  );
-});
-
-const selectedEmployee = computed(() => {
-  return users.value.find(emp => emp.name === selectedUser.value) || null;
-});
-
-// 🔹 Step indicator açıklamaları
-const steps = computed(() => {
-  const wo = workOrder.value;
-  const jc = selectedJobCard.value;
-  const op = selectedOperation.value;
-  const emp = selectedEmployee.value;
-  const ws = selectedWorkstation.value;
-
-  // 1) İş Emri
-  let step1Desc = 'Work Order barkodu';
-  if (wo && wo.name) {
-    step1Desc = wo.name;
-  }
-
-  // 2) İş Kartı
-  let step2Desc = 'Seçilecek İş Kartı';
-  if (jc) {
-    const parts = [jc.name];
-    step2Desc = parts.join(' · ');
-  }
-
-  // 3) İş İstasyonu
-  let step3Desc = 'Varsayılan veya manuel istasyon';
-  if (ws) {
-    step3Desc = ws;
-  }
-
-  // 4) Operasyon
-  let step4Desc = 'Operasyon seçimi';
-  if (op && op.calisma_karti_op) {
-    step4Desc = op.calisma_karti_op;
-  } else if (selectedOperationName.value) {
-    step4Desc = selectedOperationName.value;
-  }
-
-  // 5) Operatör (Employee)
-  let step5Desc = 'Operatör (Employee) seçimi';
-  if (emp) {
-    step5Desc = emp.employee_name || emp.name;
-  }
-
-  return [
-    { id: 1, label: 'İş Emri',      description: step1Desc },
-    { id: 2, label: 'İş Kartı',     description: step2Desc },
-    { id: 3, label: 'İş İstasyonu', description: step3Desc },
-    { id: 4, label: 'Operasyon',    description: step4Desc },
-    { id: 5, label: 'Operatör',     description: step5Desc },
-  ];
-});
-
-// ---- HELPER: frappe.call'ı Promise'e sardık ----
-function callFrappe(method, args = {}) {
-  return new Promise((resolve, reject) => {
-    frappe.call({
-      method,
-      args,
-      callback: (r) => {
-        resolve(r.message);
-      },
-      error: (err) => {
-        reject(err);
-      }
-    });
+  // ---- DERIVED ----
+  const selectedJobCard = computed(() => {
+    return jobCards.value.find(jc => jc.name === selectedJobCardName.value) || null;
   });
-}
 
-// ✅ Merkezi loading helper: min süre garantili
-async function withLoading(taskFn, minMs = 700) {
-  loading.value = true;
-  const delay = new Promise(resolve => setTimeout(resolve, minMs));
-  try {
-    const result = await taskFn();
-    await delay;
-    return result;
-  } finally {
-    loading.value = false;
+  const selectedOperation = computed(() => {
+    return (
+      operations.value.find(
+        (op) => op.calisma_karti_op === selectedOperationName.value
+      ) || null
+    );
+  });
+
+  const selectedEmployee = computed(() => {
+    return users.value.find(emp => emp.name === selectedUser.value) || null;
+  });
+
+  // 🔹 Step indicator açıklamaları
+  const steps = computed(() => {
+    const wo = workOrder.value;
+    const jc = selectedJobCard.value;
+    const op = selectedOperation.value;
+    const emp = selectedEmployee.value;
+    const ws = selectedWorkstation.value;
+
+    // 1) İş Emri
+    let step1Desc = 'Work Order barkodu';
+    if (wo && wo.name) {
+      step1Desc = wo.name;
+    }
+
+    // 2) İş Kartı
+    let step2Desc = 'Seçilecek İş Kartı';
+    if (jc) {
+      const parts = [jc.name];
+      step2Desc = parts.join(' · ');
+    }
+
+    // 3) İş İstasyonu
+    let step3Desc = 'Varsayılan veya manuel istasyon';
+    if (ws) {
+      step3Desc = ws;
+    }
+
+    // 4) Operasyon
+    let step4Desc = 'Operasyon seçimi';
+    if (op && op.calisma_karti_op) {
+      step4Desc = op.calisma_karti_op;
+    } else if (selectedOperationName.value) {
+      step4Desc = selectedOperationName.value;
+    }
+
+    // 5) Operatör (Employee)
+    let step5Desc = 'Operatör (Employee) seçimi';
+    if (emp) {
+      step5Desc = emp.employee_name || emp.name;
+    }
+
+    return [
+      { id: 1, label: 'İş Emri',      description: step1Desc },
+      { id: 2, label: 'İş Kartı',     description: step2Desc },
+      { id: 3, label: 'İş İstasyonu', description: step3Desc },
+      { id: 4, label: 'Operasyon',    description: step4Desc },
+      { id: 5, label: 'Operatör',     description: step5Desc },
+    ];
+  });
+
+  // ---- HELPER: frappe.call'ı Promise'e sardık ----
+  function callFrappe(method, args = {}) {
+    return new Promise((resolve, reject) => {
+      frappe.call({
+        method,
+        args,
+        callback: (r) => {
+          resolve(r.message);
+        },
+        error: (err) => {
+          reject(err);
+        }
+      });
+    });
   }
-}
 
-// ---- VALIDATION ----
-const isStepValid = computed(() => {
-  switch (currentStep.value) {
-    case 1:
-      return !!workOrder.value;
-    case 2:
-      return !!selectedJobCard.value;
-    case 3:
-      return !!selectedWorkstation.value;
-    case 4:
-      // sadece bir operasyon seçilmiş olması yeterli
-      return !!selectedOperationName.value;
-    case 5:
-      return !!selectedUser.value;
-    default:
-      return false;
+  // ✅ Merkezi loading helper: min süre garantili
+  async function withLoading(taskFn, minMs = 700) {
+    loading.value = true;
+    const delay = new Promise(resolve => setTimeout(resolve, minMs));
+    try {
+      const result = await taskFn();
+      await delay;
+      return result;
+    } finally {
+      loading.value = false;
+    }
   }
-});
 
-// ---- API CALLS ----
+  // ---- VALIDATION ----
+  const isStepValid = computed(() => {
+    switch (currentStep.value) {
+      case 1:
+        return !!workOrder.value;
+      case 2:
+        return !!selectedJobCard.value;
+      case 3:
+        return !!selectedWorkstation.value;
+      case 4:
+        // sadece bir operasyon seçilmiş olması yeterli
+        return !!selectedOperationName.value;
+      case 5:
+        return !!selectedUser.value;
+      default:
+        return false;
+    }
+  });
 
-// 1) Barkod -> Work Order
-async function fetchWorkOrderByBarcode() {
-  if (!workOrderBarcode.value.trim()) return;
+  // Küçük helper: seçimden sonra focus'u boşalt (boşluğa tıklamış gibi)
+  function releaseFocusAfterSelection() {
+    const el = document.activeElement;
+    if (el && typeof el.blur === 'function') {
+      el.blur();
+    }
+  }
 
-  errorMessage.value = null;
+  // ---- API CALLS ----
 
-  try {
-    await withLoading(async () => {
-      const msg = await callFrappe(
-        'erpnextkta.kta_calisma_karti.api.get_work_order_by_barcode',
-        { barcode: workOrderBarcode.value.trim() }
-      );
+  // 1) Barkod -> Work Order
+  async function fetchWorkOrderByBarcode() {
+    if (!workOrderBarcode.value.trim()) return;
 
-      workOrder.value = msg || null;
+    errorMessage.value = null;
 
-      if (!workOrder.value || !workOrder.value.name) {
-        throw new Error('Work Order bulunamadı.');
-      }
+    try {
+      await withLoading(async () => {
+        const msg = await callFrappe(
+          'erpnextkta.kta_calisma_karti.api.get_work_order_by_barcode',
+          { barcode: workOrderBarcode.value.trim() }
+        );
 
-      // İş Emri bulundu → Job Card listesi
-      await fetchJobCardsForWorkOrder();
-      currentStep.value = 2;
-    }, 800); // WO adımı için min 800ms overlay
-  } catch (err) {
-    console.error(err);
-    errorMessage.value =
-      (err && err.message) ||
-      (err && err._server_messages) ||
-      'Work Order alınırken hata oluştu.';
+        workOrder.value = msg || null;
+
+        if (!workOrder.value || !workOrder.value.name) {
+          throw new Error('Work Order bulunamadı.');
+        }
+
+        // İş Emri bulundu → Job Card listesi
+        await fetchJobCardsForWorkOrder();
+        currentStep.value = 2;
+      }, 800); // WO adımı için min 800ms overlay
+    } catch (err) {
+      console.error(err);
+      errorMessage.value =
+        (err && err.message) ||
+        (err && err._server_messages) ||
+        'Work Order alınırken hata oluştu.';
+      workOrder.value = null;
+      jobCards.value = [];
+      selectedJobCardName.value = null;
+    }
+  }
+
+  // 2) Work Order’a bağlı Job Card listesi (frappe.client.get_list)
+  // Burada loading yönetmiyoruz; üstten (fetchWorkOrderByBarcode) geliyor.
+  async function fetchJobCardsForWorkOrder() {
+    if (!workOrder.value || !workOrder.value.name) return;
+
+    const list = await callFrappe('frappe.client.get_list', {
+      doctype: 'Job Card',
+      filters: {
+        work_order: workOrder.value.name
+      },
+      fields: ['name', 'operation', 'workstation'],
+      limit_page_length: 500
+    });
+
+    jobCards.value = list || [];
+
+    if (jobCards.value.length === 1) {
+      selectedJobCardName.value = jobCards.value[0].name;
+    }
+  }
+
+  // 3) Operasyon listesi (KTA Calisma Karti Operasyonlari)
+  async function fetchOperations() {
+    errorMessage.value = null;
+
+    try {
+      await withLoading(async () => {
+        const list = await callFrappe('frappe.client.get_list', {
+          doctype: 'KTA Calisma Karti Operasyonlari',
+          fields: ['calisma_karti_op'],
+          limit_page_length: 500
+        });
+
+        operations.value = list || [];
+        selectedOperationName.value = null;
+      }, 500); // min 500ms overlay
+    } catch (err) {
+      console.error(err);
+      errorMessage.value =
+        (err && err.message) ||
+        'Operasyon listesi alınırken hata oluştu.';
+      operations.value = [];
+      selectedOperationName.value = null;
+    }
+  }
+
+  // 4) Kullanıcı listesi (Employee)
+  async function fetchUsers() {
+    errorMessage.value = null;
+
+    try {
+      await withLoading(async () => {
+        const list = await callFrappe('frappe.client.get_list', {
+          doctype: 'Employee',
+          filters: {
+            status: 'Active',           // aktif çalışanlar
+            user_id: ['is', 'set']
+          },
+          fields: ['name', 'employee_name', 'user_id', 'department'],
+          limit_page_length: 500
+        });
+
+        users.value = list || [];
+        selectedUser.value = null;
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      errorMessage.value =
+        (err && err.message) ||
+        'Kullanıcı listesi alınırken hata oluştu.';
+      users.value = [];
+      selectedUser.value = null;
+    }
+  }
+
+  // ---- Workstation sync ----
+  function syncWorkstationFromJobCard() {
+    if (selectedJobCard.value && selectedJobCard.value.workstation) {
+      selectedWorkstation.value = selectedJobCard.value.workstation;
+      // kısa süreli highlight için bayrağı aç
+      workstationAutoFilled.value = true;
+      setTimeout(() => {
+        workstationAutoFilled.value = false;
+      }, 1200); // 1.2 sn sonra highlight söner
+    } else {
+      selectedWorkstation.value = null;
+    }
+  }
+
+  // ---- SUBMIT: Calisma Karti create (create_calisma_karti) ----
+  async function submitWorkCard() {
+    if (!isStepValid.value) return;
+
+    const payload = {
+      custom_work_order: workOrder.value.name,
+      is_karti: selectedJobCard.value.name,
+      operasyon: selectedOperationName.value,
+      is_istasyonu: selectedWorkstation.value,
+      operator: selectedUser.value
+    };
+
+    errorMessage.value = null;
+
+    try {
+      await withLoading(async () => {
+        const msg = await callFrappe(
+          'erpnextkta.kta_calisma_karti.api.create_calisma_karti',
+          payload
+        );
+
+        // Oluşan dokümanı state'e al
+        if (msg && msg.name) {
+          createdDoc.value = msg;
+        } else {
+          createdDoc.value = { name: msg && msg.name ? msg.name : '' };
+        }
+        // Success ekranı wizard içinde gösteriliyor
+      }, 900); // submit sırasında min 900ms overlay
+    } catch (err) {
+      console.error(err);
+      errorMessage.value =
+        (err && err.message) ||
+        'Çalışma Kartı oluşturulurken hata oluştu.';
+    }
+  }
+
+  // ---- NAV ----
+  function goNext() {
+    if (!isStepValid.value) return;
+    if (currentStep.value < totalSteps) {
+      currentStep.value++;
+    }
+  }
+
+  function goBack() {
+    if (currentStep.value > 1) {
+      currentStep.value--;
+    }
+  }
+
+  function resetWizard() {
+    currentStep.value = 1;
+    workOrderBarcode.value = '';
     workOrder.value = null;
+
+    // Job Cardlar her Work Order'a bağlı, bunları temizlemek mantıklı
     jobCards.value = [];
     selectedJobCardName.value = null;
+
+    // ❗ Operasyon ve kullanıcı listelerini SİLME, sadece seçimleri temizle
+    selectedOperationName.value = null;
+
+    selectedWorkstation.value = null;
+    workstationAutoFilled.value = false;
+
+    selectedUser.value = null;
+
+    errorMessage.value = null;
+    createdDoc.value = null;
   }
-}
 
-// 2) Work Order’a bağlı Job Card listesi (frappe.client.get_list)
-// Burada loading yönetmiyoruz; üstten (fetchWorkOrderByBarcode) geliyor.
-async function fetchJobCardsForWorkOrder() {
-  if (!workOrder.value || !workOrder.value.name) return;
+  function goToCreatedDoc() {
+    if (!createdDoc.value || !createdDoc.value.name) return;
+    // ERPNext form route
+    frappe.set_route('Form', 'Calisma Karti', createdDoc.value.name);
+  }
 
-  const list = await callFrappe('frappe.client.get_list', {
-    doctype: 'Job Card',
-    filters: {
-      work_order: workOrder.value.name
-    },
-    fields: ['name', 'operation', 'workstation'],
-    limit_page_length: 500
+  function startNewWorkCard() {
+    resetWizard();
+  }
+
+  // ---- CHILD EVENTS ----
+  function handleWorkOrderBarcodeSubmit() {
+    // Barkod okutulup Enter gelince
+    fetchWorkOrderByBarcode();
+  }
+
+  // ---- GLOBAL ENTER HANDLER ----
+  function handleEnter(event) {
+    if (loading.value) return;
+
+    // Textarea veya buton üzerindeyken Enter'ı yok say
+    const tag = (event.target && event.target.tagName) || '';
+    if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
+
+    // 1. adım: her zaman barkodu dene (boşsa zaten hiçbir şey yapmayacak)
+    if (currentStep.value === 1) {
+      if (workOrderBarcode.value.trim()) {
+        handleWorkOrderBarcodeSubmit();
+      }
+      return;
+    }
+
+    // Diğer adımlar için önce valid mi bak
+    if (!isStepValid.value) return;
+
+    if (currentStep.value < totalSteps) {
+      goNext();
+    } else {
+      // Son adım: submit
+      submitWorkCard();
+    }
+  }
+
+  // Global keydown listener (capture ile)
+  function onGlobalKeydown(e) {
+    if (e.key === 'Enter') {
+      handleEnter(e);
+    }
+  }
+
+  // Job Card değişince workstation sync + focus bırak
+  watch(selectedJobCardName, () => {
+    syncWorkstationFromJobCard();
+    releaseFocusAfterSelection();
   });
 
-  jobCards.value = list || [];
+  // İş istasyonu değişince focus bırak
+  watch(selectedWorkstation, (val) => {
+    if (val) releaseFocusAfterSelection();
+  });
 
-  if (jobCards.value.length === 1) {
-    selectedJobCardName.value = jobCards.value[0].name;
-  }
-}
+  // Operasyon değişince focus bırak
+  watch(selectedOperationName, (val) => {
+    if (val) releaseFocusAfterSelection();
+  });
 
-// 3) Operasyon listesi (KTA Calisma Karti Operasyonlari)
-async function fetchOperations() {
-  errorMessage.value = null;
+  // User değişince focus bırak
+  watch(selectedUser, (val) => {
+    if (val) releaseFocusAfterSelection();
+  });
 
-  try {
-    await withLoading(async () => {
-      const list = await callFrappe('frappe.client.get_list', {
-        doctype: 'KTA Calisma Karti Operasyonlari',
-        fields: ['calisma_karti_op'],
-        limit_page_length: 500
-      });
+  // İlk açılışta operasyon + kullanıcı listeleri + global Enter listener
+  onMounted(() => {
+    fetchOperations();
+    fetchUsers();
+    window.addEventListener('keydown', onGlobalKeydown, { capture: true });
+  });
 
-      operations.value = list || [];
-      selectedOperationName.value = null;
-    }, 500); // min 500ms overlay
-  } catch (err) {
-    console.error(err);
-    errorMessage.value =
-      (err && err.message) ||
-      'Operasyon listesi alınırken hata oluştu.';
-    operations.value = [];
-    selectedOperationName.value = null;
-  }
-}
-
-// 4) Kullanıcı listesi (Employee)
-async function fetchUsers() {
-  errorMessage.value = null;
-
-  try {
-    await withLoading(async () => {
-      const list = await callFrappe('frappe.client.get_list', {
-        doctype: 'Employee',
-        filters: {
-          status: 'Active',           // aktif çalışanlar
-          user_id: ['is', 'set']
-        },
-        fields: ['name', 'employee_name', 'user_id', 'department'],
-        limit_page_length: 500
-      });
-
-      users.value = list || [];
-      selectedUser.value = null;
-    }, 500);
-  } catch (err) {
-    console.error(err);
-    errorMessage.value =
-      (err && err.message) ||
-      'Kullanıcı listesi alınırken hata oluştu.';
-    users.value = [];
-    selectedUser.value = null;
-  }
-}
-
-// ---- Workstation sync ----
-function syncWorkstationFromJobCard() {
-  if (selectedJobCard.value && selectedJobCard.value.workstation) {
-    selectedWorkstation.value = selectedJobCard.value.workstation;
-    // kısa süreli highlight için bayrağı aç
-    workstationAutoFilled.value = true;
-    setTimeout(() => {
-      workstationAutoFilled.value = false;
-    }, 1200); // 1.2 sn sonra highlight söner
-  } else {
-    selectedWorkstation.value = null;
-  }
-}
-
-// ---- SUBMIT: Calisma Karti create (create_calisma_karti) ----
-async function submitWorkCard() {
-  if (!isStepValid.value) return;
-
-  const payload = {
-    custom_work_order: workOrder.value.name,
-    is_karti: selectedJobCard.value.name,
-    operasyon: selectedOperationName.value,
-    is_istasyonu: selectedWorkstation.value,
-    operator: selectedUser.value
-  };
-
-  errorMessage.value = null;
-
-  try {
-    await withLoading(async () => {
-      const msg = await callFrappe(
-        'erpnextkta.kta_calisma_karti.api.create_calisma_karti',
-        payload
-      );
-
-      // Oluşan dokümanı state'e al
-      if (msg && msg.name) {
-        createdDoc.value = msg;
-      } else {
-        createdDoc.value = { name: msg && msg.name ? msg.name : '' };
-      }
-      // Success ekranı wizard içinde gösteriliyor
-    }, 900); // submit sırasında min 900ms overlay
-  } catch (err) {
-    console.error(err);
-    errorMessage.value =
-      (err && err.message) ||
-      'Çalışma Kartı oluşturulurken hata oluştu.';
-  }
-}
-
-// ---- NAV ----
-function goNext() {
-  if (!isStepValid.value) return;
-  if (currentStep.value < totalSteps) {
-    currentStep.value++;
-  }
-}
-
-function goBack() {
-  if (currentStep.value > 1) {
-    currentStep.value--;
-  }
-}
-
-function resetWizard() {
-  currentStep.value = 1;
-  workOrderBarcode.value = '';
-  workOrder.value = null;
-
-  // Job Cardlar her Work Order'a bağlı, bunları temizlemek mantıklı
-  jobCards.value = [];
-  selectedJobCardName.value = null;
-
-  // ❗ Operasyon ve kullanıcı listelerini SİLME, sadece seçimleri temizle
-  selectedOperationName.value = null;
-
-  selectedWorkstation.value = null;
-  workstationAutoFilled.value = false;
-
-  selectedUser.value = null;
-
-  errorMessage.value = null;
-  createdDoc.value = null;
-}
-
-function goToCreatedDoc() {
-  if (!createdDoc.value || !createdDoc.value.name) return;
-  // ERPNext form route
-  frappe.set_route('Form', 'Calisma Karti', createdDoc.value.name);
-}
-
-function startNewWorkCard() {
-  resetWizard();
-}
-
-// ---- CHILD EVENTS ----
-function handleWorkOrderBarcodeSubmit() {
-  // Barkod okutulup Enter gelince
-  fetchWorkOrderByBarcode();
-}
-
-// ---- GLOBAL ENTER HANDLER ----
-function handleEnter(event) {
-  if (loading.value) return;
-
-  // Textarea veya buton üzerindeyken Enter'ı yok say
-  const tag = (event.target && event.target.tagName) || '';
-  if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
-
-  // 1. adım: her zaman barkodu dene (boşsa zaten hiçbir şey yapmayacak)
-  if (currentStep.value === 1) {
-    if (workOrderBarcode.value.trim()) {
-      handleWorkOrderBarcodeSubmit();
-    }
-    return;
-  }
-
-  // Diğer adımlar için önce valid mi bak
-  if (!isStepValid.value) return;
-
-  if (currentStep.value < totalSteps) {
-    goNext();
-  } else {
-    // Son adım: submit
-    submitWorkCard();
-  }
-}
-
-// Global keydown listener
-function onGlobalKeydown(e) {
-  if (e.key === 'Enter') {
-    handleEnter(e);
-  }
-}
-
-// Job Card değişince workstation sync
-watch(selectedJobCardName, () => {
-  syncWorkstationFromJobCard();
-});
-
-// İlk açılışta operasyon + kullanıcı listeleri + global Enter listener
-onMounted(() => {
-  fetchOperations();
-  fetchUsers();
-  window.addEventListener('keydown', onGlobalKeydown, { capture: true });
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onGlobalKeydown, { capture: true });
-});
+  onBeforeUnmount(() => {
+    window.removeEventListener('keydown', onGlobalKeydown, { capture: true });
+  });
 </script>
 <template>
   <div class="w-full max-w-2xl mx-auto p-4 space-y-4">
