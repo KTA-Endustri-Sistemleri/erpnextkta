@@ -29,8 +29,8 @@ DOCTYPE_BIN = "Bin"
 DOCTYPE_STOCK_LEDGER_ENTRY = "Stock Ledger Entry"
 DOCTYPE_KTA_MOBIL_DEPO = "KTA Mobil Depo"
 DOCTYPE_KTA_MOBIL_DEPO_KALEMI = "KTA Mobil Depo Kalemi"
-DOCTYPE_KTA_SUPPLY_ON_HEAD = "KTA Supply On Head"
 DOCTYPE_KTA_SUPPLY_ON = "KTA Supply On"
+DOCTYPE_KTA_SUPPLY_ON_ENTRY = "KTA Supply On Entry"
 DOCTYPE_DELIVERY_NOTE = "Delivery Note"
 DOCTYPE_DELIVERY_NOTE_ITEM = "Delivery Note Item"
 DOCTYPE_SALES_ORDER = "Sales Order"
@@ -100,6 +100,15 @@ VALUE_TABLE_EVALUATION = "table_evaluation"
 # Global parent field constants
 PARENT_FIELD_STOCK_ENTRY_DETAIL = "items"
 
+
+def _get_supply_on_doc(supply_on_name: str):
+    if not supply_on_name:
+        frappe.throw(_("Supply On referansı belirtilmedi."))
+
+    if not frappe.db.exists(DOCTYPE_KTA_SUPPLY_ON, supply_on_name):
+        frappe.throw(_("Supply On kaydı bulunamadı: {0}").format(supply_on_name))
+
+    return frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON, supply_on_name)
 
 @frappe.whitelist()
 def get_customer_income_account(customer, company):
@@ -555,15 +564,18 @@ def clear_warehouse_labels():
 
 
 @frappe.whitelist()
-def process_supply_on(supply_on):
-    supply_on_doc = frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on)
+def process_supply_on(supply_on=None, supply_on_reference=None):
+    reference_name = supply_on_reference or supply_on
+    head_name = _resolve_supply_on_head_name(reference_name)
+
+    supply_on_doc = frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON_HEAD, head_name)
     supply_on_doc.set(VALUE_TABLE_EVALUATION, [])
     supply_on_doc.save()
 
-    supply_on_balances = get_balances_from_supply_on(supply_on)
+    supply_on_balances = get_balances_from_supply_on(head_name)
 
     if not supply_on_balances:
-        frappe.throw(f"No supply on balances found for supply on: {supply_on}")
+        frappe.throw(f"No supply on balances found for supply on: {head_name}")
         return None
 
     for balance in supply_on_balances:
@@ -672,13 +684,15 @@ def get_balances_from_supply_on(supply_on):
                                 MAX(EFZ_customer)            AS `closed_qty`,
                                 MAX(EFZ) - MAX(EFZ_customer) AS `balance_qty`
                          FROM `tabKTA Supply On`
-                         WHERE parent = %s
-                           AND parenttype = %s
+                         WHERE (
+                                supply_on_head = %s
+                                OR (COALESCE(supply_on_head, '') = '' AND parent = %s AND parenttype = %s)
+                         )
                          GROUP BY plant_no_customer,
                                   part_no_customer,
                                   delivery_note_no,
                                   delivery_note_date
-                         """, (supply_on, DOCTYPE_KTA_SUPPLY_ON_HEAD), as_dict=True)
+                         """, (supply_on, supply_on, DOCTYPE_KTA_SUPPLY_ON_HEAD), as_dict=True)
 
 
 @frappe.whitelist()
@@ -724,9 +738,17 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
                 FROM `tabKTA Supply On`
                 WHERE plant_no_customer = %s 
                 AND part_no_customer = %s
-                AND parenttype = %s
-                AND parent = %s
-            """, (eval_row.plant_no_customer, eval_row.part_no_customer, DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on_head_name), as_dict=True)
+                AND (
+                    supply_on_head = %s
+                    OR (COALESCE(supply_on_head, '') = '' AND parent = %s AND parenttype = %s)
+                )
+            """, (
+                eval_row.plant_no_customer,
+                eval_row.part_no_customer,
+                supply_on_head_name,
+                supply_on_head_name,
+                DOCTYPE_KTA_SUPPLY_ON_HEAD
+            ), as_dict=True)
 
             for supply_on in matching_supply_ons:
                 sales_orders = frappe.db.sql("""
@@ -839,8 +861,10 @@ def compare_supply_on_documents(current_supply_on_name):
     """
     DOCTYPE = "KTA Supply On Head"
 
+    resolved_name = _resolve_supply_on_head_name(current_supply_on_name)
+
     # Geçerli dokümanı al
-    current = frappe.get_doc(DOCTYPE, current_supply_on_name)
+    current = frappe.get_doc(DOCTYPE, resolved_name)
 
     # Tüm Supply On Head kayıtlarını creation sırasına göre al (artan)
     all_heads = frappe.get_all(
@@ -877,7 +901,7 @@ def compare_supply_on_documents(current_supply_on_name):
     previous_data = get_supply_on_data(previous_supply_on_name, apply_shipments=False)
 
     # 🔹 Yeni veri: ham (sevkiyat düşümü artık senkronizasyon aşamasında yapılacak)
-    current_data = get_supply_on_data(current_supply_on_name, apply_shipments=False)
+    current_data = get_supply_on_data(resolved_name, apply_shipments=False)
 
     # Karşılaştırma yap
     changes = detect_changes(previous_data, current_data)
@@ -912,10 +936,12 @@ def get_supply_on_data(supply_on_name, apply_shipments=False):
             efz,
             plant_no_customer
         FROM `tabKTA Supply On`
-        WHERE parent = %s
-            AND parenttype = %s
+        WHERE (
+            supply_on_head = %s
+            OR (COALESCE(supply_on_head, '') = '' AND parent = %s AND parenttype = %s)
+        )
         ORDER BY order_no, part_no_customer, plant_no_customer, delivery_date
-    """, (supply_on_name, DOCTYPE_KTA_SUPPLY_ON_HEAD), as_dict=True)
+    """, (supply_on_name, supply_on_name, DOCTYPE_KTA_SUPPLY_ON_HEAD), as_dict=True)
 
     # 🔹 YENİ: Sevkiyat düşümü sadece current Supply On için uygulanacak
     if apply_shipments:
@@ -1242,13 +1268,12 @@ def get_customer_and_item(plant_no_customer, part_no_customer):
     return customer, item
 
 @frappe.whitelist()
-def sync_sales_orders_from_supply_on(supply_on_head_name):
+def sync_sales_orders_from_supply_on(supply_on_head_name=None, supply_on_reference=None):
     """
-    Supply On Head'den direkt senkronizasyon.
-    Karşılaştırma belgesine ihtiyaç duymadan,
-    sevkiyat düşülmüş Supply On verisi üzerinden SO günceller.
+    Supply On Head'den veya doğrudan satırdan senkronizasyon başlat.
     """
-    return _sync_sales_orders_from_supply_on(supply_on_head_name)
+    reference_name = supply_on_reference or supply_on_head_name
+    return _sync_sales_orders_from_supply_on(reference_name)
 
 
 @frappe.whitelist()
@@ -1265,10 +1290,11 @@ def _sync_sales_orders_from_supply_on(supply_on_head_name, comparison=None):
     Seçilen Supply On Head için sevkiyat düşülmüş değişiklikleri üretip ERP'ye uygular.
     comparison parametresi verilirse log'lara eklenir ve durum güncellenir.
     """
-    sync_changes = [frappe._dict(change) for change in build_sales_order_sync_changes(supply_on_head_name)]
+    resolved_head = _resolve_supply_on_head_name(supply_on_head_name)
+    sync_changes = [frappe._dict(change) for change in build_sales_order_sync_changes(resolved_head)]
 
     sync_log = frappe.new_doc("KTA SO Sync Log")
-    sync_log.supply_on_head = supply_on_head_name
+    sync_log.supply_on_head = resolved_head
     if comparison:
         sync_log.comparison = comparison.name
     sync_log.sync_date = frappe.utils.now()
@@ -1308,7 +1334,7 @@ def _sync_sales_orders_from_supply_on(supply_on_head_name, comparison=None):
             comparison.status = "Synced"
             comparison.save()
         
-        supply_on_head = frappe.get_doc("KTA Supply On Head", supply_on_head_name)
+        supply_on_head = frappe.get_doc("KTA Supply On Head", resolved_head)
         supply_on_head.last_sync_log = sync_log.name
         supply_on_head.save()
         
@@ -1357,11 +1383,13 @@ def build_sales_order_sync_changes(supply_on_head_name):
             efz,
             plant_no_customer
         FROM `tabKTA Supply On`
-        WHERE parent = %s
-          AND parenttype = %s
+        WHERE (
+            supply_on_head = %s
+            OR (COALESCE(supply_on_head, '') = '' AND parent = %s AND parenttype = %s)
+        )
         ORDER BY order_no, part_no_customer, plant_no_customer, delivery_date
         """,
-        (supply_on_head_name, DOCTYPE_KTA_SUPPLY_ON_HEAD),
+        (supply_on_head_name, supply_on_head_name, DOCTYPE_KTA_SUPPLY_ON_HEAD),
         as_dict=True,
     )
 
