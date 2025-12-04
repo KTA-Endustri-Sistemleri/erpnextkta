@@ -611,11 +611,12 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <div class="w-full max-w-2xl mx-auto p-4 space-y-4">
+  <div class="w-full max-w-2xl mx-auto p-2 space-y-4">
     <!-- WIZARD MODU -->
     <template v-if="!createdDoc">
       <!-- MODE TOGGLE -->
-      <div class="flex justify-center gap-2 mb-1">
+      <teleport to=".page-head-content">
+      <div class="flex justify-center gap-2 mb-1" style="width: 100%;">
         <button
           type="button"
           class="mode-pill"
@@ -633,7 +634,7 @@ onBeforeUnmount(() => {
           İş Kartı ile
         </button>
       </div>
-
+      </teleport>
       <!-- STEP INDICATOR -->
       <div class="flex flex-col gap-1">
         <StepIndicator
@@ -822,9 +823,11 @@ onBeforeUnmount(() => {
 }
 /* MODE TOGGLE (İş Emri ile / İş Kartı ile) */
 .mode-pill {
+  width: 100%;
   font-size: 0.8rem;
+  margin: 0em 0.4rem;
   padding: 0.35rem 0.7rem;
-  border-radius: 999px;
+  border-radius: 5px;
   border: 1px solid #d1d5db;
   background: #f9fafb;
   color: #4b5563;
