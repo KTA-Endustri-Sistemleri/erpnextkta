@@ -273,12 +273,6 @@ fixtures = [
         "filters": [
             ["name", "like", "KTA%"]
         ]
-    },
-    {
-        "dt": "Custom Field",
-        "filters": [
-            ["dt", "=", "Calisma Karti"]
-        ]
     }
 ]
 doctype_js = {
