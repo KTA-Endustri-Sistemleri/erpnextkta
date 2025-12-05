@@ -1,4 +1,4 @@
-## erpnextkta
+## ERPNEXTKTA - Custom App
 
 # 📦 Semantic Release & Conventional Commit Rehberi
 **ERPNextKTA – Otomatik Versiyonlama, Yayın Süreci ve Commit Standartları**
