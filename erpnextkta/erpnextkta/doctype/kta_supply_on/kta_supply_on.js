@@ -2,27 +2,7 @@ frappe.ui.form.on('KTA Supply On', {
     refresh(frm) {
         if (frm.is_new()) return;
 
-        if (!frm.doc.supply_on_head) {
-            frm.dashboard.set_headline(__('Bu satır herhangi bir Supply On Head kayıtıyla ilişkilendirilmemiştir.'));
-        }
-
         const referenceName = frm.doc.name;
-
-        frm.add_custom_button(__('Veriyi İşle'), () => {
-            frappe.call({
-                method: 'erpnextkta.api.process_supply_on',
-                args: { supply_on_reference: referenceName },
-                freeze: true,
-                freeze_message: __('Supply On verisi işleniyor...'),
-                callback: () => {
-                    frappe.show_alert({
-                        message: __('Supply On verisi işlendi.'),
-                        indicator: 'green',
-                    });
-                    frm.reload_doc();
-                },
-            });
-        }, __('Supply On İşlemleri'));
 
         frm.add_custom_button(__('Önceki Verilerle Karşılaştır'), () => {
             frappe.call({
@@ -78,7 +58,7 @@ frappe.ui.form.on('KTA Supply On', {
 
         frm.add_custom_button(__('Dosyadan Yükle (Data Import)'), () => {
             frappe.new_doc('Data Import', {
-                reference_doctype: 'KTA Supply On',
+                reference_doctype: 'KTA Supply On Entry',
                 import_type: 'Insert New Records',
             });
         }, __('Kısayollar'));

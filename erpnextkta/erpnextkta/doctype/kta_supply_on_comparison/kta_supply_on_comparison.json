@@ -31,14 +31,14 @@
    "fieldname": "previous_supply_on",
    "fieldtype": "Link",
    "label": "Önceki Supply On",
-   "options": "KTA Supply On Head",
+   "options": "KTA Supply On",
    "read_only": 1
   },
   {
    "fieldname": "current_supply_on",
    "fieldtype": "Link",
    "label": "Güncel Supply On",
-   "options": "KTA Supply On Head",
+   "options": "KTA Supply On",
    "read_only": 1,
    "reqd": 1
   },

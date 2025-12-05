@@ -31,6 +31,9 @@ DOCTYPE_KTA_MOBIL_DEPO = "KTA Mobil Depo"
 DOCTYPE_KTA_MOBIL_DEPO_KALEMI = "KTA Mobil Depo Kalemi"
 DOCTYPE_KTA_SUPPLY_ON = "KTA Supply On"
 DOCTYPE_KTA_SUPPLY_ON_ENTRY = "KTA Supply On Entry"
+DOCTYPE_KTA_SUPPLY_ON_COMPARISON = "KTA Supply On Comparison"
+DOCTYPE_KTA_SUPPLY_ON_CHANGE = "KTA Supply On Change"
+DOCTYPE_KTA_SO_SYNC_LOG = "KTA SO Sync Log"
 DOCTYPE_DELIVERY_NOTE = "Delivery Note"
 DOCTYPE_DELIVERY_NOTE_ITEM = "Delivery Note Item"
 DOCTYPE_SALES_ORDER = "Sales Order"
@@ -95,7 +98,6 @@ FIELD_HURDA_NEDENI = "hurda_nedeni"
 VALUE_MANUFACTURE = "Manufacture"
 VALUE_CUSTOMER_ITEMS = "customer_items"
 VALUE_ENTRIES = "entries"
-VALUE_TABLE_EVALUATION = "table_evaluation"
 
 # Global parent field constants
 PARENT_FIELD_STOCK_ENTRY_DETAIL = "items"
@@ -564,220 +566,6 @@ def clear_warehouse_labels():
 
 
 @frappe.whitelist()
-def process_supply_on(supply_on=None, supply_on_reference=None):
-    reference_name = supply_on_reference or supply_on
-    head_name = _resolve_supply_on_head_name(reference_name)
-
-    supply_on_doc = frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON_HEAD, head_name)
-    supply_on_doc.set(VALUE_TABLE_EVALUATION, [])
-    supply_on_doc.save()
-
-    supply_on_balances = get_balances_from_supply_on(head_name)
-
-    if not supply_on_balances:
-        frappe.throw(f"No supply on balances found for supply on: {head_name}")
-        return None
-
-    for balance in supply_on_balances:
-        errors = {"plant_no": None, "part_no": None, "bom": None}
-
-        # Process customer
-        customer = None
-        if balance.plant_no_customer:
-            # find the address
-            address = frappe.get_value(DOCTYPE_ADDRESS, {"custom_eski_kod": balance.plant_no_customer}, "name")
-            if address:
-                # Find the customer through the child table
-                address_doc = frappe.get_doc(DOCTYPE_ADDRESS, address)
-                customer = None
-                links = address_doc.get("links") or []
-                for link in links:
-                     if link.link_doctype == DOCTYPE_CUSTOMER:
-                         customer = link.link_name
-                         break
-                
-                if not customer:
-                    errors["plant_no"] = f"Address {address} için Customer linki bulunamadı"
-            else:
-                # No address found with custom_eski_kod
-                errors["plant_no"] = f"{balance.plant_no_customer} ile Address bulunamadı"
-                customer = None
-
-        # Process item
-        item = None
-        if balance.part_no_customer and customer:
-            item = frappe.get_value(DOCTYPE_ITEM, balance.part_no_customer, FIELD_NAME)
-            if not item:
-                ref_item = frappe.get_value(
-                    DOCTYPE_ITEM_CUSTOMER_DETAIL,
-                    {FIELD_REF_CODE: balance.part_no_customer, FIELD_CUSTOMER_NAME: customer},
-                    FIELD_PARENT
-                )
-                if ref_item:
-                    item = ref_item
-                else:
-                    errors["part_no"] = f"Item {balance.part_no_customer} bulunamadı"
-
-        # Get last delivery note if item exists
-        last_delivery = [{'max_custom_irsaliye_no': None, 'lr_date': None}]
-        if item and customer:
-            last_delivery = get_last_delivery_note(customer, item)
-
-        if item:
-            if not frappe.get_all(DOCTYPE_BOM, filters={"item": item, "is_default": 1}, limit=1):
-                errors["bom"] = "Varsayılan BOM bulunamadı"
-
-        # Append evaluation data
-        supply_on_doc.append(
-            VALUE_TABLE_EVALUATION,
-            {
-                FIELD_PLANT_NO_CUSTOMER: balance.plant_no_customer,
-                "plant_no_error_message": errors["plant_no"],
-                FIELD_PART_NO_CUSTOMER: balance.part_no_customer,
-                "part_no_error_message": errors["part_no"],
-                "part_no_bom_error_message": errors["bom"],
-                "total_qty": balance.total_qty,
-                "closed_qty": balance.closed_qty,
-                "balance_qty": balance.balance_qty,
-                "customer": customer,
-                "item": item,
-                "last_delivery_note": balance.delivery_note_no,
-                "last_delivery_date": balance.delivery_note_date,
-                "kta_last_delivery_note": last_delivery[0]['max_custom_irsaliye_no'] if last_delivery else None,
-                "kta_last_delivery_date": last_delivery[0]['lr_date'] if last_delivery else None
-            }
-        )
-
-    supply_on_doc.save()
-    evaluate_supply_on_sales_orders(supply_on_doc.name)
-
-
-def get_last_delivery_note(customer_name, item_name):
-    return frappe.db.sql("""SELECT MAX(tdn.custom_irsaliye_no) AS max_custom_irsaliye_no,
-                                   tdn.lr_date
-                            FROM `tabDelivery Note` tdn
-                                     INNER JOIN `tabDelivery Note Item` tdni
-                                                ON tdn.name = tdni.parent
-                                                    AND tdni.item_code = %s
-                                     INNER JOIN (SELECT MAX(dn.lr_date) as max_date
-                                                 FROM `tabDelivery Note` dn
-                                                          INNER JOIN `tabDelivery Note Item` dni
-                                                                     ON dn.name = dni.parent
-                                                                         AND dni.item_code = %s
-                                                 WHERE dn.customer = %s
-                                                   AND dn.docstatus = 1
-                                                   AND dn.is_return = 0) latest ON tdn.lr_date = latest.max_date
-                            WHERE tdn.customer = %s
-                              AND tdn.is_return = 0
-                              AND tdn.docstatus = 1
-                            GROUP BY tdn.lr_date;
-                         """, (item_name, item_name, customer_name, customer_name), as_dict=True)
-
-
-def get_balances_from_supply_on(supply_on):
-    return frappe.db.sql("""
-                         SELECT plant_no_customer,
-                                part_no_customer,
-                                delivery_note_no,
-                                delivery_note_date,
-                                MAX(EFZ)                     AS `total_qty`,
-                                MAX(EFZ_customer)            AS `closed_qty`,
-                                MAX(EFZ) - MAX(EFZ_customer) AS `balance_qty`
-                         FROM `tabKTA Supply On`
-                         WHERE (
-                                supply_on_head = %s
-                                OR (COALESCE(supply_on_head, '') = '' AND parent = %s AND parenttype = %s)
-                         )
-                         GROUP BY plant_no_customer,
-                                  part_no_customer,
-                                  delivery_note_no,
-                                  delivery_note_date
-                         """, (supply_on, supply_on, DOCTYPE_KTA_SUPPLY_ON_HEAD), as_dict=True)
-
-
-@frappe.whitelist()
-def evaluate_supply_on_sales_orders(supply_on_head_name):
-    """
-    Evaluate each row of VALUE_TABLE_EVALUATION where balance_qty is not zero
-    against DOCTYPE_KTA_SUPPLY_ON_HEAD and query relevant sales orders
-    """
-    try:
-        # Get the supply on head
-        supply_on_doc = frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on_head_name)
-        
-        if not supply_on_doc.get(VALUE_TABLE_EVALUATION):
-            frappe.throw("No evaluation data found in the supply on head document")
-            return []
-        
-        results = []
-        
-        # Process each evaluation row where balance_qty is not zero
-        for eval_row in supply_on_doc.get(VALUE_TABLE_EVALUATION):
-            # Convert balance_qty to float for proper comparison
-            try:
-                balance_qty = float(eval_row.balance_qty or 0)
-            except (ValueError, TypeError):
-                balance_qty = 0
-                
-            if balance_qty <= 0:
-                continue
-                
-            customer = eval_row.customer
-            item = eval_row.item
-            
-            if not customer or not item:
-                continue
-            
-            matching_supply_ons = frappe.db.sql("""
-                SELECT 
-                    delivery_date,
-                    delivery_quantity,
-                    quantity,
-                    efz,
-                    efz_customer
-                FROM `tabKTA Supply On`
-                WHERE plant_no_customer = %s 
-                AND part_no_customer = %s
-                AND (
-                    supply_on_head = %s
-                    OR (COALESCE(supply_on_head, '') = '' AND parent = %s AND parenttype = %s)
-                )
-            """, (
-                eval_row.plant_no_customer,
-                eval_row.part_no_customer,
-                supply_on_head_name,
-                supply_on_head_name,
-                DOCTYPE_KTA_SUPPLY_ON_HEAD
-            ), as_dict=True)
-
-            for supply_on in matching_supply_ons:
-                sales_orders = frappe.db.sql("""
-                                             SELECT soi.name,
-                                                    soi.delivery_date,
-                                                    soi.qty,
-                                                    soi.delivered_qty,
-                                                    soi.pending_qty,
-                                                    so.name as sales_order,
-                                                    so.transaction_date
-                                             FROM `tabSales Order Item` soi
-                                                      INNER JOIN `tabSales Order` so on so.name = soi.parent
-                                             WHERE soi.item_code = %s
-                                               AND so.customer = %s
-                                               AND so.docstatus = 1
-                                               AND so.status not in ('Closed', 'Cancelled')
-                                               AND soi.pending_qty > 0
-                                             ORDER BY soi.delivery_date
-                                             """, (item, customer), as_dict=True)
-
-
-        return results
-
-    except Exception as e:
-        frappe.log_error(f"Error in evaluate_supply_on_sales_orders: {str(e)}")
-        frappe.throw(f"Error evaluating supply on sales orders: {str(e)}")
-
-
-@frappe.whitelist()
 def get_items_from_calisma_karti(source_name: str, target_doc=None):
     """
     Stock Entry > Get Items From > Calisma Karti
@@ -852,21 +640,21 @@ def get_items_from_calisma_karti(source_name: str, target_doc=None):
 @frappe.whitelist()
 def compare_supply_on_documents(current_supply_on_name):
     """
-    Verilen KTA Supply On Head dokümanını, CREATION sırasına göre ondan ÖNCE gelen
-    bir önceki KTA Supply On Head dokümanı ile karşılaştır.
+    Verilen KTA Supply On dokümanını, CREATION sırasına göre ondan ÖNCE gelen
+    bir önceki KTA Supply On dokümanı ile karşılaştır.
 
     Burada:
       - previous_supply_on → ham veri
       - current_supply_on  → sevkiyatlar düşülmüş veri
     """
-    DOCTYPE = "KTA Supply On Head"
+    DOCTYPE = DOCTYPE_KTA_SUPPLY_ON
 
-    resolved_name = _resolve_supply_on_head_name(current_supply_on_name)
+    resolved_name = current_supply_on_name
 
     # Geçerli dokümanı al
     current = frappe.get_doc(DOCTYPE, resolved_name)
 
-    # Tüm Supply On Head kayıtlarını creation sırasına göre al (artan)
+    # Tüm Supply On kayıtlarını creation sırasına göre al (artan)
     all_heads = frappe.get_all(
         DOCTYPE,
         fields=["name", "creation"],
@@ -881,10 +669,10 @@ def compare_supply_on_documents(current_supply_on_name):
             break
 
     if current_index is None:
-        frappe.throw(f"Current Supply On Head bulunamadı: {current.name}")
+        frappe.throw(f"Current Supply On kaydı bulunamadı: {current.name}")
 
     if current_index == 0:
-        frappe.msgprint("Karşılaştırma için önceki Supply On Head bulunamadı (bu ilk kayıt).")
+        frappe.msgprint("Karşılaştırma için önceki Supply On kaydı bulunamadı (bu ilk kayıt).")
         return
 
     # Bir önceki kayıt:
@@ -929,19 +717,16 @@ def get_supply_on_data(supply_on_name, apply_shipments=False):
     rows = frappe.db.sql("""
         SELECT 
             order_no,
-            order_item,
+            NULL AS order_item,
             part_no_customer,
             delivery_date,
             delivery_quantity,
-            efz,
+            NULL AS efz,
             plant_no_customer
-        FROM `tabKTA Supply On`
-        WHERE (
-            supply_on_head = %s
-            OR (COALESCE(supply_on_head, '') = '' AND parent = %s AND parenttype = %s)
-        )
+        FROM `tabKTA Supply On Entry`
+        WHERE parent = %s AND parenttype = %s
         ORDER BY order_no, part_no_customer, plant_no_customer, delivery_date
-    """, (supply_on_name, supply_on_name, DOCTYPE_KTA_SUPPLY_ON_HEAD), as_dict=True)
+    """, (supply_on_name, DOCTYPE_KTA_SUPPLY_ON), as_dict=True)
 
     # 🔹 YENİ: Sevkiyat düşümü sadece current Supply On için uygulanacak
     if apply_shipments:
@@ -1268,11 +1053,13 @@ def get_customer_and_item(plant_no_customer, part_no_customer):
     return customer, item
 
 @frappe.whitelist()
-def sync_sales_orders_from_supply_on(supply_on_head_name=None, supply_on_reference=None):
+def sync_sales_orders_from_supply_on(supply_on_name=None, supply_on_reference=None):
     """
-    Supply On Head'den veya doğrudan satırdan senkronizasyon başlat.
+    Supply On'dan senkronizasyon başlat.
     """
-    reference_name = supply_on_reference or supply_on_head_name
+    reference_name = supply_on_reference or supply_on_name
+    if not reference_name:
+        frappe.throw(_("Supply On seçilmedi."))
     return _sync_sales_orders_from_supply_on(reference_name)
 
 
@@ -1285,16 +1072,16 @@ def sync_sales_orders_from_comparison(comparison_name):
     return _sync_sales_orders_from_supply_on(comparison.current_supply_on, comparison=comparison)
 
 
-def _sync_sales_orders_from_supply_on(supply_on_head_name, comparison=None):
+def _sync_sales_orders_from_supply_on(supply_on_name, comparison=None):
     """
-    Seçilen Supply On Head için sevkiyat düşülmüş değişiklikleri üretip ERP'ye uygular.
+    Seçilen Supply On için sevkiyat düşülmüş değişiklikleri üretip ERP'ye uygular.
     comparison parametresi verilirse log'lara eklenir ve durum güncellenir.
     """
-    resolved_head = _resolve_supply_on_head_name(supply_on_head_name)
-    sync_changes = [frappe._dict(change) for change in build_sales_order_sync_changes(resolved_head)]
+    supply_on_doc = _get_supply_on_doc(supply_on_name)
+    sync_changes = [frappe._dict(change) for change in build_sales_order_sync_changes(supply_on_doc.name)]
 
     sync_log = frappe.new_doc("KTA SO Sync Log")
-    sync_log.supply_on_head = resolved_head
+    sync_log.supply_on = supply_on_doc.name
     if comparison:
         sync_log.comparison = comparison.name
     sync_log.sync_date = frappe.utils.now()
@@ -1304,6 +1091,21 @@ def _sync_sales_orders_from_supply_on(supply_on_head_name, comparison=None):
     created = updated = closed = errors = 0
     
     try:
+        if not sync_changes:
+            sync_log.status = "Completed"
+            sync_log.comment = "No changes detected for this Supply On."
+            sync_log.save()
+            supply_on_doc.last_sync_log = sync_log.name
+            supply_on_doc.save()
+            return {
+                'sync_log': sync_log.name,
+                'created': 0,
+                'updated': 0,
+                'closed': 0,
+                'errors': 0,
+                'info': 'No changes detected',
+            }
+
         # SO bazında grupla
         changes_by_so = group_changes_by_sales_order(sync_changes)
         
@@ -1334,9 +1136,8 @@ def _sync_sales_orders_from_supply_on(supply_on_head_name, comparison=None):
             comparison.status = "Synced"
             comparison.save()
         
-        supply_on_head = frappe.get_doc("KTA Supply On Head", resolved_head)
-        supply_on_head.last_sync_log = sync_log.name
-        supply_on_head.save()
+        supply_on_doc.last_sync_log = sync_log.name
+        supply_on_doc.save()
         
     except Exception as e:
         sync_log.status = "Failed"
@@ -1357,7 +1158,7 @@ def _sync_sales_orders_from_supply_on(supply_on_head_name, comparison=None):
     return result
 
 
-def build_sales_order_sync_changes(supply_on_head_name):
+def build_sales_order_sync_changes(supply_on_name):
     """
     ✅ DÜZELTİLMİŞ: Supply On satırlarını grupla ve sadece NET değişiklikleri tespit et
     
@@ -1376,20 +1177,15 @@ def build_sales_order_sync_changes(supply_on_head_name):
         """
         SELECT 
             order_no,
-            order_item,
             part_no_customer,
             delivery_date,
             delivery_quantity,
-            efz,
             plant_no_customer
-        FROM `tabKTA Supply On`
-        WHERE (
-            supply_on_head = %s
-            OR (COALESCE(supply_on_head, '') = '' AND parent = %s AND parenttype = %s)
-        )
+        FROM `tabKTA Supply On Entry`
+        WHERE parent = %s
         ORDER BY order_no, part_no_customer, plant_no_customer, delivery_date
         """,
-        (supply_on_head_name, supply_on_head_name, DOCTYPE_KTA_SUPPLY_ON_HEAD),
+        (supply_on_name,),
         as_dict=True,
     )
 
@@ -1419,13 +1215,13 @@ def build_sales_order_sync_changes(supply_on_head_name):
         plan_entry = frappe._dict({
             "customer": customer,
             "order_no": row.order_no,
-            "order_item": row.order_item,
+            "order_item": None,
             "part_no_customer": row.part_no_customer,
             "plant_no_customer": row.plant_no_customer,
             "item": item_code,
             "delivery_date": row.delivery_date,
             "planned_qty": flt(row.delivery_quantity or 0),
-            "new_efz": row.efz,
+            "new_efz": None,
         })
 
         key = (customer, row.order_no, item_code)
@@ -1952,6 +1748,7 @@ def update_existing_sales_order_batch(so_name, changes):
     """
     details = []
     updated = closed = errors = 0
+    earliest_new_order_date = None
 
     try:
         so = frappe.get_doc("Sales Order", so_name)
@@ -2013,7 +1810,9 @@ def update_existing_sales_order_batch(so_name, changes):
                 protected_qty = max(delivered_qty, billed_qty)
 
                 if protected_qty == 0 and len(so.items) == 1:
+                    # Hiç teslimat/fatura yoksa siparişi iptal et ve sil
                     so.cancel()
+                    frappe.delete_doc("Sales Order", so_name, force=1, ignore_permissions=True)
 
                     details.append({
                         "action": "Closed",
@@ -2025,7 +1824,7 @@ def update_existing_sales_order_batch(so_name, changes):
                         "new_qty": 0,
                         "old_date": target_item.delivery_date,
                         "new_date": target_item.delivery_date,
-                        "change_type": "Silinen Satır (SO cancelled - no deliveries made)",
+                        "change_type": "Silinen Satır (SO cancelled & deleted - no deliveries made)",
                     })
 
                     return {
@@ -2084,6 +1883,10 @@ def update_existing_sales_order_batch(so_name, changes):
                 # ✅ Yeni tarih: SOI delivery_date güncellenir
                 new_date = getattr(change, "new_delivery_date", None) or target_item.delivery_date
                 item_dict["delivery_date"] = new_date
+                # Tarih öne çekiliyorsa belge tarihini de uyarlamak üzere takip et
+                if new_date:
+                    if earliest_new_order_date is None or getdate(new_date) < getdate(earliest_new_order_date):
+                        earliest_new_order_date = new_date
                 action = "Updated"
                 needs_update = True
 
@@ -2167,6 +1970,37 @@ def update_existing_sales_order_batch(so_name, changes):
 
             if detail_entry:
                 details.append(detail_entry)
+
+        # Eğer tüm satırlar 0'a çekildiyse ve teslimat/fatura yoksa siparişi iptal edip sil
+        if so.docstatus == 1:
+            has_delivery_or_billing = any(
+                flt(it.delivered_qty) > 0 or flt(getattr(it, "billed_amt", 0)) > 0
+                for it in so.items
+            )
+            all_zero_qty = all(flt(it.qty) <= 0 for it in so.items)
+
+            if all_zero_qty and not has_delivery_or_billing:
+                so.cancel()
+                frappe.delete_doc("Sales Order", so_name, force=1, ignore_permissions=True)
+
+                details.append({
+                    "action": "Closed",
+                    "sales_order": so_name,
+                    "customer": so.customer,
+                    "order_no": so.po_no,
+                    "change_type": "Silinen Satır (SO cancelled & deleted - all items removed)",
+                })
+
+                return {
+                    "details": details,
+                    "updated": updated,
+                    "closed": closed + 1,
+                    "errors": errors,
+                }
+
+        # Belge tarihini gerekirse öne çek
+        if earliest_new_order_date and getdate(earliest_new_order_date) < getdate(so.transaction_date):
+            so.db_set("transaction_date", earliest_new_order_date, update_modified=False)
 
         return {
             "details": details,

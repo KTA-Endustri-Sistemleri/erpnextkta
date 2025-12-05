@@ -6,7 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "supply_on_head",
+  "supply_on",
   "comparison",
   "sync_date",
   "column_break_vehd",
@@ -25,10 +25,11 @@
  ],
  "fields": [
   {
-   "fieldname": "supply_on_head",
+   "fieldname": "supply_on",
    "fieldtype": "Link",
-   "label": "KTA Supply On Head",
-   "options": "KTA Supply On Head",
+   "label": "KTA Supply On",
+   "options": "KTA Supply On",
+   "oldfieldname": "supply_on_head",
    "read_only": 1
   },
   {

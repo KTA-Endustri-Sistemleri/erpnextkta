@@ -6,23 +6,17 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "supply_on_date",
-  "section_break_entries",
-  "supply_on_entries",
-  "section_break_supply_on_tools",
-  "process_supply_on",
-  "column_break_supply_on_tools",
-  "last_process_date",
-  "evaluation_tab",
-  "table_evaluation",
-  "section_break_comparison_tools",
-  "compare_with_previous",
-  "sync_to_sales_orders",
-  "column_break_comparison_tools",
-  "last_comparison_date",
-  "last_sync_log"
- ],
- "fields": [
+ "supply_on_date",
+ "section_break_entries",
+ "supply_on_entries",
+ "section_break_supply_on_tools",
+ "compare_with_previous",
+ "sync_to_sales_orders",
+ "column_break_comparison_tools",
+ "last_comparison_date",
+ "last_sync_log"
+],
+"fields": [
   {
    "fieldname": "supply_on_date",
    "fieldtype": "Date",
@@ -47,33 +41,6 @@
    "fieldname": "section_break_supply_on_tools",
    "fieldtype": "Section Break",
    "label": "Supply On İşlemleri"
-  },
-  {
-   "fieldname": "process_supply_on",
-   "fieldtype": "Button",
-   "label": "Veriyi İşle"
-  },
-  {
-   "fieldname": "column_break_supply_on_tools",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "last_process_date",
-   "fieldtype": "Datetime",
-   "label": "Son İşleme Tarihi",
-   "read_only": 1
-  },
-  {
-   "fieldname": "evaluation_tab",
-   "fieldtype": "Tab Break",
-   "label": "Evaluation"
-  },
-  {
-   "fieldname": "table_evaluation",
-   "fieldtype": "Table",
-   "label": "Evaluation Verileri",
-   "options": "KTA Supply On Evaluation",
-   "read_only": 1
   },
   {
    "fieldname": "section_break_comparison_tools",

@@ -189,17 +189,6 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
-  "dt": "KTA Supply On Head",
-  "enabled": 1,
-  "modified": "2025-07-30 14:00:39.487714",
-  "module": "erpnextkta",
-  "name": "KTA Supply On Head Client Script",
-  "script": "frappe.ui.form.on('KTA Supply On Head', {\n// refresh(frm) {\n    process_supply_on: function(frm){\n        frappe.call({\n                    method: \"erpnextkta.api.process_supply_on\",\n                    args:{\n                        \"supply_on\": frm.doc.name\n                    },\n                    callback: function(r){\n                        frm.set_value(\"last_process_date\", r.message);\n                    }\n                });\n    }\n});",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
   "dt": "QR Scan Record",
   "enabled": 1,
   "modified": "2025-11-27 16:22:29.350825",
