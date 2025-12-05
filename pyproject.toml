@@ -32,7 +32,6 @@ tag_format = "v{version}"
 # Default davranış zaten main branch için release, 
 # branches config'i şimdilik basit tutmak için kullanmıyoruz.
 branch = "main"
-allowed_branches = ["main", "feat/semantic-release"]
 
 [tool.semantic_release.remote]
 name = "origin"
