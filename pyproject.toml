@@ -18,3 +18,27 @@ build-backend = "flit_core.buildapi"
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
+
+[tool.semantic_release]
+# Versiyonun değişeceği yer (tek kaynak)
+version_variables = ["erpnextkta/__init__.py:__version__"]
+
+# Conventional commits parser kullan
+commit_parser = "conventional"
+
+# Tag formatı (repo’da v1.2.3 gibi tag’ler oluşacak)
+tag_format = "v{version}"
+
+# Default davranış zaten main branch için release, 
+# branches config'i şimdilik basit tutmak için kullanmıyoruz.
+branch = "main"
+allowed_branches = ["main", "feat/semantic-release"]
+
+[tool.semantic_release.remote]
+name = "origin"
+type = "github"          # GitLab ise "gitlab", Gitea ise "gitea", Bitbucket ise "bitbucket"
+# CI tarafında kullanmak için:
+token = { env = "GH_TOKEN" }
+ignore_token_for_push = false
+insecure = false
+
