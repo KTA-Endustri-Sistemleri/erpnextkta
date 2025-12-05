@@ -7,7 +7,7 @@ def execute(filters=None):
     if not filters:
         filters = {}
 
-    from erpnextkta.erpnextkta.report.material_requirement import material_requirement
+    from erpnextkta.kta_mrp.report.material_requirement import material_requirement
 
     _, raw_data = material_requirement.execute({
         "stage": "Stokları Düş + PO Teslimatlarını Düş",

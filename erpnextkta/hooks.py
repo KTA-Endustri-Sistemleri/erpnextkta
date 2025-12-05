@@ -27,7 +27,9 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/erpnextkta/css/erpnextkta.css"
 # app_include_js = "/assets/erpnextkta/js/erpnextkta.js"
-app_include_js = ["assets/erpnextkta/js/stock_entry_get_items_from_calisma_karti.js"]
+app_include_js = ["assets/erpnextkta/js/stock_entry_get_items_from_calisma_karti.js",
+                  "assets/erpnextkta/js/material_transfer_patch.js"
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/erpnextkta/css/erpnextkta.css"

@@ -17,7 +17,7 @@ def execute(filters=None):
     if isinstance(from_date, str):
         from_date = datetime.strptime(from_date, "%Y-%m-%d")
 
-    from erpnextkta.erpnextkta.report.capacity_planning_report.capacity_planning_report import execute as capacity_execute
+    from erpnextkta.kta_mrp.report.capacity_planning_report.capacity_planning_report import execute as capacity_execute
     capacity_cols, capacity_data = capacity_execute(filters)
 
     week_fields = []
