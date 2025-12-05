@@ -48,16 +48,6 @@
    "label": "Karşılaştırma ve Senkronizasyon"
   },
   {
-   "fieldname": "compare_with_previous",
-   "fieldtype": "Button",
-   "label": "Önceki Verilerle Karşılaştır"
-  },
-  {
-   "fieldname": "sync_to_sales_orders",
-   "fieldtype": "Button",
-   "label": "Sales Order'ları Senkronize Et"
-  },
-  {
    "fieldname": "column_break_comparison_tools",
    "fieldtype": "Column Break"
   },
