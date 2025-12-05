@@ -112,6 +112,7 @@ def _get_supply_on_doc(supply_on_name: str):
 
     return frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON, supply_on_name)
 
+
 @frappe.whitelist()
 def get_customer_income_account(customer, company):
     """
@@ -1245,7 +1246,12 @@ def build_sales_order_sync_changes(supply_on_name):
         if not so.po_no:
             continue
 
-        pending_qty = max(flt(so.qty) - flt(so.delivered_qty), 0)
+        # ERP'nin hesapladığı pending_qty alanını öncelikle kullan; yoksa qty - delivered
+        # pending_qty alanı varsa onu esas al; yoksa qty - delivered'a geri düş
+        pending_qty = flt(getattr(so, "pending_qty", 0))
+        if pending_qty is None or pending_qty == 0:
+            pending_qty = flt(so.qty) - flt(so.delivered_qty)
+        pending_qty = max(pending_qty, 0)
         if pending_qty <= 0:
             continue
 
@@ -1584,11 +1590,12 @@ def fetch_open_sales_orders_with_item_dates(customers):
             soi.item_code,
             soi.qty,
             soi.delivered_qty,
+            soi.pending_qty,
             soi.delivery_date AS item_delivery_date
         FROM `tabSales Order` so
         INNER JOIN `tabSales Order Item` soi ON so.name = soi.parent
         WHERE so.docstatus = 1
-          AND so.status NOT IN ('Closed', 'Cancelled')
+          AND so.status IN ('To Deliver', 'To Deliver and Bill')
           AND so.customer IN ({placeholders})
         ORDER BY so.customer, so.po_no, soi.item_code, soi.delivery_date
     """
@@ -1665,7 +1672,7 @@ def group_changes_by_sales_order(changes):
                         AND so.po_no = %s
                         AND soi.item_code = %s
                         AND so.docstatus = 1
-                        AND so.status NOT IN ('Closed', 'Cancelled')
+                        AND so.status IN ('To Deliver', 'To Deliver and Bill')
                     ORDER BY soi.delivery_date, so.transaction_date, so.name
                 """, (customer, order_no, item_code), as_dict=True)
                 available = [row.name for row in rows]

@@ -208,7 +208,7 @@ class SatisAnalizi:
             if self.filters.value_quantity != "Quantity" else "soi.qty"
         )
 
-        conditions = "so.docstatus = 1 AND so.status NOT IN ('Closed','Completed')"
+        conditions = "so.docstatus = 1 AND so.status NOT IN ('Closed','Completed','Cancelled')"
         values = []
 
         if self.filters.from_date and self.filters.to_date:
