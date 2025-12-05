@@ -17,7 +17,6 @@ class KTASupplyOn(Document):
 
     def validate(self):
         self._normalize_date_fields()
-        self._ensure_supply_on_head()
 
     def _normalize_date_fields(self):
         if not hasattr(self, "_kta_date_fields"):
@@ -62,13 +61,3 @@ class KTASupplyOn(Document):
             f"KTA Supply On -> Unable to parse date field '{fieldname}' with value '{value}'"
         )
         return None
-
-    def _ensure_supply_on_head(self):
-        """Ensure every record is linked to a Supply On Head even when imported via legacy templates."""
-        if not self.supply_on_head and getattr(self, "parenttype", None) == "KTA Supply On Head":
-            self.supply_on_head = getattr(self, "parent", None)
-
-        if not self.supply_on_head:
-            frappe.logger("erpnextkta").info(
-                f"KTA Supply On kaydı {self.name} Supply On Head bağlantısı olmadan kaydediliyor."
-            )
