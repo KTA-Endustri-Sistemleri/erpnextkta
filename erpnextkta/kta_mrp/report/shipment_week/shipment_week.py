@@ -21,7 +21,7 @@ def execute(filters=None):
     if filters.get("tree_key"):
         periodic_filters["tree_key"] = filters.get("tree_key")
 
-    from erpnextkta.erpnextkta.report.periodic_sales_orders.periodic_sales_orders import SatisAnalizi
+    from erpnextkta.kta_mrp.report.periodic_sales_orders.periodic_sales_orders import SatisAnalizi
     base_report = SatisAnalizi(periodic_filters)
     base_report.run()
 
