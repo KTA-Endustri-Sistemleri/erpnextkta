@@ -74,6 +74,7 @@ type = "github"
 token = { env = "GH_TOKEN" }
 ignore_token_for_push = false
 insecure = false
+branch = "main"
 ```
 
 ---
