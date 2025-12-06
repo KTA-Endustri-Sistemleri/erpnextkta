@@ -18,3 +18,26 @@ build-backend = "flit_core.buildapi"
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
+
+[tool.semantic_release]
+# Location where version will be updated (single source)
+version_variables = ["erpnextkta/__init__.py:__version__"]
+
+# Use conventional commits parser
+commit_parser = "conventional"
+
+# Tag format (tags like v1.2.3 will be created)
+tag_format = "v{version}"
+
+# Default behavior is already release for main branch, not using branches config to keep it simple for now.
+
+branch = "main"
+
+[tool.semantic_release.remote]
+name = "origin"
+type = "github"
+# For use in CI:
+token = { env = "GH_TOKEN" }
+ignore_token_for_push = false
+insecure = false
+
