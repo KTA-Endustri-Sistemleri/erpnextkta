@@ -122,7 +122,7 @@
  "links": [],
  "modified": "2025-11-20 18:57:23.953089",
  "modified_by": "Administrator",
- "module": "erpnextkta",
+ "module": "kta_sales",
  "name": "KTA SO Sync Log",
  "naming_rule": "Expression",
  "owner": "Administrator",

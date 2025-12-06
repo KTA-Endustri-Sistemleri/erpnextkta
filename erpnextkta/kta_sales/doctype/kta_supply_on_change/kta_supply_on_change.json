@@ -129,7 +129,7 @@
  "links": [],
  "modified": "2025-11-13 00:00:00.000000",
  "modified_by": "Administrator",
- "module": "erpnextkta",
+ "module": "kta_sales",
  "name": "KTA Supply On Change",
  "owner": "Administrator",
  "permissions": [],
