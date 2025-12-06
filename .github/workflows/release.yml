@@ -20,6 +20,7 @@ jobs:
         with:
           fetch-depth: 0  # semantic-release için tag geçmişi lazım
           persist-credentials: false
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
