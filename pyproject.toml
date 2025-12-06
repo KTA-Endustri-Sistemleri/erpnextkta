@@ -21,17 +21,15 @@ build-backend = "flit_core.buildapi"
 
 [tool.semantic_release]
 # Location where version will be updated (single source)
-version_variables = ["erpnextkta/__init__.py:__version__"]
+version_variables = [
+  "erpnextkta/__init__.py:__version__ = \"{version}\""
+]
 
 # Use conventional commits parser
 commit_parser = "conventional"
 
 # Tag format (tags like v1.2.3 will be created)
 tag_format = "v{version}"
-
-# Default behavior is already release for main branch, not using branches config to keep it simple for now.
-
-branch = "main"
 
 [tool.semantic_release.remote]
 name = "origin"
