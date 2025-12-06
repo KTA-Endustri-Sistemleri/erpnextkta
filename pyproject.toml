@@ -28,6 +28,7 @@ commit_parser = "conventional"
 
 # Tag format (tags like v1.2.3 will be created)
 tag_format = "v{version}"
+allow_zero_version = true
 
 [tool.semantic_release.remote]
 name = "origin"
