@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.2.2 (2025-12-06)
+
+### Bug Fixes
+
+* fix: Specify Frappe branch version during bench initialization ([`683dfdd`](https://github.com/KTA-Endustri-Sistemleri/erpnextkta/commit/683dfdddf6e53335dc9b0ac6b3e803f441bdda99))
+
+
 ## v0.2.1 (2025-12-06)
 
 ### Bug Fixes
