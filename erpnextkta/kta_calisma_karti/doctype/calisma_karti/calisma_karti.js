@@ -158,7 +158,7 @@ function addBitisButton(frm) {
 
 function callIslemYap(frm, islemTipi, durusNedeni, aciklama, successCallback) {
   frappe.call({
-    method: 'erpnextkta.erpnextkta.doctype.calisma_karti.calisma_karti.islem_yap',
+    method: 'erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.islem_yap',
     args: { docname: frm.doc.name, islem_tipi: islemTipi, durus_nedeni: durusNedeni, aciklama: aciklama },
     freeze: true,
     freeze_message: __('İşlem yapılıyor...'),

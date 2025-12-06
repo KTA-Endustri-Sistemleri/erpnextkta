@@ -276,14 +276,8 @@ fixtures = [
         "filters": [
             ["name", "like", "KTA%"]
         ]
-    },
-    {
-        "dt": "Custom Field",
-        "filters": [
-            ["dt", "=", "Calisma Karti"]
-        ]
     }
 ]
 doctype_js = {
-    "Calisma Karti": "erpnextkta/erpnextkta/doctype/calisma_karti/calisma_karti.js"
+    "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js"
 }
