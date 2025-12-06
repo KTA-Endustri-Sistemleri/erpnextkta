@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.2.1 (2025-12-06)
+
+### Bug Fixes
+
+* fix: Update app retrieval to specify branch for erpnext for ci ([`dea46be`](https://github.com/KTA-Endustri-Sistemleri/erpnextkta/commit/dea46be5a9005951f5f27a4b4273ac015654415f))
+
+### Unknown
+
+* fix(ci):Update CI workflow and author email, remove unused file
+
+* chore: update author email in setup.py and remove unused test.txt file
+
+* fix(ci): Enhance CI workflow to install erpnext and setup test site ([`3df2b3f`](https://github.com/KTA-Endustri-Sistemleri/erpnextkta/commit/3df2b3f9b195f29e3187923285fc080072af6653))
+
+
 ## v0.2.0 (2025-12-06)
 
 ### Features
