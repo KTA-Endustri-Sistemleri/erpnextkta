@@ -20,23 +20,23 @@ build-backend = "flit_core.buildapi"
 # package_name = "~=1.1.0"
 
 [tool.semantic_release]
-# Versiyonun değişeceği yer (tek kaynak)
+# Location where version will be updated (single source)
 version_variables = ["erpnextkta/__init__.py:__version__"]
 
-# Conventional commits parser kullan
+# Use conventional commits parser
 commit_parser = "conventional"
 
-# Tag formatı (repo’da v1.2.3 gibi tag’ler oluşacak)
+# Tag format (tags like v1.2.3 will be created)
 tag_format = "v{version}"
 
-# Default davranış zaten main branch için release, 
-# branches config'i şimdilik basit tutmak için kullanmıyoruz.
+# Default behavior is already release for main branch, not using branches config to keep it simple for now.
+
 branch = "main"
 
 [tool.semantic_release.remote]
 name = "origin"
 type = "github"
-# CI tarafında kullanmak için:
+# For use in CI:
 token = { env = "GH_TOKEN" }
 ignore_token_for_push = false
 insecure = false
