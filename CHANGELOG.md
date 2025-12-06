@@ -1,6 +1,101 @@
 # CHANGELOG
 
 
+## v0.3.0 (2025-12-06)
+
+### Features
+
+* feat: Add KTA Calisma Karti module with Vue integration
+
+* feat(kta_calisma_karti): add new module definition and update modules list
+
+* refactor(calisma_karti): add custom fields and property setters for Calisma Karti
+
+* feat(calisma_karti): implement Calisma Karti doctype with custom fields and functionality
+
+* feat(calisma_karti_hurda): add Calisma Karti Hurda doctype with fields and functionality
+
+* feat(kta_calisma_karti_operasyonlari): add KTA Calisma Karti Operasyonlari doctype with fields and functionality
+
+* feat(calisma_karti): add __init__.py files for kta_calisma_karti and doctype modules
+
+* fix(calisma_karti): correct method path for callIslemYap function
+
+* feat(calisma_karti): add initial Vue components for Calisma Karti
+
+* feat(calisma_karti): add initial files for KTA Calisma Karti page and Vue integration
+
+* chore: update .gitignore to include additional files and directories
+
+* fix(calisma_karti): correct page reference and bundle import for KTA Calisma Karti
+
+* feat(calisma_karti): implement multi-step form for Calisma Karti with Vue components
+
+* feat(calisma_karti): add API functions for retrieving and creating Calisma Karti documents
+
+* refactor(calisma_karti): optimize page load and Vue integration for Calisma Karti
+
+* refactor(hooks): clean up commented code and improve readability
+
+* refactor(api): update field names and improve error handling in create_calisma_karti
+
+* refactor(components): clean up code and improve readability in StepOperation and StepUser components
+
+* refactor(App): implement dynamic step descriptions and integrate StepIndicator component
+
+* refactor(ui/ux): StepWorkstation flag added
+
+* refactor(ui/ux): added user search and ui improvments
+
+* refactor(ui/ux): StepJobCard ui/ux improvments
+
+* chore: title default changed to null
+
+* refactor(ui/ux): ui/ux behaviors improved
+
+* feat(app/ui/ux): added loading helper, card re-creation wizard, ui/ux improvments
+
+* chore: code readability and cleanliness
+
+* chore: renamed page and js files
+
+* chore: renamed folder kta_calisma_karti to kta-calisma-karti
+
+* chore: page folder name revert kta_calisma_karti
+
+* chore(fix): revert page files to kta_calisma_karti
+
+* feat: add StepJobCardSearch component for job card barcode input
+
+* feat(ui/ux): enhance StepIndicator component with mobile compact view and improved step tracking
+
+* feat(api): add early validation for Job Card retrieval by barcode
+
+* feat(api): update Job Card retrieval to include early Work Order validation
+
+* fix(api): rename parameter in get_job_card_by_barcode function for clarity and add operator department tag handling in create_calisma_karti
+
+* fix(ui): correct page show event handler and improve header content clearing in Vue app
+
+* feat(workspace): add hızlı tarama workspace configuration with initial content and structure
+
+* chore(operasyon_duruslari): moved DocType and JSON configuration for kta_calisma_karti module
+
+* chore(kta_operasyon_grubu): moved KTA Operasyon Grubu DocType and related files for kta_calisma_karti module
+
+* feat(calisma_karti): add custom field for İş Emri in Calisma Karti
+
+* chore(hooks): remove unused custom field filter for Calisma Karti
+
+* fix(calisma_karti): update module reference to kta_calisma_karti in custom field
+
+* chore(calisma_karti): remove custom field JSON configuration for Calisma Karti
+
+* refactor(calisma_karti): clean up page load logic and remove redundant Vue mount
+
+Co-authored-by: semantic-release <semantic-release> ([`3ff3ce1`](https://github.com/KTA-Endustri-Sistemleri/erpnextkta/commit/3ff3ce1f1ed0044106ff4a0743fb34927faa7d85))
+
+
 ## v0.2.2 (2025-12-06)
 
 ### Bug Fixes
