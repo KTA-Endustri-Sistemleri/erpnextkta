@@ -106,9 +106,11 @@ jobs:
         env:
           CI: 'Yes'
         run: |
+          bench get-app erpnext $GITHUB_WORKSPACE
           bench get-app erpnextkta $GITHUB_WORKSPACE
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site
+          bench --site test_site install-app erpnext
           bench --site test_site install-app erpnextkta
           bench build
 
