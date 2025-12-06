@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.2.0 (2025-12-06)
+
+### Features
+
+* feat(work-order): Automatically update Work Order status when Job Card starts (#11)
+
+feat(hooks): wire Job Card update event to custom Work Order status handler ([`8ae4518`](https://github.com/KTA-Endustri-Sistemleri/erpnextkta/commit/8ae4518679045d4c4f781a8ca8f59dcd161a4cc4))
+
+
 ## v0.1.0 (2025-12-06)
 
 ### Chores
