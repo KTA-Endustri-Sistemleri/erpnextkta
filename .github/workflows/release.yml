@@ -3,12 +3,10 @@ name: Semantic Release
 on:
   push:
     branches:
-      - main    # Release sadece main'e push olunca çalışsın
+      - main
 
 permissions:
-  contents: write   # tag ve commit push etmek için gerekli
-  # issues: write   # release notlarını issue'lara yazdırmak istersen
-  # pull-requests: write
+  contents: write
 
 jobs:
   release:
@@ -18,8 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # semantic-release için tag geçmişi lazım
-          persist-credentials: false
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python
@@ -34,7 +31,6 @@ jobs:
 
       - name: Run semantic-release
         env:
-          # python-semantic-release, GitHub için GH_TOKEN env var'ını bekliyor
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           semantic-release version --push --vcs-release
