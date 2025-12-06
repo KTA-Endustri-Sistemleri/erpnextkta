@@ -5,15 +5,30 @@
       "name": "Frappe (VM Debug)",
       "type": "debugpy",
       "request": "launch",
-      "python": "/home/ublts/frappe-bench-dev/env/bin/python3.12",
-      "program": "/home/ublts/frappe-bench-dev/apps/frappe/debug.py",
-      "cwd": "/home/ublts/frappe-bench-dev/sites",
+      "python": "${workspaceFolder}/../../env/bin/python3",
+      "program": "${workspaceFolder}/../../apps/frappe/frappe/utils/bench_helper.py",
+      "args": [
+        "frappe",
+        "serve",
+        "--port",
+        "${input:frappePort}",
+        "--noreload"
+      ],
+      "cwd": "${workspaceFolder}/../../sites",
       "env": {
         "PYTHONUNBUFFERED": "1",
         "DEVSERVER": "1"
       },
       "console": "integratedTerminal",
       "justMyCode": false
+    }
+  ],
+  "inputs": [
+    {
+      "id": "frappePort",
+      "type": "promptString",
+      "description": "Port to run frappe dev server on",
+      "default": "8000"
     }
   ]
 }
