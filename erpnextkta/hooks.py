@@ -141,6 +141,9 @@ override_doctype_class = {
 doc_events = {
     "Kalite Kontrol": {
         "on_submit": "erpnextkta.erpnextkta.doctype.calisma_karti.calisma_karti.qc_on_submit"
+    },
+    "Job Card": {
+        "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status"
     }
 }
 # Document Events
