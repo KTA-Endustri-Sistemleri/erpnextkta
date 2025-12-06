@@ -20,15 +20,23 @@ build-backend = "flit_core.buildapi"
 # package_name = "~=1.1.0"
 
 [tool.semantic_release]
-# Single source of truth: project.version in pyproject.toml
-version_toml = ["pyproject.toml:project.version"]
+# Version variable location
+version_variables = [
+    "pyproject.toml:project.version"
+]
 
-# Use conventional commits parser (v9+)
-commit_parser = "conventional"
+# Branch configuration
+branch = "main"
+
+# Use conventional commits parser
+commit_parser = "angular"
 
 # Tag format (tags like v1.2.3 will be created)
 tag_format = "v{version}"
 allow_zero_version = true
+
+# Build command (optional, leave empty if not needed)
+build_command = ""
 
 [tool.semantic_release.remote]
 name = "origin"
@@ -36,4 +44,3 @@ type = "github"
 # For use in CI:
 token = { env = "GH_TOKEN" }
 ignore_token_for_push = false
-insecure = false
