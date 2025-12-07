@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.3.1 (2025-12-07)
+
+### Bug Fixes
+
+* fix: Add KTA Customer Group DocType with initial structure ([`102e015`](https://github.com/KTA-Endustri-Sistemleri/erpnextkta/commit/102e015be7513bd3f70962b3a43402ddba4d76f0))
+
+
 ## v0.3.0 (2025-12-06)
 
 ### Features
