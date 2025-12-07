@@ -1,0 +1,38 @@
+{# En son release'i al #}
+{% set sorted_releases = ctx.history.released|dictsort %}
+{% set version, release = sorted_releases[-1] %}
+
+# 🚀 Release {{ version.as_tag() }}
+
+Released on **{{ release.tagged_date.strftime("%Y-%m-%d") }}**.
+
+{% set type_meta = {
+  "feature": "✨ Features",
+  "fix": "🐛 Fixes",
+  "breaking": "💥 Breaking Changes",
+  "docs": "📝 Documentation",
+  "refactor": "♻️ Refactoring",
+  "perf": "⚡ Performance",
+  "style": "💄 Style",
+  "test": "✅ Tests",
+  "build": "📦 Build System",
+  "ci": "👷 CI",
+  "chore": "🔧 Chores"
+} %}
+
+{% set has_content = false %}
+{% for commit_type, commits in release.elements|dictsort %}
+  {% if commits %}
+    {% set has_content = true %}
+### {{ type_meta.get(commit_type, commit_type|capitalize) }}
+
+  {% for commit in commits %}
+- {{ commit.scope and '**' ~ commit.scope ~ '**: ' or '' }}{{ commit.descriptions[0] }}
+  {% endfor %}
+
+  {% endif %}
+{% endfor %}
+
+{% if not has_content %}
+_No user-facing changes in this release._
+{% endif %}

@@ -1,6 +1,6 @@
 [project]
 name = "erpnextkta"
-version = "0.0.0"
+version = "0.3.4"
 authors = [
     { name = "Framras AS", email = "bilgi@framras.com.tr" }
 ]
@@ -22,7 +22,8 @@ build-backend = "flit_core.buildapi"
 [tool.semantic_release]
 # Version variable location
 version_variables = [
-    "pyproject.toml:project.version"
+    "pyproject.toml:project.version",
+    "erpnextkta/__init__.py:__version__",
 ]
 
 # Branch configuration
@@ -44,3 +45,15 @@ type = "github"
 # For use in CI:
 token = { env = "GH_TOKEN" }
 ignore_token_for_push = false
+
+[tool.semantic_release.changelog]
+# CHANGELOG’u her release’te en üste yeni versiyonu ekle
+mode = "update"
+insertion_flag = "<!-- version list -->"
+
+# Kendi template dizinimiz
+template_dir = "ch-templates"
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
+output_format = "md"
