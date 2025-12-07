@@ -31,7 +31,7 @@ function isSelected(name) {
   <section class="step-jobcard">
     <div class="step-jobcard__header">
       <div>
-        <h2 class="step-jobcard__title">2️⃣ İş Kartı</h2>
+        <h2 class="step-jobcard__title">İş Kartı</h2>
         <p class="step-jobcard__subtitle">
           Seçilen İş Emri'ne bağlı <strong>İş Kartı</strong>lardan birini seç.
         </p>
