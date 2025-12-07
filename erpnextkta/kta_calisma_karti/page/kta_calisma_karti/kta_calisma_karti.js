@@ -1,7 +1,7 @@
 frappe.pages['kta-calisma-karti'].on_page_load = function (wrapper) {
   const page = frappe.ui.make_app_page({
     parent: wrapper,
-    title: " ",
+    title: null,
     single_column: true,
   });
 
@@ -34,7 +34,7 @@ async function load_vue(wrapper) {
   if (wrapper.__kta_ck_vue_app__) {
     // Vue 3 createAppInstance:
     // unmount fonksiyonu varsa çağır
-    wrapper.__kta_ck_vue_app__.unmount && wrapper.__kta_ck_vue_app__.unmount();
+    wrapper.__kta_ck_vue_app__.unmount?.();
     wrapper.__kta_ck_vue_app__ = null;
   }
 
@@ -42,14 +42,14 @@ async function load_vue(wrapper) {
   $parent.empty();
   $page_header.empty();
 
-  // Bundle'ı yükle ve yeni Vue app'i mount et
+  // 🔥 Teleport için sabit bir hedef div oluştur
+  // Her load_vue çağrısında yeniden yaratılacak
+  const $teleport_target = $('<div class="kta-ck-header"></div>').css({width: "100%"});
+  $teleport_target.appendTo($page_header);
+
   await frappe.require('kta-calisma-karti.bundle.js');
 
   const vue_app = frappe.ui.setup_vue($parent);
-
-  // Instance'ı wrapper üzerinde sakla (tekrar çağrıldığında unmount için)
   wrapper.__kta_ck_vue_app__ = vue_app;
-
-  // Debug/test amaçlı global değişken kullanmak istersen:
   frappe.test_vue_app = vue_app;
 }
