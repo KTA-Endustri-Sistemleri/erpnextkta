@@ -30,7 +30,7 @@ version_variables = [
 branch = "main"
 
 # Use conventional commits parser
-commit_parser = "angular"
+commit_parser = "conventional"
 
 # Tag format (tags like v1.2.3 will be created)
 tag_format = "v{version}"
