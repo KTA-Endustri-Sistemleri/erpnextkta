@@ -55,7 +55,7 @@ function onKeydown(event) {
 <template>
   <section class="step-wo">
     <div>
-      <h2 class="step-wo__title">1️⃣ İş Emri Barkodu</h2>
+      <h2 class="step-wo__title">İş Emri Barkodu</h2>
       <p class="step-wo__subtitle">
         Barkod okuyucu ile <strong>İş Emri barkodunu</strong> okut.
         Okuyucu genelde Enter ile bittiği için ek işlem yapman gerekmez.

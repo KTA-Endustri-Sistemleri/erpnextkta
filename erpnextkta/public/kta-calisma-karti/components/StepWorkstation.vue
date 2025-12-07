@@ -39,7 +39,7 @@ function useJobCardWorkstation() {
   <section class="step-ws">
     <div class="step-ws__header">
       <div>
-        <h2 class="step-ws__title">3️⃣ İş İstasyonu</h2>
+        <h2 class="step-ws__title">İş İstasyonu</h2>
         <p class="step-ws__subtitle">
           Bu Çalışma Kartı'nın üretileceği <strong>iş istasyonunu</strong> belirle.
           Job Card üzerinde zaten tanımlı bir istasyon varsa otomatik olarak doldurulur,

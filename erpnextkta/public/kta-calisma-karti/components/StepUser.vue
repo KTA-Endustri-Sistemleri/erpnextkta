@@ -59,7 +59,7 @@ function getInitials(emp) {
   <section class="step-user">
     <div class="step-user__header">
       <div>
-        <h2 class="step-user__title">5️⃣ Operatör</h2>
+        <h2 class="step-user__title">Operatör</h2>
         <p class="step-user__subtitle">
           Bu Çalışma Kartı ile ilişkilendirilecek <strong>operatörü (Employee)</strong> seç.
           Sadece <strong>aktif</strong> ve <strong>User bağlı</strong> çalışanlar listelenir.
