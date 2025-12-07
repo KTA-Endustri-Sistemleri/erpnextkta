@@ -3,66 +3,6 @@
 
 <!-- version list -->
 
-
-
-## 🚀 v0.3.5 (2025-12-07)
-
-
-
-
-
-  
-  
-
-    
-    
-    
-
-### 🔧 Bug Fixes
-
-    
-    
-      
-      
-      
-- Update readme.md with detailed user and developer sections
-    
-
-  
-
-  
-  
-
-    
-    
-    
-
-### 🔧 Chores
-
-    
-    
-      
-      
-      
-- Update version to 0.3.4 and add changelog templates
-    
-      
-      
-      
-- Update version to 0.3.4 in project files
-    
-      
-      
-      
-- Add semantic release changelog templates
-    
-
-  
-
-
----
-
-
 ## 🚀 v0.3.4 (2025-12-07)
 
 
