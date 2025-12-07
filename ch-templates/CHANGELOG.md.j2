@@ -1,0 +1,36 @@
+{# Ana başlık + açıklama #}
+# Changelog
+
+<!-- version list -->
+
+{# Versiyonları yeni → eski sırada gez #}
+{% for version, release in ctx.history.released|dictsort(reverse=True) %}
+## {{ version.as_tag() }} – {{ release.tagged_date.strftime("%Y-%m-%d") }}
+
+{% set type_meta = {
+  "feature": "✨ Features",
+  "fix": "🐛 Fixes",
+  "breaking": "💥 Breaking Changes",
+  "docs": "📝 Documentation",
+  "refactor": "♻️ Refactoring",
+  "perf": "⚡ Performance",
+  "style": "💄 Style",
+  "test": "✅ Tests",
+  "build": "📦 Build System",
+  "ci": "👷 CI",
+  "chore": "🔧 Chores"
+} %}
+
+{# Her commit tipini (feat, fix, vs.) ayrı bölümde göster #}
+{% for commit_type, commits in release.elements|dictsort %}
+  {% if commits %}
+### {{ type_meta.get(commit_type, commit_type|capitalize) }}
+
+  {% for commit in commits %}
+- {{ commit.scope and '**' ~ commit.scope ~ '**: ' or '' }}{{ commit.descriptions[0] }}
+  {% endfor %}
+
+  {% endif %}
+{% endfor %}
+
+{% endfor %}

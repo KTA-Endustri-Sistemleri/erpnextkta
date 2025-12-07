@@ -45,3 +45,15 @@ type = "github"
 # For use in CI:
 token = { env = "GH_TOKEN" }
 ignore_token_for_push = false
+
+[tool.semantic_release.changelog]
+# CHANGELOG’u her release’te en üste yeni versiyonu ekle
+mode = "update"
+insertion_flag = "<!-- version list -->"
+
+# Kendi template dizinimiz
+template_dir = "ch-templates"
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
+output_format = "md"
