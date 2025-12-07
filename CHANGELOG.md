@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.3.2 (2025-12-07)
+
+### Bug Fixes
+
+* fix: Add additional apps to CI workflow for testing ([`49df5a1`](https://github.com/KTA-Endustri-Sistemleri/erpnextkta/commit/49df5a16b0bb6616836ef8b55a2bee82d30df669))
+
+
 ## v0.3.1 (2025-12-07)
 
 ### Bug Fixes
