@@ -1,6 +1,6 @@
 [project]
 name = "erpnextkta"
-version = "0.0.0"
+version = "0.3.4"
 authors = [
     { name = "Framras AS", email = "bilgi@framras.com.tr" }
 ]
@@ -22,7 +22,8 @@ build-backend = "flit_core.buildapi"
 [tool.semantic_release]
 # Version variable location
 version_variables = [
-    "pyproject.toml:project.version"
+    "pyproject.toml:project.version",
+    "erpnextkta/__init__.py:__version__",
 ]
 
 # Branch configuration

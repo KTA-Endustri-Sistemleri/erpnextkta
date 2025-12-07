@@ -1,3 +1,4 @@
+from . import __version__ as app_version
 app_name = "erpnextkta"
 app_title = "erpnextkta"
 app_publisher = "Framras AS"
