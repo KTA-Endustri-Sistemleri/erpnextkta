@@ -107,10 +107,16 @@ jobs:
           CI: 'Yes'
         run: |
           bench get-app erpnext https://github.com/frappe/erpnext --branch version-15
+          bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15
+          bench get-app https://github.com/Framras/trtcmb.git --branch version-15
+          bench get-app https://github.com/Framras/trebelge.git --branch version-15
           bench get-app erpnextkta $GITHUB_WORKSPACE
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
+          bench --site test_site install-app trtaxoffices
+          bench --site test_site install-app trtcmb
+          bench --site test_site install-app trebelge
           bench --site test_site install-app erpnextkta
           bench build
 
