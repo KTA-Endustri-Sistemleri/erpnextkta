@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.3.3 (2025-12-07)
+
+### Bug Fixes
+
+* fix: Remove redundant test execution steps from CI workflow ([`d58e6ab`](https://github.com/KTA-Endustri-Sistemleri/erpnextkta/commit/d58e6aba5cc1b868b0bf2448929d4b17301d24a5))
+
+
 ## v0.3.2 (2025-12-07)
 
 ### Bug Fixes
