@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.3.4 (2025-12-07)
+
+### Bug Fixes
+
+* fix: stabilize Vue header teleport and unify step component UI
+
+* fix: stabilize page header by creating dedicated teleport target
+
+* refactor: move teleport target to .kta-ck-header for reliability
+
+* style: unify UI styles across StepJobCard and StepOperation components ([`ff50f61`](https://github.com/KTA-Endustri-Sistemleri/erpnextkta/commit/ff50f61b474912079290366b7c1eb055090f68a8))
+
+
 ## v0.3.3 (2025-12-07)
 
 ### Bug Fixes
