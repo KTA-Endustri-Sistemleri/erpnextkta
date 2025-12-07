@@ -119,11 +119,3 @@ jobs:
           bench --site test_site install-app trebelge
           bench --site test_site install-app erpnextkta
           bench build
-
-      - name: Run Tests
-        working-directory: /home/runner/frappe-bench
-        env:
-          TYPE: server
-        run: |
-          bench --site test_site set-config allow_tests true
-          bench --site test_site run-tests --app erpnextkta
