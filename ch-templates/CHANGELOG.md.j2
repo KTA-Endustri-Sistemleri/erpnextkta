@@ -1,36 +1,50 @@
-{# Ana başlık + açıklama #}
-# Changelog
-
+{# ch-templates/CHANGELOG.md.j2 #}
+# 📜 Changelog
 <!-- version list -->
-
-{# Versiyonları yeni → eski sırada gez #}
-{% for version, release in ctx.history.released|dictsort(reverse=True) %}
-## {{ version.as_tag() }} – {{ release.tagged_date.strftime("%Y-%m-%d") }}
-
-{% set type_meta = {
-  "feature": "✨ Features",
-  "fix": "🐛 Fixes",
-  "breaking": "💥 Breaking Changes",
-  "docs": "📝 Documentation",
-  "refactor": "♻️ Refactoring",
-  "perf": "⚡ Performance",
-  "style": "💄 Style",
-  "test": "✅ Tests",
-  "build": "📦 Build System",
-  "ci": "👷 CI",
-  "chore": "🔧 Chores"
-} %}
-
-{# Her commit tipini (feat, fix, vs.) ayrı bölümde göster #}
-{% for commit_type, commits in release.elements|dictsort %}
-  {% if commits %}
-### {{ type_meta.get(commit_type, commit_type|capitalize) }}
-
-  {% for commit in commits %}
-- {{ commit.scope and '**' ~ commit.scope ~ '**: ' or '' }}{{ commit.descriptions[0] }}
-  {% endfor %}
-
+{# 
+  ctx.history.released:
+    key   -> Version object (semver)
+    value -> Release nesnesi (tag, tarih, elements vs.)
+#}
+{% for version, release in ctx.history.released.items() %}
+## 🚀 {{ version.as_tag() }} ({{ release.tagged_date.strftime("%Y-%m-%d") }})
+{% if release.description %}
+> 📝 {{ release.description }}
+{% endif %}
+{# release["elements"]: type_ -> commits list #}
+{% for type_, commits in release["elements"] | dictsort %}
+  {# 'unknown' tipini istersen göstermek için bu if'i kaldırabilirsin #}
+  {% if type_ != "unknown" %}
+    {# Commit type'ına göre ikon seçimi #}
+    {% set icon = "🔧" %}
+    {% if type_ == "feat" %}
+      {% set icon = "✨" %}
+    {% elif type_ == "fix" %}
+      {% set icon = "🐛" %}
+    {% elif type_ == "docs" %}
+      {% set icon = "📝" %}
+    {% elif type_ == "refactor" %}
+      {% set icon = "♻️" %}
+    {% elif type_ == "perf" %}
+      {% set icon = "⚡" %}
+    {% elif type_ == "test" %}
+      {% set icon = "✅" %}
+    {% elif type_ == "style" %}
+      {% set icon = "🎨" %}
+    {% elif type_ == "chore" %}
+      {% set icon = "🧹" %}
+    {% elif type_ == "ci" %}
+      {% set icon = "🔁" %}
+    {% endif %}
+### {{ icon }} {{ type_ | title }}
+    {# Her commit girdisini yaz #}
+    {% for commit in commits %}
+      {# ParseError'a karşı koruma: descriptions yoksa message kullan #}
+      {% set has_desc = commit.descriptions is defined and commit.descriptions %}
+      {% set scope_prefix = commit.scope and '**' ~ commit.scope ~ '**: ' or '' %}
+- {{ scope_prefix }}{{ has_desc and commit.descriptions[0] | capitalize or commit.message }}
+    {% endfor %}
   {% endif %}
 {% endfor %}
-
+---
 {% endfor %}
