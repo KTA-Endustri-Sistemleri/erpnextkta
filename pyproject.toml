@@ -20,9 +20,13 @@ build-backend = "flit_core.buildapi"
 # package_name = "~=1.1.0"
 
 [tool.semantic_release]
-# Version variable location
-version_variables = [
+# TOML için önerilen yol
+version_toml = [
     "pyproject.toml:project.version",
+]
+
+# Python dosyası için regex tabanlı yol
+version_variables = [
     "erpnextkta/__init__.py:__version__",
 ]
 
