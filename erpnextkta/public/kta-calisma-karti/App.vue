@@ -615,7 +615,7 @@ onBeforeUnmount(() => {
     <!-- WIZARD MODU -->
     <template v-if="!createdDoc">
       <!-- MODE TOGGLE -->
-      <teleport to=".page-head-content">
+      <teleport to=".kta-ck-header">
       <div class="flex justify-center gap-2 mb-1" style="width: 100%;">
         <button
           type="button"
