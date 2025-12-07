@@ -1,7 +1,125 @@
 
 # 📜 Changelog
 
-<!-- version list -->
+
+
+## 🚀 v0.3.5 (2025-12-07)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- update release notes and changelog templates for improved commit description handling
+      
+      
+    
+      
+      
+        
+- update python-semantic-release version constraint to allow 10.x
+      
+      
+    
+      
+      
+        
+- update semantic release configuration for version variables
+      
+      
+    
+      
+      
+        
+- change commit parser from 'angular' to 'conventional'
+      
+      
+    
+      
+      
+        
+- Update README.md with detailed user and developer sections
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- revert app version to 0.3.4
+      
+      
+    
+      
+      
+        
+- Update version to 0.3.4 and add changelog templates
+      
+      
+    
+      
+      
+        
+- update version to 0.3.4 in project files
+      
+      
+    
+      
+      
+        
+- add semantic release changelog templates
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- Fix: changelog release templates
+
+* Refactor: changelog template for better clarity
+
+* Refactor: release notes template for clarity
+      
+    
+
+  
+
+
+---
+
 
 ## 🚀 v0.3.4 (2025-12-07)
 
@@ -10,49 +128,50 @@
 
 
   
-  
 
     
     
     
 
-### 🔧 Bug Fixes
+### 🔧 Bug fixes
 
     
+      
+      
+        
+- stabilize Vue header teleport and unify step component UI
+      
+      
     
       
       
-      
-- Stabilize vue header teleport and unify step component ui
-    
-      
+        
+- stabilize page header by creating dedicated teleport target
       
       
-- Stabilize page header by creating dedicated teleport target
-    
-
-  
-
-  
-  
-
-    
-    
-    
-
-### 🔧 Code Style
-
-    
-    
-      
-      
-      
-- Unify ui styles across stepjobcard and stepoperation components
     
 
   
 
   
+
+    
+    
+    
+
+### 🔧 Code style
+
+    
+      
+      
+        
+- unify UI styles across StepJobCard and StepOperation components
+      
+      
+    
+
+  
+
   
 
     
@@ -62,11 +181,12 @@
 ### 🔧 Refactoring
 
     
-    
       
       
+        
+- move teleport target to .kta-ck-header for reliability
       
-- Move teleport target to .kta-ck-header for reliability
+      
     
 
   
@@ -82,20 +202,20 @@
 
 
   
-  
 
     
     
     
 
-### 🔧 Bug Fixes
+### 🔧 Bug fixes
 
     
-    
       
       
+        
+- Remove redundant test execution steps from CI workflow
       
-- Remove redundant test execution steps from ci workflow
+      
     
 
   
@@ -111,20 +231,20 @@
 
 
   
-  
 
     
     
     
 
-### 🔧 Bug Fixes
+### 🔧 Bug fixes
 
     
-    
       
       
+        
+- Add additional apps to CI workflow for testing
       
-- Add additional apps to ci workflow for testing
+      
     
 
   
@@ -140,20 +260,20 @@
 
 
   
-  
 
     
     
     
 
-### 🔧 Bug Fixes
+### 🔧 Bug fixes
 
     
-    
       
       
+        
+- Add KTA Customer Group DocType with initial structure
       
-- Add kta customer group doctype with initial structure
+      
     
 
   
@@ -169,45 +289,52 @@
 
 
   
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **calisma_karti**: correct method path for callIslemYap function
+      
+      
+    
+      
+      
+        
+- **calisma_karti**: correct page reference and bundle import for KTA Calisma Karti
+      
+      
+    
+      
+      
+        
+- **api**: rename parameter in get_job_card_by_barcode function for clarity and add operator department tag handling in create_calisma_karti
+      
+      
+    
+      
+      
+        
+- **ui**: correct page show event handler and improve header content clearing in Vue app
+      
+      
+    
+      
+      
+        
+- **calisma_karti**: update module reference to kta_calisma_karti in custom field
+      
+      
+    
+
   
 
-    
-    
-    
-
-### 🔧 Bug Fixes
-
-    
-    
-      
-      
-      
-- **calisma_karti**: Correct method path for callislemyap function
-    
-      
-      
-      
-- **calisma_karti**: Correct page reference and bundle import for kta calisma karti
-    
-      
-      
-      
-- **api**: Rename parameter in get_job_card_by_barcode function for clarity and add operator department tag handling in create_calisma_karti
-    
-      
-      
-      
-- **ui**: Correct page show event handler and improve header content clearing in vue app
-    
-      
-      
-      
-- **calisma_karti**: Update module reference to kta_calisma_karti in custom field
-    
-
-  
-
-  
   
 
     
@@ -217,66 +344,86 @@
 ### 🔧 Chores
 
     
+      
+      
+        
+- update .gitignore to include additional files and directories
+      
+      
     
       
       
+        
+- title default changed to null
       
-- Update .gitignore to include additional files and directories
+      
     
       
       
+        
+- code readability and cleanliness
       
-- Title default changed to null
+      
     
       
       
+        
+- renamed page and js files
       
-- Code readability and cleanliness
+      
     
       
       
+        
+- renamed folder kta_calisma_karti to kta-calisma-karti
       
-- Renamed page and js files
+      
     
       
       
+        
+- page folder name revert kta_calisma_karti
       
-- Renamed folder kta_calisma_karti to kta-calisma-karti
+      
     
       
       
+        
+- **fix**: revert page files to kta_calisma_karti
       
-- Page folder name revert kta_calisma_karti
+      
     
       
       
+        
+- **operasyon_duruslari**: moved DocType and JSON configuration for kta_calisma_karti module
       
-- **fix**: Revert page files to kta_calisma_karti
+      
     
       
       
+        
+- **kta_operasyon_grubu**: moved KTA Operasyon Grubu DocType and related files for kta_calisma_karti module
       
-- **operasyon_duruslari**: Moved doctype and json configuration for kta_calisma_karti module
+      
     
       
       
+        
+- **hooks**: remove unused custom field filter for Calisma Karti
       
-- **kta_operasyon_grubu**: Moved kta operasyon grubu doctype and related files for kta_calisma_karti module
+      
     
       
       
-      
-- **hooks**: Remove unused custom field filter for calisma karti
-    
-      
+        
+- **calisma_karti**: remove custom field JSON configuration for Calisma Karti
       
       
-- **calisma_karti**: Remove custom field json configuration for calisma karti
     
 
   
 
-  
   
 
     
@@ -286,96 +433,128 @@
 ### 🔧 Features
 
     
+      
+      
+        
+- Add KTA Calisma Karti module with Vue integration
+      
+      
     
       
       
+        
+- **kta_calisma_karti**: add new module definition and update modules list
       
-- Add kta calisma karti module with vue integration
+      
     
       
       
+        
+- **calisma_karti**: implement Calisma Karti doctype with custom fields and functionality
       
-- **kta_calisma_karti**: Add new module definition and update modules list
+      
     
       
       
+        
+- **calisma_karti_hurda**: add Calisma Karti Hurda doctype with fields and functionality
       
-- **calisma_karti**: Implement calisma karti doctype with custom fields and functionality
+      
     
       
       
+        
+- **kta_calisma_karti_operasyonlari**: add KTA Calisma Karti Operasyonlari doctype with fields and functionality
       
-- **calisma_karti_hurda**: Add calisma karti hurda doctype with fields and functionality
+      
     
       
       
+        
+- **calisma_karti**: add __init__.py files for kta_calisma_karti and doctype modules
       
-- **kta_calisma_karti_operasyonlari**: Add kta calisma karti operasyonlari doctype with fields and functionality
+      
     
       
       
+        
+- **calisma_karti**: add initial Vue components for Calisma Karti
       
-- **calisma_karti**: Add __init__.py files for kta_calisma_karti and doctype modules
+      
     
       
       
+        
+- **calisma_karti**: add initial files for KTA Calisma Karti page and Vue integration
       
-- **calisma_karti**: Add initial vue components for calisma karti
+      
     
       
       
+        
+- **calisma_karti**: implement multi-step form for Calisma Karti with Vue components
       
-- **calisma_karti**: Add initial files for kta calisma karti page and vue integration
+      
     
       
       
+        
+- **calisma_karti**: add API functions for retrieving and creating Calisma Karti documents
       
-- **calisma_karti**: Implement multi-step form for calisma karti with vue components
+      
     
       
       
+        
+- **app/ui/ux**: added loading helper, card re-creation wizard, ui/ux improvments
       
-- **calisma_karti**: Add api functions for retrieving and creating calisma karti documents
+      
     
       
       
+        
+- add StepJobCardSearch component for job card barcode input
       
-- **app/ui/ux**: Added loading helper, card re-creation wizard, ui/ux improvments
+      
     
       
       
+        
+- **ui/ux**: enhance StepIndicator component with mobile compact view and improved step tracking
       
-- Add stepjobcardsearch component for job card barcode input
+      
     
       
       
+        
+- **api**: add early validation for Job Card retrieval by barcode
       
-- **ui/ux**: Enhance stepindicator component with mobile compact view and improved step tracking
+      
     
       
       
+        
+- **api**: update Job Card retrieval to include early Work Order validation
       
-- **api**: Add early validation for job card retrieval by barcode
+      
     
       
       
+        
+- **workspace**: add hızlı tarama workspace configuration with initial content and structure
       
-- **api**: Update job card retrieval to include early work order validation
+      
     
       
       
-      
-- **workspace**: Add hızlı tarama workspace configuration with initial content and structure
-    
-      
+        
+- **calisma_karti**: add custom field for İş Emri in Calisma Karti
       
       
-- **calisma_karti**: Add custom field for i̇ş emri in calisma karti
     
 
   
 
-  
   
 
     
@@ -385,61 +564,82 @@
 ### 🔧 Refactoring
 
     
+      
+      
+        
+- **calisma_karti**: add custom fields and property setters for Calisma Karti
+      
+      
     
       
       
+        
+- **calisma_karti**: optimize page load and Vue integration for Calisma Karti
       
-- **calisma_karti**: Add custom fields and property setters for calisma karti
+      
     
       
       
+        
+- **hooks**: clean up commented code and improve readability
       
-- **calisma_karti**: Optimize page load and vue integration for calisma karti
+      
     
       
       
+        
+- **api**: update field names and improve error handling in create_calisma_karti
       
-- **hooks**: Clean up commented code and improve readability
+      
     
       
       
+        
+- **components**: clean up code and improve readability in StepOperation and StepUser components
       
-- **api**: Update field names and improve error handling in create_calisma_karti
+      
     
       
       
+        
+- **App**: implement dynamic step descriptions and integrate StepIndicator component
       
-- **components**: Clean up code and improve readability in stepoperation and stepuser components
+      
     
       
       
+        
+- **ui/ux**: StepWorkstation flag added
       
-- **App**: Implement dynamic step descriptions and integrate stepindicator component
+      
     
       
       
+        
+- **ui/ux**: added user search and ui improvments
       
-- **ui/ux**: Stepworkstation flag added
+      
     
       
       
+        
+- **ui/ux**: StepJobCard ui/ux improvments
       
-- **ui/ux**: Added user search and ui improvments
+      
     
       
       
+        
+- **ui/ux**: ui/ux behaviors improved
       
-- **ui/ux**: Stepjobcard ui/ux improvments
+      
     
       
       
-      
-- **ui/ux**: Ui/ux behaviors improved
-    
-      
+        
+- **calisma_karti**: clean up page load logic and remove redundant Vue mount
       
       
-- **calisma_karti**: Clean up page load logic and remove redundant vue mount
     
 
   
@@ -455,20 +655,20 @@
 
 
   
-  
 
     
     
     
 
-### 🔧 Bug Fixes
+### 🔧 Bug fixes
 
     
-    
       
       
+        
+- Specify Frappe branch version during bench initialization
       
-- Specify frappe branch version during bench initialization
+      
     
 
   
@@ -484,30 +684,31 @@
 
 
   
-  
 
     
     
     
 
-### 🔧 Bug Fixes
+### 🔧 Bug fixes
 
     
-    
       
       
-      
+        
 - Update app retrieval to specify branch for erpnext for ci
+      
+      
     
       
       
+        
+- **ci**: Enhance CI workflow to install erpnext and setup test site
       
-- **ci**: Enhance ci workflow to install erpnext and setup test site
+      
     
 
   
 
-  
   
 
     
@@ -517,16 +718,31 @@
 ### 🔧 Chores
 
     
-    
       
       
+        
+- update author email in setup.py and remove unused test.txt file
       
-- Update author email in setup.py and remove unused test.txt file
+      
     
 
   
 
   
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- fix(ci):Update CI workflow and author email, remove unused file
+      
+    
+
   
 
 
@@ -540,7 +756,6 @@
 
 
   
-  
 
     
     
@@ -549,16 +764,19 @@
 ### 🔧 Features
 
     
+      
+      
+        
+- **work-order**: Automatically update Work Order status when Job Card starts
+      
+      
     
       
       
-      
-- **work-order**: Automatically update work order status when job card starts
-    
-      
+        
+- **hooks**: wire Job Card update event to custom Work Order status handler
       
       
-- **hooks**: Wire job card update event to custom work order status handler
     
 
   
@@ -574,25 +792,24 @@
 
 
   
-  
 
     
     
     
 
-### 🔧 Bug Fixes
+### 🔧 Bug fixes
 
-    
     
       
       
+        
+- **ci**: update version_variables format for semantic-release
       
-- **ci**: Update version_variables format for semantic-release
+      
     
 
   
 
-  
   
 
     
@@ -602,56 +819,72 @@
 ### 🔧 Chores
 
     
+      
+      
+        
+- Update the GitHub Actions workflow to utilize a personal access token for authentication.
+      
+      
     
       
       
+        
+- enable zero version support in semantic release configuration
       
-- Update the github actions workflow to utilize a personal access token for authentication.
+      
     
       
       
+        
+- update semantic release configuration for versioning and commit parser
       
-- Enable zero version support in semantic release configuration
+      
     
       
       
+        
+- update GitHub Actions workflow to use PAT_TOKEN for authentication
       
-- Update semantic release configuration for versioning and commit parser
+      
     
       
       
+        
+- adjust the commit parser to use the Angular style.
       
-- Update github actions workflow to use pat_token for authentication
+      
     
       
       
+        
+- enable zero version support in semantic release configuration
       
-- Adjust the commit parser to use the angular style.
+      
     
       
       
+        
+- update semantic release configuration for versioning and commit parser
       
-- Enable zero version support in semantic release configuration
+      
     
       
       
+        
+- enable zero version support in semantic release configuration
       
-- Update semantic release configuration for versioning and commit parser
+      
     
       
       
-      
-- Enable zero version support in semantic release configuration
-    
-      
+        
+- configure python-semantic-release with pyproject version
       
       
-- Configure python-semantic-release with pyproject version
     
 
   
 
-  
   
 
     
@@ -661,61 +894,79 @@
 ### 🔧 Features
 
     
+      
+      
+        
+- **ci**: add GitHub Actions workflow for CI with testing setup
+      
+      
     
       
       
+        
+- **ci**: introduce semantic-release with conventional commits and automated versioning
       
-- **ci**: Add github actions workflow for ci with testing setup
+      
     
       
       
-      
-- **ci**: Introduce semantic-release with conventional commits and automated versioning
-    
-      
-      
-      
+        
 - Add kta_mrp module definition and update modules.txt
+      
+      
     
       
       
-      
+        
 - **refactor**: Add new reports for production planning and purchasing
+      
+      
     
       
       
-      
+        
 - **refactor**: Add custom weekly production field to item doctype
+      
+      
     
       
       
+        
+- **refactor**: Update module references from erpnextkta to kta_mrp in reports and JSON configurations
       
-- **refactor**: Update module references from erpnextkta to kta_mrp in reports and json configurations
+      
     
       
       
-      
+        
 - **refactor**: Update module reference from erpnextkta to kta_mrp in item.json
+      
+      
     
       
       
-      
+        
 - **refactor**: Format item.json for improved readability and maintainability
+      
+      
     
       
       
-      
+        
 - **refactor**: Update report metadata and indices for consistency in kta_mrp module
+      
+      
     
       
       
-      
+        
 - **refactor**: Update module import paths in capacity_planning_report for consistency
+      
+      
     
 
   
 
-  
   
 
     
@@ -725,16 +976,1630 @@
 ### 🔧 Refactoring
 
     
-    
       
       
+        
+- **kta_mrp**: move reports to new module & update import paths
       
-- **kta_mrp**: Move reports to new module & update import paths
+      
     
 
   
 
   
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- feat:Add CI workflow with testing setup and update version_variables format (#6)
+      
+    
+      
+      
+- Hotfix/stock entry dialog (#2)
+      
+    
+      
+      
+- Main mrp changes (#1)
+
+* Default supplier and item name columns added to Material requirement report
+
+* Fields are added to all stages
+
+---------
+
+Co-authored-by: alpkanoz <ozturk.alpkan@gmail.com>
+      
+    
+      
+      
+- production start week formula correction
+      
+    
+      
+      
+- Mandatory fields are added.
+      
+    
+      
+      
+- Adding field of non_conformance in erpnextkta app
+      
+    
+      
+      
+- Calisma karti autoname fix
+      
+    
+      
+      
+- Calisma Karti filters, naming rule changes
+      
+    
+      
+      
+- Calisma Karti custom fields
+      
+    
+      
+      
+- troubleshooting AI changes
+      
+    
+      
+      
+- Purchase order moq override, Calisma karti update
+      
+    
+      
+      
+- troubleshooting AI changes
+      
+    
+      
+      
+- troubleshooting AI changes
+      
+    
+      
+      
+- troubleshooting AI changes
+      
+    
+      
+      
+- supply_on: evaluate sales orders after processing; add evaluation endpoint
+      
+    
+      
+      
+- troubleshooting AI changes
+      
+    
+      
+      
+- troubleshooting AI changes
+      
+    
+      
+      
+- Update process_supply_on method to find customer through Address doctype links child table using custom_eski_kod field
+      
+    
+      
+      
+- troubleshooting AI changes
+      
+    
+      
+      
+- refactoring api.py
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- material planning report fieldname change
+      
+    
+      
+      
+- hata giderme
+      
+    
+      
+      
+- alpkan calisma karti + mrp
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- kta machine capability study for quailty
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- özel alanlar
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- GKK ve etiketler düzenleniyor.
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Canlıdaki değişiklikler aktarılıyor
+      
+    
+      
+      
+- Zebra Printer setup and label count corrected
+      
+    
+      
+      
+- Zebra Printer setup and label count corrected
+      
+    
+      
+      
+- Zebra Printer setup and label count corrected
+      
+    
+      
+      
+- BOM to Item set custom index
+      
+    
+      
+      
+- BOM to Item set custom index
+      
+    
+      
+      
+- BOM to Item set custom index
+      
+    
+      
+      
+- zebra
+      
+    
+      
+      
+- Kta data update, send data to printer, zebra formatter
+      
+    
+      
+      
+- Kta data update, send data to printer, zebra formatter
+      
+    
+      
+      
+- db commit
+      
+    
+      
+      
+- refactor
+      
+    
+      
+      
+- 8D form update
+      
+    
+      
+      
+- 8D form update
+      
+    
+      
+      
+- 8D form updates
+      
+    
+      
+      
+- 8d
+      
+    
+      
+      
+- 8d
+      
+    
+      
+      
+- new codes
+      
+    
+      
+      
+- son güncellemeler
+      
+    
+      
+      
+- all Purchase Receipt
+      
+    
+      
+      
+- all changes
+      
+    
+      
+      
+- all changes
+      
+    
+      
+      
+- d1 takım üyeleri
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- antrepo beyannamesi
+      
+    
+      
+      
+- Purchase receipt debug
+      
+    
+      
+      
+- Purchase Receipt overriding
+      
+    
+      
+      
+- Purchase Receipt overriding
+      
+    
+      
+      
+- Customer Income Account assignment
+      
+    
+      
+      
+- Customer Income Account
+      
+    
+      
+      
+- Customer Income Account
+      
+    
+      
+      
+- 8D updates
+      
+    
+      
+      
+- 8D updates
+      
+    
+      
+      
+- customizations on 8D
+      
+    
+      
+      
+- 3D modified
+      
+    
+      
+      
+- customizations on 8D
+      
+    
+      
+      
+- Client Script
+      
+    
+      
+      
+- adding workspace
+      
+    
+      
+      
+- new workspace
+      
+    
+      
+      
+- remote changes applied
+      
+    
+      
+      
+- eski kod alanları eklendi
+      
+    
+      
+      
+- custom changes uploaded
+      
+    
+      
+      
+- asset_category fixture immature
+      
+    
+      
+      
+- Purchase Receipt
+      
+    
+      
+      
+- Purchase Receipt
+      
+    
+      
+      
+- Purchase Receipt
+      
+    
+      
+      
+- Purchase Receipt
+      
+    
+      
+      
+- Purchase Receipt
+      
+    
+      
+      
+- Purchase Receipt
+      
+    
+      
+      
+- D1 takım üyeleri
+      
+    
+      
+      
+- D1 takım üyeleri
+      
+    
+      
+      
+- D1 takım üyeleri
+      
+    
+      
+      
+- D1 takım üyeleri
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Antrepo Beyanname No
+      
+    
+      
+      
+- Purchase Receipt overriding
+      
+    
+      
+      
+- Purchase Receipt overriding
+      
+    
+      
+      
+- Delivery Note localization
+      
+    
+      
+      
+- Delivery Note localization
+      
+    
+      
+      
+- Added Income Account to party account
+      
+    
+      
+      
+- Added Income Account to party account
+      
+    
+      
+      
+- Added Income Account to party account
+      
+    
+      
+      
+- Added Income Account to party account
+      
+    
+      
+      
+- Added Income Account to party account
+      
+    
+      
+      
+- Added Income Account to party account
+      
+    
+      
+      
+- added role profiles
+      
+    
+      
+      
+- added role profiles
+      
+    
+      
+      
+- Item updates for Terminal and Kablo
+      
+    
+      
+      
+- 8D form updates
+      
+    
+      
+      
+- 8D form updates
+      
+    
+      
+      
+- 8D form updates
+      
+    
+      
+      
+- Quality Feedback sum Client Script added
+      
+    
+      
+      
+- Quality Feedback sum Client Script added
+      
+    
+      
+      
+- Quality Feedback sum Client Script added
+      
+    
+      
+      
+- Quality Feedback sum Client Script added
+      
+    
+      
+      
+- KTA Kalite Workspace
+      
+    
+      
+      
+- KTA Kalite Workspace
+      
+    
+      
+      
+- Property setters reset
+      
+    
+      
+      
+- Property setters reset
+      
+    
+      
+      
+- Property setters reset
+      
+    
+      
+      
+- Property setters reset
+      
+    
+      
+      
+- Property setters reset
+      
+    
+      
+      
+- BOM Ürünü özelleştirmeleri
+      
+    
+      
+      
+- BOM Ürünü özelleştirmeleri
+      
+    
+      
+      
+- BOM Ürünü özelleştirmeleri
+      
+    
+      
+      
+- operasyon grubu
+      
+    
+      
+      
+- operasyon grubu
+      
+    
+      
+      
+- operasyon grubu
+      
+    
+      
+      
+- operasyon grubu
+      
+    
+      
+      
+- operasyon grubu
+      
+    
+      
+      
+- operasyon grubu
+      
+    
+      
+      
+- operasyon grubu
+      
+    
+      
+      
+- Kalite Geribildirim Değerlendirmesine tarih eklendi
+      
+    
+      
+      
+- Kalite Geribildirimine Değerlendirme toplamı eklendi
+      
+    
+      
+      
+- Kalite Kontrolü Barkod Kontrol alanı Barkoda döndürüldü
+      
+    
+      
+      
+- Purchase Receipt üzerine workflow_state eklendi
+      
+    
+      
+      
+- İthalat kısa malzeme açıklamaları
+      
+    
+      
+      
+- 8D formu düzenlendi
+      
+    
+      
+      
+- 8D formu düzenlendi
+      
+    
+      
+      
+- 8D formu düzenlendi
+      
+    
+      
+      
+- 8D formu düzenlendi
+      
+    
+      
+      
+- 8D formu düzenlendi
+      
+    
+      
+      
+- Doğru Doctype Link yapıldı (Gümrük Müdürlükleri)
+      
+    
+      
+      
+- İthalat tab'ine alanlar eklendi
+      
+    
+      
+      
+- varlık kategorisi fixture added
+      
+    
+      
+      
+- varlık kategorisi fixture added
+      
+    
+      
+      
+- Satış Sipariş Kalemi'nde Müşteri İndeksi Allow on Submit kaldırıldı
+      
+    
+      
+      
+- Sanal veri tiplerin düzenlendi
+      
+    
+      
+      
+- Sanal veri tiplerin düzenlendi
+      
+    
+      
+      
+- Malzeme Kalemine KalemineÜrün ağacına Malzeme Grubu eklendi
+Gümrük Müdürlükleri ve Bölge Müdürlükleri eklendi
+      
+    
+      
+      
+- Malzeme Kalemine Kalemine BOM Müşteri Indeksi eklendi
+      
+    
+      
+      
+- Satış Siparişi Kalemine BOM Müşteri Indeksi eklendi
+      
+    
+      
+      
+- Ölçü Metodu fixture yapıldı
+      
+    
+      
+      
+- Antrepo alanı açıldı
+      
+    
+      
+      
+- İthalat kontrol değerinin varsayılanı 0'a eşitlendi
+      
+    
+      
+      
+- İthalat kontrol değerinin varsayılanı 0'a eşitlendi
+      
+    
+      
+      
+- Satınalma İrsaliyesine ithalat ve etiketleme geliştirmelerine ait iş akışı tanımlanıyor
+      
+    
+      
+      
+- Satınalma İrsaliyesine ithalat ve etiketleme geliştirmelerine ait iş akışı tanımlanıyor
+      
+    
+      
+      
+- Satınalma İrsaliyesine ithalat ve etiketleme geliştirmelerine ait iş akışı tanımlanıyor
+      
+    
+      
+      
+- Kalite 8D formu eklendi
+      
+    
+      
+      
+- Kalite Kontrolüne Borkod Kontrolü alanı eklendı
+      
+    
+      
+      
+- Ürün Kalite Kontrol Parametreleri ek alanı Ölçü Metodu eklendi
+      
+    
+      
+      
+- kalite için Ölçü Metodu DocType tanımlandı
+      
+    
+      
+      
+- Ürün Müşteri Detayı üzerinde Referans Açıklaması alanı açıldı, Ürün Tedarikçisi üzerinde Tedarikçi Parça Açıklaması alanı açıldı
+      
+    
+      
+      
+- Ürün Ağacı üzerinde Müşteri İndeksi alanı açıldı
+      
+    
+
   
 
 
