@@ -3,6 +3,63 @@
 
 
 
+## 🚀 v0.5.0 (2025-12-08)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- Add GitHub Pages documentation configuration and layout
+      
+      
+    
+      
+      
+        
+- Add configuration for GitHub Pages documentation
+      
+      
+    
+      
+      
+        
+- Add initial documentation layout and styles for erpnextkta for github pages
+      
+      
+    
+      
+      
+        
+- Add GitHub Pages gem configuration to Gemfile
+      
+      
+    
+      
+      
+        
+- Add *.lock files to .gitignore
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.4.0 (2025-12-08)
 
 
