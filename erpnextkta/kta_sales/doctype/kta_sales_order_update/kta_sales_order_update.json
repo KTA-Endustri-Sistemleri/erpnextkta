@@ -6,10 +6,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
- "supply_on_date",
+ "sales_order_update_date",
  "section_break_entries",
- "supply_on_entries",
- "section_break_supply_on_tools",
+ "sales_order_update_entries",
+ "section_break_sales_order_update_tools",
  "compare_with_previous",
  "sync_to_sales_orders",
  "column_break_comparison_tools",
@@ -18,29 +18,29 @@
 ],
 "fields": [
   {
-   "fieldname": "supply_on_date",
+   "fieldname": "sales_order_update_date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Supply On Tarihi",
+   "label": "Sales Order Update Tarihi",
    "reqd": 1
   },
   {
    "fieldname": "section_break_entries",
    "fieldtype": "Section Break",
-   "label": "Supply On Satırları"
+   "label": "Sales Order Update Satırları"
   },
   {
-   "fieldname": "supply_on_entries",
+   "fieldname": "sales_order_update_entries",
    "fieldtype": "Table",
    "label": "Satırlar",
-   "options": "KTA Supply On Entry",
+   "options": "KTA Sales Order Update Entry",
    "reqd": 1
   },
   {
-   "fieldname": "section_break_supply_on_tools",
+   "fieldname": "section_break_sales_order_update_tools",
    "fieldtype": "Section Break",
-   "label": "Supply On İşlemleri"
+   "label": "Sales Order Update İşlemleri"
   },
   {
    "fieldname": "section_break_comparison_tools",
@@ -71,7 +71,7 @@
  "modified": "2025-12-05 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "kta_sales",
- "name": "KTA Supply On",
+ "name": "KTA Sales Order Update",
  "owner": "Administrator",
  "permissions": [
   {

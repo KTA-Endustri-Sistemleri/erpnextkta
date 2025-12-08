@@ -11,24 +11,26 @@ from frappe.model.document import Document
 from frappe.utils import add_days, cint, flt, getdate, today
 from erpnext.controllers.accounts_controller import update_child_qty_rate
 
-from erpnextkta.kta_sales.doctype.kta_supply_on.kta_supply_on import (
-    adjust_supply_on_with_shipments,
+from erpnextkta.kta_sales.doctype.kta_sales_order_update.kta_sales_order_update import (
+    adjust_sales_order_update_with_shipments,
     get_customer_and_item,
-    get_supply_on_doc,
+    get_sales_order_update_doc,
 )
 class KTASOSyncLog(Document):
 	pass
 
 
 @frappe.whitelist()
-def sync_sales_orders_from_supply_on(supply_on_name=None, supply_on_reference=None):
+def sync_sales_orders_from_sales_order_update(
+    sales_order_update_name=None, sales_order_update_reference=None
+):
     """
-    Supply On'dan senkronizasyon başlat.
+    Sales Order Update'den senkronizasyon başlat.
     """
-    reference_name = supply_on_reference or supply_on_name
+    reference_name = sales_order_update_reference or sales_order_update_name
     if not reference_name:
-        frappe.throw(_("Supply On seçilmedi."))
-    return _sync_sales_orders_from_supply_on(reference_name)
+        frappe.throw(_("Sales Order Update seçilmedi."))
+    return _sync_sales_orders_from_sales_order_update(reference_name)
 
 
 @frappe.whitelist()
@@ -36,21 +38,24 @@ def sync_sales_orders_from_comparison(comparison_name):
     """
     Karşılaştırmadan Sales Order'ları senkronize et.
     """
-    comparison = frappe.get_doc("KTA Supply On Comparison", comparison_name)
-    return _sync_sales_orders_from_supply_on(comparison.current_supply_on, comparison=comparison)
+    comparison = frappe.get_doc("KTA Sales Order Update Comparison", comparison_name)
+    return _sync_sales_orders_from_sales_order_update(
+        comparison.current_sales_order_update, comparison=comparison
+    )
 
 
-def _sync_sales_orders_from_supply_on(supply_on_name, comparison=None):
+def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparison=None):
     """
-    Seçilen Supply On için sevkiyat düşülmüş değişiklikleri üretip ERP'ye uygular.
+    Seçilen Sales Order Update için sevkiyat düşülmüş değişiklikleri üretip ERP'ye uygular.
     """
-    supply_on_doc = get_supply_on_doc(supply_on_name)
+    sales_order_update_doc = get_sales_order_update_doc(sales_order_update_name)
     sync_changes = [
-        frappe._dict(change) for change in build_sales_order_sync_changes(supply_on_doc.name)
+        frappe._dict(change)
+        for change in build_sales_order_sync_changes(sales_order_update_doc.name)
     ]
 
     sync_log = frappe.new_doc("KTA SO Sync Log")
-    sync_log.supply_on = supply_on_doc.name
+    sync_log.sales_order_update = sales_order_update_doc.name
     if comparison:
         sync_log.comparison = comparison.name
     sync_log.sync_date = frappe.utils.now()
@@ -62,10 +67,10 @@ def _sync_sales_orders_from_supply_on(supply_on_name, comparison=None):
     try:
         if not sync_changes:
             sync_log.status = "Completed"
-            sync_log.comment = "No changes detected for this Supply On."
+            sync_log.comment = "No changes detected for this Sales Order Update."
             sync_log.save()
-            supply_on_doc.last_sync_log = sync_log.name
-            supply_on_doc.save()
+            sales_order_update_doc.last_sync_log = sync_log.name
+            sales_order_update_doc.save()
             return {
                 "sync_log": sync_log.name,
                 "created": 0,
@@ -103,8 +108,8 @@ def _sync_sales_orders_from_supply_on(supply_on_name, comparison=None):
             comparison.status = "Synced"
             comparison.save()
 
-        supply_on_doc.last_sync_log = sync_log.name
-        supply_on_doc.save()
+        sales_order_update_doc.last_sync_log = sync_log.name
+        sales_order_update_doc.save()
 
     except Exception as e:
         sync_log.status = "Failed"
@@ -125,9 +130,9 @@ def _sync_sales_orders_from_supply_on(supply_on_name, comparison=None):
     return result
 
 
-def build_sales_order_sync_changes(supply_on_name):
+def build_sales_order_sync_changes(sales_order_update_name):
     """
-    Supply On satırlarını grupla ve sadece NET değişiklikleri tespit et.
+    Sales Order Update satırlarını grupla ve sadece NET değişiklikleri tespit et.
     """
     rows = frappe.db.sql(
         """
@@ -137,18 +142,18 @@ def build_sales_order_sync_changes(supply_on_name):
             delivery_date,
             delivery_quantity,
             plant_no_customer
-        FROM `tabKTA Supply On Entry`
+        FROM `tabKTA Sales Order Update Entry`
         WHERE parent = %s
         ORDER BY order_no, part_no_customer, plant_no_customer, delivery_date
         """,
-        (supply_on_name,),
+        (sales_order_update_name,),
         as_dict=True,
     )
 
     if not rows:
         return []
 
-    adjusted_rows = adjust_supply_on_with_shipments(rows)
+    adjusted_rows = adjust_sales_order_update_with_shipments(rows)
     far_future = getdate("2199-12-31")
 
     plan_rows_by_key = defaultdict(list)
@@ -530,7 +535,7 @@ def fetch_open_sales_orders_with_item_dates(customers):
 
 def determine_change_type_for_sync(open_qty, new_qty, old_date, new_date):
     """
-    Supply On planı ile ERP'deki açık miktarı karşılaştırarak change_type belirle.
+    Sales Order Update planı ile ERP'deki açık miktarı karşılaştırarak change_type belirle.
     """
     open_qty = flt(open_qty)
     new_qty = flt(new_qty)

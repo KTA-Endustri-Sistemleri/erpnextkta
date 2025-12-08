@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"X2zLSpmUvL\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">KTA</span>\",\"col\":12}},{\"id\":\"JoIkubl0bN\",\"type\":\"card\",\"data\":{\"card_name\":\"Etiketler\",\"col\":3}},{\"id\":\"UJ3e3zhkKl\",\"type\":\"card\",\"data\":{\"card_name\":\"G\u00fcmr\u00fck \u0130\u015flemleri\",\"col\":3}},{\"id\":\"fjrh91gx9v\",\"type\":\"card\",\"data\":{\"card_name\":\"Zebra Yaz\u0131c\u0131 Ayarlar\u0131\",\"col\":3}},{\"id\":\"ktaSupplyOnCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Supply On\",\"col\":3}}]",
+ "content": "[{\"id\":\"X2zLSpmUvL\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">KTA</span>\",\"col\":12}},{\"id\":\"JoIkubl0bN\",\"type\":\"card\",\"data\":{\"card_name\":\"Etiketler\",\"col\":3}},{\"id\":\"UJ3e3zhkKl\",\"type\":\"card\",\"data\":{\"card_name\":\"G\u00fcmr\u00fck \u0130\u015flemleri\",\"col\":3}},{\"id\":\"fjrh91gx9v\",\"type\":\"card\",\"data\":{\"card_name\":\"Zebra Yaz\u0131c\u0131 Ayarlar\u0131\",\"col\":3}},{\"id\":\"ktaSalesOrderUpdateCard\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Order Update\",\"col\":3}}]",
  "creation": "2025-07-15 11:04:03.689540",
  "custom_blocks": [],
  "docstatus": 0,
@@ -183,7 +183,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Supply On",
+   "label": "Sales Order Update",
    "link_count": 1,
    "link_type": "DocType",
    "onboard": 0,
@@ -192,9 +192,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "KTA Supply On",
+   "label": "KTA Sales Order Update",
    "link_count": 0,
-   "link_to": "KTA Supply On",
+   "link_to": "KTA Sales Order Update",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"

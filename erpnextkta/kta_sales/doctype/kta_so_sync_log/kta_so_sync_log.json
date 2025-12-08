@@ -6,7 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "supply_on",
+  "sales_order_update",
   "comparison",
   "sync_date",
   "column_break_vehd",
@@ -25,18 +25,17 @@
  ],
  "fields": [
   {
-   "fieldname": "supply_on",
+   "fieldname": "sales_order_update",
    "fieldtype": "Link",
-   "label": "KTA Supply On",
-   "options": "KTA Supply On",
-   "oldfieldname": "supply_on_head",
+   "label": "KTA Sales Order Update",
+   "options": "KTA Sales Order Update",
    "read_only": 1
   },
   {
    "fieldname": "comparison",
    "fieldtype": "Link",
    "label": "Kar\u015f\u0131la\u015ft\u0131rma",
-   "options": "KTA Supply On Comparison",
+   "options": "KTA Sales Order Update Comparison",
    "read_only": 1
   },
   {

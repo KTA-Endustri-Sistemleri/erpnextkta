@@ -5,29 +5,29 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate
 
-from erpnextkta.kta_sales.doctype.kta_supply_on.kta_supply_on import (
-    adjust_supply_on_with_shipments,
+from erpnextkta.kta_sales.doctype.kta_sales_order_update.kta_sales_order_update import (
+    adjust_sales_order_update_with_shipments,
     get_customer_and_item,
 )
 
 
-class KTASupplyOnComparison(Document):
-	pass
+class KTASalesOrderUpdateComparison(Document):
+    pass
 
 
-DOCTYPE_KTA_SUPPLY_ON = "KTA Supply On"
+DOCTYPE_KTA_SALES_ORDER_UPDATE = "KTA Sales Order Update"
 
 
 @frappe.whitelist()
-def compare_supply_on_documents(current_supply_on_name):
+def compare_sales_order_update_documents(current_sales_order_update_name):
     """
-    Verilen KTA Supply On dokümanını, creation sırasına göre ondan önce gelen kayıtla karşılaştır.
+    Verilen KTA Sales Order Update dokümanını, creation sırasına göre ondan önce gelen kayıtla karşılaştır.
     """
-    resolved_name = current_supply_on_name
-    current = frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON, resolved_name)
+    resolved_name = current_sales_order_update_name
+    current = frappe.get_doc(DOCTYPE_KTA_SALES_ORDER_UPDATE, resolved_name)
 
     all_heads = frappe.get_all(
-        DOCTYPE_KTA_SUPPLY_ON,
+        DOCTYPE_KTA_SALES_ORDER_UPDATE,
         fields=["name", "creation"],
         order_by="creation asc",
     )
@@ -39,22 +39,22 @@ def compare_supply_on_documents(current_supply_on_name):
             break
 
     if current_index is None:
-        frappe.throw(_("Current Supply On kaydı bulunamadı: {0}").format(current.name))
+        frappe.throw(_("Current Sales Order Update kaydı bulunamadı: {0}").format(current.name))
 
     if current_index == 0:
-        frappe.msgprint(_("Karşılaştırma için önceki Supply On kaydı bulunamadı (bu ilk kayıt)."))
+        frappe.msgprint(_("Karşılaştırma için önceki Sales Order Update kaydı bulunamadı (bu ilk kayıt)."))
         return
 
-    previous_supply_on_name = all_heads[current_index - 1].name
+    previous_sales_order_update_name = all_heads[current_index - 1].name
 
-    comparison_doc = frappe.new_doc("KTA Supply On Comparison")
+    comparison_doc = frappe.new_doc("KTA Sales Order Update Comparison")
     comparison_doc.comparison_date = frappe.utils.now()
-    comparison_doc.previous_supply_on = previous_supply_on_name
-    comparison_doc.current_supply_on = current_supply_on_name
+    comparison_doc.previous_sales_order_update = previous_sales_order_update_name
+    comparison_doc.current_sales_order_update = current_sales_order_update_name
     comparison_doc.status = "Draft"
 
-    previous_data = get_supply_on_data(previous_supply_on_name, apply_shipments=False)
-    current_data = get_supply_on_data(resolved_name, apply_shipments=False)
+    previous_data = get_sales_order_update_data(previous_sales_order_update_name, apply_shipments=False)
+    current_data = get_sales_order_update_data(resolved_name, apply_shipments=False)
 
     changes = detect_changes(previous_data, current_data)
 
@@ -67,8 +67,8 @@ def compare_supply_on_documents(current_supply_on_name):
     return comparison_doc.name
 
 
-def get_supply_on_data(supply_on_name, apply_shipments=False):
-    """Supply On verilerini unique key ile dict olarak getir."""
+def get_sales_order_update_data(sales_order_update_name, apply_shipments=False):
+    """Sales Order Update verilerini unique key ile dict olarak getir."""
     rows = frappe.db.sql(
         """
         SELECT
@@ -79,16 +79,16 @@ def get_supply_on_data(supply_on_name, apply_shipments=False):
             delivery_quantity,
             NULL AS efz,
             plant_no_customer
-        FROM `tabKTA Supply On Entry`
+        FROM `tabKTA Sales Order Update Entry`
         WHERE parent = %s AND parenttype = %s
         ORDER BY order_no, part_no_customer, plant_no_customer, delivery_date
     """,
-        (supply_on_name, DOCTYPE_KTA_SUPPLY_ON),
+        (sales_order_update_name, DOCTYPE_KTA_SALES_ORDER_UPDATE),
         as_dict=True,
     )
 
     if apply_shipments:
-        rows = adjust_supply_on_with_shipments(rows)
+        rows = adjust_sales_order_update_with_shipments(rows)
 
     data_dict = defaultdict(list)
     for row in rows:
@@ -105,7 +105,7 @@ def get_supply_on_data(supply_on_name, apply_shipments=False):
 
 def detect_changes(previous_data, current_data):
     """
-    İki Supply On veri seti arasındaki değişiklikleri tespit et.
+    İki Sales Order Update veri seti arasındaki değişiklikleri tespit et.
     """
     changes = []
     all_keys = set(previous_data.keys()) | set(current_data.keys())

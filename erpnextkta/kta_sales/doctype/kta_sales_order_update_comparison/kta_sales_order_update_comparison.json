@@ -7,8 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "comparison_date",
-  "previous_supply_on",
-  "current_supply_on",
+  "previous_sales_order_update",
+  "current_sales_order_update",
   "column_break_1",
   "status",
   "total_changes",
@@ -28,17 +28,17 @@
    "reqd": 1
   },
   {
-   "fieldname": "previous_supply_on",
+   "fieldname": "previous_sales_order_update",
    "fieldtype": "Link",
-   "label": "Önceki Supply On",
-   "options": "KTA Supply On",
+   "label": "Önceki Sales Order Update",
+   "options": "KTA Sales Order Update",
    "read_only": 1
   },
   {
-   "fieldname": "current_supply_on",
+   "fieldname": "current_sales_order_update",
    "fieldtype": "Link",
-   "label": "Güncel Supply On",
-   "options": "KTA Supply On",
+   "label": "Güncel Sales Order Update",
+   "options": "KTA Sales Order Update",
    "read_only": 1,
    "reqd": 1
   },
@@ -91,14 +91,14 @@
    "fieldname": "changes",
    "fieldtype": "Table",
    "label": "Değişiklik Listesi",
-   "options": "KTA Supply On Change"
+   "options": "KTA Sales Order Update Change"
   }
  ],
  "links": [],
  "modified": "2025-11-13 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "kta_sales",
- "name": "KTA Supply On Comparison",
+ "name": "KTA Sales Order Update Comparison",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [

@@ -1,4 +1,4 @@
-frappe.ui.form.on('KTA Supply On', {
+frappe.ui.form.on('KTA Sales Order Update', {
     refresh(frm) {
         if (frm.is_new()) return;
 
@@ -6,23 +6,23 @@ frappe.ui.form.on('KTA Supply On', {
 
         frm.add_custom_button(__('Önceki Verilerle Karşılaştır'), () => {
             frappe.call({
-                method: 'erpnextkta.api.compare_supply_on_documents',
-                args: { current_supply_on_name: referenceName },
+                method: 'erpnextkta.api.compare_sales_order_update_documents',
+                args: { current_sales_order_update_name: referenceName },
                 freeze: true,
                 freeze_message: __('Karşılaştırma yapılıyor...'),
                 callback: (r) => {
                     if (r.message) {
                         frappe.msgprint(__('Karşılaştırma tamamlandı.'));
-                        frappe.set_route('Form', 'KTA Supply On Comparison', r.message);
+                        frappe.set_route('Form', 'KTA Sales Order Update Comparison', r.message);
                     }
                 },
             });
-        }, __('Supply On İşlemleri'));
+        }, __('Sales Order Update İşlemleri'));
 
         frm.add_custom_button(__('Sales Order\'ları Senkronize Et'), () => {
             frappe.call({
-                method: 'erpnextkta.api.sync_sales_orders_from_supply_on',
-                args: { supply_on_reference: referenceName },
+                method: 'erpnextkta.api.sync_sales_orders_from_sales_order_update',
+                args: { sales_order_update_reference: referenceName },
                 freeze: true,
                 freeze_message: __('Sales Order\'lar güncelleniyor...'),
                 callback: (r) => {
@@ -50,15 +50,15 @@ frappe.ui.form.on('KTA Supply On', {
                     }
                 },
             });
-        }, __('Supply On İşlemleri'));
+        }, __('Sales Order Update İşlemleri'));
 
-        frm.add_custom_button(__('Supply On Listesi'), () => {
-            frappe.set_route('List', 'KTA Supply On');
+        frm.add_custom_button(__('Sales Order Update Listesi'), () => {
+            frappe.set_route('List', 'KTA Sales Order Update');
         }, __('Kısayollar'));
 
         frm.add_custom_button(__('Dosyadan Yükle (Data Import)'), () => {
             frappe.new_doc('Data Import', {
-                reference_doctype: 'KTA Supply On Entry',
+                reference_doctype: 'KTA Sales Order Update Entry',
                 import_type: 'Insert New Records',
             });
         }, __('Kısayollar'));

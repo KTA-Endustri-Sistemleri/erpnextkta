@@ -5,6 +5,6 @@ import frappe
 from frappe.model.document import Document
 
 
-class KTASupplyOnEntry(Document):
-    """Child rows for KTA Supply On; no custom server logic yet."""
+class KTASalesOrderUpdateEntry(Document):
+    """Child rows for KTA Sales Order Update; no custom server logic yet."""
     pass

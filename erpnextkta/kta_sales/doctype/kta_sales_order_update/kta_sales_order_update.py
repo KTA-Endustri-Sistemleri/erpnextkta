@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 # import frappe
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import frappe
 from frappe import _
@@ -10,11 +10,14 @@ from frappe.model.document import Document
 from frappe.utils import add_days, cint, flt, getdate, today
 
 
-class KTASupplyOn(Document):
-    """Validate incoming Supply On rows."""
+class KTASalesOrderUpdate(Document):
+    """Validate incoming Sales Order Update rows."""
 
     _DATE_FORMATS = ("%d.%m.%Y", "%d-%m-%Y", "%Y.%m.%d", "%m.%d.%Y")
     _INVALID_DATE_TOKENS = {"invalid date", "nan", "none", "null"}
+
+    def before_insert(self):
+        self.name = self._generate_weekly_name()
 
     def validate(self):
         self._normalize_date_fields()
@@ -59,20 +62,50 @@ class KTASupplyOn(Document):
                     continue
 
         frappe.logger("erpnextkta").warning(
-            f"KTA Supply On -> Unable to parse date field '{fieldname}' with value '{value}'"
+            f"KTA Sales Order Update -> Unable to parse date field '{fieldname}' with value '{value}'"
         )
         return None
 
+    def _generate_weekly_name(self) -> str:
+        if not self.sales_order_update_date:
+            frappe.throw(_("Sales Order Update tarihi seçilmeden belge oluşturulamaz."))
 
-def get_supply_on_doc(supply_on_name: str):
-    """Fetch a Supply On document, raising a user-level error if not found."""
-    if not supply_on_name:
-        frappe.throw(_("Supply On referansı belirtilmedi."))
+        doc_date = getdate(self.sales_order_update_date)
+        iso_week = doc_date.isocalendar()[1]
 
-    if not frappe.db.exists("KTA Supply On", supply_on_name):
-        frappe.throw(_("Supply On kaydı bulunamadı: {0}").format(supply_on_name))
+        week_start = doc_date - timedelta(days=doc_date.isoweekday() - 1)
+        week_end = week_start + timedelta(days=6)
 
-    return frappe.get_doc("KTA Supply On", supply_on_name)
+        filters = {
+            "sales_order_update_date": [
+                "between",
+                [week_start.strftime("%Y-%m-%d"), week_end.strftime("%Y-%m-%d")],
+            ]
+        }
+        existing = frappe.get_all(
+            self.doctype,
+            filters=filters,
+            pluck="name",
+            limit=0,
+        )
+        next_index = len(existing) + 1
+
+        while True:
+            candidate = f"Hafta {iso_week:02d} Satış Sipariş Güncellemesi - {next_index:02d}"
+            if not frappe.db.exists(self.doctype, candidate):
+                return candidate
+            next_index += 1
+
+
+def get_sales_order_update_doc(sales_order_update_name: str):
+    """Fetch a Sales Order Update document, raising a user-level error if not found."""
+    if not sales_order_update_name:
+        frappe.throw(_("Sales Order Update referansı belirtilmedi."))
+
+    if not frappe.db.exists("KTA Sales Order Update", sales_order_update_name):
+        frappe.throw(_("Sales Order Update kaydı bulunamadı: {0}").format(sales_order_update_name))
+
+    return frappe.get_doc("KTA Sales Order Update", sales_order_update_name)
 
 
 def get_customer_and_item(plant_no_customer, part_no_customer):
@@ -173,9 +206,9 @@ def get_shipped_qty_for_window(customer, plant_no_customer, item_code, delivery_
     return flt(total)
 
 
-def adjust_supply_on_with_shipments(rows):
+def adjust_sales_order_update_with_shipments(rows):
     """
-    Verilen Supply On satır listesi üzerinde, sevk parametresi + sevk irsaliyelerini
+    Verilen Sales Order Update satır listesi üzerinde, sevk parametresi + sevk irsaliyelerini
     dikkate alarak teslimat miktarlarını düşer.
     """
     # İrsaliye düşümü geçici olarak devre dışı
