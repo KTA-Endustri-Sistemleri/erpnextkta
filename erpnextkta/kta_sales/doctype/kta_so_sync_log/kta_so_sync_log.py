@@ -10,6 +10,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, cint, flt, getdate, today
 from erpnext.controllers.accounts_controller import update_child_qty_rate
+from erpnext.utilities.transaction_base import UOMMustBeIntegerError
+
 
 from erpnextkta.kta_sales.doctype.kta_sales_order_update.kta_sales_order_update import (
     adjust_sales_order_update_with_shipments,
@@ -94,9 +96,9 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
                 closed += result.get("closed", 0)
                 errors += result.get("errors", 0)
 
-            except Exception as e:
+            except Exception:
                 errors += len(so_changes)
-                frappe.log_error(f"SO Batch Error: {str(e)}", "SO Sync Batch")
+                frappe.log_error("SO Sync Batch", frappe.get_traceback())
 
         sync_log.created_so = created
         sync_log.updated_so = updated
@@ -111,10 +113,10 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
         sales_order_update_doc.last_sync_log = sync_log.name
         sales_order_update_doc.save()
 
-    except Exception as e:
+    except Exception:
         sync_log.status = "Failed"
-        sync_log.error_log = str(e)
-        frappe.log_error(str(e), "SO Sync Critical Error")
+        sync_log.error_log = frappe.get_traceback()
+        frappe.log_error("SO Sync Critical Error", frappe.get_traceback())
 
     sync_log.save()
     frappe.db.commit()
@@ -520,7 +522,7 @@ def fetch_open_sales_orders_with_item_dates(customers):
             soi.item_code,
             soi.qty,
             soi.delivered_qty,
-            soi.pending_qty,
+            (soi.qty - IFNULL(soi.delivered_qty, 0)) AS pending_qty,
             soi.delivery_date AS item_delivery_date
         FROM `tabSales Order` so
         INNER JOIN `tabSales Order Item` soi ON so.name = soi.parent
@@ -936,8 +938,13 @@ def update_existing_sales_order_batch(so_name, changes):
             "errors": errors,
         }
 
-    except Exception as e:
-        frappe.log_error(f"Update SO Error: {str(e)}", "SO Update")
+    except UOMMustBeIntegerError:
+        # UOM hatasını saklama, kullanıcı aynen görsün
+        raise
+
+    except Exception:
+        # title kısa, detay traceback
+        frappe.log_error("SO Update", frappe.get_traceback())
 
         for change in changes:
             details.append(
@@ -953,7 +960,7 @@ def update_existing_sales_order_batch(so_name, changes):
                     "old_date": getattr(change, "old_delivery_date", None),
                     "new_date": getattr(change, "new_delivery_date", None),
                     "change_type": getattr(change, "change_type", None),
-                    "error_message": str(e),
+                    "error_message": _("İşlem hatası, detaylar için Error Log kaydına bakınız."),
                 }
             )
 
