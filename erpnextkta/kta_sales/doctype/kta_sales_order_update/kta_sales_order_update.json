@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "creation": "2025-07-22 16:15:47.147502",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+ "sales_order_update_date",
+ "section_break_entries",
+ "sales_order_update_entries",
+ "section_break_sales_order_update_tools",
+ "compare_with_previous",
+ "sync_to_sales_orders",
+ "column_break_comparison_tools",
+ "last_comparison_date",
+ "last_sync_log"
+],
+"fields": [
+  {
+   "fieldname": "sales_order_update_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Sales Order Update Tarihi",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_entries",
+   "fieldtype": "Section Break",
+   "label": "Sales Order Update Satırları"
+  },
+  {
+   "fieldname": "sales_order_update_entries",
+   "fieldtype": "Table",
+   "label": "Satırlar",
+   "options": "KTA Sales Order Update Entry",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_sales_order_update_tools",
+   "fieldtype": "Section Break",
+   "label": "Sales Order Update İşlemleri"
+  },
+  {
+   "fieldname": "section_break_comparison_tools",
+   "fieldtype": "Section Break",
+   "label": "Karşılaştırma ve Senkronizasyon"
+  },
+  {
+   "fieldname": "column_break_comparison_tools",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_comparison_date",
+   "fieldtype": "Datetime",
+   "label": "Son Karşılaştırma",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_sync_log",
+   "fieldtype": "Link",
+   "label": "Son Sync Log",
+   "options": "KTA SO Sync Log",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 100,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-05 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_sales",
+ "name": "KTA Sales Order Update",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "queue_in_background": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

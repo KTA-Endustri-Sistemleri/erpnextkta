@@ -1,6 +1,18 @@
 import socket
 import frappe
+import json
+from erpnext.controllers.accounts_controller import update_child_qty_rate
+from frappe import _
+from frappe.utils import nowdate, getdate, flt, today, add_days, cint
+from collections import defaultdict
 from babel.numbers import format_decimal
+from erpnextkta.kta_sales.doctype.kta_so_sync_log.kta_so_sync_log import (
+    sync_sales_orders_from_comparison as _sync_sales_orders_from_comparison,
+    sync_sales_orders_from_sales_order_update as _sync_sales_orders_from_sales_order_update,
+)
+from erpnextkta.kta_sales.doctype.kta_sales_order_update_comparison.kta_sales_order_update_comparison import (
+    compare_sales_order_update_documents as _compare_sales_order_update_documents,
+)
 
 # Global doctype constants
 DOCTYPE_PARTY_ACCOUNT = "Party Account"
@@ -24,8 +36,11 @@ DOCTYPE_BIN = "Bin"
 DOCTYPE_STOCK_LEDGER_ENTRY = "Stock Ledger Entry"
 DOCTYPE_KTA_MOBIL_DEPO = "KTA Mobil Depo"
 DOCTYPE_KTA_MOBIL_DEPO_KALEMI = "KTA Mobil Depo Kalemi"
-DOCTYPE_KTA_SUPPLY_ON_HEAD = "KTA Supply On Head"
-DOCTYPE_KTA_SUPPLY_ON = "KTA Supply On"
+DOCTYPE_KTA_SALES_ORDER_UPDATE = "KTA Sales Order Update"
+DOCTYPE_KTA_SALES_ORDER_UPDATE_ENTRY = "KTA Sales Order Update Entry"
+DOCTYPE_KTA_SALES_ORDER_UPDATE_COMPARISON = "KTA Sales Order Update Comparison"
+DOCTYPE_KTA_SALES_ORDER_UPDATE_CHANGE = "KTA Sales Order Update Change"
+DOCTYPE_KTA_SO_SYNC_LOG = "KTA SO Sync Log"
 DOCTYPE_DELIVERY_NOTE = "Delivery Note"
 DOCTYPE_DELIVERY_NOTE_ITEM = "Delivery Note Item"
 DOCTYPE_SALES_ORDER = "Sales Order"
@@ -821,3 +836,23 @@ def get_items_from_calisma_karti(source_name: str, target_doc=None):
         frappe.throw("Seçilen Çalışma Kartında aktarılabilir hurda satırı yok.")
 
     return items
+
+@frappe.whitelist()
+def compare_sales_order_update_documents(current_sales_order_update_name):
+    """Wrapper that delegates to the Sales Order Update Comparison module."""
+    return _compare_sales_order_update_documents(current_sales_order_update_name)
+
+
+@frappe.whitelist()
+def sync_sales_orders_from_sales_order_update(sales_order_update_name=None, sales_order_update_reference=None):
+    """Wrapper that delegates to the SO Sync Log module."""
+    return _sync_sales_orders_from_sales_order_update(
+        sales_order_update_name=sales_order_update_name,
+        sales_order_update_reference=sales_order_update_reference,
+    )
+
+
+@frappe.whitelist()
+def sync_sales_orders_from_comparison(comparison_name):
+    """Wrapper that delegates to the SO Sync Log module."""
+    return _sync_sales_orders_from_comparison(comparison_name)
