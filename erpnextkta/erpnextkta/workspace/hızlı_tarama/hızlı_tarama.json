@@ -1,0 +1,64 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"UtRtFumChb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"\u00c7al\u0131\u015fma Kart\u0131\",\"col\":3}},{\"id\":\"yVEFZMqVwd\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Raporlar &amp; Kay\u0131tlar</b></span>\",\"col\":12}},{\"id\":\"rwrmsTI58-\",\"type\":\"card\",\"data\":{\"card_name\":\"Production\",\"col\":4}}]",
+ "creation": "2025-12-04 04:34:32.772796",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "scan",
+ "idx": 26,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "H\u0131zl\u0131 Tarama",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Production",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "\u00c7al\u0131\u015fma Kart\u0131 Listesi",
+   "link_count": 0,
+   "link_to": "Calisma Karti",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-12-04 04:45:06.648328",
+ "modified_by": "Administrator",
+ "module": "erpnextkta",
+ "name": "H\u0131zl\u0131 Tarama",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "Manufacturing",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "Calisma Karti",
+   "label": "\u00c7al\u0131\u015fma Kart\u0131",
+   "quick_list_filter": ""
+  }
+ ],
+ "restrict_to_domain": "",
+ "roles": [],
+ "sequence_id": 17.1,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "\u00c7al\u0131\u015fma Kart\u0131",
+   "link_to": "kta-calisma-karti",
+   "type": "Page"
+  }
+ ],
+ "title": "H\u0131zl\u0131 Tarama"
+}

@@ -1,0 +1,60 @@
+{# ch-templates/CHANGELOG.md.j2 #}
+# 📜 Changelog
+
+{# ctx.history.released: version -> release #}
+{% for version, release in ctx.history.released.items() %}
+## 🚀 {{ version.as_tag() }} ({{ release.tagged_date.strftime("%Y-%m-%d") }})
+
+{% if release.description %}
+> 📝 {{ release.description }}
+{% endif %}
+
+{# release.elements: {"feature": [commits], "fix": [...], ...} #}
+{% for commit_type, commits in release.elements|dictsort %}
+  {% if commits %}
+
+    {# Commit type -> ikonlu başlık #}
+    {% set icon = "🔧" %}
+    {% if commit_type == "feature" %}
+      {% set icon = "✨" %}
+    {% elif commit_type == "fix" %}
+      {% set icon = "🐛" %}
+    {% elif commit_type == "breaking" %}
+      {% set icon = "💥" %}
+    {% elif commit_type == "docs" %}
+      {% set icon = "📝" %}
+    {% elif commit_type == "refactor" %}
+      {% set icon = "♻️" %}
+    {% elif commit_type == "perf" %}
+      {% set icon = "⚡" %}
+    {% elif commit_type == "style" %}
+      {% set icon = "💄" %}
+    {% elif commit_type == "test" %}
+      {% set icon = "✅" %}
+    {% elif commit_type == "build" %}
+      {% set icon = "📦" %}
+    {% elif commit_type == "ci" %}
+      {% set icon = "👷" %}
+    {% elif commit_type == "chore" %}
+      {% set icon = "🧹" %}
+    {% endif %}
+
+### {{ icon }} {{ (commit_type | capitalize) }}
+
+    {% for commit in commits %}
+      {# ParsedCommit mi? descriptions varsa evet #}
+      {% if commit.descriptions is defined and commit.descriptions %}
+        {% set scope_prefix = commit.scope and '**' ~ commit.scope ~ '**: ' or '' %}
+- {{ scope_prefix }}{{ commit.descriptions[0] }}
+      {# ParseError vb: descriptions yok, sadece message var #}
+      {% else %}
+- {{ commit.message }}
+      {% endif %}
+    {% endfor %}
+
+  {% endif %}
+{% endfor %}
+
+---
+
+{% endfor %}

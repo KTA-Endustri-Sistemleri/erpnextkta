@@ -1,12 +1,12 @@
 [project]
 name = "erpnextkta"
+version = "0.3.5"
 authors = [
-    { name = "Framras AS", email = "bilgi@framras.com.tr"}
+    { name = "Framras AS", email = "bilgi@framras.com.tr" }
 ]
 description = "KTA Endustri ozellestirmeleri CERKEZKOY TURKIYE"
 requires-python = ">=3.10"
 readme = "README.md"
-dynamic = ["version"]
 dependencies = [
     # "frappe~=15.0.0" # Installed and managed by bench.
 ]
@@ -18,3 +18,46 @@ build-backend = "flit_core.buildapi"
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
+
+[tool.semantic_release]
+# TOML için önerilen yol
+version_toml = [
+    "pyproject.toml:project.version",
+]
+
+# Python dosyası için regex tabanlı yol
+version_variables = [
+    "erpnextkta/__init__.py:__version__",
+]
+
+# Branch configuration
+branch = "main"
+
+# Use conventional commits parser
+commit_parser = "conventional"
+
+# Tag format (tags like v1.2.3 will be created)
+tag_format = "v{version}"
+allow_zero_version = true
+
+# Build command (optional, leave empty if not needed)
+build_command = ""
+
+[tool.semantic_release.remote]
+name = "origin"
+type = "github"
+# For use in CI:
+token = { env = "GH_TOKEN" }
+ignore_token_for_push = false
+
+[tool.semantic_release.changelog]
+# CHANGELOG’u her release’te en üste yeni versiyonu ekle
+mode = "update"
+insertion_flag = "<!-- version list -->"
+
+# Kendi template dizinimiz
+template_dir = "ch-templates"
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
+output_format = "md"

@@ -1,3 +1,4 @@
+from . import __version__ as app_version
 app_name = "erpnextkta"
 app_title = "erpnextkta"
 app_publisher = "Framras AS"
@@ -141,6 +142,9 @@ override_doctype_class = {
 doc_events = {
     "Kalite Kontrol": {
         "on_submit": "erpnextkta.erpnextkta.doctype.calisma_karti.calisma_karti.qc_on_submit"
+    },
+    "Job Card": {
+        "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status"
     }
 }
 # Document Events
@@ -273,14 +277,8 @@ fixtures = [
         "filters": [
             ["name", "like", "KTA%"]
         ]
-    },
-    {
-        "dt": "Custom Field",
-        "filters": [
-            ["dt", "=", "Calisma Karti"]
-        ]
     }
 ]
 doctype_js = {
-    "Calisma Karti": "erpnextkta/erpnextkta/doctype/calisma_karti/calisma_karti.js"
+    "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js"
 }
