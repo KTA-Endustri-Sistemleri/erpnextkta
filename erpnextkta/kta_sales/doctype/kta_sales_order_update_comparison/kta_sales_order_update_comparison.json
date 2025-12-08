@@ -1,0 +1,120 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:CMP-{YYYY}-{#####}",
+ "creation": "2025-11-13 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "comparison_date",
+  "previous_sales_order_update",
+  "current_sales_order_update",
+  "column_break_1",
+  "status",
+  "total_changes",
+  "section_break_summary",
+  "new_lines",
+  "updated_lines",
+  "deleted_lines",
+  "section_break_changes",
+  "changes"
+ ],
+ "fields": [
+  {
+   "fieldname": "comparison_date",
+   "fieldtype": "Datetime",
+   "label": "Karşılaştırma Tarihi",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "previous_sales_order_update",
+   "fieldtype": "Link",
+   "label": "Önceki Sales Order Update",
+   "options": "KTA Sales Order Update",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_sales_order_update",
+   "fieldtype": "Link",
+   "label": "Güncel Sales Order Update",
+   "options": "KTA Sales Order Update",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Durum",
+   "options": "Draft\nCompleted\nSynced",
+   "default": "Draft"
+  },
+  {
+   "fieldname": "total_changes",
+   "fieldtype": "Int",
+   "label": "Toplam Değişiklik",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_summary",
+   "fieldtype": "Section Break",
+   "label": "Özet"
+  },
+  {
+   "fieldname": "new_lines",
+   "fieldtype": "Int",
+   "label": "Yeni Satırlar",
+   "read_only": 1
+  },
+  {
+   "fieldname": "updated_lines",
+   "fieldtype": "Int",
+   "label": "Güncellenen Satırlar",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deleted_lines",
+   "fieldtype": "Int",
+   "label": "Silinen Satırlar",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_changes",
+   "fieldtype": "Section Break",
+   "label": "Değişiklikler"
+  },
+  {
+   "fieldname": "changes",
+   "fieldtype": "Table",
+   "label": "Değişiklik Listesi",
+   "options": "KTA Sales Order Update Change"
+  }
+ ],
+ "links": [],
+ "modified": "2025-11-13 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_sales",
+ "name": "KTA Sales Order Update Comparison",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
