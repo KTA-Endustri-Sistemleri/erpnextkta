@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ page.title }} | {{ site.title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="{{ site.description }}" />
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <span class="logo-main">erpnext</span><span class="logo-accent">kta</span>
+      </div>
+      <nav class="nav">
+        <a href="{{ '#features' | relative_url }}">Özellikler</a>
+        <a href="{{ '/modules' | relative_url }}">Modüller</a>
+        <a href="{{ '/install' | relative_url }}">Kurulum</a>
+        <a href="{{ '#screenshots' | relative_url }}">Ekran Görüntüleri</a>
+        <a href="{{ '#links' | relative_url }}">Bağlantılar</a>
+      </nav>
+      <!-- Theme toggle -->
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Tema değiştir">
+        <span class="theme-toggle__icon" aria-hidden="true">🌙</span>
+        <span class="theme-toggle__label">Dark</span>
+      </button>
+    </div>
+  </header>
+
+  {{ content }}
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>© 2025 KTA Endüstri Sistemleri • erpnextkta, ERPNext için üretim odaklı bir eklenti setidir.</small>
+    </div>
+  </footer>
+</body>
+<script>
+  (function () {
+    const storageKey = "erpnextkta-theme";
+    const root = document.documentElement;
+    const btn = document.getElementById("theme-toggle");
+
+    function applyTheme(theme) {
+      const t = theme === "light" ? "light" : "dark";
+      root.setAttribute("data-theme", t);
+      localStorage.setItem(storageKey, t);
+
+      if (!btn) return;
+      const icon = btn.querySelector(".theme-toggle__icon");
+      const label = btn.querySelector(".theme-toggle__label");
+
+      if (t === "dark") {
+        icon.textContent = "🌙";
+        label.textContent = "Dark";
+      } else {
+        icon.textContent = "☀️";
+        label.textContent = "Light";
+      }
+    }
+
+    // İlk yüklemede: localStorage → yoksa varsayılan dark
+    const saved = localStorage.getItem(storageKey);
+    applyTheme(saved || "dark");
+
+    if (btn) {
+      btn.addEventListener("click", function () {
+        const current = root.getAttribute("data-theme") === "light" ? "light" : "dark";
+        applyTheme(current === "dark" ? "light" : "dark");
+      });
+    }
+  })();
+</script>
+</html>

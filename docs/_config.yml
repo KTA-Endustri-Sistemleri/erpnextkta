@@ -1,0 +1,7 @@
+title: "erpnextkta"
+description: "ERPNext için üretim odaklı KTA Endüstri özelleştirmeleri"
+baseurl: "/erpnextkta"
+url: "https://kta-endustri-sistemleri.github.io"
+
+markdown: kramdown
+theme: null
