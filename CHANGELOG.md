@@ -3,6 +3,108 @@
 
 
 
+## 🚀 v0.4.0 (2025-12-08)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- Remove unused KTA Supply On, KTA Supply On Head, and KTA Supply On Step doctype files and their associated scripts and configurations to clean up the codebase.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- Add KTA Sales Order Update module
+      
+      
+    
+      
+      
+        
+- Remove unused KTA Supply On Entry and KTA Supply On Evaluation doctypes
+      
+      
+    
+      
+      
+        
+- Add kta_sales module definition and update modules list
+      
+      
+    
+      
+      
+        
+- Import additional modules for enhanced sales order synchronization functionality
+      
+      
+    
+      
+      
+        
+- Initialize kta_sales module with empty __init__.py file
+      
+      
+    
+      
+      
+        
+- Create __init__.py file for kta_sales module
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- KTASalesOrderUpdateEntry class
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.3.5 (2025-12-07)
 
 
