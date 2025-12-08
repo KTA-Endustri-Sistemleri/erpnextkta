@@ -1,5 +1,10 @@
 import socket
 import frappe
+import json
+from erpnext.controllers.accounts_controller import update_child_qty_rate
+from frappe import _
+from frappe.utils import nowdate, getdate, flt, today, add_days, cint
+from collections import defaultdict
 from babel.numbers import format_decimal
 from erpnextkta.kta_sales.doctype.kta_so_sync_log.kta_so_sync_log import (
     sync_sales_orders_from_comparison as _sync_sales_orders_from_comparison,
