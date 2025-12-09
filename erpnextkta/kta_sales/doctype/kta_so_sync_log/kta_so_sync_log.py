@@ -149,13 +149,12 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
 def build_sales_order_sync_changes(sales_order_update_name):
     """
     Sales Order Update satırlarını grupla ve sadece NET değişiklikleri tespit et.
-    
-    GELİŞTİRMELER:
-    1. Debug loglama eklendi
-    2. Customer filtresi opsiyonel yapıldı
-    3. Eşleştirme istatistikleri detaylı raporlanıyor
+
+    PLAN TARAFI ARTIK ŞÖYLE:
+      - customer  = plant_no_customer  (Excel'deki plant sütunu, doğrudan SO.customer)
+      - item_code = part_no_customer   (müşterinin parça kodu, doğrudan SO Item.item_code)
     """
-    
+
     # 1. Sales Order Update satırlarını al
     rows = frappe.db.sql(
         """
@@ -176,7 +175,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
     if not rows:
         frappe.log_error(
             f"Sales Order Update '{sales_order_update_name}' için hiç satır bulunamadı.",
-            "SO Sync - No Rows"
+            "SO Sync - No Rows",
         )
         return []
 
@@ -197,31 +196,29 @@ def build_sales_order_sync_changes(sales_order_update_name):
 
     plan_rows_by_key = defaultdict(list)
 
-    # 2. Her satır için Customer ve Item eşleştirme
+    # 2. Her satır için customer ve item'i DOĞRUDAN Excel'den al
     for row in adjusted_rows:
         if not row.order_no:
             stats["skipped_no_order"] += 1
             continue
 
-        customer, item_code = get_customer_and_item(
-            row.plant_no_customer,
-            row.part_no_customer,
-        )
+        customer = (row.plant_no_customer or "").strip()
+        item_code = (row.part_no_customer or "").strip()
 
         if not customer:
-            frappe.log_error(
-                f"Customer bulunamadı - Plant: {row.plant_no_customer}, Order: {row.order_no}",
-                "SO Sync - Missing Customer"
-            )
             stats["skipped_no_customer"] += 1
-            continue
-        
-        if not item_code:
             frappe.log_error(
-                f"Item bulunamadı - Part: {row.part_no_customer}, Order: {row.order_no}",
-                "SO Sync - Missing Item"
+                f"Customer boş - Plant: {row.plant_no_customer}, Order: {row.order_no}",
+                "SO Sync - Missing Customer (plant_no_customer)",
             )
+            continue
+
+        if not item_code:
             stats["skipped_no_item"] += 1
+            frappe.log_error(
+                f"Item boş - Part: {row.part_no_customer}, Order: {row.order_no}",
+                "SO Sync - Missing Item (part_no_customer)",
+            )
             continue
 
         # İstatistik toplama
@@ -244,6 +241,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
             }
         )
 
+        # 🔑 Artık key: (Excel customer, Excel order_no, Excel item_code)
         key = (customer, row.order_no, item_code)
         plan_rows_by_key[key].append(plan_entry)
 
@@ -263,49 +261,49 @@ def build_sales_order_sync_changes(sales_order_update_name):
         Atlanan (order_no yok): {stats['skipped_no_order']}
         Atlanan (customer yok): {stats['skipped_no_customer']}
         Atlanan (item yok): {stats['skipped_no_item']}
-        
+
         Unique Müşteri: {len(stats['unique_customers'])}
         Unique Ürün: {len(stats['unique_items'])}
         Unique Sipariş: {len(stats['unique_orders'])}
-        
+
         Oluşturulan Key Sayısı: {len(plan_rows_by_key)}
         """,
-        "SO Sync - Statistics"
+        "SO Sync - Statistics",
     )
 
     # Eğer hiç satır işlenemediyse
     if not plan_rows_by_key:
         frappe.msgprint(
-            _("""
+            _(
+                """
             <b>Uyarı:</b> Hiçbir satır işlenemedi!<br><br>
             <b>Olası Nedenler:</b>
             <ul>
-                <li>Address tablosunda custom_eski_kod alanı plant_no_customer ile eşleşmiyor</li>
-                <li>Dynamic Link (Address → Customer) ilişkisi eksik</li>
-                <li>Item kodları (part_no_customer) sistemde kayıtlı değil</li>
+                <li>plant_no_customer sütunu boş / yanlış</li>
+                <li>part_no_customer sütunu boş / yanlış</li>
             </ul>
             <b>Detaylar için Error Log'lara bakınız.</b>
-            """),
+            """
+            ),
             title=_("Senkronizasyon Başarısız"),
-            indicator="red"
+            indicator="red",
         )
         return []
 
     changes = []
-    
-    # 3. ERP'deki açık siparişleri getir (customer filtresi artık opsiyonel)
-    open_sales_orders = fetch_open_sales_orders_with_item_dates(
-        customers=stats["unique_customers"] if stats["unique_customers"] else None
-    )
-    
+
+    # 3. ERP'deki açık siparişleri getir
+    #    (Müşteri filtresi opsiyonel, ama O(N) için bir kere çekiyoruz)
+    open_sales_orders = fetch_open_sales_orders_with_item_dates()
     frappe.log_error(
         f"ERP'den {len(open_sales_orders)} adet açık Sales Order Item bulundu.",
-        "SO Sync - ERP Orders"
+        "SO Sync - ERP Orders",
     )
 
     if not open_sales_orders:
         frappe.msgprint(
-            _("""
+            _(
+                """
             <b>Uyarı:</b> ERP'de eşleşen açık sipariş bulunamadı!<br><br>
             <b>Olası Nedenler:</b>
             <ul>
@@ -313,9 +311,10 @@ def build_sales_order_sync_changes(sales_order_update_name):
                 <li>Sales Order status 'To Deliver' veya 'To Deliver and Bill' değil</li>
                 <li>Tüm siparişler teslim edilmiş</li>
             </ul>
-            """),
+            """
+            ),
             title=_("ERP'de Sipariş Bulunamadı"),
-            indicator="orange"
+            indicator="orange",
         )
 
     erp_rows_by_key = defaultdict(list)
@@ -329,10 +328,12 @@ def build_sales_order_sync_changes(sales_order_update_name):
         if pending_qty is None or pending_qty == 0:
             pending_qty = flt(so.qty) - flt(so.delivered_qty)
         pending_qty = max(pending_qty, 0)
-        
+
         if pending_qty <= 0:
             continue
 
+        # 🔑 ERP tarafında da aynı key:
+        #   (Sales Order.customer, Sales Order.po_no, Sales Order Item.item_code)
         key = (so.customer, so.po_no, so.item_code)
         erp_rows_by_key[key].append(
             frappe._dict(
@@ -358,7 +359,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
     matching_keys = set(plan_rows_by_key.keys()) & set(erp_rows_by_key.keys())
     plan_only_keys = set(plan_rows_by_key.keys()) - set(erp_rows_by_key.keys())
     erp_only_keys = set(erp_rows_by_key.keys()) - set(plan_rows_by_key.keys())
-    
+
     frappe.log_error(
         f"""
         Key Eşleştirme Analizi:
@@ -367,17 +368,17 @@ def build_sales_order_sync_changes(sales_order_update_name):
         Eşleşen Key: {len(matching_keys)}
         Sadece Plan'da: {len(plan_only_keys)}
         Sadece ERP'de: {len(erp_only_keys)}
-        
+
         Plan Only Keys (İlk 5):
         {list(plan_only_keys)[:5]}
-        
+
         ERP Only Keys (İlk 5):
         {list(erp_only_keys)[:5]}
         """,
-        "SO Sync - Key Matching"
+        "SO Sync - Key Matching",
     )
 
-    # 5. Değişiklikleri tespit et (mevcut algoritma devam ediyor)
+    # 5. Değişiklikleri tespit et (mevcut algoritma değişmedi)
     for key in all_keys:
         plan_rows = list(plan_rows_by_key.get(key, []))
         erp_rows = list(erp_rows_by_key.get(key, []))
@@ -446,9 +447,9 @@ def build_sales_order_sync_changes(sales_order_update_name):
                 changes.append(
                     {
                         "order_no": order_no,
-                        "order_item": sample.order_item if hasattr(sample, 'order_item') else None,
-                        "part_no_customer": sample.part_no_customer if hasattr(sample, 'part_no_customer') else None,
-                        "plant_no_customer": sample.plant_no_customer if hasattr(sample, 'plant_no_customer') else None,
+                        "order_item": getattr(sample, "order_item", None),
+                        "part_no_customer": getattr(sample, "part_no_customer", None),
+                        "plant_no_customer": getattr(sample, "plant_no_customer", None),
                         "customer": customer,
                         "item": item_code,
                         "change_type": change_type,
@@ -659,11 +660,11 @@ def build_sales_order_sync_changes(sales_order_update_name):
         Tespit Edilen Değişiklikler:
         ===========================
         Toplam: {len(changes)}
-        
+
         Değişiklik Tipleri:
         {dict(Counter([c['change_type'] for c in changes])) if changes else 'Değişiklik yok'}
         """,
-        "SO Sync - Final Changes"
+        "SO Sync - Final Changes",
     )
 
     return changes
@@ -672,15 +673,13 @@ def build_sales_order_sync_changes(sales_order_update_name):
 def fetch_open_sales_orders_with_item_dates(customers=None):
     """
     Sales Order Item seviyesindeki delivery_date'i getir.
-    
-    Args:
-        customers: Opsiyonel customer listesi. None ise tüm customerlar için arama yapar.
-    
-    Returns:
-        List of dict: Açık Sales Order bilgileri
+
+    NOT:
+      - customers parametresini şu an KULLANMIYORUZ.
+      - Tüm açık SO item'ları alıp, key eşleştirmeyi
+        (customer, po_no, item_code) üzerinden yapıyoruz.
     """
-    
-    # Customer filtresi artık opsiyonel - po_no eşleştirmesi yeterli
+
     query = """
         SELECT
             so.name AS sales_order,
@@ -698,20 +697,10 @@ def fetch_open_sales_orders_with_item_dates(customers=None):
           AND so.status IN ('To Deliver', 'To Deliver and Bill')
           AND so.po_no IS NOT NULL
           AND so.po_no != ''
+        ORDER BY so.customer, so.po_no, soi.item_code, soi.delivery_date
     """
-    
-    params = []
-    
-    # Eğer customers seti verilmişse ve dolu ise, ek filtre ekle
-    if customers and len(customers) > 0:
-        placeholders = ", ".join(["%s"] * len(customers))
-        query += f" AND so.customer IN ({placeholders})"
-        params.extend(tuple(customers))
-    
-    query += " ORDER BY so.customer, so.po_no, soi.item_code, soi.delivery_date"
-    
-    return frappe.db.sql(query, tuple(params) if params else None, as_dict=True)
 
+    return frappe.db.sql(query, as_dict=True)
 
 def determine_change_type_for_sync(open_qty, new_qty, old_date, new_date):
     """
