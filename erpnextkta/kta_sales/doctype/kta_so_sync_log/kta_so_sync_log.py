@@ -1,5 +1,5 @@
 import json
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 import frappe
 from frappe import _
@@ -135,7 +135,14 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
 def build_sales_order_sync_changes(sales_order_update_name):
     """
     Sales Order Update satırlarını grupla ve sadece NET değişiklikleri tespit et.
+    
+    GELİŞTİRMELER:
+    1. Debug loglama eklendi
+    2. Customer filtresi opsiyonel yapıldı
+    3. Eşleştirme istatistikleri detaylı raporlanıyor
     """
+    
+    # 1. Sales Order Update satırlarını al
     rows = frappe.db.sql(
         """
         SELECT
@@ -153,20 +160,33 @@ def build_sales_order_sync_changes(sales_order_update_name):
     )
 
     if not rows:
+        frappe.log_error(
+            f"Sales Order Update '{sales_order_update_name}' için hiç satır bulunamadı.",
+            "SO Sync - No Rows"
+        )
         return []
 
-    frappe.log_error(f"Toplam satır sayısı: {len(rows)}", "SO Sync Debug")
-
+    # Başlangıç istatistikleri
+    stats = {
+        "total_rows": len(rows),
+        "skipped_no_order": 0,
+        "skipped_no_customer": 0,
+        "skipped_no_item": 0,
+        "processed": 0,
+        "unique_customers": set(),
+        "unique_items": set(),
+        "unique_orders": set(),
+    }
 
     adjusted_rows = adjust_sales_order_update_with_shipments(rows)
     far_future = getdate("2199-12-31")
 
     plan_rows_by_key = defaultdict(list)
-    customers = set()
 
+    # 2. Her satır için Customer ve Item eşleştirme
     for row in adjusted_rows:
         if not row.order_no:
-            skipped_rows += 1
+            stats["skipped_no_order"] += 1
             continue
 
         customer, item_code = get_customer_and_item(
@@ -174,15 +194,27 @@ def build_sales_order_sync_changes(sales_order_update_name):
             row.part_no_customer,
         )
 
-        if not (customer and item_code):
+        if not customer:
             frappe.log_error(
-                f"Eşleştirme başarısız - Plant: {row.plant_no_customer}, "
-                f"Part: {row.part_no_customer}, "
-                f"Customer: {customer}, Item: {item_code}",
-                "SO Sync - Skipped Row"
+                f"Customer bulunamadı - Plant: {row.plant_no_customer}, Order: {row.order_no}",
+                "SO Sync - Missing Customer"
             )
-            skipped_rows += 1
+            stats["skipped_no_customer"] += 1
             continue
+        
+        if not item_code:
+            frappe.log_error(
+                f"Item bulunamadı - Part: {row.part_no_customer}, Order: {row.order_no}",
+                "SO Sync - Missing Item"
+            )
+            stats["skipped_no_item"] += 1
+            continue
+
+        # İstatistik toplama
+        stats["unique_customers"].add(customer)
+        stats["unique_items"].add(item_code)
+        stats["unique_orders"].add(row.order_no)
+        stats["processed"] += 1
 
         plan_entry = frappe._dict(
             {
@@ -200,18 +232,81 @@ def build_sales_order_sync_changes(sales_order_update_name):
 
         key = (customer, row.order_no, item_code)
         plan_rows_by_key[key].append(plan_entry)
-        customers.add(customer)
 
+    # Tarih sıralama
     for plan_list in plan_rows_by_key.values():
         plan_list.sort(
             key=lambda r: getdate(r.delivery_date) if r.delivery_date else far_future
         )
 
+    # İstatistik loglama
+    frappe.log_error(
+        f"""
+        Sales Order Update Sync İstatistikleri:
+        ========================================
+        Toplam Satır: {stats['total_rows']}
+        İşlenen: {stats['processed']}
+        Atlanan (order_no yok): {stats['skipped_no_order']}
+        Atlanan (customer yok): {stats['skipped_no_customer']}
+        Atlanan (item yok): {stats['skipped_no_item']}
+        
+        Unique Müşteri: {len(stats['unique_customers'])}
+        Unique Ürün: {len(stats['unique_items'])}
+        Unique Sipariş: {len(stats['unique_orders'])}
+        
+        Oluşturulan Key Sayısı: {len(plan_rows_by_key)}
+        """,
+        "SO Sync - Statistics"
+    )
+
+    # Eğer hiç satır işlenemediyse
+    if not plan_rows_by_key:
+        frappe.msgprint(
+            _("""
+            <b>Uyarı:</b> Hiçbir satır işlenemedi!<br><br>
+            <b>Olası Nedenler:</b>
+            <ul>
+                <li>Address tablosunda custom_eski_kod alanı plant_no_customer ile eşleşmiyor</li>
+                <li>Dynamic Link (Address → Customer) ilişkisi eksik</li>
+                <li>Item kodları (part_no_customer) sistemde kayıtlı değil</li>
+            </ul>
+            <b>Detaylar için Error Log'lara bakınız.</b>
+            """),
+            title=_("Senkronizasyon Başarısız"),
+            indicator="red"
+        )
+        return []
+
     changes = []
-    open_sales_orders = fetch_open_sales_orders_with_item_dates(customers)
+    
+    # 3. ERP'deki açık siparişleri getir (customer filtresi artık opsiyonel)
+    open_sales_orders = fetch_open_sales_orders_with_item_dates(
+        customers=stats["unique_customers"] if stats["unique_customers"] else None
+    )
+    
+    frappe.log_error(
+        f"ERP'den {len(open_sales_orders)} adet açık Sales Order Item bulundu.",
+        "SO Sync - ERP Orders"
+    )
+
+    if not open_sales_orders:
+        frappe.msgprint(
+            _("""
+            <b>Uyarı:</b> ERP'de eşleşen açık sipariş bulunamadı!<br><br>
+            <b>Olası Nedenler:</b>
+            <ul>
+                <li>Sales Order'ların po_no alanı boş</li>
+                <li>Sales Order status 'To Deliver' veya 'To Deliver and Bill' değil</li>
+                <li>Tüm siparişler teslim edilmiş</li>
+            </ul>
+            """),
+            title=_("ERP'de Sipariş Bulunamadı"),
+            indicator="orange"
+        )
 
     erp_rows_by_key = defaultdict(list)
 
+    # 4. ERP siparişlerini key ile grupla
     for so in open_sales_orders:
         if not so.po_no:
             continue
@@ -220,6 +315,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
         if pending_qty is None or pending_qty == 0:
             pending_qty = flt(so.qty) - flt(so.delivered_qty)
         pending_qty = max(pending_qty, 0)
+        
         if pending_qty <= 0:
             continue
 
@@ -237,19 +333,44 @@ def build_sales_order_sync_changes(sales_order_update_name):
             )
         )
 
+    # Tarih sıralama
     for erp_list in erp_rows_by_key.values():
         erp_list.sort(
             key=lambda r: getdate(r.delivery_date) if r.delivery_date else far_future
         )
 
+    # Key eşleştirme istatistikleri
     all_keys = set(plan_rows_by_key.keys()) | set(erp_rows_by_key.keys())
+    matching_keys = set(plan_rows_by_key.keys()) & set(erp_rows_by_key.keys())
+    plan_only_keys = set(plan_rows_by_key.keys()) - set(erp_rows_by_key.keys())
+    erp_only_keys = set(erp_rows_by_key.keys()) - set(plan_rows_by_key.keys())
+    
+    frappe.log_error(
+        f"""
+        Key Eşleştirme Analizi:
+        ======================
+        Toplam Unique Key: {len(all_keys)}
+        Eşleşen Key: {len(matching_keys)}
+        Sadece Plan'da: {len(plan_only_keys)}
+        Sadece ERP'de: {len(erp_only_keys)}
+        
+        Plan Only Keys (İlk 5):
+        {list(plan_only_keys)[:5]}
+        
+        ERP Only Keys (İlk 5):
+        {list(erp_only_keys)[:5]}
+        """,
+        "SO Sync - Key Matching"
+    )
 
+    # 5. Değişiklikleri tespit et (mevcut algoritma devam ediyor)
     for key in all_keys:
         plan_rows = list(plan_rows_by_key.get(key, []))
         erp_rows = list(erp_rows_by_key.get(key, []))
 
         customer, order_no, item_code = key
 
+        # ADIM 1: TAM EŞLEŞME (Tarih + Miktar)
         sig_to_plan_idx = defaultdict(list)
         for i, r in enumerate(plan_rows):
             sig = (str(r.delivery_date), int(r.planned_qty or 0))
@@ -271,8 +392,9 @@ def build_sales_order_sync_changes(sales_order_update_name):
         unmatched_erp = [r for j, r in enumerate(erp_rows) if j not in matched_erp_idx]
 
         if not unmatched_plan and not unmatched_erp:
-            continue
+            continue  # Tam eşleşme, değişiklik yok
 
+        # ADIM 2: AYNI TARİHTEKİ TOPLAM MİKTAR KONTROLÜ
         plan_by_date = defaultdict(list)
         erp_by_date = defaultdict(list)
 
@@ -283,49 +405,46 @@ def build_sales_order_sync_changes(sales_order_update_name):
             erp_by_date[str(r.delivery_date)].append(r)
 
         common_dates = set(plan_by_date.keys()) & set(erp_by_date.keys())
-
         dates_to_drop_from_plan = set()
         dates_to_drop_from_erp = set()
 
         for date_str in common_dates:
-            plan_list = plan_by_date[date_str]
-            erp_list = erp_by_date[date_str]
+            prev_list = erp_by_date[date_str]
+            curr_list = plan_by_date[date_str]
 
-            plan_total = sum(int(r.planned_qty or 0) for r in plan_list)
-            erp_total = sum(int(flt(getattr(r, "pending_qty", 0))) for r in erp_list)
+            prev_total = sum(int(flt(getattr(r, "pending_qty", 0))) for r in prev_list)
+            curr_total = sum(int(r.planned_qty or 0) for r in curr_list)
 
-            sample_plan = plan_list[0] if plan_list else None
-            sample_erp = erp_list[0] if erp_list else None
+            sample = curr_list[0] if curr_list else prev_list[0]
 
-            if plan_total == erp_total:
+            if prev_total == curr_total:
+                # Aynı tarihteki toplam miktar eşit, değişiklik yok
                 dates_to_drop_from_plan.add(date_str)
                 dates_to_drop_from_erp.add(date_str)
             else:
-                qty_diff = plan_total - erp_total
-
+                # Miktar farkı var
+                qty_diff = curr_total - prev_total
                 change_type = "Miktar Artışı" if qty_diff > 0 else "Miktar Azalışı"
 
-                matched_so = sample_erp.sales_order if sample_erp else None
-                matched_so_item = sample_erp.sales_order_item if sample_erp else None
+                matched_so = prev_list[0].sales_order if prev_list else None
+                matched_so_item = prev_list[0].sales_order_item if prev_list else None
 
                 changes.append(
                     {
                         "order_no": order_no,
-                        "order_item": sample_plan.order_item
-                        if sample_plan
-                        else (sample_erp.sales_order_item if sample_erp else None),
-                        "part_no_customer": sample_plan.part_no_customer if sample_plan else None,
-                        "plant_no_customer": sample_plan.plant_no_customer if sample_plan else None,
+                        "order_item": sample.order_item if hasattr(sample, 'order_item') else None,
+                        "part_no_customer": sample.part_no_customer if hasattr(sample, 'part_no_customer') else None,
+                        "plant_no_customer": sample.plant_no_customer if hasattr(sample, 'plant_no_customer') else None,
                         "customer": customer,
                         "item": item_code,
                         "change_type": change_type,
                         "old_delivery_date": date_str,
                         "new_delivery_date": date_str,
-                        "old_delivery_quantity": erp_total,
-                        "new_delivery_quantity": plan_total,
+                        "old_delivery_quantity": prev_total,
+                        "new_delivery_quantity": curr_total,
                         "difference": qty_diff,
-                        "old_efz": sample_erp.sales_order if sample_erp else None,
-                        "new_efz": sample_plan.new_efz if sample_plan else None,
+                        "old_efz": None,
+                        "new_efz": None,
                         "action_required": 1,
                         "action_status": "Beklemede",
                         "matched_sales_order": matched_so,
@@ -336,6 +455,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
                 dates_to_drop_from_plan.add(date_str)
                 dates_to_drop_from_erp.add(date_str)
 
+        # Eşleşen tarihleri çıkar
         if dates_to_drop_from_plan:
             unmatched_plan = [
                 r for r in unmatched_plan if str(r.delivery_date) not in dates_to_drop_from_plan
@@ -348,6 +468,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
         if not unmatched_plan and not unmatched_erp:
             continue
 
+        # ADIM 3: SIRA İLE EŞLEŞTİRME (Tarih sıralı)
         unmatched_plan.sort(
             key=lambda r: getdate(r.delivery_date) if r.delivery_date else far_future
         )
@@ -355,6 +476,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
             key=lambda r: getdate(r.delivery_date) if r.delivery_date else far_future
         )
 
+        # order_item referansı olanları önce eşleştir
         plan_with_ref = []
         plan_without_ref = []
 
@@ -364,6 +486,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
             else:
                 plan_without_ref.append(plan)
 
+        # Referanslı planları eşleştir
         for plan in plan_with_ref:
             matched_erp = None
             matched_idx = None
@@ -412,6 +535,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
 
         unmatched_plan = plan_without_ref
 
+        # Referanssız planları sırayla eşleştir
         i = j = 0
         len_plan = len(unmatched_plan)
         len_erp = len(unmatched_erp)
@@ -454,6 +578,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
             i += 1
             j += 1
 
+        # Kalan plan satırları (yeni satırlar)
         while i < len_plan:
             plan = unmatched_plan[i]
 
@@ -483,6 +608,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
 
             i += 1
 
+        # Kalan ERP satırları (silinen satırlar)
         while j < len_erp:
             erp = unmatched_erp[j]
             open_qty = max(flt(getattr(erp, "pending_qty", 0)), 0)
@@ -513,18 +639,35 @@ def build_sales_order_sync_changes(sales_order_update_name):
 
             j += 1
 
+    # Son istatistik
+    frappe.log_error(
+        f"""
+        Tespit Edilen Değişiklikler:
+        ===========================
+        Toplam: {len(changes)}
+        
+        Değişiklik Tipleri:
+        {dict(Counter([c['change_type'] for c in changes])) if changes else 'Değişiklik yok'}
+        """,
+        "SO Sync - Final Changes"
+    )
+
     return changes
 
 
-def fetch_open_sales_orders_with_item_dates(customers):
+def fetch_open_sales_orders_with_item_dates(customers=None):
     """
     Sales Order Item seviyesindeki delivery_date'i getir.
+    
+    Args:
+        customers: Opsiyonel customer listesi. None ise tüm customerlar için arama yapar.
+    
+    Returns:
+        List of dict: Açık Sales Order bilgileri
     """
-    if not customers:
-        return []
-
-    placeholders = ", ".join(["%s"] * len(customers))
-    query = f"""
+    
+    # Customer filtresi artık opsiyonel - po_no eşleştirmesi yeterli
+    query = """
         SELECT
             so.name AS sales_order,
             soi.name AS sales_order_item,
@@ -539,11 +682,21 @@ def fetch_open_sales_orders_with_item_dates(customers):
         INNER JOIN `tabSales Order Item` soi ON so.name = soi.parent
         WHERE so.docstatus = 1
           AND so.status IN ('To Deliver', 'To Deliver and Bill')
-          AND so.customer IN ({placeholders})
-        ORDER BY so.customer, so.po_no, soi.item_code, soi.delivery_date
+          AND so.po_no IS NOT NULL
+          AND so.po_no != ''
     """
-
-    return frappe.db.sql(query, tuple(customers), as_dict=True)
+    
+    params = []
+    
+    # Eğer customers seti verilmişse ve dolu ise, ek filtre ekle
+    if customers and len(customers) > 0:
+        placeholders = ", ".join(["%s"] * len(customers))
+        query += f" AND so.customer IN ({placeholders})"
+        params.extend(tuple(customers))
+    
+    query += " ORDER BY so.customer, so.po_no, soi.item_code, soi.delivery_date"
+    
+    return frappe.db.sql(query, tuple(params) if params else None, as_dict=True)
 
 
 def determine_change_type_for_sync(open_qty, new_qty, old_date, new_date):
