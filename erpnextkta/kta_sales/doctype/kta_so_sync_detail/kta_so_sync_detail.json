@@ -96,7 +96,7 @@
   "is_submittable": 0,
   "istable": 1,
   "modified": "2025-01-01 00:00:00.000000",
-  "module": "KTA Sales",
+  "module": "kta_sales",
   "name": "KTA SO Sync Detail",
   "owner": "Administrator",
   "permissions": [],
