@@ -1,7 +1,3 @@
-# Copyright (c) 2025, Framras AS and contributors
-# For license information, please see license.txt
-
-# import frappe
 import json
 from collections import defaultdict
 
@@ -113,9 +109,13 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
         sales_order_update_doc.last_sync_log = sync_log.name
         sales_order_update_doc.save()
 
-    except Exception:
+    except Exception as e:
+        # KTA SO Sync Log üzerinde sadece kısa bir özet sakla
         sync_log.status = "Failed"
-        sync_log.error_log = frappe.get_traceback()
+        # error_log alanın Data(140) ise güvenli tarafta kalmak için truncate et
+        sync_log.error_log = cstr(e)[:140]
+
+        # Tam traceback’i Error Log’a yaz
         frappe.log_error("SO Sync Critical Error", frappe.get_traceback())
 
     sync_log.save()
@@ -155,6 +155,9 @@ def build_sales_order_sync_changes(sales_order_update_name):
     if not rows:
         return []
 
+    frappe.log_error(f"Toplam satır sayısı: {len(rows)}", "SO Sync Debug")
+
+
     adjusted_rows = adjust_sales_order_update_with_shipments(rows)
     far_future = getdate("2199-12-31")
 
@@ -163,6 +166,7 @@ def build_sales_order_sync_changes(sales_order_update_name):
 
     for row in adjusted_rows:
         if not row.order_no:
+            skipped_rows += 1
             continue
 
         customer, item_code = get_customer_and_item(
@@ -171,6 +175,13 @@ def build_sales_order_sync_changes(sales_order_update_name):
         )
 
         if not (customer and item_code):
+            frappe.log_error(
+                f"Eşleştirme başarısız - Plant: {row.plant_no_customer}, "
+                f"Part: {row.part_no_customer}, "
+                f"Customer: {customer}, Item: {item_code}",
+                "SO Sync - Skipped Row"
+            )
+            skipped_rows += 1
             continue
 
         plan_entry = frappe._dict(
