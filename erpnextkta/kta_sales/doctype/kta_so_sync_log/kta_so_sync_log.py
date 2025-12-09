@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict, Counter
-
+import time
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -833,12 +833,17 @@ def process_sales_order_batch(so_identifier, changes):
 
 def update_existing_sales_order_batch(so_name, changes):
     """
-    Sales Order Item seviyesinde delivery_date güncelle.
+    Sales Order Item seviyesinde delivery_date ve qty güncelle.
+    Optimizasyonlar:
+    - Aynı SO içindeki tüm değişiklikleri toplayıp tek bir update_child_qty_rate çağrısı ile uygular.
+    - so.reload() döngü içinde değil, güncellemeler sonrası bir kere yapılır.
+    - Basit zamanlama logu eklenir.
     """
     details = []
     updated = closed = errors = 0
     earliest_new_order_date = None
 
+    start_ts = time.perf_counter()
     try:
         so = frappe.get_doc("Sales Order", so_name)
 
@@ -858,20 +863,24 @@ def update_existing_sales_order_batch(so_name, changes):
                 "errors": 1,
             }
 
+        # Map item_code -> target_item
+        item_map = {it.item_code: it for it in so.items}
+
+        # trans_items to send in single update_child_qty_rate call per SO
+        trans_items = []
+        so_detail_entries = []
+
         for change in changes:
-            target_item = None
-            for item in so.items:
-                if item.item_code == getattr(change, "item", None):
-                    target_item = item
-                    break
+            item_code = getattr(change, "item", None)
+            target_item = item_map.get(item_code)
 
             if not target_item:
-                details.append(
+                so_detail_entries.append(
                     {
                         "action": "Error",
                         "sales_order": so_name,
                         "customer": so.customer,
-                        "item": getattr(change, "item", None),
+                        "item": item_code,
                         "order_no": so.po_no,
                         "change_type": getattr(change, "change_type", None),
                         "error_message": _("Sales Order içinde eşleşen item bulunamadı."),
@@ -881,9 +890,6 @@ def update_existing_sales_order_batch(so_name, changes):
                 continue
 
             change_type = getattr(change, "change_type", None)
-            item_dict = target_item.as_dict()
-            new_date = target_item.delivery_date
-            action = None
             new_pending_qty = flt(getattr(change, "new_delivery_quantity", 0) or 0)
 
             if change_type != "Silinen Satır" and new_pending_qty <= 0:
@@ -892,9 +898,7 @@ def update_existing_sales_order_batch(so_name, changes):
                     change.change_type = "Silinen Satır"
                 change.new_delivery_quantity = 0
 
-            detail_entry = None
-            needs_update = False
-
+            # compute new total qty and delivery_date based on change_type
             if change_type == "Silinen Satır":
                 delivered_qty = flt(target_item.delivered_qty)
                 billed_amt = flt(getattr(target_item, "billed_amt", 0))
@@ -903,10 +907,11 @@ def update_existing_sales_order_batch(so_name, changes):
                 protected_qty = max(delivered_qty, billed_qty)
 
                 if protected_qty == 0 and len(so.items) == 1:
+                    # special-case: full SO cancel+delete -> handle immediately
                     so.cancel()
                     frappe.delete_doc("Sales Order", so_name, force=1, ignore_permissions=True)
 
-                    details.append(
+                    so_detail_entries.append(
                         {
                             "action": "Closed",
                             "sales_order": so_name,
@@ -922,7 +927,7 @@ def update_existing_sales_order_batch(so_name, changes):
                     )
 
                     return {
-                        "details": details,
+                        "details": so_detail_entries,
                         "updated": updated,
                         "closed": closed + 1,
                         "errors": errors,
@@ -931,7 +936,6 @@ def update_existing_sales_order_batch(so_name, changes):
                 reason_bits = []
                 if delivered_qty > 0:
                     reason_bits.append(_("Teslim edilen qty"))
-
                 if billed_qty > delivered_qty:
                     reason_bits.append(_("Faturalandırılan qty"))
 
@@ -942,24 +946,35 @@ def update_existing_sales_order_batch(so_name, changes):
                     reason_bits = [_("Teslimat yok, qty sıfırlandı")]
 
                 detail_change_type = "Silinen Satır (" + " ve ".join(reason_bits) + ")"
+                delivery_date_val = target_item.delivery_date
 
-                item_dict["qty"] = new_total_qty
-                item_dict["delivery_date"] = target_item.delivery_date
-                action = "Closed"
-                needs_update = True
+                # prepare trans_item
+                trans_items.append(
+                    {
+                        "docname": target_item.name,
+                        "item_code": target_item.item_code,
+                        "qty": new_total_qty,
+                        "rate": target_item.rate,
+                        "uom": target_item.uom,
+                        "conversion_factor": target_item.conversion_factor,
+                        "delivery_date": str(getdate(delivery_date_val)) if delivery_date_val else None,
+                    }
+                )
 
-                detail_entry = {
-                    "action": "Closed",
-                    "sales_order": so_name,
-                    "customer": so.customer,
-                    "item": target_item.item_code,
-                    "order_no": so.po_no,
-                    "old_qty": target_item.qty,
-                    "new_qty": new_total_qty,
-                    "old_date": target_item.delivery_date,
-                    "new_date": target_item.delivery_date,
-                    "change_type": detail_change_type,
-                }
+                so_detail_entries.append(
+                    {
+                        "action": "Closed",
+                        "sales_order": so_name,
+                        "customer": so.customer,
+                        "item": target_item.item_code,
+                        "order_no": so.po_no,
+                        "old_qty": target_item.qty,
+                        "new_qty": new_total_qty,
+                        "old_date": target_item.delivery_date,
+                        "new_date": delivery_date_val,
+                        "change_type": detail_change_type,
+                    }
+                )
 
             elif change_type in [
                 "Miktar Artışı",
@@ -969,31 +984,41 @@ def update_existing_sales_order_batch(so_name, changes):
             ]:
                 desired_pending_qty = max(flt(getattr(change, "new_delivery_quantity", 0) or 0), 0)
                 new_total_qty = flt(target_item.delivered_qty) + desired_pending_qty
-                item_dict["qty"] = new_total_qty
 
                 new_date = getattr(change, "new_delivery_date", None) or target_item.delivery_date
-                item_dict["delivery_date"] = new_date
                 if new_date:
                     if earliest_new_order_date is None or getdate(new_date) < getdate(earliest_new_order_date):
                         earliest_new_order_date = new_date
-                action = "Updated"
-                needs_update = True
 
-                detail_entry = {
-                    "action": "Updated",
-                    "sales_order": so_name,
-                    "customer": so.customer,
-                    "item": target_item.item_code,
-                    "order_no": so.po_no,
-                    "old_qty": target_item.qty,
-                    "new_qty": new_total_qty,
-                    "old_date": target_item.delivery_date,
-                    "new_date": new_date,
-                    "change_type": change_type,
-                }
+                trans_items.append(
+                    {
+                        "docname": target_item.name,
+                        "item_code": target_item.item_code,
+                        "qty": new_total_qty,
+                        "rate": target_item.rate,
+                        "uom": target_item.uom,
+                        "conversion_factor": target_item.conversion_factor,
+                        "delivery_date": str(getdate(new_date)) if new_date else None,
+                    }
+                )
+
+                so_detail_entries.append(
+                    {
+                        "action": "Updated",
+                        "sales_order": so_name,
+                        "customer": so.customer,
+                        "item": target_item.item_code,
+                        "order_no": so.po_no,
+                        "old_qty": target_item.qty,
+                        "new_qty": new_total_qty,
+                        "old_date": target_item.delivery_date,
+                        "new_date": new_date,
+                        "change_type": change_type,
+                    }
+                )
 
             elif change_type == "Yeni Satır":
-                details.append(
+                so_detail_entries.append(
                     {
                         "action": "Error",
                         "sales_order": so_name,
@@ -1014,7 +1039,7 @@ def update_existing_sales_order_batch(so_name, changes):
                 continue
 
             else:
-                details.append(
+                so_detail_entries.append(
                     {
                         "action": "Error",
                         "sales_order": so_name,
@@ -1030,24 +1055,8 @@ def update_existing_sales_order_batch(so_name, changes):
                 errors += 1
                 continue
 
-            if not needs_update:
-                continue
-
-            delivery_date_value = item_dict.get("delivery_date") or target_item.delivery_date
-            delivery_date_str = str(getdate(delivery_date_value)) if delivery_date_value else None
-
-            trans_items = [
-                {
-                    "docname": target_item.name,
-                    "item_code": target_item.item_code,
-                    "qty": item_dict["qty"],
-                    "rate": target_item.rate,
-                    "uom": target_item.uom,
-                    "conversion_factor": target_item.conversion_factor,
-                    "delivery_date": delivery_date_str,
-                }
-            ]
-
+        # Tek seferde uygulama (eğer trans_items doluysa)
+        if trans_items:
             update_child_qty_rate(
                 parent_doctype="Sales Order",
                 trans_items=json.dumps(trans_items),
@@ -1055,16 +1064,18 @@ def update_existing_sales_order_batch(so_name, changes):
                 child_docname="items",
             )
 
-            if action == "Closed":
-                closed += 1
-            elif action == "Updated":
-                updated += 1
+            # basit sayım: güncellenmiş/closed sayısını so_detail_entries içinden hesapla
+            for d in so_detail_entries:
+                if d.get("action") == "Updated":
+                    updated += 1
+                elif d.get("action") == "Closed":
+                    closed += 1
 
+        # so.reload() yalnızca bir kere
+        if "so" in locals():
             so.reload()
 
-            if detail_entry:
-                details.append(detail_entry)
-
+        # After updates, if entire SO has zero qty and no deliveries -> delete
         if so.docstatus == 1:
             has_delivery_or_billing = any(
                 flt(it.delivered_qty) > 0 or flt(getattr(it, "billed_amt", 0)) > 0 for it in so.items
@@ -1075,7 +1086,7 @@ def update_existing_sales_order_batch(so_name, changes):
                 so.cancel()
                 frappe.delete_doc("Sales Order", so_name, force=1, ignore_permissions=True)
 
-                details.append(
+                so_detail_entries.append(
                     {
                         "action": "Closed",
                         "sales_order": so_name,
@@ -1084,16 +1095,17 @@ def update_existing_sales_order_batch(so_name, changes):
                         "change_type": _("Silinen Satır (SO cancelled & deleted - all items removed)"),
                     }
                 )
+                closed += 1
 
-                return {
-                    "details": details,
-                    "updated": updated,
-                    "closed": closed + 1,
-                    "errors": errors,
-                }
-
+        # update transaction_date if needed
         if earliest_new_order_date and getdate(earliest_new_order_date) < getdate(so.transaction_date):
             so.db_set("transaction_date", earliest_new_order_date, update_modified=False)
+
+        # append details
+        details.extend(so_detail_entries)
+
+        elapsed = time.perf_counter() - start_ts
+        frappe.logger().debug(f"KTA SO Sync: processed SO {so_name} in {elapsed:.3f}s, trans_items={len(trans_items)}")
 
         return {
             "details": details,
@@ -1107,7 +1119,6 @@ def update_existing_sales_order_batch(so_name, changes):
         raise
 
     except Exception:
-        # title kısa, detay traceback
         frappe.log_error("SO Update", frappe.get_traceback())
 
         for change in changes:
@@ -1134,7 +1145,6 @@ def update_existing_sales_order_batch(so_name, changes):
             "closed": 0,
             "errors": len(changes),
         }
-
 
 def update_so_item_qty_rate(so_name, item_name, new_qty, rate):
     """
