@@ -4,7 +4,7 @@ import time
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, cint, flt, getdate, today
+from frappe.utils import add_days, cint, flt, getdate, today, cstr
 from erpnext.controllers.accounts_controller import update_child_qty_rate
 from erpnext.utilities.transaction_base import UOMMustBeIntegerError
 
@@ -60,6 +60,12 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
     sync_log.status = "In Progress"
     sync_log.total_changes = len(sync_changes)
 
+    try:
+        sync_log.insert()
+        frappe.db.commit()
+    except Exception:
+        frappe.log_error("SO Sync Log insert failed", frappe.get_traceback())
+
     created = updated = closed = errors = 0
 
     try:
@@ -113,13 +119,21 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
         # KTA SO Sync Log üzerinde sadece kısa bir özet sakla
         sync_log.status = "Failed"
         # error_log alanın Data(140) ise güvenli tarafta kalmak için truncate et
-        sync_log.error_log = cstr(e)[:140]
+        # error_log alanın Data(140) ise güvenli tarafta kalmak için truncate et
+        try:
+            sync_log.error_log = cstr(e)[:140]
+        except Exception:
+            sync_log.error_log = str(e)[:140]
 
         # Tam traceback’i Error Log’a yaz
         frappe.log_error("SO Sync Critical Error", frappe.get_traceback())
 
-    sync_log.save()
-    frappe.db.commit()
+    # Guarantee save/commit even if above except had issues   
+    try:
+        sync_log.save()
+        frappe.db.commit()
+    except Exception:
+        frappe.log_error("Final sync_log.save failed", frappe.get_traceback())
 
     result = {
         "sync_log": sync_log.name,
