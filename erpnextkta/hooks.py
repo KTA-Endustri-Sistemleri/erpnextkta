@@ -137,7 +137,8 @@ override_doctype_class = {
     "Purchase Receipt": "erpnextkta.overrides.KTAPurchaseReceipt.KTAPurchaseReceipt",
     "Quality Inspection": "erpnextkta.overrides.KTAQualityInspection.KTAQualityInspection",
     "BOM": "erpnextkta.overrides.KTAbom.KTAbom",
-    "Purchase Order": "erpnextkta.overrides.KTAPurchaseOrder.KTAPurchaseOrder"
+    "Purchase Order": "erpnextkta.overrides.KTAPurchaseOrder.KTAPurchaseOrder",
+    "Stock Reconciliation": "erpnextkta.overrides.stock_reconciliation.StockReconciliation"
 }
 doc_events = {
     "Kalite Kontrol": {
@@ -280,5 +281,6 @@ fixtures = [
     }
 ]
 doctype_js = {
-    "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js"
+    "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",
+    "Stock Reconciliation": "public/js/stock_reconciliation.js"
 }
