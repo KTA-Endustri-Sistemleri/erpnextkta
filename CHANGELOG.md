@@ -3,6 +3,56 @@
 
 
 
+## 🚀 v0.6.0 (2025-12-10)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- stabilize Stock Reconciliation items for physical count workflow
+      
+      
+    
+      
+      
+        
+- **stock-reconciliation**: keep all items while document is draft
+      
+      
+    
+      
+      
+        
+- **stock-reconciliation**: add static items API based on current bin stock
+      
+      
+    
+      
+      
+        
+- **stock-reconciliation**: use custom static items API in fetch dialog
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.5.0 (2025-12-08)
 
 
