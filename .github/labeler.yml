@@ -11,12 +11,12 @@ frontend:
   - "erpnextkta/public/**"
 
 # Dokümantasyon
-docs:
+documentation:
   - "docs/**"
   - "**/*.md"
 
 # Config / Docker / Deploy
-infra:
+deployment:
   - "docker/**"
   - "deploy/**"
   - "compose*.yml"
