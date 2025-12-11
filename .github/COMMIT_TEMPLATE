@@ -1,0 +1,28 @@
+# Commit Message Template (Semantic Release Compatible)
+
+# Format:
+# <type>(<scope>): <short summary>
+# <BLANK LINE>
+# <detailed description - optional>
+# <BLANK LINE>
+# BREAKING CHANGE: <description> (optional)
+
+# Allowed Types:
+# feat     → Yeni özellik
+# fix      → Hata düzeltme
+# chore    → Yapısal iş (kod dışı)
+# refactor → Davranışı değiştirmeyen kod düzenlemesi
+# docs     → Dokümantasyon
+# ci       → CI/CD değişiklikleri
+# perf     → Performans iyileştirmesi
+# test     → Test ekleme/düzenleme
+# build    → Build sistemi, bağımlılık vb.
+# style    → Kod formatı, noktalama vb.
+
+# Examples:
+
+# feat(qr-scanner): auto-submit mechanism for USB scanners
+# fix(job-card): incorrect operation index causing stock entry duplication
+# chore(release): prepare v0.4.0
+# refactor(api): simplify permission checks
+# BREAKING CHANGE: endpoint /v2/scan requires authentication
