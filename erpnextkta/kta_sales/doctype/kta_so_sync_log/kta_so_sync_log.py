@@ -11,7 +11,6 @@ from erpnext.utilities.transaction_base import UOMMustBeIntegerError
 
 from erpnextkta.kta_sales.doctype.kta_sales_order_update.kta_sales_order_update import (
     adjust_sales_order_update_with_shipments,
-    get_customer_and_item,
     get_sales_order_update_doc,
 )
 class KTASOSyncLog(Document):
@@ -149,7 +148,7 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
 def build_sales_order_sync_changes(sales_order_update_name):
     rows = frappe.db.sql(
         """
-        SELECT order_no, part_no_customer, delivery_date, delivery_quantity, plant_no_customer
+        SELECT order_no, part_no_customer, delivery_date, delivery_quantity, plant_no_customer, plant
         FROM `tabKTA Sales Order Update Entry`
         WHERE parent = %s
         ORDER BY order_no, part_no_customer, plant_no_customer, delivery_date
@@ -164,29 +163,41 @@ def build_sales_order_sync_changes(sales_order_update_name):
 
     adjusted_rows = adjust_sales_order_update_with_shipments(rows)
     plan_rows_by_key = defaultdict(list)
+    customer_item_cache = {}
 
     # 1) PLAN TARAFINI GRUPLA
     for row in adjusted_rows:
         if not row.order_no or not row.part_no_customer:
             continue
-        
-        customer, item = get_customer_and_item(row.plant_no_customer, row.part_no_customer)
-        if not customer or not item:
-            continue
-            
+
+        cache_key = (row.plant or row.plant_no_customer, row.part_no_customer)
+        cached_values = customer_item_cache.get(cache_key)
+
+        if not cached_values:
+            customer_value = cstr(row.plant or row.plant_no_customer).strip()
+            item_value = cstr(row.part_no_customer).strip()
+            if not (customer_value and item_value):
+                continue
+
+            cached_values = frappe._dict({"customer": customer_value, "item_code": item_value})
+            customer_item_cache[cache_key] = cached_values
+
         order_no = cstr(row.order_no).strip()
-        item_code = cstr(row.part_no_customer).strip()
-        
-        plan_entry = frappe._dict({
-            "order_no": order_no,
-            "order_item": None,
-            "part_no_customer": item_code,
-            "plant_no_customer": row.plant_no_customer,
-            "customer": customer,
-            "item": item_code,
-            "delivery_date": row.delivery_date,
-            "planned_qty": flt(row.delivery_quantity or 0),
-        })
+        item_code = cached_values.item_code
+        customer = cached_values.customer
+
+        plan_entry = frappe._dict(
+            {
+                "order_no": order_no,
+                "order_item": None,
+                "part_no_customer": item_code,
+                "plant_no_customer": row.plant_no_customer,
+                "customer": customer,
+                "item": item_code,
+                "delivery_date": row.delivery_date,
+                "planned_qty": flt(row.delivery_quantity or 0),
+            }
+        )
         key = (customer, order_no, item_code)
         plan_rows_by_key[key].append(plan_entry)
 
@@ -279,19 +290,26 @@ def build_sales_order_sync_changes(sales_order_update_name):
                     continue
                 
                 # Qty değişikliği
-                qty_diff = abs(flt(p_row.planned_qty) - flt(e_row.pending_qty))
-                if qty_diff > 0.001:
+                plan_qty = flt(p_row.planned_qty or 0)
+                erp_qty = flt(e_row.pending_qty or 0)
+                qty_diff = abs(plan_qty - erp_qty)
+                if qty_diff > 0.001 or plan_qty <= 0:
+                    change_type = "Miktar Artışı" if plan_qty > erp_qty else "Miktar Azalışı"
+                    if plan_qty <= 0:
+                        change_type = "Silinen Satır"
+                        plan_qty = 0
+
                     changes.append({
                         "order_no": order_no,
                         "item": item_code,
                         "customer": customer,
                         "matched_sales_order": e_row.sales_order,
                         "order_item": e_row.sales_order_item,
-                        "change_type": "Miktar Artışı" if p_row.planned_qty > e_row.pending_qty else "Miktar Azalışı",
+                        "change_type": change_type,
                         "old_delivery_date": e_row.delivery_date,
                         "new_delivery_date": p_row.delivery_date,
-                        "old_delivery_quantity": e_row.pending_qty,
-                        "new_delivery_quantity": p_row.planned_qty,
+                        "old_delivery_quantity": erp_qty,
+                        "new_delivery_quantity": plan_qty,
                     })
                     
                     used_plan_indices.add(p_idx)
@@ -306,18 +324,36 @@ def build_sales_order_sync_changes(sales_order_update_name):
         for i in range(min_len):
             p_idx, p_row = remaining_plan[i]
             e_idx, e_row = remaining_erp[i]
-            
+            plan_qty = flt(p_row.planned_qty or 0)
+            erp_qty = flt(e_row.pending_qty or 0)
+
+            if plan_qty <= 0:
+                change_type = "Silinen Satır"
+                plan_qty = 0
+            else:
+                date_changed = p_row.delivery_date != e_row.delivery_date
+                qty_changed = abs(plan_qty - erp_qty) > 0.001
+
+                if date_changed and qty_changed:
+                    change_type = "Tarih ve Miktar Değişikliği"
+                elif date_changed:
+                    change_type = "Tarih Değişikliği"
+                elif qty_changed:
+                    change_type = "Miktar Artışı" if plan_qty > erp_qty else "Miktar Azalışı"
+                else:
+                    continue
+
             changes.append({
                 "order_no": order_no,
                 "item": item_code,
                 "customer": customer,
                 "matched_sales_order": e_row.sales_order,
                 "order_item": e_row.sales_order_item,
-                "change_type": "Tarih ve Miktar Değişikliği",
+                "change_type": change_type,
                 "old_delivery_date": e_row.delivery_date,
                 "new_delivery_date": p_row.delivery_date,
-                "old_delivery_quantity": e_row.pending_qty,
-                "new_delivery_quantity": p_row.planned_qty,
+                "old_delivery_quantity": erp_qty,
+                "new_delivery_quantity": plan_qty,
             })
 
         # ADIM 4: ERP'de fazla - silinecek
@@ -337,13 +373,16 @@ def build_sales_order_sync_changes(sales_order_update_name):
         # ADIM 5: Plan'da fazla - yeni satır (sync log'a kaydedilecek)
         for i in range(min_len, len(remaining_plan)):
             p_idx, p_row = remaining_plan[i]
+            plan_qty = flt(p_row.planned_qty or 0)
+            if plan_qty <= 0:
+                continue
             changes.append({
                 "order_no": order_no,
                 "item": item_code,
                 "customer": customer,
                 "change_type": "Yeni Satır",
                 "new_delivery_date": p_row.delivery_date,
-                "new_delivery_quantity": p_row.planned_qty,
+                "new_delivery_quantity": plan_qty,
             })
 
     return changes
@@ -456,7 +495,7 @@ def group_changes_by_sales_order(changes):
         if so_name:
             key = (customer, order_no, so_name)
         else:
-            key = (customer, order_no, "NEW")
+            key = (customer, order_no or "-", "NEW")
         
         grouped[key].append(change)
 
@@ -524,55 +563,6 @@ def determine_change_type_for_sync(open_qty, new_qty, old_date, new_date):
         return "Tarih Değişikliği"
 
     return None
-
-
-def group_changes_by_sales_order(changes):
-    """
-    Değişiklikleri Sales Order bazında grupla.
-    """
-    grouped = defaultdict(list)
-    so_cache = {}
-
-    for change in changes:
-        customer = change.customer
-        order_no = change.order_no
-        item_code = change.item
-
-        so_name = getattr(change, "matched_sales_order", None)
-
-        if not so_name and customer and order_no and item_code and change.change_type != "Yeni Satır":
-            key = (customer, order_no, item_code)
-            available = so_cache.get(key)
-            if available is None:
-                rows = frappe.db.sql(
-                    """
-                    SELECT DISTINCT so.name
-                    FROM `tabSales Order` so
-                    INNER JOIN `tabSales Order Item` soi ON soi.parent = so.name
-                    WHERE so.customer = %s
-                        AND so.po_no = %s
-                        AND soi.item_code = %s
-                        AND so.docstatus = 1
-                        AND so.status IN ('To Deliver', 'To Deliver and Bill')
-                    ORDER BY soi.delivery_date, so.transaction_date, so.name
-                """,
-                    (customer, order_no, item_code),
-                    as_dict=True,
-                )
-                available = [row.name for row in rows]
-                so_cache[key] = available
-
-            if available:
-                so_name = available.pop(0)
-
-        if so_name:
-            key = (customer, order_no, so_name)
-        else:
-            key = (customer, order_no or "-", "NEW")
-
-        grouped[key].append(change)
-
-    return grouped
 
 
 def process_sales_order_batch(so_identifier, changes):
@@ -649,13 +639,63 @@ def update_existing_sales_order_batch(so_name, changes):
             }
 
         # Item mapping
-        item_map = {it.item_code: it for it in so.items}
+        item_map_by_name = {it.name: it for it in so.items}
+        item_map_by_code = defaultdict(list)
+        for it in so.items:
+            item_map_by_code[it.item_code].append(it)
+
+        for lst in item_map_by_code.values():
+            lst.sort(key=lambda r: getdate(r.delivery_date) if r.delivery_date else getdate("1900-01-01"))
+
+        def remove_from_code_map(target):
+            candidates = item_map_by_code.get(target.item_code)
+            if not candidates:
+                return
+            for idx, cand in enumerate(candidates):
+                if cand.name == target.name:
+                    candidates.pop(idx)
+                    break
+
+        def resolve_target_item(change):
+            item_code = getattr(change, "item", None)
+            order_item_name = getattr(change, "order_item", None)
+
+            if order_item_name:
+                target = item_map_by_name.pop(order_item_name, None)
+                if target:
+                    remove_from_code_map(target)
+                    return target
+
+            if not item_code:
+                return None
+
+            candidates = item_map_by_code.get(item_code) or []
+            if not candidates:
+                return None
+
+            desired_date = getattr(change, "old_delivery_date", None) or getattr(
+                change, "new_delivery_date", None
+            )
+            if desired_date:
+                desired_date = getdate(desired_date)
+                for idx, cand in enumerate(candidates):
+                    cand_date = getdate(cand.delivery_date) if cand.delivery_date else None
+                    if cand_date == desired_date:
+                        target = candidates.pop(idx)
+                        item_map_by_name.pop(target.name, None)
+                        return target
+
+            target = candidates.pop(0)
+            item_map_by_name.pop(target.name, None)
+            return target
+
         trans_items = []
         delivery_dates_to_set = []
+        order_deleted = False
 
         for change in changes:
             item_code = getattr(change, "item", None)
-            target_item = item_map.get(item_code)
+            target_item = resolve_target_item(change)
             
             if not target_item:
                 details.append({
@@ -706,13 +746,11 @@ def update_existing_sales_order_batch(so_name, changes):
                 billed_amt = flt(getattr(target_item, "billed_amt", 0))
                 rate_for_billing = flt(target_item.rate) or flt(getattr(target_item, "base_rate", 0))
                 billed_qty = flt(billed_amt / rate_for_billing) if rate_for_billing else 0
-                protected_qty = max(delivered_qty, billed_qty)
 
-                # Tam SO silme durumu
-                if protected_qty == 0 and len(so.items) == 1:
+                if delivered_qty <= 0 and billed_qty <= 0:
                     so.cancel()
                     frappe.delete_doc("Sales Order", so_name, force=1, ignore_permissions=True)
-                    
+
                     details.append({
                         "action": "Closed",
                         "sales_order": so_name,
@@ -725,29 +763,17 @@ def update_existing_sales_order_batch(so_name, changes):
                         "new_date": target_item.delivery_date,
                         "change_type": _("Silinen Satır (SO iptal edildi ve silindi)"),
                     })
-                    
-                    return {
-                        "details": details,
-                        "updated": 0,
-                        "closed": 1,
-                        "errors": 0,
-                    }
+                    closed += 1
+                    order_deleted = True
+                    break
 
-                # Kısmi silme - korunan qty var
-                reason_bits = []
+                new_total_qty = max(delivered_qty, billed_qty)
+                note_bits = []
                 if delivered_qty > 0:
-                    reason_bits.append(_("Teslim edilen qty: {0}").format(delivered_qty))
+                    note_bits.append(_("Teslim edilen qty: {0}").format(delivered_qty))
                 if billed_qty > delivered_qty:
-                    reason_bits.append(_("Faturalandırılan qty: {0}").format(billed_qty))
-                
-                if protected_qty > 0:
-                    new_total_qty = protected_qty
-                else:
-                    new_total_qty = 0
-                    reason_bits = [_("Teslimat yok, qty sıfırlandı")]
+                    note_bits.append(_("Faturalandırılan qty: {0}").format(billed_qty))
 
-                detail_change_type = "Silinen Satır (" + ", ".join(reason_bits) + ")"
-                
                 trans_items.append({
                     "docname": target_item.name,
                     "item_code": target_item.item_code,
@@ -759,7 +785,7 @@ def update_existing_sales_order_batch(so_name, changes):
                 })
 
                 details.append({
-                    "action": "Closed" if new_total_qty == 0 else "Updated",
+                    "action": "Closed",
                     "sales_order": so_name,
                     "customer": so.customer,
                     "item": target_item.item_code,
@@ -768,8 +794,12 @@ def update_existing_sales_order_batch(so_name, changes):
                     "new_qty": new_total_qty,
                     "old_date": target_item.delivery_date,
                     "new_date": target_item.delivery_date,
-                    "change_type": detail_change_type,
+                    "change_type": "Silinen Satır (" + ", ".join(note_bits or [_("Teslimat miktarına çekildi")]) + ")",
                 })
+                closed += 1
+                if target_item.delivery_date:
+                    delivery_dates_to_set.append(getdate(target_item.delivery_date))
+                continue
 
             # Miktar/tarih değişiklikleri
             elif change_type in ["Miktar Artışı", "Miktar Azalışı", "Tarih Değişikliği", "Tarih ve Miktar Değişikliği"]:
@@ -819,6 +849,14 @@ def update_existing_sales_order_batch(so_name, changes):
                 errors += 1
                 continue
 
+        if order_deleted:
+            return {
+                "details": details,
+                "updated": updated,
+                "closed": closed,
+                "errors": errors,
+            }
+
         # Tek seferde güncelleme
         if trans_items:
             try:
@@ -862,6 +900,7 @@ def update_existing_sales_order_batch(so_name, changes):
                 for it in so.items
             )
             all_zero_qty = all(flt(it.qty) <= 0 for it in so.items)
+            all_delivered = all(flt(it.qty) <= flt(it.delivered_qty or 0) for it in so.items)
 
             if all_zero_qty and not has_delivery_or_billing:
                 so.cancel()
@@ -875,6 +914,8 @@ def update_existing_sales_order_batch(so_name, changes):
                     "change_type": _("Tüm itemlar silindi, SO iptal edildi"),
                 })
                 closed += 1
+            elif all_delivered:
+                so.db_set("status", "Completed", update_modified=False)
 
         # Transaction date güncelleme
         # Eğer delivery_date değiştiyse, SO.transaction_date'i de güncelle
