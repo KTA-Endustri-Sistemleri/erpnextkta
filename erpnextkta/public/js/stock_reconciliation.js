@@ -38,7 +38,7 @@ frappe.ui.form.on("Stock Reconciliation", {
       function (data) {
         frappe.call({
           // 🔴 IMPORTANT: use our custom server method instead of the core one
-          method: "erpnextkta.api.stock_reconciliation.get_items_static",
+          method: "erpnextkta.rest-api.stock_reconciliation.get_items_static",
           args: {
             warehouse: data.warehouse,
             posting_date: frm.doc.posting_date,
