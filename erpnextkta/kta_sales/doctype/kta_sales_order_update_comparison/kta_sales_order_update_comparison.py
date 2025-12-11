@@ -26,26 +26,19 @@ def compare_sales_order_update_documents(current_sales_order_update_name):
     resolved_name = current_sales_order_update_name
     current = frappe.get_doc(DOCTYPE_KTA_SALES_ORDER_UPDATE, resolved_name)
 
-    all_heads = frappe.get_all(
+    previous_head = frappe.get_all(
         DOCTYPE_KTA_SALES_ORDER_UPDATE,
-        fields=["name", "creation"],
-        order_by="creation asc",
+        filters={"creation": ("<", current.creation)},
+        fields=["name"],
+        order_by="creation desc",
+        page_length=1,
     )
 
-    current_index = None
-    for idx, row in enumerate(all_heads):
-        if row.name == current.name:
-            current_index = idx
-            break
-
-    if current_index is None:
-        frappe.throw(_("Current Sales Order Update kaydı bulunamadı: {0}").format(current.name))
-
-    if current_index == 0:
+    if not previous_head:
         frappe.msgprint(_("Karşılaştırma için önceki Sales Order Update kaydı bulunamadı (bu ilk kayıt)."))
         return
 
-    previous_sales_order_update_name = all_heads[current_index - 1].name
+    previous_sales_order_update_name = previous_head[0].name
 
     comparison_doc = frappe.new_doc("KTA Sales Order Update Comparison")
     comparison_doc.comparison_date = frappe.utils.now()
