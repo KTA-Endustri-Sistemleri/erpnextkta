@@ -1,0 +1,24 @@
+# CI/CD ile ilgili değişiklikler
+ci/cd:
+  - ".github/workflows/**"
+
+# Backend (Frappe / ERPNextKTA app)
+backend:
+  - "erpnextkta/**"
+
+# QR Scanner / Frontend tarafı
+frontend:
+  - "erpnextkta/public/**"
+
+# Dokümantasyon
+documentation:
+  - "docs/**"
+  - "**/*.md"
+
+# Config / Docker / Deploy
+deployment:
+  - "docker/**"
+  - "deploy/**"
+  - "compose*.yml"
+  - "compose/**"
+  - "k8s/**"

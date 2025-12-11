@@ -1,0 +1,24 @@
+# Auto-assign configuration for PRs
+
+# PR açıldığında reviewer ekle
+addReviewers: true
+
+# İstersen aynı kişileri assignee de yapabilirsin
+addAssignees: false
+
+# Otomatik atanacak reviewer'lar
+reviewers:
+  - ufukkaramalli
+  - alpkanoz
+
+# Yukarıdaki listeden kaç reviewer seçilsin?
+numberOfReviewers: 1
+
+# Aşağıdaki kelimeleri içeren PR'lara reviewer atanmaz
+skipKeywords:
+  - "WIP"
+  - "wip"
+  - "draft"
+
+# Draft PR'lara reviewer atama
+skipDraft: true
