@@ -1,0 +1,109 @@
+{
+  "actions": [],
+  "allow_copy": 0,
+  "allow_import": 0,
+  "allow_rename": 0,
+  "autoname": "hash",
+  "creation": "2025-08-12 00:00:00.000000",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "editable_grid": 1,
+  "field_order": [
+    "action",
+    "sales_order",
+    "customer",
+    "item",
+    "order_no",
+    "order_item",
+    "old_qty",
+    "new_qty",
+    "old_date",
+    "new_date",
+    "change_type",
+    "error_message"
+  ],
+  "fields": [
+    {
+      "fieldname": "action",
+      "fieldtype": "Data",
+      "label": "Action",
+      "in_list_view": 1,
+      "reqd": 0
+    },
+    {
+      "fieldname": "sales_order",
+      "fieldtype": "Link",
+      "label": "Sales Order",
+      "options": "Sales Order",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "customer",
+      "fieldtype": "Link",
+      "label": "Customer",
+      "options": "Customer"
+    },
+    {
+      "fieldname": "item",
+      "fieldtype": "Link",
+      "label": "Item",
+      "options": "Item",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "order_no",
+      "fieldtype": "Data",
+      "label": "PO No / Order No"
+    },
+    {
+      "fieldname": "order_item",
+      "fieldtype": "Data",
+      "label": "Order Item"
+    },
+    {
+      "fieldname": "old_qty",
+      "fieldtype": "Float",
+      "label": "Old Qty"
+    },
+    {
+      "fieldname": "new_qty",
+      "fieldtype": "Float",
+      "label": "New Qty"
+    },
+    {
+      "fieldname": "old_date",
+      "fieldtype": "Date",
+      "label": "Old Delivery Date"
+    },
+    {
+      "fieldname": "new_date",
+      "fieldtype": "Date",
+      "label": "New Delivery Date"
+    },
+    {
+      "fieldname": "change_type",
+      "fieldtype": "Data",
+      "label": "Change Type"
+    },
+    {
+      "fieldname": "error_message",
+      "fieldtype": "Small Text",
+      "label": "Error Message"
+    }
+  ],
+  "idx": 0,
+  "in_create": 0,
+  "is_submittable": 0,
+  "istable": 1,
+  "modified": "2025-01-01 00:00:00.000000",
+  "module": "kta_sales",
+  "name": "KTA SO Sync Detail",
+  "owner": "Administrator",
+  "permissions": [],
+  "quick_entry": 0,
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "track_changes": 1,
+  "track_seen": 0,
+  "track_views": 0
+}
