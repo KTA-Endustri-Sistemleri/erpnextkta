@@ -3,6 +3,143 @@
 
 
 
+## 🚀 v0.6.2 (2025-12-11)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- Add KTA SO Sync Detail DocType and related functionality
+      
+      
+    
+      
+      
+        
+- Correct module name in KTA SO Sync Detail and improve error logging in KTA SO Sync Log
+      
+      
+    
+      
+      
+        
+- Enhance sales order sync process with improved logging and optional customer filter
+      
+      
+    
+      
+      
+        
+- Optimize sales order update process with batch processing and improved logging
+      
+      
+    
+      
+      
+        
+- Improve error handling and logging during sales order sync log insertion
+      
+      
+    
+      
+      
+        
+- Refactor sales order sync logic for improved customer and item handling
+      
+      
+    
+      
+      
+        
+- Refactor sales order update comparison logic for improved previous record retrieval
+      
+      
+    
+      
+      
+        
+- Add KTA SO Sync Detail DocType and related functionality
+      
+      
+    
+      
+      
+        
+- Correct module name in KTA SO Sync Detail and improve error logging in KTA SO Sync Log
+      
+      
+    
+      
+      
+        
+- Enhance sales order sync process with improved logging and optional customer filter
+      
+      
+    
+      
+      
+        
+- Optimize sales order update process with batch processing and improved logging
+      
+      
+    
+      
+      
+        
+- Improve error handling and logging during sales order sync log insertion
+      
+      
+    
+      
+      
+        
+- Refactor sales order sync logic for improved customer and item handling
+      
+      
+    
+      
+      
+        
+- Refactor sales order update comparison logic for improved previous record retrieval
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- Add KTA SO Sync Detail DocType and enhance sales order sync functionality (#28)
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.6.1 (2025-12-11)
 
 
