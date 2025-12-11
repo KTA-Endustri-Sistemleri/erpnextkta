@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v0.6.1 (2025-12-11)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **stock-reconciliation**: renamed api folder api to rest-api and fixed js endpoint
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.6.0 (2025-12-10)
 
 
