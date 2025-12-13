@@ -70,4 +70,59 @@ frappe.ui.form.on("Stock Reconciliation", {
       __("Update")
     );
   },
+  refresh(frm) {
+    frm.add_custom_button(__("Depo Grubundan Toplu Reco Oluştur"), () => {
+      frappe.prompt(
+        [
+          {
+            label: __("Depo Grubu"),
+            fieldname: "warehouse_group",
+            fieldtype: "Link",
+            options: "Warehouse",
+            reqd: 1,
+            get_query: () => ({
+              filters: {
+                company: frm.doc.company,
+                is_group: 1,
+              },
+            }),
+          },
+          {
+            label: __("Ignore Empty Stock"),
+            fieldname: "ignore_empty_stock",
+            fieldtype: "Check",
+          },
+        ],
+        (data) => {
+          frappe.call({
+            method:
+              "erpnextkta.rest-api.stock_reconciliation.create_stock_reco_docs_for_warehouse_group",
+            args: {
+              warehouse_group: data.warehouse_group,
+              company: frm.doc.company,
+              posting_date: frm.doc.posting_date,
+              posting_time: frm.doc.posting_time,
+              ignore_empty_stock: data.ignore_empty_stock,
+            },
+            callback: (r) => {
+              if (!r.message) return;
+
+              const docs = (r.message.documents || [])
+                .slice(0, 15)
+                .map((d) => `• ${d.name} (${d.warehouse})`)
+                .join("<br>");
+
+              frappe.msgprint({
+                title: __("İşlem Tamamlandı"),
+                message: __(`${r.message.count} belge oluşturuldu.<br><br>${docs}${r.message.count > 15 ? "<br>..." : ""}`),
+                indicator: "green",
+              });
+            },
+          });
+        },
+        __("Toplu Oluştur"),
+        __("Oluştur")
+      );
+    });
+  },
 });
