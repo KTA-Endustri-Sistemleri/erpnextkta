@@ -3,6 +3,161 @@
 
 
 
+## 🚀 v0.7.0 (2025-12-13)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **labeler**: restructure file patterns for improved clarity in labeler configuration
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- add GitHub issue/PR templates and workflow automations
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Continuous integration
+
+    
+      
+      
+        
+- add auto-assign reviewers and auto-label workflows
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- add issue and PR templates
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **stock-reconciliation**: bulk create stock reconciliations by warehouse group
+      
+      
+    
+      
+      
+        
+- **stock-reconciliation**: add UI action to bulk create reconciliations
+      
+      
+    
+      
+      
+        
+- **stock-reconciliation**: simplify item removal logic to retain all rows on submit
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- rename keys in labeler configuration for clarity
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- Feat: bulk stock reconciliation by warehouse group (#34)
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.6.2 (2025-12-11)
 
 
