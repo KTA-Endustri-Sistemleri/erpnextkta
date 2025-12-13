@@ -1,7 +1,8 @@
 # erpnextkta/stock_reco_api.py
 
 import frappe
-from frappe.utils import cint
+from frappe import _
+from frappe.utils import cint, today, nowtime
 
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import (
     get_itemwise_batch,
@@ -13,20 +14,31 @@ from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import (
 
 def get_items_for_stock_reco_static(warehouse: str, company: str):
     """
-    Return all item/warehouse pairs that currently have non-zero stock
-    in this warehouse tree.
+    Return all item/warehouse pairs that currently have non-zero stock.
+
+    Behavior:
+    - If `warehouse` is a group: scan its warehouse tree (including itself).
+    - If `warehouse` is a leaf: scan only that warehouse.
 
     Rules:
     - We look at Bin.actual_qty (current stock).
-    - Only warehouses under the selected warehouse (including itself).
     - Only stock items, no variants, not disabled.
     - If actual_qty becomes 0, the pair will no longer appear in future runs.
     """
 
-    lft, rgt = frappe.db.get_value("Warehouse", warehouse, ["lft", "rgt"])
+    wh = frappe.get_cached_doc("Warehouse", warehouse)
+
+    if cint(wh.is_group):
+        # group -> tree query
+        warehouse_condition = "w.lft >= %s and w.rgt <= %s"
+        params = (wh.lft, wh.rgt)
+    else:
+        # leaf -> only itself
+        warehouse_condition = "bin.warehouse = %s"
+        params = (warehouse,)
 
     items = frappe.db.sql(
-        """
+        f"""
         select
             i.name as item_code,
             i.item_name,
@@ -37,14 +49,14 @@ def get_items_for_stock_reco_static(warehouse: str, company: str):
         join `tabItem` i on i.name = bin.item_code
         join `tabWarehouse` w on w.name = bin.warehouse
         where
-            w.lft >= %s and w.rgt <= %s
+            {warehouse_condition}
             and w.is_group = 0
             and ifnull(bin.actual_qty, 0) != 0
             and ifnull(i.disabled, 0) = 0
             and i.is_stock_item = 1
             and i.has_variants = 0
         """,
-        (lft, rgt),
+        params,
         as_dict=True,
     )
 
@@ -75,8 +87,7 @@ def get_items_static(
     but with a different source for the base item list:
 
     - When item_code is given: reuse core `get_item_and_warehouses`.
-    - When item_code is empty: use our `get_items_for_stock_reco_static`, which
-      only returns items that currently have non-zero stock in this warehouse tree.
+    - When item_code is empty: use our `get_items_for_stock_reco_static`.
 
     Result is sorted by (item_code, warehouse, batch_no) for stable ordering.
     """
@@ -133,3 +144,93 @@ def get_items_static(
     res.sort(key=lambda r: (r["item_code"], r["warehouse"], (r.get("batch_no") or "")))
 
     return res
+
+
+@frappe.whitelist()
+def create_stock_reco_docs_for_warehouse_group(
+    warehouse_group: str,
+    company: str,
+    posting_date: str | None = None,
+    posting_time: str | None = None,
+    ignore_empty_stock: int | str = 0,
+):
+    """
+    Create one Stock Reconciliation (DRAFT) per leaf warehouse under the group.
+    Items are populated using `get_items_static()` so qty/valuation/batch/serial
+    logic remains consistent with your deterministic fetch behavior.
+    """
+
+    if not warehouse_group:
+        frappe.throw(_("Warehouse Group is required"))
+    if not company:
+        frappe.throw(_("Company is required"))
+
+    posting_date = posting_date or today()
+    posting_time = posting_time or nowtime()
+    ignore_empty_stock = cint(ignore_empty_stock)
+
+    group = frappe.get_doc("Warehouse", warehouse_group)
+    if not group.is_group:
+        frappe.throw(_("Selected warehouse must be a group"))
+
+    leaf_warehouses = frappe.get_all(
+        "Warehouse",
+        filters={
+            "lft": (">", group.lft),
+            "rgt": ("<", group.rgt),
+            "is_group": 0,
+        },
+        pluck="name",
+        order_by="name asc",
+    )
+
+    if not leaf_warehouses:
+        frappe.throw(_("No leaf warehouses found under this group"))
+
+    created = []
+    skipped = []
+
+    for wh in leaf_warehouses:
+        rows = get_items_static(
+            warehouse=wh,
+            posting_date=posting_date,
+            posting_time=posting_time,
+            company=company,
+            item_code=None,
+            ignore_empty_stock=ignore_empty_stock,
+        )
+
+        # ✅ items boşsa belge yaratma (MandatoryError önler)
+        if not rows:
+            skipped.append(wh)
+            continue
+
+        doc = frappe.new_doc("Stock Reconciliation")
+        doc.company = company
+        doc.posting_date = posting_date
+        doc.posting_time = posting_time
+        doc.purpose = "Stock Reconciliation"
+        # Stock Reconciliation header/default warehouse field is typically `set_warehouse`
+        if doc.meta.has_field("set_warehouse"):
+            doc.set_warehouse = wh
+
+        # Bazı özelleştirmelerde üst alanda `warehouse` da olabiliyor; varsa onu da doldur
+        if doc.meta.has_field("warehouse"):
+            doc.warehouse = wh
+
+        doc.set("items", [])
+        for row in rows:
+            # ✅ Bulk akışında da bundle istemesin (manuel fetch ile aynı davranış)
+            row["use_serial_batch_fields"] = 1
+            doc.append("items", row)
+
+        doc.insert()  # DRAFT
+
+        created.append({"warehouse": wh, "name": doc.name, "item_count": len(rows)})
+
+    return {
+        "count": len(created),
+        "documents": created,
+        "skipped_count": len(skipped),
+        "skipped_warehouses": skipped,
+    }
