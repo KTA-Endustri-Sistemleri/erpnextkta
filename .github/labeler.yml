@@ -1,24 +1,36 @@
+# .github/labeler.yml
+
 # CI/CD ile ilgili değişiklikler
 ci/cd:
-  - ".github/workflows/**"
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
 
 # Backend (Frappe / ERPNextKTA app)
 backend:
-  - "erpnextkta/**"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "erpnextkta/**"
 
 # QR Scanner / Frontend tarafı
 frontend:
-  - "erpnextkta/public/**"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "erpnextkta/public/**"
 
 # Dokümantasyon
 documentation:
-  - "docs/**"
-  - "**/*.md"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "**/*.md"
 
 # Config / Docker / Deploy
 deployment:
-  - "docker/**"
-  - "deploy/**"
-  - "compose*.yml"
-  - "compose/**"
-  - "k8s/**"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docker/**"
+          - "deploy/**"
+          - "compose*.yml"
+          - "compose/**"
+          - "k8s/**"
