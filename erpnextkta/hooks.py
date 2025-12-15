@@ -153,14 +153,8 @@ doc_events = {
     "Job Card": {
         "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status"
     },
-    "Stock Reconciliation": {
-        "on_update": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
-        "on_cancel": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
-        "on_trash": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
-        "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_unique_draft_stock_reco_per_set_warehouse"
-    },
-    "Stock Entry": {
-        "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
+    "Serial and Batch Bundle": {
+        "before_insert": "erpnextkta.overrides.serial_batch_bundle.before_insert"
     }
 }
 # Document Events
