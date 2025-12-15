@@ -3,6 +3,101 @@
 
 
 
+## 🚀 v0.7.1 (2025-12-15)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- :bug: implement background job for sales order synchronization
+      
+      
+    
+      
+      
+        
+- enhance sales order synchronization with queued status handling and logging
+      
+      
+    
+      
+      
+        
+- update sales order sync log creation and status handling
+      
+      
+    
+      
+      
+        
+- handle validation errors for deleted sales orders in sync log
+      
+      
+    
+      
+      
+        
+- :bug: implement background job for sales order synchronization
+      
+      
+    
+      
+      
+        
+- enhance sales order synchronization with queued status handling and logging
+      
+      
+    
+      
+      
+        
+- update sales order sync log creation and status handling
+      
+      
+    
+      
+      
+        
+- handle validation errors for deleted sales orders in sync log
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- # 🔀 fix: sales order update bug fix (#36)
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.7.0 (2025-12-13)
 
 
