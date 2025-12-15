@@ -407,28 +407,7 @@ def zebra_formatter(doctype_name, data):
 
 
 def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
-    if not row:
-        return
-
-    # Allow callers that only provide a row name to re-fetch the document
-    if not row.serial_and_batch_bundle and row.get("name"):
-        row = frappe.get_doc(row.doctype, row.name)
-
-    if not row.serial_and_batch_bundle:
-        return
-
-    # Only operate on Purchase Receipt Item rows so other Stock Entry types remain untouched
-    row_doctype = getattr(row, "doctype", None)
-    parenttype = getattr(row, "parenttype", None)
-    parent = getattr(row, "parent", None)
-
-    if row_doctype != "Purchase Receipt Item":
-        return
-
-    if parenttype and parenttype != "Purchase Receipt":
-        return
-
-    if not parent:
+    if not row or not row.serial_and_batch_bundle:
         return
 
     row_batch_number = frappe.db.get_value(
@@ -442,25 +421,9 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     )
 
     if not row_batch_number:
-        row_batch_number = frappe.db.get_value(
-            doctype="Batch",
-            filters={
-                "reference_doctype": row.parenttype or "Purchase Receipt",
-                "reference_name": row.parent,
-                "item": row.item_code,
-            },
-            fieldname="name",
-        )
-
-    if not row_batch_number:
         frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
 
-    try:
-        purchase_receipt = frappe.get_doc("Purchase Receipt", parent)
-    except frappe.DoesNotExistError:
-        # Parent is not a Purchase Receipt; skip so other stock entry types are unaffected
-        return
-
+    purchase_receipt = frappe.get_doc("Purchase Receipt", row.parent)
     batch_allocations = _prepare_batch_allocations(row, purchase_receipt, row_batch_number)
 
     if not batch_allocations:
@@ -892,6 +855,112 @@ def _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack_
     batch_doc.flags.ignore_permissions = True
     batch_doc.insert()
     return batch_doc.name
+
+
+def _prepare_batch_allocations(row, purchase_receipt, base_batch_number):
+    qty = flt(row.stock_qty or 0)
+    if not qty:
+        return []
+
+    if row.custom_do_not_split:
+        sut_code = f"{base_batch_number}{0:04d}"
+        return [
+            {
+                "batch_no": base_batch_number,
+                "qty": qty,
+                "sut_code": sut_code,
+                "pack_no": 0,
+            }
+        ]
+
+    split_qty = flt(row.custom_split_qty or 0)
+    if split_qty <= 0:
+        frappe.throw(f"Row {row.idx}: custom_split_qty must be a positive number for {row.item_code}.")
+
+    num_packs = cint(qty // split_qty)
+    remainder_qty = qty % split_qty
+    allocations = []
+
+    for pack in range(1, num_packs + 1):
+        batch_no = _create_split_batch(row, purchase_receipt, base_batch_number, pack)
+        allocations.append(
+            {
+                "batch_no": batch_no,
+                "qty": split_qty,
+                "sut_code": f"{base_batch_number}{pack:04d}",
+                "pack_no": pack,
+            }
+        )
+
+    if remainder_qty > 0:
+        pack = num_packs + 1
+        batch_no = _create_split_batch(row, purchase_receipt, base_batch_number, pack)
+        allocations.append(
+            {
+                "batch_no": batch_no,
+                "qty": remainder_qty,
+                "sut_code": f"{base_batch_number}{pack:04d}",
+                "pack_no": pack,
+            }
+        )
+
+    return allocations
+
+
+def _create_split_batch(row, purchase_receipt, base_batch_number, pack_no):
+    batch_id = None
+    if base_batch_number:
+        batch_id = f"{base_batch_number}-{pack_no:04d}"
+        if frappe.db.exists("Batch", batch_id):
+            batch_id = None
+
+    batch_doc = frappe.get_doc(
+        {
+            "doctype": "Batch",
+            "item": row.item_code,
+            "supplier": purchase_receipt.get("supplier"),
+            "reference_doctype": row.parenttype or "Purchase Receipt",
+            "reference_name": row.parent,
+            "manufacturing_date": row.get("manufacturing_date") or purchase_receipt.get(FIELD_POSTING_DATE),
+            "expiry_date": row.get("expiry_date"),
+            "stock_uom": row.get("stock_uom"),
+            "description": row.get("description"),
+        }
+    )
+
+    if batch_id:
+        batch_doc.batch_id = batch_id
+
+    batch_doc.flags.ignore_permissions = True
+    batch_doc.insert()
+    return batch_doc.name
+
+
+def _update_serial_and_batch_bundle_entries(row, allocations):
+    if not allocations:
+        return
+
+    bundle_doc = frappe.get_doc(DOCTYPE_SERIAL_AND_BATCH_BUNDLE, row.serial_and_batch_bundle)
+    bundle_doc.flags.ignore_validate = True
+    bundle_doc.flags.ignore_validate_update_after_submit = True
+    bundle_doc.flags.ignore_permissions = True
+    bundle_doc.set("entries", [])
+
+    total_qty = 0
+    for allocation in allocations:
+        total_qty += flt(allocation["qty"])
+        bundle_doc.append(
+            "entries",
+            {
+                "batch_no": allocation["batch_no"],
+                "qty": allocation["qty"],
+                "warehouse": row.warehouse,
+                "is_outward": 0,
+            },
+        )
+
+    bundle_doc.total_qty = total_qty
+    bundle_doc.save()
 
 
 def get_zebra_printer_for_user():
