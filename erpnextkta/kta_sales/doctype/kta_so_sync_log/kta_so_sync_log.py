@@ -58,11 +58,7 @@ def sync_sales_orders_from_comparison(comparison_name):
 def enqueue_sales_order_sync(sales_order_update_name, comparison=None):
     """Senkronizasyon işlemini uzun kuyrukta çalıştır."""
     sales_order_update_doc = get_sales_order_update_doc(sales_order_update_name)
-    sync_log = get_or_create_sync_log_doc(sales_order_update_doc, comparison=comparison)
-    now_ts = frappe.utils.now()
-    sync_log.db_set("status", "Queued", update_modified=False)
-    sync_log.db_set("sync_date", now_ts, update_modified=False)
-    sync_log.db_set("total_changes", 0, update_modified=False)
+    sync_log = create_sync_log_doc(sales_order_update_doc, comparison=comparison)
 
     comparison_name = comparison.name if comparison else None
     job_name = f"KTA SO Sync {sales_order_update_name}"
@@ -191,14 +187,14 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
 
 
 def get_or_create_sync_log_doc(sales_order_update_doc, comparison=None, sync_log_name=None):
-    """Retrieve existing queued/progress log or create a new one."""
+    """Retrieve provided log, fallback to pending one, otherwise create new."""
     if sync_log_name:
         return frappe.get_doc("KTA SO Sync Log", sync_log_name)
 
     filters = {"sales_order_update": sales_order_update_doc.name}
     if comparison:
         filters["comparison"] = comparison.name
-    filters["status"] = ["in", ["Queued", "In Progress"]]
+    filters["status"] = ["in", ["Draft", "In Progress"]]
 
     existing = frappe.get_all(
         "KTA SO Sync Log", filters=filters, fields=["name"], order_by="creation desc", limit=1
@@ -207,14 +203,18 @@ def get_or_create_sync_log_doc(sales_order_update_doc, comparison=None, sync_log
     if existing:
         return frappe.get_doc("KTA SO Sync Log", existing[0].name)
 
+    return create_sync_log_doc(sales_order_update_doc, comparison=comparison)
+
+
+def create_sync_log_doc(sales_order_update_doc, comparison=None):
+    """Create a fresh sync log record for the given Sales Order Update."""
     sync_log = frappe.new_doc("KTA SO Sync Log")
     sync_log.sales_order_update = sales_order_update_doc.name
     if comparison:
         sync_log.comparison = comparison.name
     sync_log.sync_date = frappe.utils.now()
-    sync_log.status = "Queued"
+    sync_log.status = "Draft"
     sync_log.total_changes = 0
-
     sync_log.insert(ignore_permissions=True)
     frappe.db.commit()
     return sync_log
