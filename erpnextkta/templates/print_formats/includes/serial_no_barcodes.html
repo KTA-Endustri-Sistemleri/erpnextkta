@@ -1,0 +1,49 @@
+{% set options = doc.flags.serial_batch_barcode_options or {} %}
+{% set rows = doc.flags.serial_batch_barcode_rows or [] %}
+{% if rows %}
+{% set label_width = (100 / (options.labels_per_row or 1)) if options.labels_per_row else 100 %}
+<div class="serial-barcode-section">
+    {% for row in rows %}
+    {% if row.serial_numbers %}
+    <div class="barcode-row">
+        {% if options.show_item_info %}
+        <div class="barcode-item-info">
+            <div class="barcode-item-name">{{ row.item_name }}</div>
+            {% if row.item_code and row.item_code != row.item_name %}
+            <div class="barcode-item-code">{{ row.item_code }}</div>
+            {% endif %}
+            {% if row.description %}
+            <div class="barcode-item-description">{{ row.description }}</div>
+            {% endif %}
+            <div class="barcode-qty">{{ row.qty }} {{ row.uom }}</div>
+        </div>
+        {% endif %}
+        <div class="barcode-list" style="display:flex;flex-wrap:wrap;gap:8px;">
+            {% for serial in row.serial_numbers %}
+            <div class="barcode-label" style="width:{{ '{0:.4f}'.format(label_width) }}%;">
+                {% if options.show_value and options.text_position == "above" %}
+                <div class="barcode-value" style="font-family:{{ options.font_family or 'monospace' }};font-size:{{ options.font_size or '10pt' }};">
+                    {{ serial }}
+                </div>
+                {% endif %}
+                <div class="barcode-svg" style="width:100%;">
+                    {{ get_barcode(options.barcode_format or "code128", serial, {
+                        "module_color": options.barcode_color or "#000000",
+                        "foreground": options.barcode_color or "#000000",
+                        "background": options.background_color or "#ffffff",
+                        "quiet_zone": options.quiet_zone or 1,
+                    }, options.barcode_width, options.barcode_height).value }}
+                </div>
+                {% if options.show_value and options.text_position != "above" %}
+                <div class="barcode-value" style="font-family:{{ options.font_family or 'monospace' }};font-size:{{ options.font_size or '10pt' }};">
+                    {{ serial }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
