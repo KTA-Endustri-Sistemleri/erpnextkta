@@ -22,22 +22,59 @@ def sync_sales_orders_from_sales_order_update(
     sales_order_update_name=None, sales_order_update_reference=None
 ):
     """
-    Sales Order Update'den senkronizasyon başlat.
+    Sales Order Update'den senkronizasyonu background job olarak başlat.
     """
     reference_name = sales_order_update_reference or sales_order_update_name
     if not reference_name:
         frappe.throw(_("Sales Order Update seçilmedi."))
-    return _sync_sales_orders_from_sales_order_update(reference_name)
+
+    job = enqueue_sales_order_sync(reference_name)
+    return {
+        "status": "queued",
+        "job_id": job.id if job else None,
+        "info": _("Sales Order senkronizasyonu kuyruğa alındı."),
+    }
 
 
 @frappe.whitelist()
 def sync_sales_orders_from_comparison(comparison_name):
     """
-    Karşılaştırmadan Sales Order'ları senkronize et.
+    Karşılaştırmadan Sales Order'ları senkronizasyonu background job olarak başlat.
     """
     comparison = frappe.get_doc("KTA Sales Order Update Comparison", comparison_name)
-    return _sync_sales_orders_from_sales_order_update(
+    job = enqueue_sales_order_sync(
         comparison.current_sales_order_update, comparison=comparison
+    )
+
+    return {
+        "status": "queued",
+        "job_id": job.id if job else None,
+        "info": _("Karşılaştırma senkronizasyonu kuyruğa alındı."),
+    }
+
+
+def enqueue_sales_order_sync(sales_order_update_name, comparison=None):
+    """Senkronizasyon işlemini uzun kuyrukta çalıştır."""
+    comparison_name = comparison.name if comparison else None
+    job_name = f"KTA SO Sync {sales_order_update_name}"
+
+    return frappe.enqueue(
+        "erpnextkta.kta_sales.doctype.kta_so_sync_log.kta_so_sync_log.run_sales_order_sync_job",
+        queue="long",
+        job_name=job_name,
+        sales_order_update_name=sales_order_update_name,
+        comparison_name=comparison_name,
+    )
+
+
+def run_sales_order_sync_job(sales_order_update_name, comparison_name=None):
+    """Worker içinde gerçek senkronizasyonu çalıştır."""
+    comparison = None
+    if comparison_name:
+        comparison = frappe.get_doc("KTA Sales Order Update Comparison", comparison_name)
+
+    return _sync_sales_orders_from_sales_order_update(
+        sales_order_update_name, comparison=comparison
     )
 
 
@@ -917,12 +954,13 @@ def update_existing_sales_order_batch(so_name, changes):
             elif all_delivered:
                 so.db_set("status", "Completed", update_modified=False)
 
-        # Transaction date güncelleme
-        # Eğer delivery_date değiştiyse, SO.transaction_date'i de güncelle
+        # Transaction / delivery date güncelleme
+        # Eğer item delivery_date değiştiyse, SO.transaction_date ve delivery_date'i hizala
         if delivery_dates_to_set:
             # Tüm güncellenen delivery_date'lerin en küçüğünü seç
             new_transaction_date = min(delivery_dates_to_set)
             so.db_set("transaction_date", new_transaction_date, update_modified=False)
+            so.db_set("delivery_date", new_transaction_date, update_modified=False)
 
         elapsed = time.perf_counter() - start_ts
         frappe.logger().debug(f"KTA SO Sync: SO {so_name} işlendi ({elapsed:.3f}s), {len(trans_items)} item")
