@@ -160,6 +160,9 @@ doc_events = {
     "Stock Entry": {
         "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
     },
+    "Serial and Batch Bundle": {
+        "before_insert": "erpnextkta.overrides.serial_batch_bundle.before_insert"
+    }
 }
 # Document Events
 # ---------------
