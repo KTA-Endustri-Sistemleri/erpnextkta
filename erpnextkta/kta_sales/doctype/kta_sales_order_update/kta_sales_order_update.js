@@ -28,6 +28,25 @@ frappe.ui.form.on('KTA Sales Order Update', {
                 callback: (r) => {
                     if (r.message) {
                         const result = r.message;
+
+                        if (result.status === 'queued') {
+                            let message = `<b>${__('Senkronizasyon kuyruğa alındı')}</b><br>${result.info || ''}`;
+                            if (result.sync_log) {
+                                message += `<br><br><a href="#Form/KTA SO Sync Log/${result.sync_log}">${__('Log kaydını açmak için tıklayın.')}</a>`;
+                            }
+
+                            frappe.msgprint({
+                                title: __('İşlem Kuyruğa Alındı'),
+                                message,
+                                indicator: 'blue',
+                            });
+
+                            if (result.sync_log) {
+                                frappe.set_route('Form', 'KTA SO Sync Log', result.sync_log);
+                            }
+                            return;
+                        }
+
                         const msg = `
                             <b>${__('Senkronizasyon Tamamlandı')}</b><br><br>
                             <table class="table table-bordered">
