@@ -146,7 +146,12 @@ doc_events = {
     },
     "Job Card": {
         "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status"
-    }
+    },
+    "Stock Reconciliation": {
+        "on_update": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
+        "on_cancel": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
+        "on_trash": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
+    },
 }
 # Document Events
 # ---------------
@@ -269,12 +274,6 @@ fixtures = [
     "Customs Tariff Number",
     {
         "doctype": "Client Script",
-        "filters": [
-            ["name", "like", "KTA%"]
-        ]
-    },
-    {
-        "doctype": "Role Profile",
         "filters": [
             ["name", "like", "KTA%"]
         ]
