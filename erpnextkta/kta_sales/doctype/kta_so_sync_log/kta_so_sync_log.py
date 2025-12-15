@@ -168,9 +168,18 @@ def _sync_sales_orders_from_sales_order_update(sales_order_update_name, comparis
         # Tam traceback’i Error Log’a yaz
         frappe.log_error("SO Sync Critical Error", frappe.get_traceback())
 
+    # Link alanlarında silinmiş belgeler olabilir, validation hatasını önlemek için temizle
+    for detail in sync_log.get("sync_details", []):
+        so_value = detail.get("sales_order")
+        if so_value and not frappe.db.exists("Sales Order", so_value):
+            detail.sales_order = None
+
+    # Child tablodaki linkler silinmiş olabilir, validation hatasını önlemek için atla
+    sync_log.flags.ignore_links = True
+
     # Guarantee save/commit even if above except had issues   
     try:
-        sync_log.save()
+        sync_log.save(ignore_permissions=True)
         frappe.db.commit()
     except Exception:
         frappe.log_error("Final sync_log.save failed", frappe.get_traceback())
