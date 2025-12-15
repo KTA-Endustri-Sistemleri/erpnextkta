@@ -39,6 +39,6 @@ async function load_vue(wrapper) {
   await frappe.require("stock-reco-dashboard.bundle.js");
 
   // Mount via your injected setup
-  const vue_app = frappe.ui.setup_vue($parent);
+  const vue_app = frappe.ui.setup_stock_reco_dashboard_vue($parent);
   wrapper.__sr_dashboard_vue_app__ = vue_app;
 }

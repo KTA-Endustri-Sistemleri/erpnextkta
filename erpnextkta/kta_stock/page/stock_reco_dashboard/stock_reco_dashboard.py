@@ -8,7 +8,7 @@ ROLE_REQUIRED = "Stock Reconciliation Manager"
 
 def get_context(context):
     # Server-side access control for the page itself
-    if not frappe.has_role(ROLE_REQUIRED):
+    user = frappe.session.user
+    roles = frappe.get_roles(user) or []
+    if ROLE_REQUIRED not in roles:
         frappe.throw(_("Not permitted"), frappe.PermissionError)
-
-    context.title = _("Stock Reconciliation Dashboard")
