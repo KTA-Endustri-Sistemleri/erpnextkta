@@ -150,6 +150,9 @@ doc_events = {
     },
     "Job Card": {
         "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status"
+    },
+    "Serial and Batch Bundle": {
+        "before_insert": "erpnextkta.overrides.serial_batch_bundle.before_insert"
     }
 }
 # Document Events
