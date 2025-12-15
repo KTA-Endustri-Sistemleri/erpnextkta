@@ -1,0 +1,7 @@
+{
+  "title": "Stock Reconciliation Dashboard",
+  "icon": "octicon octicon-graph",
+  "module": "kta_stock",
+  "restricted": 1,
+  "standard": 1
+}
