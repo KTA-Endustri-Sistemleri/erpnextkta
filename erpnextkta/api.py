@@ -407,121 +407,38 @@ def zebra_formatter(doctype_name, data):
 
 
 def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
-    if not row:
+    if not row or not row.serial_and_batch_bundle:
         return
 
-    # Eğer row bir string (name) olarak geldiyse dokümanı yükle
-    if isinstance(row, str):
-        row = frappe.get_doc("Purchase Receipt Item", row)
-
-    if not row.get("serial_and_batch_bundle"):
-        return
-
-    # Sadece Purchase Receipt Item satırlarında çalış
-    if row.doctype != "Purchase Receipt Item":
-        return
-
-    # 1. Mevcut Batch Numarasını Tespit Et
     row_batch_number = frappe.db.get_value(
-        "Serial and Batch Entry",
-        {"parent": row.serial_and_batch_bundle, "is_outward": 0},
-        "batch_no"
+        doctype=DOCTYPE_SERIAL_AND_BATCH_ENTRY,
+        filters={
+            FIELD_PARENT: row.serial_and_batch_bundle,
+            FIELD_PARENTTYPE: DOCTYPE_SERIAL_AND_BATCH_BUNDLE,
+            FIELD_IS_OUTWARD: 0,
+        },
+        fieldname=FIELD_BATCH_NO,
     )
 
     if not row_batch_number:
-        # Fallback: Batch tablosundan PR referansıyla bul
-        row_batch_number = frappe.db.get_value("Batch", {
-            "reference_name": row.parent,
-            "item": row.item_code
-        }, "name")
+        frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
 
-    if not row_batch_number:
-        frappe.log_error(f"Batch bulunamadı: Satır {row.idx}, Ürün {row.item_code}", "KTA Split Error")
-        return
-
-    # 2. Ana PR dokümanını al (Allocation hazırlığı için gerekli)
-    purchase_receipt = frappe.get_cached_doc("Purchase Receipt", row.parent)
-
-    # 3. Parçalama Planını Hazırla (Örn: 100 adedi 25-25-25-25 böl)
-    # _prepare_batch_allocations fonksiyonunun mevcut olduğunu varsayıyoruz
+    purchase_receipt = frappe.get_doc("Purchase Receipt", row.parent)
     batch_allocations = _prepare_batch_allocations(row, purchase_receipt, row_batch_number)
 
     if not batch_allocations:
         return
 
-    # 4. Bundle'ı Veritabanı Seviyesinde Güvenle Güncelle
-    _update_bundle_safely(row, batch_allocations)
+    _update_serial_and_batch_bundle_entries(row, batch_allocations)
 
-    # 5. Paket/Etiket Kayıtlarını Oluştur (Zebra vb.)
     for allocation in batch_allocations:
-        # custom_create_packages fonksiyonunun mevcut olduğunu varsayıyoruz
         custom_create_packages(
             row=row,
             batch_no=allocation["batch_no"],
             qty=allocation["qty"],
-            sut_code=allocation.get("sut_code"),
+            sut_code=allocation["sut_code"],
             q_ref=q_ref,
         )
-
-def _update_bundle_safely(row, allocations):
-    """
-    Serial and Batch Bundle'ı yeni allocation'lar ile günceller.
-    Optimized to minimize DB hits and avoid recursive validations.
-    """
-    bundle_name = row.get("serial_and_batch_bundle")
-    if not bundle_name:
-        return
-
-    bundle_doc = frappe.get_doc("Serial and Batch Bundle", bundle_name)
-    
-    bundle_doc.flags.ignore_validate = True
-    bundle_doc.flags.ignore_validate_update_after_submit = True
-    bundle_doc.flags.ignore_links = True
-    
-    warehouse = (
-        row.get(FIELD_WAREHOUSE)
-        or row.get(FIELD_T_WAREHOUSE)
-        or row.get(FIELD_S_WAREHOUSE)
-    )
-    
-    if not warehouse:
-        frappe.throw(_("Warehouse not found for row {0}").format(row.name))
-
-    bundle_doc.set("entries", [])
-    total_qty = 0
-    for alloc in allocations:
-        bundle_doc.append("entries", {
-            "batch_no": alloc["batch_no"],
-            "qty": alloc["qty"],
-            "warehouse": warehouse,
-            "is_outward": 0 
-        })
-        total_qty += flt(alloc["qty"])
-    
-    bundle_doc.total_qty = total_qty
-    
-    # Use save(ignore_permissions=True) to trigger a clean update with our flags
-    bundle_doc.save(ignore_permissions=True)
-    frappe.clear_document_cache("Serial and Batch Bundle", bundle_name)
-
-
-def get_base_batch_for_work_order(work_order):
-    """
-    Work Order için base batch numarasını döndürür.
-    Eğer split edilmiş batch'ler varsa, onların base'ini kullanır.
-    """
-    if not work_order:
-        return None
-        
-    base_batch = get_base_batch_from_work_order(work_order)
-    if not base_batch:
-        return None
-    
-    base_batch_prefix = base_batch.rstrip('0123456789')
-    if not base_batch_prefix:
-        base_batch_prefix = base_batch
-    
-    return base_batch_prefix
 
 
 def custom_create_packages(row, batch_no, qty, sut_code, q_ref):
@@ -730,6 +647,112 @@ def _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack_
     batch_doc.flags.ignore_permissions = True
     batch_doc.insert()
     return batch_doc.name
+
+
+def _prepare_batch_allocations(row, purchase_receipt, base_batch_number):
+    qty = flt(row.stock_qty or 0)
+    if not qty:
+        return []
+
+    if row.custom_do_not_split:
+        sut_code = f"{base_batch_number}{0:04d}"
+        return [
+            {
+                "batch_no": base_batch_number,
+                "qty": qty,
+                "sut_code": sut_code,
+                "pack_no": 0,
+            }
+        ]
+
+    split_qty = flt(row.custom_split_qty or 0)
+    if split_qty <= 0:
+        frappe.throw(f"Row {row.idx}: custom_split_qty must be a positive number for {row.item_code}.")
+
+    num_packs = cint(qty // split_qty)
+    remainder_qty = qty % split_qty
+    allocations = []
+
+    for pack in range(1, num_packs + 1):
+        batch_no = _create_split_batch(row, purchase_receipt, base_batch_number, pack)
+        allocations.append(
+            {
+                "batch_no": batch_no,
+                "qty": split_qty,
+                "sut_code": f"{base_batch_number}{pack:04d}",
+                "pack_no": pack,
+            }
+        )
+
+    if remainder_qty > 0:
+        pack = num_packs + 1
+        batch_no = _create_split_batch(row, purchase_receipt, base_batch_number, pack)
+        allocations.append(
+            {
+                "batch_no": batch_no,
+                "qty": remainder_qty,
+                "sut_code": f"{base_batch_number}{pack:04d}",
+                "pack_no": pack,
+            }
+        )
+
+    return allocations
+
+
+def _create_split_batch(row, purchase_receipt, base_batch_number, pack_no):
+    batch_id = None
+    if base_batch_number:
+        batch_id = f"{base_batch_number}-{pack_no:04d}"
+        if frappe.db.exists("Batch", batch_id):
+            batch_id = None
+
+    batch_doc = frappe.get_doc(
+        {
+            "doctype": "Batch",
+            "item": row.item_code,
+            "supplier": purchase_receipt.get("supplier"),
+            "reference_doctype": row.parenttype or "Purchase Receipt",
+            "reference_name": row.parent,
+            "manufacturing_date": row.get("manufacturing_date") or purchase_receipt.get(FIELD_POSTING_DATE),
+            "expiry_date": row.get("expiry_date"),
+            "stock_uom": row.get("stock_uom"),
+            "description": row.get("description"),
+        }
+    )
+
+    if batch_id:
+        batch_doc.batch_id = batch_id
+
+    batch_doc.flags.ignore_permissions = True
+    batch_doc.insert()
+    return batch_doc.name
+
+
+def _update_serial_and_batch_bundle_entries(row, allocations):
+    if not allocations:
+        return
+
+    bundle_doc = frappe.get_doc(DOCTYPE_SERIAL_AND_BATCH_BUNDLE, row.serial_and_batch_bundle)
+    bundle_doc.flags.ignore_validate = True
+    bundle_doc.flags.ignore_validate_update_after_submit = True
+    bundle_doc.flags.ignore_permissions = True
+    bundle_doc.set("entries", [])
+
+    total_qty = 0
+    for allocation in allocations:
+        total_qty += flt(allocation["qty"])
+        bundle_doc.append(
+            "entries",
+            {
+                "batch_no": allocation["batch_no"],
+                "qty": allocation["qty"],
+                "warehouse": row.warehouse,
+                "is_outward": 0,
+            },
+        )
+
+    bundle_doc.total_qty = total_qty
+    bundle_doc.save()
 
 
 def get_zebra_printer_for_user():

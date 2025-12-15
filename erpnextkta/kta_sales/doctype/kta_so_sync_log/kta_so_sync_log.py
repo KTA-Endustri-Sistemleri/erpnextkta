@@ -81,58 +81,6 @@ def run_sales_order_sync_job(sales_order_update_name, comparison_name=None):
 
 def enqueue_sales_order_sync(sales_order_update_name, comparison=None):
     """Senkronizasyon işlemini uzun kuyrukta çalıştır."""
-    comparison_name = comparison.name if comparison else None
-    job_name = f"KTA SO Sync {sales_order_update_name}"
-
-    return frappe.enqueue(
-        "erpnextkta.kta_sales.doctype.kta_so_sync_log.kta_so_sync_log.run_sales_order_sync_job",
-        queue="long",
-        job_name=job_name,
-        sales_order_update_name=sales_order_update_name,
-        comparison_name=comparison_name,
-    )
-
-
-def run_sales_order_sync_job(sales_order_update_name, comparison_name=None):
-    """Worker içinde gerçek senkronizasyonu çalıştır."""
-    comparison = None
-    if comparison_name:
-        comparison = frappe.get_doc("KTA Sales Order Update Comparison", comparison_name)
-
-    return _sync_sales_orders_from_sales_order_update(
-        sales_order_update_name, comparison=comparison
-    )
-
-
-
-def enqueue_sales_order_sync(sales_order_update_name, comparison=None):
-    """Senkronizasyon işlemini uzun kuyrukta çalıştır."""
-    comparison_name = comparison.name if comparison else None
-    job_name = f"KTA SO Sync {sales_order_update_name}"
-
-    return frappe.enqueue(
-        "erpnextkta.kta_sales.doctype.kta_so_sync_log.kta_so_sync_log.run_sales_order_sync_job",
-        queue="long",
-        job_name=job_name,
-        sales_order_update_name=sales_order_update_name,
-        comparison_name=comparison_name,
-    )
-
-
-def run_sales_order_sync_job(sales_order_update_name, comparison_name=None):
-    """Worker içinde gerçek senkronizasyonu çalıştır."""
-    comparison = None
-    if comparison_name:
-        comparison = frappe.get_doc("KTA Sales Order Update Comparison", comparison_name)
-
-    return _sync_sales_orders_from_sales_order_update(
-        sales_order_update_name, comparison=comparison
-    )
-
-
-
-def enqueue_sales_order_sync(sales_order_update_name, comparison=None):
-    """Senkronizasyon işlemini uzun kuyrukta çalıştır."""
     sales_order_update_doc = get_sales_order_update_doc(sales_order_update_name)
     sync_log = create_sync_log_doc(sales_order_update_doc, comparison=comparison)
 
