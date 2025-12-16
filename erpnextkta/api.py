@@ -435,11 +435,18 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     )
 
     if not row_batch_number:
-        # Fallback: Batch tablosundan PR referansıyla bul
-        row_batch_number = frappe.db.get_value("Batch", {
-            "reference_name": row.parent,
-            "item": row.item_code
-        }, "name")
+        row_batch_number = frappe.db.get_value(
+            doctype="Batch",
+            filters={
+                "reference_doctype": row.parenttype or "Purchase Receipt",
+                "reference_name": row.parent,
+                "item": row.item_code,
+            },
+            fieldname="name",
+        )
+
+    if not row_batch_number:
+        frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
 
     if not row_batch_number:
         frappe.log_error(f"Batch bulunamadı: Satır {row.idx}, Ürün {row.item_code}", "KTA Split Error")
