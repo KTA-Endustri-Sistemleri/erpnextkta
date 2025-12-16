@@ -410,6 +410,12 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     if not row:
         return
 
+    if not row.serial_and_batch_bundle and row.get("name"):
+        row = frappe.get_doc(row.doctype, row.name)
+
+    if not row.serial_and_batch_bundle:
+        return
+
     # Eğer row bir string (name) olarak geldiyse dokümanı yükle
     if isinstance(row, str):
         row = frappe.get_doc("Purchase Receipt Item", row)
