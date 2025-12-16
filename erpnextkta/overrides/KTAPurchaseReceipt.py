@@ -60,9 +60,10 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
                 self.set_serial_and_batch_bundle()
 
-                for row_name in rows_to_split_now:
-                    row_doc = frappe.get_doc("Purchase Receipt Item", row_name)
-                    erpnextkta.api.custom_split_kta_batches(row=row_doc)
+                if rows_to_split_now:
+                    self.flags.kta_rows_to_split = rows_to_split_now
+                else:
+                    self.flags.kta_rows_to_split = None
 
                 super().on_submit()
                 self.print_zebra()
@@ -72,6 +73,9 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         except Exception as e:
             frappe.log_error(f"Purchase Receipt Submit Error {str(e)}", "Purchase Receipt Submit Error")
             frappe.throw(f"Purchase Receipt Submit Error {str(e)}")
+        finally:
+            if hasattr(self, "flags"):
+                self.flags.kta_rows_to_split = None
 
     def print_zebra(self):
         erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
@@ -97,6 +101,9 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 }
             )
             batch_doc.batch_id = frappe.generate_hash(length=7).upper()
+            if not batch_doc.batch_id:
+                batch_doc.batch_id = frappe.generate_hash(length=7).upper()
+
             batch_doc.flags.ignore_permissions = True
             batch_doc.insert()
             needs_batch = batch_doc.name
@@ -104,4 +111,27 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         updates = {"batch_no": needs_batch, "use_serial_batch_fields": 1}
         row.batch_no = needs_batch
         row.use_serial_batch_fields = 1
-        frappe.db.set_value(row.doctype, row.name, updates)
+        row.db_set(updates, commit=False)
+
+    def update_stock_ledger(self, allow_negative_stock=False, via_landed_cost_voucher=False):
+        if (
+            getattr(self.flags, "kta_rows_to_split", None)
+            and self.docstatus == DocStatus.submitted()
+            and not self.is_return
+        ):
+            self._run_pending_batch_splits()
+
+        super().update_stock_ledger(
+            allow_negative_stock=allow_negative_stock, via_landed_cost_voucher=via_landed_cost_voucher
+        )
+
+    def _run_pending_batch_splits(self):
+        row_names = getattr(self.flags, "kta_rows_to_split", None)
+        if not row_names:
+            return
+
+        for row_name in row_names:
+            row_doc = frappe.get_doc("Purchase Receipt Item", row_name)
+            erpnextkta.api.custom_split_kta_batches(row=row_doc)
+
+        self.flags.kta_rows_to_split = None
