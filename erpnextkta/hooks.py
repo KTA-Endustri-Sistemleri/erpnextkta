@@ -151,6 +151,10 @@ doc_events = {
         "on_update": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
         "on_cancel": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
         "on_trash": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
+        "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_unique_draft_stock_reco_per_set_warehouse"
+    },
+    "Stock Entry": {
+        "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
     },
 }
 # Document Events
