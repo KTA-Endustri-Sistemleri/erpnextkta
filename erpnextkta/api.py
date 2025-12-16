@@ -732,6 +732,94 @@ def _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack_
     return batch_doc.name
 
 
+def _get_single_inward_batch_entry(bundle_name):
+    entries = frappe.get_all(
+        DOCTYPE_SERIAL_AND_BATCH_ENTRY,
+        filters={
+            FIELD_PARENT: bundle_name,
+            FIELD_PARENTTYPE: DOCTYPE_SERIAL_AND_BATCH_BUNDLE,
+            FIELD_IS_OUTWARD: 0,
+        },
+        fields=[FIELD_BATCH_NO, FIELD_QTY],
+        order_by="idx asc",
+    )
+
+    if len(entries) != 1:
+        return None
+
+    return entries[0]
+
+
+def _get_customer_packaging_qty(item_code):
+    result = frappe.get_all(
+        DOCTYPE_ITEM_CUSTOMER_DETAIL,
+        filters={
+            FIELD_PARENT: item_code,
+            FIELD_PARENTTYPE: DOCTYPE_ITEM,
+            FIELD_PARENTFIELD: VALUE_CUSTOMER_ITEMS,
+        },
+        fields=[f"max({FIELD_CUSTOM_MUSTERI_PAKETLEME_MIKTARI}) as packaging_qty"],
+        limit=1,
+    )
+
+    if not result:
+        return 0
+
+    return flt(result[0].packaging_qty or 0)
+
+
+def _prepare_manufacturing_batch_allocations(row, stock_entry, base_batch_number, split_qty):
+    if not split_qty or split_qty <= 0:
+        return []
+
+    qty = flt(row.get("transfer_qty") or row.get("qty") or row.get("stock_qty") or 0)
+    if qty <= 0:
+        return []
+
+    allocations = []
+    num_packs = cint(qty // split_qty)
+    remainder_qty = qty % split_qty
+
+    for pack in range(1, num_packs + 1):
+        batch_no = _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack)
+        allocations.append({"batch_no": batch_no, "qty": split_qty})
+
+    if remainder_qty > 0:
+        pack = num_packs + 1
+        batch_no = _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack)
+        allocations.append({"batch_no": batch_no, "qty": remainder_qty})
+
+    return allocations
+
+
+def _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack_no):
+    batch_id = None
+    if base_batch_number:
+        candidate = f"{base_batch_number}{pack_no:04d}"
+        if not frappe.db.exists("Batch", candidate):
+            batch_id = candidate
+
+    batch_doc = frappe.get_doc(
+        {
+            "doctype": "Batch",
+            "item": row.item_code,
+            "reference_doctype": stock_entry.doctype,
+            "reference_name": stock_entry.name,
+            "manufacturing_date": stock_entry.get(FIELD_POSTING_DATE),
+            "expiry_date": row.get("expiry_date"),
+            "stock_uom": row.get("stock_uom"),
+            "description": row.get("description"),
+        }
+    )
+
+    if batch_id:
+        batch_doc.batch_id = batch_id
+
+    batch_doc.flags.ignore_permissions = True
+    batch_doc.insert()
+    return batch_doc.name
+
+
 def get_zebra_printer_for_user():
     user = frappe.session.user
 
@@ -779,24 +867,6 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
         return None
 
     return batch_no
-
-
-def get_base_batch_from_work_order(work_order):
-    if not work_order:
-        return None
-
-    base_batches = frappe.get_all(
-        "Batch",
-        filters={"reference_doctype": DOCTYPE_WORK_ORDER, "reference_name": work_order},
-        pluck="name",
-        order_by="creation asc",
-        limit_page_length=1,
-    )
-
-    if base_batches:
-        return base_batches[0]
-
-    return None
 
 
 def split_manufacturing_batches(stock_entry):
