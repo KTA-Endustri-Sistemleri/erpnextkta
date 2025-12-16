@@ -144,6 +144,7 @@ override_doctype_class = {
     "Purchase Order": "erpnextkta.overrides.KTAPurchaseOrder.KTAPurchaseOrder",
     "Stock Reconciliation": "erpnextkta.overrides.stock_reconciliation.StockReconciliation",
     "Serial and Batch Bundle": "erpnextkta.overrides.serial_batch_bundle_doc.SerialandBatchBundle",
+    "Stock Entry": "erpnextkta.overrides.KTAStockEntry.KTAStockEntry",
 }
 doc_events = {
     "Kalite Kontrol": {
