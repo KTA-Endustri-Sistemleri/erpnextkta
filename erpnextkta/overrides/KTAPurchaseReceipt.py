@@ -61,19 +61,8 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                             else:
                                 doc.db_set('custom_atlama_sirasi', 2, commit=True)
                                 qi_items.append(item)
-                        else:
-                            qi_items.append(item)
                     else:
-                        rows_to_split_now.append(item.name)
-
-                self.set_serial_and_batch_bundle()
-
-                if rows_to_split_now:
-                    self.flags.kta_rows_to_split = rows_to_split_now
-                else:
-                    self.flags.kta_rows_to_split = None
-
-                super().on_submit()
+                        erpnextkta.api.custom_split_kta_batches(row=item)
                 self.print_zebra()
                 make_quality_inspections(self.doctype, self.name, qi_items)
             else:
