@@ -360,7 +360,13 @@ def zebra_formatter(doctype_name, data):
 
 
 def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
-    if not row or not row.serial_and_batch_bundle:
+    if not row:
+        return
+
+    if not row.serial_and_batch_bundle and row.get("name"):
+        row = frappe.get_doc(row.doctype, row.name)
+
+    if not row.serial_and_batch_bundle:
         return
 
     row_batch_number = frappe.db.get_value(
@@ -472,7 +478,7 @@ def _prepare_batch_allocations(row, purchase_receipt, base_batch_number):
 def _create_split_batch(row, purchase_receipt, base_batch_number, pack_no):
     batch_id = None
     if base_batch_number:
-        batch_id = f"{base_batch_number}-{pack_no:04d}"
+        batch_id = f"{base_batch_number}{pack_no:04d}"
         if frappe.db.exists("Batch", batch_id):
             batch_id = None
 
