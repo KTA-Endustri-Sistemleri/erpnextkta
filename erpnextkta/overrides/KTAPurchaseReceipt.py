@@ -31,10 +31,14 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         try:
             if self.docstatus == DocStatus.submitted() and self.is_return == 0:
                 self.verify_batch()
-                super().on_submit()
+                self.set_serial_and_batch_bundle()
+
                 qi_items = []
+                rows_to_split_now = []
+
                 for item in self.items:
                     doc = frappe.get_doc('Item', item.get("item_code"))
+                    self._ensure_base_batch(item, doc)
                     if doc.get("inspection_required_before_purchase"):
                         meta = frappe.get_meta('Item')
                         if meta.has_field('custom_atlama_sayisi'):
@@ -45,12 +49,22 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                                 if atlama_sirasi % atlama_sayisi == 0 or atlama_sayisi > atlama_sirasi:
                                     qi_items.append(item)
                                 else:
-                                    erpnextkta.api.custom_split_kta_batches(row=item)
+                                    rows_to_split_now.append(item.name)
                             else:
                                 doc.db_set('custom_atlama_sirasi', 2, commit=True)
                                 qi_items.append(item)
+                        else:
+                            qi_items.append(item)
                     else:
-                        erpnextkta.api.custom_split_kta_batches(row=item)
+                        rows_to_split_now.append(item.name)
+
+                self.set_serial_and_batch_bundle()
+
+                for row_name in rows_to_split_now:
+                    row_doc = frappe.get_doc("Purchase Receipt Item", row_name)
+                    erpnextkta.api.custom_split_kta_batches(row=row_doc)
+
+                super().on_submit()
                 self.print_zebra()
                 make_quality_inspections(self.doctype, self.name, qi_items)
             else:
@@ -61,3 +75,33 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
     def print_zebra(self):
         erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
+
+    def _ensure_base_batch(self, row, item_doc):
+        if not item_doc.get("has_batch_no"):
+            return
+
+        needs_batch = row.batch_no
+
+        if not needs_batch:
+            batch_doc = frappe.get_doc(
+                {
+                    "doctype": "Batch",
+                    "item": row.item_code,
+                    "supplier": self.get("supplier"),
+                    "reference_doctype": self.doctype,
+                    "reference_name": self.name,
+                    "manufacturing_date": row.get("manufacturing_date") or self.posting_date,
+                    "expiry_date": row.get("expiry_date"),
+                    "stock_uom": row.get("stock_uom"),
+                    "description": row.get("description"),
+                }
+            )
+            batch_doc.batch_id = frappe.generate_hash(length=7).upper()
+            batch_doc.flags.ignore_permissions = True
+            batch_doc.insert()
+            needs_batch = batch_doc.name
+
+        updates = {"batch_no": needs_batch, "use_serial_batch_fields": 1}
+        row.batch_no = needs_batch
+        row.use_serial_batch_fields = 1
+        frappe.db.set_value(row.doctype, row.name, updates)
