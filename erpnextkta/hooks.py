@@ -142,7 +142,8 @@ override_doctype_class = {
     "Quality Inspection": "erpnextkta.overrides.KTAQualityInspection.KTAQualityInspection",
     "BOM": "erpnextkta.overrides.KTAbom.KTAbom",
     "Purchase Order": "erpnextkta.overrides.KTAPurchaseOrder.KTAPurchaseOrder",
-    "Stock Reconciliation": "erpnextkta.overrides.stock_reconciliation.StockReconciliation"
+    "Stock Reconciliation": "erpnextkta.overrides.stock_reconciliation.StockReconciliation",
+    "Serial and Batch Bundle": "erpnextkta.overrides.serial_batch_bundle_doc.SerialandBatchBundle",
 }
 doc_events = {
     "Kalite Kontrol": {
@@ -151,9 +152,6 @@ doc_events = {
     "Job Card": {
         "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status"
     },
-    "Serial and Batch Bundle": {
-        "before_insert": "erpnextkta.overrides.serial_batch_bundle.before_insert"
-    }
 }
 # Document Events
 # ---------------
