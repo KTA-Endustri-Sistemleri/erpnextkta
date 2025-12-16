@@ -49,6 +49,8 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                             else:
                                 doc.db_set('custom_atlama_sirasi', 2, commit=True)
                                 qi_items.append(item)
+                    else:
+                        erpnextkta.api.custom_split_kta_batches(row=item)
                 self.print_zebra()
                 make_quality_inspections(self.doctype, self.name, qi_items)
             else:
