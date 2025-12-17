@@ -1,340 +1,409 @@
 <template>
-    <div class="sr-wrap">
-        <!-- Header -->
-        <div class="sr-header">
-        <div class="sr-title">
-            <div class="sr-title-row">
-            <h2>Stock Reconciliation Dashboard</h2>
-            <span class="sr-live" :class="{ on: liveConnected }" title="Realtime updates">
-                <span class="dot" />
-                {{ liveConnected ? "Live" : "Offline" }}
-            </span>
-            </div>
-            <div class="sr-sub">
-            <span v-if="lastUpdatedAt">Last update: {{ lastUpdatedAt }}</span>
-            <span v-else>Loading…</span>
-            </div>
+  <div class="sr-wrap">
+    <!-- Header -->
+    <div class="sr-header">
+      <div class="sr-title">
+        <div class="sr-title-row">
+          <h2>Stock Reconciliation Dashboard</h2>
+          <span
+            class="sr-live"
+            :class="{ on: liveConnected }"
+            title="Realtime updates"
+          >
+            <span class="dot" />
+            {{ liveConnected ? "Live" : "Offline" }}
+          </span>
         </div>
-
-        <div class="sr-actions">
-            <button class="btn btn-default" @click="refreshNow" :disabled="loading">
-            <span class="fa fa-refresh"></span> Refresh
-            </button>
-            <button class="btn btn-default" @click="exportCSV" :disabled="!filteredRows.length">
-            <span class="fa fa-download"></span> Export CSV
-            </button>
+        <div class="sr-sub">
+          <span v-if="lastUpdatedAt">Last update: {{ lastUpdatedAt }}</span>
+          <span v-else>Loading…</span>
         </div>
-        </div>
+      </div>
 
-        <!-- Filters -->
-        <div class="sr-filters">
-        <div class="sr-field">
-            <label>Year</label>
-            <select class="input-with-feedback form-control" v-model="year" @change="onYearChange">
-            <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
-            </select>
-        </div>
-
-        <div class="sr-field">
-            <label>Threshold (abs diff)</label>
-            <input
-            class="input-with-feedback form-control"
-            type="number"
-            step="0.001"
-            v-model.number="threshold"
-            @input="persistPrefs"
-            placeholder="e.g. 0.001"
-            />
-        </div>
-
-        <div class="sr-field sr-toggle">
-            <label>Direction</label>
-            <div class="sr-pill">
-            <button class="pill" :class="{ active: direction === 'all' }" @click="setDirection('all')">All</button>
-            <button class="pill" :class="{ active: direction === 'plus' }" @click="setDirection('plus')">+</button>
-            <button class="pill" :class="{ active: direction === 'minus' }" @click="setDirection('minus')">−</button>
-            </div>
-        </div>
-
-        <div class="sr-field sr-grow">
-            <label>Search</label>
-            <input
-            class="input-with-feedback form-control"
-            v-model="q"
-            @input="persistPrefs"
-            placeholder="Item code / name / warehouse…"
-            />
-        </div>
-        </div>
-
-        <!-- KPI cards -->
-        <div class="sr-kpis">
-        <div class="sr-card">
-            <div class="kpi-title">Affected Items</div>
-            <div class="kpi-value">{{ kpi.itemsCount }}</div>
-            <div class="kpi-sub">Filtered view</div>
-        </div>
-
-        <div class="sr-card">
-            <div class="kpi-title">Warehouses</div>
-            <div class="kpi-value">{{ kpi.warehousesCount }}</div>
-            <div class="kpi-sub">With movement</div>
-        </div>
-
-        <div class="sr-card">
-            <div class="kpi-title">Docs (max per item)</div>
-            <div class="kpi-value">{{ kpi.maxDocsCount }}</div>
-            <div class="kpi-sub">Highest frequency</div>
-        </div>
-
-        <div class="sr-card">
-            <div class="kpi-title">Total +</div>
-            <div class="kpi-value plus">{{ fmt(kpi.totalPlus) }}</div>
-            <div class="kpi-sub">Sum of positive diffs</div>
-        </div>
-
-        <div class="sr-card">
-            <div class="kpi-title">Total −</div>
-            <div class="kpi-value minus">{{ fmt(kpi.totalMinus) }}</div>
-            <div class="kpi-sub">Sum of negative diffs</div>
-        </div>
-
-        <div class="sr-card">
-            <div class="kpi-title">Net</div>
-            <div class="kpi-value" :class="{ plus: kpi.net >= 0, minus: kpi.net < 0 }">
-            {{ fmt(kpi.net) }}
-            </div>
-            <div class="kpi-sub">(+)+ (−)</div>
-        </div>
-        </div>
-
-        <!-- Content grid -->
-        <div class="sr-grid">
-            <!-- Left column: Anomalies + Top risks stacked -->
-            <div class="sr-left-col">
-                <!-- Anomalies -->
-                <div class="sr-panel">
-                <div class="sr-panel-head">
-                    <h3>Anomalies</h3>
-                    <span class="muted">Auto insights (rule-based)</span>
-                </div>
-
-                <div v-if="loading" class="sr-loading">Loading…</div>
-
-                <div v-else class="sr-anom-list">
-                    <button
-                    v-for="a in anomalies"
-                    :key="a.id"
-                    class="sr-anom-row"
-                    @click="handleAnomalyClick(a)"
-                    >
-                    <div class="left">
-                        <div class="sr-badges">
-                        <span class="sr-badge" :class="badgeClass(a.severity)">{{ a.severity }}</span>
-                        <span class="sr-badge outline">{{ a.type }}</span>
-                        <span class="sr-badge outline">Score {{ Math.round(a.score) }}</span>
-                        </div>
-                        <div class="title">{{ a.title }}</div>
-                        <div class="desc">{{ a.desc }}</div>
-                    </div>
-                    <div class="right">
-                        <span class="fa fa-chevron-right muted"></span>
-                    </div>
-                    </button>
-
-                    <div v-if="!anomalies.length" class="muted sr-empty">
-                    No anomalies detected for current filters.
-                    </div>
-                </div>
-                </div>
-
-                <!-- Top risks -->
-                <div class="sr-panel">
-                <div class="sr-panel-head">
-                    <h3>Top Risks</h3>
-                    <span class="muted">Score = abs(net) × ln(docs+1)</span>
-                </div>
-
-                <div v-if="loading" class="sr-loading">Loading…</div>
-
-                <div v-else class="sr-risk-list">
-                    <button
-                    v-for="it in topRisks"
-                    :key="it.item_code"
-                    class="sr-risk-row"
-                    @click="openItem(it)"
-                    :title="it.item_code"
-                    >
-                    <div class="left">
-                        <div class="code">{{ it.item_code }}</div>
-                        <div class="name">{{ it.item_name }}</div>
-                    </div>
-                    <div class="right">
-                        <div class="score">Score: {{ fmt(it.risk_score) }}</div>
-                        <div class="net" :class="{ plus: it.net_diff >= 0, minus: it.net_diff < 0 }">
-                        Net: {{ fmt(it.net_diff) }} {{ it.uom }}
-                        </div>
-                        <div class="meta">{{ it.docs_count || 0 }} docs • {{ it.warehouses?.length || 0 }} wh</div>
-                    </div>
-                    </button>
-
-                    <div v-if="!topRisks.length" class="muted sr-empty">
-                    No rows for current filters.
-                    </div>
-                </div>
-                </div>
-            </div>
-            <!-- Right: Main table -->
-            <div class="sr-panel">
-                <div class="sr-panel-head">
-                    <h3>Items</h3>
-                    <div class="sr-mini">
-                        <span class="muted">{{ filteredRows.length }} rows</span>
-                    </div>
-                </div>
-
-                <div v-if="loading" class="sr-loading">Loading…</div>
-
-                <div v-else class="sr-table-wrap">
-                    <table class="table table-bordered sr-table">
-                        <thead>
-                            <tr>
-                                <th @click="setSort('item_code')" class="clickable">Item</th>
-                                <th @click="setSort('item_name')" class="clickable">Name</th>
-                                <th @click="setSort('uom')" class="clickable">UOM</th>
-                                <th @click="setSort('net_diff')" class="clickable right">Net</th>
-                                <th class="right">+ / −</th>
-                                <th class="right">Docs</th>
-                                <th class="right">Warehouses</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="it in sortedRows" :key="it.item_code" class="sr-row" @click="openItem(it)">
-                                <td class="mono">{{ it.item_code }}</td>
-                                <td class="truncate">{{ it.item_name }}</td>
-                                <td class="mono">{{ it.uom }}</td>
-                                <td class="right mono" :class="{ plus: it.net_diff >= 0, minus: it.net_diff < 0 }">
-                                    {{ fmt(it.net_diff) }}
-                                </td>
-                                <td class="right mono">
-                                    <span class="plus">+{{ fmt(it.total_plus) }}</span>
-                                    <span class="sep">/</span>
-                                    <span class="minus">{{ fmt(it.total_minus) }}</span>
-                                </td>
-                                <td class="right mono">{{ it.docs_count || 0 }}</td>
-                                <td class="right mono">{{ it.warehouses?.length || 0 }}</td>
-                            </tr>
-                            <tr v-if="!sortedRows.length">
-                                <td colspan="7" class="muted sr-empty">No data.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Drawer -->
-        <div class="sr-drawer" :class="{ open: !!selected }">
-        <div class="sr-drawer-head">
-            <div>
-            <div class="mono code">{{ selected?.item_code }}</div>
-            <div class="name">{{ selected?.item_name }}</div>
-            </div>
-            <button class="btn btn-default" @click="closeDetails">
-            <span class="fa fa-times"></span>
-            </button>
-        </div>
-
-        <div class="sr-drawer-body">
-            <div class="sr-drawer-kpis">
-            <div class="mini">
-                <div class="t">Net</div>
-                <div class="v" :class="{ plus: selected?.net_diff >= 0, minus: selected?.net_diff < 0 }">
-                {{ fmt(selected?.net_diff) }} {{ selected?.uom }}
-                </div>
-            </div>
-            <div class="mini">
-                <div class="t">Docs</div>
-                <div class="v">{{ selected?.docs_count || 0 }}</div>
-            </div>
-            <div class="mini">
-                <div class="t">Warehouses</div>
-                <div class="v">{{ selected?.warehouses?.length || 0 }}</div>
-            </div>
-            <div class="mini">
-                <div class="t">Risk</div>
-                <div class="v">{{ fmt(selected?.risk_score) }}</div>
-            </div>
-            </div>
-
-            <div class="sr-section">
-            <div class="sr-section-head">
-                <h4>Warehouse breakdown</h4>
-            </div>
-
-            <div class="sr-bars" v-if="selected?.warehouses?.length">
-                <div
-                v-for="w in selected.warehouses"
-                :key="w.warehouse"
-                class="sr-bar-row"
-                :title="w.warehouse"
-                >
-                <div class="wh truncate">{{ w.warehouse }}</div>
-                <div class="bar">
-                    <div class="fill" :style="{ width: barWidth(w.diff) + '%' }"></div>
-                </div>
-                <div class="val mono" :class="{ plus: w.diff >= 0, minus: w.diff < 0 }">
-                    {{ fmt(w.diff) }}
-                </div>
-                </div>
-            </div>
-            <div v-else class="muted">No warehouse data.</div>
-            </div>
-
-            <div class="sr-section">
-            <div class="sr-section-head">
-                <h4>Documents</h4>
-                <button class="btn btn-default btn-xs" @click="refreshDetails" :disabled="detailsLoading">
-                <span class="fa fa-refresh"></span> Refresh
-                </button>
-            </div>
-
-            <div v-if="detailsLoading" class="sr-loading">Loading…</div>
-
-            <table v-else class="table table-bordered sr-table">
-                <thead>
-                <tr>
-                    <th>Doc</th>
-                    <th>Date</th>
-                    <th>Warehouse</th>
-                    <th class="right">Diff</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr v-for="d in details" :key="d.name" class="sr-row" @click="openDoc(d.name)">
-                    <td class="mono">{{ d.name }}</td>
-                    <td class="mono">{{ d.posting_date }}</td>
-                    <td class="truncate">{{ d.warehouse }}</td>
-                    <td class="right mono" :class="{ plus: d.diff_qty >= 0, minus: d.diff_qty < 0 }">
-                    {{ fmt(d.diff_qty) }}
-                    </td>
-                </tr>
-
-                <tr v-if="!details.length">
-                    <td colspan="4" class="muted sr-empty">No documents.</td>
-                </tr>
-                </tbody>
-            </table>
-            </div>
-        </div>
-        </div>
-
-        <!-- Toast -->
-        <div v-if="toast.show" class="sr-toast">
-        <span class="fa fa-bolt"></span>
-        {{ toast.text }}
-        </div>
+      <div class="sr-actions">
+        <button class="btn btn-default" @click="refreshNow" :disabled="loading">
+          <span class="fa fa-refresh"></span> Refresh
+        </button>
+        <button
+          class="btn btn-default"
+          @click="exportCSV"
+          :disabled="!filteredRows.length"
+        >
+          <span class="fa fa-download"></span> Export CSV
+        </button>
+      </div>
     </div>
+
+    <!-- Filters -->
+    <div class="sr-filters">
+      <div class="sr-field">
+        <label>Year</label>
+        <select
+          class="input-with-feedback form-control"
+          v-model="year"
+          @change="onYearChange"
+        >
+          <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
+        </select>
+      </div>
+
+      <div class="sr-field">
+        <label>Date From</label>
+        <input
+          class="input-with-feedback form-control"
+          type="date"
+          v-model="dateFrom"
+          @change="onDateChange"
+        />
+      </div>
+
+      <div class="sr-field">
+        <label>Date To</label>
+        <input
+          class="input-with-feedback form-control"
+          type="date"
+          v-model="dateTo"
+          @change="onDateChange"
+        />
+      </div>
+
+      <div class="sr-field">
+        <label>Threshold (abs diff)</label>
+        <input
+          class="input-with-feedback form-control"
+          type="number"
+          step="0.001"
+          v-model.number="threshold"
+          @input="persistPrefs"
+          placeholder="e.g. 0.001"
+        />
+      </div>
+
+      <div class="sr-field sr-toggle">
+        <label>Direction</label>
+        <div class="sr-pill">
+          <button
+            class="pill"
+            :class="{ active: direction === 'all' }"
+            @click="setDirection('all')"
+          >
+            All
+          </button>
+          <button
+            class="pill"
+            :class="{ active: direction === 'plus' }"
+            @click="setDirection('plus')"
+          >
+            +
+          </button>
+          <button
+            class="pill"
+            :class="{ active: direction === 'minus' }"
+            @click="setDirection('minus')"
+          >
+            −
+          </button>
+        </div>
+      </div>
+
+      <div class="sr-field sr-grow">
+        <label>Search</label>
+        <input
+          class="input-with-feedback form-control"
+          v-model="q"
+          @input="persistPrefs"
+          placeholder="Item code / name / warehouse…"
+        />
+      </div>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="sr-kpis">
+      <div class="sr-card">
+        <div class="kpi-title">Affected Items</div>
+        <div class="kpi-value">{{ kpi.itemsCount }}</div>
+        <div class="kpi-sub">Filtered view</div>
+      </div>
+
+      <div class="sr-card">
+        <div class="kpi-title">Warehouses</div>
+        <div class="kpi-value">{{ kpi.warehousesCount }}</div>
+        <div class="kpi-sub">With movement</div>
+      </div>
+
+      <div class="sr-card">
+        <div class="kpi-title">Docs (max per item)</div>
+        <div class="kpi-value">{{ kpi.maxDocsCount }}</div>
+        <div class="kpi-sub">Highest frequency</div>
+      </div>
+
+      <div class="sr-card">
+        <div class="kpi-title">Total +</div>
+        <div class="kpi-value plus">{{ fmt(kpi.totalPlus) }}</div>
+        <div class="kpi-sub">Sum of positive diffs</div>
+      </div>
+
+      <div class="sr-card">
+        <div class="kpi-title">Total −</div>
+        <div class="kpi-value minus">{{ fmt(kpi.totalMinus) }}</div>
+        <div class="kpi-sub">Sum of negative diffs</div>
+      </div>
+
+      <div class="sr-card">
+        <div class="kpi-title">Net</div>
+        <div class="kpi-value" :class="{ plus: kpi.net >= 0, minus: kpi.net < 0 }">
+          {{ fmt(kpi.net) }}
+        </div>
+        <div class="kpi-sub">(+)+ (−)</div>
+      </div>
+
+      <!-- NEW: Progress -->
+      <div class="sr-card">
+        <div class="kpi-title">Progress</div>
+        <div class="kpi-value">{{ progress.submittedPct }}%</div>
+        <div class="kpi-sub">
+          Draft: {{ progress.draft }} • Submitted: {{ progress.submitted }}
+        </div>
+
+        <div class="sr-progress">
+          <div class="bar">
+            <div class="fill" :style="{ width: progress.submittedPct + '%' }"></div>
+          </div>
+          <div class="muted">Open: {{ progress.openPct }}%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content grid -->
+    <div class="sr-grid">
+      <!-- Left column: Anomalies + Top risks stacked -->
+      <div class="sr-left-col">
+        <!-- Anomalies -->
+        <div class="sr-panel">
+          <div class="sr-panel-head">
+            <h3>Anomalies</h3>
+            <span class="muted">Auto insights (rule-based)</span>
+          </div>
+
+          <div v-if="loading" class="sr-loading">Loading…</div>
+
+          <div v-else class="sr-anom-list">
+            <button
+              v-for="a in anomalies"
+              :key="a.id"
+              class="sr-anom-row"
+              @click="handleAnomalyClick(a)"
+            >
+              <div class="left">
+                <div class="sr-badges">
+                  <span class="sr-badge" :class="badgeClass(a.severity)">{{ a.severity }}</span>
+                  <span class="sr-badge outline">{{ a.type }}</span>
+                  <span class="sr-badge outline">Score {{ Math.round(a.score) }}</span>
+                </div>
+                <div class="title">{{ a.title }}</div>
+                <div class="desc">{{ a.desc }}</div>
+              </div>
+              <div class="right">
+                <span class="fa fa-chevron-right muted"></span>
+              </div>
+            </button>
+
+            <div v-if="!anomalies.length" class="muted sr-empty">
+              No anomalies detected for current filters.
+            </div>
+          </div>
+        </div>
+
+        <!-- Top risks -->
+        <div class="sr-panel">
+          <div class="sr-panel-head">
+            <h3>Top Risks</h3>
+            <span class="muted">Score = abs(net) × ln(docs+1)</span>
+          </div>
+
+          <div v-if="loading" class="sr-loading">Loading…</div>
+
+          <div v-else class="sr-risk-list">
+            <button
+              v-for="it in topRisks"
+              :key="it.item_code"
+              class="sr-risk-row"
+              @click="openItem(it)"
+              :title="it.item_code"
+            >
+              <div class="left">
+                <div class="code">{{ it.item_code }}</div>
+                <div class="name">{{ it.item_name }}</div>
+              </div>
+              <div class="right">
+                <div class="score">Score: {{ fmt(it.risk_score) }}</div>
+                <div class="net" :class="{ plus: it.net_diff >= 0, minus: it.net_diff < 0 }">
+                  Net: {{ fmt(it.net_diff) }} {{ it.uom }}
+                </div>
+                <div class="meta">{{ it.docs_count || 0 }} docs • {{ it.warehouses?.length || 0 }} wh</div>
+              </div>
+            </button>
+
+            <div v-if="!topRisks.length" class="muted sr-empty">
+              No rows for current filters.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Main table -->
+      <div class="sr-panel">
+        <div class="sr-panel-head">
+          <h3>Items</h3>
+          <div class="sr-mini">
+            <span class="muted">{{ filteredRows.length }} rows</span>
+          </div>
+        </div>
+
+        <div v-if="loading" class="sr-loading">Loading…</div>
+
+        <div v-else class="sr-table-wrap">
+          <table class="table table-bordered sr-table">
+            <thead>
+              <tr>
+                <th @click="setSort('item_code')" class="clickable">Item</th>
+                <th @click="setSort('item_name')" class="clickable">Name</th>
+                <th @click="setSort('uom')" class="clickable">UOM</th>
+                <th @click="setSort('net_diff')" class="clickable right">Net</th>
+                <th class="right">+ / −</th>
+                <th class="right">Docs</th>
+                <th class="right">Warehouses</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="it in sortedRows" :key="it.item_code" class="sr-row" @click="openItem(it)">
+                <td class="mono">{{ it.item_code }}</td>
+                <td class="truncate">{{ it.item_name }}</td>
+                <td class="mono">{{ it.uom }}</td>
+                <td class="right mono" :class="{ plus: it.net_diff >= 0, minus: it.net_diff < 0 }">
+                  {{ fmt(it.net_diff) }}
+                </td>
+                <td class="right mono">
+                  <span class="plus">+{{ fmt(it.total_plus) }}</span>
+                  <span class="sep">/</span>
+                  <span class="minus">{{ fmt(it.total_minus) }}</span>
+                </td>
+                <td class="right mono">{{ it.docs_count || 0 }}</td>
+                <td class="right mono">{{ it.warehouses?.length || 0 }}</td>
+              </tr>
+              <tr v-if="!sortedRows.length">
+                <td colspan="7" class="muted sr-empty">No data.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drawer -->
+    <div class="sr-drawer" :class="{ open: !!selected }">
+      <div class="sr-drawer-head">
+        <div>
+          <div class="mono code">{{ selected?.item_code }}</div>
+          <div class="name">{{ selected?.item_name }}</div>
+        </div>
+        <button class="btn btn-default" @click="closeDetails">
+          <span class="fa fa-times"></span>
+        </button>
+      </div>
+
+      <div class="sr-drawer-body">
+        <div class="sr-drawer-kpis">
+          <div class="mini">
+            <div class="t">Net</div>
+            <div class="v" :class="{ plus: selected?.net_diff >= 0, minus: selected?.net_diff < 0 }">
+              {{ fmt(selected?.net_diff) }} {{ selected?.uom }}
+            </div>
+          </div>
+          <div class="mini">
+            <div class="t">Docs</div>
+            <div class="v">{{ selected?.docs_count || 0 }}</div>
+          </div>
+          <div class="mini">
+            <div class="t">Warehouses</div>
+            <div class="v">{{ selected?.warehouses?.length || 0 }}</div>
+          </div>
+          <div class="mini">
+            <div class="t">Risk</div>
+            <div class="v">{{ fmt(selected?.risk_score) }}</div>
+          </div>
+        </div>
+
+        <div class="sr-section">
+          <div class="sr-section-head">
+            <h4>Warehouse breakdown</h4>
+          </div>
+
+          <div class="sr-bars" v-if="selected?.warehouses?.length">
+            <div
+              v-for="w in selected.warehouses"
+              :key="w.warehouse"
+              class="sr-bar-row"
+              :title="w.warehouse"
+            >
+              <div class="wh truncate">{{ w.warehouse }}</div>
+              <div class="bar">
+                <div class="fill" :style="{ width: barWidth(w.diff) + '%' }"></div>
+              </div>
+              <div class="val mono" :class="{ plus: w.diff >= 0, minus: w.diff < 0 }">
+                {{ fmt(w.diff) }}
+              </div>
+            </div>
+          </div>
+          <div v-else class="muted">No warehouse data.</div>
+        </div>
+
+        <div class="sr-section">
+          <div class="sr-section-head">
+            <h4>Documents</h4>
+            <button class="btn btn-default btn-xs" @click="refreshDetails" :disabled="detailsLoading">
+              <span class="fa fa-refresh"></span> Refresh
+            </button>
+          </div>
+
+          <div v-if="detailsLoading" class="sr-loading">Loading…</div>
+
+          <table v-else class="table table-bordered sr-table">
+            <thead>
+              <tr>
+                <th>Doc</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Warehouse</th>
+                <th class="right">Diff</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="d in details" :key="d.name" class="sr-row" @click="openDoc(d.name)">
+                <td class="mono">{{ d.name }}</td>
+                <td class="mono">{{ d.posting_date }}</td>
+                <td class="mono">{{ docStatusLabel(d.docstatus) }}</td>
+                <td class="truncate">{{ d.warehouse }}</td>
+                <td class="right mono" :class="{ plus: d.diff_qty >= 0, minus: d.diff_qty < 0 }">
+                  {{ fmt(d.diff_qty) }}
+                </td>
+              </tr>
+
+              <tr v-if="!details.length">
+                <td colspan="5" class="muted sr-empty">No documents.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div v-if="toast.show" class="sr-toast">
+      <span class="fa fa-bolt"></span>
+      {{ toast.text }}
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -343,6 +412,9 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 const years = ref([]);
 const year = ref(new Date().getFullYear());
+
+const dateFrom = ref(loadPref("sr_dateFrom", "")); // YYYY-MM-DD
+const dateTo = ref(loadPref("sr_dateTo", "")); // YYYY-MM-DD
 
 const loading = ref(false);
 const items = ref([]);
@@ -357,6 +429,13 @@ const details = ref([]);
 
 const lastUpdatedAt = ref("");
 const liveConnected = ref(false);
+
+const progress = ref({
+  draft: 0,
+  submitted: 0,
+  submittedPct: 0,
+  openPct: 0,
+});
 
 const toast = ref({ show: false, text: "" });
 let toastTimer = null;
@@ -392,6 +471,10 @@ function persistPrefs() {
   localStorage.setItem("sr_threshold", String(threshold.value ?? ""));
   localStorage.setItem("sr_direction", String(direction.value ?? "all"));
   localStorage.setItem("sr_q", String(q.value ?? ""));
+  localStorage.setItem("sr_sortKey", String(sortKey.value ?? "risk_score"));
+  localStorage.setItem("sr_sortDir", String(sortDir.value ?? "desc"));
+  localStorage.setItem("sr_dateFrom", String(dateFrom.value ?? ""));
+  localStorage.setItem("sr_dateTo", String(dateTo.value ?? ""));
 }
 
 function loadPref(key, fallback) {
@@ -441,6 +524,15 @@ function normalizeRow(it) {
   };
 }
 
+function buildDashboardArgs() {
+  // If date range is provided, backend should prioritize it.
+  return {
+    year: year.value,
+    from_date: dateFrom.value || null,
+    to_date: dateTo.value || null,
+  };
+}
+
 async function loadDashboard(resetSelection = true) {
   loading.value = true;
   try {
@@ -449,12 +541,23 @@ async function loadDashboard(resetSelection = true) {
       details.value = [];
     }
 
-    const res = await call("erpnextkta.rest-api.stock_reconciliation_dashboard.get_dashboard", {
-      year: year.value,
-    });
+    const res = await call(
+      "erpnextkta.rest-api.stock_reconciliation_dashboard.get_dashboard",
+      buildDashboardArgs()
+    );
 
     items.value = (res?.items || []).map(normalizeRow);
     lastUpdatedAt.value = nowLabel();
+
+    // Progress meta (Cancelled excluded by design)
+    const meta = res?.meta || {};
+    const counts = meta.counts || {};
+    progress.value = {
+      draft: Number(counts.draft || 0),
+      submitted: Number(counts.submitted || 0),
+      submittedPct: Number(meta.progress_pct || 0),
+      openPct: Number(meta.open_pct || 0),
+    };
   } finally {
     loading.value = false;
   }
@@ -471,10 +574,13 @@ async function refreshDetails() {
   detailsLoading.value = true;
   details.value = [];
   try {
-    const res = await call("erpnextkta.rest-api.stock_reconciliation_dashboard.get_item_details", {
-      item_code: selected.value.item_code,
-      year: year.value,
-    });
+    const res = await call(
+      "erpnextkta.rest-api.stock_reconciliation_dashboard.get_item_details",
+      {
+        item_code: selected.value.item_code,
+        ...buildDashboardArgs(),
+      }
+    );
     details.value = res?.docs || [];
   } finally {
     detailsLoading.value = false;
@@ -495,6 +601,11 @@ function onYearChange() {
   loadDashboard(true);
 }
 
+function onDateChange() {
+  persistPrefs();
+  loadDashboard(true);
+}
+
 function setDirection(v) {
   direction.value = v;
   persistPrefs();
@@ -504,6 +615,13 @@ async function refreshNow() {
   await loadDashboard(false);
   if (selected.value) await refreshDetails();
   showToast("Refreshed");
+}
+
+function docStatusLabel(ds) {
+  const n = Number(ds);
+  if (n === 0) return "Draft";
+  if (n === 1) return "Submitted";
+  return String(ds ?? "");
 }
 
 // --- Filtering / sorting ---
@@ -550,8 +668,7 @@ function setSort(key) {
     sortKey.value = key;
     sortDir.value = "desc";
   }
-  localStorage.setItem("sr_sortKey", sortKey.value);
-  localStorage.setItem("sr_sortDir", sortDir.value);
+  persistPrefs();
 }
 
 const sortedRows = computed(() => {
@@ -610,7 +727,16 @@ function barWidth(diff) {
 // --- Export CSV (client-side) ---
 function exportCSV() {
   const rows = sortedRows.value || [];
-  const headers = ["item_code", "item_name", "uom", "net_diff", "total_plus", "total_minus", "docs_count", "warehouses_count"];
+  const headers = [
+    "item_code",
+    "item_name",
+    "uom",
+    "net_diff",
+    "total_plus",
+    "total_minus",
+    "docs_count",
+    "warehouses_count",
+  ];
 
   const lines = [];
   lines.push(headers.join(","));
@@ -650,14 +776,11 @@ function csv(v) {
   }
   return s;
 }
+
 /* ---------- Anomalies (rule-based insights) ---------- */
 
-/* Small helpers */
 function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
-}
-function abs(n) {
-  return Math.abs(Number(n || 0));
 }
 
 function severityFromScore(score) {
@@ -670,7 +793,6 @@ function badgeClass(sev) {
   return sev === "HIGH" ? "high" : sev === "MED" ? "med" : "low";
 }
 
-/* Warehouse stats per item (from get_dashboard warehouses[]) */
 function whStats(it) {
   const wh = Array.isArray(it.warehouses) ? it.warehouses : [];
   let hasPos = false;
@@ -707,10 +829,11 @@ function whStats(it) {
   };
 }
 
-/* Document stats per selected item (from get_item_details docs[]) */
 function docStats(docs) {
   const rows = Array.isArray(docs) ? docs : [];
-  const absList = rows.map((d) => Math.abs(Number(d.diff_qty || 0))).filter((x) => Number.isFinite(x));
+  const absList = rows
+    .map((d) => Math.abs(Number(d.diff_qty || 0)))
+    .filter((x) => Number.isFinite(x));
   const maxAbs = absList.length ? Math.max(...absList) : 0;
   const sumAbs = absList.reduce((a, b) => a + b, 0);
   const avgAbs = absList.length ? sumAbs / absList.length : 0;
@@ -724,7 +847,6 @@ function docStats(docs) {
   return { maxAbs, sumAbs, avgAbs, maxDoc, count: rows.length };
 }
 
-/* Build anomalies from dashboard rows (fast + impressive) */
 function buildBaseAnomalies(rows) {
   const out = [];
 
@@ -790,8 +912,7 @@ function buildBaseAnomalies(rows) {
       });
     }
 
-    // 4) Oscillation (approx): big total abs but net small (uses warehouses sumAbs)
-    // Note: this is approximate without doc-level, but still useful.
+    // 4) Oscillation (approx): big total abs but net small
     if (st.totalAbs > 0) {
       const ratioNet = Math.abs(net) / st.totalAbs; // small => oscillation
       if (st.totalAbs >= 10 && ratioNet <= 0.15) {
@@ -817,7 +938,6 @@ function buildBaseAnomalies(rows) {
   return out;
 }
 
-/* Drawer-based anomalies (more accurate, uses docs list) */
 const drawerAnomalies = computed(() => {
   if (!selected.value || !details.value?.length) return [];
 
@@ -831,7 +951,6 @@ const drawerAnomalies = computed(() => {
   // A) Single document spike
   if (ds.count >= 2 && ds.maxDoc) {
     const amax = Math.abs(Number(ds.maxDoc.diff_qty || 0));
-    // Spike if 3x average OR contributes >= 70% of total abs
     const contributes = ds.sumAbs > 0 ? amax / ds.sumAbs : 0;
     if (amax >= ds.avgAbs * 3 || contributes >= 0.7) {
       const score = 35 + 35 * contributes + 20 * Math.log10(amax + 1);
@@ -847,7 +966,7 @@ const drawerAnomalies = computed(() => {
     }
   }
 
-  // B) Oscillation (doc-level): sumAbs big, net small
+  // B) Oscillation (doc-level)
   if (ds.sumAbs > 0) {
     const ratioNet = Math.abs(net) / ds.sumAbs;
     if (ds.sumAbs >= 10 && ratioNet <= 0.12 && ds.count >= 3) {
@@ -867,14 +986,10 @@ const drawerAnomalies = computed(() => {
   return out.sort((a, b) => b.score - a.score);
 });
 
-/* Main anomalies list: base anomalies + (if drawer open) drawer anomalies */
 const anomalies = computed(() => {
   const base = buildBaseAnomalies(filteredRows.value || []);
-
-  // If drawer open, merge item-specific deeper anomalies on top
   const merged = [...drawerAnomalies.value, ...base];
 
-  // Deduplicate by id
   const seen = new Set();
   const uniq = [];
   for (const a of merged) {
@@ -886,7 +1001,6 @@ const anomalies = computed(() => {
   return uniq.sort((a, b) => b.score - a.score).slice(0, 8);
 });
 
-/* Click handling */
 async function handleAnomalyClick(a) {
   if (a.action?.kind === "doc" && a.action.docname) {
     openDoc(a.action.docname);
@@ -898,7 +1012,6 @@ async function handleAnomalyClick(a) {
     if (it) {
       await openItem(it);
     } else {
-      // Fallback: just show toast
       showToast(`Item not found in current list: ${a.action.item_code}`);
     }
   }
@@ -912,9 +1025,7 @@ function scheduleRealtimeRefresh() {
   if (debounceTimer) clearTimeout(debounceTimer);
 
   debounceTimer = setTimeout(async () => {
-    // Refresh main dashboard without closing details
     await loadDashboard(false);
-    // If drawer open, refresh details too
     if (selected.value) await refreshDetails();
     showToast("Live update");
   }, 450);
@@ -924,7 +1035,6 @@ onMounted(async () => {
   await loadYears();
   await loadDashboard(true);
 
-  // Subscribe to realtime events from backend
   realtimeHandler = () => scheduleRealtimeRefresh();
 
   if (frappe?.realtime?.on) {
@@ -982,7 +1092,7 @@ onBeforeUnmount(() => {
 .pill.active { border-color: #111827; background: #111827; color: #fff; }
 
 .sr-kpis {
-  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 10px; margin-bottom: 14px;
 }
 .sr-card {
@@ -994,6 +1104,11 @@ onBeforeUnmount(() => {
 .kpi-sub { margin-top: 2px; font-size: 12px; color: #9ca3af; }
 .plus { color: #15803d; }
 .minus { color: #b91c1c; }
+
+/* Progress bar */
+.sr-progress { margin-top: 8px; display: grid; gap: 6px; }
+.sr-progress .bar { height: 10px; background: #f3f4f6; border-radius: 999px; overflow: hidden; }
+.sr-progress .fill { height: 100%; background: #111827; opacity: .2; }
 
 .sr-grid {
   display: grid; grid-template-columns: 360px 1fr; gap: 12px;
@@ -1044,13 +1159,12 @@ onBeforeUnmount(() => {
 .sr-empty { padding: 14px; text-align: center; }
 
 .sr-drawer {
-  /* Frappe top navbar height: v15 genelde ~60px */
   --sr-navbar-h: var(--navbar-height, 60px);
 
   position: fixed;
-  top: var(--sr-navbar-h);                 /* ✅ navbar altından başla */
+  top: var(--sr-navbar-h);
   right: 0;
-  height: calc(100vh - var(--sr-navbar-h));/* ✅ ekranı doğru doldur */
+  height: calc(100vh - var(--sr-navbar-h));
   width: 520px;
   max-width: 92vw;
 
@@ -1060,7 +1174,7 @@ onBeforeUnmount(() => {
   transform: translateX(100%);
   transition: transform .2s ease;
 
-  z-index: 1040;                           /* ✅ desk overlay seviyesine yakın */
+  z-index: 1040;
   display: flex;
   flex-direction: column;
 }
@@ -1143,7 +1257,6 @@ onBeforeUnmount(() => {
 
 .sr-anom-row .title { font-size: 12px; font-weight: 700; color: #111827; }
 .sr-anom-row .desc { font-size: 12px; color: #6b7280; margin-top: 2px; }
-
 
 /* Responsive */
 @media (max-width: 1100px) {
