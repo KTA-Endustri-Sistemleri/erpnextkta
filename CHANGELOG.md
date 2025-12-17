@@ -3,6 +3,103 @@
 
 
 
+## 🚀 v0.8.0 (2025-12-17)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_stock**: added kta_stock & enhance Stock Reconciliation Dashboard with date filtering and validation
+      
+      
+    
+      
+      
+        
+- **kta_stock**: add kta_stock module and related files
+      
+      
+    
+      
+      
+        
+- **kta_stock**: add Stock Reconciliation Dashboard page and related files
+      
+      
+    
+      
+      
+        
+- **kta_stock**: implement Stock Reconciliation dashboard event handlers and API
+      
+      
+    
+      
+      
+        
+- **kta_stock**: add server-side access control for Stock Reconciliation Dashboard
+      
+      
+    
+      
+      
+        
+- **kta_stock**: add Stock Reconciliation Dashboard components and ui setup
+      
+      
+    
+      
+      
+        
+- **kta_stock**: add validation for stock entry and draft stock reconciliation locks
+      
+      
+    
+      
+      
+        
+- **kta_stock**: enhance Stock Reconciliation Dashboard with date filtering and validation
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **kta_stock**: clean up code structure and improve readability in App.vue
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.7.1 (2025-12-15)
 
 
