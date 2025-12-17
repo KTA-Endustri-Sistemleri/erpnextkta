@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v0.8.2 (2025-12-17)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- update method path for stock reconciliation job creation
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.8.1 (2025-12-17)
 
 
