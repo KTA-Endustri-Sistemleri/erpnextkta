@@ -15,6 +15,5 @@ class KTAStockEntry(StockEntry):
         ):
             erpnextkta.api.split_manufacturing_batches(self)
 
-        super().update_stock_ledger(
-            allow_negative_stock=allow_negative_stock, via_landed_cost_voucher=via_landed_cost_voucher
-        )
+        # Base StockEntry.update_stock_ledger does not accept via_landed_cost_voucher, swallow it here
+        super().update_stock_ledger(allow_negative_stock=allow_negative_stock)
