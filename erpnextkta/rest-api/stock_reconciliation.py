@@ -172,7 +172,7 @@ def create_stock_reco_docs_for_warehouse_group(
     requested_by = frappe.session.user
 
     job = frappe.enqueue(
-        method="erpnextkta.stock_reco_api._job_create_stock_reco_docs_for_warehouse_group",
+        method="erpnextkta.rest-api.stock_reconciliation._job_create_stock_reco_docs_for_warehouse_group",
         queue="long",
         timeout=60 * 60,  # 1 hour
         job_name=f"Bulk Stock Reco: {warehouse_group} ({posting_date} {posting_time})",
