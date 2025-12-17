@@ -121,9 +121,8 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         ):
             self._run_pending_batch_splits()
 
-        super().update_stock_ledger(
-            allow_negative_stock=allow_negative_stock, via_landed_cost_voucher=via_landed_cost_voucher
-        )
+        # Base PurchaseReceipt.update_stock_ledger does not accept via_landed_cost_voucher, swallow it
+        super().update_stock_ledger(allow_negative_stock=allow_negative_stock)
 
     def _run_pending_batch_splits(self):
         row_names = getattr(self.flags, "kta_rows_to_split", None)
