@@ -84,10 +84,7 @@ def get_items_static(
 ):
     """
     Drop-in replacement for core `get_items` used by Stock Reconciliation,
-    but with a different source for the base item list:
-
-    - When item_code is given: reuse core `get_item_and_warehouses`.
-    - When item_code is empty: use our `get_items_for_stock_reco_static`.
+    but with a different source for the base item list.
 
     Result is sorted by (item_code, warehouse, batch_no) for stable ordering.
     """
@@ -146,6 +143,10 @@ def get_items_static(
     return res
 
 
+# ----------------------------
+# Bulk creation (Background Job)
+# ----------------------------
+
 @frappe.whitelist()
 def create_stock_reco_docs_for_warehouse_group(
     warehouse_group: str,
@@ -155,9 +156,8 @@ def create_stock_reco_docs_for_warehouse_group(
     ignore_empty_stock: int | str = 0,
 ):
     """
-    Create one Stock Reconciliation (DRAFT) per leaf warehouse under the group.
-    Items are populated using `get_items_static()` so qty/valuation/batch/serial
-    logic remains consistent with your deterministic fetch behavior.
+    Enqueue bulk creation to avoid request timeouts.
+    Returns immediately with a job id (if available).
     """
 
     if not warehouse_group:
@@ -168,6 +168,41 @@ def create_stock_reco_docs_for_warehouse_group(
     posting_date = posting_date or today()
     posting_time = posting_time or nowtime()
     ignore_empty_stock = cint(ignore_empty_stock)
+
+    requested_by = frappe.session.user
+
+    job = frappe.enqueue(
+        method="erpnextkta.stock_reco_api._job_create_stock_reco_docs_for_warehouse_group",
+        queue="long",
+        timeout=60 * 60,  # 1 hour
+        job_name=f"Bulk Stock Reco: {warehouse_group} ({posting_date} {posting_time})",
+        warehouse_group=warehouse_group,
+        company=company,
+        posting_date=posting_date,
+        posting_time=posting_time,
+        ignore_empty_stock=ignore_empty_stock,
+        requested_by=requested_by,
+    )
+
+    return {
+        "queued": True,
+        "job_id": getattr(job, "id", None),
+        "message": _("Background job queued. You will be notified when it finishes."),
+    }
+
+
+def _job_create_stock_reco_docs_for_warehouse_group(
+    warehouse_group: str,
+    company: str,
+    posting_date: str,
+    posting_time: str,
+    ignore_empty_stock: int,
+    requested_by: str | None = None,
+):
+    """
+    Worker job: create one Stock Reconciliation (DRAFT) per leaf warehouse under the group.
+    Items are populated using `get_items_static()` so qty/valuation/batch/serial logic remains consistent.
+    """
 
     group = frappe.get_doc("Warehouse", warehouse_group)
     if not group.is_group:
@@ -210,11 +245,10 @@ def create_stock_reco_docs_for_warehouse_group(
         doc.posting_date = posting_date
         doc.posting_time = posting_time
         doc.purpose = "Stock Reconciliation"
-        # Stock Reconciliation header/default warehouse field is typically `set_warehouse`
+
+        # Header default warehouse
         if doc.meta.has_field("set_warehouse"):
             doc.set_warehouse = wh
-
-        # Bazı özelleştirmelerde üst alanda `warehouse` da olabiliyor; varsa onu da doldur
         if doc.meta.has_field("warehouse"):
             doc.warehouse = wh
 
@@ -228,9 +262,45 @@ def create_stock_reco_docs_for_warehouse_group(
 
         created.append({"warehouse": wh, "name": doc.name, "item_count": len(rows)})
 
+    if requested_by:
+        _notify_bulk_stock_reco_result(
+            user=requested_by,
+            warehouse_group=warehouse_group,
+            created=created,
+            skipped=skipped,
+        )
+
     return {
         "count": len(created),
         "documents": created,
         "skipped_count": len(skipped),
         "skipped_warehouses": skipped,
     }
+
+
+def _notify_bulk_stock_reco_result(user: str, warehouse_group: str, created: list, skipped: list):
+    """
+    Notify user via Notification Log when the background job is done.
+    """
+    created_count = len(created)
+    skipped_count = len(skipped)
+
+    preview = "\n".join([f"- {d['name']} ({d['warehouse']})" for d in created[:20]])
+    more = "" if created_count <= 20 else f"\n... (+{created_count - 20} more)"
+
+    msg = (
+        f"Warehouse Group: {warehouse_group}\n"
+        f"Created: {created_count}\n"
+        f"Skipped (no stock): {skipped_count}\n\n"
+        f"Created docs:\n{preview}{more}"
+    )
+
+    frappe.get_doc(
+        {
+            "doctype": "Notification Log",
+            "subject": _("Bulk Stock Reconciliation Completed"),
+            "email_content": msg.replace("\n", "<br>"),
+            "for_user": user,
+            "type": "Alert",
+        }
+    ).insert(ignore_permissions=True)

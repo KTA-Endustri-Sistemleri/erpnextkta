@@ -95,8 +95,7 @@ frappe.ui.form.on("Stock Reconciliation", {
         ],
         (data) => {
           frappe.call({
-            method:
-              "erpnextkta.rest-api.stock_reconciliation.create_stock_reco_docs_for_warehouse_group",
+            method: "erpnextkta.rest-api.stock_reconciliation.create_stock_reco_docs_for_warehouse_group",
             args: {
               warehouse_group: data.warehouse_group,
               company: frm.doc.company,
@@ -104,19 +103,18 @@ frappe.ui.form.on("Stock Reconciliation", {
               posting_time: frm.doc.posting_time,
               ignore_empty_stock: data.ignore_empty_stock,
             },
+            freeze: true,
+            freeze_message: __("Sayım listeleri oluşturuluyor..."),
             callback: (r) => {
               if (!r.message) return;
 
-              const docs = (r.message.documents || [])
-                .slice(0, 15)
-                .map((d) => `• ${d.name} (${d.warehouse})`)
-                .join("<br>");
-
-              frappe.msgprint({
-                title: __("İşlem Tamamlandı"),
-                message: __(`${r.message.count} belge oluşturuldu.<br><br>${docs}${r.message.count > 15 ? "<br>..." : ""}`),
-                indicator: "green",
-              });
+              if (r.message.queued) {
+                frappe.msgprint({
+                  title: __("İşleme alındı"),
+                  message: __("Sayım listeleri arka planda oluşturuluyor. İşlem tamamlandığında bildirim alacaksınız."),
+                  indicator: "green",
+                });
+              }
             },
           });
         },
