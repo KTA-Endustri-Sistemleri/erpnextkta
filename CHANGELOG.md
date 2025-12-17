@@ -3,6 +3,52 @@
 
 
 
+## 🚀 v0.8.1 (2025-12-17)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_stock**: implement background job for bulk stock reconciliation document creation
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- fix/stock-reco-bulk-fix (#38)
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.8.0 (2025-12-17)
 
 
