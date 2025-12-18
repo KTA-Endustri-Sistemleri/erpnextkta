@@ -363,10 +363,25 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     if not row:
         return
 
+    # Allow callers that only provide a row name to re-fetch the document
     if not row.serial_and_batch_bundle and row.get("name"):
         row = frappe.get_doc(row.doctype, row.name)
 
     if not row.serial_and_batch_bundle:
+        return
+
+    # Only operate on Purchase Receipt Item rows so other Stock Entry types remain untouched
+    row_doctype = getattr(row, "doctype", None)
+    parenttype = getattr(row, "parenttype", None)
+    parent = getattr(row, "parent", None)
+
+    if row_doctype != "Purchase Receipt Item":
+        return
+
+    if parenttype and parenttype != "Purchase Receipt":
+        return
+
+    if not parent:
         return
 
     row_batch_number = frappe.db.get_value(
@@ -393,7 +408,12 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     if not row_batch_number:
         frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
 
-    purchase_receipt = frappe.get_doc("Purchase Receipt", row.parent)
+    try:
+        purchase_receipt = frappe.get_doc("Purchase Receipt", parent)
+    except frappe.DoesNotExistError:
+        # Parent is not a Purchase Receipt; skip so other stock entry types are unaffected
+        return
+
     batch_allocations = _prepare_batch_allocations(row, purchase_receipt, row_batch_number)
 
     if not batch_allocations:
@@ -525,6 +545,20 @@ def _update_serial_and_batch_bundle_entries(row, allocations):
     bundle_doc.flags.ignore_permissions = True
     bundle_doc.set("entries", [])
 
+    warehouse = (
+        row.get(FIELD_WAREHOUSE)
+        or row.get(FIELD_T_WAREHOUSE)
+        or row.get(FIELD_S_WAREHOUSE)
+    )
+
+    if not warehouse:
+        frappe.throw(
+            _(
+                "Could not determine warehouse for Stock Entry Detail {0}. "
+                "Ensure either `warehouse`, `t_warehouse`, or `s_warehouse` is set."
+            ).format(row.name)
+        )
+
     total_qty = 0
     for allocation in allocations:
         total_qty += flt(allocation["qty"])
@@ -533,7 +567,7 @@ def _update_serial_and_batch_bundle_entries(row, allocations):
             {
                 "batch_no": allocation["batch_no"],
                 "qty": allocation["qty"],
-                "warehouse": row.warehouse,
+                "warehouse": warehouse,
                 "is_outward": 0,
             },
         )
