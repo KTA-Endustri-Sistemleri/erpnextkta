@@ -410,18 +410,27 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     if not row:
         return
 
-    # Eğer row bir string (name) olarak geldiyse dokümanı yükle
-    if isinstance(row, str):
-        row = frappe.get_doc("Purchase Receipt Item", row)
+    # Allow callers that only provide a row name to re-fetch the document
+    if not row.serial_and_batch_bundle and row.get("name"):
+        row = frappe.get_doc(row.doctype, row.name)
 
     if not row.get("serial_and_batch_bundle"):
         return
 
-    # Sadece Purchase Receipt Item satırlarında çalış
-    if row.doctype != "Purchase Receipt Item":
+    # Only operate on Purchase Receipt Item rows so other Stock Entry types remain untouched
+    row_doctype = getattr(row, "doctype", None)
+    parenttype = getattr(row, "parenttype", None)
+    parent = getattr(row, "parent", None)
+
+    if row_doctype != "Purchase Receipt Item":
         return
 
-    # 1. Mevcut Batch Numarasını Tespit Et
+    if parenttype and parenttype != "Purchase Receipt":
+        return
+
+    if not parent:
+        return
+
     row_batch_number = frappe.db.get_value(
         "Serial and Batch Entry",
         {"parent": row.serial_and_batch_bundle, "is_outward": 0},
@@ -439,11 +448,12 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
         frappe.log_error(f"Batch bulunamadı: Satır {row.idx}, Ürün {row.item_code}", "KTA Split Error")
         return
 
-    # 2. Ana PR dokümanını al (Allocation hazırlığı için gerekli)
-    purchase_receipt = frappe.get_cached_doc("Purchase Receipt", row.parent)
+    try:
+        purchase_receipt = frappe.get_doc("Purchase Receipt", parent)
+    except frappe.DoesNotExistError:
+        # Parent is not a Purchase Receipt; skip so other stock entry types are unaffected
+        return
 
-    # 3. Parçalama Planını Hazırla (Örn: 100 adedi 25-25-25-25 böl)
-    # _prepare_batch_allocations fonksiyonunun mevcut olduğunu varsayıyoruz
     batch_allocations = _prepare_batch_allocations(row, purchase_receipt, row_batch_number)
 
     if not batch_allocations:
@@ -662,6 +672,15 @@ def _update_serial_and_batch_bundle_entries(row, allocations):
             "is_outward": 0,
         })
         total_qty += flt(allocation["qty"])
+        bundle_doc.append(
+            "entries",
+            {
+                "batch_no": allocation["batch_no"],
+                "qty": allocation["qty"],
+                "warehouse": warehouse,
+                "is_outward": 0,
+            },
+        )
 
     bundle_doc.total_qty = total_qty
     # .save() yerine .db_update() kullanmak bazen hook'ları tetiklemediği için daha güvenlidir
