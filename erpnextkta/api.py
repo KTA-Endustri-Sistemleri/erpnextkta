@@ -301,6 +301,7 @@ def print_kta_wo_label(work_order_details, stock_entry):
         destination_warehouse = stock_entry_detail_doc.get(FIELD_T_WAREHOUSE)
 
     batch_no = get_batch_from_stock_entry_detail(stock_entry_detail_doc)
+    base_batch_no = get_base_batch_from_work_order(work_order_details.get(FIELD_WORK_ORDER)) or batch_no
 
     # Construct data
     data = frappe.get_doc({
@@ -315,29 +316,53 @@ def print_kta_wo_label(work_order_details, stock_entry):
         'gr_source_warehouse': source_warehouse,
         FIELD_TO_WAREHOUSE: destination_warehouse,
         FIELD_STOCK_UOM: work_order_details.get(FIELD_STOCK_UOM),
-        FIELD_BATCH_NO: batch_no
+        FIELD_BATCH_NO: base_batch_no
     })
-
-    musteri_paketleme_miktari = work_order_details.get("musteri_paketleme_miktari")
-    num_packs = frappe.cint(stock_entry_detail_doc.get(FIELD_QTY) // musteri_paketleme_miktari)
-    remainder_qty = stock_entry_detail_doc.get(FIELD_QTY) % musteri_paketleme_miktari
 
     zebra_printer = get_zebra_printer_for_user()
     zebra_ip_address = zebra_printer.get("ip")
     zebra_port = zebra_printer.get("port")
 
-    if num_packs >= 1:
-        for pack in range(1, num_packs + 1):
-            data.qty = format_kta_label_qty(musteri_paketleme_miktari)
-            data.sut_no = f"{batch_no}{pack:04d}"
+    batch_entries = []
+    if stock_entry_detail_doc.get("serial_and_batch_bundle"):
+        batch_entries = frappe.get_all(
+            DOCTYPE_SERIAL_AND_BATCH_ENTRY,
+            filters={
+                FIELD_PARENT: stock_entry_detail_doc.get("serial_and_batch_bundle"),
+                FIELD_PARENTTYPE: DOCTYPE_SERIAL_AND_BATCH_BUNDLE,
+                FIELD_PARENTFIELD: VALUE_ENTRIES,
+                FIELD_IS_OUTWARD: 0,
+                FIELD_DOCSTATUS: 1,
+                FIELD_BATCH_NO: ["is", "set"],
+            },
+            fields=[FIELD_BATCH_NO, FIELD_QTY],
+            order_by="idx asc",
+        )
+
+    if batch_entries:
+        for entry in batch_entries:
+            data.qty = format_kta_label_qty(entry.get(FIELD_QTY))
+            data.batch_no = base_batch_no
+            data.sut_no = entry.get(FIELD_BATCH_NO)
             formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
             send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
+    else:
+        musteri_paketleme_miktari = work_order_details.get("musteri_paketleme_miktari")
+        num_packs = frappe.cint(stock_entry_detail_doc.get(FIELD_QTY) // musteri_paketleme_miktari)
+        remainder_qty = stock_entry_detail_doc.get(FIELD_QTY) % musteri_paketleme_miktari
 
-    if remainder_qty > 0:
-        data.qty = format_kta_label_qty(remainder_qty)
-        data.sut_no = f"{batch_no}{num_packs + 1:04d}"
-        formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
-        send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
+        if num_packs >= 1:
+            for pack in range(1, num_packs + 1):
+                data.qty = format_kta_label_qty(musteri_paketleme_miktari)
+                data.sut_no = f"{batch_no}{pack:04d}"
+                formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
+                send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
+
+        if remainder_qty > 0:
+            data.qty = format_kta_label_qty(remainder_qty)
+            data.sut_no = f"{batch_no}{num_packs + 1:04d}"
+            formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
+            send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
     data.delete()
 
@@ -589,6 +614,69 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
         return None
 
     return batch_no
+
+
+def get_base_batch_from_work_order(work_order):
+    if not work_order:
+        return None
+
+    base_batches = frappe.get_all(
+        "Batch",
+        filters={"reference_doctype": DOCTYPE_WORK_ORDER, "reference_name": work_order},
+        pluck="name",
+        order_by="creation asc",
+        limit_page_length=1,
+    )
+
+    if base_batches:
+        return base_batches[0]
+
+    return None
+
+
+def split_manufacturing_batches(stock_entry):
+    doc = stock_entry
+    if isinstance(stock_entry, str):
+        doc = frappe.get_doc(DOCTYPE_STOCK_ENTRY, stock_entry)
+
+    if not doc or doc.doctype != DOCTYPE_STOCK_ENTRY:
+        return
+
+    if doc.get("purpose") != "Manufacture":
+        return
+
+    packaging_cache = {}
+    for row in doc.get("items", []):
+        if not row.get(FIELD_IS_FINISHED_ITEM):
+            continue
+
+        bundle_name = row.get("serial_and_batch_bundle")
+        if not bundle_name:
+            continue
+
+        base_entry = _get_single_inward_batch_entry(bundle_name)
+        if not base_entry or not base_entry.get(FIELD_BATCH_NO):
+            continue
+
+        split_qty = packaging_cache.get(row.item_code)
+        if split_qty is None:
+            split_qty = _get_customer_packaging_qty(row.item_code)
+            packaging_cache[row.item_code] = split_qty
+
+        if not split_qty:
+            continue
+
+        allocations = _prepare_manufacturing_batch_allocations(
+            row=row,
+            stock_entry=doc,
+            base_batch_number=base_entry.get(FIELD_BATCH_NO),
+            split_qty=split_qty,
+        )
+
+        if not allocations:
+            continue
+
+        _update_serial_and_batch_bundle_entries(row, allocations)
 
 
 @frappe.whitelist()
