@@ -800,20 +800,6 @@ def get_base_batch_from_work_order(work_order):
 
 
 def split_manufacturing_batches(stock_entry):
-    """
-    Manufacturing Stock Entry için batch'leri paketleme miktarına göre böler.
-    Daha önce oluşturulmuş batch'lerin devamından sequence numarası verir.
-    
-    Örnek:
-    - İş emri base batch: 3506381
-    - İlk üretim: 150 adet -> 35063810001-35063810006 (6 paket)
-    - İkinci üretim: 50 adet -> 35063810007-35063810008 (2 paket)
-    """
-    if stock_entry.flags.in_split_process:
-        return
-    
-    stock_entry.flags.in_split_process = True
-
     doc = stock_entry
     if isinstance(stock_entry, str):
         doc = frappe.get_doc(DOCTYPE_STOCK_ENTRY, stock_entry)
@@ -837,14 +823,6 @@ def split_manufacturing_batches(stock_entry):
         if not base_entry or not base_entry.get(FIELD_BATCH_NO):
             continue
 
-        # Base batch numarasını al ve prefix'ini bul
-        # Örnek: 3506381 -> 3506381, 35063810001 -> 3506381
-        base_batch = base_entry.get(FIELD_BATCH_NO)
-        base_batch_prefix = base_entry.get(FIELD_BATCH_NO)
-        if not base_batch_prefix:
-            base_batch_prefix = base_batch
-
-        # Paketleme miktarını cache'den al veya DB'den oku
         split_qty = packaging_cache.get(row.item_code)
         if split_qty is None:
             split_qty = _get_customer_packaging_qty(row.item_code)
@@ -853,19 +831,17 @@ def split_manufacturing_batches(stock_entry):
         if not split_qty:
             continue
 
-        # Yeni batch allocation'ları hazırla (devam eden sequence'den)
-        allocations = _prepare_batch_allocations(
+        allocations = _prepare_manufacturing_batch_allocations(
             row=row,
-            base_source_doc=doc,
-            base_batch_number=base_batch_prefix,
-            is_manufacturing=True
+            stock_entry=doc,
+            base_batch_number=base_entry.get(FIELD_BATCH_NO),
+            split_qty=split_qty,
         )
 
         if not allocations:
             continue
 
-        # Bundle'ı yeni batch'lerle güncelle
-        _update_bundle_safely(row, allocations)
+        _update_serial_and_batch_bundle_entries(row, allocations)
 
 
 @frappe.whitelist()
