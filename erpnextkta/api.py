@@ -1151,6 +1151,24 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
     return batch_no
 
 
+def get_base_batch_from_work_order(work_order):
+    if not work_order:
+        return None
+
+    base_batches = frappe.get_all(
+        "Batch",
+        filters={"reference_doctype": DOCTYPE_WORK_ORDER, "reference_name": work_order},
+        pluck="name",
+        order_by="creation asc",
+        limit_page_length=1,
+    )
+
+    if base_batches:
+        return base_batches[0]
+
+    return None
+
+
 def split_manufacturing_batches(stock_entry):
     doc = stock_entry
     if isinstance(stock_entry, str):
