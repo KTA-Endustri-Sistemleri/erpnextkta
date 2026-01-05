@@ -89,6 +89,10 @@ app_include_js = ["assets/erpnextkta/js/stock_entry_get_items_from_calisma_karti
 # before_install = "erpnextkta.install.before_install"
 # after_install = "erpnextkta.install.after_install"
 
+after_migrate = [
+    "erpnextkta.overrides.apply",
+]
+
 # Uninstallation
 # ------------
 
@@ -138,7 +142,9 @@ override_doctype_class = {
     "Quality Inspection": "erpnextkta.overrides.KTAQualityInspection.KTAQualityInspection",
     "BOM": "erpnextkta.overrides.KTAbom.KTAbom",
     "Purchase Order": "erpnextkta.overrides.KTAPurchaseOrder.KTAPurchaseOrder",
-    "Stock Reconciliation": "erpnextkta.overrides.stock_reconciliation.StockReconciliation"
+    "Stock Reconciliation": "erpnextkta.overrides.stock_reconciliation.StockReconciliation",
+    "Serial and Batch Bundle": "erpnextkta.overrides.serial_batch_bundle_doc.SerialandBatchBundle",
+    "Stock Entry": "erpnextkta.overrides.KTAStockEntry.KTAStockEntry",
 }
 doc_events = {
     "Kalite Kontrol": {
@@ -156,6 +162,9 @@ doc_events = {
     "Stock Entry": {
         "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
     },
+    "Serial and Batch Bundle": {
+        "before_insert": "erpnextkta.overrides.serial_batch_bundle.before_insert"
+    }
 }
 # Document Events
 # ---------------
@@ -281,7 +290,51 @@ fixtures = [
         "filters": [
             ["name", "like", "KTA%"]
         ]
-    }
+    },
+    {
+        "doctype": "Role Profile",
+        "filters": [
+            ["name", "like", "KTA%"]
+        ]
+    },
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            [
+                "name",
+                "in",
+                [
+                    "Print Settings-print_batch_no_barcodes",
+                    "Print Settings-print_serial_no_barcodes",
+                    "Stock Settings-serial_barcode_format",
+                    "Stock Settings-barcode_label_format",
+                    "Stock Settings-serial_and_batch_barcode_format",
+                    "Stock Settings-serial_barcode_labels_per_row",
+                    "Stock Settings-barcode_labels_per_row",
+                    "Stock Settings-serial_barcode_show_value",
+                    "Stock Settings-barcode_show_value",
+                    "Stock Settings-serial_barcode_show_item_info",
+                    "Stock Settings-barcode_show_item_info",
+                    "Stock Settings-serial_barcode_font",
+                    "Stock Settings-barcode_font_family",
+                    "Stock Settings-serial_barcode_font_size",
+                    "Stock Settings-barcode_font_size",
+                    "Stock Settings-serial_barcode_value_position",
+                    "Stock Settings-barcode_value_position",
+                    "Stock Settings-serial_barcode_width",
+                    "Stock Settings-barcode_width",
+                    "Stock Settings-serial_barcode_height",
+                    "Stock Settings-barcode_height",
+                    "Stock Settings-serial_barcode_color",
+                    "Stock Settings-barcode_color",
+                    "Stock Settings-serial_barcode_background",
+                    "Stock Settings-barcode_background_color",
+                    "Stock Settings-serial_barcode_quiet_zone",
+                    "Stock Settings-barcode_quiet_zone",
+                ],
+            ]
+        ],
+    },
 ]
 doctype_js = {
     "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",

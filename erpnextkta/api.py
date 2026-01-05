@@ -301,6 +301,7 @@ def print_kta_wo_label(work_order_details, stock_entry):
         destination_warehouse = stock_entry_detail_doc.get(FIELD_T_WAREHOUSE)
 
     batch_no = get_batch_from_stock_entry_detail(stock_entry_detail_doc)
+    base_batch_no = get_base_batch_from_work_order(work_order_details.get(FIELD_WORK_ORDER)) or batch_no
 
     # Construct data
     data = frappe.get_doc({
@@ -315,29 +316,53 @@ def print_kta_wo_label(work_order_details, stock_entry):
         'gr_source_warehouse': source_warehouse,
         FIELD_TO_WAREHOUSE: destination_warehouse,
         FIELD_STOCK_UOM: work_order_details.get(FIELD_STOCK_UOM),
-        FIELD_BATCH_NO: batch_no
+        FIELD_BATCH_NO: base_batch_no
     })
-
-    musteri_paketleme_miktari = work_order_details.get("musteri_paketleme_miktari")
-    num_packs = frappe.cint(stock_entry_detail_doc.get(FIELD_QTY) // musteri_paketleme_miktari)
-    remainder_qty = stock_entry_detail_doc.get(FIELD_QTY) % musteri_paketleme_miktari
 
     zebra_printer = get_zebra_printer_for_user()
     zebra_ip_address = zebra_printer.get("ip")
     zebra_port = zebra_printer.get("port")
 
-    if num_packs >= 1:
-        for pack in range(1, num_packs + 1):
-            data.qty = format_kta_label_qty(musteri_paketleme_miktari)
-            data.sut_no = f"{batch_no}{pack:04d}"
+    batch_entries = []
+    if stock_entry_detail_doc.get("serial_and_batch_bundle"):
+        batch_entries = frappe.get_all(
+            DOCTYPE_SERIAL_AND_BATCH_ENTRY,
+            filters={
+                FIELD_PARENT: stock_entry_detail_doc.get("serial_and_batch_bundle"),
+                FIELD_PARENTTYPE: DOCTYPE_SERIAL_AND_BATCH_BUNDLE,
+                FIELD_PARENTFIELD: VALUE_ENTRIES,
+                FIELD_IS_OUTWARD: 0,
+                FIELD_DOCSTATUS: 1,
+                FIELD_BATCH_NO: ["is", "set"],
+            },
+            fields=[FIELD_BATCH_NO, FIELD_QTY],
+            order_by="idx asc",
+        )
+
+    if batch_entries:
+        for entry in batch_entries:
+            data.qty = format_kta_label_qty(entry.get(FIELD_QTY))
+            data.batch_no = base_batch_no
+            data.sut_no = entry.get(FIELD_BATCH_NO)
             formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
             send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
+    else:
+        musteri_paketleme_miktari = work_order_details.get("musteri_paketleme_miktari")
+        num_packs = frappe.cint(stock_entry_detail_doc.get(FIELD_QTY) // musteri_paketleme_miktari)
+        remainder_qty = stock_entry_detail_doc.get(FIELD_QTY) % musteri_paketleme_miktari
 
-    if remainder_qty > 0:
-        data.qty = format_kta_label_qty(remainder_qty)
-        data.sut_no = f"{batch_no}{num_packs + 1:04d}"
-        formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
-        send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
+        if num_packs >= 1:
+            for pack in range(1, num_packs + 1):
+                data.qty = format_kta_label_qty(musteri_paketleme_miktari)
+                data.sut_no = f"{batch_no}{pack:04d}"
+                formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
+                send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
+
+        if remainder_qty > 0:
+            data.qty = format_kta_label_qty(remainder_qty)
+            data.sut_no = f"{batch_no}{num_packs + 1:04d}"
+            formatted_data = zebra_formatter(DOCTYPE_KTA_IS_EMRI_ETIKETLERI, data)
+            send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
     data.delete()
 
@@ -360,32 +385,78 @@ def zebra_formatter(doctype_name, data):
 
 
 def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
-    if row.serial_and_batch_bundle:
+    if not row:
+        return
+
+    # Allow callers that only provide a row name to re-fetch the document
+    if not row.serial_and_batch_bundle and row.get("name"):
+        row = frappe.get_doc(row.doctype, row.name)
+
+    if not row.serial_and_batch_bundle:
+        return
+
+    # Only operate on Purchase Receipt Item rows so other Stock Entry types remain untouched
+    row_doctype = getattr(row, "doctype", None)
+    parenttype = getattr(row, "parenttype", None)
+    parent = getattr(row, "parent", None)
+
+    if row_doctype != "Purchase Receipt Item":
+        return
+
+    if parenttype and parenttype != "Purchase Receipt":
+        return
+
+    if not parent:
+        return
+
+    row_batch_number = frappe.db.get_value(
+        doctype=DOCTYPE_SERIAL_AND_BATCH_ENTRY,
+        filters={
+            FIELD_PARENT: row.serial_and_batch_bundle,
+            FIELD_PARENTTYPE: DOCTYPE_SERIAL_AND_BATCH_BUNDLE,
+            FIELD_IS_OUTWARD: 0,
+        },
+        fieldname=FIELD_BATCH_NO,
+    )
+
+    if not row_batch_number:
         row_batch_number = frappe.db.get_value(
-            doctype=DOCTYPE_SERIAL_AND_BATCH_ENTRY,
-            filters={FIELD_PARENT: row.serial_and_batch_bundle},
-            fieldname=FIELD_BATCH_NO
+            doctype="Batch",
+            filters={
+                "reference_doctype": row.parenttype or "Purchase Receipt",
+                "reference_name": row.parent,
+                "item": row.item_code,
+            },
+            fieldname="name",
         )
 
-        if not row_batch_number:
-            frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
+    if not row_batch_number:
+        frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
 
-        if row.custom_do_not_split == 0:
-            split_qty = row.custom_split_qty
-            num_packs = frappe.cint(row.stock_qty // split_qty)
-            remainder_qty = row.stock_qty % split_qty
+    try:
+        purchase_receipt = frappe.get_doc("Purchase Receipt", parent)
+    except frappe.DoesNotExistError:
+        # Parent is not a Purchase Receipt; skip so other stock entry types are unaffected
+        return
 
-            if num_packs >= 1:
-                for pack in range(1, num_packs + 1):
-                    custom_create_packages(row, row_batch_number, split_qty, pack, q_ref)
+    batch_allocations = _prepare_batch_allocations(row, purchase_receipt, row_batch_number)
 
-            if remainder_qty > 0:
-                custom_create_packages(row, row_batch_number, remainder_qty, num_packs + 1, q_ref)
-        elif row.custom_do_not_split == 1:
-            custom_create_packages(row, row_batch_number, row.stock_qty, 0, q_ref)
+    if not batch_allocations:
+        return
+
+    _update_serial_and_batch_bundle_entries(row, batch_allocations)
+
+    for allocation in batch_allocations:
+        custom_create_packages(
+            row=row,
+            batch_no=allocation["batch_no"],
+            qty=allocation["qty"],
+            sut_code=allocation["sut_code"],
+            q_ref=q_ref,
+        )
 
 
-def custom_create_packages(row, batch_no, qty, pack_no, q_ref):
+def custom_create_packages(row, batch_no, qty, sut_code, q_ref):
     etiket_item_group = frappe.db.get_value(DOCTYPE_ITEM, row.item_code, FIELD_ITEM_GROUP)
     purchase_receipt = frappe.get_doc("Purchase Receipt", row.parent)
 
@@ -399,7 +470,7 @@ def custom_create_packages(row, batch_no, qty, pack_no, q_ref):
             batch=batch_no,
             gr_posting_date=purchase_receipt.get(FIELD_POSTING_DATE),
             item_code=row.item_code,
-            sut_barcode=f"{batch_no}{pack_no:04d}",
+            sut_barcode=sut_code,
             item_name=row.item_name,
             item_group=etiket_item_group,
             quality_ref=q_ref,
@@ -408,6 +479,214 @@ def custom_create_packages(row, batch_no, qty, pack_no, q_ref):
     )
     etiket.insert()
     frappe.db.commit()
+
+
+def _prepare_batch_allocations(row, purchase_receipt, base_batch_number):
+    qty = flt(row.stock_qty or 0)
+    if not qty:
+        return []
+
+    if row.custom_do_not_split:
+        sut_code = f"{base_batch_number}{0:04d}"
+        return [
+            {
+                "batch_no": base_batch_number,
+                "qty": qty,
+                "sut_code": sut_code,
+                "pack_no": 0,
+            }
+        ]
+
+    split_qty = flt(row.custom_split_qty or 0)
+    if split_qty <= 0:
+        frappe.throw(f"Row {row.idx}: custom_split_qty must be a positive number for {row.item_code}.")
+
+    num_packs = cint(qty // split_qty)
+    remainder_qty = qty % split_qty
+    allocations = []
+
+    for pack in range(1, num_packs + 1):
+        batch_no = _create_split_batch(row, purchase_receipt, base_batch_number, pack)
+        allocations.append(
+            {
+                "batch_no": batch_no,
+                "qty": split_qty,
+                "sut_code": f"{base_batch_number}{pack:04d}",
+                "pack_no": pack,
+            }
+        )
+
+    if remainder_qty > 0:
+        pack = num_packs + 1
+        batch_no = _create_split_batch(row, purchase_receipt, base_batch_number, pack)
+        allocations.append(
+            {
+                "batch_no": batch_no,
+                "qty": remainder_qty,
+                "sut_code": f"{base_batch_number}{pack:04d}",
+                "pack_no": pack,
+            }
+        )
+
+    return allocations
+
+
+def _create_split_batch(row, purchase_receipt, base_batch_number, pack_no):
+    batch_id = None
+    if base_batch_number:
+        batch_id = f"{base_batch_number}{pack_no:04d}"
+        if frappe.db.exists("Batch", batch_id):
+            batch_id = None
+
+    batch_doc = frappe.get_doc(
+        {
+            "doctype": "Batch",
+            "item": row.item_code,
+            "supplier": purchase_receipt.get("supplier"),
+            "reference_doctype": row.parenttype or "Purchase Receipt",
+            "reference_name": row.parent,
+            "manufacturing_date": row.get("manufacturing_date") or purchase_receipt.get(FIELD_POSTING_DATE),
+            "expiry_date": row.get("expiry_date"),
+            "stock_uom": row.get("stock_uom"),
+            "description": row.get("description"),
+        }
+    )
+
+    if batch_id:
+        batch_doc.batch_id = batch_id
+
+    batch_doc.flags.ignore_permissions = True
+    batch_doc.insert()
+    return batch_doc.name
+
+
+def _update_serial_and_batch_bundle_entries(row, allocations):
+    if not allocations:
+        return
+
+    bundle_doc = frappe.get_doc(DOCTYPE_SERIAL_AND_BATCH_BUNDLE, row.serial_and_batch_bundle)
+    bundle_doc.flags.ignore_validate = True
+    bundle_doc.flags.ignore_validate_update_after_submit = True
+    bundle_doc.flags.ignore_permissions = True
+    bundle_doc.set("entries", [])
+
+    warehouse = (
+        row.get(FIELD_WAREHOUSE)
+        or row.get(FIELD_T_WAREHOUSE)
+        or row.get(FIELD_S_WAREHOUSE)
+    )
+
+    if not warehouse:
+        frappe.throw(
+            _(
+                "Could not determine warehouse for Stock Entry Detail {0}. "
+                "Ensure either `warehouse`, `t_warehouse`, or `s_warehouse` is set."
+            ).format(row.name)
+        )
+
+    total_qty = 0
+    for allocation in allocations:
+        total_qty += flt(allocation["qty"])
+        bundle_doc.append(
+            "entries",
+            {
+                "batch_no": allocation["batch_no"],
+                "qty": allocation["qty"],
+                "warehouse": warehouse,
+                "is_outward": 0,
+            },
+        )
+
+    bundle_doc.total_qty = total_qty
+    bundle_doc.save()
+
+
+def _get_single_inward_batch_entry(bundle_name):
+    entries = frappe.get_all(
+        DOCTYPE_SERIAL_AND_BATCH_ENTRY,
+        filters={
+            FIELD_PARENT: bundle_name,
+            FIELD_PARENTTYPE: DOCTYPE_SERIAL_AND_BATCH_BUNDLE,
+            FIELD_IS_OUTWARD: 0,
+        },
+        fields=[FIELD_BATCH_NO, FIELD_QTY],
+        order_by="idx asc",
+    )
+
+    if len(entries) != 1:
+        return None
+
+    return entries[0]
+
+
+def _get_customer_packaging_qty(item_code):
+    result = frappe.get_all(
+        DOCTYPE_ITEM_CUSTOMER_DETAIL,
+        filters={
+            FIELD_PARENT: item_code,
+            FIELD_PARENTTYPE: DOCTYPE_ITEM,
+            FIELD_PARENTFIELD: VALUE_CUSTOMER_ITEMS,
+        },
+        fields=[f"max({FIELD_CUSTOM_MUSTERI_PAKETLEME_MIKTARI}) as packaging_qty"],
+        limit=1,
+    )
+
+    if not result:
+        return 0
+
+    return flt(result[0].packaging_qty or 0)
+
+
+def _prepare_manufacturing_batch_allocations(row, stock_entry, base_batch_number, split_qty):
+    if not split_qty or split_qty <= 0:
+        return []
+
+    qty = flt(row.get("transfer_qty") or row.get("qty") or row.get("stock_qty") or 0)
+    if qty <= 0:
+        return []
+
+    allocations = []
+    num_packs = cint(qty // split_qty)
+    remainder_qty = qty % split_qty
+
+    for pack in range(1, num_packs + 1):
+        batch_no = _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack)
+        allocations.append({"batch_no": batch_no, "qty": split_qty})
+
+    if remainder_qty > 0:
+        pack = num_packs + 1
+        batch_no = _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack)
+        allocations.append({"batch_no": batch_no, "qty": remainder_qty})
+
+    return allocations
+
+
+def _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack_no):
+    batch_id = None
+    if base_batch_number:
+        candidate = f"{base_batch_number}{pack_no:04d}"
+        if not frappe.db.exists("Batch", candidate):
+            batch_id = candidate
+
+    batch_doc = frappe.get_doc(
+        {
+            "doctype": "Batch",
+            "item": row.item_code,
+            "reference_doctype": stock_entry.doctype,
+            "reference_name": stock_entry.name,
+            "manufacturing_date": stock_entry.get(FIELD_POSTING_DATE),
+            "expiry_date": row.get("expiry_date"),
+            "stock_uom": row.get("stock_uom"),
+            "description": row.get("description"),
+        }
+    )
+
+    if batch_id:
+        batch_doc.batch_id = batch_id
+
+    batch_doc.flags.ignore_permissions = True
+    batch_doc.insert()
+    return batch_doc.name
 
 
 def get_zebra_printer_for_user():
@@ -457,6 +736,69 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
         return None
 
     return batch_no
+
+
+def get_base_batch_from_work_order(work_order):
+    if not work_order:
+        return None
+
+    base_batches = frappe.get_all(
+        "Batch",
+        filters={"reference_doctype": DOCTYPE_WORK_ORDER, "reference_name": work_order},
+        pluck="name",
+        order_by="creation asc",
+        limit_page_length=1,
+    )
+
+    if base_batches:
+        return base_batches[0]
+
+    return None
+
+
+def split_manufacturing_batches(stock_entry):
+    doc = stock_entry
+    if isinstance(stock_entry, str):
+        doc = frappe.get_doc(DOCTYPE_STOCK_ENTRY, stock_entry)
+
+    if not doc or doc.doctype != DOCTYPE_STOCK_ENTRY:
+        return
+
+    if doc.get("purpose") != "Manufacture":
+        return
+
+    packaging_cache = {}
+    for row in doc.get("items", []):
+        if not row.get(FIELD_IS_FINISHED_ITEM):
+            continue
+
+        bundle_name = row.get("serial_and_batch_bundle")
+        if not bundle_name:
+            continue
+
+        base_entry = _get_single_inward_batch_entry(bundle_name)
+        if not base_entry or not base_entry.get(FIELD_BATCH_NO):
+            continue
+
+        split_qty = packaging_cache.get(row.item_code)
+        if split_qty is None:
+            split_qty = _get_customer_packaging_qty(row.item_code)
+            packaging_cache[row.item_code] = split_qty
+
+        if not split_qty:
+            continue
+
+        allocations = _prepare_manufacturing_batch_allocations(
+            row=row,
+            stock_entry=doc,
+            base_batch_number=base_entry.get(FIELD_BATCH_NO),
+            split_qty=split_qty,
+        )
+
+        if not allocations:
+            continue
+
+        _update_serial_and_batch_bundle_entries(row, allocations)
 
 
 @frappe.whitelist()
