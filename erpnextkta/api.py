@@ -209,9 +209,11 @@ def print_split_kta_pr_labels(label=None):
     zebra_ip_address = zebra_printer.get("ip")
     zebra_port = zebra_printer.get("port")
 
+    base_batch = label_data.batch[:7] if label_data.batch and len(label_data.batch) > 7 else label_data.batch
     for split in splits:
         label_data.qty = format_kta_label_qty(split.qty)
-        label_data.sut_barcode = f"{label_data.batch}{split.idx:04d}"
+        label_data.batch = base_batch  # batch alanı ana bundle ID'si olarak sabitlenir
+        label_data.sut_barcode = f"{base_batch}{split.idx:04d}"
         formatted_data = zebra_formatter(DOCTYPE_KTA_DEPO_ETIKETLERI, label_data)
         send_data_to_zebra(formatted_data, zebra_ip_address, zebra_port)
 
