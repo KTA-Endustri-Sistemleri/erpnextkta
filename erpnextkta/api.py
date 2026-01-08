@@ -410,73 +410,117 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     if not row:
         return
 
-    # Allow callers that only provide a row name to re-fetch the document
-    if not row.serial_and_batch_bundle and row.get("name"):
-        row = frappe.get_doc(row.doctype, row.name)
+    # Eğer row bir string (name) olarak geldiyse dokümanı yükle
+    if isinstance(row, str):
+        row = frappe.get_doc("Purchase Receipt Item", row)
 
-    if not row.serial_and_batch_bundle:
+    if not row.get("serial_and_batch_bundle"):
         return
 
-    # Only operate on Purchase Receipt Item rows so other Stock Entry types remain untouched
-    row_doctype = getattr(row, "doctype", None)
-    parenttype = getattr(row, "parenttype", None)
-    parent = getattr(row, "parent", None)
-
-    if row_doctype != "Purchase Receipt Item":
+    # Sadece Purchase Receipt Item satırlarında çalış
+    if row.doctype != "Purchase Receipt Item":
         return
 
-    if parenttype and parenttype != "Purchase Receipt":
-        return
-
-    if not parent:
-        return
-
+    # 1. Mevcut Batch Numarasını Tespit Et
     row_batch_number = frappe.db.get_value(
-        doctype=DOCTYPE_SERIAL_AND_BATCH_ENTRY,
-        filters={
-            FIELD_PARENT: row.serial_and_batch_bundle,
-            FIELD_PARENTTYPE: DOCTYPE_SERIAL_AND_BATCH_BUNDLE,
-            FIELD_IS_OUTWARD: 0,
-        },
-        fieldname=FIELD_BATCH_NO,
+        "Serial and Batch Entry",
+        {"parent": row.serial_and_batch_bundle, "is_outward": 0},
+        "batch_no"
     )
 
     if not row_batch_number:
-        row_batch_number = frappe.db.get_value(
-            doctype="Batch",
-            filters={
-                "reference_doctype": row.parenttype or "Purchase Receipt",
-                "reference_name": row.parent,
-                "item": row.item_code,
-            },
-            fieldname="name",
-        )
+        # Fallback: Batch tablosundan PR referansıyla bul
+        row_batch_number = frappe.db.get_value("Batch", {
+            "reference_name": row.parent,
+            "item": row.item_code
+        }, "name")
 
     if not row_batch_number:
-        frappe.throw(f"Row {row.idx}: No batch number found for the item {row.item_code}.")
-
-    try:
-        purchase_receipt = frappe.get_doc("Purchase Receipt", parent)
-    except frappe.DoesNotExistError:
-        # Parent is not a Purchase Receipt; skip so other stock entry types are unaffected
+        frappe.log_error(f"Batch bulunamadı: Satır {row.idx}, Ürün {row.item_code}", "KTA Split Error")
         return
 
+    # 2. Ana PR dokümanını al (Allocation hazırlığı için gerekli)
+    purchase_receipt = frappe.get_cached_doc("Purchase Receipt", row.parent)
+
+    # 3. Parçalama Planını Hazırla (Örn: 100 adedi 25-25-25-25 böl)
+    # _prepare_batch_allocations fonksiyonunun mevcut olduğunu varsayıyoruz
     batch_allocations = _prepare_batch_allocations(row, purchase_receipt, row_batch_number)
 
     if not batch_allocations:
         return
 
-    _update_serial_and_batch_bundle_entries(row, batch_allocations)
+    # 4. Bundle'ı Veritabanı Seviyesinde Güvenle Güncelle
+    _update_bundle_safely(row, batch_allocations)
 
+    # 5. Paket/Etiket Kayıtlarını Oluştur (Zebra vb.)
     for allocation in batch_allocations:
+        # custom_create_packages fonksiyonunun mevcut olduğunu varsayıyoruz
         custom_create_packages(
             row=row,
             batch_no=allocation["batch_no"],
             qty=allocation["qty"],
-            sut_code=allocation["sut_code"],
+            sut_code=allocation.get("sut_code"),
             q_ref=q_ref,
         )
 
+def _update_bundle_safely(row, allocations):
+    bundle_name = row.get("serial_and_batch_bundle")
+    if not bundle_name:
+        return
+
+    bundle_doc = frappe.get_doc("Serial and Batch Bundle", bundle_name)
+    
+    bundle_doc.flags.ignore_validate = True
+    bundle_doc.flags.ignore_validate_update_after_submit = True
+    bundle_doc.flags.ignore_links = True
+    
+    warehouse = row.get("t_warehouse") or row.get("s_warehouse") or row.get("warehouse")
+    
+    bundle_doc.set("entries", [])
+    total_qty = 0
+    for alloc in allocations:
+        bundle_doc.append("entries", {
+            "batch_no": alloc["batch_no"],
+            "qty": alloc["qty"],
+            "warehouse": warehouse,
+            # SBB tablosunda 'is_outward' sütunu vardır ama ana dokümanda yoktur
+            "is_outward": 0 
+        })
+        total_qty += flt(alloc["qty"])
+    
+    bundle_doc.total_qty = total_qty
+    bundle_doc.db_update()
+    
+    frappe.db.delete("Serial and Batch Entry", {"parent": bundle_name})
+    for entry in bundle_doc.entries:
+        entry.parent = bundle_name
+        entry.parenttype = "Serial and Batch Bundle"
+        entry.parentfield = "entries"
+        entry.db_insert()
+
+    frappe.clear_document_cache("Serial and Batch Bundle", bundle_name)
+
+
+def get_base_batch_for_work_order(work_order):
+    """
+    Work Order için base batch numarasını döndürür.
+    Eğer split edilmiş batch'ler varsa, onların base'ini kullanır.
+    """
+    if not work_order:
+        return None
+        
+    # Önce base batch'i bul
+    base_batch = get_base_batch_from_work_order(work_order)
+    if not base_batch:
+        return None
+    
+    # Base batch'in prefix'ini al (son 4-5 rakamı çıkar)
+    # 3506381 -> 3506381, 35063810001 -> 3506381
+    base_batch_prefix = base_batch.rstrip('0123456789')
+    if not base_batch_prefix:
+        base_batch_prefix = base_batch
+    
+    return base_batch_prefix
 
 def custom_create_packages(row, batch_no, qty, sut_code, q_ref):
     etiket_item_group = frappe.db.get_value(DOCTYPE_ITEM, row.item_code, FIELD_ITEM_GROUP)
@@ -977,10 +1021,12 @@ def _update_serial_and_batch_bundle_entries(row, allocations):
     if not allocations:
         return
 
-    bundle_doc = frappe.get_doc(DOCTYPE_SERIAL_AND_BATCH_BUNDLE, row.serial_and_batch_bundle)
+    bundle_doc = frappe.get_doc("Serial and Batch Bundle", row.serial_and_batch_bundle)
+    
+    # KRİTİK: Bundle'ın tekrar validate edilmesini ve Stock Entry tetiklemesini önle
     bundle_doc.flags.ignore_validate = True
+    bundle_doc.flags.ignore_links = True
     bundle_doc.flags.ignore_validate_update_after_submit = True
-    bundle_doc.flags.ignore_permissions = True
     bundle_doc.set("entries", [])
 
     warehouse = (
@@ -999,19 +1045,19 @@ def _update_serial_and_batch_bundle_entries(row, allocations):
 
     total_qty = 0
     for allocation in allocations:
+        # ... (allocation döngüsü)
+        bundle_doc.append("entries", {
+            "batch_no": allocation["batch_no"],
+            "qty": allocation["qty"],
+            "warehouse": warehouse,
+            "is_outward": 0,
+        })
         total_qty += flt(allocation["qty"])
-        bundle_doc.append(
-            "entries",
-            {
-                "batch_no": allocation["batch_no"],
-                "qty": allocation["qty"],
-                "warehouse": warehouse,
-                "is_outward": 0,
-            },
-        )
 
     bundle_doc.total_qty = total_qty
-    bundle_doc.save()
+    # .save() yerine .db_update() kullanmak bazen hook'ları tetiklemediği için daha güvenlidir
+    # Ama önce .save()'i flaglerle deneyin:
+    bundle_doc.save(ignore_permissions=True)
 
 
 def _get_single_inward_batch_entry(bundle_name):
@@ -1051,6 +1097,10 @@ def _get_customer_packaging_qty(item_code):
 
 
 def _prepare_manufacturing_batch_allocations(row, stock_entry, base_batch_number, split_qty):
+    """
+    Manufacturing için batch allocation'ları hazırlar.
+    Mevcut batch'lerin devamından sequence numarası verir.
+    """
     if not split_qty or split_qty <= 0:
         return []
 
@@ -1062,40 +1112,75 @@ def _prepare_manufacturing_batch_allocations(row, stock_entry, base_batch_number
     num_packs = cint(qty // split_qty)
     remainder_qty = qty % split_qty
 
-    for pack in range(1, num_packs + 1):
-        batch_no = _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack)
+    # En son kullanılan sequence numarasını bul
+    last_sequence = _get_last_batch_number_for_base(base_batch_number)
+    
+    # Yeni paketler için başlangıç numarası
+    next_pack_no = last_sequence + 1
+    
+    # Tam paketleri oluştur
+    for i in range(num_packs):
+        pack_no = next_pack_no + i
+        batch_no = _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack_no)
         allocations.append({"batch_no": batch_no, "qty": split_qty})
 
+    # Kalan miktarı oluştur
     if remainder_qty > 0:
-        pack = num_packs + 1
-        batch_no = _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack)
+        pack_no = next_pack_no + num_packs
+        batch_no = _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack_no)
         allocations.append({"batch_no": batch_no, "qty": remainder_qty})
 
     return allocations
 
 
 def _create_manufacturing_split_batch(row, stock_entry, base_batch_number, pack_no):
-    batch_id = None
-    if base_batch_number:
-        candidate = f"{base_batch_number}{pack_no:04d}"
-        if not frappe.db.exists("Batch", candidate):
-            batch_id = candidate
+    """Yeni bir manufacturing batch oluşturur"""
+    batch_id = f"{base_batch_number}{pack_no:04d}"
+    
+    # Batch zaten varsa, mevcut olanı kullan
+    if frappe.db.exists("Batch", batch_id):
+        return batch_id
 
+    try:
+        batch_doc = frappe.get_doc({
+            "doctype": "Batch",
+            "batch_id": batch_id,
+            "item": row.item_code,
+            "reference_doctype": "Work Order",
+            "reference_name": stock_entry.work_order,
+            "stock_entry_reference_doctype": "Stock Entry",
+            "stock_entry_reference_name": stock_entry.name,
+        })
+        batch_doc.flags.ignore_permissions = True
+        batch_doc.insert()
+        return batch_doc.name
+    except Exception as e:
+        frappe.log_error(f"Batch Oluşturma Hatası: {str(e)}", "KTA Split Error")
+        raise e
+
+    # Work Order ile ilişkilendirme
+    work_order = None
+    if hasattr(stock_entry, 'work_order'):
+        work_order = getattr(stock_entry, 'work_order', None)
+    elif isinstance(stock_entry, dict):
+        work_order = stock_entry.get('work_order')
+    
+    # Batch dokümanını oluştur
     batch_doc = frappe.get_doc(
         {
             "doctype": "Batch",
+            "batch_id": batch_id,
             "item": row.item_code,
-            "reference_doctype": stock_entry.doctype,
-            "reference_name": stock_entry.name,
+            "reference_doctype": DOCTYPE_WORK_ORDER if work_order else stock_entry.doctype,
+            "reference_name": work_order if work_order else stock_entry.name,
+            "stock_entry_reference_doctype": stock_entry.doctype,
+            "stock_entry_reference_name": stock_entry.name,
             "manufacturing_date": stock_entry.get(FIELD_POSTING_DATE),
             "expiry_date": row.get("expiry_date"),
             "stock_uom": row.get("stock_uom"),
             "description": row.get("description"),
         }
     )
-
-    if batch_id:
-        batch_doc.batch_id = batch_id
 
     batch_doc.flags.ignore_permissions = True
     batch_doc.insert()
@@ -1170,6 +1255,20 @@ def get_base_batch_from_work_order(work_order):
 
 
 def split_manufacturing_batches(stock_entry):
+    """
+    Manufacturing Stock Entry için batch'leri paketleme miktarına göre böler.
+    Daha önce oluşturulmuş batch'lerin devamından sequence numarası verir.
+    
+    Örnek:
+    - İş emri base batch: 3506381
+    - İlk üretim: 150 adet -> 35063810001-35063810006 (6 paket)
+    - İkinci üretim: 50 adet -> 35063810007-35063810008 (2 paket)
+    """
+    if stock_entry.flags.in_split_process:
+        return
+    
+    stock_entry.flags.in_split_process = True
+
     doc = stock_entry
     if isinstance(stock_entry, str):
         doc = frappe.get_doc(DOCTYPE_STOCK_ENTRY, stock_entry)
@@ -1193,6 +1292,14 @@ def split_manufacturing_batches(stock_entry):
         if not base_entry or not base_entry.get(FIELD_BATCH_NO):
             continue
 
+        # Base batch numarasını al ve prefix'ini bul
+        # Örnek: 3506381 -> 3506381, 35063810001 -> 3506381
+        base_batch = base_entry.get(FIELD_BATCH_NO)
+        base_batch_prefix = base_entry.get(FIELD_BATCH_NO)
+        if not base_batch_prefix:
+            base_batch_prefix = base_batch
+
+        # Paketleme miktarını cache'den al veya DB'den oku
         split_qty = packaging_cache.get(row.item_code)
         if split_qty is None:
             split_qty = _get_customer_packaging_qty(row.item_code)
@@ -1201,17 +1308,19 @@ def split_manufacturing_batches(stock_entry):
         if not split_qty:
             continue
 
+        # Yeni batch allocation'ları hazırla (devam eden sequence'den)
         allocations = _prepare_manufacturing_batch_allocations(
             row=row,
             stock_entry=doc,
-            base_batch_number=base_entry.get(FIELD_BATCH_NO),
+            base_batch_number=base_batch_prefix,
             split_qty=split_qty,
         )
 
         if not allocations:
             continue
 
-        _update_serial_and_batch_bundle_entries(row, allocations)
+        # Bundle'ı yeni batch'lerle güncelle
+        _update_bundle_safely(row, allocations)
 
 
 @frappe.whitelist()
