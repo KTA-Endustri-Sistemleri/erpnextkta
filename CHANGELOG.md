@@ -3,6 +3,57 @@
 
 
 
+## 🚀 v0.8.3 (2026-01-08)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- batch_sut_creation
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- Fix/batch_sut_creation (#41)
+      
+    
+      
+      
+- Feat:batch sut creation (#40)
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.8.2 (2025-12-17)
 
 
