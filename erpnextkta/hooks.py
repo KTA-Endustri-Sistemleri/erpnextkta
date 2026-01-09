@@ -207,12 +207,12 @@ scheduler_events = {
 
 
 # App başlatıldığında çalışacak fonksiyonlar
-after_install = "erpnextkta.patches.apply_all_patches"
+# after_install = "erpnextkta.patches.apply_all_patches"
 
 # Her worker başladığında patch'leri uygula
 
 # Boot session'da patch'leri uygula
-boot_session = "erpnextkta.patches.apply_all_patches"
+# boot_session = "erpnextkta.patches.apply_all_patches"
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
