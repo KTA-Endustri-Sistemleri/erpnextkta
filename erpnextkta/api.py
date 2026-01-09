@@ -638,48 +638,6 @@ def _create_split_batch_record(row, parent_doc, base_batch_number, pack_no, is_m
     return batch_doc.name
 
 
-def _update_serial_and_batch_bundle_entries(row, allocations):
-    if not allocations:
-        return
-
-    bundle_doc = frappe.get_doc("Serial and Batch Bundle", row.serial_and_batch_bundle)
-    
-    # KRİTİK: Bundle'ın tekrar validate edilmesini ve Stock Entry tetiklemesini önle
-    bundle_doc.flags.ignore_validate = True
-    bundle_doc.flags.ignore_links = True
-    bundle_doc.flags.ignore_validate_update_after_submit = True
-    bundle_doc.set("entries", [])
-
-    warehouse = (
-        row.get(FIELD_WAREHOUSE)
-        or row.get(FIELD_T_WAREHOUSE)
-        or row.get(FIELD_S_WAREHOUSE)
-    )
-
-    if not warehouse:
-        frappe.throw(
-            _(
-                "Could not determine warehouse for Stock Entry Detail {0}. "
-                "Ensure either `warehouse`, `t_warehouse`, or `s_warehouse` is set."
-            ).format(row.name)
-        )
-
-    total_qty = 0
-    for allocation in allocations:
-        # ... (allocation döngüsü)
-        bundle_doc.append("entries", {
-            "batch_no": allocation["batch_no"],
-            "qty": allocation["qty"],
-            "warehouse": warehouse,
-            "is_outward": 0,
-        })
-        total_qty += flt(allocation["qty"])
-
-    bundle_doc.total_qty = total_qty
-    # .save() yerine .db_update() kullanmak bazen hook'ları tetiklemediği için daha güvenlidir
-    # Ama önce .save()'i flaglerle deneyin:
-    bundle_doc.save(ignore_permissions=True)
-
 
 def _get_single_inward_batch_entry(bundle_name):
     entries = frappe.get_all(
@@ -896,11 +854,11 @@ def split_manufacturing_batches(stock_entry):
             continue
 
         # Yeni batch allocation'ları hazırla (devam eden sequence'den)
-        allocations = _prepare_manufacturing_batch_allocations(
+        allocations = _prepare_batch_allocations(
             row=row,
-            stock_entry=doc,
+            base_source_doc=doc,
             base_batch_number=base_batch_prefix,
-            split_qty=split_qty,
+            is_manufacturing=True
         )
 
         if not allocations:
