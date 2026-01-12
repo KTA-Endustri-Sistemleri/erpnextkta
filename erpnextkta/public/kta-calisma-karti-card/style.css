@@ -1,0 +1,26 @@
+.ck-page{ padding:12px; }
+.ck-topbar{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+.ck-title{ font-weight:800; font-size:16px; }
+.ck-btn{ border:0; border-radius:10px; padding:10px 12px; font-weight:800; }
+.ck-btn--wide{ flex:1; }
+.ck-btn--primary{ background:#111; color:#fff; }
+.ck-btn--warning{ background:#f59e0b; color:#111; }
+.ck-btn--danger{ background:#ef4444; color:#fff; }
+.ck-btn--ghost{ background:rgba(0,0,0,.06); color:#111; }
+.ck-actionbar{ position:sticky; top:0; z-index:5; display:flex; gap:8px; padding:8px 0; background:#fff; }
+.ck-muted{ opacity:.75; font-size:12px; }
+.ck-empty{ opacity:.8; padding:16px 0; text-align:center; }
+.ck-card{ border:1px solid rgba(0,0,0,.08); border-radius:14px; padding:10px 12px; background:#fff; }
+.ck-row{ display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px dashed rgba(0,0,0,.06); }
+.ck-row:last-child{ border-bottom:0; }
+.ck-row span{ opacity:.75; font-size:12px; }
+.ck-row b{ font-weight:800; font-size:13px; text-align:right; }
+.ck-status{ margin:10px 0; }
+.ck-badge{ display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(0,0,0,.06); font-weight:800; font-size:12px; }
+.ck-sub{ margin-top:6px; opacity:.8; font-size:12px; }
+.ck-tabs{ display:flex; gap:8px; margin:10px 0; }
+.ck-tab{ flex:1; border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:10px 8px; font-weight:800; background:#fff; }
+.ck-tab.is-active{ background:#111; color:#fff; border-color:#111; }
+.ck-mini-list{ display:grid; gap:8px; }
+.ck-mini-item{ padding:8px 0; border-bottom:1px dashed rgba(0,0,0,.06); }
+.ck-mini-item:last-child{ border-bottom:0; }
