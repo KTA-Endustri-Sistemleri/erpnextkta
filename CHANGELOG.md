@@ -3,6 +3,283 @@
 
 
 
+## 🚀 v0.9.0 (2026-01-12)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- batch sut creation method monkey patching conversion to class overrides
+      
+      
+    
+      
+      
+        
+- batch sut creation method monkey patching conversion to class overrides
+      
+      
+    
+      
+      
+        
+- use_serial_batch_number field default value "0"
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- implement custom barcode routing and templates for print formats
+      
+      
+    
+      
+      
+        
+- enhance serial and batch bundle handling with automatic name generation and background job synchronization for sales orders
+      
+      
+    
+      
+      
+        
+- enhance batch processing and bundle name generation in KTA modules
+      
+      
+    
+      
+      
+        
+- enhance batch handling in KTAPurchaseReceipt with automatic batch creation and improved submission logic
+      
+      
+    
+      
+      
+        
+- improve batch splitting logic in KTAPurchaseReceipt with enhanced flag management and error handling
+      
+      
+    
+      
+      
+        
+- implement custom naming logic for Serial and Batch Bundle to reuse SUT prefix from Purchase Receipts
+      
+      
+    
+      
+      
+        
+- implement KTAStockEntry override to support manufacturing batch splitting in stock ledger updates
+      
+      
+    
+      
+      
+        
+- implement custom barcode routing and templates for print formats
+      
+      
+    
+      
+      
+        
+- enhance serial and batch bundle handling with automatic name generation and background job synchronization for sales orders
+      
+      
+    
+      
+      
+        
+- enhance batch processing and bundle name generation in KTA modules
+      
+      
+    
+      
+      
+        
+- enhance batch handling in KTAPurchaseReceipt with automatic batch creation and improved submission logic
+      
+      
+    
+      
+      
+        
+- improve batch splitting logic in KTAPurchaseReceipt with enhanced flag management and error handling
+      
+      
+    
+      
+      
+        
+- implement KTAStockEntry override to support manufacturing batch splitting in stock ledger updates
+      
+      
+    
+      
+      
+        
+- implement custom naming logic for Serial and Batch Bundle to reuse SUT prefix from Purchase Receipts
+      
+      
+    
+      
+      
+        
+- implement batch handling and validation for manufacturing processes
+      
+      
+    
+      
+      
+        
+- enhance serial and batch bundle handling with automatic name generation and background job synchronization for sales orders
+      
+      
+    
+      
+      
+        
+- enhance batch processing and bundle name generation in KTA modules
+      
+      
+    
+      
+      
+        
+- enhance batch handling in KTAPurchaseReceipt with automatic batch creation and improved submission logic
+      
+      
+    
+      
+      
+        
+- improve batch splitting logic in KTAPurchaseReceipt with enhanced flag management and error handling
+      
+      
+    
+      
+      
+        
+- implement custom naming logic for Serial and Batch Bundle to reuse SUT prefix from Purchase Receipts
+      
+      
+    
+      
+      
+        
+- implement KTAStockEntry override to support manufacturing batch splitting in stock ledger updates
+      
+      
+    
+      
+      
+        
+- enhance serial and batch bundle handling with automatic name generation and background job synchronization for sales orders
+      
+      
+    
+      
+      
+        
+- enhance batch processing and bundle name generation in KTA modules
+      
+      
+    
+      
+      
+        
+- enhance batch handling in KTAPurchaseReceipt with automatic batch creation and improved submission logic
+      
+      
+    
+      
+      
+        
+- improve batch splitting logic in KTAPurchaseReceipt with enhanced flag management and error handling
+      
+      
+    
+      
+      
+        
+- implement custom naming logic for Serial and Batch Bundle to reuse SUT prefix from Purchase Receipts
+      
+      
+    
+      
+      
+        
+- implement KTAStockEntry override to support manufacturing batch splitting in stock ledger updates
+      
+      
+    
+      
+      
+        
+- implement batch handling and validation for manufacturing processes
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- batch sut creation code cleanup
+      
+      
+    
+      
+      
+        
+- remove before_insert event for Serial and Batch Bundle in Stock Entry validation
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.8.3 (2026-01-08)
 
 
