@@ -116,9 +116,9 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             batch_doc.insert()
             needs_batch = batch_doc.name
 
-        updates = {"batch_no": needs_batch, "use_serial_batch_fields": 1}
+        updates = {"batch_no": needs_batch, "use_serial_batch_fields": 0}
         row.batch_no = needs_batch
-        row.use_serial_batch_fields = 1
+        row.use_serial_batch_fields = 0
         row.db_set(updates, commit=False)
 
     def update_stock_ledger(self, allow_negative_stock=False, via_landed_cost_voucher=False):
