@@ -1,20 +1,82 @@
+# English comments as requested
+
 from __future__ import annotations
+
 import frappe
 from frappe import _
 
-def _get_my_employee() -> str:
-    """Resolve current user's Employee.name via Employee.user_id."""
+
+def _is_system_manager() -> bool:
+    """Return True if current user has System Manager role."""
+    return "System Manager" in (frappe.get_roles(frappe.session.user) or [])
+
+
+def _get_my_employee_or_none() -> str | None:
+    """
+    Try to resolve current user's Employee.name robustly.
+
+    Common mappings in the wild:
+    - Employee.user_id == frappe.session.user
+    - Employee.company_email / personal_email == frappe.session.user
+    """
     user = frappe.session.user
-    emp = frappe.db.get_value("Employee", {"user_id": user}, "name")
-    if not emp:
-        frappe.throw(_("Bu kullanıcı için Employee kaydı bulunamadı. (Employee.user_id)"))
-    return emp
+
+    # Try common fields in order
+    candidates = [
+        ("user_id", user),
+        ("company_email", user),
+        ("personal_email", user),
+    ]
+
+    for field, value in candidates:
+        # Skip if column doesn't exist in this schema
+        try:
+            cols = frappe.db.get_table_columns("Employee") or []
+        except Exception:
+            cols = []
+        if field not in cols:
+            continue
+
+        emp = frappe.db.get_value("Employee", {field: value}, "name")
+        if emp:
+            return emp
+
+    return None
 
 
 @frappe.whitelist()
 def get_my_calisma_kartlari():
-    """Return Calisma Karti list assigned to current user (operator=Employee)."""
-    emp = _get_my_employee()
+    """
+    Return cards for current user.
+    - If System Manager: return all cards (still respects doctype permissions).
+    - Else: filter by operator = current user's Employee.
+    """
+    if _is_system_manager():
+        return frappe.get_all(
+            "Calisma Karti",
+            fields=[
+                "name",
+                "custom_work_order",
+                "is_karti",
+                "operasyon",
+                "urun_kodu",
+                "is_istasyonu",
+                "operator",
+                "durum",
+                "baslangic_saati",
+                "bitis_saati",
+                "modified",
+            ],
+            order_by="modified desc",
+            limit_page_length=200,
+        )
+
+    emp = _get_my_employee_or_none()
+    if not emp:
+        # Better error message with user context
+        frappe.throw(
+            _("Employee eşleşmesi bulunamadı. Lütfen Employee kayıtlarında user_id / company_email / personal_email alanlarını kontrol edin. User: {0}").format(frappe.session.user)
+        )
 
     return frappe.get_all(
         "Calisma Karti",
@@ -26,6 +88,7 @@ def get_my_calisma_kartlari():
             "operasyon",
             "urun_kodu",
             "is_istasyonu",
+            "operator",
             "durum",
             "baslangic_saati",
             "bitis_saati",
@@ -36,21 +99,36 @@ def get_my_calisma_kartlari():
     )
 
 
+def _first_child_table(doc, candidates: list[str]) -> list[dict]:
+    """Return first existing child table from candidate fieldnames."""
+    for fn in candidates:
+        rows = doc.get(fn)
+        if rows:
+            return [r.as_dict() for r in rows]
+    return []
+
+
 @frappe.whitelist()
 def get_calisma_karti_detail(name: str):
     """
-    Return detail payload for Vue UI (includes child tables).
-    Child table fieldnames in your doctype:
-      - hurdalar (Calisma Karti Hurda)
-      - duruslar (Operasyon Duruslari)
+    Return detail payload for Vue UI.
+    - If System Manager: allow any card
+    - Else: only allow if operator == current user's Employee
     """
-    emp = _get_my_employee()
-
     doc = frappe.get_doc("Calisma Karti", name)
     doc.check_permission("read")
 
-    if doc.operator != emp:
-        frappe.throw(_("Bu çalışma kartını görüntüleme yetkiniz yok."), frappe.PermissionError)
+    if not _is_system_manager():
+        emp = _get_my_employee_or_none()
+        if not emp:
+            frappe.throw(
+                _("Employee eşleşmesi bulunamadı. Lütfen Employee kayıtlarında user_id / company_email / personal_email alanlarını kontrol edin. User: {0}").format(frappe.session.user)
+            )
+        if doc.operator != emp:
+            frappe.throw(_("Bu çalışma kartını görüntüleme yetkiniz yok."), frappe.PermissionError)
+
+    hurdalar = _first_child_table(doc, ["hurdalar", "hurda", "calisma_karti_hurda"])
+    duruslar = _first_child_table(doc, ["duruslar", "durus", "operasyon_duruslari"])
 
     return {
         "name": doc.name,
@@ -63,9 +141,10 @@ def get_calisma_karti_detail(name: str):
         "durum": doc.durum,
         "baslangic_saati": doc.baslangic_saati,
         "bitis_saati": doc.bitis_saati,
-        "hurdalar": [r.as_dict() for r in (doc.get("hurdalar") or [])],
-        "duruslar": [r.as_dict() for r in (doc.get("duruslar") or [])],
+        "hurdalar": hurdalar,
+        "duruslar": duruslar,
     }
+
 
 @frappe.whitelist()
 def get_work_order_by_barcode(barcode: str):
