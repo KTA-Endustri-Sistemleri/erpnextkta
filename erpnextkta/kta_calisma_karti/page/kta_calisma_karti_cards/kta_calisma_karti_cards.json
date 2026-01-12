@@ -1,0 +1,8 @@
+{
+  "doctype": "Page",
+  "name": "kta-calisma-karti-cards",
+  "title": "Çalışma Kartlarım",
+  "module": "KTA Calisma Karti",
+  "standard": "Yes",
+  "icon": "octicon octicon-list-unordered"
+}
