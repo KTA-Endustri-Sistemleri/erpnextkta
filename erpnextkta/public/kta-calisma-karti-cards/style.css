@@ -1,0 +1,12 @@
+.ck-page{ padding:12px; }
+.ck-muted{ opacity:.75; font-size:12px; }
+.ck-empty{ opacity:.8; padding:16px 0; text-align:center; }
+.ck-error{ color:#b91c1c; font-weight:800; }
+.ck-list{ display:grid; gap:10px; }
+.ck-list-item{ text-align:left; border:1px solid rgba(0,0,0,.08); border-radius:14px; padding:10px 12px; background:#fff; }
+.ck-li-head{ display:flex; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.ck-li-name{ font-weight:800; font-size:13px; }
+.ck-li-status{ font-size:12px; opacity:.8; white-space:nowrap; }
+.ck-li-meta{ display:grid; gap:6px; }
+.ck-li-meta span{ font-size:11px; opacity:.75; display:block; }
+.ck-li-meta b{ font-size:13px; }
