@@ -21,6 +21,6 @@
 .ck-tabs{ display:flex; gap:8px; margin:10px 0; }
 .ck-tab{ flex:1; border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:10px 8px; font-weight:800; background:#fff; }
 .ck-tab.is-active{ background:#111; color:#fff; border-color:#111; }
-.ck-mini-list{ display:grid; gap:8px; }
-.ck-mini-item{ padding:8px 0; border-bottom:1px dashed rgba(0,0,0,.06); }
+.ck-mini-list{ display:grid; gap:10px; }
+.ck-mini-item{ padding:10px 0; border-bottom:1px dashed rgba(0,0,0,.06); }
 .ck-mini-item:last-child{ border-bottom:0; }
