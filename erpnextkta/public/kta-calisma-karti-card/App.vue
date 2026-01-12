@@ -127,8 +127,9 @@ onMounted(load);
         <div v-if="(doc.hurdalar||[]).length===0" class="ck-muted">Hurda kaydı yok.</div>
         <div v-else class="ck-mini-list">
           <div v-for="(h, i) in doc.hurdalar" :key="i" class="ck-mini-item">
-            <b>{{ h.item_code || h.hurda_kodu || ('Hurda #' + (i+1)) }}</b>
-            <div class="ck-muted">{{ h.qty || h.miktar || '-' }} {{ h.uom || '' }}</div>
+            <b>{{ h.parca_no || ('Hurda #' + (i+1)) }}</b>
+            <div class="ck-muted">{{ h.hurda_nedeni || "-" }}</div>
+            <div class="ck-muted">{{ h.miktar ?? "-" }} {{ h.birim || "" }}</div>
           </div>
         </div>
       </div>
@@ -137,10 +138,10 @@ onMounted(load);
         <div v-if="(doc.duruslar||[]).length===0" class="ck-muted">Duruş kaydı yok.</div>
         <div v-else class="ck-mini-list">
           <div v-for="(d, i) in doc.duruslar" :key="i" class="ck-mini-item">
-            <b>{{ d.durus_nedeni || d.reason || ('Duruş #' + (i+1)) }}</b>
-            <div class="ck-muted">
-              {{ d.durus_baslangic || '-' }} → {{ d.durus_bitis || 'Devam ediyor' }}
-            </div>
+            <b>{{ d.durus_nedeni || ('Duruş #' + (i+1)) }}</b>
+            <div class="ck-muted">{{ d.durus_baslangic || "-" }} → {{ d.durus_bitis || "Devam ediyor" }}</div>
+            <div class="ck-muted">Süre: {{ d.durus_suresi ?? "-" }} dk</div>
+            <div v-if="d.aciklama" class="ck-muted">{{ d.aciklama }}</div>
           </div>
         </div>
       </div>
