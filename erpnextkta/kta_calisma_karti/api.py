@@ -1,6 +1,71 @@
+from __future__ import annotations
 import frappe
 from frappe import _
 
+def _get_my_employee() -> str:
+    """Resolve current user's Employee.name via Employee.user_id."""
+    user = frappe.session.user
+    emp = frappe.db.get_value("Employee", {"user_id": user}, "name")
+    if not emp:
+        frappe.throw(_("Bu kullanıcı için Employee kaydı bulunamadı. (Employee.user_id)"))
+    return emp
+
+
+@frappe.whitelist()
+def get_my_calisma_kartlari():
+    """Return Calisma Karti list assigned to current user (operator=Employee)."""
+    emp = _get_my_employee()
+
+    return frappe.get_all(
+        "Calisma Karti",
+        filters={"operator": emp},
+        fields=[
+            "name",
+            "custom_work_order",
+            "is_karti",
+            "operasyon",
+            "urun_kodu",
+            "is_istasyonu",
+            "durum",
+            "baslangic_saati",
+            "bitis_saati",
+            "modified",
+        ],
+        order_by="modified desc",
+        limit_page_length=200,
+    )
+
+
+@frappe.whitelist()
+def get_calisma_karti_detail(name: str):
+    """
+    Return detail payload for Vue UI (includes child tables).
+    Child table fieldnames in your doctype:
+      - hurdalar (Calisma Karti Hurda)
+      - duruslar (Operasyon Duruslari)
+    """
+    emp = _get_my_employee()
+
+    doc = frappe.get_doc("Calisma Karti", name)
+    doc.check_permission("read")
+
+    if doc.operator != emp:
+        frappe.throw(_("Bu çalışma kartını görüntüleme yetkiniz yok."), frappe.PermissionError)
+
+    return {
+        "name": doc.name,
+        "custom_work_order": doc.custom_work_order,
+        "is_karti": doc.is_karti,
+        "operasyon": doc.operasyon,
+        "urun_kodu": doc.urun_kodu,
+        "is_istasyonu": doc.is_istasyonu,
+        "operator": doc.operator,
+        "durum": doc.durum,
+        "baslangic_saati": doc.baslangic_saati,
+        "bitis_saati": doc.bitis_saati,
+        "hurdalar": [r.as_dict() for r in (doc.get("hurdalar") or [])],
+        "duruslar": [r.as_dict() for r in (doc.get("duruslar") or [])],
+    }
 
 @frappe.whitelist()
 def get_work_order_by_barcode(barcode: str):
