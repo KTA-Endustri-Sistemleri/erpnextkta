@@ -23,6 +23,14 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         if errors:
             frappe.throw("\n".join(errors))
 
+    def before_insert(self):
+        for item in self.items:
+            item.use_serial_batch_fields = 0
+
+    def before_save(self):
+        for item in self.items:
+            item.use_serial_batch_fields = 0
+
     def validate_items_quality_inspection(self):
         if self.docstatus == DocStatus.cancelled() and self.is_return == 0:
             super().validate_items_quality_inspection()
@@ -108,9 +116,9 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             batch_doc.insert()
             needs_batch = batch_doc.name
 
-        updates = {"batch_no": needs_batch, "use_serial_batch_fields": 1}
+        updates = {"batch_no": needs_batch, "use_serial_batch_fields": 0}
         row.batch_no = needs_batch
-        row.use_serial_batch_fields = 1
+        row.use_serial_batch_fields = 0
         row.db_set(updates, commit=False)
 
     def update_stock_ledger(self, allow_negative_stock=False, via_landed_cost_voucher=False):
