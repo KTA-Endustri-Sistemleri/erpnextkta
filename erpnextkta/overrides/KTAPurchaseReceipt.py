@@ -48,13 +48,14 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             
             if exchange_rate:
                 self.conversion_rate = exchange_rate
+                # Sync Price List Conversion Rate if currencies match
+                if self.price_list_currency == self.currency:
+                    self.plc_conversion_rate = exchange_rate
         
-        # 2. Update Item Rates (Optional/Required based on "same situation" comment)
-        # If user wants to handle "price changing raw material", we should likely update item rates too.
+        # 2. Update Item Rates
         if self.items:
             for item in self.items:
                 # Recalculate base amounts based on new conversion rate
-                # Also try to fetch fresh price if logic dictates (User said "same situation ... for raw material")
                 
                 # Fetch fresh item details to catch price changes
                 args = {
@@ -65,23 +66,36 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                     "price_list_currency": self.price_list_currency,
                     "plc_conversion_rate": self.plc_conversion_rate,
                     "company": self.company,
-                    "transaction_date": self.posting_date,
+                    "transaction_date": self.posting_date, # Valid From/To check
                     "currency": self.currency,
                     "conversion_rate": self.conversion_rate,
                     "qty": item.qty,
-                    # "uom": item.uom, # sometimes causes issues if uom not matching
+                    # "uom": item.uom, 
                     "doctype": "Purchase Receipt",
                     "name": self.name,
                     "ignore_pricing_rule": 0
                 }
                 
                 try:
-                    # Only fetch if we suspect price might have changed or to align with DN logic
-                    # get_item_details might reset some user entered stuff, proceed with caution.
-                    # For PR, usually strictly based on PO unless "update price". 
-                    # But since we are bypassing "same as PO", we imply we want fresh prices.
                     details = get_item_details(args)
                     
+                    # Manual user-requested strict check for "Supplier" match in Item Price
+                    specific_price = frappe.db.sql("""
+                        SELECT price_list_rate, currency 
+                        FROM `tabItem Price` 
+                        WHERE item_code = %s 
+                        AND price_list = %s 
+                        AND supplier = %s
+                        AND valid_from <= %s 
+                        AND (valid_upto IS NULL OR valid_upto >= %s)
+                        ORDER BY valid_from DESC LIMIT 1
+                    """, (item.item_code, self.buying_price_list, self.supplier, self.posting_date, self.posting_date), as_dict=True)
+                    
+                    if specific_price:
+                        # Ensure we prioritize this rate
+                        if details:
+                             details["price_list_rate"] = specific_price[0].price_list_rate
+
                     if details:
                          # Update rate if found
                         if details.get("rate"):
