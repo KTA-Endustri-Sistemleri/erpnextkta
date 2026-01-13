@@ -161,6 +161,9 @@ doc_events = {
     },
     "Stock Entry": {
         "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
+    },
+    "Purchase Invoice": {
+        "validate": "erpnextkta.overrides.purchase_invoice.validate_purchase_invoice"
     }
 }
 # Document Events
@@ -203,6 +206,9 @@ scheduler_events = {
 
 # Overriding Methods
 # ------------------------------
+override_whitelisted_methods = {
+    "erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice": "erpnextkta.overrides.make_purchase_invoice.make_purchase_invoice"
+}
 
 
 
