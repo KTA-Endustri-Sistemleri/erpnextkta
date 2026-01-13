@@ -1,6 +1,5 @@
 import { createApp } from 'vue';
 import KTACalismaCardVue from './App.vue';
-import "./style.css";
 
 // A simple function to mount your Vue app
 function setup_vue(wrapper) {
