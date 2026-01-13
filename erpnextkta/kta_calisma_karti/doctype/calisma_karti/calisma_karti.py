@@ -166,7 +166,9 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
             frappe.throw("İşlem zaten bitmiş.")
         elif durum == "hazir":
             frappe.throw("Başlatılmamış bir işlem bitirilemez.")
-
+        # QC gate: must be approved to finish
+        if (doc.kalite_kontrol or "").strip() != "Onaylandı":
+            frappe.throw("Kalite kontrol onaylanmadan işlem bitirilemez.")
         # Business rule: must have completed qty > 0 to finish
         total_done = float(doc.tamamlanan_miktar or 0)
         if total_done <= 0:
