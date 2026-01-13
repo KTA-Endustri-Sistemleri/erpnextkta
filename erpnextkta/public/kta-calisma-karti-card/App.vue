@@ -1,47 +1,47 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 
+/**
+ * State machine:
+ * - ready   : baslangic_saati yok, bitis_saati yok  -> only Start
+ * - running : baslangic_saati var, open stop yok    -> Stop + Finish
+ * - paused  : open stop var                         -> Resume + Finish
+ * - finished: bitis_saati var                       -> no actions
+ */
+
 const loading = ref(false);
 const doc = ref(null);
 const tab = ref("info"); // info | hurda | durus
+
+const HURDA_PARENT_COST_CENTER = "Malzeme Sarfları - KTA";
 
 const docname = computed(() => {
   const r = frappe.get_route(); // ["kta-calisma-karti-card", "<name>"]
   return r && r.length > 1 ? r[1] : null;
 });
 
-function getDurumFromDoc(d) {
-  const duruslar = d?.duruslar || [];
-  const aktifDurusVarMi = duruslar.some((x) => x?.durus_baslangic && !x?.durus_bitis);
-  if (d?.bitis_saati) return "bitmis";
-  if (!d?.baslangic_saati) return "hazir";
-  if (aktifDurusVarMi) return "durusta";
-  return "calisiyor";
-}
-
-const durum = computed(() => getDurumFromDoc(doc.value));
-const durumLabel = computed(() => ({
-  hazir: "Hazır",
-  calisiyor: "Çalışıyor",
-  durusta: "Duruşta",
-  bitmis: "Bitmiş",
-}[durum.value] || "-"));
+// --------------------
+// Load / API helpers
+// --------------------
 
 async function load() {
   if (!docname.value) return;
   loading.value = true;
   try {
-    const r = await frappe.call("erpnextkta.kta_calisma_karti.api.get_calisma_karti_detail", { name: docname.value });
+    const r = await frappe.call(
+      "erpnextkta.kta_calisma_karti.api.get_calisma_karti_detail",
+      { name: docname.value }
+    );
     doc.value = r.message || null;
   } finally {
     loading.value = false;
   }
 }
 
-async function callIslem(islem_tipi, durus_nedeni = null, aciklama = null) {
+async function callIslem(islem_tipi, durus_nedeni=null, aciklama=null, tamamlanan_miktar=null) {
   await frappe.call({
     method: "erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.islem_yap",
-    args: { docname: docname.value, islem_tipi, durus_nedeni, aciklama },
+    args: { docname: docname.value, islem_tipi, durus_nedeni, aciklama, tamamlanan_miktar, kalite_kontrol },
     freeze: true,
     freeze_message: "İşlem yapılıyor..."
   });
@@ -56,38 +56,220 @@ function openForm() {
   frappe.set_route("Form", "Calisma Karti", docname.value);
 }
 
+// --------------------
+// State / UI logic
+// --------------------
+
+function computeState(d) {
+  const duruslar = d?.duruslar || [];
+  const hasOpenStop = duruslar.some((x) => x?.durus_baslangic && !x?.durus_bitis);
+
+  if (d?.bitis_saati) return "finished";
+  if (!d?.baslangic_saati) return "ready";
+  if (hasOpenStop) return "paused";
+  return "running";
+}
+
+const state = computed(() => computeState(doc.value));
+
+const durumLabel = computed(() => ({
+  ready: "Hazır",
+  running: "Çalışıyor",
+  paused: "Duruşta",
+  finished: "Bitmiş",
+}[state.value] || "-"));
+
+const tamamlanan = computed(() => Number(doc.value?.tamamlanan_miktar || 0));
+
+// Buttons visibility
+const showStart  = computed(() => state.value === "ready");
+const showResume = computed(() => state.value === "paused");
+const showStop   = computed(() => state.value === "running");
+const showFinish = computed(() =>
+  (state.value === "running" || state.value === "paused") && tamamlanan.value > 0 && qcApproved.value
+);
+
+const statusClass = computed(() => ({
+  ready: "ck-status--ready",
+  running: "ck-status--running",
+  paused: "ck-status--paused",
+  finished: "ck-status--finished",
+  rejected: "ck-status--rejected", // ⬅️ SADECE BU EK
+}[state.value] || "ck-status--ready"));
+
+// QC onaylı mı?
+
+const qcValue = computed(() => (doc.value?.kalite_kontrol || "Onay Bekliyor").trim());
+
+const qcLabel = computed(() => qcValue.value);
+
+const qcApproved = computed(() => qcValue.value === "Onaylandı");
+
+const qcClass = computed(() => {
+  if (qcValue.value === "Onaylandı") return "ck-status--running";   // yeşil
+  if (qcValue.value === "Onay Bekliyor") return "ck-status--paused"; // turuncu
+  if (qcValue.value === "Reddedildi") return "ck-status--rejected";  // 🔴 kırmızı
+  return "ck-status--paused";
+});
+
+// --------------------
+// Actions
+// --------------------
+
 function onBaslatDevam() {
-  const confirmText = (durum.value === "durusta")
-    ? "Duruş sonlandırılıp işleme devam edilecek."
-    : "İşlem başlatılacak.";
+  const confirmText =
+    state.value === "paused"
+      ? "Duruş sonlandırılıp işleme devam edilecek."
+      : "İşlem başlatılacak.";
+
   frappe.confirm(confirmText, async () => callIslem("Baslat"));
 }
 
 function onDurus() {
+  // Only meaningful when running, but you can keep this as-is.
   frappe.prompt(
     [
-      { fieldtype: "Select", label: "Duruş Nedeni", fieldname: "durus_nedeni", reqd: 1,
-        options: "Ariza\nMalzeme Bekleme\nKalite Kontrol\nMola\nBakim\nDiger" },
-      { fieldtype: "Small Text", label: "Açıklama", fieldname: "aciklama" }
+      {
+        fieldtype: "Select",
+        label: "Duruş Nedeni",
+        fieldname: "durus_nedeni",
+        reqd: 1,
+        options: "Ariza\nMalzeme Bekleme\nKalite Kontrol\nMola\nBakim\nDiger",
+      },
+      { fieldtype: "Small Text", label: "Açıklama", fieldname: "aciklama" },
+      { fieldtype: "Float", label: "Tamamlanan Miktar (opsiyonel)", fieldname: "tamamlanan_miktar" },
     ],
-    async (v) => callIslem("Durus", v.durus_nedeni, v.aciklama),
+    async (v) => callIslem("Durus", v.durus_nedeni, v.aciklama, v.tamamlanan_miktar),
     "Duruş Bilgisi",
     "Duruş Başlat"
   );
 }
 
 function onBitir() {
-  frappe.confirm("İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?", async () => callIslem("Bitis"));
+  // Only allowed when running/paused (template controls it)
+  frappe.confirm(
+    "İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?",
+    async () => callIslem("Bitis")
+  );
+}
+
+// --------------------
+// Hurda CRUD
+// IMPORTANT: hurda_nedeni is treated as Link to Cost Center (filtered by parent)
+// --------------------
+
+function hurdaNedeniLinkField(defaultValue = "") {
+  return {
+    fieldtype: "Link",
+    label: "Hurda Nedeni",
+    fieldname: "hurda_nedeni",
+    options: "Cost Center",
+    reqd: 1,
+    default: defaultValue,
+    // Filter only cost centers under the parent
+    get_query: () => ({
+      filters: {
+        parent_cost_center: HURDA_PARENT_COST_CENTER,
+        is_group: 0,
+      },
+    }),
+  };
+}
+
+async function onHurdaEkle() {
+  frappe.prompt(
+    [
+      { fieldtype: "Link", label: "Parça Numarası", fieldname: "parca_no", options: "Item", reqd: 1 },
+      hurdaNedeniLinkField(""),
+      { fieldtype: "Float", label: "Miktar", fieldname: "miktar", reqd: 1 },
+      { fieldtype: "Link", label: "Birim", fieldname: "birim", options: "UOM", reqd: 1 },
+      { fieldtype: "Link", label: "Depo", fieldname: "depo", options: "Warehouse" },
+    ],
+    async (v) => {
+      await frappe.call("erpnextkta.kta_calisma_karti.api.add_hurda", {
+        name: docname.value,
+        parca_no: v.parca_no,
+        hurda_nedeni: v.hurda_nedeni, // Cost Center name
+        miktar: v.miktar,
+        birim: v.birim,
+        depo: v.depo || null,
+      });
+
+      frappe.show_alert({ message: "Hurda eklendi", indicator: "green" });
+      await load();
+      tab.value = "hurda";
+    },
+    "Hurda Ekle",
+    "Kaydet"
+  );
+}
+
+async function onHurdaDuzenle(h) {
+  if (!h?.name) {
+    frappe.msgprint("Hurda satır kimliği (row name) bulunamadı.");
+    return;
+  }
+
+  frappe.prompt(
+    [
+      { fieldtype: "Link", label: "Parça Numarası", fieldname: "parca_no", options: "Item", reqd: 1, default: h.parca_no || "" },
+      hurdaNedeniLinkField(h.hurda_nedeni || ""),
+      { fieldtype: "Float", label: "Miktar", fieldname: "miktar", reqd: 1, default: h.miktar ?? 0 },
+      { fieldtype: "Link", label: "Birim", fieldname: "birim", options: "UOM", reqd: 1, default: h.birim || "" },
+      { fieldtype: "Link", label: "Depo", fieldname: "depo", options: "Warehouse", default: h.depo || "" },
+    ],
+    async (v) => {
+      await frappe.call("erpnextkta.kta_calisma_karti.api.update_hurda", {
+        name: docname.value,
+        rowname: h.name,
+        parca_no: v.parca_no,
+        hurda_nedeni: v.hurda_nedeni,
+        miktar: v.miktar,
+        birim: v.birim,
+        depo: v.depo || null,
+      });
+
+      frappe.show_alert({ message: "Hurda güncellendi", indicator: "green" });
+      await load();
+      tab.value = "hurda";
+    },
+    "Hurda Düzenle",
+    "Kaydet"
+  );
+}
+
+function onHurdaSil(h) {
+  if (!h?.name) {
+    frappe.msgprint("Hurda satır kimliği (row name) bulunamadı.");
+    return;
+  }
+
+  frappe.confirm("Bu hurda satırı silinecek. Emin misiniz?", async () => {
+    await frappe.call("erpnextkta.kta_calisma_karti.api.delete_hurda", {
+      name: docname.value,
+      rowname: h.name,
+    });
+
+    frappe.show_alert({ message: "Hurda silindi", indicator: "green" });
+    await load();
+    tab.value = "hurda";
+  });
 }
 
 onMounted(load);
+
+// Expose what template needs (Vue <script setup> exposes automatically)
+// state, durumLabel, showStart/showResume/showStop/showFinish
+// actions: onBaslatDevam, onDurus, onBitir, onHurdaEkle, onHurdaDuzenle, onHurdaSil, backToList, openForm
 </script>
 
 <template>
   <div class="ck-page">
     <div class="ck-topbar">
       <button class="ck-btn ck-btn--ghost" @click="backToList">← Geri</button>
-      <div class="ck-title">Çalışma Kartı</div>
+      <div class="ck-topbar-title">
+        <div class="ck-title">Çalışma Kartı</div>
+      </div>
       <button class="ck-btn ck-btn--ghost" @click="openForm">Form</button>
     </div>
 
@@ -95,17 +277,48 @@ onMounted(load);
     <div v-else-if="!doc" class="ck-empty">Kayıt bulunamadı.</div>
 
     <template v-else>
-      <div class="ck-actionbar">
-        <button v-if="durum !== 'bitmis'" class="ck-btn ck-btn--primary ck-btn--wide" @click="onBaslatDevam">
-          {{ durum === "durusta" ? "Devam Et" : "Başlat" }}
-        </button>
-        <button v-if="durum === 'calisiyor'" class="ck-btn ck-btn--warning ck-btn--wide" @click="onDurus">Duruş</button>
-        <button v-if="durum !== 'bitmis' && durum !== 'hazir'" class="ck-btn ck-btn--danger ck-btn--wide" @click="onBitir">Bitir</button>
+      <div class="ck-chips">
+        <span :class="['ck-status-badge', statusClass]">
+          {{ durumLabel }}
+        </span>
+        <span :class="['ck-chip', qcClass]">QC: {{ qcLabel }}</span>
       </div>
+      <div class="ck-actionbar">
+        <!-- READY: only Start -->
+        <button
+          v-if="showStart"
+          class="ck-btn ck-btn--primary ck-btn--wide"
+          @click="onBaslatDevam"
+        >
+          Başlat
+        </button>
 
-      <div class="ck-status">
-        <div class="ck-badge">{{ durumLabel }}</div>
-        <div class="ck-sub">{{ doc.name }}</div>
+        <!-- PAUSED: Resume + Finish -->
+        <button
+          v-if="showResume"
+          class="ck-btn ck-btn--primary ck-btn--wide"
+          @click="onBaslatDevam"
+        >
+          Devam Et
+        </button>
+
+        <!-- RUNNING: Stop + Finish -->
+        <button
+          v-if="showStop"
+          class="ck-btn ck-btn--warning ck-btn--wide"
+          @click="onDurus"
+        >
+          Duruş
+        </button>
+
+        <button
+          v-if="showFinish"
+          :disabled="!qcApproved"
+          class="ck-btn ck-btn--danger ck-btn--wide"
+          @click="onBitir"
+        >
+          Bitir
+        </button>
       </div>
 
       <div class="ck-tabs">
@@ -124,12 +337,27 @@ onMounted(load);
       </div>
 
       <div v-else-if="tab==='hurda'" class="ck-card">
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <button class="ck-btn ck-btn--primary ck-btn--wide" @click="onHurdaEkle">Hurda Ekle</button>
+        </div>
         <div v-if="(doc.hurdalar||[]).length===0" class="ck-muted">Hurda kaydı yok.</div>
         <div v-else class="ck-mini-list">
-          <div v-for="(h, i) in doc.hurdalar" :key="i" class="ck-mini-item">
-            <b>{{ h.parca_no || ('Hurda #' + (i+1)) }}</b>
-            <div class="ck-muted">{{ h.hurda_nedeni || "-" }}</div>
-            <div class="ck-muted">{{ h.miktar ?? "-" }} {{ h.birim || "" }}</div>
+          <div v-for="(h, i) in doc.hurdalar" :key="h.name || i" class="ck-mini-item">
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+              <div style="min-width:0;">
+                <b style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                  {{ h.parca_no || ('Hurda #' + (i+1)) }}
+                </b>
+                <div class="ck-muted">{{ h.hurda_nedeni || "-" }}</div>
+                <div class="ck-muted">{{ h.miktar ?? "-" }} {{ h.birim || "" }}</div>
+                <div v-if="h.depo" class="ck-muted">Depo: {{ h.depo }}</div>
+              </div>
+
+              <div style="display:flex; gap:6px; flex-shrink:0;">
+                <button class="ck-btn ck-btn--ghost" style="padding:8px 10px;" @click="onHurdaDuzenle(h)">Düzenle</button>
+                <button class="ck-btn ck-btn--danger" style="padding:8px 10px;" @click="onHurdaSil(h)">Sil</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -148,3 +376,110 @@ onMounted(load);
     </template>
   </div>
 </template>
+<style lang="css" scoped>
+  .ck-page{ padding:12px; }
+.ck-topbar{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+.ck-title{ font-weight:800; font-size:16px; }
+.ck-btn{ border:0; border-radius:10px; padding:10px 12px; font-weight:800; }
+.ck-btn--wide{ flex:1; }
+.ck-btn--primary{ background:#111; color:#fff; }
+.ck-btn--warning{ background:#f59e0b; color:#111; }
+.ck-btn--danger{ background:#ef4444; color:#fff; }
+.ck-btn--ghost{ background:rgba(0,0,0,.06); color:#111; }
+.ck-actionbar{ position:sticky; top:0; z-index:5; display:flex; gap:8px; padding:8px 0; background:#fff; }
+.ck-muted{ opacity:.75; font-size:12px; }
+.ck-empty{ opacity:.8; padding:16px 0; text-align:center; }
+.ck-card{ border:1px solid rgba(0,0,0,.08); border-radius:14px; padding:10px 12px; background:#fff; }
+.ck-row{ display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px dashed rgba(0,0,0,.06); }
+.ck-row:last-child{ border-bottom:0; }
+.ck-row span{ opacity:.75; font-size:12px; }
+.ck-row b{ font-weight:800; font-size:13px; text-align:right; }
+.ck-status{ margin:10px 0; }
+.ck-badge{ display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(0,0,0,.06); font-weight:800; font-size:12px; }
+.ck-sub{ margin-top:6px; opacity:.8; font-size:12px; }
+.ck-tabs{ display:flex; gap:8px; margin:10px 0; }
+.ck-tab{ flex:1; border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:10px 8px; font-weight:800; background:#fff; }
+.ck-tab.is-active{ background:#111; color:#fff; border-color:#111; }
+.ck-mini-list{ display:grid; gap:10px; }
+.ck-mini-item{ padding:10px 0; border-bottom:1px dashed rgba(0,0,0,.06); }
+.ck-mini-item:last-child{ border-bottom:0; }
+.ck-topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.ck-topbar-title{
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+
+.ck-title{
+  font-weight:700;
+  font-size:15px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.ck-status-badge{
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-weight:600;
+  line-height:1;
+  white-space:nowrap;
+}
+
+/* States */
+.ck-status--ready{
+  background:#e2e3e5;
+  color:#383d41;
+}
+.ck-status--running{
+  background:#d4edda;
+  color:#155724;
+}
+.ck-status--paused{
+  background:#fff3cd;
+  color:#856404;
+}
+.ck-status--finished{
+  background:#d1ecf1;
+  color:#0c5460;
+}
+.ck-status--rejected{
+  background:#f8d7da;
+  color:#721c24;
+}
+.ck-chips{
+  display: flex;
+  flex-direction: row;
+  margin: 6px 0 6px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ck-chip{
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-weight:600;
+  line-height:1;
+}
+
+/* QC */
+.ck-qc--ok{
+  background:#d4edda;
+  color:#155724;
+}
+.ck-qc--wait{
+  background:#f8d7da;
+  color:#721c24;
+}
+</style>
