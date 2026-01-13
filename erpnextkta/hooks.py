@@ -145,6 +145,7 @@ override_doctype_class = {
     "Stock Reconciliation": "erpnextkta.overrides.stock_reconciliation.StockReconciliation",
     "Serial and Batch Bundle": "erpnextkta.overrides.serial_batch_bundle_doc.SerialandBatchBundle",
     "Stock Entry": "erpnextkta.overrides.KTAStockEntry.KTAStockEntry",
+    "Delivery Note": "erpnextkta.overrides.delivery_note.KTADeliveryNote",
 }
 doc_events = {
     "Kalite Kontrol": {
@@ -164,6 +165,9 @@ doc_events = {
     },
     "Purchase Invoice": {
         "validate": "erpnextkta.overrides.purchase_invoice.validate_purchase_invoice"
+    },
+    "Purchase Receipt": {
+        "validate": "erpnextkta.overrides.purchase_receipt_rates.update_purchase_receipt_rates"
     }
 }
 # Document Events

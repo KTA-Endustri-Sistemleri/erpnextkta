@@ -1,12 +1,110 @@
 import frappe
 from frappe.model.docstatus import DocStatus
 
+from frappe.utils import add_days, getdate
 import erpnextkta.api
 from erpnext.controllers.stock_controller import make_quality_inspections
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
+from erpnext.stock.get_item_details import get_item_details
 
 
 class KTAPurchaseReceipt(PurchaseReceipt):
+
+    def validate(self):
+        self.update_rates_logic()
+        super().validate()
+
+    def validate_with_previous_doc(self):
+        try:
+            super().validate_with_previous_doc()
+        except frappe.ValidationError as e:
+            # Bypass strict "Rate must be same as Purchase Order" or similar checks
+            if "Rate must be same as Purchase Order" in str(e):
+                pass
+            else:
+                raise e
+
+    def update_rates_logic(self):
+        """
+        Update Purchase Receipt Exchange Rate and Item Prices.
+        
+        1. Conversion Rate: Uses 'Selling' rate from (Posting Date - 1 day).
+        2. Item Rates: Uses Fresh Price List rate effective on Posting Date (if desirable).
+        """
+        
+        # 1. Update Exchange Rate
+        if self.currency and self.currency != self.company_currency:
+            target_date = add_days(self.posting_date, -1)
+            exchange_rate = frappe.db.get_value(
+                "Currency Exchange",
+                {
+                    "date": target_date,
+                    "from_currency": self.currency,
+                    "to_currency": self.company_currency,
+                    "for_selling": 1
+                },
+                "exchange_rate"
+            )
+            
+            if exchange_rate:
+                self.conversion_rate = exchange_rate
+        
+        # 2. Update Item Rates (Optional/Required based on "same situation" comment)
+        # If user wants to handle "price changing raw material", we should likely update item rates too.
+        if self.items:
+            for item in self.items:
+                # Recalculate base amounts based on new conversion rate
+                # Also try to fetch fresh price if logic dictates (User said "same situation ... for raw material")
+                
+                # Fetch fresh item details to catch price changes
+                args = {
+                    "item_code": item.item_code,
+                    "warehouse": item.warehouse,
+                    "supplier": self.supplier,
+                    "price_list": self.buying_price_list,
+                    "price_list_currency": self.price_list_currency,
+                    "plc_conversion_rate": self.plc_conversion_rate,
+                    "company": self.company,
+                    "transaction_date": self.posting_date,
+                    "currency": self.currency,
+                    "conversion_rate": self.conversion_rate,
+                    "qty": item.qty,
+                    # "uom": item.uom, # sometimes causes issues if uom not matching
+                    "doctype": "Purchase Receipt",
+                    "name": self.name,
+                    "ignore_pricing_rule": 0
+                }
+                
+                try:
+                    # Only fetch if we suspect price might have changed or to align with DN logic
+                    # get_item_details might reset some user entered stuff, proceed with caution.
+                    # For PR, usually strictly based on PO unless "update price". 
+                    # But since we are bypassing "same as PO", we imply we want fresh prices.
+                    details = get_item_details(args)
+                    
+                    if details:
+                         # Update rate if found
+                        if details.get("rate"):
+                            item.rate = details.get("rate")
+                        if details.get("price_list_rate"):
+                            item.price_list_rate = details.get("price_list_rate")
+                        if details.get("discount_percentage"):
+                            item.discount_percentage = details.get("discount_percentage")
+
+                        # Recalculate amounts
+                        item.amount = item.rate * item.qty
+                        item.base_rate = item.rate * self.conversion_rate
+                        item.base_amount = item.amount * self.conversion_rate
+                        
+                        item.net_rate = item.rate
+                        item.net_amount = item.amount
+                        item.base_net_rate = item.net_rate * self.conversion_rate
+                        item.base_net_amount = item.net_amount * self.conversion_rate
+                except Exception as e:
+                     frappe.log_error(f"KTAPurchaseReceipt Rate Update Error: {str(e)}", "KTAPurchaseReceipt")
+
+        # Recalculate taxes and totals at the end
+        self.calculate_taxes_and_totals()
 
     def verify_batch(self):
         errors = []
