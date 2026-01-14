@@ -847,8 +847,7 @@ def split_manufacturing_batches(stock_entry):
 
         # Base batch numarasını al ve prefix'ini bul
         # Örnek: 3506381 -> 3506381, 35063810001 -> 3506381
-        # Base batch numarasını al ve prefix'ini bul
-        # Örnek: 3506381 -> 3506381, 35063810001 -> 3506381
+
         base_batch_prefix = get_base_batch_for_work_order(doc.work_order, row.item_code)
         
         # Eğer Work Order'dan base batch bulunamazsa, fallback olarak mevcut batch'i kullan
@@ -856,9 +855,10 @@ def split_manufacturing_batches(stock_entry):
         if not base_batch_prefix:
             base_batch = base_entry.get(FIELD_BATCH_NO)
             base_batch_prefix = base_batch
-        
-        if not base_batch_prefix:
-            base_batch_prefix = base_entry.get(FIELD_BATCH_NO)
+            
+            if not base_batch_prefix:
+                base_batch_prefix = base_entry.get(FIELD_BATCH_NO)
+
 
         # Paketleme miktarını cache'den al veya DB'den oku
         split_qty = packaging_cache.get(row.item_code)
