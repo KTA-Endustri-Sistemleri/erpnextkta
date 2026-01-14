@@ -3,6 +3,42 @@
 
 
 
+## 🚀 v0.10.1 (2026-01-14)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- manufacture stock entry
+      
+      
+    
+      
+      
+        
+- partial work order closing problem
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.10.0 (2026-01-13)
 
 
