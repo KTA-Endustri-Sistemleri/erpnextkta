@@ -28,13 +28,18 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         """
         Update Purchase Receipt Exchange Rate and Item Prices.
         
-        1. Conversion Rate: Uses 'Selling' rate from (Posting Date - 1 day).
-        2. Item Rates: Uses Fresh Price List rate effective on Posting Date (if desirable).
+        1. Rate Date: Uses 'irsaliye_tarihi' (Waybill Date) if available, else Posting Date.
+        2. Conversion Rate: Uses 'Selling' rate from (Rate Date - 1 day).
+        3. Item Rates: Uses Fresh Price List rate effective on Rate Date.
         """
+        
+        # Determine the date to use for rate lookup
+        # User requested: "irsaliye_tarihi" (custom field) should drive the rate.
+        rate_date = self.get("irsaliye_tarihi") or self.posting_date
         
         # 1. Update Exchange Rate
         if self.currency and self.currency != self.company_currency:
-            target_date = add_days(self.posting_date, -1)
+            target_date = add_days(rate_date, -1)
             exchange_rate = frappe.db.get_value(
                 "Currency Exchange",
                 {
@@ -66,7 +71,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                     "price_list_currency": self.price_list_currency,
                     "plc_conversion_rate": self.plc_conversion_rate,
                     "company": self.company,
-                    "transaction_date": self.posting_date, # Valid From/To check
+                    "transaction_date": rate_date, # Use 'irsaliye_tarihi' if available
                     "currency": self.currency,
                     "conversion_rate": self.conversion_rate,
                     "qty": item.qty,
@@ -89,19 +94,26 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                         AND valid_from <= %s 
                         AND (valid_upto IS NULL OR valid_upto >= %s)
                         ORDER BY valid_from DESC LIMIT 1
-                    """, (item.item_code, self.buying_price_list, self.supplier, self.posting_date, self.posting_date), as_dict=True)
+                    """, (item.item_code, self.buying_price_list, self.supplier, rate_date, rate_date), as_dict=True)
                     
                     if specific_price:
                         # Ensure we prioritize this rate
                         if details:
                              details["price_list_rate"] = specific_price[0].price_list_rate
+                             # User specifically asked for "rate" to be updated.
+                             # Standard ERPNext logic: rate = price_list_rate * (1 - discount).
+                             # If we update price_list_rate, we should update rate too effectively.
+                             details["rate"] = details["price_list_rate"] * (1 - (details.get("discount_percentage", 0) / 100))
 
                     if details:
                          # Update rate if found
-                        if details.get("rate"):
-                            item.rate = details.get("rate")
                         if details.get("price_list_rate"):
                             item.price_list_rate = details.get("price_list_rate")
+                            
+                            # Explicitly update 'rate' as per user request
+                            # We use the recalculated rate from above or fallback to price_list_rate
+                            item.rate = details.get("rate") or item.price_list_rate
+                            
                         if details.get("discount_percentage"):
                             item.discount_percentage = details.get("discount_percentage")
 
@@ -191,14 +203,23 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             else:
                 super().on_submit()
         except Exception as e:
-            frappe.log_error(f"Purchase Receipt Submit Error {str(e)}", "Purchase Receipt Submit Error")
-            frappe.throw(f"Purchase Receipt Submit Error {str(e)}")
+            import traceback
+            error_trace = traceback.format_exc()
+            frappe.log_error(f"Purchase Receipt Submit Error {str(e)}\n{error_trace}", "Purchase Receipt Submit Error")
+            frappe.throw(f"Purchase Receipt Submit Error {str(e)}\n{error_trace}")
         finally:
             if hasattr(self, "flags"):
                 self.flags.kta_rows_to_split = None
 
     def print_zebra(self):
-        erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
+        try:
+            erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
+        except Exception as e:
+            frappe.log_error(f"Zebra Print Error (Ignored): {str(e)}", "KTAPurchaseReceipt Print Error")
+            # User said: "o hata gelsin önemli değil" (Let that error come, it's not important)
+            # However, if we raise, it rolls back submit. 
+            # So we catch it, log it, and maybe show a non-blocking message.
+            frappe.msgprint(f"Zebra Printer Error (Non-blocking): {str(e)}", alert=True)
 
     def _ensure_base_batch(self, row, item_doc):
         if not item_doc.get("has_batch_no"):

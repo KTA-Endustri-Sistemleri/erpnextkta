@@ -105,13 +105,15 @@ class KTADeliveryNote(DeliveryNote):
                              details["price_list_rate"] = rate
                              # trigger recalculation of rate (standard rate = price_list_rate * conversion if currency matches?)
                              # Actually let's trust get_item_details to handle the math, but passing the correct args is key.
-                             pass
+                             details["rate"] = details["price_list_rate"] * (1 - (details.get("discount_percentage", 0) / 100))
                     
                     if details:
                         # Update the item with the fresh details
                         item.price_list_rate = details.get("price_list_rate")
                         item.discount_percentage = details.get("discount_percentage")
-                        item.rate = details.get("rate")
+                        
+                        # Explicitly update 'rate'
+                        item.rate = details.get("rate") or item.price_list_rate
                         
                         # Recalculate amounts
                         item.amount = item.rate * item.qty
