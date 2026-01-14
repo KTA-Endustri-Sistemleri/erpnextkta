@@ -505,23 +505,7 @@ def _update_bundle_safely(row, allocations):
     frappe.clear_document_cache("Serial and Batch Bundle", bundle_name)
 
 
-def get_base_batch_for_work_order(work_order):
-    """
-    Work Order için base batch numarasını döndürür.
-    Eğer split edilmiş batch'ler varsa, onların base'ini kullanır.
-    """
-    if not work_order:
-        return None
-        
-    base_batch = get_base_batch_from_work_order(work_order)
-    if not base_batch:
-        return None
-    
-    base_batch_prefix = base_batch.rstrip('0123456789')
-    if not base_batch_prefix:
-        base_batch_prefix = base_batch
-    
-    return base_batch_prefix
+
 
 
 def custom_create_packages(row, batch_no, qty, sut_code, q_ref):
@@ -781,13 +765,37 @@ def get_batch_from_stock_entry_detail(stock_entry_detail):
     return batch_no
 
 
-def get_base_batch_from_work_order(work_order):
+def get_base_batch_for_work_order(work_order, item_code=None):
+    """
+    Work Order için base batch numarasını döndürür.
+    Eğer split edilmiş batch'ler varsa, onların base'ini kullanır.
+    """
+    if not work_order:
+        return None
+        
+    base_batch = get_base_batch_from_work_order(work_order, item_code)
+    if not base_batch:
+        return None
+    
+    # Base batch prefix'i bul (sonundaki 0001 gibi ardışık sayıları temizle)
+    # Ancak orijinal base batch'in kendisi rakamla bitiyorsa dikkatli olunmalı.
+    # Şimdilik basitçe full base batch'i kullanıyoruz, çünkü Work Order için yaratılan
+    # ilk batch "Base Batch" kabul ediliyor.
+    
+    return base_batch
+
+
+def get_base_batch_from_work_order(work_order, item_code=None):
     if not work_order:
         return None
 
+    filters = {"reference_doctype": DOCTYPE_WORK_ORDER, "reference_name": work_order}
+    if item_code:
+        filters["item"] = item_code
+
     base_batches = frappe.get_all(
         "Batch",
-        filters={"reference_doctype": DOCTYPE_WORK_ORDER, "reference_name": work_order},
+        filters=filters,
         pluck="name",
         order_by="creation asc",
         limit_page_length=1,
@@ -839,10 +847,18 @@ def split_manufacturing_batches(stock_entry):
 
         # Base batch numarasını al ve prefix'ini bul
         # Örnek: 3506381 -> 3506381, 35063810001 -> 3506381
-        base_batch = base_entry.get(FIELD_BATCH_NO)
-        base_batch_prefix = base_entry.get(FIELD_BATCH_NO)
+        # Base batch numarasını al ve prefix'ini bul
+        # Örnek: 3506381 -> 3506381, 35063810001 -> 3506381
+        base_batch_prefix = get_base_batch_for_work_order(doc.work_order, row.item_code)
+        
+        # Eğer Work Order'dan base batch bulunamazsa, fallback olarak mevcut batch'i kullan
+        # Ama bu riskli, çünkü zaten split edilmiş bir batch olabilir.
         if not base_batch_prefix:
+            base_batch = base_entry.get(FIELD_BATCH_NO)
             base_batch_prefix = base_batch
+        
+        if not base_batch_prefix:
+            base_batch_prefix = base_entry.get(FIELD_BATCH_NO)
 
         # Paketleme miktarını cache'den al veya DB'den oku
         split_qty = packaging_cache.get(row.item_code)
