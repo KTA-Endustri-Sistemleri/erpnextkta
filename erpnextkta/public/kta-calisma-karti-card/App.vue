@@ -33,6 +33,7 @@ async function load() {
       { name: docname.value }
     );
     doc.value = r.message || null;
+    qcFormValue.value = ((doc.value?.kalite_kontrol || "Onay Bekliyor").trim());
   } finally {
     loading.value = false;
   }
@@ -41,7 +42,7 @@ async function load() {
 async function callIslem(islem_tipi, durus_nedeni=null, aciklama=null, tamamlanan_miktar=null) {
   await frappe.call({
     method: "erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.islem_yap",
-    args: { docname: docname.value, islem_tipi, durus_nedeni, aciklama, tamamlanan_miktar, kalite_kontrol },
+    args: { docname: docname.value, islem_tipi, durus_nedeni, aciklama, tamamlanan_miktar },
     freeze: true,
     freeze_message: "İşlem yapılıyor..."
   });
@@ -111,6 +112,40 @@ const qcClass = computed(() => {
   if (qcValue.value === "Reddedildi") return "ck-status--rejected";  // 🔴 kırmızı
   return "ck-status--paused";
 });
+
+// QC tab permissions (UI-only; backend enforces)
+const qcOptions = ["Onay Bekliyor", "Onaylandı", "Reddedildi"];
+
+const canEditQC = computed(() => {
+  const roles = (frappe?.boot?.user?.roles || []);
+  return roles.includes("System Manager")
+    || roles.includes("Quality Manager")
+    || roles.includes("KTA Kalite Kullanıcısı");
+});
+
+const qcFormValue = ref("Onay Bekliyor");
+const qcSaving = ref(false);
+
+async function onUpdateQC() {
+  if (!canEditQC.value) {
+    frappe.msgprint("QC güncelleme yetkiniz yok.");
+    return;
+  }
+
+  qcSaving.value = true;
+  try {
+    await frappe.call("erpnextkta.kta_calisma_karti.api.update_kalite_kontrol", {
+      name: docname.value,
+      kalite_kontrol: (qcFormValue.value || "").trim(),
+    });
+    frappe.show_alert({ message: "Kalite durumu güncellendi", indicator: "green" });
+    await load();
+    tab.value = "kalite";
+  } finally {
+    qcSaving.value = false;
+  }
+}
+
 
 // --------------------
 // Actions
@@ -325,6 +360,7 @@ onMounted(load);
         <button :class="['ck-tab', tab==='info' && 'is-active']" @click="tab='info'">Bilgiler</button>
         <button :class="['ck-tab', tab==='hurda' && 'is-active']" @click="tab='hurda'">Hurda</button>
         <button :class="['ck-tab', tab==='durus' && 'is-active']" @click="tab='durus'">Duruş</button>
+        <button :class="['ck-tab', tab==='kalite' && 'is-active']" @click="tab='kalite'">Kalite</button>
       </div>
 
       <div v-if="tab==='info'" class="ck-card">
@@ -362,7 +398,7 @@ onMounted(load);
         </div>
       </div>
 
-      <div v-else class="ck-card">
+      <div v-else-if="tab==='durus'" class="ck-card">
         <div v-if="(doc.duruslar||[]).length===0" class="ck-muted">Duruş kaydı yok.</div>
         <div v-else class="ck-mini-list">
           <div v-for="(d, i) in doc.duruslar" :key="i" class="ck-mini-item">
@@ -371,6 +407,29 @@ onMounted(load);
             <div class="ck-muted">Süre: {{ d.durus_suresi ?? "-" }} dk</div>
             <div v-if="d.aciklama" class="ck-muted">{{ d.aciklama }}</div>
           </div>
+        </div>
+      </div>
+
+      <div v-else-if="tab==='kalite'" class="ck-card">
+        <div class="ck-row" style="justify-content:space-between; align-items:center;">
+          <span>Kalite Kontrol</span>
+          <b>{{ qcLabel }}</b>
+        </div>
+
+        <div v-if="!canEditQC" class="ck-muted" style="margin-top:10px;">
+          Bu sekmeyi görüntüleyebilirsiniz ancak güncelleme yetkiniz yok.
+        </div>
+
+        <div v-else style="margin-top:10px;">
+          <select v-model="qcFormValue" class="ck-qc-input">
+            <option v-for="o in qcOptions" :key="o" :value="o">{{ o }}</option>
+          </select>
+
+          <div style="height:10px;"></div>
+
+          <button class="ck-btn ck-btn--primary ck-btn--wide" :disabled="qcSaving" @click="onUpdateQC">
+            {{ qcSaving ? "Kaydediliyor..." : "Kaydet" }}
+          </button>
         </div>
       </div>
     </template>
@@ -481,5 +540,15 @@ onMounted(load);
 .ck-qc--wait{
   background:#f8d7da;
   color:#721c24;
+}
+
+
+.ck-qc-input{
+  width:100%;
+  padding:10px 12px;
+  border:1px solid rgba(0,0,0,.12);
+  border-radius:12px;
+  font-size:14px;
+  background:#fff;
 }
 </style>
