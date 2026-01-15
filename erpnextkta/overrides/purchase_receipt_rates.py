@@ -10,7 +10,7 @@ def update_purchase_receipt_rates(doc, method):
     
     # 1. Update Exchange Rate
     if doc.currency and doc.currency != doc.company_currency:
-        target_date = add_days(doc.posting_date, -1)
+        target_date = doc.get("irsaliye_tarihi") or doc.posting_date
         exchange_rate = frappe.db.get_value(
             "Currency Exchange",
             {

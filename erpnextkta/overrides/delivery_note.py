@@ -31,7 +31,7 @@ class KTADeliveryNote(DeliveryNote):
         
         # 1. Update Exchange Rate
         if self.currency and self.currency != self.company_currency:
-            target_date = add_days(self.posting_date, -1)
+            target_date = self.posting_date
             exchange_rate = frappe.db.get_value(
                 "Currency Exchange",
                 {
