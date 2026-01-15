@@ -3,6 +3,130 @@
 
 
 
+## 🚀 v0.11.0 (2026-01-15)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- purchase receipt item prices date fix
+      
+      
+    
+      
+      
+        
+- multiple receipt bill bug fix
+      
+      
+    
+      
+      
+        
+- delivery note price list rate currency fix
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- remove temporary test files
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- overrides for DN and PR exchange rate
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- item price date adjusted
+      
+      
+    
+      
+      
+        
+- adjusted exchange rate date
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- epic: dn pr price sync (#51)
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.10.1 (2026-01-14)
 
 
