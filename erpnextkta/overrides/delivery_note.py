@@ -49,6 +49,24 @@ class KTADeliveryNote(DeliveryNote):
                 if self.price_list_currency == self.currency:
                     self.plc_conversion_rate = exchange_rate
 
+        # Ensure plc_conversion_rate is set if Price List Currency differs from Company Currency
+        if self.price_list_currency and self.price_list_currency != self.company_currency and self.price_list_currency != self.currency:
+            target_date = self.posting_date
+            # Fetch latest available Buying Rate on or before posting_date
+            plc_rate_info = frappe.db.sql("""
+                SELECT exchange_rate 
+                FROM `tabCurrency Exchange`
+                WHERE date <= %s
+                AND from_currency = %s
+                AND to_currency = %s
+                AND for_buying = 1
+                ORDER BY date DESC
+                LIMIT 1
+            """, (target_date, self.price_list_currency, self.company_currency), as_dict=True)
+            
+            if plc_rate_info:
+                self.plc_conversion_rate = plc_rate_info[0].exchange_rate
+
         # 2. Update Item Rates
         if self.items:
             for item in self.items:
@@ -105,7 +123,14 @@ class KTADeliveryNote(DeliveryNote):
                              details["price_list_rate"] = rate
                              # trigger recalculation of rate (standard rate = price_list_rate * conversion if currency matches?)
                              # Actually let's trust get_item_details to handle the math, but passing the correct args is key.
-                             details["rate"] = details["price_list_rate"] * (1 - (details.get("discount_percentage", 0) / 100))
+                             
+
+
+                             conversion_factor = 1.0
+                             if self.price_list_currency != self.currency and self.plc_conversion_rate:
+                                 conversion_factor = self.plc_conversion_rate
+                                 
+                             details["rate"] = details["price_list_rate"] * conversion_factor * (1 - (details.get("discount_percentage", 0) / 100))
                     
                     if details:
                         # Update the item with the fresh details
@@ -123,7 +148,8 @@ class KTADeliveryNote(DeliveryNote):
                         item.net_rate = item.rate
                         item.net_amount = item.amount
                 except Exception as e:
-                    frappe.log_error(f"Error fetching item details for Delivery Note {self.name}: {str(e)}", "KTADeliveryNote")
+                    # Force reload check
+                    frappe.log_error(f"Error fetching details: {str(e)[:100]}", "KTADeliveryNote Error")
         
         # Recalculate taxes and totals at the end of custom logic
         self.calculate_taxes_and_totals()
