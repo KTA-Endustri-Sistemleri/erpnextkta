@@ -116,11 +116,6 @@ def update_kalite_kontrol(name: str, kalite_kontrol: str):
 
 @frappe.whitelist()
 def get_my_calisma_kartlari():
-    """
-    Return cards for current user.
-    - If System Manager: return all cards (still respects doctype permissions).
-    - Else: filter by operator = current user's Employee.
-    """
     if _is_system_manager():
         return frappe.get_all(
             "Calisma Karti",
@@ -136,6 +131,7 @@ def get_my_calisma_kartlari():
                 "baslangic_saati",
                 "bitis_saati",
                 "modified",
+                "kalite_kontrol",
             ],
             order_by="modified desc",
             limit_page_length=200,
@@ -163,6 +159,7 @@ def get_my_calisma_kartlari():
             "baslangic_saati",
             "bitis_saati",
             "modified",
+            "kalite_kontrol",
         ],
         order_by="modified desc",
         limit_page_length=200,
