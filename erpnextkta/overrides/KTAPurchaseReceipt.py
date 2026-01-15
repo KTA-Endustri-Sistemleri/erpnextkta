@@ -40,22 +40,41 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         # 1. Update Exchange Rate
         if self.currency and self.currency != self.company_currency:
             target_date = rate_date
-            exchange_rate = frappe.db.get_value(
-                "Currency Exchange",
-                {
-                    "date": target_date,
-                    "from_currency": self.currency,
-                    "to_currency": self.company_currency,
-                    "for_selling": 1
-                },
-                "exchange_rate"
-            )
+            # Fetch latest available Selling Rate on or before rate_date
+            exchange_rate_info = frappe.db.sql("""
+                SELECT exchange_rate 
+                FROM `tabCurrency Exchange`
+                WHERE date <= %s
+                AND from_currency = %s
+                AND to_currency = %s
+                AND for_selling = 1
+                ORDER BY date DESC
+                LIMIT 1
+            """, (target_date, self.currency, self.company_currency), as_dict=True)
             
-            if exchange_rate:
-                self.conversion_rate = exchange_rate
+            if exchange_rate_info:
+                self.conversion_rate = exchange_rate_info[0].exchange_rate
                 # Sync Price List Conversion Rate if currencies match
                 if self.price_list_currency == self.currency:
-                    self.plc_conversion_rate = exchange_rate
+                    self.plc_conversion_rate = self.conversion_rate
+
+        # Ensure plc_conversion_rate is set if Price List Currency differs from Company Currency
+        if self.price_list_currency and self.price_list_currency != self.company_currency and self.price_list_currency != self.currency:
+            target_date = rate_date
+            # Fetch latest available Selling Rate on or before rate_date for Price List Currency
+            plc_rate_info = frappe.db.sql("""
+                SELECT exchange_rate 
+                FROM `tabCurrency Exchange`
+                WHERE date <= %s
+                AND from_currency = %s
+                AND to_currency = %s
+                AND for_selling = 1
+                ORDER BY date DESC
+                LIMIT 1
+            """, (target_date, self.price_list_currency, self.company_currency), as_dict=True)
+            
+            if plc_rate_info:
+                self.plc_conversion_rate = plc_rate_info[0].exchange_rate
         
         # 2. Update Item Rates
         if self.items:
@@ -103,7 +122,12 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                              # User specifically asked for "rate" to be updated.
                              # Standard ERPNext logic: rate = price_list_rate * (1 - discount).
                              # If we update price_list_rate, we should update rate too effectively.
-                             details["rate"] = details["price_list_rate"] * (1 - (details.get("discount_percentage", 0) / 100))
+                             
+                             conversion_factor = 1.0
+                             if self.price_list_currency != self.currency and self.plc_conversion_rate:
+                                 conversion_factor = self.plc_conversion_rate
+                             
+                             details["rate"] = details["price_list_rate"] * conversion_factor * (1 - (details.get("discount_percentage", 0) / 100))
 
                     if details:
                          # Update rate if found
