@@ -209,7 +209,6 @@ def get_calisma_karti_detail(name: str):
         "kalite_kontrol": doc.kalite_kontrol,
     }
 
-
 @frappe.whitelist()
 def get_hurda_nedeni_options(parent_cost_center: str = HURDA_PARENT_COST_CENTER):
     """
@@ -224,7 +223,6 @@ def get_hurda_nedeni_options(parent_cost_center: str = HURDA_PARENT_COST_CENTER)
         limit_page_length=500,
     )
     return [r["name"] for r in rows]
-
 
 @frappe.whitelist()
 def add_hurda(
@@ -277,6 +275,7 @@ def add_hurda(
     doc.save()
 
     return {"status": "success"}
+
 @frappe.whitelist()
 def update_hurda(
     name: str,
@@ -329,7 +328,6 @@ def update_hurda(
     doc.save()
     return {"status": "success"}
 
-
 @frappe.whitelist()
 def delete_hurda(name: str, rowname: str):
     """
@@ -360,7 +358,6 @@ def delete_hurda(name: str, rowname: str):
     rows.pop(idx)
     doc.set(child_fieldname, rows)
     doc.save()
-
 
 @frappe.whitelist()
 def create_calisma_karti(**kwargs):
