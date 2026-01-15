@@ -2,8 +2,8 @@ import frappe
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import make_purchase_invoice as original_make_purchase_invoice
 
 @frappe.whitelist()
-def make_purchase_invoice(source_name, target_doc=None):
-    doc = original_make_purchase_invoice(source_name, target_doc)
+def make_purchase_invoice(source_name, target_doc=None, *args, **kwargs):
+    doc = original_make_purchase_invoice(source_name, target_doc, *args, **kwargs)
     
     # Custom Logic: Map irsaliye_tarihi to bill_date
     try:
