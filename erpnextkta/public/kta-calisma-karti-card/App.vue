@@ -87,7 +87,8 @@ const showStart  = computed(() => state.value === "ready");
 const showResume = computed(() => state.value === "paused");
 const showStop   = computed(() => state.value === "running");
 const showFinish = computed(() =>
-  (state.value === "running" || state.value === "paused") && tamamlanan.value > 0 && qcApproved.value
+  (state.value === "running" || state.value === "paused") &&
+  qcApproved.value
 );
 
 const statusClass = computed(() => ({
@@ -181,10 +182,25 @@ function onDurus() {
 }
 
 function onBitir() {
-  // Only allowed when running/paused (template controls it)
-  frappe.confirm(
-    "İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?",
-    async () => callIslem("Bitis")
+  frappe.prompt(
+    [
+      {
+        fieldtype: "Float",
+        label: "Tamamlanan Miktar",
+        fieldname: "tamamlanan_miktar",
+        reqd: 1,
+        default: 0,
+        description: "İşlemi bitirmek için tamamlanan miktar 0'dan büyük olmalı."
+      }
+    ],
+    async (v) => {
+      frappe.confirm(
+        "İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?",
+        async () => callIslem("Bitis", null, null, v.tamamlanan_miktar)
+      );
+    },
+    "Bitir",
+    "Devam"
   );
 }
 
