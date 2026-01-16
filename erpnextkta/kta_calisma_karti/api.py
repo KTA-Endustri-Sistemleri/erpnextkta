@@ -230,13 +230,6 @@ def add_hurda(
     birim: str,
     depo: str | None = None,
 ):
-    """
-    Append a row to Calisma Karti Hurda child table.
-    Security:
-      - System Manager: allowed
-      - Others: must be operator's card
-    Also validates hurda_nedeni is a Cost Center under configured parent.
-    """
     doc = frappe.get_doc("Calisma Karti", name)
     doc.check_permission("write")
 
@@ -283,9 +276,6 @@ def update_hurda(
     birim: str,
     depo: str | None = None,
 ):
-    """
-    Update an existing Calisma Karti Hurda child row by its row 'name'.
-    """
     doc = frappe.get_doc("Calisma Karti", name)
     doc.check_permission("write")
 
@@ -327,9 +317,6 @@ def update_hurda(
 
 @frappe.whitelist()
 def delete_hurda(name: str, rowname: str):
-    """
-    Delete a Calisma Karti Hurda child row by its row 'name'.
-    """
     doc = frappe.get_doc("Calisma Karti", name)
     doc.check_permission("write")
 
@@ -358,18 +345,6 @@ def delete_hurda(name: str, rowname: str):
 
 @frappe.whitelist()
 def create_calisma_karti(**kwargs):
-    """
-    Create a new Calisma Karti document from wizard payload.
-
-    Expected payload from frontend (JSON body):
-        {
-            "custom_work_order": "...",  # (optional) Work Order name
-            "is_karti": "...",           # Job Card name (zorunlu)
-            "operasyon": "...",          # Operasyon
-            "is_istasyonu": "...",       # Workstation
-            "operator": "..."            # Employee.name (EMP-0001 vb., optional)
-        }
-    """
     # Merge kwargs with form_dict for flexibility
     data = frappe._dict(frappe.local.form_dict or {})
     data.update(kwargs or {})
@@ -521,14 +496,6 @@ def create_calisma_karti(**kwargs):
 
 @frappe.whitelist()
 def get_job_card_by_barcode(barcode: str):
-    """
-    Job Card flow için erken validasyon.
-    - Job Card'ı al
-    - Bağlı olduğu Work Order'ı al
-    - WO docstatus/status kontrolü yap
-    - Uygun değilse HEMEN hata fırlat
-    - Uygunsa frontend'e gerekli temel bilgileri döner
-    """
     if not barcode:
         frappe.throw(_("İş Kartı boş olamaz."), title=_("Eksik Parametre"))
 
@@ -599,13 +566,6 @@ def get_job_card_by_barcode(barcode: str):
 
 @frappe.whitelist()
 def get_work_order_by_barcode(barcode: str):
-    """
-    Resolve Work Order from scanned barcode.
-
-    Current implementation assumes that the barcode is equal to Work Order name.
-    If you use a custom barcode field on Work Order (e.g. custom_barcode),
-    you can change the lookup logic below accordingly.
-    """
     if not barcode:
         frappe.throw(_("Barkod boş olamaz."))
 
