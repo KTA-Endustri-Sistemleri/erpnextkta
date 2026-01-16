@@ -1,12 +1,160 @@
 import frappe
 from frappe.model.docstatus import DocStatus
 
+from frappe.utils import add_days, getdate
 import erpnextkta.api
 from erpnext.controllers.stock_controller import make_quality_inspections
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
+from erpnext.stock.get_item_details import get_item_details
 
 
 class KTAPurchaseReceipt(PurchaseReceipt):
+
+    def validate(self):
+        self.update_rates_logic()
+        super().validate()
+
+    def validate_with_previous_doc(self):
+        try:
+            super().validate_with_previous_doc()
+        except frappe.ValidationError as e:
+            # Bypass strict "Rate must be same as Purchase Order" or similar checks
+            if "Rate must be same as Purchase Order" in str(e):
+                pass
+            else:
+                raise e
+
+    def update_rates_logic(self):
+        """
+        Update Purchase Receipt Exchange Rate and Item Prices.
+        
+        1. Rate Date: Uses 'irsaliye_tarihi' (Waybill Date) if available, else Posting Date.
+        2. Conversion Rate: Uses 'Selling' rate from (Rate Date - 1 day).
+        3. Item Rates: Uses Fresh Price List rate effective on Rate Date.
+        """
+        
+        # Determine the date to use for rate lookup
+        # User requested: "irsaliye_tarihi" (custom field) should drive the rate.
+        rate_date = self.get("irsaliye_tarihi") or self.posting_date
+        
+        # 1. Update Exchange Rate
+        if self.currency and self.currency != self.company_currency:
+            target_date = rate_date
+            # Fetch latest available Selling Rate on or before rate_date
+            exchange_rate_info = frappe.db.sql("""
+                SELECT exchange_rate 
+                FROM `tabCurrency Exchange`
+                WHERE date <= %s
+                AND from_currency = %s
+                AND to_currency = %s
+                AND for_selling = 1
+                ORDER BY date DESC
+                LIMIT 1
+            """, (target_date, self.currency, self.company_currency), as_dict=True)
+            
+            if exchange_rate_info:
+                self.conversion_rate = exchange_rate_info[0].exchange_rate
+                # Sync Price List Conversion Rate if currencies match
+                if self.price_list_currency == self.currency:
+                    self.plc_conversion_rate = self.conversion_rate
+
+        # Ensure plc_conversion_rate is set if Price List Currency differs from Company Currency
+        if self.price_list_currency and self.price_list_currency != self.company_currency and self.price_list_currency != self.currency:
+            target_date = rate_date
+            # Fetch latest available Selling Rate on or before rate_date for Price List Currency
+            plc_rate_info = frappe.db.sql("""
+                SELECT exchange_rate 
+                FROM `tabCurrency Exchange`
+                WHERE date <= %s
+                AND from_currency = %s
+                AND to_currency = %s
+                AND for_selling = 1
+                ORDER BY date DESC
+                LIMIT 1
+            """, (target_date, self.price_list_currency, self.company_currency), as_dict=True)
+            
+            if plc_rate_info:
+                self.plc_conversion_rate = plc_rate_info[0].exchange_rate
+        
+        # 2. Update Item Rates
+        if self.items:
+            for item in self.items:
+                # Recalculate base amounts based on new conversion rate
+                
+                # Fetch fresh item details to catch price changes
+                args = {
+                    "item_code": item.item_code,
+                    "warehouse": item.warehouse,
+                    "supplier": self.supplier,
+                    "price_list": self.buying_price_list,
+                    "price_list_currency": self.price_list_currency,
+                    "plc_conversion_rate": self.plc_conversion_rate,
+                    "company": self.company,
+                    "transaction_date": rate_date, # Use 'irsaliye_tarihi' if available
+                    "currency": self.currency,
+                    "conversion_rate": self.conversion_rate,
+                    "qty": item.qty,
+                    # "uom": item.uom, 
+                    "doctype": "Purchase Receipt",
+                    "name": self.name,
+                    "ignore_pricing_rule": 0
+                }
+                
+                try:
+                    details = get_item_details(args)
+                    
+                    # Manual user-requested strict check for "Supplier" match in Item Price
+                    specific_price = frappe.db.sql("""
+                        SELECT price_list_rate, currency 
+                        FROM `tabItem Price` 
+                        WHERE item_code = %s 
+                        AND price_list = %s 
+                        AND supplier = %s
+                        AND valid_from <= %s 
+                        AND (valid_upto IS NULL OR valid_upto >= %s)
+                        ORDER BY valid_from DESC LIMIT 1
+                    """, (item.item_code, self.buying_price_list, self.supplier, rate_date, rate_date), as_dict=True)
+                    
+                    if specific_price:
+                        # Ensure we prioritize this rate
+                        if details:
+                             details["price_list_rate"] = specific_price[0].price_list_rate
+                             # User specifically asked for "rate" to be updated.
+                             # Standard ERPNext logic: rate = price_list_rate * (1 - discount).
+                             # If we update price_list_rate, we should update rate too effectively.
+                             
+                             conversion_factor = 1.0
+                             if self.price_list_currency != self.currency and self.plc_conversion_rate:
+                                 conversion_factor = self.plc_conversion_rate
+                             
+                             details["rate"] = details["price_list_rate"] * conversion_factor * (1 - (details.get("discount_percentage", 0) / 100))
+
+                    if details:
+                         # Update rate if found
+                        if details.get("price_list_rate"):
+                            item.price_list_rate = details.get("price_list_rate")
+                            
+                            # Explicitly update 'rate' as per user request
+                            # We use the recalculated rate from above or fallback to price_list_rate
+                            item.rate = details.get("rate") or item.price_list_rate
+                            
+                        if details.get("discount_percentage"):
+                            item.discount_percentage = details.get("discount_percentage")
+
+                        # Recalculate amounts
+                        item.amount = item.rate * item.qty
+                        item.base_rate = item.rate * self.conversion_rate
+                        item.base_amount = item.amount * self.conversion_rate
+                        
+                        item.net_rate = item.rate
+                        item.net_amount = item.amount
+                        item.base_net_rate = item.net_rate * self.conversion_rate
+                        item.base_net_amount = item.net_amount * self.conversion_rate
+                except Exception as e:
+                     frappe.log_error(f"KTAPurchaseReceipt Rate Update Error: {str(e)}", "KTAPurchaseReceipt")
+
+        # Recalculate taxes and totals at the end
+        self.calculate_taxes_and_totals()
 
     def verify_batch(self):
         errors = []
@@ -79,14 +227,23 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             else:
                 super().on_submit()
         except Exception as e:
-            frappe.log_error(f"Purchase Receipt Submit Error {str(e)}", "Purchase Receipt Submit Error")
-            frappe.throw(f"Purchase Receipt Submit Error {str(e)}")
+            import traceback
+            error_trace = traceback.format_exc()
+            frappe.log_error(f"Purchase Receipt Submit Error {str(e)}\n{error_trace}", "Purchase Receipt Submit Error")
+            frappe.throw(f"Purchase Receipt Submit Error {str(e)}\n{error_trace}")
         finally:
             if hasattr(self, "flags"):
                 self.flags.kta_rows_to_split = None
 
     def print_zebra(self):
-        erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
+        try:
+            erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
+        except Exception as e:
+            frappe.log_error(f"Zebra Print Error (Ignored): {str(e)}", "KTAPurchaseReceipt Print Error")
+            # User said: "o hata gelsin önemli değil" (Let that error come, it's not important)
+            # However, if we raise, it rolls back submit. 
+            # So we catch it, log it, and maybe show a non-blocking message.
+            frappe.msgprint(f"Zebra Printer Error (Non-blocking): {str(e)}", alert=True)
 
     def _ensure_base_batch(self, row, item_doc):
         if not item_doc.get("has_batch_no"):

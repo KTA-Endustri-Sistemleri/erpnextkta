@@ -28,7 +28,7 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/erpnextkta/css/erpnextkta.css"
 # app_include_js = "/assets/erpnextkta/js/erpnextkta.js"
-app_include_js = ["assets/erpnextkta/js/stock_entry_get_items_from_calisma_karti.js",
+app_include_js = [
                   "assets/erpnextkta/js/material_transfer_patch.js"
 ]
 
@@ -145,6 +145,7 @@ override_doctype_class = {
     "Stock Reconciliation": "erpnextkta.overrides.stock_reconciliation.StockReconciliation",
     "Serial and Batch Bundle": "erpnextkta.overrides.serial_batch_bundle_doc.SerialandBatchBundle",
     "Stock Entry": "erpnextkta.overrides.KTAStockEntry.KTAStockEntry",
+    "Delivery Note": "erpnextkta.overrides.delivery_note.KTADeliveryNote",
 }
 doc_events = {
     "Kalite Kontrol": {
@@ -161,6 +162,12 @@ doc_events = {
     },
     "Stock Entry": {
         "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
+    },
+    "Purchase Invoice": {
+        "validate": "erpnextkta.overrides.purchase_invoice.validate_purchase_invoice"
+    },
+    "Purchase Receipt": {
+        "validate": "erpnextkta.overrides.purchase_receipt_rates.update_purchase_receipt_rates"
     }
 }
 # Document Events
@@ -203,6 +210,9 @@ scheduler_events = {
 
 # Overriding Methods
 # ------------------------------
+override_whitelisted_methods = {
+    "erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice": "erpnextkta.overrides.make_purchase_invoice.make_purchase_invoice"
+}
 
 
 
@@ -340,5 +350,6 @@ fixtures = [
 ]
 doctype_js = {
     "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",
-    "Stock Reconciliation": "public/js/stock_reconciliation.js"
+    "Stock Reconciliation": "public/js/stock_reconciliation.js",
+    "Stock Entry": "public/js/stock_entry_get_items_from_calisma_karti.js"
 }
