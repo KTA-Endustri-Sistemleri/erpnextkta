@@ -7,11 +7,6 @@ frappe.pages["kta-calisma-karti-cards"].on_page_load = async function (wrapper) 
     single_column: true
   });
 
-  // Primary action -> go to your existing create page
-  page.set_primary_action(__("Yeni"), () => {
-    frappe.set_route("kta-calisma-karti");
-  });
-
   const $root = $(`<div id="app"></div>`);
   $(wrapper).find(".layout-main-section").append($root);
 
