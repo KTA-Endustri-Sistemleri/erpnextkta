@@ -28,7 +28,7 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/erpnextkta/css/erpnextkta.css"
 # app_include_js = "/assets/erpnextkta/js/erpnextkta.js"
-app_include_js = ["assets/erpnextkta/js/stock_entry_get_items_from_calisma_karti.js",
+app_include_js = [
                   "assets/erpnextkta/js/material_transfer_patch.js"
 ]
 
@@ -350,5 +350,6 @@ fixtures = [
 ]
 doctype_js = {
     "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",
-    "Stock Reconciliation": "public/js/stock_reconciliation.js"
+    "Stock Reconciliation": "public/js/stock_reconciliation.js",
+    "Stock Entry": "public/js/stock_entry_get_items_from_calisma_karti.js"
 }
