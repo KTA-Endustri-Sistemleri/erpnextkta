@@ -109,7 +109,7 @@ const qcApproved = computed(() => qcValue.value === "Onaylandı");
 
 const qcClass = computed(() => {
   if (qcValue.value === "Onaylandı") return "ck-status--running";   // yeşil
-  if (qcValue.value === "Onay Bekliyor") return "ck-status--paused"; // turuncu
+  if (qcValue.value === "Onay Bekliyor") return "ck-status--pending"; // mavi
   if (qcValue.value === "Reddedildi") return "ck-status--rejected";  // 🔴 kırmızı
   return "ck-status--paused";
 });
@@ -307,6 +307,44 @@ function onHurdaSil(h) {
   });
 }
 
+async function setQC(nextValue) {
+  if (!canEditQC.value) {
+    frappe.msgprint("QC güncelleme yetkiniz yok.");
+    return;
+  }
+
+  const next = (nextValue || "").trim();
+  const prev = (qcFormValue.value || "").trim();
+  const current = (qcValue.value || "").trim(); // doc'taki gerçek değer
+
+  // Aynı değerse: hiçbir şey yapma
+  if (!next || next === current) {
+    qcFormValue.value = current; // UI senkron
+    return;
+  }
+
+  // UI'ı hemen güncelle (optimistic)
+  qcFormValue.value = next;
+
+  qcSaving.value = true;
+  try {
+    await frappe.call("erpnextkta.kta_calisma_karti.api.update_kalite_kontrol", {
+      name: docname.value,
+      kalite_kontrol: next,
+    });
+
+    frappe.show_alert({ message: "Kalite durumu güncellendi", indicator: "green" });
+    await load();
+    tab.value = "kalite";
+  } catch (e) {
+    // Hata olursa geri al
+    qcFormValue.value = current || prev || "Onay Bekliyor";
+    throw e;
+  } finally {
+    qcSaving.value = false;
+  }
+}
+
 onMounted(load);
 
 // Expose what template needs (Vue <script setup> exposes automatically)
@@ -437,15 +475,24 @@ onMounted(load);
         </div>
 
         <div v-else style="margin-top:10px;">
-          <select v-model="qcFormValue" class="ck-qc-input">
-            <option v-for="o in qcOptions" :key="o" :value="o">{{ o }}</option>
-          </select>
-
-          <div style="height:10px;"></div>
-
-          <button class="ck-btn ck-btn--primary ck-btn--wide" :disabled="qcSaving" @click="onUpdateQC">
-            {{ qcSaving ? "Kaydediliyor..." : "Kaydet" }}
-          </button>
+          <div class="ck-qc-toggle" role="group" aria-label="Kalite durumu">
+            <button
+              v-for="o in qcOptions"
+              :key="o"
+              type="button"
+              class="ck-qc-toggle__btn"
+              :class="[
+                qcFormValue === o && 'is-active',
+                o === 'Onay Bekliyor' && 'is-pending',
+                o === 'Onaylandı' && 'is-ok',
+                o === 'Reddedildi' && 'is-reject',
+              ]"
+              :disabled="qcSaving"
+              @click="setQC(o)"
+            >
+              {{ o }}
+            </button>
+          </div>
         </div>
       </div>
     </template>
@@ -566,5 +613,73 @@ onMounted(load);
   border-radius:12px;
   font-size:14px;
   background:#fff;
+}
+
+/* QC segmented toggle */
+.ck-qc-toggle{
+  width:100%;
+  display:flex;
+  gap:8px;
+}
+
+.ck-qc-toggle__btn{
+  flex:1;
+  min-width:0;                 /* taşmayı azaltır */
+  padding:10px 10px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,.14);
+  background:#fff;
+  font-weight:800;
+  font-size:13px;
+  line-height:1.1;
+  cursor:pointer;
+  transition: transform .05s ease, background .15s ease, border-color .15s ease;
+  white-space:nowrap;          /* tek satır */
+  overflow:hidden;
+  text-overflow:ellipsis;      /* sığmazsa ... */
+}
+
+.ck-qc-toggle__btn:active{ transform: scale(0.99); }
+.ck-qc-toggle__btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* inactive text colors */
+.ck-qc-toggle__btn.is-pending{ color:#1e3a8a; }
+.ck-qc-toggle__btn.is-ok{ color:#155724; }
+.ck-qc-toggle__btn.is-reject{ color:#721c24; }
+
+/* active (filled) */
+.ck-qc-toggle__btn.is-active.is-pending{
+  background:#dbeafe;
+  border-color:#3b82f6;
+}
+.ck-qc-toggle__btn.is-active.is-ok{
+  background:#d4edda;
+  border-color:#22c55e;
+}
+.ck-qc-toggle__btn.is-active.is-reject{
+  background:#f8d7da;
+  border-color:#ef4444;
+}
+
+.ck-status--pending{
+  background:#dbeafe; /* açık mavi */
+  color:#1e3a8a;      /* koyu mavi */
+}
+
+/* Responsive: dar ekranda 2+1 (grid) */
+@media (max-width: 420px){
+  .ck-qc-toggle{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:8px;
+  }
+  .ck-qc-toggle__btn{
+    width:100%;
+    flex:unset;
+  }
+  /* 3. buton tam satır kaplasın */
+  .ck-qc-toggle__btn:nth-child(3){
+    grid-column: 1 / -1;
+  }
 }
 </style>
