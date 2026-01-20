@@ -3,6 +3,54 @@
 
 
 
+## 🚀 v0.11.1 (2026-01-20)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- sales invoice double rate error
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- stock entry get items from calisma karti added to doctype js. removed from global
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.11.0 (2026-01-15)
 
 
