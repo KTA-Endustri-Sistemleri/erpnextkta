@@ -1,0 +1,47 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-01-20 10:23:44.825338",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "barcode",
+  "olcum_tarihi",
+  "olcumu_giren"
+ ],
+ "fields": [
+  {
+   "fieldname": "barcode",
+   "fieldtype": "Data",
+   "label": "Barkod",
+   "reqd": 1
+  },
+  {
+   "fieldname": "olcum_tarihi",
+   "fieldtype": "Datetime",
+   "label": "Ölçüm Tarihi",
+   "default": "now"
+  },
+  {
+   "fieldname": "olcumu_giren",
+   "fieldtype": "Link",
+   "label": "Ölçümü Giren",
+   "options": "Employee"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-01-20 10:23:44.825368",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "Calisma Karti Barkod Kayitlari",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
