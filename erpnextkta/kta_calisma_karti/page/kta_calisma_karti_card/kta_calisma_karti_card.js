@@ -7,6 +7,14 @@ frappe.pages["kta-calisma-karti-card"].on_page_load = async function (wrapper) {
     single_column: true
   });
 
+  // Developer mode hot reload support
+  if (frappe.boot.developer_mode) {
+    if (!Array.isArray(frappe.hot_update)) {
+      frappe.hot_update = [];
+    }
+    frappe.hot_update.push(() => load_vue(wrapper));
+  }
+
   const $root = $(`<div id="app"></div>`);
   $(wrapper).find(".layout-main-section").append($root);
 
