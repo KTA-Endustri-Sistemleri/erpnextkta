@@ -1,31 +1,19 @@
 import frappe
 from frappe import _
 from frappe.utils import add_days, getdate
-from erpnext.stock.doctype.delivery_note.delivery_note import DeliveryNote
+from erpnext.accounts.doctype.sales_invoice.sales_invoice import SalesInvoice
 from erpnext.stock.get_item_details import get_item_details
 
-class KTADeliveryNote(DeliveryNote):
+class KTASalesInvoice(SalesInvoice):
     def validate(self):
         self.update_rates_logic()
         super().validate()
 
-    def validate_with_previous_doc(self):
-        try:
-            super().validate_with_previous_doc()
-        except frappe.ValidationError as e:
-            # Check if the error message matches the specific "Rate must be same as Sales Order" error
-            # The error message format typically involves "Rate must be same as Sales Order..."
-            # We catch it and silently pass if it's that specific error.
-            if "Rate must be same as Sales Order" in str(e):
-                pass
-            else:
-                raise e
-
     def update_rates_logic(self):
         """
-        Update Delivery Note Exchange Rate and Item Prices.
+        Update Sales Invoice Exchange Rate and Item Prices.
         
-        1. Conversion Rate: Uses 'Buying' rate from (Posting Date - 1 day).
+        1. Conversion Rate: Uses 'Buying' rate from (Posting Date - 1 day) or simply Posting Date based on existing logic preference.
         2. Item Rates: Uses Fresh Price List rate effective on Posting Date.
         """
         
@@ -58,7 +46,8 @@ class KTADeliveryNote(DeliveryNote):
                     self.plc_conversion_rate = exchange_rate
 
         # Ensure plc_conversion_rate is set if Price List Currency differs from Company Currency
-        if self.price_list_currency and self.price_list_currency != self.company_currency and self.price_list_currency != self.currency:
+        # AND if it hasn't been manually set (or is 0)
+        if not self.plc_conversion_rate and self.price_list_currency and self.price_list_currency != self.company_currency and self.price_list_currency != self.currency:
             target_date = self.posting_date
             
             # Re-evaluate for specific customer logic (BOSCH)
@@ -105,7 +94,7 @@ class KTADeliveryNote(DeliveryNote):
                     "price_list": self.selling_price_list,
                     "qty": item.qty,
                     "uom": item.uom,
-                    "doctype": "Delivery Note",
+                    "doctype": "Sales Invoice",
                     "name": self.name,
                     "ignore_pricing_rule": 0
                 }
@@ -133,15 +122,10 @@ class KTADeliveryNote(DeliveryNote):
                         rate = specific_price[0].price_list_rate
                         # If currency differs, we might need conversion, but usually Item Price is in Price List Currency
                         # details['price_list_rate'] should already be this, but let's trust our SQL if we want to be paranoid about "Customer" match.
-                        # Actually get_item_details does this logic. 
-                        # But let's overwrite price_list_rate if we found a specific one just to be 100% sure we honored the "Customer" requirement.
+                        
                         if details:
                              details["price_list_rate"] = rate
-                             # trigger recalculation of rate (standard rate = price_list_rate * conversion if currency matches?)
-                             # Actually let's trust get_item_details to handle the math, but passing the correct args is key.
                              
-
-
                              conversion_factor = 1.0
                              if self.price_list_currency != self.currency and self.plc_conversion_rate:
                                  conversion_factor = self.plc_conversion_rate
@@ -165,7 +149,7 @@ class KTADeliveryNote(DeliveryNote):
                         item.net_amount = item.amount
                 except Exception as e:
                     # Force reload check
-                    frappe.log_error(f"Error fetching details: {str(e)[:100]}", "KTADeliveryNote Error")
+                    frappe.log_error(f"Error fetching details: {str(e)[:100]}", "KTASalesInvoice Error")
         
         # Recalculate taxes and totals at the end of custom logic
         self.calculate_taxes_and_totals()

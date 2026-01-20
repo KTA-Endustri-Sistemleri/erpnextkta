@@ -146,6 +146,7 @@ override_doctype_class = {
     "Serial and Batch Bundle": "erpnextkta.overrides.serial_batch_bundle_doc.SerialandBatchBundle",
     "Stock Entry": "erpnextkta.overrides.KTAStockEntry.KTAStockEntry",
     "Delivery Note": "erpnextkta.overrides.delivery_note.KTADeliveryNote",
+    "Sales Invoice": "erpnextkta.overrides.sales_invoice.KTASalesInvoice",
 }
 doc_events = {
     "Kalite Kontrol": {
