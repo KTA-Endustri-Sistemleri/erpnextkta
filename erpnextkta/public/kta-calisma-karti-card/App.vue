@@ -22,8 +22,12 @@ const docname = computed(() => {
   return r && r.length > 1 ? r[1] : null;
 });
 
-const { loading, doc, load, callIslem, updateQC, addHurda, updateHurda, deleteHurda } =
-  useCalismaKarti(docname);
+const {
+  loading, doc, load, callIslem,
+  updateQC, addHurda, updateHurda, deleteHurda,
+  addIdcOlcumu, updateIdcOlcumu, deleteIdcOlcumu,
+  addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi
+} = useCalismaKarti(docname);
 
 const {
   state,
@@ -161,13 +165,20 @@ onMounted(load);
 
       <KaliteView
         v-else-if="tab === 'kalite'"
+        :doc="doc"
         :qcLabel="qcLabel"
         :qcOptions="qcOptions"
         :qcFormValue="qcFormValue"
         :canEditQC="canEditQC"
         :qcSaving="qcSaving"
         :onSetQC="setQC"
-      />
+        :onAddIdc="addIdcOlcumu"
+        :onUpdateIdc="updateIdcOlcumu"
+        :onDeleteIdc="deleteIdcOlcumu"
+        :onAddBarkod="addBarkodKaydi"
+        :onUpdateBarkod="updateBarkodKaydi"
+        :onDeleteBarkod="deleteBarkodKaydi"
+        />
     </template>
   </div>
 </template>
