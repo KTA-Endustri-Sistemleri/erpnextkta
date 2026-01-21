@@ -80,7 +80,7 @@ export function bitirFields() {
     ];
 }
 
-export function idcOlcumFields(defaults: any = {}) {
+export function idcOlcumFields(docname: string, defaults: any = {}) {
     return [
         {
             fieldtype: "Link",
@@ -89,6 +89,10 @@ export function idcOlcumFields(defaults: any = {}) {
             options: "Item",
             reqd: 1,
             default: defaults.item_code || "",
+            get_query: () => ({
+                query: "erpnextkta.kta_calisma_karti.api.search_allowed_idc_items",
+                filters: { calisma_karti: docname } // docname’i idcOlcumFields'e parametre geçeceğiz
+            })
         },
         {
             fieldtype: "Float",
@@ -104,19 +108,6 @@ export function idcOlcumFields(defaults: any = {}) {
             reqd: 1,
             default: defaults.cekme_n ?? 0,
         },
-        {
-            fieldtype: "Datetime",
-            label: "Ölçüm Tarihi",
-            fieldname: "olcum_tarihi",
-            default: defaults.olcum_tarihi || "",
-        },
-        {
-            fieldtype: "Link",
-            label: "Ölçümü Giren",
-            fieldname: "olcumu_giren",
-            options: "User",
-            default: defaults.olcumu_giren || "",
-        },
     ];
 }
 
@@ -128,19 +119,6 @@ export function barkodKayitFields(defaults: any = {}) {
             fieldname: "barcode",
             reqd: 1,
             default: defaults.barcode || "",
-        },
-        {
-            fieldtype: "Datetime",
-            label: "Ölçüm Tarihi",
-            fieldname: "olcum_tarihi",
-            default: defaults.olcum_tarihi || "",
-        },
-        {
-            fieldtype: "Link",
-            label: "Ölçümü Giren",
-            fieldname: "olcumu_giren",
-            options: "User",
-            default: defaults.olcumu_giren || "",
         },
     ];
 }
