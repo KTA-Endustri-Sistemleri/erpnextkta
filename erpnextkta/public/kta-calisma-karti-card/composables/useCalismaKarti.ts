@@ -98,6 +98,60 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         );
     }
 
+    async function addIdcOlcumu(payload: any) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.add_idc_olcumu", {
+                name: docname.value,
+                ...payload,
+            })
+        );
+    }
+
+    async function updateIdcOlcumu(payload: any) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.update_idc_olcumu", {
+                name: docname.value,
+                ...payload,
+            })
+        );
+    }
+
+    async function deleteIdcOlcumu(rowname: string) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.delete_idc_olcumu", {
+                name: docname.value,
+                rowname,
+            })
+        );
+    }
+
+    async function addBarkodKaydi(payload: any) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.add_barkod_kaydi", {
+                name: docname.value,
+                ...payload,
+            })
+        );
+    }
+
+    async function updateBarkodKaydi(payload: any) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.update_barkod_kaydi", {
+                name: docname.value,
+                ...payload,
+            })
+        );
+    }
+
+    async function deleteBarkodKaydi(rowname: string) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.delete_barkod_kaydi", {
+                name: docname.value,
+                rowname,
+            })
+        );
+    }
+
     return {
         loading,
         doc,
@@ -107,5 +161,11 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         addHurda,
         updateHurda,
         deleteHurda,
+        addIdcOlcumu,
+        updateIdcOlcumu,
+        deleteIdcOlcumu,
+        addBarkodKaydi,
+        updateBarkodKaydi,
+        deleteBarkodKaydi,
     };
 }
