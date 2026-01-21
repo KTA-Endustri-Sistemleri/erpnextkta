@@ -25,6 +25,7 @@ from .api_impl.hurda import (
 
 # QC + QC child tables
 from .api_impl.qc import (
+    search_allowed_idc_items,
     update_kalite_kontrol,
     add_idc_olcumu,
     update_idc_olcumu,
@@ -42,6 +43,7 @@ __all__ = [
     "update_kalite_kontrol",
 
     # QC child tables
+    "search_allowed_idc_items",
     "add_idc_olcumu",
     "update_idc_olcumu",
     "delete_idc_olcumu",
