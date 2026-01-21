@@ -22,17 +22,40 @@ from .api_impl.hurda import (
     get_hurda_nedeni_options,
     update_hurda,
 )
-from .api_impl.qc import update_kalite_kontrol
 
+# QC + QC child tables
+from .api_impl.qc import (
+    update_kalite_kontrol,
+    add_idc_olcumu,
+    update_idc_olcumu,
+    delete_idc_olcumu,
+    add_barkod_kaydi,
+    update_barkod_kaydi,
+    delete_barkod_kaydi,
+)
 
 __all__ = [
     "get_my_calisma_kartlari",
     "get_calisma_karti_detail",
+
+    # QC
     "update_kalite_kontrol",
+
+    # QC child tables
+    "add_idc_olcumu",
+    "update_idc_olcumu",
+    "delete_idc_olcumu",
+    "add_barkod_kaydi",
+    "update_barkod_kaydi",
+    "delete_barkod_kaydi",
+
+    # Hurda
     "get_hurda_nedeni_options",
     "add_hurda",
     "update_hurda",
     "delete_hurda",
+
+    # Create + barcode helpers
     "create_calisma_karti",
     "get_job_card_by_barcode",
     "get_work_order_by_barcode",
