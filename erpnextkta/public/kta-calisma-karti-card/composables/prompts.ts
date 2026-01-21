@@ -79,3 +79,68 @@ export function bitirFields() {
         },
     ];
 }
+
+export function idcOlcumFields(defaults: any = {}) {
+    return [
+        {
+            fieldtype: "Link",
+            label: "Item Code",
+            fieldname: "item_code",
+            options: "Item",
+            reqd: 1,
+            default: defaults.item_code || "",
+        },
+        {
+            fieldtype: "Float",
+            label: "Yükseklik (mm)",
+            fieldname: "yukseklik_mm",
+            reqd: 1,
+            default: defaults.yukseklik_mm ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Çekme (N)",
+            fieldname: "cekme_n",
+            reqd: 1,
+            default: defaults.cekme_n ?? 0,
+        },
+        {
+            fieldtype: "Datetime",
+            label: "Ölçüm Tarihi",
+            fieldname: "olcum_tarihi",
+            default: defaults.olcum_tarihi || "",
+        },
+        {
+            fieldtype: "Link",
+            label: "Ölçümü Giren",
+            fieldname: "olcumu_giren",
+            options: "User",
+            default: defaults.olcumu_giren || "",
+        },
+    ];
+}
+
+export function barkodKayitFields(defaults: any = {}) {
+    return [
+        {
+            fieldtype: "Data",
+            label: "Barkod",
+            fieldname: "barcode",
+            reqd: 1,
+            default: defaults.barcode || "",
+        },
+        {
+            fieldtype: "Datetime",
+            label: "Ölçüm Tarihi",
+            fieldname: "olcum_tarihi",
+            default: defaults.olcum_tarihi || "",
+        },
+        {
+            fieldtype: "Link",
+            label: "Ölçümü Giren",
+            fieldname: "olcumu_giren",
+            options: "User",
+            default: defaults.olcumu_giren || "",
+        },
+    ];
+}
