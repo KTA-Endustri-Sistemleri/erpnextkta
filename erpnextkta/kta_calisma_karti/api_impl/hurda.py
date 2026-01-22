@@ -41,6 +41,143 @@ def _assert_cost_center_allowed(hurda_nedeni: str):
     if not ok:
         frappe.throw(_("Hurda Nedeni geçersiz. Lütfen listeden seçin."))
 
+
+# -----------------------------
+# NEW: BOM operation based filter
+# -----------------------------
+
+_JOB_CARD_REF_FIELDS = [
+    # try common fieldnames; keep safe fallback order
+    "is_karti",
+    "job_card",
+    "job_card_no",
+    "custom_job_card_ref",
+    "custom_job_card",
+]
+
+def _get_job_card_name_from_calisma_karti(doc) -> str:
+    """Extract Job Card reference from Calisma Karti with fallback fieldnames."""
+    for f in _JOB_CARD_REF_FIELDS:
+        val = getattr(doc, f, None)
+        if val:
+            return str(val)
+    frappe.throw(_("Çalışma Kartı üzerinde Job Card referansı bulunamadı."))
+
+
+def _get_allowed_hurda_item_codes_for_doc(doc) -> set[str]:
+    """Allowed = BOM.items where operation matches Job Card.operation."""
+    jc_name = _get_job_card_name_from_calisma_karti(doc)
+    jc = frappe.get_doc("Job Card", jc_name)
+
+    operation = (getattr(jc, "operation", None) or "").strip()
+    bom_no = (getattr(jc, "bom_no", None) or "").strip()
+
+    if not operation:
+        frappe.throw(_("Job Card üzerinde operasyon bulunamadı."))
+    if not bom_no:
+        frappe.throw(_("Job Card üzerinde BOM No bulunamadı."))
+
+    # BOM Item child table doctype is typically "BOM Item"
+    rows = frappe.get_all(
+        "BOM Item",
+        filters={
+            "parent": bom_no,
+            "parenttype": "BOM",
+            "parentfield": "items",
+            "operation": operation,
+        },
+        fields=["item_code"],
+        limit_page_length=1000,
+    )
+
+    allowed = { (r.get("item_code") or "").strip() for r in rows if r.get("item_code") }
+    allowed.discard("")
+    return allowed
+
+
+def _assert_hurda_item_allowed_for_operation(doc, parca_no: str):
+    """Reject if parca_no is not in allowed BOM items for Job Card operation."""
+    code = (parca_no or "").strip()
+    if not code:
+        frappe.throw(_("Parça Numarası (Item) boş olamaz."))
+
+    allowed = _get_allowed_hurda_item_codes_for_doc(doc)
+    if code not in allowed:
+        frappe.throw(
+            _(
+                "Bu hurda parçası bu operasyon için izinli değil. "
+                "Sadece BOM içinde ilgili operasyon satırındaki hammaddeler hurdaya yazılabilir."
+            ),
+            frappe.PermissionError,
+        )
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def search_allowed_hurda_items(doctype, txt, searchfield, start, page_len, filters):
+    """Link field search for allowed hurda items for given Calisma Karti.
+
+    filters expected:
+      - calisma_karti: Calisma Karti name
+    """
+    calisma_karti = (filters or {}).get("calisma_karti")
+    if not calisma_karti:
+        return []
+
+    ck = frappe.get_doc("Calisma Karti", calisma_karti)
+    ck.check_permission("read")
+
+    # Resolve Job Card from Calisma Karti (same fallback approach you used elsewhere)
+    jc_name = None
+    for f in ["is_karti", "job_card", "job_card_no", "custom_job_card_ref", "custom_job_card"]:
+        v = getattr(ck, f, None)
+        if v:
+            jc_name = str(v)
+            break
+    if not jc_name:
+        frappe.throw(_("Çalışma Kartı üzerinde Job Card referansı bulunamadı."), frappe.ValidationError)
+
+    jc = frappe.get_doc("Job Card", jc_name)
+    operation = (getattr(jc, "operation", None) or "").strip()
+    bom_no = (getattr(jc, "bom_no", None) or "").strip()
+
+    if not operation:
+        frappe.throw(_("Job Card üzerinde operasyon bulunamadı."), frappe.ValidationError)
+    if not bom_no:
+        frappe.throw(_("Job Card üzerinde BOM No bulunamadı."), frappe.ValidationError)
+
+    txt = (txt or "").strip()
+
+    # Only BOM items where BOM Item.operation == Job Card.operation
+    return frappe.db.sql(
+        """
+        select i.name, i.item_name
+        from `tabBOM Item` bi
+        inner join `tabItem` i on i.name = bi.item_code
+        where
+            bi.parent = %(bom_no)s
+            and bi.parenttype = 'BOM'
+            and bi.parentfield = 'items'
+            and ifnull(bi.operation, '') = %(operation)s
+            and (
+                i.name like %(like)s
+                or i.item_name like %(like)s
+            )
+        order by i.name asc
+        limit %(start)s, %(page_len)s
+        """,
+        {
+            "bom_no": bom_no,
+            "operation": operation,
+            "like": f"%{txt}%",
+            "start": start,
+            "page_len": page_len,
+        },
+    )
+
+# -----------------------------
+# CRUD (updated)
+# -----------------------------
+
 @frappe.whitelist()
 def add_hurda(
     name: str,
@@ -56,10 +193,13 @@ def add_hurda(
     _assert_can_write_on_doc(doc)
     _assert_cost_center_allowed(hurda_nedeni)
 
+    # NEW enforcement
+    _assert_hurda_item_allowed_for_operation(doc, parca_no)
+
     child_fieldname = get_child_table_fieldname(doc, "Calisma Karti Hurda")
 
     row = {
-        "parca_no": parca_no,
+        "parca_no": (parca_no or "").strip(),
         "hurda_nedeni": hurda_nedeni,
         "miktar": float(miktar or 0),
         "birim": birim,
@@ -87,19 +227,17 @@ def update_hurda(
     _assert_can_write_on_doc(doc)
     _assert_cost_center_allowed(hurda_nedeni)
 
+    # NEW enforcement
+    _assert_hurda_item_allowed_for_operation(doc, parca_no)
+
     child_fieldname = get_child_table_fieldname(doc, "Calisma Karti Hurda")
     rows = doc.get(child_fieldname) or []
 
-    target = None
-    for r in rows:
-        if r.name == rowname:
-            target = r
-            break
-
+    target = next((r for r in rows if r.name == rowname), None)
     if not target:
         frappe.throw(_("Hurda satırı bulunamadı (rowname: {0}).").format(rowname))
 
-    target.parca_no = parca_no
+    target.parca_no = (parca_no or "").strip()
     target.hurda_nedeni = hurda_nedeni
     target.miktar = float(miktar or 0)
     target.birim = birim
@@ -118,12 +256,7 @@ def delete_hurda(name: str, rowname: str):
     child_fieldname = get_child_table_fieldname(doc, "Calisma Karti Hurda")
     rows = doc.get(child_fieldname) or []
 
-    idx = None
-    for i, r in enumerate(rows):
-        if r.name == rowname:
-            idx = i
-            break
-
+    idx = next((i for i, r in enumerate(rows) if r.name == rowname), None)
     if idx is None:
         frappe.throw(_("Hurda satırı bulunamadı (rowname: {0}).").format(rowname))
 

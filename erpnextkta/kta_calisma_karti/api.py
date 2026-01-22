@@ -20,6 +20,7 @@ from .api_impl.hurda import (
     add_hurda,
     delete_hurda,
     get_hurda_nedeni_options,
+    search_allowed_hurda_items,  # <-- EKLE
     update_hurda,
 )
 
@@ -53,6 +54,7 @@ __all__ = [
 
     # Hurda
     "get_hurda_nedeni_options",
+    "search_allowed_hurda_items",
     "add_hurda",
     "update_hurda",
     "delete_hurda",

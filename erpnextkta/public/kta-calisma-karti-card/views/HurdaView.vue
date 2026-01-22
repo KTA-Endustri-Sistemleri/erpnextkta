@@ -10,7 +10,9 @@ const props = defineProps<{
 
 function onHurdaEkle() {
   frappe.prompt(
-    hurdaFields(),
+    hurdaFields({
+      calisma_karti_name: props.doc.name, // 🔴 KRİTİK: filtre bununla çalışıyor
+    }),
     async (v: any) => {
       await props.onAdd({
         parca_no: v.parca_no,
@@ -33,7 +35,10 @@ function onHurdaDuzenle(h: any) {
   }
 
   frappe.prompt(
-    hurdaFields(h),
+    hurdaFields({
+      ...h,
+      calisma_karti_name: props.doc.name, // 🔴 KRİTİK: edit için de şart
+    }),
     async (v: any) => {
       await props.onUpdate({
         rowname: h.name,

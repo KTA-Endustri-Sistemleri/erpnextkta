@@ -26,7 +26,13 @@ export function hurdaFields(defaults: any = {}) {
             options: "Item",
             reqd: 1,
             default: defaults.parca_no || "",
-        },
+            get_query: () => ({
+                query: "erpnextkta.kta_calisma_karti.api.search_allowed_hurda_items",
+                filters: {
+                calisma_karti: defaults.calisma_karti_name,
+                },
+            }),
+            },
         hurdaNedeniLinkField(defaults.hurda_nedeni || ""),
         {
             fieldtype: "Float",
@@ -51,6 +57,24 @@ export function hurdaFields(defaults: any = {}) {
             default: defaults.depo || "",
         },
     ];
+}
+
+// Hurda için: sadece ilgili operasyonun BOM item'larını göster
+export function hurdaParcaNoField(calismaKartiName: string, defaultValue?: string) {
+    return {
+        fieldtype: "Link",
+        label: "Parça Numarası",
+        fieldname: "parca_no",
+        options: "Item",
+        reqd: 1,
+        default: defaultValue || "",
+        get_query: () => ({
+            query: "erpnextkta.kta_calisma_karti.api.get_allowed_hurda_items",
+            filters: {
+                name: calismaKartiName,
+            },
+        }),
+    };
 }
 
 export function durusFields() {
