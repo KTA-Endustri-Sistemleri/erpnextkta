@@ -35,8 +35,16 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         
         # Determine the date to use for rate lookup
         # User requested: "irsaliye_tarihi" (custom field) should drive the rate.
-        rate_date = self.get("irsaliye_tarihi") or self.posting_date
+        rate_date = None    
         
+        # Check if İthalat process is active and customs declaration date exists
+        if self.get("gumruk_beyanname_tarihi"):
+            rate_date = self.get("gumruk_beyanname_tarihi")
+        elif self.get("irsaliye_tarihi"):
+            rate_date = self.get("irsaliye_tarihi")
+        else:
+            rate_date = self.posting_date
+    
         # 1. Update Exchange Rate
         if self.currency and self.currency != self.company_currency:
             target_date = rate_date
@@ -51,7 +59,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 ORDER BY date DESC
                 LIMIT 1
             """, (target_date, self.currency, self.company_currency), as_dict=True)
-            
+        
             if exchange_rate_info:
                 self.conversion_rate = exchange_rate_info[0].exchange_rate
                 # Sync Price List Conversion Rate if currencies match
