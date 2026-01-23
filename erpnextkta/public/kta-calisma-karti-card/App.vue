@@ -307,7 +307,12 @@ watch(
 }
 
 .ck-btn--primary {
-  background: var(--ck-primary);
+  background: var(--secondary);
+  color: var(--ck-primary-contrast);
+}
+
+.ck-btn--success {
+  background: var(--ck-success);
   color: var(--ck-primary-contrast);
 }
 

@@ -15,7 +15,7 @@ const props = defineProps<{
   <div class="ck-actionbar">
     <button
       v-if="props.showStart"
-      class="ck-btn ck-btn--primary ck-btn--wide"
+      class="ck-btn ck-btn--success ck-btn--wide"
       @click="props.onBaslatDevam"
     >
       Başlat
@@ -23,7 +23,7 @@ const props = defineProps<{
 
     <button
       v-if="props.showResume"
-      class="ck-btn ck-btn--primary ck-btn--wide"
+      class="ck-btn ck-btn--success ck-btn--wide"
       @click="props.onBaslatDevam"
     >
       Devam Et
