@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
 import { useCalismaKarti } from "./composables/useCalismaKarti";
 import { useCalismaKartiUi } from "./composables/useCalismaKartiUi";
@@ -17,8 +17,37 @@ import KaliteView from "./views/KaliteView.vue";
 
 const tab = ref<TabKey>("info");
 
+// ✅ ROUTE'U REACTIVE YAP
+const routeRef = ref<string[]>(frappe.get_route() || []);
+
+function syncRoute() {
+  routeRef.value = frappe.get_route() || [];
+}
+
+// frappe.router.on("change") bazı sürümlerde "off" fonksiyonu döndürür, bazılarında döndürmez.
+// O yüzden güvenli kapatma yapıyoruz.
+let unsubscribe: any = null;
+
+onMounted(() => {
+  // ilk sync
+  syncRoute();
+
+  // route değişince sync
+  // (Frappe build'ine göre router.on var/yok olabilir, optional chaining kullandık)
+  unsubscribe = frappe.router?.on?.("change", syncRoute);
+
+  // İlk yükleme: watcher immediate zaten yapacak, ister burada çağırma.
+});
+
+onUnmounted(() => {
+  // Eğer unsubscribe bir fonksiyon ise çağır
+  if (typeof unsubscribe === "function") unsubscribe();
+});
+
+// ✅ docname artık reactive routeRef üstünden computed
 const docname = computed(() => {
-  const r = frappe.get_route(); // ["kta-calisma-karti-card", "<name>"]
+  const r = routeRef.value; // reactive dependency
+  // ["kta-calisma-karti-card", "<name>"]
   return r && r.length > 1 ? r[1] : null;
 });
 
@@ -120,15 +149,19 @@ async function setQC(nextValue: string) {
   }
 }
 
-onMounted(load);
-
+// ✅ Route (docname) değiştikçe yükle + ilk açılışta da yükle
 watch(
   docname,
-  (next, prev) => {
-    if (!next || next === prev) return;
-    load();
+  async (next, prev) => {
+    if (!next) {
+      doc.value = null;
+      return;
+    }
+    // Doc değiştiyse tab resetlemek istersen aç:
+    // if (next !== prev) tab.value = "info";
+    await load();
   },
-  { immediate: false }
+  { immediate: true }
 );
 
 </script>
