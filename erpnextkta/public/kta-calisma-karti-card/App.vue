@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 import { useCalismaKarti } from "./composables/useCalismaKarti";
 import { useCalismaKartiUi } from "./composables/useCalismaKartiUi";
@@ -121,6 +121,16 @@ async function setQC(nextValue: string) {
 }
 
 onMounted(load);
+
+watch(
+  docname,
+  (next, prev) => {
+    if (!next || next === prev) return;
+    load();
+  },
+  { immediate: false }
+);
+
 </script>
 
 <template>
