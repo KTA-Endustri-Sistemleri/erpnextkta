@@ -226,281 +226,334 @@ watch(
   </div>
 </template>
 <style>
+:root {
+  /* Surfaces */
+  --ck-bg: var(--bg-color, #fff);
+  --ck-surface: var(--card-bg, var(--fg-color, #fff));
+
+  /* Text */
+  --ck-text: var(--text-color, #111);
+  --ck-text-muted: var(--text-muted, rgba(0, 0, 0, .65));
+
+  /* Borders */
+  --ck-border: var(--border-color, rgba(0, 0, 0, .12));
+  --ck-border-soft: var(--border-color, rgba(0, 0, 0, .08));
+  --ck-border-strong: var(--border-color, rgba(0, 0, 0, .16));
+
+  /* Brand */
+  --ck-primary: var(--primary, #111);
+  --ck-primary-contrast: var(--primary-contrast, #fff);
+
+  /* Buttons / misc */
+  --ck-ghost-bg: var(--control-bg, rgba(0, 0, 0, .06));
+  --ck-focus: var(--primary, #3b82f6);
+
+  /* Semantic colors (Frappe varsa ondan, yoksa fallback) */
+  --ck-danger: var(--danger, #ef4444);
+  --ck-warning: var(--warning, #f59e0b);
+  --ck-success: var(--success, #22c55e);
+  --ck-info: var(--info, #3b82f6);
+
+  /* Badge backgrounds: Frappe alert bg'lerine yaslan (yoksa fallback) */
+  --ck-danger-bg: var(--alert-danger-bg, rgba(239, 68, 68, .14));
+  --ck-warning-bg: var(--alert-warning-bg, rgba(245, 158, 11, .16));
+  --ck-success-bg: var(--alert-success-bg, rgba(34, 197, 94, .14));
+  --ck-info-bg: var(--alert-info-bg, rgba(59, 130, 246, .14));
+}
+
+/* =========================
+   BASE STYLES
+   ========================= */
+
 .ck-page {
-    padding: 12px;
+  padding: 12px;
+  background: var(--ck-bg);
+  color: var(--ck-text);
 }
 
 .ck-topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .ck-topbar-title {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .ck-title {
-    font-weight: 700;
-    font-size: 15px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ck-btn {
-    border: 0;
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-weight: 800;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 800;
 }
 
 .ck-btn--wide {
-    flex: 1;
+  flex: 1;
 }
 
 .ck-btn--primary {
-    background: #111;
-    color: #fff;
+  background: var(--ck-primary);
+  color: var(--ck-primary-contrast);
 }
 
 .ck-btn--warning {
-    background: #f59e0b;
-    color: #111;
+  background: var(--ck-warning);
+  color: var(--ck-warning-contrast);
 }
 
 .ck-btn--danger {
-    background: #ef4444;
-    color: #fff;
+  background: var(--ck-danger);
+  color: var(--ck-danger-contrast);
 }
 
 .ck-btn--ghost {
-    background: rgba(0, 0, 0, .06);
-    color: #111;
+  background: var(--ck-ghost-bg);
+  color: var(--ck-text);
 }
 
 .ck-actionbar {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    display: flex;
-    gap: 8px;
-    padding: 8px 0;
-    background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+  padding: 8px 0;
+  background: var(--ck-bg);
 }
 
 .ck-muted {
-    opacity: .75;
-    font-size: 12px;
+  opacity: 1;
+  color: var(--ck-text-muted);
+  font-size: 12px;
 }
 
 .ck-empty {
-    opacity: .8;
-    padding: 16px 0;
-    text-align: center;
+  opacity: 1;
+  color: var(--ck-text-muted);
+  padding: 16px 0;
+  text-align: center;
 }
 
 .ck-card {
-    border: 1px solid rgba(0, 0, 0, .08);
-    border-radius: 14px;
-    padding: 10px 12px;
-    background: #fff;
+  border: 1px solid var(--ck-border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: var(--ck-surface);
 }
 
 .ck-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 6px 0;
-    border-bottom: 1px dashed rgba(0, 0, 0, .06);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--ck-border-soft);
 }
 
 .ck-row:last-child {
-    border-bottom: 0;
+  border-bottom: 0;
 }
 
 .ck-row span {
-    opacity: .75;
-    font-size: 12px;
+  opacity: 1;
+  color: var(--ck-text-muted);
+  font-size: 12px;
 }
 
 .ck-row b {
-    font-weight: 800;
-    font-size: 13px;
-    text-align: right;
+  font-weight: 800;
+  font-size: 13px;
+  text-align: right;
+  color: var(--ck-text);
 }
 
 .ck-tabs {
-    display: flex;
-    gap: 8px;
-    margin: 10px 0;
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
 }
 
 .ck-tab {
-    flex: 1;
-    border: 1px solid rgba(0, 0, 0, .08);
-    border-radius: 12px;
-    padding: 10px 8px;
-    font-weight: 800;
-    background: #fff;
+  flex: 1;
+  border: 1px solid var(--ck-border);
+  border-radius: 12px;
+  padding: 10px 8px;
+  font-weight: 800;
+  background: var(--ck-surface);
+  color: var(--ck-text);
 }
 
 .ck-tab.is-active {
-    background: #111;
-    color: #fff;
-    border-color: #111;
+  background: var(--ck-primary);
+  color: var(--ck-primary-contrast);
+  border-color: var(--ck-primary);
 }
 
 .ck-mini-list {
-    display: grid;
-    gap: 10px;
+  display: grid;
+  gap: 10px;
 }
 
 .ck-mini-item {
-    padding: 10px 0;
-    border-bottom: 1px dashed rgba(0, 0, 0, .06);
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--ck-border-soft);
 }
 
 .ck-mini-item:last-child {
-    border-bottom: 0;
+  border-bottom: 0;
 }
 
 .ck-status-badge {
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 999px;
-    font-weight: 600;
-    line-height: 1;
-    white-space: nowrap;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .ck-chips {
-    display: flex;
-    flex-direction: row;
-    margin: 6px 0 6px;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  flex-direction: row;
+  margin: 6px 0 6px;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .ck-chip {
-    font-size: 12px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    font-weight: 600;
-    line-height: 1;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  line-height: 1;
 }
 
-/* States */
+/* =========================
+   STATES (theme-friendly)
+   ========================= */
+
 .ck-status--ready {
-    background: #e2e3e5;
-    color: #383d41;
+  background: var(--ck-ready-bg);
+  color: var(--ck-ready-fg);
 }
 
 .ck-status--running {
-    background: #d4edda;
-    color: #155724;
+  background: var(--ck-success-bg);
+  color: var(--ck-success-fg);
 }
 
 .ck-status--paused {
-    background: #fff3cd;
-    color: #856404;
+  background: var(--ck-paused-bg);
+  color: var(--ck-paused-fg);
 }
 
 .ck-status--finished {
-    background: #d1ecf1;
-    color: #0c5460;
+  background: var(--ck-finished-bg);
+  color: var(--ck-finished-fg);
 }
 
 .ck-status--rejected {
-    background: #f8d7da;
-    color: #721c24;
+  background: var(--ck-danger-bg);
+  color: var(--ck-danger-fg);
 }
 
 .ck-status--pending {
-    background: #dbeafe;
-    color: #1e3a8a;
+  background: var(--ck-info-bg);
+  color: var(--ck-info-fg);
 }
 
-/* QC segmented toggle */
+/* =========================
+   QC segmented toggle
+   ========================= */
+
 .ck-qc-toggle {
-    width: 100%;
-    display: flex;
-    gap: 8px;
+  width: 100%;
+  display: flex;
+  gap: 8px;
 }
 
 .ck-qc-toggle__btn {
-    flex: 1;
-    min-width: 0;
-    padding: 10px 10px;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, .14);
-    background: #fff;
-    font-weight: 800;
-    font-size: 13px;
-    line-height: 1.1;
-    cursor: pointer;
-    transition: transform .05s ease, background .15s ease, border-color .15s ease;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--ck-border-strong);
+  background: var(--ck-surface);
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ck-text);
 }
 
 .ck-qc-toggle__btn:active {
-    transform: scale(0.99);
+  transform: scale(0.99);
 }
 
 .ck-qc-toggle__btn:disabled {
-    opacity: .6;
-    cursor: not-allowed;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
+/* text colors */
 .ck-qc-toggle__btn.is-pending {
-    color: #1e3a8a;
+  color: var(--ck-pending-fg);
 }
-
 .ck-qc-toggle__btn.is-ok {
-    color: #155724;
+  color: var(--ck-running-fg);
 }
-
 .ck-qc-toggle__btn.is-reject {
-    color: #721c24;
+  color: var(--ck-rejected-fg);
 }
 
+/* active backgrounds + borders */
 .ck-qc-toggle__btn.is-active.is-pending {
-    background: #dbeafe;
-    border-color: #3b82f6;
+  background: var(--ck-info-bg);
+  border-color: var(--ck-pending-border);
 }
 
 .ck-qc-toggle__btn.is-active.is-ok {
-    background: #d4edda;
-    border-color: #22c55e;
+  background: var(--ck-success-bg);
+  border-color: var(--ck-ok-border);
 }
 
 .ck-qc-toggle__btn.is-active.is-reject {
-    background: #f8d7da;
-    border-color: #ef4444;
+  background: var(--ck-danger-bg);
+  border-color: var(--ck-danger-border);
 }
 
 @media (max-width: 420px) {
-    .ck-qc-toggle {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
+  .ck-qc-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
 
-    .ck-qc-toggle__btn {
-        width: 100%;
-        flex: unset;
-    }
+  .ck-qc-toggle__btn {
+    width: 100%;
+    flex: unset;
+  }
 
-    .ck-qc-toggle__btn:nth-child(3) {
-        grid-column: 1 / -1;
-    }
+  .ck-qc-toggle__btn:nth-child(3) {
+    grid-column: 1 / -1;
+  }
 }
 </style>
