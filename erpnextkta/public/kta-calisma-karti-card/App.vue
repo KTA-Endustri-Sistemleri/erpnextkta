@@ -267,7 +267,6 @@ watch(
 
 .ck-page {
   padding: 12px;
-  background: var(--ck-bg);
   color: var(--ck-text);
 }
 
@@ -307,7 +306,7 @@ watch(
 }
 
 .ck-btn--primary {
-  background: var(--secondary);
+  background: var(--ck-primary);
   color: var(--ck-primary-contrast);
 }
 
@@ -338,7 +337,6 @@ watch(
   display: flex;
   gap: 8px;
   padding: 8px 0;
-  background: var(--ck-bg);
 }
 
 .ck-muted {
@@ -452,12 +450,12 @@ watch(
    ========================= */
 
 .ck-status--ready {
-  background: var(--ck-ready-bg);
-  color: var(--ck-ready-fg);
+  background: var(--ck-info);
+  color: var(--ck-info-fg);
 }
 
 .ck-status--running {
-  background: var(--ck-success-bg);
+  background: var(--ck-success);
   color: var(--ck-success-fg);
 }
 
@@ -531,17 +529,17 @@ watch(
 
 /* active backgrounds + borders */
 .ck-qc-toggle__btn.is-active.is-pending {
-  background: var(--ck-info-bg);
+  background: var(--ck-info);
   border-color: var(--ck-pending-border);
 }
 
 .ck-qc-toggle__btn.is-active.is-ok {
-  background: var(--ck-success-bg);
+  background: var(--ck-success);
   border-color: var(--ck-ok-border);
 }
 
 .ck-qc-toggle__btn.is-active.is-reject {
-  background: var(--ck-danger-bg);
+  background: var(--ck-danger);
   border-color: var(--ck-danger-border);
 }
 
