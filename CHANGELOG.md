@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v0.12.0 (2026-01-24)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **frappe-ui**: :building_construction: frappe-ui integration added
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.11.2 (2026-01-22)
 
 
