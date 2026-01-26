@@ -242,6 +242,7 @@ watch(
 
   /* Brand */
   --ck-primary: var(--primary, #111);
+  --ck-secondary: var(--secondary);
   --ck-primary-contrast: var(--primary-contrast, #fff);
 
   /* Buttons / misc */
@@ -306,7 +307,12 @@ watch(
 }
 
 .ck-btn--primary {
-  background: var(--ck-primary);
+  background: var(--ck-ghost-bg);
+  color: var(--ck-primary-contrast);
+}
+
+.ck-btn--secondary {
+  background: var(--ck-ghost-bg);
   color: var(--ck-primary-contrast);
 }
 
@@ -401,7 +407,7 @@ watch(
 }
 
 .ck-tab.is-active {
-  background: var(--ck-primary);
+  background: var(--ck-ghost-bg);
   color: var(--ck-primary-contrast);
   border-color: var(--ck-primary);
 }
@@ -460,7 +466,7 @@ watch(
 }
 
 .ck-status--paused {
-  background: var(--ck-paused-bg);
+  background: var(--ck-warning);
   color: var(--ck-paused-fg);
 }
 
@@ -475,7 +481,7 @@ watch(
 }
 
 .ck-status--pending {
-  background: var(--ck-info-bg);
+  background: var(--ck-info);
   color: var(--ck-info-fg);
 }
 

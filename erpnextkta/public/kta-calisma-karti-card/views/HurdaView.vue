@@ -71,7 +71,7 @@ function onHurdaSil(h: any) {
 <template>
   <div class="ck-card">
     <div style="display:flex; gap:8px; margin-bottom:10px;">
-      <button class="ck-btn ck-btn--primary ck-btn--wide" @click="onHurdaEkle">Hurda Ekle</button>
+      <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onHurdaEkle">Hurda Ekle</button>
     </div>
 
     <div v-if="(doc.hurdalar||[]).length===0" class="ck-muted">Hurda kaydı yok.</div>
