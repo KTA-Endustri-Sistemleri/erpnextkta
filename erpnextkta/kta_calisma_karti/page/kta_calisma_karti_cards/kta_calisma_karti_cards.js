@@ -7,6 +7,10 @@ frappe.pages["kta-calisma-karti-cards"].on_page_load = async function (wrapper) 
     single_column: true
   });
 
+  $(wrapper)
+    .find(".page-content .row.layout-main .col-md-12.layout-main-section-wrapper")
+    .addClass("p-0");
+
   // Developer mode hot reload support
   if (frappe.boot.developer_mode) {
     if (!Array.isArray(frappe.hot_update)) {
