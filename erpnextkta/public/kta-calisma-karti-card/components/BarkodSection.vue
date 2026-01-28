@@ -23,14 +23,14 @@ function actions(r: any) {
 </script>
 
 <template>
-  <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+  <div class="ck-qc-header">
     <b>Barkod Kayıtları</b>
-    <button v-if="props.canEditQC" class="ck-btn ck-btn--primary" style="padding:8px 10px;" @click="props.onAdd">
+    <button v-if="props.canEditQC" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
       + Ekle
     </button>
   </div>
 
-  <div v-if="(props.rows||[]).length===0" class="ck-muted" style="margin-top:8px;">
+  <div v-if="(props.rows||[]).length===0" class="ck-muted" style="margin-top: 14px;padding: 0px 6px;">
     Barkod kaydı yok.
   </div>
 

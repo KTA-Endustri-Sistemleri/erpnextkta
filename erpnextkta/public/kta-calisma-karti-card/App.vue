@@ -357,7 +357,7 @@ watch(
 .ck-card {
   border: 1px solid var(--ck-border);
   border-radius: 14px;
-  padding: 10px 12px;
+  padding: 10px 0px;
   background: var(--ck-surface);
 }
 
@@ -365,7 +365,7 @@ watch(
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 0;
+  padding: 6px 6px;
   border-bottom: 1px dashed var(--ck-border-soft);
 }
 
@@ -404,7 +404,7 @@ watch(
 
 .ck-tab.is-active {
   background: var(--btn-default-hover-bg);
-  border-color: var(--ck-primary);
+  border-color: var(--gray-400);
 }
 
 .ck-mini-list {
@@ -413,7 +413,7 @@ watch(
 }
 
 .ck-mini-item {
-  padding: 10px 0;
+  padding: 10px 10px;
   border-bottom: 1px dashed var(--ck-border-soft);
 }
 
@@ -485,6 +485,7 @@ watch(
    ========================= */
 
 .ck-qc-toggle {
+  padding: 0px 6px;
   width: 100%;
   display: flex;
   gap: 8px;
@@ -530,25 +531,39 @@ watch(
 
 /* active backgrounds + borders */
 .ck-qc-toggle__btn.is-active.is-pending {
-  background: var(--ck-info);
-  border-color: var(--ck-pending-border);
+  background: var(--blue-500);
+  border-color: var(--blue-800);
+  color: var(--white);
 }
 
 .ck-qc-toggle__btn.is-active.is-ok {
   background: var(--ck-success);
-  border-color: var(--ck-ok-border);
+  border-color: var(--green-700);
+  color: var(--white);
 }
 
 .ck-qc-toggle__btn.is-active.is-reject {
   background: var(--ck-danger);
-  border-color: var(--ck-danger-border);
+  border-color: var(--red-900);
+  color: var(--white);
 }
-
+.ck-qc-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--fg-hover-color);
+  padding: 14px 6px;
+  background: var(--btn-default-bg);
+}
 @media (max-width: 420px) {
   .ck-qc-toggle {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+    padding: 0px 6px;
   }
 
   .ck-qc-toggle__btn {

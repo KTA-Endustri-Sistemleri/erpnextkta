@@ -116,7 +116,7 @@ onMounted(() => {});
       :onSetQC="props.onSetQC"
     />
 
-    <div style="height:1px; background:rgba(0,0,0,.06); margin:14px 0;"></div>
+    <div style="height: 1px;background: var(--fg-hover-color);margin-top: 10px;"></div>
 
     <IdcSection
       :rows="props.doc.idc_olcumleri || []"
@@ -126,7 +126,7 @@ onMounted(() => {});
       :onDelete="deleteIdc"
     />
 
-    <div style="height:1px; background:rgba(0,0,0,.06); margin:14px 0;"></div>
+    <div style="height: 1px;background: var(--fg-hover-color);margin-top: 10px;"></div>
 
     <BarkodSection
       :rows="props.doc.barkod_kayitlari || []"

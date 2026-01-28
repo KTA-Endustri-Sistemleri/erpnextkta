@@ -70,11 +70,11 @@ function onHurdaSil(h: any) {
 
 <template>
   <div class="ck-card">
-    <div style="display:flex; gap:8px; margin-bottom:10px;">
+    <div style="display: flex;gap: 8px;/* margin-bottom: 10px; */padding: 0px 10px 10px;">
       <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onHurdaEkle">Hurda Ekle</button>
     </div>
 
-    <div v-if="(doc.hurdalar||[]).length===0" class="ck-muted">Hurda kaydı yok.</div>
+    <div v-if="(doc.hurdalar||[]).length===0" class="ck-muted" style="padding: 0px 10px;padding-top: 0px;">Hurda kaydı yok.</div>
 
     <div v-else class="ck-mini-list">
       <div v-for="(h, i) in doc.hurdalar" :key="h.name || i" class="ck-mini-item">
