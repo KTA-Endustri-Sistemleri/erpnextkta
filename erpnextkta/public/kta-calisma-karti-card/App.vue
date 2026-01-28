@@ -451,13 +451,13 @@ watch(
    ========================= */
 
 .ck-status--ready {
-  background: var(--ck-info);
-  color: var(--ck-info-fg);
+  background: var(--blue);
+  color: var(--white-overlay-900);
 }
 
 .ck-status--running {
   background: var(--ck-success);
-  color: var(--ck-success-fg);
+  color: var(--white-overlay-900);
 }
 
 .ck-status--paused {
@@ -467,17 +467,17 @@ watch(
 
 .ck-status--finished {
   background: var(--ck-finished-bg);
-  color: var(--ck-finished-fg);
+  color: var(--white-overlay-900);
 }
 
 .ck-status--rejected {
   background: var(--ck-danger);
-  color: var(--ck-danger-fg);
+  color: var(--white-overlay-900);
 }
 
 .ck-status--pending {
-  background: var(--ck-info);
-  color: var(--ck-info-fg);
+    background: var(--blue);
+    color: var(--white-overlay-900);
 }
 
 /* =========================
@@ -531,7 +531,7 @@ watch(
 
 /* active backgrounds + borders */
 .ck-qc-toggle__btn.is-active.is-pending {
-  background: var(--blue-500);
+  background: var(--blue);
   border-color: var(--blue-800);
   color: var(--white);
 }
