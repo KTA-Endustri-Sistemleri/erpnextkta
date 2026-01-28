@@ -427,7 +427,7 @@ onMounted(load);
 /* tone mapping */
 .ck-pill[data-tone="ready"]{
   background: var(--blue);
-  color:#374151;
+  color: var(--white-overlay-900);
 }
 .ck-pill[data-tone="running"]{
   background: var(--green);
