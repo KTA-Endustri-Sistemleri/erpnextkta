@@ -251,7 +251,11 @@ onMounted(load);
           class="ck-card"
           @click="openDetail(r.name)"
         >
-          <div class="row no-gutters">
+          <div class="row no-gutters" :class="{
+            'ck-status-qc--running': r.kalite_kontrol === 'Onaylandı',
+            'ck-status-qc--rejected': r.kalite_kontrol === 'Reddedildi',
+            'ck-status-qc--pending': r.kalite_kontrol === 'Onay Bekliyor',
+          }">
             <div class="col-2 p-0 ck-pill" :data-tone="statusTone(r.durum)">
               <span>{{ r.durum || "-" }}</span>
             </div>
@@ -655,5 +659,20 @@ onMounted(load);
 }
 .ck-filter.active .ck-filter-count{
   background: var(--blue-400);
+}
+.ck-status-qc--running {
+  background: linear-gradient(270deg, var(--green), transparent, transparent);
+  color: var(--white-overlay-900);
+  border-radius: 16px;
+}
+.ck-status-qc--rejected {
+  background: linear-gradient(270deg, var(--ck-danger), transparent, transparent);
+  color: var(--white-overlay-900);
+  border-radius: 16px;
+}
+.ck-status-qc--pending {
+    background: linear-gradient(270deg, var(--blue), transparent, transparent);
+    color: var(--white-overlay-900);
+    border-radius: 16px;
 }
 </style>
