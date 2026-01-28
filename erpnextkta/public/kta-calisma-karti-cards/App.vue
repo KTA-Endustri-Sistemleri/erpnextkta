@@ -91,6 +91,7 @@ const filteredRows = computed(() => {
 
     const hay = [
       r?.name,
+      r?.operator,
       r?.custom_work_order,
       r?.is_karti,
       r?.operasyon,
@@ -250,27 +251,29 @@ onMounted(load);
           class="ck-card"
           @click="openDetail(r.name)"
         >
-          <div class="ck-card-top">
-            <span class="ck-pill" :data-tone="statusTone(r.durum)">
-              {{ r.durum || "-" }}
-            </span>
-            <span class="ck-chevron">›</span>
-          </div>
-
-          <div class="ck-name">{{ r.name }}</div>
-
-          <div class="ck-kv">
-            <div class="ck-kv-item">
-              <span>İş Emri</span>
-              <b>{{ r.custom_work_order || "-" }}</b>
+          <div class="row no-gutters">
+            <div class="col-2 p-0 ck-pill" :data-tone="statusTone(r.durum)">
+              <span>{{ r.durum || "-" }}</span>
             </div>
-            <div class="ck-kv-item">
-              <span>İş Kartı</span>
-              <b>{{ r.is_karti || "-" }}</b>
+            <div class="col-9 py-2 pl-2">
+              <div class="ck-name">{{ r.operator }}</div>
+              <div class="ck-kv">
+                <div class="ck-kv-item">
+                  <span>İş Emri</span>
+                  <b>{{ r.custom_work_order || "-" }}</b>
+                </div>
+                <div class="ck-kv-item">
+                  <span>İş Kartı</span>
+                  <b>{{ r.is_karti || "-" }}</b>
+                </div>
+                <div class="ck-kv-item">
+                  <span>Operasyon</span>
+                  <b>{{ r.operasyon || "-" }}</b>
+                </div>
+              </div>
             </div>
-            <div class="ck-kv-item">
-              <span>Operasyon</span>
-              <b>{{ r.operasyon || "-" }}</b>
+            <div class="col-1 p-0">
+              <span class="ck-chevron">›</span>
             </div>
           </div>
         </button>
@@ -289,7 +292,7 @@ onMounted(load);
 
 .ck-header{
   position:sticky;
-  top:0;
+  top: 48px;
   z-index:5;
   padding:12px 12px 10px;
   background: var(--subtle-fg);
@@ -343,6 +346,7 @@ onMounted(load);
   outline:none;
   font-size:14px;
   background:transparent;
+  color: var(--text-dark);
 }
 .ck-clear{
   border:0;
@@ -388,8 +392,17 @@ onMounted(load);
   background:var(--card-bg);
   border:1px solid rgba(0,0,0,.08);
   border-radius:18px;
-  padding:12px 12px 14px;
+  padding:0px 0px 0px;
   box-shadow:0 1px 0 rgba(0,0,0,.02);
+}
+.ck-pill span{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(270deg);
+  transform-origin: center;
+  white-space: nowrap;
+  text-transform: uppercase;
 }
 .ck-card:active{ transform:scale(.995); }
 
@@ -419,27 +432,136 @@ onMounted(load);
   font-size:12px;
   font-weight:900;
   padding:6px 10px;
-  border-radius:999px;
+  border-radius:18px 0px 0px 18px;
   line-height:1;
   border:1px solid rgba(0,0,0,.08);
+  position: relative;
+  overflow: hidden; /* kritik */
 }
-
 /* tone mapping */
 .ck-pill[data-tone="ready"]{
   background: var(--blue);
   color: var(--white-overlay-900);
+  border-right: solid 0px var(--card-bg);
+}
+.ck-pill[data-tone="ready"]::after{
+  content:"";
+  position:absolute;
+  top:-1px;             /* üstte de bindir (anti-alias çizgisi için) */
+  bottom:-1px;          /* altta da bindir */
+  right:-1px;           /* sağa 1px taşır */
+  width:15px;           /* 14 yerine 15 (bindirmeyi telafi) */
+  height:100%;
+  background: var(--card-bg);
+
+  clip-path: polygon(
+    100% 0%,
+    0% 8%,
+    100% 16%,
+    0% 24%,
+    100% 32%,
+    0% 40%,
+    100% 48%,
+    0% 56%,
+    100% 64%,
+    0% 72%,
+    100% 80%,
+    0% 88%,
+    100% 100%
+  );
 }
 .ck-pill[data-tone="running"]{
   background: var(--green);
   color: var(--white-overlay-900);
+  border-right: solid 0px var(--card-bg);
+}
+.ck-pill[data-tone="running"]::after{
+  content:"";
+  position:absolute;
+  top:-1px;             /* üstte de bindir (anti-alias çizgisi için) */
+  bottom:-1px;          /* altta da bindir */
+  right:-1px;           /* sağa 1px taşır */
+  width:15px;           /* 14 yerine 15 (bindirmeyi telafi) */
+  height:100%;
+  background: var(--card-bg);
+
+  clip-path: polygon(
+    100% 0%,
+    0% 8%,
+    100% 16%,
+    0% 24%,
+    100% 32%,
+    0% 40%,
+    100% 48%,
+    0% 56%,
+    100% 64%,
+    0% 72%,
+    100% 80%,
+    0% 88%,
+    100% 100%
+  );
 }
 .ck-pill[data-tone="paused"]{
   background: var(--yellow-500);
   color: var(--black-overlay-800);
+  border-right: solid 0px var(--card-bg);
+}
+.ck-pill[data-tone="paused"]::after{
+  content:"";
+  position:absolute;
+  top:-1px;             /* üstte de bindir (anti-alias çizgisi için) */
+  bottom:-1px;          /* altta da bindir */
+  right:-1px;           /* sağa 1px taşır */
+  width:15px;           /* 14 yerine 15 (bindirmeyi telafi) */
+  height:100%;
+  background: var(--card-bg);
+
+  clip-path: polygon(
+    100% 0%,
+    0% 8%,
+    100% 16%,
+    0% 24%,
+    100% 32%,
+    0% 40%,
+    100% 48%,
+    0% 56%,
+    100% 64%,
+    0% 72%,
+    100% 80%,
+    0% 88%,
+    100% 100%
+  );
 }
 .ck-pill[data-tone="finished"]{
   background: var(--red);
   color: var(--white-overlay-900);
+  border-right: solid 0px var(--card-bg);
+}
+.ck-pill[data-tone="finished"]::after{
+  content:"";
+  position:absolute;
+  top:-1px;             /* üstte de bindir (anti-alias çizgisi için) */
+  bottom:-1px;          /* altta da bindir */
+  right:-1px;           /* sağa 1px taşır */
+  width:15px;           /* 14 yerine 15 (bindirmeyi telafi) */
+  height:100%;
+  background: var(--card-bg);
+
+  clip-path: polygon(
+    100% 0%,
+    0% 8%,
+    100% 16%,
+    0% 24%,
+    100% 32%,
+    0% 40%,
+    100% 48%,
+    0% 56%,
+    100% 64%,
+    0% 72%,
+    100% 80%,
+    0% 88%,
+    100% 100%
+  );
 }
 
 /* KV grid */
