@@ -276,7 +276,7 @@ onMounted(load);
                 </div>
               </div>
             </div>
-            <div class="col-1 p-0">
+            <div class="col-1 p-0 d-flex align-items-center">
               <span class="ck-chevron">›</span>
             </div>
           </div>
@@ -418,7 +418,7 @@ onMounted(load);
 }
 
 .ck-chevron{
-  font-size:22px;
+  font-size:48px;
   opacity:.25;
   line-height:1;
 }
