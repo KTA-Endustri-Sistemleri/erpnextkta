@@ -278,6 +278,8 @@ watch(
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
+  border-bottom: solid 2px var(--gray-400);
+  padding-bottom: 12px;
 }
 
 .ck-topbar-title {
@@ -301,6 +303,7 @@ watch(
   border-radius: 10px;
   padding: 10px 12px;
   font-weight: 800;
+  border: 0.1px solid var(--gray-300);
 }
 
 .ck-btn--wide {
@@ -324,7 +327,7 @@ watch(
 
 .ck-btn--danger {
   background: var(--ck-danger);
-  color: var(--ck-danger-contrast);
+  color: var(--white);
 }
 
 .ck-btn--ghost {
@@ -338,7 +341,7 @@ watch(
   z-index: 5;
   display: flex;
   gap: 8px;
-  padding: 8px 0;
+  padding-bottom: 11px;
 }
 
 .ck-muted {
@@ -389,7 +392,8 @@ watch(
 .ck-tabs {
   display: flex;
   gap: 8px;
-  margin: 10px 0;
+  padding: 10px 0;
+  border-top: 2px solid var(--gray-100);
 }
 
 .ck-tab {
@@ -423,17 +427,16 @@ watch(
 
 .ck-status-badge {
   font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 999px;
+  padding: 6px 10px;
   font-weight: 600;
-  line-height: 1;
   white-space: nowrap;
+  border-radius: 6px 0px 0px 6px;
 }
 
 .ck-chips {
   display: flex;
   flex-direction: row;
-  margin: 6px 0 6px;
+  margin: 8px 0 8px;
   justify-content: space-between;
   align-items: center;
 }
@@ -441,9 +444,9 @@ watch(
 .ck-chip {
   font-size: 12px;
   padding: 6px 10px;
-  border-radius: 999px;
   font-weight: 600;
-  line-height: 1;
+  text-align: end;
+  border-radius: 0px 6px 6px 0px;
 }
 
 /* =========================
@@ -451,32 +454,47 @@ watch(
    ========================= */
 
 .ck-status--ready {
-  background: var(--blue);
+  background: linear-gradient(90deg, var(--blue), transparent);
   color: var(--white-overlay-900);
 }
 
 .ck-status--running {
-  background: var(--ck-success);
+  background: linear-gradient(90deg, var(--green), transparent);
+  color: var(--white-overlay-900);
+}
+
+.ck-status-qc--running {
+  background: linear-gradient(270deg, var(--green), transparent);
   color: var(--white-overlay-900);
 }
 
 .ck-status--paused {
-  background: var(--ck-warning);
+  background: linear-gradient(90deg, var(--ck-warning), transparent);
   color: var(--ck-paused-fg);
 }
 
 .ck-status--finished {
-  background: var(--ck-finished-bg);
+  background: linear-gradient(90deg, var(--ck-finished-bg), transparent);
   color: var(--white-overlay-900);
 }
 
 .ck-status--rejected {
-  background: var(--ck-danger);
+  background: linear-gradient(90deg, var(--ck-danger), transparent);
+  color: var(--white-overlay-900);
+}
+
+.ck-status-qc--rejected {
+  background: linear-gradient(270deg, var(--ck-danger), transparent);
   color: var(--white-overlay-900);
 }
 
 .ck-status--pending {
-    background: var(--blue);
+    background: linear-gradient(90deg, var(--blue), transparent);
+    color: var(--white-overlay-900);
+}
+
+.ck-status-qc--pending {
+    background: linear-gradient(270deg, var(--blue), transparent);
     color: var(--white-overlay-900);
 }
 

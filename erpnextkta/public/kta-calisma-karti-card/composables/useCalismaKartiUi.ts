@@ -41,9 +41,9 @@ export function useCalismaKartiUi(docRef: any) {
     const qcApproved = computed(() => qcValue.value === "Onaylandı");
 
     const qcClass = computed(() => {
-        if (qcValue.value === "Onaylandı") return "ck-status--running"; // green
-        if (qcValue.value === "Onay Bekliyor") return "ck-status--pending"; // blue
-        if (qcValue.value === "Reddedildi") return "ck-status--rejected"; // red
+        if (qcValue.value === "Onaylandı") return "ck-status-qc--running"; // green
+        if (qcValue.value === "Onay Bekliyor") return "ck-status-qc--pending"; // blue
+        if (qcValue.value === "Reddedildi") return "ck-status-qc--rejected"; // red
         return "ck-status--paused";
     });
 

@@ -8,8 +8,8 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="ck-chips">
-    <span :class="['ck-status-badge', props.statusClass]">{{ props.durumLabel }}</span>
-    <span :class="['ck-chip', props.qcClass]">QC: {{ props.qcLabel }}</span>
+  <div class="row no-gutters ck-chips">
+    <span class="col-6 p-2" :class="['ck-status-badge', props.statusClass]">{{ props.durumLabel }}</span>
+    <span class="col-6 p-2" :class="['ck-chip', props.qcClass]">QC: {{ props.qcLabel }}</span>
   </div>
 </template>
