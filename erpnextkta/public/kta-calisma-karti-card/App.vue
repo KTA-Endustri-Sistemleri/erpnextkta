@@ -253,6 +253,7 @@ watch(
   --ck-danger: var(--danger, #ef4444);
   --ck-warning: var(--warning, #f59e0b);
   --ck-success: var(--success, #22c55e);
+  --ck-finished-bg: var(--success, #22c55e);
   --ck-info: var(--info, #3b82f6);
 
   /* Badge backgrounds: Frappe alert bg'lerine yaslan (yoksa fallback) */
@@ -304,11 +305,6 @@ watch(
 
 .ck-btn--wide {
   flex: 1;
-}
-
-.ck-btn--primary {
-  background: var(--ck-ghost-bg);
-  color: var(--ck-primary-contrast);
 }
 
 .ck-btn--secondary {
@@ -402,13 +398,12 @@ watch(
   border-radius: 12px;
   padding: 10px 8px;
   font-weight: 800;
-  background: var(--ck-surface);
+  background: var(--btn-default-bg);
   color: var(--ck-text);
 }
 
 .ck-tab.is-active {
-  background: var(--ck-ghost-bg);
-  color: var(--ck-primary-contrast);
+  background: var(--btn-default-hover-bg);
   border-color: var(--ck-primary);
 }
 
@@ -476,7 +471,7 @@ watch(
 }
 
 .ck-status--rejected {
-  background: var(--ck-danger-bg);
+  background: var(--ck-danger);
   color: var(--ck-danger-fg);
 }
 
