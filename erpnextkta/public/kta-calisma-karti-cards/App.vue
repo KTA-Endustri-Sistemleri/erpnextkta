@@ -283,7 +283,7 @@ onMounted(load);
 /* Layout */
 .ck-page{
   padding:0;
-  background:#f7f7f8;
+  background: var(--subtle-fg);
   min-height:100vh;
 }
 
@@ -291,9 +291,8 @@ onMounted(load);
   position:sticky;
   top:0;
   z-index:5;
-  background:#f7f7f8;
   padding:12px 12px 10px;
-  border-bottom:1px solid rgba(0,0,0,.06);
+  background: var(--subtle-fg);
 }
 
 .ck-body{
@@ -320,7 +319,8 @@ onMounted(load);
   height:40px;
   border-radius:12px;
   border:1px solid rgba(0,0,0,.10);
-  background:#fff;
+  background: var(--blue-500);
+  color: var(--text-dark);
   font-size:16px;
 }
 .ck-iconbtn:active{ transform:scale(.98); }
@@ -385,7 +385,7 @@ onMounted(load);
 .ck-card{
   width:100%;
   text-align:left;
-  background:#fff;
+  background:var(--card-bg);
   border:1px solid rgba(0,0,0,.08);
   border-radius:18px;
   padding:12px 12px 14px;
@@ -426,20 +426,20 @@ onMounted(load);
 
 /* tone mapping */
 .ck-pill[data-tone="ready"]{
-  background:#f3f4f6;
+  background: var(--blue);
   color:#374151;
 }
 .ck-pill[data-tone="running"]{
-  background:#dcfce7;
-  color:#166534;
+  background: var(--green);
+  color: var(--white-overlay-900);
 }
 .ck-pill[data-tone="paused"]{
-  background:#ffedd5;
-  color:#9a3412;
+  background: var(--yellow-500);
+  color: var(--black-overlay-800);
 }
 .ck-pill[data-tone="finished"]{
-  background:#e0f2fe;
-  color:#075985;
+  background: var(--red);
+  color: var(--white-overlay-900);
 }
 
 /* KV grid */
@@ -501,7 +501,7 @@ onMounted(load);
 
 .ck-filter{
   border:1px solid rgba(0,0,0,.10);
-  background:#fff;
+  background: var(--bg-color);
   border-radius:999px;
   padding:8px 10px;
   font-size:12px;
@@ -514,9 +514,9 @@ onMounted(load);
 .ck-filter:active{ transform:scale(.99); }
 
 .ck-filter.active{
-  background:#111827;
-  color:#fff;
-  border-color:#111827;
+  background: var(--bg-light-blue);
+  color: var(--text-color) !important;
+  border-color: var(--blue-400);
 }
 
 .ck-filter-count{
@@ -529,9 +529,9 @@ onMounted(load);
   border-radius:999px;
   font-size:11px;
   font-weight:900;
-  background:rgba(0,0,0,.08);
+  background: var(--fg-hover-color);
 }
 .ck-filter.active .ck-filter-count{
-  background:rgba(255,255,255,.18);
+  background: var(--blue-400);
 }
 </style>
