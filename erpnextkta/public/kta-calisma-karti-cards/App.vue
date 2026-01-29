@@ -662,17 +662,14 @@ onMounted(load);
 }
 .ck-status-qc--running {
   background: linear-gradient(270deg, var(--green), transparent, transparent);
-  color: var(--white-overlay-900);
   border-radius: 16px;
 }
 .ck-status-qc--rejected {
   background: linear-gradient(270deg, var(--ck-danger), transparent, transparent);
-  color: var(--white-overlay-900);
   border-radius: 16px;
 }
 .ck-status-qc--pending {
     background: linear-gradient(270deg, var(--blue), transparent, transparent);
-    color: var(--white-overlay-900);
     border-radius: 16px;
 }
 </style>
