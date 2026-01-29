@@ -87,6 +87,75 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         # 2. Update Item Rates
         if self.items:
             for item in self.items:
+                # KTA Override: Smart Rate Update Prevention
+                # We want to identify if the current 'item.rate' is Manually entered (or customized).
+                # If it is Manual, we MUST NOT overwrite it.
+                # If it is Standard (consistent with Price List), we SHOULD update it to latest Price List Rate.
+
+                # 1. Determine if Rate is "Detached" from Price List Rate
+                # Calculated Expected Rate = price_list_rate * conversion * (1 - discount)
+                
+                current_plr = item.price_list_rate or 0.0
+                current_rate = item.rate or 0.0
+                
+                calc_conversion = 1.0
+                if self.price_list_currency and self.currency and self.price_list_currency != self.currency:
+                    if self.plc_conversion_rate:
+                        calc_conversion = self.plc_conversion_rate
+
+                discount_factor = 1.0 - (item.get("discount_percentage", 0) / 100.0)
+                
+                # Expected rate given current PLR
+                expected_rate = current_plr * calc_conversion * discount_factor
+                
+                # Check deviation (tolerance 0.01)
+                is_detached = abs(current_rate - expected_rate) > 0.01
+
+                # 2. Check if the PLR itself is Manual (not in DB)
+                # Only check this if it appears "Attached", because if it's Detached we already know it's manual.
+                # (Or if user manually typed a PLR that isn't in DB, effectively checks validity)
+                is_manual_plr = False
+                if not is_detached and current_plr > 0 and self.buying_price_list:
+                     if not frappe.db.exists("Item Price", {
+                        "item_code": item.item_code, 
+                        "supplier": self.supplier, 
+                        "price_list": self.buying_price_list, 
+                        "price_list_rate": current_plr
+                    }):
+                        is_manual_plr = True
+
+                if is_detached or is_manual_plr:
+                    # Treat as Manual: Skip fetching fresh prices.
+                    # But we MUST recalculate based on *Exchange Rate* changes?
+                    # User said: "artık o ürün için rate değeri değiştirilmemeli" (rate should not be changed anymore).
+                    # This implies absolute freeze of the Rate (in Doc Currency)?
+                    # Usually imports (EUR) need to update rate in TRY if Exchange Rate changes.
+                    # BUT here, Doc Currency is EUR (from logs). 
+                    # If Doc Currency matches PL Currency, NO exchange rate effect.
+                    # If Doc Currency is TRY, and we bought in EUR -> We need to update TRY rate.
+                    
+                    # If we simply 'continue', Rate freezes.
+                    # If Doc Coin != Company Coin, and Doc Coin == PL Coin (e.g. all EUR), this is fine.
+                    # If Doc Coin (TRY) != PL Coin (EUR). User typed 100 TRY. Exch Rate changes.
+                    # Should it stay 100 TRY? Or update to equiv of X EUR?
+                    # "Rate değeri değiştirilmemeli" -> DO NOT CHANGE RATE. 
+                    
+                    # We will simply SKIP updates for this item.
+                    # However, we must ensure base_* values are updated for the Document's conversion rate (to company base).
+                    
+                    # Recalculate base values only using CURRENT rate
+                    item.amount = item.rate * item.qty
+                    item.net_rate = item.rate
+                    item.net_amount = item.amount
+                    
+                    item.base_rate = item.rate * self.conversion_rate
+                    item.base_amount = item.amount * self.conversion_rate
+                    item.base_net_rate = item.net_rate * self.conversion_rate
+                    item.base_net_amount = item.net_amount * self.conversion_rate
+                    
+                    continue
+
+                # If Not Manual/Detached -> Proceed with Standard Update (Fetch Fresh Prices)
                 # Recalculate base amounts based on new conversion rate
                 
                 # Fetch fresh item details to catch price changes
@@ -98,7 +167,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                     "price_list_currency": self.price_list_currency,
                     "plc_conversion_rate": self.plc_conversion_rate,
                     "company": self.company,
-                    "transaction_date": rate_date, # Use 'irsaliye_tarihi' if available
+                    "transaction_date": rate_date,
                     "currency": self.currency,
                     "conversion_rate": self.conversion_rate,
                     "qty": item.qty,
@@ -111,39 +180,12 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 try:
                     details = get_item_details(args)
                     
-                    # Manual user-requested strict check for "Supplier" match in Item Price
-                    specific_price = frappe.db.sql("""
-                        SELECT price_list_rate, currency 
-                        FROM `tabItem Price` 
-                        WHERE item_code = %s 
-                        AND price_list = %s 
-                        AND supplier = %s
-                        AND valid_from <= %s 
-                        AND (valid_upto IS NULL OR valid_upto >= %s)
-                        ORDER BY valid_from DESC LIMIT 1
-                    """, (item.item_code, self.buying_price_list, self.supplier, rate_date, rate_date), as_dict=True)
-                    
-                    if specific_price:
-                        # Ensure we prioritize this rate
-                        if details:
-                             details["price_list_rate"] = specific_price[0].price_list_rate
-                             # User specifically asked for "rate" to be updated.
-                             # Standard ERPNext logic: rate = price_list_rate * (1 - discount).
-                             # If we update price_list_rate, we should update rate too effectively.
-                             
-                             conversion_factor = 1.0
-                             if self.price_list_currency != self.currency and self.plc_conversion_rate:
-                                 conversion_factor = self.plc_conversion_rate
-                             
-                             details["rate"] = details["price_list_rate"] * conversion_factor * (1 - (details.get("discount_percentage", 0) / 100))
-
                     if details:
                          # Update rate if found
                         if details.get("price_list_rate"):
                             item.price_list_rate = details.get("price_list_rate")
                             
-                            # Explicitly update 'rate' as per user request
-                            # We use the recalculated rate from above or fallback to price_list_rate
+                            # Standard Update
                             item.rate = details.get("rate") or item.price_list_rate
                             
                         if details.get("discount_percentage"):
