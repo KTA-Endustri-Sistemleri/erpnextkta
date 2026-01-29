@@ -33,15 +33,15 @@ function actions(r: any) {
     <div v-for="(r, i) in props.rows" :key="r.name || i" class="ck-mini-item">
       <!-- Everything stacked -->
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <b style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+        <b style="padding: 4px 4px;display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;border-bottom: 1px solid var(--btn-default-hover-bg);">
           {{ r.item_code || ('IDC #' + (i+1)) }}
         </b>
 
         <div style="display:flex; flex-direction:column; gap:6px;">
-          <div class="ck-muted" style="border:1px solid rgba(0,0,0,.08); border-radius:10px; padding:6px 10px;">
+          <div class="ck-muted" style="border: 1px solid var(--btn-default-hover-bg);border-radius: 10px;padding: 6px 10px;">
             Yükseklik: <b style="font-weight:800;">{{ r.yukseklik_mm ?? "-" }}</b> mm
           </div>
-          <div class="ck-muted" style="border:1px solid rgba(0,0,0,.08); border-radius:10px; padding:6px 10px;">
+          <div class="ck-muted" style="border: 1px solid var(--btn-default-hover-bg);border-radius: 10px;padding: 6px 10px;">
             Çekme: <b style="font-weight:800;">{{ r.cekme_n ?? "-" }}</b> N
           </div>
         </div>

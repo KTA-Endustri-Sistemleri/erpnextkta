@@ -42,7 +42,7 @@ function actions(r: any) {
           <BarcodeVisual :value="r.barcode" :width="120" />
           <div
             class="ck-muted"
-            style="border:1px solid rgba(0,0,0,.08); border-radius:10px; padding:6px 10px; background:rgba(0,0,0,.03); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+            style="border: 1px solid var(--btn-default-hover-bg);border-radius: 10px;padding: 6px 10px;background: rgba(0, 0, 0, 0.03);overflow: hidden;text-overflow: ellipsis;white-space: nowrap;"
             :title="r.barcode"
           >
             {{ r.barcode }}
@@ -52,14 +52,14 @@ function actions(r: any) {
         <div
           v-if="r.olcum_tarihi || r.olcumu_giren"
           class="ck-muted"
-          style="border:1px dashed rgba(0,0,0,.12); border-radius:12px; padding:8px 10px;"
+          style="border: 1px dashed var(--btn-default-hover-bg);border-radius: 8px;padding: 8px 10px;"
         >
           <div v-if="r.olcum_tarihi">Tarih: {{ fmtDt(r.olcum_tarihi) }}</div>
           <div v-if="r.olcumu_giren">Giren: {{ r.olcumu_giren }}</div>
         </div>
 
         <div style="display:flex; justify-content:flex-end;">
-          <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
+          <button v-if="props.canEditQC" class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
             DETAY ▾
           </button>
         </div>

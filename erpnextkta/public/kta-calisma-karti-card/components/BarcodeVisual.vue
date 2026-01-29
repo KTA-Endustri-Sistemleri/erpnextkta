@@ -14,7 +14,7 @@ const svgWidth = computed(() => Number(props.width || 140));
 <template>
   <div
     aria-label="Barkod görseli"
-    style="height:34px; border:1px solid rgba(0,0,0,.08); border-radius:10px; padding:6px 10px; background:#fff; display:flex; align-items:center;"
+    style="height: 34px;border: 1px solid rgba(0, 0, 0, 0.08);border-radius: 10px;padding: 6px 10px;background: rgb(255, 255, 255);display: flex;align-items: center;justify-content: center;"
   >
     <svg :width="svgWidth" :height="22" :viewBox="`0 0 ${svgWidth} 22`" role="img" aria-hidden="true">
       <g>
