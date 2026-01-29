@@ -15,6 +15,10 @@
   "column_break_uqsm",
   "kalite_kontrol",
   "durum",
+  "olcumler_section",
+  "idc_olcumleri",
+  "column_break_olcum",
+  "barkod_kayitlari",
   "zaman_section",
   "baslangic_saati",
   "bitis_saati",
@@ -158,6 +162,27 @@
    "label": "Durum",
    "options": "Haz\u0131r\n\u00c7al\u0131\u015f\u0131yor\nDuru\u015fta\nBitmi\u015f",
    "read_only": 1
+  },
+  {
+   "fieldname": "olcumler_section",
+   "fieldtype": "Section Break",
+   "label": "Ölçümler"
+  },
+  {
+   "fieldname": "idc_olcumleri",
+   "fieldtype": "Table",
+   "label": "IDC Ölçümleri",
+   "options": "Calisma Karti IDC Olcumleri"
+  },
+  {
+   "fieldname": "column_break_olcum",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "barkod_kayitlari",
+   "fieldtype": "Table",
+   "label": "Barkod Kayıtları",
+   "options": "Calisma Karti Barkod Kayitlari"
   }
  ],
  "grid_page_length": 50,

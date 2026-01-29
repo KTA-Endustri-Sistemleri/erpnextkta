@@ -7,11 +7,11 @@
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "scan",
+ "icon": "workflow",
  "idx": 26,
- "indicator_color": "green",
+ "indicator_color": "",
  "is_hidden": 0,
- "label": "H\u0131zl\u0131 Tarama",
+ "label": "\u00c7al\u0131\u015fma Kart\u0131",
  "links": [
   {
    "hidden": 0,
@@ -27,29 +27,27 @@
    "is_query_report": 0,
    "label": "\u00c7al\u0131\u015fma Kart\u0131 Listesi",
    "link_count": 0,
-   "link_to": "Calisma Karti",
-   "link_type": "DocType",
+   "link_to": "kta-calisma-karti-cards",
+   "link_type": "Page",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-12-04 04:45:06.648328",
+ "modified": "2026-01-15 19:33:42.455957",
  "modified_by": "Administrator",
- "module": "erpnextkta",
- "name": "H\u0131zl\u0131 Tarama",
+ "module": "kta_calisma_karti",
+ "name": "\u00c7al\u0131\u015fma Kart\u0131",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "Manufacturing",
+ "parent_page": "",
  "public": 1,
- "quick_lists": [
+ "quick_lists": [],
+ "restrict_to_domain": "",
+ "roles": [
   {
-   "document_type": "Calisma Karti",
-   "label": "\u00c7al\u0131\u015fma Kart\u0131",
-   "quick_list_filter": ""
+   "role": "KTA \u00c7al\u0131\u015fma Kart\u0131 Kullan\u0131c\u0131s\u0131"
   }
  ],
- "restrict_to_domain": "",
- "roles": [],
  "sequence_id": 17.1,
  "shortcuts": [
   {
@@ -60,5 +58,5 @@
    "type": "Page"
   }
  ],
- "title": "H\u0131zl\u0131 Tarama"
+ "title": "\u00c7al\u0131\u015fma Kart\u0131"
 }

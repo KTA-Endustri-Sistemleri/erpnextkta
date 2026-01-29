@@ -1,0 +1,25 @@
+{
+  "doctype": "Page",
+  "name": "kta-calisma-karti-card",
+  "title": "Çalışma Kartı",
+  "module": "kta_calisma_karti",
+  "standard": "Yes",
+  "icon": "octicon octicon-id-badge",
+  "roles": [
+  {
+   "role": "System Manager"
+  },  
+  {
+   "role": "Manufacturing User"
+  },
+  {
+   "role": "KTA Kalite Kullanıcısı"
+  },
+  {
+   "role": "KTA Çalışma Kartı Kullanıcısı"
+  },
+  {
+   "role": "Employee"
+  }
+ ]
+}
