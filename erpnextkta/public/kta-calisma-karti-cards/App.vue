@@ -475,7 +475,7 @@ onMounted(load);
   );
 }
 .ck-pill[data-tone="running"]{
-  background: var(--green);
+  background: var(--yellow-500);
   color: var(--white-overlay-900);
   border-right: solid 0px var(--card-bg);
 }
@@ -506,8 +506,8 @@ onMounted(load);
   );
 }
 .ck-pill[data-tone="paused"]{
-  background: var(--yellow-500);
-  color: var(--black-overlay-800);
+  background: var(--orange-500);
+  color: var(--white-overlay-900);
   border-right: solid 0px var(--card-bg);
 }
 .ck-pill[data-tone="paused"]::after{
@@ -537,7 +537,7 @@ onMounted(load);
   );
 }
 .ck-pill[data-tone="finished"]{
-  background: var(--red);
+  background: var(--green);
   color: var(--white-overlay-900);
   border-right: solid 0px var(--card-bg);
 }
@@ -665,7 +665,7 @@ onMounted(load);
   border-radius: 16px;
 }
 .ck-status-card-qc--rejected {
-  background: linear-gradient(270deg, var(--ck-danger), transparent, transparent);
+  background: linear-gradient(270deg, var(--red), transparent, transparent);
   border-radius: 16px;
 }
 .ck-status-card-qc--pending {
