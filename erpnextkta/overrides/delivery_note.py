@@ -6,8 +6,7 @@ from erpnext.stock.get_item_details import get_item_details
 
 class KTADeliveryNote(DeliveryNote):
     def validate(self):
-        if not self.is_return:
-            self.update_rates_logic()
+        self.update_rates_logic()
         super().validate()
 
     def validate_with_previous_doc(self):
