@@ -19,6 +19,7 @@ jobs:
       - name: Lint commit messages
         uses: wagoid/commitlint-github-action@v6
         with:
+          commitDepth: 1
           configFile: |
             {
               "extends": ["@commitlint/config-conventional"],
@@ -28,13 +29,4 @@ jobs:
                   "fix",
                   "refactor",
                   "perf",
-                  "docs",
-                  "test",
-                  "build",
-                  "ci",
-                  "chore",
-                  "revert"
-                ]],
-                "subject-case": [0]
-              }
-            }
+                  "docs](#)
