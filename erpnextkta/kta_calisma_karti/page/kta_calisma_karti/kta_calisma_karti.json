@@ -12,14 +12,12 @@
  "page_name": "kta-calisma-karti",
  "roles": [
   {
+   "role": "Manufacturing User"
+  },
+  {
    "role": "System Manager"
-  },
-  {
-   "role": "QR Scanner User"
-  },
-  {
-   "role": "QR Scanner Manager"
   }
+  
  ],
  "script": null,
  "standard": "Yes",
