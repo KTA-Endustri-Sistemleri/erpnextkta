@@ -1,1 +1,0 @@
-# keep it minimal; route /app/kta_calisma_karti
