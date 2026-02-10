@@ -106,6 +106,7 @@ jobs:
         env:
           CI: 'Yes'
         run: |
+          ./env/bin/pip install setuptools
           bench get-app erpnext https://github.com/frappe/erpnext --branch version-15
           bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15
           bench get-app https://github.com/Framras/trtcmb.git --branch version-15
