@@ -27,13 +27,13 @@
    "is_query_report": 0,
    "label": "\u00c7al\u0131\u015fma Kart\u0131 Listesi",
    "link_count": 0,
-   "link_to": "kta-calisma-karti-cards",
+   "link_to": "list-calisma-cards",
    "link_type": "Page",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-01-15 19:33:42.455957",
+ "modified": "2026-02-10 15:31:44.974021",
  "modified_by": "Administrator",
  "module": "kta_calisma_karti",
  "name": "\u00c7al\u0131\u015fma Kart\u0131",
@@ -54,7 +54,7 @@
    "color": "Grey",
    "doc_view": "List",
    "label": "\u00c7al\u0131\u015fma Kart\u0131",
-   "link_to": "kta-calisma-karti",
+   "link_to": "create-calisma-karti",
    "type": "Page"
   }
  ],

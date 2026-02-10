@@ -1,0 +1,41 @@
+{
+ "content": null,
+ "creation": "2026-02-10 15:24:37.327032",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-02-10 15:24:37.327032",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "view-calisma-karti",
+ "owner": "Administrator",
+ "page_name": "view-calisma-karti",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Manufacturing Manager"
+  },
+  {
+   "role": "Manufacturing User"
+  },
+  {
+   "role": "Quality Manager"
+  },
+  {
+   "role": "KTA Kalite Kullan\u0131c\u0131s\u0131"
+  },
+  {
+   "role": "KTA \u00c7al\u0131\u015fma Kart\u0131 Kullan\u0131c\u0131s\u0131"
+  },
+  {
+   "role": "Employee"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "\u00c7al\u0131\u015fma Kart\u0131"
+}
