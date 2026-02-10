@@ -36,7 +36,7 @@ function normalizeTR(s) {
 }
 
 function openDetail(name) {
-  frappe.set_route("kta-calisma-karti-card", name);
+  frappe.set_route("view-calisma-karti", name);
 }
 
 const statusFilter = ref("all"); // all | ready | running | paused | finished

@@ -21,34 +21,39 @@ const tab = ref<TabKey>("info");
 const routeRef = ref<string[]>(frappe.get_route() || []);
 
 function syncRoute() {
+  if (!alive) return;
   routeRef.value = frappe.get_route() || [];
 }
 
-// frappe.router.on("change") bazı sürümlerde "off" fonksiyonu döndürür, bazılarında döndürmez.
-// O yüzden güvenli kapatma yapıyoruz.
+// Keep router listener cleanup safe across Frappe builds
 let unsubscribe: any = null;
+let alive = true;
 
 onMounted(() => {
-  // ilk sync
+  alive = true;
+
+  // first sync
   syncRoute();
 
-  // route değişince sync
-  // (Frappe build'ine göre router.on var/yok olabilir, optional chaining kullandık)
+  // sync on route change
   unsubscribe = frappe.router?.on?.("change", syncRoute);
-
-  // İlk yükleme: watcher immediate zaten yapacak, ister burada çağırma.
 });
 
 onUnmounted(() => {
-  // Eğer unsubscribe bir fonksiyon ise çağır
+  alive = false;
   if (typeof unsubscribe === "function") unsubscribe();
 });
 
-// ✅ docname artık reactive routeRef üstünden computed
+const PAGE = "view-calisma-karti";
+
 const docname = computed(() => {
-  const r = routeRef.value; // reactive dependency
-  // ["kta-calisma-karti-card", "<name>"]
-  return r && r.length > 1 ? r[1] : null;
+  const r = routeRef.value || [];
+
+  // Only treat route as "doc route" when we're on this page.
+  // Prevent breadcrumb/Home routes from being misread as a docname.
+  if (r[0] !== PAGE) return null;
+
+  return r.length > 1 ? r[1] : null;
 });
 
 const {
@@ -77,7 +82,7 @@ const {
 const qcSaving = ref(false);
 
 function backToList() {
-  frappe.set_route("kta-calisma-karti-cards");
+  frappe.set_route("list-calisma-cards");
 }
 
 function openForm() {
@@ -149,7 +154,6 @@ async function setQC(nextValue: string) {
   }
 }
 
-// ✅ Route (docname) değiştikçe yükle + ilk açılışta da yükle
 watch(
   docname,
   async (next, prev) => {
@@ -157,9 +161,16 @@ watch(
       doc.value = null;
       return;
     }
-    // Doc değiştiyse tab resetlemek istersen aç:
-    // if (next !== prev) tab.value = "info";
-    await load();
+
+    try {
+      // if (next !== prev) tab.value = "info";
+      await load();
+    } catch (e) {
+      // Navigation (breadcrumb/home) sırasında request abort / route değişimi gibi durumlarda
+      // watcher'ın "Unhandled error" vermesini engelle.
+      console.error("[watch docname] load failed during navigation:", e);
+      doc.value = null;
+    }
   },
   { immediate: true }
 );
