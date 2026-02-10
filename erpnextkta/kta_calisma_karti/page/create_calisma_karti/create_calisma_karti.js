@@ -1,4 +1,4 @@
-frappe.pages['kta-calisma-karti'].on_page_load = function (wrapper) {
+frappe.pages['create-calisma-karti'].on_page_load = function (wrapper) {
   const page = frappe.ui.make_app_page({
     parent: wrapper,
     title: null,
@@ -47,9 +47,10 @@ async function load_vue(wrapper) {
   const $teleport_target = $('<div class="kta-ck-header"></div>').css({width: "100%"});
   $teleport_target.appendTo($page_header);
 
-  await frappe.require('kta-calisma-karti.bundle.js');
+  await frappe.require('create-calisma-karti.bundle.js');
 
   const vue_app = frappe.ui.setup_vue($parent);
   wrapper.__kta_ck_vue_app__ = vue_app;
   frappe.test_vue_app = vue_app;
 }
+
