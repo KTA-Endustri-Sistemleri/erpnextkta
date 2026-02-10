@@ -90,6 +90,19 @@ class KTADeliveryNote(DeliveryNote):
                 # Calculate new rates
                 # We strictly want the price valid for this Customer on the Posting Date
                 
+                # Custom Logic:
+                # 1. Check custom_ara_malzeme_grubu
+                # Only apply price control for "ÜRÜN" items
+                ara_malzeme_grubu = frappe.db.get_value("Item", item.item_code, "custom_ara_malzeme_grubu")
+                if ara_malzeme_grubu != "ÜRÜN":
+                     continue
+
+                # 2. Check if source Sales Order is marked as "Numune"
+                if item.against_sales_order:
+                    is_numune = frappe.db.get_value("Sales Order", item.against_sales_order, "custom_numune_mi")
+                    if is_numune:
+                        continue  # Keep the Sales Order rate as-is
+
                 # Fetch fresh item details
                 # args for get_item_details
                 args = {
@@ -150,12 +163,20 @@ class KTADeliveryNote(DeliveryNote):
                              details["rate"] = details["price_list_rate"] * conversion_factor * (1 - (details.get("discount_percentage", 0) / 100))
                     
                     if details:
-                        # Update the item with the fresh details
-                        item.price_list_rate = details.get("price_list_rate")
-                        item.discount_percentage = details.get("discount_percentage")
-                        
-                        # Explicitly update 'rate'
-                        item.rate = details.get("rate") or item.price_list_rate
+                        # Determine the new rate to use
+                        new_rate = details.get("rate") or details.get("price_list_rate") or 0
+
+                        if new_rate > 0:
+                            # Price list has a valid rate, use it
+                            item.price_list_rate = details.get("price_list_rate")
+                            item.discount_percentage = details.get("discount_percentage")
+                            
+                            # Explicitly update 'rate'
+                            item.rate = details.get("rate") or item.price_list_rate
+                        else:
+                            # No valid price found — keep original rate
+                            # (from Sales Order or manual entry)
+                            item.rate = item.rate or 0
                         
                         # Recalculate amounts
                         item.amount = item.rate * item.qty
