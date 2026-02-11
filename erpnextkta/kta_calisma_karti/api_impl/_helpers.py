@@ -11,6 +11,10 @@ def is_system_manager() -> bool:
     """Return True if current user has System Manager role."""
     return "System Manager" in (frappe.get_roles(frappe.session.user) or [])
 
+def is_quality_user() -> bool:
+    """Return True if current user has KTA Kalite Kullanıcısı role."""
+    return "KTA Kalite Kullanıcısı" in (frappe.get_roles(frappe.session.user) or [])
+
 def get_my_employee_or_none() -> str | None:
     """Resolve current user's Employee.name robustly.
 
