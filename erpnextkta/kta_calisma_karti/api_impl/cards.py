@@ -66,7 +66,7 @@ def get_calisma_karti_detail(name: str):
     doc = frappe.get_doc("Calisma Karti", name)
     doc.check_permission("read")
 
-    if not is_system_manager() or is_quality_user():
+    if not (is_system_manager() or is_quality_user()):
         emp = require_my_employee()
         if doc.operator != emp:
             frappe.throw(_("Bu çalışma kartını görüntüleme yetkiniz yok."), frappe.PermissionError)
