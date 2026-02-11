@@ -8,6 +8,7 @@ from frappe import _
 from ._helpers import (
     first_child_table,
     is_system_manager,
+    is_quality_user,
     require_my_employee,
 )
 
@@ -37,6 +38,13 @@ def get_my_calisma_kartlari():
             order_by="modified desc",
             limit_page_length=200,
         )
+    if is_quality_user():
+        return frappe.get_all(
+            "Calisma Karti",
+            fields=fields,
+            order_by="modified desc",
+            limit_page_length=200,
+        )
 
     emp = require_my_employee()
     return frappe.get_all(
@@ -58,7 +66,7 @@ def get_calisma_karti_detail(name: str):
     doc = frappe.get_doc("Calisma Karti", name)
     doc.check_permission("read")
 
-    if not is_system_manager():
+    if not is_system_manager() or is_quality_user():
         emp = require_my_employee()
         if doc.operator != emp:
             frappe.throw(_("Bu çalışma kartını görüntüleme yetkiniz yok."), frappe.PermissionError)
