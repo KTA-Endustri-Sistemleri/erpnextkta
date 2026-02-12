@@ -1,9 +1,10 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const loading = ref(false);
 const rows = ref([]);
 const errorMsg = ref("");
+const sortKey = ref("creation_desc");
 
 const q = ref(""); // search query
 
@@ -11,7 +12,9 @@ async function load() {
   loading.value = true;
   errorMsg.value = "";
   try {
-    const r = await frappe.call("erpnextkta.kta_calisma_karti.api.get_my_calisma_kartlari");
+    const r = await frappe.call("erpnextkta.kta_calisma_karti.api.get_my_calisma_kartlari", {
+      order_by: sortKey.value,
+    });
     rows.value = r.message || [];
   } catch (e) {
     errorMsg.value = e?.message || "Liste alınamadı.";
@@ -146,7 +149,9 @@ function setQcFilter(v) {
   qcFilter.value = v;
   scrollToTop();
 }
-
+watch(sortKey, () => {
+  load();
+});
 onMounted(load);
 </script>
 
@@ -172,6 +177,17 @@ onMounted(load);
           inputmode="search"
         />
         <button v-if="q" class="ck-clear" @click="q=''">✕</button>
+      </div>
+
+      <div class="ck-sort">
+        <select v-model="sortKey" class="ck-sort-select">
+          <option value="modified_desc">Son Güncellenen ↓</option>
+          <option value="modified_asc">Son Güncellenen ↑</option>
+          <option value="creation_desc">Yeni Oluşturulan ↓</option>
+          <option value="creation_asc">Yeni Oluşturulan ↑</option>
+          <option value="name_asc">Kart No A → Z</option>
+          <option value="name_desc">Kart No Z → A</option>
+        </select>
       </div>
 
       <div class="ck-filters" v-if="!loading">
@@ -350,7 +366,7 @@ onMounted(load);
   outline:none;
   font-size:14px;
   background:transparent;
-  color: var(--text-dark);
+  color: var(--dark);
 }
 .ck-clear{
   border:0;
@@ -671,5 +687,19 @@ onMounted(load);
 .ck-status-card-qc--pending {
     background: linear-gradient(270deg, var(--blue), transparent, transparent);
     border-radius: 16px;
+}
+.ck-sort{
+  margin-top:10px;
+}
+
+.ck-sort-select{
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, .10);
+  background: var(--bg-color);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-color);
 }
 </style>
