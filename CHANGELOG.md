@@ -3,6 +3,245 @@
 
 
 
+## 🚀 v0.13.0 (2026-02-13)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta-calisma-karti**: if operator error fixed
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: calisma-karti-roles-logic
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: The 'is_quality_user' check has been added to "get_my_calisma_karti" and "get_calisma_karti_detail" so that users with the Quality Role can view work cards.
+      
+      
+    
+      
+      
+        
+- Install setuptools in the CI tests workflow.
+      
+      
+    
+      
+      
+        
+- Pin setuptools to a version less than 71 in the CI workflow.
+      
+      
+    
+      
+      
+        
+- skip update_rates_logic for return delivery notes during validation.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Build system
+
+    
+      
+      
+        
+- Add `setuptools` to `install_requires`.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- **kta-calisma-karti**: deleted unwanted files
+      
+      
+    
+      
+      
+        
+- update project dependencies and build configuration.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Continuous integration
+
+    
+      
+      
+        
+- Move setuptools installation after bench setup requirements in tests workflow.
+      
+      
+    
+      
+      
+        
+- force reinstall setuptools in GitHub Actions workflow.
+      
+      
+    
+      
+      
+        
+- add conventional commits check workflow
+      
+      
+    
+      
+      
+        
+- add conventional commits check workflow
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta-calisma-karti**: sorting added to calisma karti list view
+      
+      
+    
+      
+      
+        
+- sample order rule and calisma karti ui logic enhancements
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: new calisma karti user interface and improvements
+      
+      
+    
+      
+      
+        
+- sample order rule
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: new calisma karti user interface and improvements
+      
+      
+    
+      
+      
+        
+- Adjust Sales Order field visibility and defaults, and simplify Delivery Note by removing custom logic and changing its base class.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **kta-calisma-karti**: minor bug fix and logic improvments
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- double rate error fixed
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.12.0 (2026-01-24)
 
 
