@@ -13,7 +13,7 @@ from ._helpers import (
 )
 
 @frappe.whitelist()
-def get_my_calisma_kartlari():
+def get_my_calisma_kartlari(order_by=None):
     """Return assigned Calisma Karti rows for list UI."""
 
     fields = [
@@ -28,21 +28,33 @@ def get_my_calisma_kartlari():
         "baslangic_saati",
         "bitis_saati",
         "modified",
+        "creation",
         "kalite_kontrol",
     ]
+
+    allowed = {
+        "modified_desc": "modified desc",
+        "modified_asc": "modified asc",
+        "creation_desc": "creation desc",
+        "creation_asc": "creation asc",
+        "name_asc": "name asc",
+        "name_desc": "name desc",
+    }
+
+    order_by = allowed.get(order_by or "modified_desc", "modified desc")
 
     if is_system_manager():
         return frappe.get_all(
             "Calisma Karti",
             fields=fields,
-            order_by="modified desc",
+            order_by=order_by,
             limit_page_length=200,
         )
     if is_quality_user():
         return frappe.get_all(
             "Calisma Karti",
             fields=fields,
-            order_by="modified desc",
+            order_by=order_by,
             limit_page_length=200,
         )
 
@@ -51,7 +63,7 @@ def get_my_calisma_kartlari():
         "Calisma Karti",
         filters={"operator": emp},
         fields=fields,
-        order_by="modified desc",
+        order_by=order_by,
         limit_page_length=200,
     )
 
@@ -93,4 +105,5 @@ def get_calisma_karti_detail(name: str):
         "barkod_kayitlari": barkod_kayitlari,
         "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
         "kalite_kontrol": doc.kalite_kontrol,
+        "creation": doc.creation,
     }

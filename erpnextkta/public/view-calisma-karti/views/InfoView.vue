@@ -10,5 +10,6 @@ const props = defineProps<{ doc: any }>();
     <div class="ck-row"><span>Operasyon</span><b>{{ props.doc.operasyon || "-" }}</b></div>
     <div class="ck-row"><span>İstasyon</span><b>{{ props.doc.is_istasyonu || "-" }}</b></div>
     <div class="ck-row"><span>Operatör</span><b>{{ props.doc.operator || "-" }}</b></div>
+    <div class="ck-row"><span>Belge Yaratılış Tarihi</span><b>{{ props.doc.creation || "-" }}</b></div>
   </div>
 </template>
