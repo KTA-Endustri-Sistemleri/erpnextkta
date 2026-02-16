@@ -99,7 +99,8 @@ const filteredRows = computed(() => {
       r?.is_karti,
       r?.operasyon,
       r?.durum,
-      r?.kalite_kontrol, // QC da aransın
+      r?.kalite_kontrol,
+      r?.urun_kodu, // QC da aransın
     ]
       .filter(Boolean)
       .join(" ")
@@ -278,6 +279,10 @@ onMounted(load);
             <div class="col-9 py-2 pl-2">
               <div class="ck-name">{{ r.operator }}</div>
               <div class="ck-kv">
+                <div class="ck-kv-item">
+                  <span>Ürün Kodu</span>
+                  <b>{{ r.urun_kodu|| "-" }}</b>
+                </div>
                 <div class="ck-kv-item">
                   <span>İş Emri</span>
                   <b>{{ r.custom_work_order || "-" }}</b>
