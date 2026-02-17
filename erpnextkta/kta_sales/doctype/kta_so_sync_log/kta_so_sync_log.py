@@ -778,6 +778,7 @@ def update_existing_sales_order_batch(so_name, changes):
         trans_items = []
         delivery_dates_to_set = []
         order_deleted = False
+        force_close_so = False
 
         for change in changes:
             item_code = getattr(change, "item", None)
@@ -830,8 +831,24 @@ def update_existing_sales_order_batch(so_name, changes):
             if change_type == "Silinen Satır":
                 delivered_qty = flt(target_item.delivered_qty)
                 
-                # Kullanıcı isteği: Sadece teslim edilen miktara kadar düşür
-                # Faturalama (billed_amt) kontrolü kaldırıldı (kesirli sayı riskine karşı)
+                # Check if billed amount exceeds delivered value
+                # Using a small epsilon for float comparison
+                if flt(target_item.billed_amt) > (delivered_qty * flt(target_item.rate) + 0.01):
+                    force_close_so = True
+                    details.append({
+                        "action": "Skipped",
+                        "sales_order": so_name,
+                        "customer": so.customer,
+                        "item": target_item.item_code,
+                        "order_no": so.po_no,
+                        "change_type": "Silinen Satır (Fatura > Teslimat)",
+                        "error_message": _("Fatura tutarı ({0}) teslimat değerinden ({1}) büyük. Miktar güncellenmedi, Sipariş Kapatılacak.").format(
+                            target_item.billed_amt, delivered_qty * flt(target_item.rate)
+                        ),
+                    })
+                    closed += 1
+                    continue
+
                 new_total_qty = delivered_qty
 
                 if new_total_qty <= 0:
@@ -998,7 +1015,10 @@ def update_existing_sales_order_batch(so_name, changes):
             all_zero_qty = all(flt(it.qty) <= 0 for it in so.items)
             all_delivered = all(flt(it.qty) <= flt(it.delivered_qty or 0) for it in so.items)
 
-            if all_zero_qty and not has_delivery_or_billing:
+            if force_close_so:
+                so.db_set("status", "Closed", update_modified=False)
+                # Ensure we don't accidentally check other conditions that might override this
+            elif all_zero_qty and not has_delivery_or_billing:
                 so.cancel()
                 frappe.delete_doc("Sales Order", so_name, force=1, ignore_permissions=True)
                 
