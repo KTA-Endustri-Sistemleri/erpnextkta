@@ -136,10 +136,12 @@ def execute(filters=None):
         # Stock verilerini GROUP BY ile toplu al
         if item_codes:
             stock_data = frappe.db.sql("""
-                SELECT item_code, stock_uom, SUM(actual_qty) as total_qty
-                FROM `tabBin` 
-                WHERE item_code IN %s
-                GROUP BY item_code, stock_uom
+                SELECT bin.item_code, bin.stock_uom, SUM(bin.actual_qty) as total_qty
+                FROM `tabBin` bin
+                INNER JOIN `tabWarehouse` wh ON bin.warehouse = wh.name
+                WHERE bin.item_code IN %s
+                AND wh.warehouse_type = 'Kullanılabilir Stok'
+                GROUP BY bin.item_code, bin.stock_uom
             """, [tuple(item_codes)], as_dict=True)
             
             for d in stock_data:
