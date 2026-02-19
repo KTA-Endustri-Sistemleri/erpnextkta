@@ -318,19 +318,32 @@ class ProductionStartWeekReport:
     def get_initial_stock_balance(self):
         from erpnext.stock.report.stock_balance.stock_balance import execute as stock_balance_execute
 
+        # 1. "Kullanılabilir Stok" tipindeki depoları bul
+        warehouses = frappe.get_all("Warehouse", filters={"warehouse_type": "Kullanılabilir Stok"}, pluck="name")
+        
+        # Eğer hiç uygun depo yoksa boş dön
+        if not warehouses:
+            return {}
+
+        # 2. Raporu şu anki tarih ile çalıştır (gerçek zamanlı stok)
         stock_filters = frappe._dict({
             "from_date": self.filters.from_date,
-            "to_date": self.filters.to_date,
+            "to_date": frappe.utils.today(),  # Daima bugünün tarihi
             "company": self.filters.get("company") or "KTA ENDÜSTRİ SİSTEMLERİ SANAYİ VE TİCARET LİMİTED ŞİRKETİ"
         })
 
         columns, data = stock_balance_execute(stock_filters)[:2]
         item_stock = frappe._dict()
+        
         for row in data:
             item_code = row.get("item_code")
+            warehouse = row.get("warehouse")
             balance_qty = row.get("bal_qty", 0)
-            if item_code:
+            
+            # Sadece belirlenen depolardaki stokları topla
+            if item_code and warehouse in warehouses:
                 item_stock[item_code] = item_stock.get(item_code, 0) + balance_qty
+                
         return item_stock
 
     def get_sevk_parametreleri_map(self):
