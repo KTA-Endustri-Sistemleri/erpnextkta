@@ -3,6 +3,389 @@
 
 
 
+## 🚀 v0.14.0 (2026-02-19)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- Install setuptools in the CI tests workflow.
+      
+      
+    
+      
+      
+        
+- Pin setuptools to a version less than 71 in the CI workflow.
+      
+      
+    
+      
+      
+        
+- Install setuptools in the CI tests workflow.
+      
+      
+    
+      
+      
+        
+- Pin setuptools to a version less than 71 in the CI workflow.
+      
+      
+    
+      
+      
+        
+- so sync rule
+      
+      
+    
+      
+      
+        
+- Adjust deleted sales order item handling to only consider delivered quantity and remove duplicate sync job functions.
+      
+      
+    
+      
+      
+        
+- Install setuptools in the CI tests workflow.
+      
+      
+    
+      
+      
+        
+- Pin setuptools to a version less than 71 in the CI workflow.
+      
+      
+    
+      
+      
+        
+- so sync rule
+      
+      
+    
+      
+      
+        
+- Adjust deleted sales order item handling to only consider delivered quantity and remove duplicate sync job functions.
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: 'item_code' added to listview
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Build system
+
+    
+      
+      
+        
+- Add `setuptools` to `install_requires`.
+      
+      
+    
+      
+      
+        
+- Add `setuptools` to `install_requires`.
+      
+      
+    
+      
+      
+        
+- Add `setuptools` to `install_requires`.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- update project dependencies and build configuration.
+      
+      
+    
+      
+      
+        
+- update project dependencies and build configuration.
+      
+      
+    
+      
+      
+        
+- update project dependencies and build configuration.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Continuous integration
+
+    
+      
+      
+        
+- Move setuptools installation after bench setup requirements in tests workflow.
+      
+      
+    
+      
+      
+        
+- force reinstall setuptools in GitHub Actions workflow.
+      
+      
+    
+      
+      
+        
+- Move setuptools installation after bench setup requirements in tests workflow.
+      
+      
+    
+      
+      
+        
+- force reinstall setuptools in GitHub Actions workflow.
+      
+      
+    
+      
+      
+        
+- Move setuptools installation after bench setup requirements in tests workflow.
+      
+      
+    
+      
+      
+        
+- force reinstall setuptools in GitHub Actions workflow.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- Add a custom buying setting and client script to automatically set Purchase Order currency based on the selected price list
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: new calisma karti user interface and improvements
+      
+      
+    
+      
+      
+        
+- sample order rule
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: new calisma karti user interface and improvements
+      
+      
+    
+      
+      
+        
+- Adjust Sales Order field visibility and defaults, and simplify Delivery Note by removing custom logic and changing its base class.
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: new calisma karti user interface and improvements
+      
+      
+    
+      
+      
+        
+- sample order rule
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: new calisma karti user interface and improvements
+      
+      
+    
+      
+      
+        
+- Adjust Sales Order field visibility and defaults, and simplify Delivery Note by removing custom logic and changing its base class.
+      
+      
+    
+      
+      
+        
+- Force close Sales Orders when deleted items have billed amounts exceeding delivered quantities.
+      
+      
+    
+      
+      
+        
+- Add a custom buying setting and client script to automatically set Purchase Order currency based on the selected price list.
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: new calisma karti user interface and improvements
+      
+      
+    
+      
+      
+        
+- sample order rule
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: new calisma karti user interface and improvements
+      
+      
+    
+      
+      
+        
+- Adjust Sales Order field visibility and defaults, and simplify Delivery Note by removing custom logic and changing its base class.
+      
+      
+    
+      
+      
+        
+- Force close Sales Orders when deleted items have billed amounts exceeding delivered quantities.
+      
+      
+    
+      
+      
+        
+- Add a custom buying setting and client script to automatically set Purchase Order currency based on the selected price list.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **kta-calisma-karti**: minor bug fix and logic improvments
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: minor bug fix and logic improvments
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: minor bug fix and logic improvments
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.13.0 (2026-02-13)
 
 
