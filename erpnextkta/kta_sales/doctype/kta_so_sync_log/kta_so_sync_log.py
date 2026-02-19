@@ -28,7 +28,7 @@ def sync_sales_orders_from_sales_order_update(
     if not reference_name:
         frappe.throw(_("Sales Order Update seçilmedi."))
 
-    job = enqueue_sales_order_sync(reference_name)
+    job, sync_log = enqueue_sales_order_sync(reference_name)
     return {
         "status": "queued",
         "job_id": job.id if job else None,
@@ -42,7 +42,7 @@ def sync_sales_orders_from_comparison(comparison_name):
     Karşılaştırmadan Sales Order'ları senkronizasyonu background job olarak başlat.
     """
     comparison = frappe.get_doc("KTA Sales Order Update Comparison", comparison_name)
-    job = enqueue_sales_order_sync(
+    job, sync_log = enqueue_sales_order_sync(
         comparison.current_sales_order_update, comparison=comparison
     )
 
@@ -53,81 +53,7 @@ def sync_sales_orders_from_comparison(comparison_name):
     }
 
 
-def enqueue_sales_order_sync(sales_order_update_name, comparison=None):
-    """Senkronizasyon işlemini uzun kuyrukta çalıştır."""
-    comparison_name = comparison.name if comparison else None
-    job_name = f"KTA SO Sync {sales_order_update_name}"
 
-    return frappe.enqueue(
-        "erpnextkta.kta_sales.doctype.kta_so_sync_log.kta_so_sync_log.run_sales_order_sync_job",
-        queue="long",
-        job_name=job_name,
-        sales_order_update_name=sales_order_update_name,
-        comparison_name=comparison_name,
-    )
-
-
-def run_sales_order_sync_job(sales_order_update_name, comparison_name=None):
-    """Worker içinde gerçek senkronizasyonu çalıştır."""
-    comparison = None
-    if comparison_name:
-        comparison = frappe.get_doc("KTA Sales Order Update Comparison", comparison_name)
-
-    return _sync_sales_orders_from_sales_order_update(
-        sales_order_update_name, comparison=comparison
-    )
-
-
-
-def enqueue_sales_order_sync(sales_order_update_name, comparison=None):
-    """Senkronizasyon işlemini uzun kuyrukta çalıştır."""
-    comparison_name = comparison.name if comparison else None
-    job_name = f"KTA SO Sync {sales_order_update_name}"
-
-    return frappe.enqueue(
-        "erpnextkta.kta_sales.doctype.kta_so_sync_log.kta_so_sync_log.run_sales_order_sync_job",
-        queue="long",
-        job_name=job_name,
-        sales_order_update_name=sales_order_update_name,
-        comparison_name=comparison_name,
-    )
-
-
-def run_sales_order_sync_job(sales_order_update_name, comparison_name=None):
-    """Worker içinde gerçek senkronizasyonu çalıştır."""
-    comparison = None
-    if comparison_name:
-        comparison = frappe.get_doc("KTA Sales Order Update Comparison", comparison_name)
-
-    return _sync_sales_orders_from_sales_order_update(
-        sales_order_update_name, comparison=comparison
-    )
-
-
-
-def enqueue_sales_order_sync(sales_order_update_name, comparison=None):
-    """Senkronizasyon işlemini uzun kuyrukta çalıştır."""
-    comparison_name = comparison.name if comparison else None
-    job_name = f"KTA SO Sync {sales_order_update_name}"
-
-    return frappe.enqueue(
-        "erpnextkta.kta_sales.doctype.kta_so_sync_log.kta_so_sync_log.run_sales_order_sync_job",
-        queue="long",
-        job_name=job_name,
-        sales_order_update_name=sales_order_update_name,
-        comparison_name=comparison_name,
-    )
-
-
-def run_sales_order_sync_job(sales_order_update_name, comparison_name=None):
-    """Worker içinde gerçek senkronizasyonu çalıştır."""
-    comparison = None
-    if comparison_name:
-        comparison = frappe.get_doc("KTA Sales Order Update Comparison", comparison_name)
-
-    return _sync_sales_orders_from_sales_order_update(
-        sales_order_update_name, comparison=comparison
-    )
 
 
 
@@ -852,6 +778,7 @@ def update_existing_sales_order_batch(so_name, changes):
         trans_items = []
         delivery_dates_to_set = []
         order_deleted = False
+        force_close_so = False
 
         for change in changes:
             item_code = getattr(change, "item", None)
@@ -903,11 +830,28 @@ def update_existing_sales_order_batch(so_name, changes):
             # Silinen satır işleme
             if change_type == "Silinen Satır":
                 delivered_qty = flt(target_item.delivered_qty)
-                billed_amt = flt(getattr(target_item, "billed_amt", 0))
-                rate_for_billing = flt(target_item.rate) or flt(getattr(target_item, "base_rate", 0))
-                billed_qty = flt(billed_amt / rate_for_billing) if rate_for_billing else 0
+                
+                # Check if billed amount exceeds delivered value
+                # Using a small epsilon for float comparison
+                if flt(target_item.billed_amt) > (delivered_qty * flt(target_item.rate) + 0.01):
+                    force_close_so = True
+                    details.append({
+                        "action": "Skipped",
+                        "sales_order": so_name,
+                        "customer": so.customer,
+                        "item": target_item.item_code,
+                        "order_no": so.po_no,
+                        "change_type": "Silinen Satır (Fatura > Teslimat)",
+                        "error_message": _("Fatura tutarı ({0}) teslimat değerinden ({1}) büyük. Miktar güncellenmedi, Sipariş Kapatılacak.").format(
+                            target_item.billed_amt, delivered_qty * flt(target_item.rate)
+                        ),
+                    })
+                    closed += 1
+                    continue
 
-                if delivered_qty <= 0 and billed_qty <= 0:
+                new_total_qty = delivered_qty
+
+                if new_total_qty <= 0:
                     so.cancel()
                     frappe.delete_doc("Sales Order", so_name, force=1, ignore_permissions=True)
 
@@ -927,12 +871,10 @@ def update_existing_sales_order_batch(so_name, changes):
                     order_deleted = True
                     break
 
-                new_total_qty = max(delivered_qty, billed_qty)
+
                 note_bits = []
                 if delivered_qty > 0:
                     note_bits.append(_("Teslim edilen qty: {0}").format(delivered_qty))
-                if billed_qty > delivered_qty:
-                    note_bits.append(_("Faturalandırılan qty: {0}").format(billed_qty))
 
                 trans_items.append({
                     "docname": target_item.name,
@@ -965,6 +907,7 @@ def update_existing_sales_order_batch(so_name, changes):
             elif change_type in ["Miktar Artışı", "Miktar Azalışı", "Tarih Değişikliği", "Tarih ve Miktar Değişikliği"]:
                 desired_pending_qty = max(flt(getattr(change, "new_delivery_quantity", 0) or 0), 0)
                 new_total_qty = flt(target_item.delivered_qty) + desired_pending_qty
+                
                 new_date = getattr(change, "new_delivery_date", None) or target_item.delivery_date
 
                 # Transaction date için yeni delivery_date'i topla
@@ -1072,7 +1015,10 @@ def update_existing_sales_order_batch(so_name, changes):
             all_zero_qty = all(flt(it.qty) <= 0 for it in so.items)
             all_delivered = all(flt(it.qty) <= flt(it.delivered_qty or 0) for it in so.items)
 
-            if all_zero_qty and not has_delivery_or_billing:
+            if force_close_so:
+                so.db_set("status", "Closed", update_modified=False)
+                # Ensure we don't accidentally check other conditions that might override this
+            elif all_zero_qty and not has_delivery_or_billing:
                 so.cancel()
                 frappe.delete_doc("Sales Order", so_name, force=1, ignore_permissions=True)
                 

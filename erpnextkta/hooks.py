@@ -344,6 +344,7 @@ fixtures = [
                     "Stock Settings-barcode_background_color",
                     "Stock Settings-serial_barcode_quiet_zone",
                     "Stock Settings-barcode_quiet_zone",
+                    "Buying Settings-custom_use_price_list_currency",
                 ],
             ]
         ],
