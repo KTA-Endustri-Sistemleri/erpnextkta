@@ -42,11 +42,12 @@ function openDetail(name) {
   frappe.set_route("view-calisma-karti", name);
 }
 
-const statusFilter = ref("all"); // all | ready | running | paused | finished
+const statusFilter = ref("all"); // all | ready | running | paused | finished | rejected
 const qcFilter = ref("all");     // all | waiting | approved | rejected // all | ready | running | paused | finished
 
 function statusKeyFromDurumText(durum) {
   const v = (durum || "").toLowerCase();
+  if (v.includes("redd")) return "rejected";
   if (v.includes("bit")) return "finished";
   if (v.includes("duru")) return "paused";
   if (v.includes("çalı") || v.includes("calis")) return "running";
@@ -99,8 +100,8 @@ const filteredRows = computed(() => {
       r?.is_karti,
       r?.operasyon,
       r?.durum,
-      r?.kalite_kontrol,
-      r?.urun_kodu, // QC da aransın
+      r?.kalite_kontrol, // QC da aransın
+      r?.urun_kodu, 
     ]
       .filter(Boolean)
       .join(" ")
@@ -113,6 +114,7 @@ const filteredRows = computed(() => {
 function statusTone(durum) {
   // Map your text labels to tones (adjust if your API uses different strings)
   const v = (durum || "").toLowerCase();
+  if (v.includes("redd")) return "rejected";
   if (v.includes("bit")) return "finished";
   if (v.includes("duru")) return "paused";
   if (v.includes("çalı") || v.includes("calis")) return "running";
@@ -122,7 +124,7 @@ function statusTone(durum) {
 
 // Optional: badge counts
 const statusCounts = computed(() => {
-  const c = { all: rows.value.length, ready: 0, running: 0, paused: 0, finished: 0 };
+  const c = { all: rows.value.length, ready: 0, running: 0, paused: 0, finished: 0, rejected: 0 };
   for (const r of rows.value || []) {
     c[statusKeyFromDurumText(r?.durum)]++;
   }
@@ -210,6 +212,10 @@ onMounted(load);
 
         <button class="ck-filter" :class="{ active: statusFilter === 'finished' }" @click="setStatusFilter('finished')">
           Bitmiş <span class="ck-filter-count">{{ statusCounts.finished }}</span>
+        </button>
+
+        <button class="ck-filter" :class="{ active: statusFilter === 'rejected' }" @click="setStatusFilter('rejected')">
+          Reddedildi <span class="ck-filter-count">{{ statusCounts.rejected }}</span>
         </button>
       </div>
 
@@ -563,6 +569,38 @@ onMounted(load);
   border-right: solid 0px var(--card-bg);
 }
 .ck-pill[data-tone="finished"]::after{
+  content:"";
+  position:absolute;
+  top:-1px;             /* üstte de bindir (anti-alias çizgisi için) */
+  bottom:-1px;          /* altta da bindir */
+  right:-1px;           /* sağa 1px taşır */
+  width:15px;           /* 14 yerine 15 (bindirmeyi telafi) */
+  height:100%;
+  background: var(--card-bg);
+
+  clip-path: polygon(
+    100% 0%,
+    0% 8%,
+    100% 16%,
+    0% 24%,
+    100% 32%,
+    0% 40%,
+    100% 48%,
+    0% 56%,
+    100% 64%,
+    0% 72%,
+    100% 80%,
+    0% 88%,
+    100% 100%
+  );
+}
+
+.ck-pill[data-tone="rejected"]{
+  background: var(--red);
+  color: var(--white-overlay-900);
+  border-right: solid 0px var(--card-bg);
+}
+.ck-pill[data-tone="rejected"]::after{
   content:"";
   position:absolute;
   top:-1px;             /* üstte de bindir (anti-alias çizgisi için) */

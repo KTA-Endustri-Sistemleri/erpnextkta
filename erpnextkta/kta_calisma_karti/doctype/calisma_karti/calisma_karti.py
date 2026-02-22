@@ -6,6 +6,7 @@ from frappe.model.naming import make_autoname
 
 
 STATU_HARITASI = {
+    "reddedildi": "Reddedildi",
     "hazir": "Hazır",
     "calisiyor": "Çalışıyor",
     "durusta": "Duruşta",
@@ -56,7 +57,9 @@ class CalismaKarti(Document):
     def validate(self):
         self.hesapla_durus_suresi()
         self.hesapla_toplam_sure()
-        self.durum = STATU_HARITASI[self.get_durum()]
+        # If QC rejected, force status to 'Reddedildi' regardless of time fields.
+        durum_key = self.get_durum()
+        self.durum = STATU_HARITASI.get(durum_key, "Hazır")
         if not self.kalite_kontrol:
             self.kalite_kontrol = QC_DURUM_ONAY_BEKLIYOR
 
@@ -93,6 +96,9 @@ class CalismaKarti(Document):
         return last_row.durus_baslangic and not last_row.durus_bitis
 
     def get_durum(self):
+        # If QC rejected, lock the card status.
+        if (self.kalite_kontrol or '').strip() == 'Reddedildi':
+            return 'reddedildi'
         if self.bitis_saati:
             return 'bitmis'
         elif not self.baslangic_saati:
@@ -114,6 +120,11 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
     doc = frappe.get_doc("Calisma Karti", docname)
     now = now_datetime()
     durum = doc.get_durum()
+
+
+    # Block any actions on rejected cards
+    if (doc.kalite_kontrol or '').strip() == 'Reddedildi':
+        frappe.throw('Reddedilmiş çalışma kartında işlem yapılamaz.')
 
     # English comments as requested
     # Parse optional completed qty entered during stop action
