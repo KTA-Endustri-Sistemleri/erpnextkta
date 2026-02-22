@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
 const loading = ref(false);
 const rows = ref([]);
@@ -21,6 +21,39 @@ async function load() {
   } finally {
     loading.value = false;
   }
+}
+
+// --------------------
+// Realtime (Socket.IO) - live list refresh
+// --------------------
+let listHandler = null;
+let listTimer = null;
+
+function bindListRealtime() {
+  const rt = window?.frappe?.realtime;
+  if (!rt) return;
+
+  // Debounced refresh to avoid spamming API calls
+  listHandler = (_payload) => {
+    clearTimeout(listTimer);
+    listTimer = setTimeout(() => {
+      // Don't hammer if user is already loading
+      if (!loading.value) load();
+    }, 250);
+  };
+
+  rt.on("kta_calisma_karti:list_changed", listHandler);
+}
+
+function unbindListRealtime() {
+  const rt = window?.frappe?.realtime;
+  if (!rt) return;
+
+  if (listHandler) rt.off("kta_calisma_karti:list_changed", listHandler);
+  listHandler = null;
+
+  clearTimeout(listTimer);
+  listTimer = null;
 }
 
 // ** HELPERS ** //
@@ -155,7 +188,14 @@ function setQcFilter(v) {
 watch(sortKey, () => {
   load();
 });
-onMounted(load);
+onMounted(() => {
+  load();
+  bindListRealtime();
+});
+
+onUnmounted(() => {
+  unbindListRealtime();
+});
 </script>
 
 <template>

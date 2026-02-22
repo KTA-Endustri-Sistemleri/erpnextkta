@@ -3,6 +3,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import now_datetime, get_datetime
 from frappe.model.naming import make_autoname
+from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 
 
 STATU_HARITASI = {
@@ -14,6 +15,9 @@ STATU_HARITASI = {
 }
 
 class CalismaKarti(Document):
+    def on_update(self):
+        publish_calisma_karti_changed(self.name, reason="doc:on_update")
+    
     def autoname(self):
         """
         İsim formatı: <OPR>-<WO_last5>-<Operasyon>-<01..>
