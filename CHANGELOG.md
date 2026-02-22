@@ -3,6 +3,92 @@
 
 
 
+## 🚀 v0.16.0 (2026-02-22)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- deleted unwanted files
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- Enhance QC workflow by adding 'Reddedildi' status and updating related logic
+      
+      
+    
+      
+      
+        
+- Implement real-time updates for Calisma Karti with Socket.IO integration
+      
+      
+    
+      
+      
+        
+- Implement real-time updates for QC in Calisma Karti with Socket.IO integration
+      
+      
+    
+      
+      
+        
+- Implement real-time updates for Create Calisma Karti with Socket.IO integration
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- feat/calisma-karti-realtime-events (#103)
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.15.0 (2026-02-19)
 
 
