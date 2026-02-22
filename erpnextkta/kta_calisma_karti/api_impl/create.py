@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
+from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 
 @frappe.whitelist()
 def create_calisma_karti(**kwargs):
@@ -96,6 +97,13 @@ def create_calisma_karti(**kwargs):
 
     doc = frappe.get_doc(doc_dict)
     doc.insert()
+
+    # ✅ Publish realtime events (create does not automatically notify list UIs)
+    try:
+        publish_calisma_karti_changed(doc.name, reason="create:calisma_karti")
+    except Exception:
+        # Don't block creation if realtime publish fails
+        pass
 
     # 9) Add department tag (best-effort)
     operator_department_tag = None

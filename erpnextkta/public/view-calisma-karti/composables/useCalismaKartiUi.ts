@@ -1,9 +1,12 @@
 import { computed, ref, watch } from "vue";
 
-export type CKState = "ready" | "running" | "paused" | "finished";
+export type CKState = "ready" | "running" | "paused" | "finished" | "rejected";
 
 export function useCalismaKartiUi(docRef: any) {
     function computeState(d: any): CKState {
+        // If QC rejected, lock UI state
+        if ((d?.kalite_kontrol || '').trim() === 'Reddedildi' || (d?.durum || '').toString().includes('Reddedildi')) return 'rejected';
+
         const duruslar = d?.duruslar || [];
         const hasOpenStop = duruslar.some((x: any) => x?.durus_baslangic && !x?.durus_bitis);
 
@@ -22,6 +25,7 @@ export function useCalismaKartiUi(docRef: any) {
             running: "Çalışıyor",
             paused: "Duruşta",
             finished: "Bitmiş",
+            rejected: "Reddedildi",
         }[state.value] || "-")
     );
 
@@ -68,10 +72,11 @@ export function useCalismaKartiUi(docRef: any) {
     );
 
     const showStart = computed(() => state.value === "ready");
-    const showResume = computed(() => state.value === "paused");
-    const showStop = computed(() => state.value === "running");
+    const isRejected = computed(() => state.value === "rejected");
+    const showResume = computed(() => state.value === "paused" && !isRejected.value);
+    const showStop = computed(() => state.value === "running" && !isRejected.value);
     const showFinish = computed(
-        () => (state.value === "running" || state.value === "paused") && qcApproved.value
+        () => !isRejected.value && (state.value === "running" || state.value === "paused") && qcApproved.value
     );
 
     return {
@@ -89,5 +94,6 @@ export function useCalismaKartiUi(docRef: any) {
         showResume,
         showStop,
         showFinish,
+        isRejected,
     };
 }
