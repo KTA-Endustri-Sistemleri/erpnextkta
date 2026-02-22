@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
-
+from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 # -----------------------------
 # QC Update (Role-gated)
 # -----------------------------
@@ -85,7 +85,12 @@ def update_kalite_kontrol(name: str, kalite_kontrol: str):
             except Exception:
                 # Fail safe: don't block QC update if status recompute fails
                 pass
-
+     # Publish realtime events (db_set does not trigger DocType on_update)
+    try:
+        publish_calisma_karti_changed(name, reason="qc:update_kalite_kontrol")
+    except Exception:
+        # Don't block QC update if realtime publish fails
+        pass
     return {"status": "success", "kalite_kontrol": val}
 
 
