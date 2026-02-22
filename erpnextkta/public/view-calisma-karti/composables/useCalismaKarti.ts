@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onUnmounted, watch } from "vue";
 
 export function useCalismaKarti(docname: ReturnType<typeof computed<string | null>>) {
     const loading = ref(false);
@@ -16,6 +16,43 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         } finally {
             loading.value = false;
         }
+    }
+    // --------------------
+    // Realtime (Socket.IO) - live detail refresh
+    // --------------------
+    let docHandler: any = null;
+    let docTimer: any = null;
+    let boundDocname: string | null = null;
+
+    function bindDocRealtime(name: string) {
+        const rt = (window as any)?.frappe?.realtime;
+        if (!rt || !name) return;
+
+        const eventName = `kta_calisma_karti:doc_changed:${name}`;
+
+        docHandler = (_payload: any) => {
+            clearTimeout(docTimer);
+            docTimer = setTimeout(() => {
+                // Avoid stacking loads
+                if (!loading.value) load();
+            }, 150);
+        };
+
+        rt.on(eventName, docHandler);
+        boundDocname = name;
+    }
+
+    function unbindDocRealtime(name: string) {
+        const rt = (window as any)?.frappe?.realtime;
+        if (!rt || !name) return;
+
+        const eventName = `kta_calisma_karti:doc_changed:${name}`;
+        if (docHandler) rt.off(eventName, docHandler);
+
+        docHandler = null;
+        clearTimeout(docTimer);
+        docTimer = null;
+        boundDocname = null;
     }
 
     async function refreshAfter<T>(fn: () => Promise<T>): Promise<T> {
@@ -151,6 +188,24 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
             })
         );
     }
+
+    // When docname changes (route changes), re-bind realtime listener
+    watch(
+        () => docname.value,
+        (next, prev) => {
+            if (prev) unbindDocRealtime(prev);
+            if (next) bindDocRealtime(next);
+        },
+        { immediate: true }
+    );
+
+    onMounted(() => {
+        if (docname.value) bindDocRealtime(docname.value);
+    });
+
+    onUnmounted(() => {
+        if (boundDocname) unbindDocRealtime(boundDocname);
+    });
 
     return {
         loading,

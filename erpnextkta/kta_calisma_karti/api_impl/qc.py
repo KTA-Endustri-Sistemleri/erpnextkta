@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
-
+from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 # -----------------------------
 # QC Update (Role-gated)
 # -----------------------------
@@ -70,6 +70,27 @@ def update_kalite_kontrol(name: str, kalite_kontrol: str):
     doc.flags.ignore_permissions = True
     doc.db_set("kalite_kontrol", val, update_modified=True)
 
+    # If QC rejected, also mark work card status as rejected.
+    # If QC moved away from rejected, recompute status from time fields.
+    if val == "Reddedildi":
+        doc.db_set("durum", "Reddedildi", update_modified=True)
+    else:
+        if (doc.durum or "").strip() == "Reddedildi":
+            # Recompute via DocType logic (get_durum uses kalite_kontrol too)
+            try:
+                durum_key = doc.get_durum()
+                # STATU_HARITASI lives in the DocType module
+                from kta_calisma_karti.doctype.calisma_karti.calisma_karti import STATU_HARITASI
+                doc.db_set("durum", STATU_HARITASI.get(durum_key, "Hazır"), update_modified=True)
+            except Exception:
+                # Fail safe: don't block QC update if status recompute fails
+                pass
+     # Publish realtime events (db_set does not trigger DocType on_update)
+    try:
+        publish_calisma_karti_changed(name, reason="qc:update_kalite_kontrol")
+    except Exception:
+        # Don't block QC update if realtime publish fails
+        pass
     return {"status": "success", "kalite_kontrol": val}
 
 
