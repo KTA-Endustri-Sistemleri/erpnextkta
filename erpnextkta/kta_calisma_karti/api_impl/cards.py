@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
+from collections import defaultdict
 
 from ._helpers import (
     first_child_table,
@@ -12,9 +13,36 @@ from ._helpers import (
     require_my_employee,
 )
 
+def _attach_customer_groups(rows):
+    """Attach customer_group(s) for each row (based on urun_kodu). Always adds keys."""
+    item_codes = sorted({r.get("urun_kodu") for r in rows if r.get("urun_kodu")})
+    groups_by_item = defaultdict(list)
+
+    if item_codes:
+        details = frappe.get_all(
+            "Item Customer Detail",
+            filters={
+                "parenttype": "Item",
+                "parent": ["in", item_codes],
+            },
+            fields=["parent", "customer_group"],
+        )
+        for d in details:
+            cg = d.get("customer_group")
+            if cg and cg not in groups_by_item[d["parent"]]:
+                groups_by_item[d["parent"]].append(cg)
+
+    for r in rows:
+        code = r.get("urun_kodu")
+        cgs = groups_by_item.get(code, [])
+        r["customer_groups"] = cgs                  # her zaman var: list
+        r["customer_group"] = cgs[0] if cgs else None  # her zaman var: str|None
+
+    return rows
+
 @frappe.whitelist()
-def get_my_calisma_kartlari(order_by=None):
-    """Return assigned Calisma Karti rows for list UI."""
+def get_my_calisma_kartlari(order_by=None, start=0, page_length=200):
+    """Return assigned Calisma Karti rows for list UI (with customer_group info)."""
 
     fields = [
         "name",
@@ -40,32 +68,37 @@ def get_my_calisma_kartlari(order_by=None):
         "name_asc": "name asc",
         "name_desc": "name desc",
     }
-
     order_by = allowed.get(order_by or "modified_desc", "modified desc")
+    start = int(start or 0)
+    page_length = int(page_length or 200)
 
     if is_system_manager():
-        return frappe.get_all(
-            "Calisma Karti",
-            fields=fields,
-            order_by=order_by,
-            limit_page_length=200,
-        )
+        rows = frappe.get_all("Calisma Karti", fields=fields, order_by=order_by, limit_start=start,limit_page_length=page_length,)
+        rows = _attach_customer_groups(rows)
+        if customer_group:
+            rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
+        return rows
+
     if is_quality_user():
-        return frappe.get_all(
-            "Calisma Karti",
-            fields=fields,
-            order_by=order_by,
-            limit_page_length=200,
-        )
+        rows = frappe.get_all("Calisma Karti", fields=fields, order_by=order_by, limit_start=start,limit_page_length=page_length,)
+        rows = _attach_customer_groups(rows)
+        if customer_group:
+            rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
+        return rows
 
     emp = require_my_employee()
-    return frappe.get_all(
+    rows = frappe.get_all(
         "Calisma Karti",
         filters={"operator": emp},
         fields=fields,
         order_by=order_by,
-        limit_page_length=200,
+        limit_start=start,
+        limit_page_length=page_length,
     )
+    rows = _attach_customer_groups(rows)
+    if customer_group:
+        rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
+    return rows
 
 @frappe.whitelist()
 def get_calisma_karti_detail(name: str):
