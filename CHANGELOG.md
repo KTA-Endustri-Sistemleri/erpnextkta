@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v0.17.0 (2026-02-23)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta-calisma-karti**: add customer group filter and load-more pagination
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.16.0 (2026-02-22)
 
 
