@@ -8,19 +8,66 @@ const sortKey = ref("creation_desc");
 
 const q = ref(""); // search query
 
-async function load() {
+// ✅ NEW: customer group filter
+const customerGroupFilter = ref("all"); // all | <customer group name>
+const pageLength = ref(200);
+const start = ref(0);
+const hasMore = ref(true);
+async function load(opts = {}) {
+  const append = !!opts.append;
+
+  // ✅ NEW: default load() = first page
+  if (!append) {
+    start.value = 0;
+    hasMore.value = true;
+  }
+
   loading.value = true;
   errorMsg.value = "";
   try {
     const r = await frappe.call("erpnextkta.kta_calisma_karti.api.get_my_calisma_kartlari", {
       order_by: sortKey.value,
+
+      // ✅ NEW: paging args
+      start: start.value,
+      page_length: pageLength.value,
     });
-    rows.value = r.message || [];
+
+    const data = r.message || [];
+
+    // ✅ NEW: append or replace
+    if (append) {
+      rows.value = [...(rows.value || []), ...data];
+    } else {
+      rows.value = data;
+    }
+
+    // ✅ NEW: paging bookkeeping
+    if (data.length < pageLength.value) {
+      hasMore.value = false;
+    } else {
+      start.value += data.length; // usually +pageLength
+    }
+
+    console.log(rows.value);
+
+    // ✅ keep your existing "group disappeared => reset" logic if you already added it
+    if (
+      customerGroupFilter.value !== "all" &&
+      !availableCustomerGroups.value.includes(customerGroupFilter.value)
+    ) {
+      customerGroupFilter.value = "all";
+    }
   } catch (e) {
     errorMsg.value = e?.message || "Liste alınamadı.";
   } finally {
     loading.value = false;
   }
+}
+// ✅ NEW: load more
+function loadMore() {
+  if (loading.value || !hasMore.value) return;
+  load({ append: true });
 }
 
 // --------------------
@@ -106,6 +153,40 @@ function qcKeyFromText(qc) {
   return "waiting";
 }
 
+// ✅ NEW: available customer groups from rows
+const availableCustomerGroups = computed(() => {
+  const set = new Set();
+
+  for (const r of rows.value || []) {
+    const arr = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
+    for (const g of arr) if (g) set.add(g);
+
+    if (r?.customer_group) set.add(r.customer_group);
+  }
+
+  return Array.from(set).sort((a, b) => a.localeCompare(b, "tr"));
+});
+
+// ✅ NEW: counts per group (optional but useful for UI)
+const customerGroupCounts = computed(() => {
+  const c = { all: rows.value.length };
+
+  for (const r of rows.value || []) {
+    const groups = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
+    const single = r?.customer_group;
+
+    const uniq = new Set(groups);
+    if (single) uniq.add(single);
+
+    for (const g of uniq) {
+      if (!g) continue;
+      c[g] = (c[g] || 0) + 1;
+    }
+  }
+
+  return c;
+});
+
 // Lightweight client-side search
 const filteredRows = computed(() => {
   const needle = (q.value || "").trim().toLowerCase();
@@ -123,6 +204,17 @@ const filteredRows = computed(() => {
       if (qk !== qcFilter.value) return false;
     }
 
+    // ✅ NEW: 3) Customer Group filter
+    if (customerGroupFilter.value !== "all") {
+      const target = customerGroupFilter.value;
+
+      const groups = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
+      const single = r?.customer_group;
+
+      const hit = (single === target) || (groups || []).includes(target);
+      if (!hit) return false;
+    }
+
     // 3) Search filter
     if (!needle) return true;
 
@@ -134,7 +226,11 @@ const filteredRows = computed(() => {
       r?.operasyon,
       r?.durum,
       r?.kalite_kontrol, // QC da aransın
-      r?.urun_kodu, 
+      r?.urun_kodu,
+
+      // ✅ NEW (optional): search in customer group too
+      r?.customer_group,
+      ...(Array.isArray(r?.customer_groups) ? r.customer_groups : []),
     ]
       .filter(Boolean)
       .join(" ")
@@ -185,6 +281,13 @@ function setQcFilter(v) {
   qcFilter.value = v;
   scrollToTop();
 }
+
+// ✅ NEW: setter for customer group filter (optional, v-model already works)
+function setCustomerGroupFilter(v) {
+  customerGroupFilter.value = v;
+  scrollToTop();
+}
+
 watch(sortKey, () => {
   load();
 });
@@ -277,6 +380,28 @@ onUnmounted(() => {
         </button>
       </div>
 
+      <!-- ✅ Customer Group Filters (QC style) -->
+      <div class="ck-filters ck-filters--sub" v-if="!loading && availableCustomerGroups.length">
+        <button
+          class="ck-filter ck-filter--qc"
+          :class="{ active: customerGroupFilter === 'all' }"
+          @click="setCustomerGroupFilter('all')"
+        >
+          Customer Tümü <span class="ck-filter-count">{{ customerGroupCounts.all }}</span>
+        </button>
+
+        <button
+          v-for="g in availableCustomerGroups"
+          :key="g"
+          class="ck-filter ck-filter--qc"
+          :class="{ active: customerGroupFilter === g }"
+          @click="setCustomerGroupFilter(g)"
+          :title="g"
+        >
+          {{ g }} <span class="ck-filter-count">{{ customerGroupCounts[g] || 0 }}</span>
+        </button>
+      </div>
+
     </div>
 
     <!-- Content -->
@@ -329,6 +454,15 @@ onUnmounted(() => {
                   <span>Ürün Kodu</span>
                   <b>{{ r.urun_kodu|| "-" }}</b>
                 </div>
+
+                <!-- ✅ Optional: show customer group (not required for filtering) -->
+                <!--
+                <div class="ck-kv-item">
+                  <span>Customer Group</span>
+                  <b>{{ r.customer_group || "-" }}</b>
+                </div>
+                -->
+
                 <div class="ck-kv-item">
                   <span>İş Emri</span>
                   <b>{{ r.custom_work_order || "-" }}</b>
@@ -348,6 +482,20 @@ onUnmounted(() => {
             </div>
           </div>
         </button>
+      </div>
+
+      <div v-if="!loading && !errorMsg && filteredRows.length > 0" class="ck-loadmore">
+        <button
+          v-if="hasMore"
+          class="ck-btn"
+          @click="loadMore"
+        >
+          Daha fazla yükle
+        </button>
+
+        <div v-else class="ck-muted" style="text-align:center; padding:10px 0;">
+          Hepsi bu kadar.
+        </div>
       </div>
     </div>
   </div>
