@@ -41,7 +41,7 @@ def _attach_customer_groups(rows):
     return rows
 
 @frappe.whitelist()
-def get_my_calisma_kartlari(order_by=None, start=0, page_length=200):
+def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None):
     """Return assigned Calisma Karti rows for list UI (with customer_group info)."""
 
     fields = [
