@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v0.17.1 (2026-02-24)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta-calisma-karti**: define customer_group param to prevent NameError
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.17.0 (2026-02-23)
 
 
