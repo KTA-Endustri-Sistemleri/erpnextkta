@@ -2,12 +2,14 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:calisma_karti_op",
+ "autoname": "format:{calisma_karti_op}-{customer_group}-{plant_floor}-{####}",
  "creation": "2025-08-11 15:28:08.976412",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "calisma_karti_op"
+  "calisma_karti_op",
+  "customer_group",
+  "plant_floor"
  ],
  "fields": [
   {
@@ -15,8 +17,23 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Calisma Karti Op",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_group",
+   "fieldtype": "Link",
+   "options": "Customer Group",
+   "label": "Customer Group",
    "reqd": 1,
-   "unique": 1
+   "in_list_view": 1
+  },
+  {
+  "fieldname": "plant_floor",
+  "fieldtype": "Link",
+  "options": "Plant Floor",
+  "label": "Plant Floor",
+  "reqd": 1,
+  "in_list_view": 1
   }
  ],
  "grid_page_length": 50,
