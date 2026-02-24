@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:{calisma_karti_op}-{customer_group}",
+ "autoname": "format:{calisma_karti_op}-{customer_group}-{plant_floor}-{####}",
  "creation": "2025-08-11 15:28:08.976412",
  "doctype": "DocType",
  "engine": "InnoDB",
