@@ -128,6 +128,35 @@ const steps = computed(() => {
   ];
 });
 
+const activeCustomerGroups = computed(() => {
+  // Prefer Work Order (WO mode), fallback to selected Job Card (JC mode)
+  const wo = workOrder.value;
+  const jc = selectedJobCard.value;
+
+  const fromWo = wo?.customer_groups || (wo?.customer_group ? [wo.customer_group] : []);
+  const fromJc = jc?.customer_groups || (jc?.customer_group ? [jc.customer_group] : []);
+
+  const raw = (fromWo.length ? fromWo : fromJc).filter(Boolean);
+  return Array.from(new Set(raw));
+});
+
+// If operations have a customer_group field, filter by it.
+// - If op.customer_group is empty -> treat as "generic" and allow it.
+// - If op.customer_group is set -> allow only if it matches active groups.
+const filteredOperations = computed(() => {
+  const ops = operations.value || [];
+  const groups = activeCustomerGroups.value;
+
+  // No customer group known yet -> show all operations (or none, your choice)
+  if (!groups.length) return ops;
+
+  return ops.filter((op) => {
+    const cg = op?.customer_group || null;
+    if (!cg) return true; // allow generic operations
+    return groups.includes(cg);
+  });
+});
+
 /* -------------------------------------------------------
  *  HELPERS
  * -----------------------------------------------------*/
@@ -279,6 +308,8 @@ async function fetchJobCardByBarcode() {
         workstation: msg.workstation || null,
         production_item: msg.production_item || null,
         for_quantity: msg.for_quantity || msg.qty || null,
+        customer_group: msg.customer_group || null,
+        customer_groups: msg.customer_groups || [],
       };
 
       // Job Card state
@@ -291,6 +322,8 @@ async function fetchJobCardByBarcode() {
             name: jc.work_order,
             production_item: jc.production_item,
             qty: jc.for_quantity,
+            customer_group: jc.customer_group,
+            customer_groups: jc.customer_groups,
           }
         : null;
 
@@ -341,7 +374,7 @@ async function fetchOperations() {
     await withLoading(async () => {
       const list = await callFrappe('frappe.client.get_list', {
         doctype: 'KTA Calisma Karti Operasyonlari',
-        fields: ['calisma_karti_op'],
+        fields: ['calisma_karti_op', 'customer_group'],
         limit_page_length: 500
       });
 
@@ -684,7 +717,7 @@ onBeforeUnmount(() => {
             <!-- STEP 4: Operasyon -->
             <StepOperation
               v-else-if="currentStep === 4"
-              :operations="operations"
+              :operations="filteredOperations"
               v-model:selectedOperation="selectedOperationName"
             />
 
@@ -710,7 +743,7 @@ onBeforeUnmount(() => {
             <!-- STEP 2: Operasyon -->
             <StepOperation
               v-else-if="currentStep === 2"
-              :operations="operations"
+              :operations="filteredOperations"
               v-model:selectedOperation="selectedOperationName"
             />
 
