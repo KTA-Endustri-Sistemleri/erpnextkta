@@ -61,9 +61,7 @@ const selectedJobCard = computed(() => {
 
 const selectedOperation = computed(() => {
   return (
-    operations.value.find(
-      (op) => op.calisma_karti_op === selectedOperationName.value
-    ) || null
+    operations.value.find((op) => op.name === selectedOperationName.value) || null
   );
 });
 
@@ -374,7 +372,7 @@ async function fetchOperations() {
     await withLoading(async () => {
       const list = await callFrappe('frappe.client.get_list', {
         doctype: 'KTA Calisma Karti Operasyonlari',
-        fields: ['calisma_karti_op', 'customer_group'],
+        fields: ['name','calisma_karti_op', 'customer_group'],
         limit_page_length: 500
       });
 
