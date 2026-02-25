@@ -56,11 +56,11 @@ function isSelected(name) {
     >
       <button
         v-for="(op, index) in operations"
-        :key="op.name || index"
+        :key="index"
         type="button"
         class="step-operation__card"
-        :class="{ 'step-operation__card--selected': isSelected(op.name) }"
-        @click="selectOperation(op.name)"
+        :class="{ 'step-operation__card--selected': isSelected(op.calisma_karti_op) }"
+        @click="selectOperation(op.calisma_karti_op)"
       >
         <div class="step-operation__card-header">
           <div class="step-operation__card-name">
@@ -68,13 +68,23 @@ function isSelected(name) {
           </div>
           <div
             class="step-operation__badge"
-            :class="isSelected(op.name)
+            :class="isSelected(op.calisma_karti_op)
               ? 'step-operation__badge--selected'
               : 'step-operation__badge--default'"
           >
-            {{ isSelected(op.name) ? 'Seçili' : 'Seç' }}
+            {{ isSelected(op.calisma_karti_op) ? 'Seçili' : 'Seç' }}
           </div>
         </div>
+
+        <!-- İleride detay eklemek istersen buraya extra satırlar koyabilirsin -->
+        <!--
+        <div class="step-operation__card-body">
+          <div v-if="op.aciklama" class="step-operation__row">
+            <span class="step-operation__label">Açıklama:</span>
+            <span>{{ op.aciklama }}</span>
+          </div>
+        </div>
+        -->
       </button>
     </div>
   </section>
