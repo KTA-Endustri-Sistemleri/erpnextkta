@@ -28,37 +28,44 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         """
         Update Purchase Receipt Exchange Rate and Item Prices.
         
-        1. Rate Date: Uses 'irsaliye_tarihi' (Waybill Date) if available, else Posting Date.
-        2. Conversion Rate: Uses 'Selling' rate from (Rate Date - 1 day).
+        1. Rate Date: Uses 'gumruk_beyanname_tarihi' or 'irsaliye_tarihi' if available, else Posting Date.
+        2. Conversion Rate: Uses 'Selling' rate by default.
+           Exception: If 'Gümrüksüz' checkbox is checked, uses 'Buying' rate from Posting Date.
         3. Item Rates: Uses Fresh Price List rate effective on Rate Date.
         """
         
+        # Gümrüksüz ithalat: for_buying kuru, posting_date tarihinde
+        use_buying_rate = self.get("custom_gumruksuz")
+
         # Determine the date to use for rate lookup
-        # User requested: "irsaliye_tarihi" (custom field) should drive the rate.
-        rate_date = None    
-        
-        # Check if İthalat process is active and customs declaration date exists
-        if self.get("gumruk_beyanname_tarihi"):
+        if use_buying_rate:
+            # Gümrüksüz: her zaman posting_date kullan
+            rate_date = self.posting_date
+        elif self.get("gumruk_beyanname_tarihi"):
             rate_date = self.get("gumruk_beyanname_tarihi")
         elif self.get("irsaliye_tarihi"):
             rate_date = self.get("irsaliye_tarihi")
         else:
             rate_date = self.posting_date
+
+        # Rate type flags
+        for_selling = 0 if use_buying_rate else 1
+        for_buying = 1 if use_buying_rate else 0
     
         # 1. Update Exchange Rate
         if self.currency and self.currency != self.company_currency:
             target_date = rate_date
-            # Fetch latest available Selling Rate on or before rate_date
             exchange_rate_info = frappe.db.sql("""
                 SELECT exchange_rate 
                 FROM `tabCurrency Exchange`
                 WHERE date <= %s
                 AND from_currency = %s
                 AND to_currency = %s
-                AND for_selling = 1
+                AND for_selling = %s
+                AND for_buying = %s
                 ORDER BY date DESC
                 LIMIT 1
-            """, (target_date, self.currency, self.company_currency), as_dict=True)
+            """, (target_date, self.currency, self.company_currency, for_selling, for_buying), as_dict=True)
         
             if exchange_rate_info:
                 self.conversion_rate = exchange_rate_info[0].exchange_rate
@@ -69,17 +76,17 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         # Ensure plc_conversion_rate is set if Price List Currency differs from Company Currency
         if self.price_list_currency and self.price_list_currency != self.company_currency and self.price_list_currency != self.currency:
             target_date = rate_date
-            # Fetch latest available Selling Rate on or before rate_date for Price List Currency
             plc_rate_info = frappe.db.sql("""
                 SELECT exchange_rate 
                 FROM `tabCurrency Exchange`
                 WHERE date <= %s
                 AND from_currency = %s
                 AND to_currency = %s
-                AND for_selling = 1
+                AND for_selling = %s
+                AND for_buying = %s
                 ORDER BY date DESC
                 LIMIT 1
-            """, (target_date, self.price_list_currency, self.company_currency), as_dict=True)
+            """, (target_date, self.price_list_currency, self.company_currency, for_selling, for_buying), as_dict=True)
             
             if plc_rate_info:
                 self.plc_conversion_rate = plc_rate_info[0].exchange_rate
