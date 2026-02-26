@@ -487,18 +487,40 @@ def _update_bundle_safely(row, allocations):
     if not warehouse:
         frappe.throw(_("Warehouse not found for row {0}").format(row.name))
 
+    # Orijinal entry'lerdeki incoming_rate'i sakla (split öncesi)
+    original_incoming_rate = 0.0
+    for entry in bundle_doc.get("entries", []):
+        if entry.get("incoming_rate"):
+            original_incoming_rate = flt(entry.incoming_rate)
+            break
+
+    # Fallback: PR Item satırının valuation_rate'ini kullan
+    if not original_incoming_rate:
+        original_incoming_rate = flt(
+            row.get("valuation_rate") or row.get("rate") or 0.0
+        )
+
     bundle_doc.set("entries", [])
     total_qty = 0
+    total_amount = 0.0
     for alloc in allocations:
+        alloc_qty = flt(alloc["qty"])
+        stock_value_diff = alloc_qty * original_incoming_rate
         bundle_doc.append("entries", {
             "batch_no": alloc["batch_no"],
-            "qty": alloc["qty"],
+            "qty": alloc_qty,
             "warehouse": warehouse,
-            "is_outward": 0 
+            "is_outward": 0,
+            "incoming_rate": original_incoming_rate,
+            "stock_value_difference": stock_value_diff,
         })
-        total_qty += flt(alloc["qty"])
+        total_qty += alloc_qty
+        total_amount += stock_value_diff
     
     bundle_doc.total_qty = total_qty
+    bundle_doc.total_amount = total_amount
+    if total_qty:
+        bundle_doc.avg_rate = total_amount / total_qty
     
     # Use save(ignore_permissions=True) to trigger a clean update with our flags
     bundle_doc.save(ignore_permissions=True)
