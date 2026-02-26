@@ -40,6 +40,28 @@ def _attach_customer_groups(rows):
 
     return rows
 
+def _attach_operasyon_label(rows):
+    """Replace Calisma Karti.operasyon (child row ID) with its calisma_karti_op label."""
+    op_ids = sorted({r.get("operasyon") for r in rows if r.get("operasyon")})
+    if not op_ids:
+        return rows
+
+    ops = frappe.get_all(
+        "KTA Calisma Karti Operasyonlari",
+        filters={"name": ["in", op_ids]},
+        fields=["name", "calisma_karti_op"],
+        limit_page_length=len(op_ids),
+    )
+    label_by_id = {o["name"]: o.get("calisma_karti_op") for o in ops}
+
+    for r in rows:
+        op_id = r.get("operasyon")
+        if op_id:
+            # If missing, keep original id to avoid breaking UI
+            r["operasyon"] = label_by_id.get(op_id) or op_id
+
+    return rows
+
 @frappe.whitelist()
 def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None):
     """Return assigned Calisma Karti rows for list UI (with customer_group info)."""
@@ -75,6 +97,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
     if is_system_manager():
         rows = frappe.get_all("Calisma Karti", fields=fields, order_by=order_by, limit_start=start,limit_page_length=page_length,)
         rows = _attach_customer_groups(rows)
+        rows = _attach_operasyon_label(rows)
         if customer_group:
             rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
         return rows
@@ -82,6 +105,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
     if is_quality_user():
         rows = frappe.get_all("Calisma Karti", fields=fields, order_by=order_by, limit_start=start,limit_page_length=page_length,)
         rows = _attach_customer_groups(rows)
+        rows = _attach_operasyon_label(rows)
         if customer_group:
             rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
         return rows
@@ -96,6 +120,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
         limit_page_length=page_length,
     )
     rows = _attach_customer_groups(rows)
+    rows = _attach_operasyon_label(rows)
     if customer_group:
         rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
     return rows
