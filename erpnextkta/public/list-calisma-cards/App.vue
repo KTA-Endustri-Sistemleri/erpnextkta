@@ -291,6 +291,9 @@ function setCustomerGroupFilter(v) {
 watch(sortKey, () => {
   load();
 });
+watch([statusFilter, qcFilter, customerGroupFilter], () => {
+  load();
+});
 onMounted(() => {
   load();
   bindListRealtime();
@@ -307,10 +310,6 @@ onUnmounted(() => {
     <div class="ck-header">
       <div class="ck-header-row">
         <div class="ck-title">Çalışma Kartları</div>
-
-        <button class="ck-iconbtn" @click="load" :disabled="loading" aria-label="Yenile">
-          ↻
-        </button>
       </div>
 
       <div class="ck-search">
@@ -454,14 +453,6 @@ onUnmounted(() => {
                   <span>Ürün Kodu</span>
                   <b>{{ r.urun_kodu|| "-" }}</b>
                 </div>
-
-                <!-- ✅ Optional: show customer group (not required for filtering) -->
-                <!--
-                <div class="ck-kv-item">
-                  <span>Customer Group</span>
-                  <b>{{ r.customer_group || "-" }}</b>
-                </div>
-                -->
 
                 <div class="ck-kv-item">
                   <span>İş Emri</span>
