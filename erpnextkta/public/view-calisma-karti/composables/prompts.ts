@@ -29,10 +29,10 @@ export function hurdaFields(defaults: any = {}) {
             get_query: () => ({
                 query: "erpnextkta.kta_calisma_karti.api.search_allowed_hurda_items",
                 filters: {
-                calisma_karti: defaults.calisma_karti_name,
+                    calisma_karti: defaults.calisma_karti_name,
                 },
             }),
-            },
+        },
         hurdaNedeniLinkField(defaults.hurda_nedeni || ""),
         {
             fieldtype: "Float",
@@ -143,6 +143,55 @@ export function barkodKayitFields(defaults: any = {}) {
             fieldname: "barcode",
             reqd: 1,
             default: defaults.barcode || "",
+        },
+    ];
+}
+
+export function altOperasyonFields(parentOperationLabel: string, defaults: any = {}) {
+    return [
+        {
+            fieldtype: "Link",
+            label: "Alt İşlem",
+            fieldname: "alt_operasyon",
+            options: "KTA Calisma Karti Alt Operasyonlari",
+            reqd: 1,
+            default: defaults.alt_operasyon || "",
+            get_query: () => ({
+                filters: {
+                    parent_operation: parentOperationLabel,
+                    is_active: 1
+                }
+            })
+        },
+        {
+            fieldtype: "Link",
+            label: "Hammadde (Opsiyonel)",
+            fieldname: "hammadde",
+            options: "Item",
+            reqd: 0,
+            default: defaults.hammadde || "",
+        },
+        {
+            fieldtype: "Float",
+            label: "Adet",
+            fieldname: "adet",
+            reqd: 0,
+            default: defaults.adet ?? 1,
+        },
+        {
+            fieldtype: "Link",
+            label: "Birim",
+            fieldname: "uom",
+            options: "UOM",
+            reqd: 0,
+            default: defaults.uom || "",
+        },
+        {
+            fieldtype: "Small Text",
+            label: "Not Açıklama",
+            fieldname: "note",
+            reqd: 0,
+            default: defaults.note || "",
         },
     ];
 }
