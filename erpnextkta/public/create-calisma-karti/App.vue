@@ -139,18 +139,17 @@ const activeCustomerGroups = computed(() => {
 });
 
 // If operations have a customer_group field, filter by it.
-// - If op.customer_group is empty -> treat as "generic" and allow it.
-// - If op.customer_group is set -> allow only if it matches active groups.
+// We strictly require the operation customer_group to match the active groups from the WO/JC.
 const filteredOperations = computed(() => {
   const ops = operations.value || [];
   const groups = activeCustomerGroups.value;
 
-  // No customer group known yet -> show all operations (or none, your choice)
-  if (!groups.length) return ops;
+  // No customer group known from WO/JC -> show NO operations strictly matching
+  if (!groups.length) return [];
 
   return ops.filter((op) => {
     const cg = op?.customer_group || null;
-    if (!cg) return true; // allow generic operations
+    if (!cg) return false; // do not allow generic operations without a group
     return groups.includes(cg);
   });
 });
