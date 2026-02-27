@@ -162,6 +162,7 @@ def get_calisma_karti_detail(name: str):
         "duruslar": duruslar,
         "idc_olcumleri": idc_olcumleri,
         "barkod_kayitlari": barkod_kayitlari,
+        "alt_operasyon_kayitlari": alt_operasyon_kayitlari,
         "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
         "kalite_kontrol": doc.kalite_kontrol,
         "creation": doc.creation,
