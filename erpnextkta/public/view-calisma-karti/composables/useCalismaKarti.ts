@@ -135,6 +135,46 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         );
     }
 
+    async function addAltOperasyon(payload: {
+        alt_operasyon: string;
+        hammadde?: string;
+        adet: number;
+        uom?: string;
+        note?: string;
+    }) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.add_alt_operasyon_kaydi", {
+                calisma_karti: docname.value,
+                ...payload,
+            })
+        );
+    }
+
+    async function updateAltOperasyon(payload: {
+        row_id: string;
+        alt_operasyon: string;
+        hammadde?: string;
+        adet: number;
+        uom?: string;
+        note?: string;
+    }) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.update_alt_operasyon_kaydi", {
+                calisma_karti: docname.value,
+                ...payload,
+            })
+        );
+    }
+
+    async function deleteAltOperasyon(row_id: string) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.delete_alt_operasyon_kaydi", {
+                calisma_karti: docname.value,
+                row_id,
+            })
+        );
+    }
+
     async function addIdcOlcumu(payload: any) {
         return refreshAfter(() =>
             frappe.call("erpnextkta.kta_calisma_karti.api.add_idc_olcumu", {
@@ -222,5 +262,8 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         addBarkodKaydi,
         updateBarkodKaydi,
         deleteBarkodKaydi,
+        addAltOperasyon,
+        updateAltOperasyon,
+        deleteAltOperasyon,
     };
 }

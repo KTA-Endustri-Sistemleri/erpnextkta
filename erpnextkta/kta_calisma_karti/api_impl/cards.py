@@ -145,6 +145,7 @@ def get_calisma_karti_detail(name: str):
     duruslar = first_child_table(doc, ["duruslar", "durus", "operasyon_duruslari"])
     idc_olcumleri = first_child_table(doc, ["idc_olcumleri", "idc_olcumleri", "calisma_karti_idc_olcumleri"])
     barkod_kayitlari = first_child_table(doc, ["barkod_kayitlari", "barkod_kayitlari", "calisma_karti_barkod_kayitlari"])
+    alt_operasyon_kayitlari = first_child_table(doc, ["alt_operasyon_kayitlari", "alt_operasyon", "calisma_karti_alt_operasyon_kayitlari"])
 
     return {
         "name": doc.name,

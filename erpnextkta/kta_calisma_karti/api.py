@@ -36,6 +36,13 @@ from .api_impl.qc import (
     delete_barkod_kaydi,
 )
 
+# Alt Operasyon
+from .api_impl.alt_operasyon import (
+    add_alt_operasyon_kaydi,
+    update_alt_operasyon_kaydi,
+    delete_alt_operasyon_kaydi,
+)
+
 __all__ = [
     "get_my_calisma_kartlari",
     "get_calisma_karti_detail",
@@ -58,6 +65,11 @@ __all__ = [
     "add_hurda",
     "update_hurda",
     "delete_hurda",
+
+    # Alt Operasyon
+    "add_alt_operasyon_kaydi",
+    "update_alt_operasyon_kaydi",
+    "delete_alt_operasyon_kaydi",
 
     # Create + barcode helpers
     "create_calisma_karti",

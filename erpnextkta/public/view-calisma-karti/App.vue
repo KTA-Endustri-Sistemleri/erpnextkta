@@ -11,6 +11,7 @@ import CkActionbar from "./components/CkActionbar.vue";
 import CkTabs, { type TabKey } from "./components/CkTabs.vue";
 
 import InfoView from "./views/InfoView.vue";
+import AltOperasyonView from "./views/AltOperasyonView.vue";
 import HurdaView from "./views/HurdaView.vue";
 import DurusView from "./views/DurusView.vue";
 import KaliteView from "./views/KaliteView.vue";
@@ -60,7 +61,8 @@ const {
   loading, doc, load, callIslem,
   updateQC, addHurda, updateHurda, deleteHurda,
   addIdcOlcumu, updateIdcOlcumu, deleteIdcOlcumu,
-  addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi
+  addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi,
+  addAltOperasyon, updateAltOperasyon, deleteAltOperasyon
 } = useCalismaKarti(docname);
 
 const {
@@ -206,6 +208,14 @@ watch(
       <CkTabs :modelValue="tab" :onChange="(t) => (tab = t)" />
 
       <InfoView v-if="tab === 'info'" :doc="doc" />
+
+      <AltOperasyonView
+        v-else-if="tab === 'alt_operasyon'"
+        :doc="doc"
+        :onAdd="addAltOperasyon"
+        :onUpdate="updateAltOperasyon"
+        :onDelete="deleteAltOperasyon"
+      />
 
       <HurdaView
         v-else-if="tab === 'hurda'"
