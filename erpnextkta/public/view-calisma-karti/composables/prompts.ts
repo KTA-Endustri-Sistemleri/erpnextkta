@@ -170,6 +170,10 @@ export function altOperasyonFields(parentOperationLabel: string, defaults: any =
             options: "Item",
             reqd: 0,
             default: defaults.hammadde || "",
+            get_query: () => ({
+                query: "erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.search_allowed_hammadde_items",
+                filters: { alt_operasyon: defaults.alt_operasyon || "" }
+            })
         },
         {
             fieldtype: "Float",
