@@ -62,6 +62,30 @@ def _attach_operasyon_label(rows):
 
     return rows
 
+def _attach_alt_operasyon_titles(rows):
+    """Enrich alt_operasyon child table rows with title and sequence from master doctype."""
+    if not rows:
+        return rows
+
+    names = sorted({r.get("alt_operasyon") for r in rows if r.get("alt_operasyon")})
+    if not names:
+        return rows
+
+    masters = frappe.get_all(
+        "KTA Calisma Karti Alt Operasyonlari",
+        filters={"name": ["in", names]},
+        fields=["name", "title", "sequence"],
+        limit_page_length=len(names),
+    )
+    meta_by_name = {m["name"]: m for m in masters}
+
+    for r in rows:
+        master = meta_by_name.get(r.get("alt_operasyon"), {})
+        r["alt_operasyon_title"] = master.get("title") or r.get("alt_operasyon")
+        r["alt_operasyon_sequence"] = master.get("sequence") or 0
+
+    return rows
+
 @frappe.whitelist()
 def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None):
     """Return assigned Calisma Karti rows for list UI (with customer_group info)."""
@@ -146,6 +170,9 @@ def get_calisma_karti_detail(name: str):
     idc_olcumleri = first_child_table(doc, ["idc_olcumleri", "idc_olcumleri", "calisma_karti_idc_olcumleri"])
     barkod_kayitlari = first_child_table(doc, ["barkod_kayitlari", "barkod_kayitlari", "calisma_karti_barkod_kayitlari"])
     alt_operasyon_kayitlari = first_child_table(doc, ["alt_operasyon_kayitlari", "alt_operasyon", "calisma_karti_alt_operasyon_kayitlari"])
+
+    # Enrich alt_operasyon rows with title and sequence from the master doctype
+    _attach_alt_operasyon_titles(alt_operasyon_kayitlari)
 
     return {
         "name": doc.name,
