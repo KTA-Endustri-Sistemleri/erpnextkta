@@ -122,14 +122,14 @@ export function idcOlcumFields(docname: string, defaults: any = {}) {
             fieldtype: "Float",
             label: "Yükseklik (mm)",
             fieldname: "yukseklik_mm",
-            reqd: 1,
+            reqd: 0,
             default: defaults.yukseklik_mm ?? 0,
         },
         {
             fieldtype: "Float",
             label: "Çekme (N)",
             fieldname: "cekme_n",
-            reqd: 1,
+            reqd: 0,
             default: defaults.cekme_n ?? 0,
         },
     ];
