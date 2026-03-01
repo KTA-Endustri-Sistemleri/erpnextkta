@@ -34,13 +34,16 @@ Frontend method path prefix: `erpnextkta.kta_calisma_karti.api.`
 
 ## Kalite Kontrol
 
+> **Not:** `update_kalite_kontrol` hâlâ sadece QC/QM/SM rolleri ile sınırlıdır.  
+> IDC ve barkod CRUD işlemleri için operatör de kendi kartına erişebilir.
+
 | Fonksiyon | Parametreler | Yetki |
 |-----------|-------------|-------|
 | `update_kalite_kontrol` | `name, kalite_kontrol` | KTA Kalite / QM / SM |
-| `search_allowed_idc_items` | `doctype, txt, searchfield, start, page_len, filters{calisma_karti}` | KTA Kalite / QM / SM |
-| `add_idc_olcumu` | `name, item_code, yukseklik_mm, cekme_n` | KTA Kalite / QM / SM |
-| `update_idc_olcumu` | `name, rowname, item_code, yukseklik_mm, cekme_n` | KTA Kalite / QM / SM |
-| `delete_idc_olcumu` | `name, rowname` | KTA Kalite / QM / SM |
+| `search_allowed_idc_items` | `doctype, txt, searchfield, start, page_len, filters{calisma_karti}` | Kart okuma yetkisi olan herkes |
+| `add_idc_olcumu` | `name, item_code, yukseklik_mm=0, cekme_n=0` | Operator / SM / QC |
+| `update_idc_olcumu` | `name, rowname, item_code, yukseklik_mm=0, cekme_n=0` | Operator / SM / QC |
+| `delete_idc_olcumu` | `name, rowname` | Operator / SM / QC |
 | `add_barkod_kaydi` | `name, barcode` | KTA Kalite / QM / SM |
 | `update_barkod_kaydi` | `name, rowname, barcode` | KTA Kalite / QM / SM |
 | `delete_barkod_kaydi` | `name, rowname` | KTA Kalite / QM / SM |

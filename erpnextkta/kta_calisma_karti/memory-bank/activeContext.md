@@ -4,27 +4,21 @@
 
 ## Mevcut Odak
 
-Alt operasyon modülü geliştirildi. Aktif geliştirme yok; bir sonraki odak bekleniyor.
+Alt operasyon geliştirmesi tamamlandı, IDC yetki + zorunluluk düzeltmesi yapıldı. Alt operasyon modülünde devam edilecek.
 
 ## Son Değişiklikler (2026-03-02)
 
-### Alt Operasyon Geliştirmesi
-- **`api_impl/alt_operasyon.py`** yeniden yazıldı:
-  - `_assert_can_write()` ortak helper çıkarıldı
-  - `hammadde`, `uom`, `note` opsiyonel parametreye alındı (lint temiz)
-  - Her write sonrası `frappe.db.commit()` + `publish_calisma_karti_changed()` eklendi
-- **`api_impl/cards.py`**'e `_attach_alt_operasyon_titles()` helper eklendi:
-  - `get_calisma_karti_detail` artık her alt_operasyon satırına `alt_operasyon_title` ve `alt_operasyon_sequence` döndürüyor
-- **`views/AltOperasyonView.vue`** güncellendi:
-  - `sortedRows` computed (sequence → idx sırası)
-  - Başlık olarak `alt_operasyon_title` gösterimi (fallback: raw name)
+### IDC Ölçüm Düzeltmesi (commit: `d041bcb`)
+- `qc.py`'e `_get_doc_for_idc_write()` helper eklendi: operatör kendi kartına IDC girebilir
+- `search_allowed_idc_items` — `_require_qc_role()` kaldırıldı; erişim olan herkes arayabilir
+- `add/update_idc_olcumu` — `yukseklik_mm=0`, `cekme_n=0` default parametreler
+- `calisma_karti_idc_olcumleri.json` — `yukseklik_mm` ve `cekme_n` `reqd: 1` kaldırıldı
+- `prompts.ts` — `idcOlcumFields` içinde `reqd: 0` yapıldı
 
-### Keşfedilen Gerçekler (calisma_karti.py okundu)
-- `callIslem` → `erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.islem_yap`
-- `STATU_HARITASI`: `hazir | calisiyor | durusta | bitmis | reddedildi`
-- `tamamlanan_miktar`: `doc.tamamlanan_miktar` alanı (Custom Field) — Duruş ve Bitiş'te artırılıyor
-- QC gate: `Bitis` işlemi `kalite_kontrol == "Onaylandı"` olmadan bloklanıyor
-- `autoname` formatı: `{operator}-{wo_tail}-{op_clean}-.##`
+### Alt Operasyon Geliştirmesi (commit: `151baf7`)
+- `alt_operasyon.py` yeniden yazıldı: `_assert_can_write()`, hammadde opsiyonel, realtime events
+- `cards.py`: `_attach_alt_operasyon_titles()` helper; detail API'sine `alt_operasyon_title` ve `alt_operasyon_sequence` eklendi
+- `AltOperasyonView.vue`: `sortedRows` computed, `alt_operasyon_title` gösterimi
 
 ## Sonraki Adımlar
 
