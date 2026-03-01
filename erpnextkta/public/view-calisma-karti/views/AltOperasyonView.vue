@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { altOperasyonFields } from "../composables/prompts";
 
 const props = defineProps<{
@@ -7,6 +8,16 @@ const props = defineProps<{
   onUpdate: (payload: any) => Promise<void>;
   onDelete: (rowname: string) => Promise<void>;
 }>();
+
+// Sort rows by sequence from master doctype (populated by backend), then by idx
+const sortedRows = computed(() => {
+  const rows: any[] = props.doc?.alt_operasyon_kayitlari ?? [];
+  return [...rows].sort((a, b) => {
+    const seqDiff = (a.alt_operasyon_sequence ?? 0) - (b.alt_operasyon_sequence ?? 0);
+    if (seqDiff !== 0) return seqDiff;
+    return (a.idx ?? 0) - (b.idx ?? 0);
+  });
+});
 
 function onAltOperasyonEkle() {
   frappe.prompt(
@@ -69,14 +80,14 @@ function onAltOperasyonSil(h: any) {
       <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onAltOperasyonEkle">Alt İşlem Ekle</button>
     </div>
 
-    <div v-if="(doc.alt_operasyon_kayitlari||[]).length===0" class="ck-muted" style="padding: 0px 10px;padding-top: 0px;">Kayıt yok.</div>
+    <div v-if="sortedRows.length === 0" class="ck-muted" style="padding: 0px 10px;padding-top: 0px;">Kayıt yok.</div>
 
     <div v-else class="ck-mini-list">
-      <div v-for="(h, i) in doc.alt_operasyon_kayitlari" :key="h.name || i" class="ck-mini-item">
+      <div v-for="(h, i) in sortedRows" :key="h.name || i" class="ck-mini-item">
         <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
           <div style="min-width:0;">
             <b style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-              {{ h.alt_operasyon }}
+              {{ h.alt_operasyon_title || h.alt_operasyon }}
             </b>
             <div class="ck-muted" v-if="h.hammadde">{{ h.hammadde }} ({{ h.adet || 0 }} {{ h.uom || '' }})</div>
             <div class="ck-muted" v-else-if="h.adet || h.uom">{{ h.adet || 0 }} {{ h.uom || '' }}</div>
