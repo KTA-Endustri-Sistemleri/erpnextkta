@@ -4,9 +4,22 @@
 
 ## Mevcut Odak
 
-Alt operasyon geliştirmesi tamamlandı, IDC yetki + zorunluluk düzeltmesi yapıldı. Alt operasyon modülünde devam edilecek.
+Alt operasyon geliştirmesi ve IDC yetki düzeltmesi tamamlandı. Material group kısıtı uygulandı. Bir sonraki geliştirme bekleniyor.
 
 ## Son Değişiklikler (2026-03-02)
+
+### Alt Operasyon — Material Group Kısıtı
+- **Yeni:** `KTA Operation Allowed Material Groups` child doctype (parent: Ana Op)
+- **Yeni:** `KTA Sub Operation Allowed Material Groups` child doctype (parent: Alt Op)
+- **Güncelleme:** `kta_calisma_karti_operasyonlari.json` → `allowed_material_groups` Table alanı
+- **Güncelleme:** `kta_calisma_karti_alt_operasyonlari.json` → `allowed_material_groups` Table alanı
+- **Backend:** `_get_allowed_groups_for_alt_op()` — Sub-op listesi dolu → sub-op; boş → parent op; her ikisi boş → kısıtsız
+- **Backend:** `_assert_hammadde_allowed()` + `search_allowed_hammadde_items` whitelist endpoint
+- **Backend:** `add/update_alt_operasyon_kaydi`'ya hammadde validasyonu eklendi
+- **Frontend:** `prompts.ts` hammadde field'ına `get_query` eklendi
+
+### Not: `bench migrate` gerekiyor
+Yeni child doctypeler için bir kez `bench migrate` çalıştırılmalı.
 
 ### IDC Ölçüm Düzeltmesi (commit: `d041bcb`)
 - `qc.py`'e `_get_doc_for_idc_write()` helper eklendi: operatör kendi kartına IDC girebilir
