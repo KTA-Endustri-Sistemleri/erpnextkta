@@ -12,8 +12,9 @@
 - [x] `get_job_card_by_barcode()` — JC barkod arama + WO status kontrolü
 - [x] `get_work_order_by_barcode()` — WO barkod arama
 - [x] Hurda CRUD — BOM/operasyon bazlı item kısıtı dahil
-- [x] QC güncelleme — permlevel bypass + rol kapısı
-- [x] IDC ölçüm CRUD — item_group + BOM scope filtresi
+- [x] Kalite kontrol güncelleme — permlevel bypass + rol kapısı
+- [x] IDC ölçüm CRUD — item_group + BOM scope filtresi; operatörler de girebilir (QC kısıtı kaldırıldı)
+- [x] `yukseklik_mm` ve `cekme_n` opsiyonel (default 0, `reqd: 1` kaldırıldı)
 - [x] Barkod kaydı CRUD
 - [x] Alt operasyon CRUD
 - [x] Alt operasyon realtime event (`publish_calisma_karti_changed` add/update/delete sonrası)
