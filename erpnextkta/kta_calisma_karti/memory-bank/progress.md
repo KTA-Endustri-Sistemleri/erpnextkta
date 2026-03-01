@@ -19,6 +19,13 @@
 - [x] Alt operasyon CRUD
 - [x] Alt operasyon realtime event (`publish_calisma_karti_changed` add/update/delete sonrası)
 - [x] Alt operasyon detail API'sinde `alt_operasyon_title` + `alt_operasyon_sequence` enrichment
+- [x] Alt operasyon hammadde için 2 katmanlı material group kısıtı
+  - `KTA Operation Allowed Material Groups` child doctype (ana op)
+  - `KTA Sub Operation Allowed Material Groups` child doctype (alt op)
+  - `_get_allowed_groups_for_alt_op()` — sub-op → parent op → kısıtsız öncelik
+  - `_assert_hammadde_allowed()` — backend validasyon
+  - `search_allowed_hammadde_items` — whitelist search endpoint
+  - `prompts.ts` hammadde field’ına `get_query` eklendi
 - [x] Socket.IO realtime events (list + doc) — alt operasyon write'ları da artık kapsıyor
 
 ### Frontend ✅
@@ -37,9 +44,15 @@
 - [ ] `rest-api/` klasörü — Tam içerik incelenmedi
 
 ### Potansiyel İyileştirmeler
-- [ ] Liste sayfasındaki filtreler server-side hale getirilebilir (şu an client-side)
-- [ ] `customer_group` hesabı her listede `Item Customer Detail` join yapıyor — cache eklenebilir
-- [ ] Test coverage yok
+- [ ] **Alt operasyon — `hammadde` için BOM kısıtı** (henüz tasarlanmadı)
+  - Hurda gibi BOM + operasyon bazlı `Item` whitelist olmalı, ama hangi BOM'dan ve hangi filtre ile alınacağı netleştirilmeli
+  - Şu an serbest `Item` seçimi var
+- [ ] `rest-api/` klasörü — Tam içerik incelenmedi
+
+### Karar Verilmiş / Gerekmiyor
+- ✅ `create-calisma-karti` wizard'a alt operasyon adımı eklenMEyecek (operatör CK içinden kendi dolduruyor)
+- ✅ `list-calisma-cards`'ta alt operasyon özeti gösterilMEyecek (şu an için gerek yok)
+- ✅ Material group kısıtı ana operasyonda tanımlanır; alt op isteðe bağlı daraltabilir
 
 ## Bilinen Sorunlar
 
