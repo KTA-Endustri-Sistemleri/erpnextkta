@@ -4,12 +4,27 @@
 
 ## Mevcut Odak
 
-Brief oluşturma + Memory Bank kurulumu tamamlandı. Aktif geliştirme yok.
+Alt operasyon modülü geliştirildi. Aktif geliştirme yok; bir sonraki odak bekleniyor.
 
-## Son Değişiklikler
+## Son Değişiklikler (2026-03-02)
 
-- `TECHNICAL_BRIEF.md` oluşturuldu (2026-03-02): Modülün tüm backend + frontend mimarisi belgelendi
-- `memory-bank/` kuruldu (2026-03-02): Yeni session'lar için context dosyaları hazırlandı
+### Alt Operasyon Geliştirmesi
+- **`api_impl/alt_operasyon.py`** yeniden yazıldı:
+  - `_assert_can_write()` ortak helper çıkarıldı
+  - `hammadde`, `uom`, `note` opsiyonel parametreye alındı (lint temiz)
+  - Her write sonrası `frappe.db.commit()` + `publish_calisma_karti_changed()` eklendi
+- **`api_impl/cards.py`**'e `_attach_alt_operasyon_titles()` helper eklendi:
+  - `get_calisma_karti_detail` artık her alt_operasyon satırına `alt_operasyon_title` ve `alt_operasyon_sequence` döndürüyor
+- **`views/AltOperasyonView.vue`** güncellendi:
+  - `sortedRows` computed (sequence → idx sırası)
+  - Başlık olarak `alt_operasyon_title` gösterimi (fallback: raw name)
+
+### Keşfedilen Gerçekler (calisma_karti.py okundu)
+- `callIslem` → `erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.islem_yap`
+- `STATU_HARITASI`: `hazir | calisiyor | durusta | bitmis | reddedildi`
+- `tamamlanan_miktar`: `doc.tamamlanan_miktar` alanı (Custom Field) — Duruş ve Bitiş'te artırılıyor
+- QC gate: `Bitis` işlemi `kalite_kontrol == "Onaylandı"` olmadan bloklanıyor
+- `autoname` formatı: `{operator}-{wo_tail}-{op_clean}-.##`
 
 ## Sonraki Adımlar
 

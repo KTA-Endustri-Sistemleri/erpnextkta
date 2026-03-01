@@ -1,6 +1,6 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-02
+> Son güncelleme: 2026-03-02 (alt operasyon geliştirme)
 
 ## Çalışan Özellikler
 
@@ -16,20 +16,23 @@
 - [x] IDC ölçüm CRUD — item_group + BOM scope filtresi
 - [x] Barkod kaydı CRUD
 - [x] Alt operasyon CRUD
-- [x] Socket.IO realtime events (list + doc)
+- [x] Alt operasyon realtime event (`publish_calisma_karti_changed` add/update/delete sonrası)
+- [x] Alt operasyon detail API'sinde `alt_operasyon_title` + `alt_operasyon_sequence` enrichment
+- [x] Socket.IO realtime events (list + doc) — alt operasyon write'ları da artık kapsıyor
 
 ### Frontend ✅
 - [x] `create-calisma-karti` wizard — WO modu (5 adım) + JC modu (3 adım)
 - [x] `list-calisma-cards` — Realtime list, çok filtreli (durum, QC, customer group), paginasyon
 - [x] `view-calisma-karti` — Tab'lı detay (Info, Alt Operasyon, Hurda, Duruş, Kalite)
+- [x] `AltOperasyonView.vue` — `sortedRows` computed (sequence sırası), `alt_operasyon_title` fallback gösterimi
 
 ## Eksik / Belirsiz
 
 ### Bilinmeyenler 🔍
-- [ ] `callIslem("Baslat" | "Durus" | "Bitis")` — `useCalismaKarti.ts` içindeki backend metodu tam okunmadı
-- [ ] `calisma_karti.py` controller — `STATU_HARITASI`, `get_durum()`, `qc_on_submit` hook
-- [ ] `tamamlanan_miktar` alanı — DocType JSON'da yok; Custom Field olabilir
-- [ ] CK → Job Card status senkronizasyonu — `on_update/on_submit` hook var mı?
+- [x] ~~`callIslem` backend metodu~~ → `calisma_karti.islem_yap` whitelisted fonksiyonu (`calisma_karti.py`'de)
+- [x] ~~`calisma_karti.py` controller~~ → `STATU_HARITASI`, `get_durum()`, `hesapla_*` metodları, `islem_yap` okundu
+- [x] ~~`tamamlanan_miktar`~~ → `islem_yap` içinde `doc.tamamlanan_miktar` olarak kullanılıyor (Custom Field)
+- [ ] CK → Job Card status senkronizasyonu — `on_update` hook Job Card'ı güncellemiyor; sadece `doc_events → Job Card → update_work_order_status` var
 - [ ] `rest-api/` klasörü — Tam içerik incelenmedi
 
 ### Potansiyel İyileştirmeler
