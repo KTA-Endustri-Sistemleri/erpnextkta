@@ -8,6 +8,13 @@ Alt operasyon geliştirmesi ve IDC yetki düzeltmesi tamamlandı. Material group
 
 ## Son Değişiklikler (2026-03-02)
 
+### Çalışma Kartı Zaman Aşımı ve Otomatik Temizlik (Commit: `2d849cd`)
+- **Backend (Hesaplama Sınırı):** `calisma_karti.py` içindeki süre hesaplamalarına `MAX_NET_CALISMA_DK = 430` sabiti eklendi. Açık kalan kartlar maksimum bu değere ulaşır.
+- **Backend (Otomatik Kapatma):** `tasks.py` içerisine `auto_close_timed_out_cards` fonksiyonu eklendi. Vardiya sonlarından 15 dk sonra (`16:15` ve `00:15` cron) açık kartları bitirir.
+- **Backend (Başlatılmamış Kartların Silinmesi):** `tasks.py` içerisine `delete_old_unstarted_cards` eklendi. `docstatus=1` olan ve üzerinden 1 gün geçip başlatılmayan kartları her gece `04:00` cron tablosuyla veritabanından tamamen siler (`frappe.delete_doc`).
+- **Backend (Kullanıcı Uyarısı):** `validate()` hook'unda kart > 400 dk aktif ise `frappe.msgprint` eklendi.
+- **Frontend (Kullanıcı Uyarısı):** `App.vue` içinde (real-time timer yardımıyla) işlem 400 dakikayı geçtiğinde kırmızı bir banner (🚨) gösteriliyor.
+
 ### Alt Operasyon — Material Group Kısıtı
 - **Yeni:** `KTA Operation Allowed Material Groups` child doctype (parent: Ana Op)
 - **Yeni:** `KTA Sub Operation Allowed Material Groups` child doctype (parent: Alt Op)
