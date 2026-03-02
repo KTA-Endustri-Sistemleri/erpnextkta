@@ -8,6 +8,12 @@ Alt operasyon geliştirmesi ve IDC yetki düzeltmesi tamamlandı. Material group
 
 ## Son Değişiklikler (2026-03-02)
 
+### Kapsamlı Mimari İyileştirme (Refactoring)
+- **Concurrency (Veri Yarışı) Kontrolü:** `create_calisma_karti` metoduna "Son 30 saniyede aynı özelliklerde açılmış kart var mı?" (Anti-Double-Click) kontrolü eklendi.
+- **Monolith Parçalaması:** `calisma_karti.py` içindeki tek parça ve +100 satırlık `islem_yap` metodu küçük, yönetilebilir fonksiyonlara (`_handle_baslat`, vb.) bölünüp `api_impl/cards.py` altına taşındı.
+- **KTA Calisma Karti Settings:** Hardcoded olarak yazılan (400, 430 dk) bitiş ve ikaz süreleri yeni oluşturulan Single Doctype ayar tablosundan (`get_single_value`) çekilecek şekilde tasarlandı.
+- **Frontend Server-Side Filtering:** `App.vue` üzerindeki tüm filtreler (`q`, `status`, `customerGroup`, `qcFilter`) JS dizilerinden koparılıp `get_my_calisma_kartlari` backend SQL API'sine bağlandı. Vue üzerindeki yük devredildi.
+
 ### Tekil Çalışma Kartı (Otomatik Duruş) (Commit: `b68a63e`)
 - **Backend (Otomatik Duraklatma):** Kullanıcı yeni bir kartı başlattığında (`islem_yap` - Baslat), kendisine ait daha önceden başlattığı diğer tüm açık kartları bularak bunlara bir Duruş Nedeni ("Diger") ekleyip durumu zorla otomatipe çeken `_auto_pause_other_active_cards` fonksiyonu yazıldı.
 

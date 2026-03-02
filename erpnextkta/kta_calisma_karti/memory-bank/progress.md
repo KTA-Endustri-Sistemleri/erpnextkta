@@ -5,6 +5,9 @@
 ## Çalışan Özellikler
 
 ### Backend ✅
+- [x] Concurrency (Anti-Double-Click) Koruması — `create_calisma_karti()` 30 saniye geciktirmeli blokaj
+- [x] Monolith Refactoring — `islem_yap` metodu parçalandı ve `cards.py` modülüne aktarıldı
+- [x] KTA Calisma Karti Settings (Single Doctype) — Sistem limit süreleri (430 dk vb.) dinamikleştirildi
 - [x] `Calisma Karti` DocType (ana + 5 child table)
 - [x] Ana Operasyon (`KTA Calisma Karti Operasyonlari`) doctype'ina `sequence` alanı eklendi (Sıralama için)
 - [x] `create_calisma_karti()` — WO/JC doğrulama + insert + realtime + departman tag
@@ -46,6 +49,7 @@
   - Sadece mevcut operasyon değil, kendinden önceki (idx <= mevcut idx) tüm operasyonların materyalleri serbest bırakıldı
 
 ### Frontend ✅
+- [x] Server-Side Filtering — `list-calisma-cards` sayfasındaki ağır Vue array filtrelemeleri (filteredRows) doğrudan SQL API'ye bağlandı (Pagination & Search)
 - [x] `create-calisma-karti` wizard — WO modu (5 adım) + JC modu (3 adım)
 - [x] `list-calisma-cards` — Realtime list, çok filtreli (durum, QC, customer group), paginasyon
 - [x] `view-calisma-karti` — Tab'lı detay (Info, Alt Operasyon, Hurda, Duruş, Kalite)
