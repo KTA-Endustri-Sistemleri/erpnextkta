@@ -30,21 +30,6 @@ function syncRoute() {
 let unsubscribe: any = null;
 let alive = true;
 
-onMounted(() => {
-  alive = true;
-
-  // first sync
-  syncRoute();
-
-  // sync on route change
-  unsubscribe = frappe.router?.on?.("change", syncRoute);
-});
-
-onUnmounted(() => {
-  alive = false;
-  if (typeof unsubscribe === "function") unsubscribe();
-});
-
 const PAGE = "view-calisma-karti";
 
 const docname = computed(() => {
@@ -65,6 +50,27 @@ const {
   addAltOperasyon, updateAltOperasyon, deleteAltOperasyon
 } = useCalismaKarti(docname);
 
+// Reactive now timer for timeout warning (updates every minute)
+const nowTime = ref(Date.now());
+let timerInterval: any = null;
+
+onMounted(() => {
+  alive = true;
+  syncRoute();
+  unsubscribe = frappe.router?.on?.("change", syncRoute);
+  
+  // Update time every minute to keep warning reactive
+  timerInterval = setInterval(() => {
+    nowTime.value = Date.now();
+  }, 60000);
+});
+
+onUnmounted(() => {
+  alive = false;
+  if (typeof unsubscribe === "function") unsubscribe();
+  if (timerInterval) clearInterval(timerInterval);
+});
+
 const {
   state,
   durumLabel,
@@ -80,6 +86,17 @@ const {
   showStop,
   showFinish,
 } = useCalismaKartiUi(doc);
+
+const showTimeoutWarning = computed(() => {
+  // Yalnızca çalışıyor veya duruşta (henüz bitmemiş, başlatılmış) kartlar için
+  if (!doc.value?.baslangic_saati || doc.value?.bitis_saati) return false;
+  
+  // Süre hesaplama (şimdiki zaman - başlangıç zamanı)
+  const startMs = frappe.datetime.str_to_obj(doc.value.baslangic_saati).getTime();
+  const diffMinutes = (nowTime.value - startMs) / (1000 * 60);
+  
+  return diffMinutes > 400; // 400 dakikayı geçtiyse uyar
+});
 
 const qcSaving = ref(false);
 
@@ -205,6 +222,11 @@ watch(
         :onBitir="onBitir"
       />
 
+      <!-- Timeout Banner Uyarısı -->
+      <div v-if="showTimeoutWarning" class="ck-timeout-alert text-center margin-bottom mx-2">
+        <b>⚠️ Dikkat:</b> Bu kart <b>400 dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.
+      </div>
+
       <CkTabs :modelValue="tab" :onChange="(t) => (tab = t)" />
 
       <InfoView v-if="tab === 'info'" :doc="doc" />
@@ -317,6 +339,17 @@ watch(
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.ck-timeout-alert {
+  background-color: var(--alert-danger-bg, rgba(239, 68, 68, .14));
+  color: var(--danger, #ef4444);
+  border: 1px solid var(--danger, #ef4444);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+  margin-top: -4px;
+  margin-bottom: 8px;
 }
 
 .ck-btn {
