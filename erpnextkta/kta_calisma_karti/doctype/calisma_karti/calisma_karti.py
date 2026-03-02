@@ -14,7 +14,7 @@ STATU_HARITASI = {
     "bitmis": "Bitmiş",
 }
 
-MAX_NET_CALISMA_DK = 430
+MAX_NET_CALISMA_DK = 430    
 
 class CalismaKarti(Document):
     def on_update(self):
@@ -178,6 +178,9 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
             end_dt = get_datetime(last_row.durus_bitis)
             last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
 
+        # Enforce single active card: auto-pause other active cards of this operator
+        _auto_pause_other_active_cards(doc, now)
+
     elif islem_tipi == "Durus":
         if durum == "bitmis":
             frappe.throw("Bitmiş bir işlemde duruş yapılamaz.")
@@ -240,3 +243,41 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
         "durum": doc.get_durum(),
         "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
     }
+
+def _auto_pause_other_active_cards(hedef_doc, now_dt):
+    """
+    Sisteme yeni bir kart başlatıldığında, bu kartı başlatan operatörün
+    daha önceden açık unutulmuş (çalışıyor pozisyonunda) olan 
+    diğer kartlarını otomatik olarak 'Duruş'a alır.
+    """
+    if not hedef_doc.operator:
+        return
+        
+    kartlar = frappe.get_all(
+        "Calisma Karti",
+        filters={
+            "operator": hedef_doc.operator,
+            "name": ["!=", hedef_doc.name],
+            "docstatus": 1,
+            "baslangic_saati": ["is", "set"],
+            "bitis_saati": ["is", "not set"]
+        },
+        fields=["name"]
+    )
+    
+    for k in kartlar:
+        try:
+            d_doc = frappe.get_doc("Calisma Karti", k.name)
+            # Eğer diğer kart hala çalışıyor olarak gözüküyorsa onu duruşa zorla
+            if d_doc.get_durum() == "calisiyor":
+                row = d_doc.append("duruslar", {})
+                row.durus_baslangic = now_dt
+                row.durus_nedeni = "Diger"
+                row.aciklama = f"[SİSTEM] Otomatik duraklatıldı. Aynı operatöre ait '{hedef_doc.name}' işlemi başlatıldı."
+                
+                # Diğer işlemlerin süresini de kaydet, böylece ana hesaplamalar bozulmasın
+                d_doc.hesapla_durus_suresi()
+                d_doc.hesapla_toplam_sure()
+                d_doc.save(ignore_permissions=True)
+        except Exception as e:
+            frappe.log_error(title=f"_auto_pause_other_active_cards hatası: {k.name}", message=frappe.get_traceback())
