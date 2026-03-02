@@ -77,17 +77,43 @@ def _get_allowed_hurda_item_codes_for_doc(doc) -> set[str]:
     if not bom_no:
         frappe.throw(_("Job Card üzerinde BOM No bulunamadı."))
 
-    # BOM Item child table doctype is typically "BOM Item"
+    # Find the processing order (idx) of the current operation
+    current_op_idx = frappe.db.get_value(
+        "BOM Operation",
+        {"parent": bom_no, "parenttype": "BOM", "operation_no": operation},
+        "idx"
+    )
+
+    if not current_op_idx:
+        # Fallback to strict match if idx not found
+        valid_operations = [operation]
+    else:
+        # Get all operations up to current_op_idx
+        prev_ops = frappe.get_all(
+            "BOM Operation",
+            filters={
+                "parent": bom_no,
+                "parenttype": "BOM",
+                "idx": ["<=", current_op_idx]
+            },
+            fields=["operation_no"]
+        )
+        valid_operations = [o.get("operation_no") for o in prev_ops if o.get("operation_no")]
+
+    if not valid_operations:
+        valid_operations = [operation]
+
+    # BOM Item child table doctype is "BOM Item"
     rows = frappe.get_all(
         "BOM Item",
         filters={
             "parent": bom_no,
             "parenttype": "BOM",
             "parentfield": "items",
-            "operation": operation,
+            "operation": ["in", valid_operations],
         },
         fields=["item_code"],
-        limit_page_length=1000,
+        limit_page_length=2000,
     )
 
     allowed = { (r.get("item_code") or "").strip() for r in rows if r.get("item_code") }
@@ -147,7 +173,7 @@ def search_allowed_hurda_items(doctype, txt, searchfield, start, page_len, filte
 
     txt = (txt or "").strip()
 
-    # Only BOM items where BOM Item.operation == Job Card.operation
+    # Only BOM items where BOM Item.operation is in valid set (idx <= current_operation idx)
     return frappe.db.sql(
         """
         select i.name, i.item_name
@@ -157,7 +183,18 @@ def search_allowed_hurda_items(doctype, txt, searchfield, start, page_len, filte
             bi.parent = %(bom_no)s
             and bi.parenttype = 'BOM'
             and bi.parentfield = 'items'
-            and ifnull(bi.operation, '') = %(operation)s
+            and bi.operation IN (
+                select bo.operation_no
+                from `tabBOM Operation` bo
+                where bo.parent = %(bom_no)s
+                  and bo.idx <= (
+                      select curr_bo.idx
+                      from `tabBOM Operation` curr_bo
+                      where curr_bo.parent = %(bom_no)s
+                        and curr_bo.operation_no = %(operation)s
+                      limit 1
+                  )
+            )
             and (
                 i.name like %(like)s
                 or i.item_name like %(like)s
