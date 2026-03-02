@@ -194,3 +194,173 @@ def get_calisma_karti_detail(name: str):
         "kalite_kontrol": doc.kalite_kontrol,
         "creation": doc.creation,
     }
+
+def _assert_can_write_on_doc(doc):
+    if is_system_manager() or is_quality_user():
+        return
+    emp = require_my_employee()
+    if doc.operator != emp:
+        frappe.throw(_("Bu İşlem için yetkiniz yok."), frappe.PermissionError)
+
+def _handle_baslat(doc, now):
+    if doc.get_durum() != "hazir":
+        frappe.throw("Sadece Hazır durumundaki işlemler başlatılabilir.")
+    
+    doc.baslangic_saati = now
+    
+    # Auto-pause other active cards for this operator
+    _auto_pause_other_active_cards(doc, now)
+
+def _handle_durus(doc, now, durus_nedeni, aciklama):
+    durum = doc.get_durum()
+    if durum == "bitmis":
+        frappe.throw("Bitmiş bir işlemde duruş yapılamaz.")
+    if durum == "hazir":
+        frappe.throw("Başlamamış bir işlemde duruş yapılamaz.")
+    if doc.aktif_durus_var_mi():
+        frappe.throw("Bu işlem zaten durdurulmuş.")
+
+    if not durus_nedeni:
+        frappe.throw("Duruşa geçmek için Duruş Nedeni belirtilmelidir.")
+        
+    doc.append(
+        "duruslar",
+        {
+            "durus_nedeni": durus_nedeni,
+            "durus_baslangic": now,
+            "aciklama": aciklama,
+        },
+    )
+
+def _handle_bitis(doc, now, aciklama, qty):
+    durum = doc.get_durum()
+    if durum == "hazir":
+        frappe.throw("Başlamamış işlem bitirilemez.")
+    if durum == "bitmis":
+        frappe.throw("Bu kart zaten bitmiş.")
+
+    # 1. Close active durus if any
+    if doc.aktif_durus_var_mi():
+        last_row = doc.duruslar[-1]
+        last_row.durus_bitis = now
+        from frappe.utils import get_datetime
+        start_dt = get_datetime(last_row.durus_baslangic)
+        end_dt = get_datetime(last_row.durus_bitis)
+        last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+
+    # 2. Add requested amount
+    doc.tamamlanan_miktar = (doc.tamamlanan_miktar or 0.0) + qty
+
+    # 3. Check amount constraint
+    total_done = float(doc.tamamlanan_miktar or 0)
+    if total_done <= 0:
+        # Check operation strictness config
+        op_doc = frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu")
+        miktar_zorunlu_mu = op_doc if op_doc is not None else 1
+
+        if miktar_zorunlu_mu:
+            frappe.throw("Bu operasyon için tamamlanan miktar (üretim adedi) bildirilmesi zorunludur.")
+        else:
+            if not doc.get("alt_operasyon_kayitlari"):
+                frappe.throw("Üretim adedi girilmeden işlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.")
+
+    doc.bitis_saati = now
+    
+    # Optional final note/durus reason
+    if aciklama and len(doc.duruslar) > 0:
+        doc.duruslar[-1].aciklama = aciklama
+
+def _auto_pause_other_active_cards(hedef_doc, now_dt):
+    if not hedef_doc.operator:
+        return
+        
+    kartlar = frappe.get_all(
+        "Calisma Karti",
+        filters={
+            "operator": hedef_doc.operator,
+            "name": ["!=", hedef_doc.name],
+            "docstatus": 1,
+            "bitis_saati": ["is", "not set"]
+        },
+        fields=["name"]
+    )
+    
+    for k in kartlar:
+        eski_doc = frappe.get_doc("Calisma Karti", k.name)
+        if eski_doc.get_durum() == "calisiyor":
+            eski_doc.append("duruslar", {
+                "durus_nedeni": "Diger",
+                "durus_baslangic": now_dt,
+                "aciklama": "Sistem tarafından otomatik duraklatıldı (Başka kart başlatıldığı için)"
+            })
+            eski_doc.save(ignore_permissions=True)
+            from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+            publish_calisma_karti_changed(eski_doc.name, reason="auto_pause")
+
+@frappe.whitelist()
+def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_miktar=None):
+    doc = frappe.get_doc("Calisma Karti", docname)
+
+    doc.check_permission("write")
+    _assert_can_write_on_doc(doc)
+
+    doc.reload()
+
+    if doc.docstatus != 1:
+        frappe.throw(_("İşlem yapmak için kartın 'Onaylı' (Submit edilmiş) olması gerekir."))
+
+    durum = doc.get_durum()
+    if (doc.kalite_kontrol or '').strip() == 'Reddedildi':
+        frappe.throw('Reddedilmiş çalışma kartında işlem yapılamaz.')
+
+    from frappe.utils import now_datetime
+    now = now_datetime()
+    qty = 0.0
+    if tamamlanan_miktar is not None and str(tamamlanan_miktar).strip() != "":
+        try:
+            qty = float(tamamlanan_miktar)
+        except Exception:
+            frappe.throw("Tamamlanan miktar sayısal olmalıdır.")
+        if qty < 0:
+            frappe.throw("Tamamlanan miktar negatif olamaz.")
+
+    if islem_tipi == "Baslat":
+        _handle_baslat(doc, now)
+    elif islem_tipi == "Durus":
+        _handle_durus(doc, now, durus_nedeni, aciklama)
+        if qty > 0:
+            doc.tamamlanan_miktar = (doc.tamamlanan_miktar or 0.0) + qty
+    elif islem_tipi == "DevamEt":
+        if durum != "durusta":
+            frappe.throw("Sadece durdurulmuş bir işlem devam ettirilebilir.")
+        if doc.duruslar:
+            last_row = doc.duruslar[-1]
+            if not last_row.durus_bitis:
+                last_row.durus_bitis = now
+                from frappe.utils import get_datetime
+                start_dt = get_datetime(last_row.durus_baslangic)
+                end_dt = get_datetime(last_row.durus_bitis)
+                last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+        _auto_pause_other_active_cards(doc, now)
+    elif islem_tipi == "Bitis":
+        _handle_bitis(doc, now, aciklama, qty)
+    else:
+        frappe.throw("Geçersiz işlem tipi.")
+
+    doc.hesapla_durus_suresi()
+    doc.hesapla_toplam_sure()
+
+    doc.flags.ignore_validate_update_after_submit = True
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
+
+    from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+    publish_calisma_karti_changed(docname, reason=f"islem_yap:{islem_tipi}")
+
+    return {
+        "status": "success",
+        "docname": docname,
+        "islem_tipi": islem_tipi,
+        "durum": doc.get_durum(),
+        "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
+    }
