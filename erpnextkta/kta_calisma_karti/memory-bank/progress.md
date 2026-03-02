@@ -27,12 +27,20 @@
   - `search_allowed_hammadde_items` — whitelist search endpoint
   - `prompts.ts` hammadde field’ına `get_query` eklendi
 - [x] Socket.IO realtime events (list + doc) — alt operasyon write'ları da artık kapsıyor
+- [x] Kart Zaman Aşımı & Otomatik Kapatma (Katman 1 & 2)
+  - `MAX_NET_CALISMA_DK = 430` sabitiyle raporlama kırpılması
+  - `auto_close_timed_out_cards` cron job (her gün 16:15 ve 00:15)
+- [x] Başlatılmamış Kartların Temizliği (Katman 2.5)
+  - `delete_old_unstarted_cards` cron job (her gece 04:00'te) >1 günlük başlatılmamış kartları siler
+- [x] Proaktif Uyarılama Sistemi (Katman 3 / Backend)
+  - `validate()` hook'unda kart çalışması > 400 dk ise `frappe.msgprint` popup
 
 ### Frontend ✅
 - [x] `create-calisma-karti` wizard — WO modu (5 adım) + JC modu (3 adım)
 - [x] `list-calisma-cards` — Realtime list, çok filtreli (durum, QC, customer group), paginasyon
 - [x] `view-calisma-karti` — Tab'lı detay (Info, Alt Operasyon, Hurda, Duruş, Kalite)
 - [x] `AltOperasyonView.vue` — `sortedRows` computed (sequence sırası), `alt_operasyon_title` fallback gösterimi
+- [x] `App.vue` Timeout Banner (Katman 3 / UI) — İşlem 400 dk'yi aşarsa tepeye kırmızı 🚨 alert banner açılır
 
 ## Eksik / Belirsiz
 
@@ -67,3 +75,5 @@
 | — | `create-calisma-karti`'ye JC modu eklendi | WO bilinmediğinde JC barkodu ile kısayol |
 | — | `view-calisma-karti` TypeScript'e geçirildi | type safety ve composable mimarisi |
 | — | Customer group filtreleme eklendi | Farklı müşterilerin kartlarını ayırt etmek için |
+| 2026-03-02 | Zaman aşımı kontrolü (`MAX_NET_CALISMA_DK=430`) sağlandı | Kartlar açık unutulduğunda raporların ve süre hesabının bozulmasını önlemek |
+| 2026-03-02 | Cron job bazlı otomatik kart iptali / temizliği kodu yazıldı | Operatör hatalarını (unutulan/hiç başlatılmayan kartları) manuel yerine arka planda otonom onarmak |
