@@ -328,6 +328,7 @@ def _auto_pause_other_active_cards(hedef_doc, now_dt):
                 "durus_baslangic": now_dt,
                 "aciklama": "Sistem tarafından otomatik duraklatıldı (Başka kart başlatıldığı için)"
             })
+            eski_doc.flags.ignore_validate_update_after_submit = True
             eski_doc.save(ignore_permissions=True)
             from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
             publish_calisma_karti_changed(eski_doc.name, reason="auto_pause")
