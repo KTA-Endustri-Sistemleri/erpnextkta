@@ -196,6 +196,14 @@ scheduler_events = {
 # 	"hourly": [
 # 		"erpnextkta.tasks.hourly"
 # 	],
+    "cron": {
+        # 1. vardiya sonu: her gün 16:15'te (08:00 vardiyasının kapanması için +15 dk tolerans)
+        "15 16 * * *": ["erpnextkta.tasks.auto_close_timed_out_cards"],
+        # 2. vardiya sonu: her gün 00:15'te (16:00 vardiyasının kapanması için +15 dk tolerans)
+        "15 0 * * *":  ["erpnextkta.tasks.auto_close_timed_out_cards"],
+        # Her gece saat 04:00'da oluşturulmuş ama başlatılmamış kartların temizliği
+        "0 4 * * *": ["erpnextkta.tasks.delete_old_unstarted_cards"],
+    },
     "weekly": [
         "erpnextkta.tasks.weekly"
     ],

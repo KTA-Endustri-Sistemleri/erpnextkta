@@ -14,10 +14,12 @@ STATU_HARITASI = {
     "bitmis": "Bitmiş",
 }
 
+MAX_NET_CALISMA_DK = 430
+
 class CalismaKarti(Document):
     def on_update(self):
         publish_calisma_karti_changed(self.name, reason="doc:on_update")
-    
+
     def autoname(self):
         """
         İsim formatı: <OPR>-<WO_last5>-<Operasyon>-<01..>
@@ -65,7 +67,19 @@ class CalismaKarti(Document):
         durum_key = self.get_durum()
         self.durum = STATU_HARITASI.get(durum_key, "Hazır")
         if not self.kalite_kontrol:
-            self.kalite_kontrol = QC_DURUM_ONAY_BEKLIYOR
+            self.kalite_kontrol = "Onay Bekliyor"
+
+        # Proaktif Operatör İkazı (400 dk Uyarısı)
+        if durum_key in ['calisiyor', 'durusta'] and self.baslangic_saati:
+            start_dt = get_datetime(self.baslangic_saati)
+            now_dt = now_datetime()
+            gecen_dk = (now_dt - start_dt).total_seconds() / 60
+            if gecen_dk > 400:
+                frappe.msgprint(
+                    "⚠️ Bu kart 400 dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).",
+                    title="Süre Uyarısı",
+                    indicator="orange"
+                )
 
     def hesapla_durus_suresi(self):
         toplam_dk = 0
@@ -79,18 +93,25 @@ class CalismaKarti(Document):
         self.toplam_durus = format_sure(toplam_dk * 60)
 
     def hesapla_toplam_sure(self):
-        if self.baslangic_saati and self.bitis_saati:
+        if self.baslangic_saati:
             start_dt = get_datetime(self.baslangic_saati)
-            end_dt = get_datetime(self.bitis_saati)
-            toplam_saniye = (end_dt - start_dt).total_seconds()
-            self.toplam_sure = format_sure(toplam_saniye)
+            end_dt = get_datetime(self.bitis_saati) if self.bitis_saati else now_datetime()
 
+            toplam_saniye = (end_dt - start_dt).total_seconds()
             toplam_durus_dk = sum((r.durus_suresi or 0) for r in self.duruslar)
             toplam_durus_saniye = toplam_durus_dk * 60
 
             net_saniye = max(0, toplam_saniye - toplam_durus_saniye)
+
+            # Sınırlandırma (Hard Limit)
+            max_saniye = MAX_NET_CALISMA_DK * 60
+            if net_saniye > max_saniye:
+                net_saniye = max_saniye
+
+            self.toplam_sure = format_sure(toplam_saniye)
             self.net_calisma_suresi = format_sure(net_saniye)
         else:
+            self.toplam_sure = "0:00"
             self.net_calisma_suresi = "0:00"
 
     def aktif_durus_var_mi(self):
