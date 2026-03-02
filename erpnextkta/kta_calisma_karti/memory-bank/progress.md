@@ -54,11 +54,9 @@
 - [ ] `rest-api/` klasörü — Tam içerik incelenmedi
 
 ### Potansiyel İyileştirmeler
-- [ ] **Alt operasyon — `hammadde` için BOM kısıtı** (henüz tasarlanmadı)
-  - Hurda gibi BOM + operasyon bazlı `Item` whitelist olmalı, ama hangi BOM'dan ve hangi filtre ile alınacağı netleştirilmeli
-  - Şu an serbest `Item` seçimi var
-- [ ] `rest-api/` klasörü — Tam içerik incelenmedi
-
+- [ ] Liste sayfasındaki filtreler server-side hale getirilebilir (şu an client-side)
+- [ ] `customer_group` hesabı her listede `Item Customer Detail` join yapıyor — cache eklenebilir
+- [ ] Test coverage yok
 ### Karar Verilmiş / Gerekmiyor
 - ✅ `create-calisma-karti` wizard'a alt operasyon adımı eklenMEyecek (operatör CK içinden kendi dolduruyor)
 - ✅ `list-calisma-cards`'ta alt operasyon özeti gösterilMEyecek (şu an için gerek yok)
