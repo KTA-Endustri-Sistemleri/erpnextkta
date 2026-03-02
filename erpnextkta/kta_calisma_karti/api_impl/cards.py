@@ -228,6 +228,8 @@ def get_calisma_karti_detail(name: str):
         "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
         "kalite_kontrol": doc.kalite_kontrol,
         "creation": doc.creation,
+        "max_kart_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430,
+        "kart_uyari_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "kart_uyari_suresi_dk") or 400,
     }
 
 def _assert_can_write_on_doc(doc):
