@@ -34,7 +34,6 @@
             "fieldtype": "Link",
             "options": "Customer Group",
             "label": "Customer Group",
-            "reqd": 1,
             "in_list_view": 1
         },
         {
@@ -42,7 +41,8 @@
             "fieldtype": "Link",
             "options": "Plant Floor",
             "label": "Plant Floor",
-            "reqd": 1,
+            "depends_on": "eval:doc.customer_group",
+            "mandatory_depends_on": "eval:doc.customer_group",
             "in_list_view": 1
         },
         {

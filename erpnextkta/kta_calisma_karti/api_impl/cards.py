@@ -345,9 +345,8 @@ def _auto_pause_other_active_cards(hedef_doc, now_dt):
         eski_doc = frappe.get_doc("Calisma Karti", k.name)
         if eski_doc.get_durum() == "calisiyor":
             eski_doc.append("duruslar", {
-                "durus_nedeni": "Diger",
+                "durus_nedeni": "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.",
                 "durus_baslangic": now_dt,
-                "aciklama": "Sistem tarafından otomatik duraklatıldı (Başka kart başlatıldığı için)"
             })
             eski_doc.update_durum()
             eski_doc.flags.ignore_validate_update_after_submit = True

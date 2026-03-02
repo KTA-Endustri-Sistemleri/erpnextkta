@@ -27,13 +27,28 @@ async function load(opts = {}) {
   loading.value = true;
   errorMsg.value = "";
   try {
+    const statusMap = {
+      "ready": "Hazır",
+      "running": "Çalışıyor",
+      "paused": "Duruşta",
+      "finished": "Bitmiş",
+      "rejected": "Reddedildi"
+    };
+
+    const qcMap = {
+      "waiting": "Onay Bekliyor",
+      "approved": "Onaylandı",
+      "rejected": "Reddedildi"
+    };
+
     const r = await frappe.call("erpnextkta.kta_calisma_karti.api.get_my_calisma_kartlari", {
       order_by: sortKey.value,
       start: start.value,
       page_length: pageLength.value,
-      durum: statusFilter.value !== "all" ? statusFilter.value : null,
+      durum: statusFilter.value !== "all" ? statusMap[statusFilter.value] : null,
       search_term: q.value,
-      customer_group: customerGroupFilter.value !== "all" ? customerGroupFilter.value : null
+      customer_group: customerGroupFilter.value !== "all" ? customerGroupFilter.value : null,
+      qc_filter: qcFilter.value !== "all" ? qcMap[qcFilter.value] : null
     });
 
     const data = r.message || [];
@@ -163,39 +178,34 @@ function qcKeyFromText(qc) {
   return "waiting";
 }
 
-// ✅ NEW: available customer groups from rows
-const availableCustomerGroups = computed(() => {
-  const set = new Set();
+const availableCustomerGroups = ref([]);
+const customerGroupCounts = ref({});
 
-  for (const r of rows.value || []) {
-    const arr = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
-    for (const g of arr) if (g) set.add(g);
-
-    if (r?.customer_group) set.add(r.customer_group);
+watch([rows, customerGroupFilter], ([newRows, filter]) => {
+  if (filter !== "all" && availableCustomerGroups.value.length > 0) {
+    // Keep previously calculated groups and counts visible so user can switch away
+    return;
   }
+  
+  const set = new Set();
+  const c = { all: (newRows || []).length };
 
-  return Array.from(set).sort((a, b) => a.localeCompare(b, "tr"));
-});
-
-// ✅ NEW: counts per group (optional but useful for UI)
-const customerGroupCounts = computed(() => {
-  const c = { all: rows.value.length };
-
-  for (const r of rows.value || []) {
+  for (const r of newRows || []) {
     const groups = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
     const single = r?.customer_group;
-
     const uniq = new Set(groups);
     if (single) uniq.add(single);
 
     for (const g of uniq) {
       if (!g) continue;
+      set.add(g);
       c[g] = (c[g] || 0) + 1;
     }
   }
 
-  return c;
-});
+  availableCustomerGroups.value = Array.from(set).sort((a, b) => a.localeCompare(b, "tr"));
+  customerGroupCounts.value = c;
+}, { immediate: true });
 
 function statusTone(durum) {
   // Map your text labels to tones (adjust if your API uses different strings)
