@@ -184,14 +184,14 @@ def search_allowed_hurda_items(doctype, txt, searchfield, start, page_len, filte
             and bi.parenttype = 'BOM'
             and bi.parentfield = 'items'
             and bi.operation IN (
-                select bo.operation_no 
+                select bo.operation 
                 from `tabBOM Operation` bo 
                 where bo.parent = %(bom_no)s 
                   and bo.idx <= (
                       select curr_bo.idx 
                       from `tabBOM Operation` curr_bo 
                       where curr_bo.parent = %(bom_no)s 
-                        and curr_bo.operation_no = %(operation)s 
+                        and curr_bo.operation = %(operation)s 
                       limit 1
                   )
             )
