@@ -84,12 +84,14 @@
             "label": "Calisma Suresi"
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "baslangic_saati",
             "fieldtype": "Datetime",
             "label": "Ba\u015flang\u0131\u00e7 Saati",
             "read_only": 1
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "bitis_saati",
             "fieldtype": "Datetime",
             "label": "Biti\u015f Saati",
@@ -100,6 +102,7 @@
             "fieldtype": "Column Break"
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "toplam_sure",
             "fieldtype": "Data",
             "in_list_view": 1,
@@ -107,12 +110,14 @@
             "read_only": 1
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "toplam_durus",
             "fieldtype": "Data",
             "label": "Toplam Duru\u015f S\u00fcresi (dk:sn)",
             "read_only": 1
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "net_calisma_suresi",
             "fieldtype": "Data",
             "label": "Net \u00c7al\u0131\u015fma S\u00fcresi (dk:sn)",
@@ -124,6 +129,7 @@
             "label": "Operasyon Duru\u015flar\u0131"
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "duruslar",
             "fieldtype": "Table",
             "label": "Duru\u015flar",
@@ -135,6 +141,7 @@
             "options": "Calisma Karti Hurda"
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "hurdalar",
             "fieldtype": "Table",
             "label": "Hurdalar",
@@ -145,6 +152,7 @@
             "fieldtype": "Column Break"
         },
         {
+            "allow_on_submit": 1,
             "default": "Onay Bekliyor",
             "fieldname": "kalite_kontrol",
             "fieldtype": "Select",
@@ -155,6 +163,7 @@
             "permlevel": 1
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "durum",
             "fieldtype": "Select",
             "in_list_view": 1,
@@ -169,6 +178,7 @@
             "label": "Ölçümler"
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "idc_olcumleri",
             "fieldtype": "Table",
             "label": "IDC Ölçümleri",
@@ -179,6 +189,7 @@
             "fieldtype": "Column Break"
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "barkod_kayitlari",
             "fieldtype": "Table",
             "label": "Barkod Kayıtları",

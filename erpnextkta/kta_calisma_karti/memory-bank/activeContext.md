@@ -13,6 +13,8 @@ Alt operasyon geliştirmesi ve IDC yetki düzeltmesi tamamlandı. Material group
 - **Monolith Parçalaması:** `calisma_karti.py` içindeki tek parça ve +100 satırlık `islem_yap` metodu küçük, yönetilebilir fonksiyonlara (`_handle_baslat`, vb.) bölünüp `api_impl/cards.py` altına taşındı.
 - **KTA Calisma Karti Settings:** Hardcoded olarak yazılan (400, 430 dk) bitiş ve ikaz süreleri yeni oluşturulan Single Doctype ayar tablosundan (`get_single_value`) çekilecek şekilde tasarlandı.
 - **Frontend Server-Side Filtering & Fixes:** `App.vue` üzerindeki tüm filtreler (`q`, `status`, `customerGroup`, `qcFilter`) JS dizilerinden koparılıp `get_my_calisma_kartlari` backend SQL API'sine bağlandı. Ayrıca reaktif değişkenlerin başlatılma sırasından (TDZ) ve şablondaki eski referanslardan kaynaklanan kritik hatalar giderildi.
+- **Submittable Card Fix:** Çalışma Kartı "Onaylı" (Submitted) durumuna zorunlu kılındı ve oluşturma anında otomatik onaylanması sağlandı.
+- **Permission Fix:** Kartlar onaylı durumdayken aktivite yapılabilmesi için durum ve kayıt tabloları "Allow on Submit" olarak işaretlendi.
 
 ### Tekil Çalışma Kartı (Otomatik Duruş) (Commit: `b68a63e`)
 - **Backend (Otomatik Duraklatma):** Kullanıcı yeni bir kartı başlattığında (`islem_yap` - Baslat), kendisine ait daha önceden başlattığı diğer tüm açık kartları bularak bunlara bir Duruş Nedeni ("Diger") ekleyip durumu zorla otomatipe çeken `_auto_pause_other_active_cards` fonksiyonu yazıldı.
