@@ -95,7 +95,8 @@ const showTimeoutWarning = computed(() => {
   const startMs = frappe.datetime.str_to_obj(doc.value.baslangic_saati).getTime();
   const diffMinutes = (nowTime.value - startMs) / (1000 * 60);
   
-  return diffMinutes > 400; // 400 dakikayı geçtiyse uyar
+  const warnLimit = doc.value.kart_uyari_suresi_dk || 400;
+  return diffMinutes > warnLimit;
 });
 
 const qcSaving = ref(false);
@@ -224,7 +225,7 @@ watch(
 
       <!-- Timeout Banner Uyarısı -->
       <div v-if="showTimeoutWarning" class="ck-timeout-alert text-center margin-bottom mx-2">
-        <b>⚠️ Dikkat:</b> Bu kart <b>400 dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.
+        <b>⚠️ Dikkat:</b> Bu kart <b>{{ doc.kart_uyari_suresi_dk || 400 }} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.
       </div>
 
       <CkTabs :modelValue="tab" :onChange="(t) => (tab = t)" />
