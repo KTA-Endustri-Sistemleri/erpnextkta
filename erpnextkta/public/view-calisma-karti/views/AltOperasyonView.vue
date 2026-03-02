@@ -20,8 +20,10 @@ const sortedRows = computed(() => {
 });
 
 function onAltOperasyonEkle() {
-  frappe.prompt(
-    altOperasyonFields(props.doc.operasyon, {}),
+  let d: any;
+  const fields = altOperasyonFields(props.doc.operasyon, props.doc.name, {}, () => d?.get_value("alt_operasyon"));
+  d = frappe.prompt(
+    fields,
     async (v: any) => {
       await props.onAdd({
         alt_operasyon: v.alt_operasyon,
@@ -43,8 +45,10 @@ function onAltOperasyonDuzenle(h: any) {
     return;
   }
 
-  frappe.prompt(
-    altOperasyonFields(props.doc.operasyon, h),
+  let d: any;
+  const fields = altOperasyonFields(props.doc.operasyon, props.doc.name, h, () => d?.get_value("alt_operasyon"));
+  d = frappe.prompt(
+    fields,
     async (v: any) => {
       await props.onUpdate({
         row_id: h.name,
