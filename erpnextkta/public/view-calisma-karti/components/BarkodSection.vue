@@ -25,7 +25,7 @@ function actions(r: any) {
 <template>
   <div class="ck-qc-header">
     <b>Barkod Kayıtları</b>
-    <button v-if="props.canEditQC" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
+    <button class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
       + Ekle
     </button>
   </div>
