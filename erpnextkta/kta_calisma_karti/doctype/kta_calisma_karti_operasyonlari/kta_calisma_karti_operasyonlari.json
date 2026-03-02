@@ -7,6 +7,7 @@
     "doctype": "DocType",
     "engine": "InnoDB",
     "field_order": [
+        "sequence",
         "calisma_karti_op",
         "customer_group",
         "plant_floor",
@@ -14,6 +15,13 @@
         "allowed_material_groups"
     ],
     "fields": [
+        {
+            "fieldname": "sequence",
+            "fieldtype": "Int",
+            "in_list_view": 1,
+            "label": "Sequence",
+            "default": "0"
+        },
         {
             "fieldname": "calisma_karti_op",
             "fieldtype": "Data",
@@ -74,7 +82,7 @@
         }
     ],
     "row_format": "Dynamic",
-    "sort_field": "modified",
-    "sort_order": "DESC",
+    "sort_field": "sequence",
+    "sort_order": "ASC",
     "states": []
 }
