@@ -36,6 +36,10 @@
   - Operatör yeni kart başlattığında, daha önce açık bıraktığı diğer kartlar otomatik 'Diger' açıklamasıyla 'Duruş'a alınır (`_auto_pause_other_active_cards`)
 - [x] Proaktif Uyarılama Sistemi (Katman 3 / Backend)
   - `validate()` hook'unda kart çalışması > 400 dk ise `frappe.msgprint` popup
+- [x] Üretim Miktarı Girişinin Esnetilmesi
+  - Ana operasyona `miktar_zorunlu_mu` (varsayılan: 1) alanı eklendi
+  - Tikli değilse miktar 0 ile bitirilebilir (fakat en az bir alt operasyon zorunlu)
+  - UI Duruş ve Bitiş formu `tamamlanan_miktar` field'ı opsiyonel (`reqd: 0`) yapıldı
 
 ### Frontend ✅
 - [x] `create-calisma-karti` wizard — WO modu (5 adım) + JC modu (3 adım)
