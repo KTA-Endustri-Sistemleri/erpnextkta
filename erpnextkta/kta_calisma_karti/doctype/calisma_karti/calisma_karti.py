@@ -68,11 +68,7 @@ class CalismaKarti(Document):
         self.name = make_autoname(f"{prefix}-.##")
 
     def validate(self):
-        self.hesapla_durus_suresi()
-        self.hesapla_toplam_sure()
-        # If QC rejected, force status to 'Reddedildi' regardless of time fields.
-        durum_key = self.get_durum()
-        self.durum = STATU_HARITASI.get(durum_key, "Hazır")
+        self.update_durum()
         if not self.kalite_kontrol:
             self.kalite_kontrol = "Onay Bekliyor"
 
@@ -100,6 +96,12 @@ class CalismaKarti(Document):
                     row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
                 toplam_dk += (row.durus_suresi or 0)
         self.toplam_durus = format_sure(toplam_dk * 60)
+
+    def update_durum(self):
+        self.hesapla_durus_suresi()
+        self.hesapla_toplam_sure()
+        durum_key = self.get_durum()
+        self.durum = STATU_HARITASI.get(durum_key, "Hazır")
 
     def hesapla_toplam_sure(self):
         if self.baslangic_saati:
