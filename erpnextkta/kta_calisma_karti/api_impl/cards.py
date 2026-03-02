@@ -328,8 +328,17 @@ def _auto_pause_other_active_cards(hedef_doc, now_dt):
                 "durus_baslangic": now_dt,
                 "aciklama": "Sistem tarafından otomatik duraklatıldı (Başka kart başlatıldığı için)"
             })
+            eski_doc.update_durum()
             eski_doc.flags.ignore_validate_update_after_submit = True
             eski_doc.save(ignore_permissions=True)
+
+            # Force-update read-only status fields on submitted document
+            frappe.db.set_value("Calisma Karti", eski_doc.name, {
+                "durum": eski_doc.durum,
+                "toplam_sure": eski_doc.toplam_sure,
+                "toplam_durus": eski_doc.toplam_durus,
+                "net_calisma_suresi": eski_doc.net_calisma_suresi
+            }, update_modified=False)
             from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
             publish_calisma_karti_changed(eski_doc.name, reason="auto_pause")
 
