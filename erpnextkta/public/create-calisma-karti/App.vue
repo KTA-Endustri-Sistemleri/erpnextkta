@@ -138,18 +138,17 @@ const activeCustomerGroups = computed(() => {
   return Array.from(new Set(raw));
 });
 
-// If operations have a customer_group field, filter by it.
-// We strictly require the operation customer_group to match the active groups from the WO/JC.
+// Eğer operasyonun customer_group alanı doluysa, sadece o gruba ait olan WO/JC'lere göster.
+// Eğer boşsa (generic operasyon), herkese göster.
 const filteredOperations = computed(() => {
   const ops = operations.value || [];
   const groups = activeCustomerGroups.value;
 
-  // No customer group known from WO/JC -> show NO operations strictly matching
-  if (!groups.length) return [];
-
   return ops.filter((op) => {
     const cg = op?.customer_group || null;
-    if (!cg) return false; // do not allow generic operations without a group
+    // Operasyon genel kullanıma açıksa (kısıt yoksa) kabul et:
+    if (!cg) return true;
+    // Operasyon kısıtlıysa, sepetteki gruplardan biriyle eşleşmeli:
     return groups.includes(cg);
   });
 });

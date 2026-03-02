@@ -42,8 +42,7 @@
             "fieldname": "durus_nedeni",
             "fieldtype": "Select",
             "in_list_view": 1,
-            "label": "Durus Nedeni",
-            "options": "Ariza\nMalzeme Bekleme\nKalite Kontrol\nMola\nBakim\nDiger",
+            "options": "Ariza\nMalzeme Bekleme\nKalite Kontrol\nMola\nBakim\nDiger\nBaşka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.",
             "reqd": 1
         },
         {
