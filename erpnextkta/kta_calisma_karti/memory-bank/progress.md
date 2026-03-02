@@ -32,6 +32,8 @@
   - `auto_close_timed_out_cards` cron job (her gün 16:15 ve 00:15)
 - [x] Başlatılmamış Kartların Temizliği (Katman 2.5)
   - `delete_old_unstarted_cards` cron job (her gece 04:00'te) >1 günlük başlatılmamış kartları siler
+- [x] Tekil Çalışma Kartı (Otomatik Duruş / Katman 4)
+  - Operatör yeni kart başlattığında, daha önce açık bıraktığı diğer kartlar otomatik 'Diger' açıklamasıyla 'Duruş'a alınır (`_auto_pause_other_active_cards`)
 - [x] Proaktif Uyarılama Sistemi (Katman 3 / Backend)
   - `validate()` hook'unda kart çalışması > 400 dk ise `frappe.msgprint` popup
 
