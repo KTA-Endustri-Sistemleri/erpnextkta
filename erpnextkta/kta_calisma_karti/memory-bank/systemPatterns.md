@@ -75,6 +75,15 @@ Frontend'de:
 frappe.realtime.on("kta_calisma_karti:list_changed", handler)
 ```
 
+### 7. Settings / Configuration Pattern
+```python
+# Sistem genelinde geçerli olan hard limitler (Örn: 430 dk bitiş) "KTA Calisma Karti Settings" tekil tablosu (Single Doctype) qua get_single_value() metodu ile kontrol edilir.
+max_limit = frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430
+```
+
+### 8. Server-Side Filtering Pattern
+Büyük liste verileri içeren (Çalışma Kartları) Vue frontend ekranlarında, `computed` tabanlı tarayıcı düzeyinde döngülerden (client-side data arrays filtering) kaçınılır. Ara yüz sadece arama(`search_term`), durum(`durum`, `qc_filter`) parametrelerini backend'e gönderir. Süzme ve paginasyon işlemleri (SQL `WHERE` ve `LIMIT/OFFSET`) arka tarafta (`frappe.get_all` parametreleri ve `or_filters`) yapılır.
+
 ## Bileşen İlişkileri
 
 ```
