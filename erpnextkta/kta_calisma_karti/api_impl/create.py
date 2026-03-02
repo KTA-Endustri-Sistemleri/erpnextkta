@@ -14,6 +14,29 @@ def create_calisma_karti(**kwargs):
     data = frappe._dict(frappe.local.form_dict or {})
     data.update(kwargs or {})
 
+    operator = data.get("operator")  # Employee.name
+
+    # --- ANTI DOUBLE-CLICK (RACE CONDITION) KORUMASI (30 Saniye Kuralı) ---
+    if data.get("is_karti") and data.get("operasyon"):
+        from frappe.utils import add_to_date, now_datetime
+
+        thirty_secs_ago = add_to_date(now_datetime(), seconds=-30)
+        recent_card = frappe.db.get_value(
+            "Calisma Karti",
+            {
+                "is_karti": data.get("is_karti"),
+                "operasyon": data.get("operasyon"),
+                "operator": operator,
+                "creation": [">=", thirty_secs_ago]
+            },
+            "name"
+        )
+        if recent_card:
+            # Sessizce yakın zamanda oluşturulan asıl kartı döndür
+            return frappe.get_doc("Calisma Karti", recent_card).as_dict()
+    # ----------------------------------------------------------------------
+
+
     required_fields = ["is_karti", "operasyon", "is_istasyonu"]
     # custom_work_order is not strictly required; can be resolved from Job Card
     for field in required_fields:
@@ -79,8 +102,6 @@ def create_calisma_karti(**kwargs):
     is_istasyonu = data.get("is_istasyonu") or getattr(jc, "workstation", None)
     if not is_istasyonu:
         frappe.throw(_("İş İstasyonu zorunludur (Job Card veya wizard tarafından sağlanmalı)."))
-
-    operator = data.get("operator")  # Employee.name
 
     # 8) Build and insert doc
     doc_dict = {
