@@ -238,12 +238,33 @@ def _assert_can_write_on_doc(doc):
         frappe.throw(_("Bu İşlem için yetkiniz yok."), frappe.PermissionError)
 
 def _handle_baslat(doc, now):
-    if doc.get_durum() != "hazir":
+    durum = doc.get_durum()
+    if durum == "durusta":
+        # Handle as continuation if "Baslat" sent for a paused card
+        _handle_devam_et(doc, now)
+        return
+        
+    if durum != "hazir":
         frappe.throw("Sadece Hazır durumundaki işlemler başlatılabilir.")
     
     doc.baslangic_saati = now
     
     # Auto-pause other active cards for this operator
+    _auto_pause_other_active_cards(doc, now)
+
+def _handle_devam_et(doc, now):
+    if doc.get_durum() != "durusta":
+        frappe.throw("Sadece durdurulmuş bir işlem devam ettirilebilir.")
+    
+    if doc.duruslar:
+        last_row = doc.duruslar[-1]
+        if not last_row.durus_bitis:
+            last_row.durus_bitis = now
+            from frappe.utils import get_datetime
+            start_dt = get_datetime(last_row.durus_baslangic)
+            end_dt = get_datetime(last_row.durus_bitis)
+            last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+            
     _auto_pause_other_active_cards(doc, now)
 
 def _handle_durus(doc, now, durus_nedeni, aciklama):
@@ -376,17 +397,7 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
         if qty > 0:
             doc.tamamlanan_miktar = (doc.tamamlanan_miktar or 0.0) + qty
     elif islem_tipi == "DevamEt":
-        if durum != "durusta":
-            frappe.throw("Sadece durdurulmuş bir işlem devam ettirilebilir.")
-        if doc.duruslar:
-            last_row = doc.duruslar[-1]
-            if not last_row.durus_bitis:
-                last_row.durus_bitis = now
-                from frappe.utils import get_datetime
-                start_dt = get_datetime(last_row.durus_baslangic)
-                end_dt = get_datetime(last_row.durus_bitis)
-                last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
-        _auto_pause_other_active_cards(doc, now)
+        _handle_devam_et(doc, now)
     elif islem_tipi == "Bitis":
         _handle_bitis(doc, now, aciklama, qty)
     else:
