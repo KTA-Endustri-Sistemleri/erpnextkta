@@ -27,10 +27,11 @@ async function load(opts = {}) {
   try {
     const r = await frappe.call("erpnextkta.kta_calisma_karti.api.get_my_calisma_kartlari", {
       order_by: sortKey.value,
-
-      // ✅ NEW: paging args
       start: start.value,
       page_length: pageLength.value,
+      durum: statusFilter.value !== "all" ? statusFilter.value : null,
+      search_term: q.value,
+      customer_group: customerGroupFilter.value !== "all" ? customerGroupFilter.value : null
     });
 
     const data = r.message || [];
@@ -64,6 +65,15 @@ async function load(opts = {}) {
     loading.value = false;
   }
 }
+
+// Trigger load on filter changes (debounced for search box)
+let searchTimer = null;
+watch([q, statusFilter, customerGroupFilter, sortKey], () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        load();
+    }, 400); 
+}, { deep: true });
 // ✅ NEW: load more
 function loadMore() {
   if (loading.value || !hasMore.value) return;
@@ -187,58 +197,7 @@ const customerGroupCounts = computed(() => {
   return c;
 });
 
-// Lightweight client-side search
-const filteredRows = computed(() => {
-  const needle = (q.value || "").trim().toLowerCase();
 
-  return (rows.value || []).filter((r) => {
-    // 1) Status filter
-    if (statusFilter.value !== "all") {
-      const k = statusKeyFromDurumText(r?.durum);
-      if (k !== statusFilter.value) return false;
-    }
-
-    // 2) QC filter
-    if (qcFilter.value !== "all") {
-      const qk = qcKeyFromText(r?.kalite_kontrol);
-      if (qk !== qcFilter.value) return false;
-    }
-
-    // ✅ NEW: 3) Customer Group filter
-    if (customerGroupFilter.value !== "all") {
-      const target = customerGroupFilter.value;
-
-      const groups = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
-      const single = r?.customer_group;
-
-      const hit = (single === target) || (groups || []).includes(target);
-      if (!hit) return false;
-    }
-
-    // 3) Search filter
-    if (!needle) return true;
-
-    const hay = [
-      r?.name,
-      r?.operator,
-      r?.custom_work_order,
-      r?.is_karti,
-      r?.operasyon,
-      r?.durum,
-      r?.kalite_kontrol, // QC da aransın
-      r?.urun_kodu,
-
-      // ✅ NEW (optional): search in customer group too
-      r?.customer_group,
-      ...(Array.isArray(r?.customer_groups) ? r.customer_groups : []),
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    return hay.includes(needle);
-  });
-});
 
 function statusTone(durum) {
   // Map your text labels to tones (adjust if your API uses different strings)
@@ -424,16 +383,16 @@ onUnmounted(() => {
         <button class="ck-btn" @click="load">Tekrar dene</button>
       </div>
 
-      <div v-else-if="filteredRows.length === 0" class="ck-empty">
+      <div v-else-if="rows.length === 0" class="ck-empty">
         <div class="ck-empty-title">Kayıt yok</div>
         <div class="ck-muted">
-          {{ rows.length === 0 ? "Atanmış çalışma kartı yok." : "Aramana uygun kayıt bulunamadı." }}
+          Aramana uygun çalışma kartı bulunamadı.
         </div>
       </div>
 
       <div v-else class="ck-list">
         <button
-          v-for="r in filteredRows"
+          v-for="r in rows"
           :key="r.name"
           class="ck-card"
           @click="openDetail(r.name)"

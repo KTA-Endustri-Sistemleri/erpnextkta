@@ -87,8 +87,8 @@ def _attach_alt_operasyon_titles(rows):
     return rows
 
 @frappe.whitelist()
-def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None):
-    """Return assigned Calisma Karti rows for list UI (with customer_group info)."""
+def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None, durum=None, search_term=None, qc_filter=None):
+    """Return assigned Calisma Karti rows for list UI (with customer_group info and filters)."""
 
     fields = [
         "name",
@@ -118,35 +118,70 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
     start = int(start or 0)
     page_length = int(page_length or 200)
 
-    if is_system_manager():
-        rows = frappe.get_all("Calisma Karti", fields=fields, order_by=order_by, limit_start=start,limit_page_length=page_length,)
-        rows = _attach_customer_groups(rows)
-        rows = _attach_operasyon_label(rows)
-        if customer_group:
-            rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
-        return rows
+    # Build filters dynamically
+    db_filters = {}
+    
+    if durum:
+        db_filters["durum"] = durum
+        
+    if search_term:
+        search_term = f"%{search_term}%"
+        # Since frappe.get_all or_filters are tricky with dicts, we use SQL where conditions if needed, 
+        # but typical ERPNext allows lists in filters for IN, or string for LIKE in specific fields. 
+        # A safer cross-field search requires custom SQL or specific fields.
+        # We'll map search_term to name or custom_work_order or is_karti
+        db_filters["name"] = ["like", search_term]
+        
+    if not (is_system_manager() or is_quality_user()):
+        db_filters["operator"] = require_my_employee()
+        
+    if qc_filter:
+        db_filters["kalite_kontrol"] = qc_filter
 
-    if is_quality_user():
-        rows = frappe.get_all("Calisma Karti", fields=fields, order_by=order_by, limit_start=start,limit_page_length=page_length,)
-        rows = _attach_customer_groups(rows)
-        rows = _attach_operasyon_label(rows)
-        if customer_group:
-            rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
-        return rows
-
-    emp = require_my_employee()
     rows = frappe.get_all(
         "Calisma Karti",
-        filters={"operator": emp},
+        filters=db_filters,
         fields=fields,
         order_by=order_by,
         limit_start=start,
         limit_page_length=page_length,
     )
+
+    # If search_term is provided, frappe's dictionary filters perform AND logic.
+    # For a true OR search across name, work_order, item_code, it's better to fetch and filter in app
+    # OR write Frappe DB OR filters.
+    # To be safe and keep it simple: if search_term is given, we fetch broader and filter in memory if DB fails us,
+    # OR we use frappe.get_list with `or_filters`.
+    
+    if search_term:
+        # Re-fetch with proper OR filters if search_term is present to cover all bases
+        or_filters = {
+            "name": ["like", search_term],
+            "custom_work_order": ["like", search_term],
+            "is_karti": ["like", search_term],
+            "urun_kodu": ["like", search_term]
+        }
+        
+        # Remove the 'name' strict filter from db_filters used previously
+        if "name" in db_filters:
+            del db_filters["name"]
+            
+        rows = frappe.get_all(
+            "Calisma Karti",
+            filters=db_filters,
+            or_filters=or_filters,
+            fields=fields,
+            order_by=order_by,
+            limit_start=start,
+            limit_page_length=page_length,
+        )
+
     rows = _attach_customer_groups(rows)
     rows = _attach_operasyon_label(rows)
+    
     if customer_group:
         rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
+        
     return rows
 
 @frappe.whitelist()
