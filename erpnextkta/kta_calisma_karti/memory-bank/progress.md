@@ -41,6 +41,9 @@
   - Ana operasyona `miktar_zorunlu_mu` (varsayılan: 1) alanı eklendi
   - Tikli değilse miktar 0 ile bitirilebilir (fakat en az bir alt operasyon zorunlu)
   - UI Duruş ve Bitiş formu `tamamlanan_miktar` field'ı opsiyonel (`reqd: 0`) yapıldı
+- [x] Hurda Filtreleme Kapsamının Genişletilmesi
+  - `hurda.py` içerisindeki filtreleme operatörün o an bulunduğu `BOM Operation`'ın `idx` (sıra) değerini baz alacak şekilde güncellendi
+  - Sadece mevcut operasyon değil, kendinden önceki (idx <= mevcut idx) tüm operasyonların materyalleri serbest bırakıldı
 
 ### Frontend ✅
 - [x] `create-calisma-karti` wizard — WO modu (5 adım) + JC modu (3 adım)
