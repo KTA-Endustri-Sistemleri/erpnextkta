@@ -112,6 +112,13 @@ class CalismaKarti(Document):
 
             net_saniye = max(0, toplam_saniye - toplam_durus_saniye)
 
+            # If there is an active stop, subtract its progress from net_saniye as well
+            if self.aktif_durus_var_mi():
+                last_durus = self.duruslar[-1]
+                durus_start = get_datetime(last_durus.durus_baslangic)
+                active_durus_seconds = (now_dt - durus_start).total_seconds()
+                net_saniye = max(0, net_saniye - active_durus_seconds)
+
             # Sınırlandırma (Hard Limit)
             max_limit, _ = get_kta_settings()
             max_saniye = max_limit * 60
