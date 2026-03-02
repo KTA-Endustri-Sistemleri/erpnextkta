@@ -372,6 +372,7 @@ async function fetchOperations() {
       const list = await callFrappe('frappe.client.get_list', {
         doctype: 'KTA Calisma Karti Operasyonlari',
         fields: ['name','calisma_karti_op', 'customer_group'],
+        order_by: 'sequence asc',
         limit_page_length: 500
       });
 
