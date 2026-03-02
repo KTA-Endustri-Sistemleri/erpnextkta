@@ -49,9 +49,10 @@
   - Sadece mevcut operasyon değil, kendinden önceki (idx <= mevcut idx) tüm operasyonların materyalleri serbest bırakıldı
 
 ### Frontend ✅
-- [x] Server-Side Filtering & Initialization Fixes — `list-calisma-cards` sayfasındaki ağır Vue array filtrelemeleri SQL API'ye bağlandı. Reaktif değişken başlatma (TDZ) ve şablon hataları giderildi.
-- [x] Resolve "Onaylı" (docstatus=1) validation error (Submittable DocType + doc.submit())
-- [x] Fix "Not allowed to change after submission" error (Allow on Submit metadata)
+- [x] Server-Side Filtering & Initialization Fixes — `list-calisma-cards` sayfasındaki ağır Vue array filtrelemeleri SQL API'ye bağlandı.
+- [x] Resolve "Onaylı" (docstatus=1) validation error.
+- [x] Fix "Not allowed to change after submission" error (Allow on Submit metadata + Backend bypass flags).
+- [x] Fix `net_calisma_suresi` calculation bug during active stops.
 - [x] `create-calisma-karti` wizard — WO modu (5 adım) + JC modu (3 adım)
 - [x] `list-calisma-cards` — Realtime list, çok filtreli (durum, QC, customer group), paginasyon
 - [x] `view-calisma-karti` — Tab'lı detay (Info, Alt Operasyon, Hurda, Duruş, Kalite)

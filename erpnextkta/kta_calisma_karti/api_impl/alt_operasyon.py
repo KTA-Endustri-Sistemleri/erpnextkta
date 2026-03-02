@@ -83,6 +83,7 @@ def add_alt_operasyon_kaydi(
             "note": note,
         },
     )
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     publish_calisma_karti_changed(calisma_karti, reason="alt_operasyon:add")
@@ -165,6 +166,7 @@ def update_alt_operasyon_kaydi(
     row.uom = uom
     row.note = note
 
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     publish_calisma_karti_changed(calisma_karti, reason="alt_operasyon:update")
@@ -184,6 +186,7 @@ def delete_alt_operasyon_kaydi(calisma_karti: str, row_id: str):
     for r in to_remove:
         doc.remove(r)
 
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     publish_calisma_karti_changed(calisma_karti, reason="alt_operasyon:delete")

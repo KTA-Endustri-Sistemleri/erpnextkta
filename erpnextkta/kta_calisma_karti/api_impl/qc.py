@@ -285,6 +285,7 @@ def add_idc_olcumu(name: str, item_code: str, yukseklik_mm: float = 0, cekme_n: 
     }
 
     doc.append(IDC_CHILD_FIELDNAME, row)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
@@ -309,10 +310,10 @@ def update_idc_olcumu(name: str, rowname: str, item_code: str, yukseklik_mm: flo
     target.yukseklik_mm = float(yukseklik_mm or 0)
     target.cekme_n = float(cekme_n or 0)
 
-    # If you want "recorded at insert time only", do NOT overwrite these on update:
     target.olcum_tarihi = frappe.utils.now_datetime()
     target.olcumu_giren = _session_employee_name_or_throw()
 
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
@@ -330,6 +331,7 @@ def delete_idc_olcumu(name: str, rowname: str):
 
     rows.pop(idx)
     doc.set(IDC_CHILD_FIELDNAME, rows)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}
@@ -358,6 +360,7 @@ def add_barkod_kaydi(
     }
 
     doc.append(BARKOD_CHILD_FIELDNAME, row)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}
@@ -388,6 +391,7 @@ def update_barkod_kaydi(
     target.olcum_tarihi = frappe.utils.now_datetime()
     target.olcumu_giren = _session_employee_name_or_throw()
 
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
@@ -405,6 +409,7 @@ def delete_barkod_kaydi(name: str, rowname: str):
 
     rows.pop(idx)
     doc.set(BARKOD_CHILD_FIELDNAME, rows)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}

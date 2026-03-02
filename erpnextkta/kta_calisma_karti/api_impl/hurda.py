@@ -245,6 +245,7 @@ def add_hurda(
         row["depo"] = depo
 
     doc.append(child_fieldname, row)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
@@ -280,6 +281,7 @@ def update_hurda(
     target.birim = birim
     target.depo = depo or None
 
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
@@ -299,6 +301,7 @@ def delete_hurda(name: str, rowname: str):
 
     rows.pop(idx)
     doc.set(child_fieldname, rows)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}
