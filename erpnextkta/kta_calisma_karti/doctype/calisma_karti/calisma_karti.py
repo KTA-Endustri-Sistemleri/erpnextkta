@@ -116,7 +116,7 @@ class CalismaKarti(Document):
             if self.aktif_durus_var_mi():
                 last_durus = self.duruslar[-1]
                 durus_start = get_datetime(last_durus.durus_baslangic)
-                active_durus_seconds = (now_dt - durus_start).total_seconds()
+                active_durus_seconds = (end_dt - durus_start).total_seconds()
                 net_saniye = max(0, net_saniye - active_durus_seconds)
 
             # Sınırlandırma (Hard Limit)
