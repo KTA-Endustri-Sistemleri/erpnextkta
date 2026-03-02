@@ -383,11 +383,22 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
     else:
         frappe.throw("Geçersiz işlem tipi.")
 
-    doc.hesapla_durus_suresi()
-    doc.hesapla_toplam_sure()
+    doc.update_durum()
 
     doc.flags.ignore_validate_update_after_submit = True
     doc.save(ignore_permissions=True)
+    
+    # Force-update read-only fields on submitted document using db.set_value.
+    # Standard doc.save() often ignores read-only fields even if allow_on_submit is 1.
+    frappe.db.set_value("Calisma Karti", doc.name, {
+        "baslangic_saati": doc.baslangic_saati,
+        "bitis_saati": doc.bitis_saati,
+        "durum": doc.durum,
+        "toplam_sure": doc.toplam_sure,
+        "toplam_durus": doc.toplam_durus,
+        "net_calisma_suresi": doc.net_calisma_suresi
+    }, update_modified=False)
+    
     frappe.db.commit()
 
     from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
