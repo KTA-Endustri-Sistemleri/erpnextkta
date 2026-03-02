@@ -72,7 +72,7 @@ def get_child_table_fieldname(parent_doc, child_doctype: str) -> str:
     frappe.throw(_("Parent doctype içinde '{0}' child table alanı bulunamadı.").format(child_doctype))
 
 def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = None) -> list[str]:
-    ck = frappe.db.get_value("Calisma Karti", calisma_karti_name, ["custom_work_order", "is_karti", "operasyon", "customer_group", "uretim_holu"], as_dict=True)
+    ck = frappe.db.get_value("Calisma Karti", calisma_karti_name, ["custom_work_order", "operasyon"], as_dict=True)
     if not ck or not ck.custom_work_order:
         return []
 
@@ -89,33 +89,33 @@ def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = 
         ao_doc = frappe.get_doc("KTA Calisma Karti Alt Operasyonlari", alt_operasyon)
         parent_op = ao_doc.parent_operation
 
-        # All previous sub-operations + current
-        ao_list = frappe.get_all("KTA Calisma Karti Alt Operasyonlari",
-                                 filters={"parent_operation": parent_op, "sequence": ["<=", getattr(ao_doc, "sequence", 0)]},
-                                 fields=["name"])
-        for ao in ao_list:
-            ao_detail = frappe.get_doc("KTA Calisma Karti Alt Operasyonlari", ao.name)
-            for row in getattr(ao_detail, "allowed_material_groups", []):
-                if row.item_group:
-                    allowed_groups.append(row.item_group)
+        current_groups = []
+        for row in getattr(ao_doc, "allowed_material_groups", []):
+            if row.item_group:
+                current_groups.append(row.item_group)
 
-        # Fallback to parent operation if all sub-operations have empty groups
-        if not allowed_groups:
+        if current_groups:
+            # If current sub-operation has groups defined, use ONLY them.
+            allowed_groups = current_groups
+        else:
+            # If empty, use ALL prior sub-operations + parent operation
+            ao_list = frappe.get_all("KTA Calisma Karti Alt Operasyonlari",
+                                     filters={"parent_operation": parent_op, "sequence": ["<=", getattr(ao_doc, "sequence", 0)]},
+                                     fields=["name"])
+            for ao in ao_list:
+                ao_detail = frappe.get_doc("KTA Calisma Karti Alt Operasyonlari", ao.name)
+                for row in getattr(ao_detail, "allowed_material_groups", []):
+                    if row.item_group:
+                        allowed_groups.append(row.item_group)
+
             op_doc = frappe.get_doc("KTA Calisma Karti Operasyonlari", parent_op)
             for row in getattr(op_doc, "allowed_material_groups", []):
                 if row.item_group:
                     allowed_groups.append(row.item_group)
     else:
         # Hurda logic (or missing alt_operasyon): fallback to parent_operation based on Calisma Karti
-        filters = {"calisma_karti_op": ck.operasyon}
-        if ck.customer_group:
-             filters["customer_group"] = ck.customer_group
-        if ck.uretim_holu:
-             filters["plant_floor"] = ck.uretim_holu
-
-        parent_op_names = frappe.get_all("KTA Calisma Karti Operasyonlari", filters=filters, fields=["name"])
-        if parent_op_names:
-            op_doc = frappe.get_doc("KTA Calisma Karti Operasyonlari", parent_op_names[0].name)
+        if ck.operasyon:
+            op_doc = frappe.get_doc("KTA Calisma Karti Operasyonlari", ck.operasyon)
             for row in getattr(op_doc, "allowed_material_groups", []):
                 if row.item_group:
                     allowed_groups.append(row.item_group)
