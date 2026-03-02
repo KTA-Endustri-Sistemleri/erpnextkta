@@ -147,7 +147,7 @@ export function barkodKayitFields(defaults: any = {}) {
     ];
 }
 
-export function altOperasyonFields(parentOperationLabel: string, defaults: any = {}) {
+export function altOperasyonFields(parentOperationLabel: string, calismaKartiName: string, defaults: any = {}, getAltOpValue?: () => string) {
     return [
         {
             fieldtype: "Link",
@@ -170,10 +170,13 @@ export function altOperasyonFields(parentOperationLabel: string, defaults: any =
             options: "Item",
             reqd: 0,
             default: defaults.hammadde || "",
-            get_query: () => ({
-                query: "erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.search_allowed_hammadde_items",
-                filters: { alt_operasyon: defaults.alt_operasyon || "" }
-            })
+            get_query: () => {
+                const currentOp = getAltOpValue ? getAltOpValue() : defaults.alt_operasyon;
+                return {
+                    query: "erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.search_allowed_hammadde_items",
+                    filters: { calisma_karti: calismaKartiName, alt_operasyon: currentOp || "" }
+                };
+            }
         },
         {
             fieldtype: "Float",

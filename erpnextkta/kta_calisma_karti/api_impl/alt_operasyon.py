@@ -2,49 +2,23 @@ from __future__ import annotations
 import frappe
 from frappe import _
 
-from ._helpers import require_my_employee, is_system_manager, is_quality_user
+from ._helpers import require_my_employee, is_system_manager, is_quality_user, get_allowed_items_with_groups
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 
 
-def _get_allowed_groups_for_alt_op(alt_operasyon_name: str) -> list[str]:
-    """Return allowed item_groups for the given alt operasyon.
-
-    Priority:
-    1. Sub-op's own allowed_material_groups (if any)
-    2. Parent operation's allowed_material_groups (if any)
-    3. Empty list → unrestricted
-    """
-    sub_op = frappe.get_doc("KTA Calisma Karti Alt Operasyonlari", alt_operasyon_name)
-
-    # 1. Sub-op level
-    sub_groups = [row.item_group for row in (sub_op.allowed_material_groups or []) if row.item_group]
-    if sub_groups:
-        return sub_groups
-
-    # 2. Parent operation level
-    if sub_op.parent_operation:
-        parent_op = frappe.get_doc("KTA Calisma Karti Operasyonlari", sub_op.parent_operation)
-        parent_groups = [row.item_group for row in (parent_op.allowed_material_groups or []) if row.item_group]
-        if parent_groups:
-            return parent_groups
-
-    # 3. No restriction
-    return []
-
-
-def _assert_hammadde_allowed(alt_operasyon: str, hammadde: str):
-    """Validate that hammadde's item_group is within allowed groups."""
+def _assert_hammadde_allowed(calisma_karti: str, hammadde: str, alt_operasyon: str = None):
+    """Validate that hammadde is allowed based on BOM sequence."""
     if not hammadde:
         return
-    allowed = _get_allowed_groups_for_alt_op(alt_operasyon)
-    if not allowed:
-        return  # unrestricted
-    item_group = frappe.db.get_value("Item", hammadde, "item_group")
-    if item_group not in allowed:
+    allowed_items = get_allowed_items_with_groups(calisma_karti, alt_operasyon)
+    if not allowed_items:
         frappe.throw(
-            _("Seçilen hammadde ({0}) bu alt operasyon için izin verilmiyor. İzin verilen gruplar: {1}").format(
-                hammadde, ", ".join(allowed)
-            ),
+            _("İş emrinde bu aşama için izin verilen malzeme grubunda hammadde bulunamadı."),
+            frappe.ValidationError,
+        )
+    if hammadde not in allowed_items:
+        frappe.throw(
+            _("Seçilen hammadde ({0}) iş emri BOM'unda bu aşama için izin verilmiyor.").format(hammadde),
             frappe.ValidationError,
         )
 
@@ -71,7 +45,7 @@ def add_alt_operasyon_kaydi(
     doc.check_permission("write")
     _assert_can_write(doc)
     if hammadde:
-        _assert_hammadde_allowed(alt_operasyon, hammadde)
+        _assert_hammadde_allowed(calisma_karti, hammadde, alt_operasyon)
 
     doc.append(
         "alt_operasyon_kayitlari",
@@ -93,50 +67,35 @@ def add_alt_operasyon_kaydi(
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def search_allowed_hammadde_items(doctype, txt, searchfield, start, page_len, filters):
-    """Link field search for allowed hammadde items based on alt operasyon material groups.
-
-    Priority:
-    1. Sub-op's own allowed_material_groups (if any)
-    2. Parent operation's allowed_material_groups (if any)
-    3. No restriction -> all items
+    """Link field search for allowed hammadde items based on Work Order BOM operation sequence.
 
     filters expected:
-      - alt_operasyon: KTA Calisma Karti Alt Operasyonlari name
+      - calisma_karti: Calisma Karti name
     """
+    calisma_karti = (filters or {}).get("calisma_karti")
     alt_operasyon = (filters or {}).get("alt_operasyon")
     txt = (txt or "").strip()
     like = f"%{txt}%"
 
-    allowed_groups = _get_allowed_groups_for_alt_op(alt_operasyon) if alt_operasyon else []
+    allowed_items = get_allowed_items_with_groups(calisma_karti, alt_operasyon) if calisma_karti else []
 
-    if allowed_groups:
-        groups_placeholder = ", ".join(["%s"] * len(allowed_groups))
+    if allowed_items:
+        items_placeholder = ", ".join(["%s"] * len(allowed_items))
         return frappe.db.sql(
             f"""
             SELECT name, item_name, item_group
             FROM `tabItem`
             WHERE
-                item_group IN ({groups_placeholder})
+                name IN ({items_placeholder})
                 AND disabled = 0
                 AND (name LIKE %s OR item_name LIKE %s)
             ORDER BY name ASC
             LIMIT %s, %s
             """,
-            tuple(allowed_groups) + (like, like, int(start), int(page_len)),
+            tuple(allowed_items) + (like, like, int(start), int(page_len)),
         )
     else:
-        return frappe.db.sql(
-            """
-            SELECT name, item_name, item_group
-            FROM `tabItem`
-            WHERE
-                disabled = 0
-                AND (name LIKE %s OR item_name LIKE %s)
-            ORDER BY name ASC
-            LIMIT %s, %s
-            """,
-            (like, like, int(start), int(page_len)),
-        )
+        return []
 
 
 @frappe.whitelist()
@@ -153,7 +112,7 @@ def update_alt_operasyon_kaydi(
     doc.check_permission("write")
     _assert_can_write(doc)
     if hammadde:
-        _assert_hammadde_allowed(alt_operasyon, hammadde)
+        _assert_hammadde_allowed(calisma_karti, hammadde, alt_operasyon)
 
     row = doc.get("alt_operasyon_kayitlari", {"name": row_id})
     if not row:
