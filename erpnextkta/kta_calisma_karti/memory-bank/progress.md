@@ -6,6 +6,7 @@
 
 ### Backend ✅
 - [x] `Calisma Karti` DocType (ana + 5 child table)
+- [x] Ana Operasyon (`KTA Calisma Karti Operasyonlari`) doctype'ina `sequence` alanı eklendi (Sıralama için)
 - [x] `create_calisma_karti()` — WO/JC doğrulama + insert + realtime + departman tag
 - [x] `get_my_calisma_kartlari()` — Rol bazlı liste (paginasyon + customer_group enrichment)
 - [x] `get_calisma_karti_detail()` — Detay payload (tüm child table'lar)
