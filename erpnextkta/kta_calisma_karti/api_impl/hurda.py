@@ -80,7 +80,7 @@ def _get_allowed_hurda_item_codes_for_doc(doc) -> set[str]:
     # Find the processing order (idx) of the current operation
     current_op_idx = frappe.db.get_value(
         "BOM Operation",
-        {"parent": bom_no, "parenttype": "BOM", "operation_no": operation},
+        {"parent": bom_no, "parenttype": "BOM", "operation": operation},
         "idx"
     )
 
@@ -96,9 +96,9 @@ def _get_allowed_hurda_item_codes_for_doc(doc) -> set[str]:
                 "parenttype": "BOM",
                 "idx": ["<=", current_op_idx]
             },
-            fields=["operation_no"]
+            fields=["operation"]
         )
-        valid_operations = [o.get("operation_no") for o in prev_ops if o.get("operation_no")]
+        valid_operations = [o.get("operation") for o in prev_ops if o.get("operation")]
 
     if not valid_operations:
         valid_operations = [operation]
