@@ -6,6 +6,7 @@ from frappe.model.naming import make_autoname
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 
 
+# Status definitions mapped to CSS classes (Frontend state)
 STATU_HARITASI = {
     "reddedildi": "Reddedildi",
     "hazir": "Hazır",
@@ -14,7 +15,13 @@ STATU_HARITASI = {
     "bitmis": "Bitmiş",
 }
 
-MAX_NET_CALISMA_DK = 430
+def get_kta_settings():
+    try:
+        max_limit = frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430
+        warn_limit = frappe.db.get_single_value("KTA Calisma Karti Settings", "kart_uyari_suresi_dk") or 400
+        return int(max_limit), int(warn_limit)
+    except Exception:
+        return 430, 400
 
 class CalismaKarti(Document):
     def on_update(self):
@@ -69,14 +76,16 @@ class CalismaKarti(Document):
         if not self.kalite_kontrol:
             self.kalite_kontrol = "Onay Bekliyor"
 
-        # Proaktif Operatör İkazı (400 dk Uyarısı)
+        # Proaktif Operatör İkazı (Dinamik Uyarı Süresi)
         if durum_key in ['calisiyor', 'durusta'] and self.baslangic_saati:
             start_dt = get_datetime(self.baslangic_saati)
             now_dt = now_datetime()
             gecen_dk = (now_dt - start_dt).total_seconds() / 60
-            if gecen_dk > 400:
+
+            _, warn_limit = get_kta_settings()
+            if gecen_dk > warn_limit:
                 frappe.msgprint(
-                    "⚠️ Bu kart 400 dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).",
+                    f"⚠️ Bu kart {warn_limit} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).",
                     title="Süre Uyarısı",
                     indicator="orange"
                 )
@@ -104,7 +113,8 @@ class CalismaKarti(Document):
             net_saniye = max(0, toplam_saniye - toplam_durus_saniye)
 
             # Sınırlandırma (Hard Limit)
-            max_saniye = MAX_NET_CALISMA_DK * 60
+            max_limit, _ = get_kta_settings()
+            max_saniye = max_limit * 60
             if net_saniye > max_saniye:
                 net_saniye = max_saniye
 
