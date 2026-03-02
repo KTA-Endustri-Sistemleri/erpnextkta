@@ -73,6 +73,7 @@ class CalismaKarti(Document):
             self.kalite_kontrol = "Onay Bekliyor"
 
         # Proaktif Operatör İkazı (Dinamik Uyarı Süresi)
+        durum_key = self.get_durum()
         if durum_key in ['calisiyor', 'durusta'] and self.baslangic_saati:
             start_dt = get_datetime(self.baslangic_saati)
             now_dt = now_datetime()
