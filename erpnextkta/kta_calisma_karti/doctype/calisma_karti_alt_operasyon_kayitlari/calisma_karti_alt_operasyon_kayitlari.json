@@ -15,6 +15,7 @@
     ],
     "fields": [
         {
+            "allow_on_submit": 1,
             "fieldname": "alt_operasyon",
             "fieldtype": "Link",
             "options": "KTA Calisma Karti Alt Operasyonlari",
@@ -23,6 +24,7 @@
             "in_list_view": 1
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "hammadde",
             "fieldtype": "Link",
             "options": "Item",
@@ -31,6 +33,7 @@
             "in_list_view": 1
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "adet",
             "fieldtype": "Float",
             "label": "Adet",
@@ -38,12 +41,14 @@
             "default": "1"
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "uom",
             "fieldtype": "Link",
             "options": "UOM",
             "label": "UOM"
         },
         {
+            "allow_on_submit": 1,
             "fieldname": "note",
             "fieldtype": "Small Text",
             "label": "Note"
