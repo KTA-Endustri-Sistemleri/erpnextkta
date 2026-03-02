@@ -10,6 +10,7 @@
         "calisma_karti_op",
         "customer_group",
         "plant_floor",
+        "miktar_zorunlu_mu",
         "allowed_material_groups"
     ],
     "fields": [
@@ -35,6 +36,13 @@
             "label": "Plant Floor",
             "reqd": 1,
             "in_list_view": 1
+        },
+        {
+            "fieldname": "miktar_zorunlu_mu",
+            "fieldtype": "Check",
+            "label": "Miktar Bildirimi Zorunlu",
+            "default": "1",
+            "description": "Seçiliyse kart bitirilirken tamamlanan miktar > 0 olmak zorundadır. Seçili değilse alt operasyon girilerek 0 miktarla bitirilebilir."
         },
         {
             "fieldname": "allowed_material_groups",

@@ -97,9 +97,9 @@ export function bitirFields() {
             fieldtype: "Float",
             label: "Tamamlanan Miktar",
             fieldname: "tamamlanan_miktar",
-            reqd: 1,
+            reqd: 0,
             default: 0,
-            description: "İşlemi bitirmek için tamamlanan miktar 0'dan büyük olmalı.",
+            description: "Varsa bitiş aşamasında tamamlanan ek miktar.",
         },
     ];
 }

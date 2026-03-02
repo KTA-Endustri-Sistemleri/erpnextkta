@@ -14,7 +14,7 @@ STATU_HARITASI = {
     "bitmis": "Bitmiş",
 }
 
-MAX_NET_CALISMA_DK = 430    
+MAX_NET_CALISMA_DK = 430
 
 class CalismaKarti(Document):
     def on_update(self):
@@ -213,10 +213,17 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
         if qty > 0:
             doc.tamamlanan_miktar = float(doc.tamamlanan_miktar or 0) + qty
 
-        # Business rule: must have completed qty > 0 to finish
+        # Business rule check: depends on miktar_zorunlu_mu and alt_operasyon_kayitlari
         total_done = float(doc.tamamlanan_miktar or 0)
         if total_done <= 0:
-            frappe.throw("Bitirmek için tamamlanan miktar 0'dan büyük olmalı. Duruş sırasında tamamlanan adet girin.")
+            op_doc = frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu")
+            miktar_zorunlu_mu = op_doc if op_doc is not None else 1
+
+            if miktar_zorunlu_mu:
+                frappe.throw("Bu operasyon için tamamlanan miktar (üretim adedi) bildirilmesi zorunludur.")
+            else:
+                if not doc.get("alt_operasyon_kayitlari"):
+                    frappe.throw("Üretim adedi girilmeden işlemin bitirilebilmesi için en az bir alt operasyon detayı girilmiş olmalıdır.")
 
         if durum == "durusta":
             if not doc.duruslar:
