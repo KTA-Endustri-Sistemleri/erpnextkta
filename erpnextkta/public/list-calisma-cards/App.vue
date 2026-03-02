@@ -5,6 +5,8 @@ const loading = ref(false);
 const rows = ref([]);
 const errorMsg = ref("");
 const sortKey = ref("creation_desc");
+const statusFilter = ref("all"); // all | ready | running | paused | finished | rejected
+const qcFilter = ref("all");     // all | waiting | approved | rejected // all | ready | running | paused | finished
 
 const q = ref(""); // search query
 
@@ -66,14 +68,15 @@ async function load(opts = {}) {
   }
 }
 
-// Trigger load on filter changes (debounced for search box)
+// Trigger load on filter changes (debounced)
 let searchTimer = null;
-watch([q, statusFilter, customerGroupFilter, sortKey], () => {
+watch([q, statusFilter, qcFilter, customerGroupFilter, sortKey], () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
         load();
     }, 400); 
 }, { deep: true });
+
 // ✅ NEW: load more
 function loadMore() {
   if (loading.value || !hasMore.value) return;
@@ -131,9 +134,6 @@ function normalizeTR(s) {
 function openDetail(name) {
   frappe.set_route("view-calisma-karti", name);
 }
-
-const statusFilter = ref("all"); // all | ready | running | paused | finished | rejected
-const qcFilter = ref("all");     // all | waiting | approved | rejected // all | ready | running | paused | finished
 
 function statusKeyFromDurumText(durum) {
   const v = (durum || "").toLowerCase();
@@ -197,8 +197,6 @@ const customerGroupCounts = computed(() => {
   return c;
 });
 
-
-
 function statusTone(durum) {
   // Map your text labels to tones (adjust if your API uses different strings)
   const v = (durum || "").toLowerCase();
@@ -247,12 +245,6 @@ function setCustomerGroupFilter(v) {
   scrollToTop();
 }
 
-watch(sortKey, () => {
-  load();
-});
-watch([statusFilter, qcFilter, customerGroupFilter], () => {
-  load();
-});
 onMounted(() => {
   load();
   bindListRealtime();
@@ -434,7 +426,7 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <div v-if="!loading && !errorMsg && filteredRows.length > 0" class="ck-loadmore">
+      <div v-if="!loading && !errorMsg && rows.length > 0" class="ck-loadmore">
         <button
           v-if="hasMore"
           class="ck-btn"
