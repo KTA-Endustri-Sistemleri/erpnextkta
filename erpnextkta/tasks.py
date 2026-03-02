@@ -8,9 +8,15 @@ def weekly():
 
 def auto_close_timed_out_cards():
     """
-    Vardiya sonlarında (örn. 16:15 ve 00:15) çalışarak 430 dakikayı aşan
-    açık Çalışma Kartlarını otomatik olarak yasal süre sınırında (başlangıç + 430 dk) bitirir.
+    Vardiya sonlarında (örn. 16:15 ve 00:15) çalışarak KTA Calisma Karti Settings'te belirlenen dakikayı aşan
+    açık Çalışma Kartlarını otomatik olarak yasal süre sınırında (başlangıç + limit) bitirir.
     """
+    try:
+        max_limit = frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430
+        max_limit = int(max_limit)
+    except Exception:
+        max_limit = 430
+
     now = now_datetime()
     # Bitmemiş ve başlatılmış kartları bul (QC Reddedildi vs hariç olması için standart durum filtresi kullanılabilir, 
     # ancak en güvenlisi bitis_saati boş olanlar)
@@ -29,14 +35,14 @@ def auto_close_timed_out_cards():
             start_dt = get_datetime(k.baslangic_saati)
             gecen_dk = (now - start_dt).total_seconds() / 60
             
-            # 430 dakikayı geçmişse kapat
-            if gecen_dk > 430:
+            # Limiti geçmişse kapat
+            if gecen_dk > max_limit:
                 doc = frappe.get_doc("Calisma Karti", k.name)
                 # Sadece Reddedilmemiş vb. kontrolü
                 if (doc.kalite_kontrol or '').strip() == 'Reddedildi':
                     continue
                     
-                limit_dt = add_to_date(start_dt, minutes=430)
+                limit_dt = add_to_date(start_dt, minutes=max_limit)
                 
                 # Açık duruş varsa, duruşu da limit_dt ile kapat
                 if doc.duruslar:
