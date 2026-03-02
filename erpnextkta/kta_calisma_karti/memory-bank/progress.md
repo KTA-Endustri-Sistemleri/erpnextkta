@@ -49,7 +49,7 @@
   - Sadece mevcut operasyon değil, kendinden önceki (idx <= mevcut idx) tüm operasyonların materyalleri serbest bırakıldı
 
 ### Frontend ✅
-- [x] Server-Side Filtering — `list-calisma-cards` sayfasındaki ağır Vue array filtrelemeleri (filteredRows) doğrudan SQL API'ye bağlandı (Pagination & Search)
+- [x] Server-Side Filtering & Initialization Fixes — `list-calisma-cards` sayfasındaki ağır Vue array filtrelemeleri SQL API'ye bağlandı. Reaktif değişken başlatma (TDZ) ve şablon hataları giderildi.
 - [x] `create-calisma-karti` wizard — WO modu (5 adım) + JC modu (3 adım)
 - [x] `list-calisma-cards` — Realtime list, çok filtreli (durum, QC, customer group), paginasyon
 - [x] `view-calisma-karti` — Tab'lı detay (Info, Alt Operasyon, Hurda, Duruş, Kalite)

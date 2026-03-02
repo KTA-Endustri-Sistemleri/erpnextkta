@@ -118,6 +118,7 @@ def create_calisma_karti(**kwargs):
 
     doc = frappe.get_doc(doc_dict)
     doc.insert()
+    doc.submit()
 
     # ✅ Publish realtime events (create does not automatically notify list UIs)
     try:
