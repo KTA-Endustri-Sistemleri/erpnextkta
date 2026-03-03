@@ -52,12 +52,16 @@ def auto_close_timed_out_cards():
                         durus_start = get_datetime(last_row.durus_baslangic)
                         last_row.durus_suresi = (limit_dt - durus_start).total_seconds() / 60
 
+                doc.append("duruslar", {
+                    "durus_baslangic": limit_dt,
+                    "durus_bitis": limit_dt,
+                    "durus_suresi": 0,
+                    "durus_nedeni": "Zaman Aşımı",
+                    "aciklama": "Çalışma Kartı 24 saattir bitirilmediği için otomatik olarak durdurulmuştur."
+                })
+
                 # Kartı limit_dt ile bitir
                 doc.bitis_saati = limit_dt
-                not_ek = "[SİSTEM: Otomatik kapatıldı - zaman aşımı]"
-                doc.notlar = f"{doc.notlar}\n{not_ek}" if doc.notlar else not_ek
-
-                # Standart süre hesaplamalarını yeniden tetikle (zaten now değil artık limit_dt kullanılacak)
                 doc.save(ignore_permissions=True)
                 frappe.db.commit()
 
@@ -87,6 +91,9 @@ def delete_old_unstarted_cards():
     silinen_sayisi = 0
     for k in kartlar:
         try:
+            doc = frappe.get_doc("Calisma Karti", k.name)
+            if doc.docstatus == 1:
+                doc.cancel()
             frappe.delete_doc("Calisma Karti", k.name, ignore_permissions=True, force=True)
             silinen_sayisi += 1
         except Exception as e:

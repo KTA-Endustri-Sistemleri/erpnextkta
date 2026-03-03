@@ -42,7 +42,7 @@
             "fieldname": "durus_nedeni",
             "fieldtype": "Select",
             "in_list_view": 1,
-            "options": "Ariza\nMalzeme Bekleme\nKalite Kontrol\nMola\nBakim\nDiger\nBaşka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.",
+            "options": "Ariza\nMalzeme Bekleme\nKalite Kontrol\nMola\nBakim\nDiger\nBaşka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.\nZaman Aşımı",
             "reqd": 1
         },
         {
