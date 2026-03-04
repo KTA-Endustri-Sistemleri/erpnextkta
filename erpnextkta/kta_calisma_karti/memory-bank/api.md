@@ -7,7 +7,7 @@ Frontend method path prefix: `erpnextkta.kta_calisma_karti.api.`
 | Fonksiyon | Parametreler | Döner | Yetki |
 |-----------|-------------|-------|-------|
 | `get_my_calisma_kartlari` | `order_by`, `start`, `page_length`, `customer_group` | `[{name, operator, durum, ...}]` | Herkese açık (filtreli) |
-| `get_calisma_karti_detail` | `name` | `{name, hurdalar, duruslar, alt_operasyon_kayitlari[{..., alt_operasyon_title, alt_operasyon_sequence}], ...}` | Operator veya SM/QC |
+| `get_calisma_karti_detail` | `name` | `{name, hurdalar, duruslar, alt_operasyon_kayitlari[{..., alt_operasyon_title, alt_operasyon_sequence}], max_kart_suresi_dk, kart_uyari_suresi_dk, ...}` | Operator veya SM/QC |
 
 ## Oluşturma
 
@@ -58,7 +58,7 @@ docs> **Not:** `hammadde`, `uom`, `note` opsiyonel. `adet` default `0`.
 | `add_alt_operasyon_kaydi` | `calisma_karti, alt_operasyon, adet=0, hammadde=None, uom=None, note=None` | Operator / SM / QC |
 | `update_alt_operasyon_kaydi` | `calisma_karti, row_id, alt_operasyon, adet=0, hammadde=None, uom=None, note=None` | Operator / SM / QC |
 | `delete_alt_operasyon_kaydi` | `calisma_karti, row_id` | Operator / SM / QC |
-| `search_allowed_hammadde_items` | `filters{alt_operasyon}` — sub-op → parent op → kısıtsız | Herkese açık (Link search) |
+| `search_allowed_hammadde_items` | `filters{calisma_karti, alt_operasyon}` — sub-op grubu tanımlıysa o grup; boşsa sequence çözümlemesi | Herkese açık (Link search) |
 
 ## Realtime Events
 
