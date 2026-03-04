@@ -3,6 +3,57 @@
 
 
 
+## 🚀 v0.18.0 (2026-03-04)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- Implement reliable incoming rate determination and ensure accurate batch quantity updates during bundle processing.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- hotfix: Gümrüksüz exchange rate logic, batch split incoming_rate fix, return validation fix (#106)
+
+- Add 'Gümrüksüz' checkbox to Purchase Receipt İthalat tab
+- When checked, use for_buying exchange rate based on posting_date
+- Fix zero incoming_rate in split batch entries (api.py)
+- Fix batch validation error for Purchase Receipt returns (serial_batch_bundle_doc.py)
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.17.1 (2026-02-24)
 
 
