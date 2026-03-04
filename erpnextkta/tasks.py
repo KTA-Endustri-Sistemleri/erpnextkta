@@ -27,7 +27,7 @@ def auto_close_timed_out_cards():
         filters={
             "baslangic_saati": ["is", "set"],
             "bitis_saati": ["is", "not set"],
-            "docstatus": 1
+            "docstatus": ["!=", 2]  # draft (0) ve submitted (1) dahil, iptal (2) hariç
         },
         fields=["name", "baslangic_saati"]
     )
@@ -71,8 +71,9 @@ def auto_close_timed_out_cards():
             # Süre + durum hesaplarını çalıştır (senin asıl hesap motorun burada)
             doc.update_durum()  # -> hesapla_durus_suresi + hesapla_toplam_sure + durum mapping
 
-            # Submitted doc'ta validate/update kısıtlarını bypass
-            doc.flags.ignore_validate_update_after_submit = True
+            # Submitted doc'ta validate/update kısıtlarını bypass (sadece gerekiyorsa)
+            if doc.docstatus == 1:
+                doc.flags.ignore_validate_update_after_submit = True
             doc.save(ignore_permissions=True)
 
             # Read-only alanlar submitted doc'ta doc.save ile DB'ye yazılmayabiliyor.
@@ -106,7 +107,7 @@ def delete_old_unstarted_cards():
         filters={
             "baslangic_saati": ["is", "not set"],
             "bitis_saati": ["is", "not set"],
-            "docstatus": 1,
+            "docstatus": ["!=", 2],  # draft (0) ve submitted (1) dahil
             "creation": ["<", bir_gun_once]
         },
         fields=["name"]
