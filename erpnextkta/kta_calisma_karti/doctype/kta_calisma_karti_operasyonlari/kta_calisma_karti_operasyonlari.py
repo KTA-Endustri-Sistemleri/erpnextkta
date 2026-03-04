@@ -4,6 +4,15 @@ from frappe.model.document import Document
 from frappe import _
 
 class KTACalismaKartiOperasyonlari(Document):
+    def autoname(self):
+        """
+        Generic  → 'Kablo Kesme'
+        Specific → 'Kablo Kesme-BOSCH'
+        """
+        op = (self.calisma_karti_op or "").strip()
+        cg = (self.customer_group or "").strip()
+        self.name = f"{op}-{cg}" if cg else op
+
     def validate(self):
         # 1. Müşteri grubu seçildiyse Plant Floor zorunludur
         if self.customer_group and not self.plant_floor:
