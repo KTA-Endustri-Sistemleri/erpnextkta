@@ -152,15 +152,20 @@ def create_calisma_karti(**kwargs):
 
 @frappe.whitelist()
 def get_operations_for_job_card(job_card: str):
-    """Return KTA Operasyonlari filtered by the Job Card's ERPNext operation.
+    """Return KTA Operasyonlari filtered by Job Card's operation and production item.
 
-    Priority logic:
-      1. KTA ops whose erpnext_operations child table contains jc.operation → return these.
-      2. If no match found, return KTA ops with an empty erpnext_operations table (generic).
-      3. If jc.operation is blank, return all KTA ops (fallback).
+    Priority logic (highest to lowest):
+      1. Mapping row has BOTH erpnext_operation == jc.operation
+                          AND production_item == jc.production_item  → most specific
+      2. Mapping row has erpnext_operation == jc.operation AND production_item is empty
+                                                                      → operation-generic
+      3. KTA op has NO mapping rows at all                            → fully generic fallback
+
+    If jc.operation is blank → return all KTA ops (cannot filter).
     """
     jc = frappe.get_doc("Job Card", job_card)
-    jc_operation = (getattr(jc, "operation", None) or "").strip()
+    jc_operation    = (getattr(jc, "operation",       None) or "").strip()
+    jc_product      = (getattr(jc, "production_item", None) or "").strip()
 
     all_ops = frappe.get_all(
         "KTA Calisma Karti Operasyonlari",
@@ -174,22 +179,42 @@ def get_operations_for_job_card(job_card: str):
 
     op_names = [o["name"] for o in all_ops]
 
-    # Fetch mapping rows for all ops in a single query
+    # Fetch all mapping rows for these KTA ops in a single query
     mapping_rows = frappe.get_all(
         "KTA Operation ERPNext Mappings",
         filters={"parent": ["in", op_names], "parenttype": "KTA Calisma Karti Operasyonlari"},
-        fields=["parent", "erpnext_operation"],
+        fields=["parent", "erpnext_operation", "production_item"],
     )
 
-    # Build map: op_name → set of linked erpnext_operation values
-    op_to_erp = {}
+    # Build lookup: kta_op_name → list of (erpnext_operation, production_item) tuples
+    op_to_rows: dict[str, list] = {}
     for row in mapping_rows:
-        op_to_erp.setdefault(row["parent"], set()).add(
-            (row.get("erpnext_operation") or "").strip()
+        op_to_rows.setdefault(row["parent"], []).append((
+            (row.get("erpnext_operation") or "").strip(),
+            (row.get("production_item")   or "").strip(),
+        ))
+
+    # Priority 1: operation + product exact match
+    specific = [
+        o for o in all_ops
+        if any(
+            erp_op == jc_operation and prod == jc_product
+            for erp_op, prod in op_to_rows.get(o["name"], [])
         )
+    ]
+    if specific:
+        return specific
 
-    matched = [o for o in all_ops if jc_operation in op_to_erp.get(o["name"], set())]
-    generic  = [o for o in all_ops if o["name"] not in op_to_erp]
+    # Priority 2: operation match, product field empty (operation-generic)
+    op_generic = [
+        o for o in all_ops
+        if any(
+            erp_op == jc_operation and prod == ""
+            for erp_op, prod in op_to_rows.get(o["name"], [])
+        )
+    ]
+    if op_generic:
+        return op_generic
 
-    # If no specific match → return generic (ops with no mappings defined)
-    return matched if matched else generic
+    # Priority 3: KTA ops with NO mapping rows at all (fully generic)
+    return [o for o in all_ops if o["name"] not in op_to_rows]
