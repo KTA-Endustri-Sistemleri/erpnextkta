@@ -327,6 +327,7 @@ async function fetchJobCardByBarcode() {
       selectedWorkstation.value = jc.workstation || null;
 
       // JC flow'da 1. adım tamam → Operasyona geç
+      await fetchOperationsForJobCard(jcName);
       currentStep.value = 2;
     }, 800);
   } catch (err) {
@@ -362,18 +363,16 @@ async function fetchJobCardsForWorkOrder() {
   }
 }
 
-// Operasyon listesi
-async function fetchOperations() {
+// Operasyon listesi — JC'ye göre filtrelenmiş
+async function fetchOperationsForJobCard(jcName) {
   errorMessage.value = null;
 
   try {
     await withLoading(async () => {
-      const list = await callFrappe('frappe.client.get_list', {
-        doctype: 'KTA Calisma Karti Operasyonlari',
-        fields: ['name','calisma_karti_op', 'customer_group'],
-        order_by: 'sequence asc',
-        limit_page_length: 500
-      });
+      const list = await callFrappe(
+        'erpnextkta.kta_calisma_karti.api.get_operations_for_job_card',
+        { job_card: jcName }
+      );
 
       operations.value = list || [];
       selectedOperationName.value = null;
@@ -612,9 +611,13 @@ function onGlobalKeydown(e) {
  *  WATCHERS + LIFECYCLE
  * -----------------------------------------------------*/
 
-watch(selectedJobCardName, () => {
+watch(selectedJobCardName, (newJcName) => {
   syncWorkstationFromJobCard();
   releaseFocusAfterSelection();
+  // WO mode: fetch operations filtered by this Job Card
+  if (searchMode.value === 'WO' && newJcName) {
+    fetchOperationsForJobCard(newJcName);
+  }
 });
 
 watch(selectedWorkstation, (val) => {
@@ -629,9 +632,8 @@ watch(selectedUser, (val) => {
   if (val) releaseFocusAfterSelection();
 });
 
-// İlk açılışta operasyon + kullanıcı listeleri + global Enter listener
+// İlk açılışta kullanıcı listesi + global Enter listener
 onMounted(() => {
-  fetchOperations();
   fetchUsers();
   window.addEventListener('keydown', onGlobalKeydown, { capture: true });
 });

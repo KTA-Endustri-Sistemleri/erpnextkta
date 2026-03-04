@@ -12,6 +12,7 @@
         "customer_group",
         "plant_floor",
         "miktar_zorunlu_mu",
+        "erpnext_operations",
         "allowed_material_groups"
     ],
     "fields": [
@@ -51,6 +52,13 @@
             "label": "Miktar Bildirimi Zorunlu",
             "default": "1",
             "description": "Seçiliyse kart bitirilirken tamamlanan miktar > 0 olmak zorundadır. Seçili değilse alt operasyon girilerek 0 miktarla bitirilebilir."
+        },
+        {
+            "fieldname": "erpnext_operations",
+            "fieldtype": "Table",
+            "label": "ERPNext Operasyon Eşleştirmeleri",
+            "options": "KTA Operation ERPNext Mappings",
+            "description": "Bu KTA operasyonuyla eşleşecek ERPNext operasyonları. Boş bırakılırsa tüm Job Card'lara genel olarak uygulanır."
         },
         {
             "fieldname": "allowed_material_groups",

@@ -148,3 +148,48 @@ def create_calisma_karti(**kwargs):
 
     frappe.db.commit()
     return doc.as_dict()
+
+
+@frappe.whitelist()
+def get_operations_for_job_card(job_card: str):
+    """Return KTA Operasyonlari filtered by the Job Card's ERPNext operation.
+
+    Priority logic:
+      1. KTA ops whose erpnext_operations child table contains jc.operation → return these.
+      2. If no match found, return KTA ops with an empty erpnext_operations table (generic).
+      3. If jc.operation is blank, return all KTA ops (fallback).
+    """
+    jc = frappe.get_doc("Job Card", job_card)
+    jc_operation = (getattr(jc, "operation", None) or "").strip()
+
+    all_ops = frappe.get_all(
+        "KTA Calisma Karti Operasyonlari",
+        fields=["name", "calisma_karti_op", "customer_group", "sequence"],
+        order_by="sequence asc",
+        limit_page_length=500,
+    )
+
+    if not jc_operation:
+        return all_ops  # No operation info on JC → show all
+
+    op_names = [o["name"] for o in all_ops]
+
+    # Fetch mapping rows for all ops in a single query
+    mapping_rows = frappe.get_all(
+        "KTA Operation ERPNext Mappings",
+        filters={"parent": ["in", op_names], "parenttype": "KTA Calisma Karti Operasyonlari"},
+        fields=["parent", "erpnext_operation"],
+    )
+
+    # Build map: op_name → set of linked erpnext_operation values
+    op_to_erp = {}
+    for row in mapping_rows:
+        op_to_erp.setdefault(row["parent"], set()).add(
+            (row.get("erpnext_operation") or "").strip()
+        )
+
+    matched = [o for o in all_ops if jc_operation in op_to_erp.get(o["name"], set())]
+    generic  = [o for o in all_ops if o["name"] not in op_to_erp]
+
+    # If no specific match → return generic (ops with no mappings defined)
+    return matched if matched else generic
