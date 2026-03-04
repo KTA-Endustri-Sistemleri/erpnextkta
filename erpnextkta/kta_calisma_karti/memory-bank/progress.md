@@ -1,6 +1,6 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-04 (vardiya bazlı net süre, item-group hammadde filtresi, dinamik uyarı süresi)
+> Son güncelleme: 2026-03-05 (operasyon-JC eşleştirme sistemi)
 
 ## Çalışan Özellikler
 
@@ -60,7 +60,20 @@
   - `_shift_name_by_now`, `_shift_window`, `_parse_minsec`, `_other_cards_net_seconds_in_shift` `calisma_karti.py`'e eklendi
   - `hesapla_toplam_sure()` artık vardiya penceresindeki diğer kartların toplam süresini hesaba katan kapasiteye göre kırpar
   - `tasks.py`: log eklendi, timeout duruşu sıfır-süreli olarak kaydediliyor, `realtime.publish` kapama sonrası çağrılıyor
-  - `delete_old_unstarted_cards`: `docstatus=1` ise silmeden önce `cancel()` yapılıyor
+  - `delete_old_unstarted_cards`: `docstatus=["!=", 2]` yapılarak draft/iptal ayrımı düzeltildi
+- [x] Vardiya Net Süre Simülasyonu ve Düzeltmeler (Bugfix)
+  - Tüm net süre hesaplamaları (`_other_cards_net_seconds_in_shift`, `auto_close_timed_out_cards`) `docstatus=1` yerine `["!=", 2]` (Draft kartları da kapsayacak) şekilde düzeltildi
+  - DB'ye dokunmayan analiz scripti yazıldı (`vardiya_sim.py`)
+  - Zamanaşımı kapatma scripti eklendi (`cleanup_timed_out.py`)
+  - Eski aşırı değerli kartları düzeltme scripti yazıldı (`fix_closed_cards_net_time.py`)
+- [x] Operasyon → Job Card Eşleştirme Sistemi
+  - **Yeni child doctype** `KTA Operation ERPNext Mappings`: `erpnext_operation` (zorunlu) + `production_item` (isteğe bağlı)
+  - `KTA Calisma Karti Operasyonlari`'na `erpnext_operations` Table alanı eklendi
+  - Koşullu `autoname()`: `customer_group` doluysa `Op-CG`, boşsa yalnızca `Op` ID'şi
+  - `get_operations_for_job_card(job_card)` — JC'nin `operation` + `production_item`'a göre üçlü öncelik filtresi
+    - Prio-1: operation + product tam eşleşmesi (BOM-spec)
+    - Prio-2: operation eşleşmesi + boş product (operation-generic)
+    - Prio-3: hiç mapping yok (fully generic fallback)
 
 ### Frontend ✅
 - [x] Server-Side Filtering & Initialization Fixes — `list-calisma-cards` sayfasındaki ağır Vue array filtrelemeleri SQL API'ye bağlandı.
@@ -74,6 +87,9 @@
 - [x] `App.vue` Timeout Banner (Katman 3 / UI) — İşlem uyarı süresini aşarsa tepeye kırmızı 🚨 alert banner açılır (**dinamik**: `kart_uyari_suresi_dk` KTA Settings'ten okunur)
 - [x] `prompts.ts` `altOperasyonFields` — `calismaKartiName` + `getAltOpValue` callback eklendi; hammadde `get_query` `calisma_karti` filtresi gönderiyor
 - [x] `AltOperasyonView.vue` dialog referansı (`let d`) — `getAltOpValue` callback'ine aktarılıyor
+- [x] `create-calisma-karti` wizard operasyon adımı JC bazlıya geçirildi
+  - `fetchOperations()` kaldırıldı; `fetchOperationsForJobCard(jcName)` yeni API'yi çağırıyor
+  - JC ve WO modlarında JC seçimi/belirlenmesi sonrası operasyon listesi otomatik çekiliyor
 
 ## Eksik / Belirsiz
 

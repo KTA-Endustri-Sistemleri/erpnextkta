@@ -14,6 +14,7 @@ Frontend method path prefix: `erpnextkta.kta_calisma_karti.api.`
 | Fonksiyon | Parametreler | Döner | Yetki |
 |-----------|-------------|-------|-------|
 | `create_calisma_karti` | `is_karti`, `operasyon`, `is_istasyonu`, `custom_work_order?`, `operator?` | CK dict | Manufacturing User |
+| `get_operations_for_job_card` | `job_card` | `[{name, calisma_karti_op, customer_group, sequence}]` — JC'ye göre filtrelenmiş | Herkese açık |
 
 ## Barkod
 

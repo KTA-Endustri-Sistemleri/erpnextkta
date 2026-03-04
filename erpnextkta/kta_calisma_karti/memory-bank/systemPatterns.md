@@ -112,6 +112,25 @@ Bağlı ERPNext Doktipleri:
 ### CK Oluşturma:
 `create_calisma_karti() → JC yükle → WO çöz → Status kontrol (docstatus=1, Not Started/In Process) → doc.insert() → publish_realtime → Departman tag ekle`
 
+### 9. Operasyon → JC Eşleştirme Pattern
+```
+get_operations_for_job_card(job_card)
+  → jc.operation + jc.production_item okunur
+  → Tüm KTA Operasyonları + mapping satırları tek sorguda çekilir
+  → Prio-1: erpnext_operation == jc.operation AND production_item == jc.production_item → döndür
+  → Prio-2: erpnext_operation == jc.operation AND production_item boş → döndür
+  → Prio-3: Hiç mapping satırı olmayan KTA operasyonları → döndür
+```
+
+### 10. Koşullu Autoname Pattern (KTA Operasyonlari)
+```python
+def autoname(self):
+    op = self.calisma_karti_op.strip()
+    cg = (self.customer_group or "").strip()
+    self.name = f"{op}-{cg}" if cg else op
+    # Generic: "Kablo Kesme" | Spec: "Kablo Kesme-BOSCH"
+```
+
 ### Kalite Kontrol Güncelleme:
 `update_kalite_kontrol() → _require_qc_role() → değer whitelist kontrolü → ignore_permissions → db_set() → publish_realtime`
 
@@ -120,3 +139,6 @@ Bağlı ERPNext Doktipleri:
 
 ### Vardiya Penceresi Net Süre Hesabı:
 `hesapla_toplam_sure() → _shift_window(end_dt) [HRMS Shift Type] → _other_cards_net_seconds_in_shift() → remaining=max_limit-other_net → net_saniye=min(net_saniye, remaining)`
+
+### Create Wizard Operasyon Adımı:
+`JC seç/belirle → fetchOperationsForJobCard(jcName) → get_operations_for_job_card() [Prio-1 → Prio-2 → Prio-3] → filteredOperations computed (customer_group) → StepOperation gösterim`

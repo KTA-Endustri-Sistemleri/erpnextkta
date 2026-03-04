@@ -1,12 +1,57 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-04
+> Son güncelleme: 2026-03-05
 
 ## Mevcut Odak
 
-Vardiya bazlı net süre kontrolü ve dinamik uyarı süresi eklendi. Hammadde filtreleme item-group tabanlı yeni mimariye geçirildi. Bir sonraki geliştirme bekleniyor.
+Operasyon-JC eşleştirme sistemi tamamlandıktan sonra, vardiya bazlı net süre limitinin canlı verilerle simülasyonu yapıldı. `docstatus` filtrelerinden kaynaklanan çalışmama durumu tespit edilip düzeltildi (Draft kartlar kapasiteye dahil edildi). Sistemin geçmiş ve açık kartları düzenlemesi için betikler eklendi.
 
-## Son Değişiklikler (2026-03-02 → 2026-03-04)
+## Son Değişiklikler (2026-03-05)
+
+### Vardiya Net Süre Simülasyonu ve Düzeltmeler
+
+#### `docstatus` Filtre Düzeltmesi
+Canlı sistemde henüz Submit edilmemiş (Draft - `docstatus=0`) kartların vardiya net süre kapasitesini (430 dk) tüketmediği tespit edildi. 
+- **`calisma_karti.py`** → `_other_cards_net_seconds_in_shift`: `"docstatus": 1` filtresi `"docstatus": ["!=", 2]` (iptal hariç hepsi) olarak değiştirildi. Artık taslak kartlar da limiti tüketiyor.
+- **`tasks.py`** → `auto_close_timed_out_cards` ve `delete_old_unstarted_cards` işlevlerindeki filtreler de aynı şekilde güncellenerek Draft kartları tarayacak hale getirildi. Submit olmuş kartlar için `ignore_validate_update_after_submit` kondisyonel yapıldı.
+
+#### Simülasyon ve Temizlik Scriptleri (repo: `scripts/`)
+- `vardiya_sim.py`: DB'ye dokunmadan o anki vardiyadaki (veya önceki vardiyadaki) `docstatus!=2` kartların net süre hesabını simüle eden ve limit aşımı/kalan kapasiteleri konsola basan analiz scripti.
+- `cleanup_timed_out.py`: `tasks.py` içindeki zaman aşımı rutini (`auto_close_timed_out_cards`) manuel tetikleyen bench scripti.
+- `fix_closed_cards_net_time.py`: Önceden kapanmış ama limiti (örn: 430 dk) çok aşmış (3700+ dk) eski kart turlarını tespit edip net çalışma süresini gerçek sınıra kırpan DB-fix scripti.
+
+## Son Değişiklikler (2026-03-04 → 2026-03-05)
+
+### Operasyon → Job Card Eşleştirme Sistemi
+
+#### Yeni Child DocType: `KTA Operation ERPNext Mappings`
+- `erpnext_operation` (Link → ERPNext Operation, zorunlu)
+- `production_item` (Link → Item, isteğe bağlı) — dolu ise yalnızca o ürünün BOM'unda geçerlidir
+- `KTA Calisma Karti Operasyonlari`'na parent olarak bağlı
+
+#### KTA Calisma Karti Operasyonlari — Yeni Alan ve Autoname
+- **`erpnext_operations` Table alanı** eklendi (`KTA Operation ERPNext Mappings` child tablosunu bağlar)
+- **Koşullu `autoname()`:** `customer_group` doluysa `"Kablo Kesme-BOSCH"`, boşsa yalnızca `"Kablo Kesme"` ID’si üretir
+- `autoname: "Prompt"`, `naming_rule: "Set by user"` Şklinde güncellendi
+
+#### Backend: `get_operations_for_job_card(job_card)` (`create.py`)
+JC'nin `operation` ve `production_item` alanlarına göre **üçlü öncelik** mantığı:
+1. **En spesifik:** `erpnext_operation == jc.operation` VE `production_item == jc.production_item` → o ürüne özel KTA operasyonları
+2. **Operasyon-generic:** `erpnext_operation == jc.operation` VE `production_item` boş → aynı operasyon koduna sahip tüm ürünler için
+3. **Tam generic:** Hiç mapping satırı olmayan KTA operasyonları → tüm JC'lere açık fallback
+
+**Pratikte:** Az sayıda 4-adımlı BOM için product-specific mapping yapılır; çoğunluğu oluşturan 2-adımlı BOM'lar mapping-boş bırakılır → Priority 3 tüm KTA operasyonlarını gösterir.
+
+#### Frontend: `create-calisma-karti/App.vue`
+- `fetchOperations()` kaldırıldı; `fetchOperationsForJobCard(jcName)` yeni backend API'sini çağırıyor
+- JC Mode: JC belirlendikten hemen sonra operasyon listesi çekiliyor
+- WO Mode: `selectedJobCardName` watcher'a JC başarılınca operasyon listesi çekiliyor
+- `onMounted`'tan `fetchOperations()` kaldırıldı
+
+#### `api.py` Facade
+- `get_operations_for_job_card` re-export olarak eklendi
+
+
 
 ### Vardiya Penceresi + Operatör Net Süre Limiti (Commit: `35bd322`)
 - **`_shift_name_by_now(now_dt)`:** Saat dilimine göre aktif vardiyayı döndürür (1./2./3. Vardiya).
