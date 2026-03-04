@@ -1,10 +1,42 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-02
+> Son güncelleme: 2026-03-04
 
 ## Mevcut Odak
 
-Alt operasyon geliştirmesi ve IDC yetki düzeltmesi tamamlandı. Material group kısıtı uygulandı. Bir sonraki geliştirme bekleniyor.
+Vardiya bazlı net süre kontrolü ve dinamik uyarı süresi eklendi. Hammadde filtreleme item-group tabanlı yeni mimariye geçirildi. Bir sonraki geliştirme bekleniyor.
+
+## Son Değişiklikler (2026-03-02 → 2026-03-04)
+
+### Vardiya Penceresi + Operatör Net Süre Limiti (Commit: `35bd322`)
+- **`_shift_name_by_now(now_dt)`:** Saat dilimine göre aktif vardiyayı döndürür (1./2./3. Vardiya).
+- **`_shift_window(now_dt)`:** HRMS `Shift Type` dokümanından başlangıç/bitiş saatlerini çekip `(window_start, window_end)` döndürür. Gece geçen vardiyaları (`we <= ws`) bir gün ileri alır.
+- **`_parse_minsec(value)`:** `'M:SS'` formatını toplam saniyeye çevirir.
+- **`_other_cards_net_seconds_in_shift(operator, shift_start, shift_end, exclude_name)`:** Aynı vardiya penceresindeki diğer onaylı (`docstatus=1`) ve reddedilmemiş kartların `net_calisma_suresi` toplamını döndürür.
+- **`hesapla_toplam_sure()` güncellemesi:** Sabit `max_limit` uygulamasına ek olarak artık vardiya penceresindeki **diğer kartların süresi de hesaba katılıyor**. Kalan kapasite = `(max_limit * 60) - other_net` formülüyle belirleniyor; kart bu kapasiteyi aşamaz.
+- **`tasks.py` iyileştirmesi:** `auto_close_timed_out_cards` fonksiyonuna kayıt başlangıcı log eklendi (`frappe.logger().info`). Timeout duruşu artık *sıfır süreli bilgi kaydı* (`durus_suresi=0`, `durus_nedeni="Zaman Aşımı"`) olarak ekleniyor. Kart kapatma akışı sadeleştirildi (erken `continue` mantığına geçildi). `realtime.publish_calisma_karti_changed` zamanlayıcı kapatmalarında da çağrılıyor.
+- **`delete_old_unstarted_cards`:** Silmeden önce `docstatus=1` ise otomatik `cancel()` yapılıyor.
+
+### Zaman Aşımı Duruş Nedeni (Commit: `37848be`)
+- **`operasyon_duruslari.json`:** `"Zaman Aşımı"` seçeneği `durus_nedeni` select listesine eklendi.
+- Artık otomatik kapama sırasında bu standart duruş nedeni kullanılıyor (önceki commit ile entegre).
+
+### Hammadde Filtreleme — item-group Tabanlı Mimari (Commit: `dcd1b05`)
+- **`_helpers.py` → `get_allowed_items_with_groups(calisma_karti_name, alt_operasyon=None)`:** BOM/Job Card bağlantısından bağımsız yeni merkezi yardımcı fonksiyon eklendi. Mantık:
+  - `alt_operasyon` verilmişse: Alt-op'un `allowed_material_groups` listesine bakılır. Doluysa yalnızca o gruplar; boşsa sıradaki alt op'lar + parent op'un grupları kullanılır.
+  - `alt_operasyon` yoksa (hurda vb.): `Calisma Karti.operasyon`'a bağlı ana operasyon grupları kullanılır.
+  - Grup tanımlıysa Work Order `required_items` içinden filtrelenir; grup tanımlı değilse tüm WO kalemleri döner.
+- **`hurda.py`:** Eski `_get_job_card_name_from_calisma_karti`, `_get_allowed_hurda_item_codes_for_doc`, `_assert_hurda_item_allowed_for_operation`'daki BOM sorgu bloğu kaldırıldı. `_assert_hurda_item_allowed_for_operation` artık yalnızca `get_allowed_items_with_groups(doc.name)` çağırıyor. `search_allowed_hurda_items` endpoint'i tüm BOM SQL sorgusunu bırakıp `get_allowed_items_with_groups` döndürdüğü listeyi kullanıyor.
+- **`alt_operasyon.py`:** `_assert_hammadde_allowed(alt_operasyon, hammadde)` → `_assert_hammadde_allowed(calisma_karti, hammadde, alt_operasyon)` imzasına güncellendi. `search_allowed_hammadde_items` artık hem `calisma_karti` hem `alt_operasyon` parametresi alıyor.
+- **Frontend `prompts.ts`:** `altOperasyonFields` imzası `(parentOperationLabel, calismaKartiName, defaults, getAltOpValue?)` olarak genişletildi. Hammadde `get_query` closure'ı artık `calisma_karti` filtresi de gönderiyor; `getAltOpValue` callback'i sayesinde dialog açıkken seçilen `alt_operasyon` değeri canlı olarak okunuyor.
+- **Frontend `AltOperasyonView.vue`:** `frappe.prompt` çağrıları `let d; d = frappe.prompt(...)` formunda yeniden yazıldı; böylece dialog referansı (`d`) `getAltOpValue` callback'ine geçilebiliyor.
+
+### Dinamik Kart Uyarı Süresi (Commit: `d01098b`)
+- **`cards.py`:** `get_calisma_karti_detail()` artık `max_kart_suresi_dk` ve `kart_uyari_suresi_dk` değerlerini `KTA Calisma Karti Settings`'ten okuyup yanıta ekliyor.
+- **`App.vue`:** `showTimeoutWarning` computed property'si sabit `400`'ü `doc.kart_uyari_suresi_dk || 400` ile değiştirdi. Banner metni de bu dinamik değeri kullanıyor.
+
+### item-group Seçim Mantığı İyileştirmesi (Commit: `b769ea3`)
+- `get_allowed_items_with_groups`'taki sub-op grup önceliği netleştirildi: alt-op kendi `allowed_material_groups`'ına sahipse YALNIZCA bunlar kullanılır; boşsa sequence'a göre önceki alt-op'lar + parent op birleştirilir.
 
 ## Son Değişiklikler (2026-03-02)
 
@@ -70,12 +102,13 @@ Kullanıcı tarafından henüz belirtilmedi. Muhtemel odak noktaları:
 
 ## Önemli Örüntüler
 
-### Hurda Akışı (v2 — BOM operasyon kısıtlı)
+### Hurda Akışı (v3 — item-group tabanlı kısıt)
 ```
 add_hurda(name, parca_no, ...)
   → _assert_can_write_on_doc()           # operator kontrolü
   → _assert_cost_center_allowed()        # Malzeme Sarfları - KTA altında mı?
-  → _assert_hurda_item_allowed_for_operation()  # BOM + JC.operation kısıtı
+  → _assert_hurda_item_allowed_for_operation()
+      → get_allowed_items_with_groups(doc.name)  # WO items ∩ operasyon item-group filtresi
   → doc.append() → doc.save()
 ```
 

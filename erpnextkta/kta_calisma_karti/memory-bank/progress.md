@@ -1,6 +1,6 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-02 (alt operasyon geliştirme)
+> Son güncelleme: 2026-03-04 (vardiya bazlı net süre, item-group hammadde filtresi, dinamik uyarı süresi)
 
 ## Çalışan Özellikler
 
@@ -44,9 +44,23 @@
   - Ana operasyona `miktar_zorunlu_mu` (varsayılan: 1) alanı eklendi
   - Tikli değilse miktar 0 ile bitirilebilir (fakat en az bir alt operasyon zorunlu)
   - UI Duruş ve Bitiş formu `tamamlanan_miktar` field'ı opsiyonel (`reqd: 0`) yapıldı
-- [x] Hurda Filtreleme Kapsamının Genişletilmesi
-  - `hurda.py` içerisindeki filtreleme operatörün o an bulunduğu `BOM Operation`'ın `idx` (sıra) değerini baz alacak şekilde güncellendi
-  - Sadece mevcut operasyon değil, kendinden önceki (idx <= mevcut idx) tüm operasyonların materyalleri serbest bırakıldı
+- [x] Hurda Filtreleme Kapsamının Genişletilmesi  
+  - `hurda.py` içerisindeki filtreleme operatörün o an bulunduğu `BOM Operation`'ın `idx` (sıra) değerini baz alacak şekilde güncellendi  
+  - Sadece mevcut operasyon değil, kendinden önceki (idx <= mevcut idx) tüm operasyonların materyalleri serbest bırakıldı  
+- [x] Hammadde Filtreleme — item-group Tabanlı Mimari (Commit: `dcd1b05` + `b769ea3`)
+  - `get_allowed_items_with_groups(calisma_karti_name, alt_operasyon=None)` merkezi yardımcı fonksiyon `_helpers.py`'e eklendi
+  - BOM/Job Card bağlantısından tamamen bağımsız: WO `required_items` ∩ operasyon `allowed_material_groups` ı filtreler
+  - Alt-op kendi grubu tanımlıysa YALNIZCA o grup; boşsa sequence cözümlemesi ile önceki alt-op'lar + parent op birleştirilir
+  - `hurda.py` tüm eski BOM SQL bloğunu bıraktı; `_assert_hurda_item_allowed_for_operation` + `search_allowed_hurda_items` yeni yardımcıyı kullanıyor
+  - `alt_operasyon.py`: `_assert_hammadde_allowed` imzası `(calisma_karti, hammadde, alt_operasyon)` olarak güncellendi; `search_allowed_hammadde_items` `calisma_karti` filtresi eklendi
+- [x] Zaman Aşımı Duruş Nedeni (Commit: `37848be`)
+  - `operasyon_duruslari.json` dış sekmesine `"Zaman Aşımı"` sekmesi eklendi
+  - Otomatik kapama cron'u bu nedeni kullanıyor (sıfır süreli bilgi kaydı olarak)
+- [x] Vardiya Penceresi + Operatör Net Süre Limiti (Commit: `35bd322`)
+  - `_shift_name_by_now`, `_shift_window`, `_parse_minsec`, `_other_cards_net_seconds_in_shift` `calisma_karti.py`'e eklendi
+  - `hesapla_toplam_sure()` artık vardiya penceresindeki diğer kartların toplam süresini hesaba katan kapasiteye göre kırpar
+  - `tasks.py`: log eklendi, timeout duruşu sıfır-süreli olarak kaydediliyor, `realtime.publish` kapama sonrası çağrılıyor
+  - `delete_old_unstarted_cards`: `docstatus=1` ise silmeden önce `cancel()` yapılıyor
 
 ### Frontend ✅
 - [x] Server-Side Filtering & Initialization Fixes — `list-calisma-cards` sayfasındaki ağır Vue array filtrelemeleri SQL API'ye bağlandı.
@@ -57,7 +71,9 @@
 - [x] `list-calisma-cards` — Realtime list, çok filtreli (durum, QC, customer group), paginasyon
 - [x] `view-calisma-karti` — Tab'lı detay (Info, Alt Operasyon, Hurda, Duruş, Kalite)
 - [x] `AltOperasyonView.vue` — `sortedRows` computed (sequence sırası), `alt_operasyon_title` fallback gösterimi
-- [x] `App.vue` Timeout Banner (Katman 3 / UI) — İşlem 400 dk'yi aşarsa tepeye kırmızı 🚨 alert banner açılır
+- [x] `App.vue` Timeout Banner (Katman 3 / UI) — İşlem uyarı süresini aşarsa tepeye kırmızı 🚨 alert banner açılır (**dinamik**: `kart_uyari_suresi_dk` KTA Settings'ten okunur)
+- [x] `prompts.ts` `altOperasyonFields` — `calismaKartiName` + `getAltOpValue` callback eklendi; hammadde `get_query` `calisma_karti` filtresi gönderiyor
+- [x] `AltOperasyonView.vue` dialog referansı (`let d`) — `getAltOpValue` callback'ine aktarılıyor
 
 ## Eksik / Belirsiz
 
@@ -92,3 +108,6 @@
 | — | Customer group filtreleme eklendi | Farklı müşterilerin kartlarını ayırt etmek için |
 | 2026-03-02 | Zaman aşımı kontrolü (`MAX_NET_CALISMA_DK=430`) sağlandı | Kartlar açık unutulduğunda raporların ve süre hesabının bozulmasını önlemek |
 | 2026-03-02 | Cron job bazlı otomatik kart iptali / temizliği kodu yazıldı | Operatör hatalarını (unutulan/hiç başlatılmayan kartları) manuel yerine arka planda otonom onarmak |
+| 2026-03-02–2026-03-04 | Hammadde filtreleme BOM/JC bağlantısından çıkarıldı; `get_allowed_items_with_groups` (WO + item-group) mantığına geçildi | BOM operasyon etiketleri tutarsız; item-group tabanlı konfigurasyon daha esnek |
+| 2026-03-04 | Vardiya penceresi bazlı operatör net süre biçimlendi | Aynı vardiyada birden fazla kart açan operatörlerin toplam süresi kontrol altına alındı |
+| 2026-03-04 | `kart_uyari_suresi_dk` ve `max_kart_suresi_dk` backend'den frontend'e aktarıldı | Sabit hard-code banner metninin yerini dinamik ayar aldı |

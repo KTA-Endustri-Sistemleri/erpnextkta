@@ -52,10 +52,15 @@ for df in meta.fields:
         return df.fieldname
 ```
 
-### 5. BOM-Scoped Whitelist Pattern
+### 5. item-group Tabanlı Whitelist Pattern (v3)
 ```python
-# Hurda: sadece Job Card'ın operasyonuna ait BOM kalemleri
-BOM Item WHERE parent=bom_no AND operation=jc.operation
+# Hurda: WO required_items ∩ operasyon allowed_material_groups filtresi
+# (BOM/JC bağlantısından bağımsız)
+get_allowed_items_with_groups(calisma_karti_name, alt_operasyon=None)
+
+# Alt-op: alt-op grubu tanımlıysa YALNIZCA o grup
+#         boşsa: sequence ≤ current alt-op + parent op grupları
+# Hurda (alt_operasyon=None): parent operasyon grupları
 
 # IDC: sadece Work Order BOM'undaki item_group="120-IDC Connector" kalemler
 BOM Item JOIN Item WHERE item_group="120-IDC Connector"
@@ -110,5 +115,8 @@ Bağlı ERPNext Doktipleri:
 ### Kalite Kontrol Güncelleme:
 `update_kalite_kontrol() → _require_qc_role() → değer whitelist kontrolü → ignore_permissions → db_set() → publish_realtime`
 
-### Hurda Ekleme (v2):
-`add_hurda() → _assert_can_write_on_doc() → _assert_cost_center_allowed() → _assert_hurda_item_allowed_for_operation() [BOM scope] → doc.append() → doc.save()`
+### Hurda Ekleme (v3 — item-group tabanlı):
+`add_hurda() → _assert_can_write_on_doc() → _assert_cost_center_allowed() → _assert_hurda_item_allowed_for_operation() [get_allowed_items_with_groups()] → doc.append() → doc.save()`
+
+### Vardiya Penceresi Net Süre Hesabı:
+`hesapla_toplam_sure() → _shift_window(end_dt) [HRMS Shift Type] → _other_cards_net_seconds_in_shift() → remaining=max_limit-other_net → net_saniye=min(net_saniye, remaining)`
