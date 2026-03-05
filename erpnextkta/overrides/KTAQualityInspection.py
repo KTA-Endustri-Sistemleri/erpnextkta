@@ -13,11 +13,17 @@ class KTAQualityInspection(QualityInspection):
             if self.docstatus == DocStatus.submitted() and self.reference_type == "Purchase Receipt" and self.status == "Accepted":
                 doc = frappe.get_doc('Purchase Receipt Item', self.child_row_reference)
                 custom_split_kta_batches(row=doc, q_ref=self.name)
-                self.print_zebra()
+                try:
+                    self.print_zebra()
+                except Exception as print_err:
+                    frappe.log_error(f"Zebra Print Error (QI): {str(print_err)}", "QI Zebra Print Error")
+                    frappe.msgprint(f"Zebra yazdırma hatası (göz ardı edildi): {str(print_err)}", alert=True)
             if self.custom_set_item_default_qi_template == 1:
                 self.set_default_qi_template()
         except Exception as e:
-            frappe.log_error(f"Quality Inspection Submit Error {str(e)}", "Quality Inspection Submit Error")
+            import traceback
+            full_trace = traceback.format_exc()
+            frappe.log_error(f"Quality Inspection Submit Error {str(e)}\n{full_trace}", "Quality Inspection Submit Error")
             frappe.throw(f"Quality Inspection Submit Error {str(e)}")
 
     def print_zebra(self):
