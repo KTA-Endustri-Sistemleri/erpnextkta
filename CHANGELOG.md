@@ -3,6 +3,78 @@
 
 
 
+## 🚀 v0.19.0 (2026-03-05)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **batch-split**: allow batch splitting on Return Purchase Receipts by checking outward batch entries
+      
+      
+    
+      
+      
+        
+- **quality-inspection**: prevent zebra printer errors from rolling back batch splitting
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- Implement reliable incoming rate determination and ensure accurate batch quantity updates during bundle processing.
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- fix:batch labels (#108)
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.18.0 (2026-03-04)
 
 
