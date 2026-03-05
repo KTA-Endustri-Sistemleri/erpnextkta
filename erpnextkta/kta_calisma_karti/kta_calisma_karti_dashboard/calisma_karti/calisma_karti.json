@@ -1,0 +1,25 @@
+{
+    "cards": [],
+    "charts": [
+        {
+            "chart": "Calisma Karti",
+            "width": "Full"
+        },
+        {
+            "chart": "Operator Net Sure",
+            "width": "Full"
+        }
+    ],
+    "creation": "2026-03-05 15:54:17.057921",
+    "dashboard_name": "Calisma Karti",
+    "docstatus": 0,
+    "doctype": "Dashboard",
+    "idx": 0,
+    "is_default": 0,
+    "is_standard": 1,
+    "modified": "2026-03-05 16:56:00.000000",
+    "modified_by": "Administrator",
+    "module": "kta_calisma_karti",
+    "name": "Calisma Karti",
+    "owner": "Administrator"
+}
