@@ -422,11 +422,19 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
         return
 
     # 1. Mevcut Batch Numarasını Tespit Et
+    # Normal girişlerde is_outward=0, iadelerde (Return) is_outward=1 olur.
     row_batch_number = frappe.db.get_value(
         "Serial and Batch Entry",
         {"parent": row.serial_and_batch_bundle, "is_outward": 0},
         "batch_no"
     )
+
+    if not row_batch_number:
+        row_batch_number = frappe.db.get_value(
+            "Serial and Batch Entry",
+            {"parent": row.serial_and_batch_bundle, "is_outward": 1},
+            "batch_no"
+        )
 
     if not row_batch_number:
         # Fallback: Batch tablosundan PR referansıyla bul
