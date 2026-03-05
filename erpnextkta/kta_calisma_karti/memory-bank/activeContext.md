@@ -4,9 +4,39 @@
 
 ## Mevcut Odak
 
-Operasyon-JC eşleştirme sistemi tamamlandıktan sonra, vardiya bazlı net süre limitinin canlı verilerle simülasyonu yapıldı. `docstatus` filtrelerinden kaynaklanan çalışmama durumu tespit edilip düzeltildi (Draft kartlar kapasiteye dahil edildi). Sistemin geçmiş ve açık kartları düzenlemesi için betikler eklendi.
+Dashboard chart altyapısı oluşturuldu. İki custom chart source eklendi: günlük durum özeti ve operatör bazlı net çalışma süresi. Her iki chart da dynamic filtrelerle donatıldı.
 
-## Son Değişiklikler (2026-03-05)
+## Son Değişiklikler (2026-03-05) — Dashboard Chart
+
+### Dashboard Chart Source — `calisma_karti`
+- **Python kaynak:** `dashboard_chart_source/calisma_karti/calisma_karti.py`
+  - Son N günü günlük dilimlere bölerek 5 durum (Hazır/Çalışıyor/Duruşta/Bitmiş/Reddedildi) bazında kart sayısı döner
+  - Dinamik SQL WHERE: `operasyon`, `is_istasyonu` filtreleri destekli
+  - `frappe.form_dict.get("filters")` ile okuma (Frappe typing wrapper bypass)
+  - `for _ in range(days)` → `for i in range(days)` düzeltmesi (`_` çeviri fn. eziliyordu)
+- **JS kaynak:** Filtreler: Gün Sayısı (7/14/30/60/90 select), Operasyon (Link), İş İstasyonu (Link)
+- **Chart JSON:** Bar, timeseries=0, source=Calisma Karti, `currency` alanı YOK
+
+### Dashboard Chart Source — `operator_net_sure`
+- **Python kaynak:** `dashboard_chart_source/operator_net_sure/operator_net_sure.py`
+  - Son N günde operatör başına toplam net çalışma süresi (dakika)
+  - `M:SS` formatını dakikaya çeviren `_parse_minsec_to_minutes` yardımcısı
+  - `is_istasyonu` filtresi destekli; `top_n` ile kaç operatör gösterileceği ayarlanabilir
+- **JS kaynak:** Filtreler: Gün Sayısı, İş İstasyonu (Link), Top N (5/10/15/20 select)
+- **Chart JSON:** Bar, show_values_over_chart=1, `currency` alanı YOK
+
+### Dashboard Fixture — `kta_calisma_karti_dashboard`
+- `calisma_karti.json` güncellendi: İki chart da Full genişlikte eklendi
+
+### Teknik Notlar
+- Frappe Dashboard Chart Source `filters` parametresi her zaman JSON string olarak gelir → backend'de `json.loads` ile parse edilmeli
+- `from frappe import _` çeviri fonksiyonu, döngü değişkeni olarak `_` kullanılırsa ezilir → her zaman `i` vb. kullan
+- `currency: TRY` alanı chart JSON'unda olursa Frappe değerleri para birimi formatında gösterir → custom source'larda bu alanı koyma
+
+### Commit
+`f33ad1b` — `feat(dashboard): add Calisma Karti and Operator Net Sure chart sources`
+
+## Son Değişiklikler (2026-03-05) — Önceki
 
 ### UI ve Validasyon İyileştirmeleri
 - **Alt İşlem ve Hurda Buton Gizlenmesi:** Kartın durumu `"Hazır"` veya `"Bitmiş"` iken `AltOperasyonView.vue` ve `HurdaView.vue` içindeki "Ekle" butonları (`v-if` şartıyla) gizlendi.

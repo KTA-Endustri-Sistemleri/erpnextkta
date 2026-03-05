@@ -1,8 +1,19 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-05 (operasyon-JC eşleştirme sistemi)
+> Son güncelleme: 2026-03-05 (dashboard chart altyapısı)
 
 ## Çalışan Özellikler
+
+### Dashboard ✅
+- [x] **`Calisma Karti` Chart Source** (`dashboard_chart_source/calisma_karti/`)
+  - Günlük durum dağılımı bar chart (5 durum × N gün)
+  - Filtreler: `days` (7-90), `operasyon` (Link), `is_istasyonu` (Link)
+  - `frappe.form_dict` üzerinden filtre okuma (typing wrapper bypass)
+- [x] **`Operator Net Sure` Chart Source** (`dashboard_chart_source/operator_net_sure/`)
+  - Operatör bazlı net çalışma süresi bar chart (M:SS → dakika)
+  - Filtreler: `days`, `is_istasyonu` (Link), `top_n` (5-20)
+- [x] **Dashboard Fixture** — `kta_calisma_karti_dashboard/calisma_karti.json` (Full width, iki chart)
+- [x] Chart JSON fixture'larında `currency` alanı kaldırıldı (TRY format sorunu)
 
 ### Backend ✅
 - [x] Concurrency (Anti-Double-Click) Koruması — `create_calisma_karti()` 30 saniye geciktirmeli blokaj
