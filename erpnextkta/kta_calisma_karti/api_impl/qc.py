@@ -183,17 +183,18 @@ def _assert_idc_item_allowed_for_work_order(doc, item_code: str):
     bom_no = _get_bom_no_from_work_order(wo_name)
 
     # 1) Item constraints
-    ok_item = frappe.db.exists(
+    ok_item = frappe.db.get_value(
         "Item",
         {
             "name": code,
-            "item_group": "120-IDC Connector",
+            "item_group": ["in", ["120-IDC Connector", "110-Connector"]],
             "custom_ara_malzeme_grubu": "HAMMADDE",
         },
+        "name"
     )
     if not ok_item:
         frappe.throw(
-            _("Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)"),
+            _("Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector veya 110-Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)"),
             frappe.ValidationError,
         )
 
@@ -246,7 +247,7 @@ def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters
             bi.parent = %(bom_no)s
             and bi.parenttype = 'BOM'
             and bi.parentfield = 'items'
-            and i.item_group = '120-IDC Connector'
+            and i.item_group in ('120-IDC Connector', '110-Connector')
             and ifnull(i.custom_ara_malzeme_grubu, '') = 'HAMMADDE'
             and (
                 i.name like %(like)s

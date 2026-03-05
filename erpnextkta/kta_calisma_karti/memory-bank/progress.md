@@ -17,7 +17,7 @@
 - [x] `get_work_order_by_barcode()` — WO barkod arama
 - [x] Hurda CRUD — BOM/operasyon bazlı item kısıtı dahil
 - [x] Kalite kontrol güncelleme — permlevel bypass + rol kapısı
-- [x] IDC ölçüm CRUD — item_group + BOM scope filtresi; operatörler de girebilir (QC kısıtı kaldırıldı)
+- [x] IDC ölçüm CRUD — item_group (120-IDC ve 110-Connector) + BOM scope filtresi; operatörler de girebilir (QC kısıtı kaldırıldı)
 - [x] `yukseklik_mm` ve `cekme_n` opsiyonel (default 0, `reqd: 1` kaldırıldı)
 - [x] Barkod kaydı CRUD
 - [x] Alt operasyon CRUD
@@ -83,6 +83,7 @@
 - [x] `create-calisma-karti` wizard — WO modu (5 adım) + JC modu (3 adım)
 - [x] `list-calisma-cards` — Realtime list, çok filtreli (durum, QC, customer group), paginasyon
 - [x] `view-calisma-karti` — Tab'lı detay (Info, Alt Operasyon, Hurda, Duruş, Kalite)
+- [x] `AltOperasyonView.vue` ve `HurdaView.vue` — Kart "Hazır" veya "Bitmiş" durumdayken Ekle butonlarının iptali
 - [x] `AltOperasyonView.vue` — `sortedRows` computed (sequence sırası), `alt_operasyon_title` fallback gösterimi
 - [x] `App.vue` Timeout Banner (Katman 3 / UI) — İşlem uyarı süresini aşarsa tepeye kırmızı 🚨 alert banner açılır (**dinamik**: `kart_uyari_suresi_dk` KTA Settings'ten okunur)
 - [x] `prompts.ts` `altOperasyonFields` — `calismaKartiName` + `getAltOpValue` callback eklendi; hammadde `get_query` `calisma_karti` filtresi gönderiyor
@@ -98,7 +99,6 @@
 - [x] ~~`calisma_karti.py` controller~~ → `STATU_HARITASI`, `get_durum()`, `hesapla_*` metodları, `islem_yap` okundu
 - [x] ~~`tamamlanan_miktar`~~ → `islem_yap` içinde `doc.tamamlanan_miktar` olarak kullanılıyor (Custom Field)
 - [ ] CK → Job Card status senkronizasyonu — `on_update` hook Job Card'ı güncellemiyor; sadece `doc_events → Job Card → update_work_order_status` var
-- [ ] `rest-api/` klasörü — Tam içerik incelenmedi
 
 ### Potansiyel İyileştirmeler
 - [ ] Liste sayfasındaki filtreler server-side hale getirilebilir (şu an client-side)

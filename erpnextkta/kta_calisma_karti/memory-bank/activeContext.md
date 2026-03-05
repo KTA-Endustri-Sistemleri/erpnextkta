@@ -8,6 +8,11 @@ Operasyon-JC eşleştirme sistemi tamamlandıktan sonra, vardiya bazlı net sür
 
 ## Son Değişiklikler (2026-03-05)
 
+### UI ve Validasyon İyileştirmeleri
+- **Alt İşlem ve Hurda Buton Gizlenmesi:** Kartın durumu `"Hazır"` veya `"Bitmiş"` iken `AltOperasyonView.vue` ve `HurdaView.vue` içindeki "Ekle" butonları (`v-if` şartıyla) gizlendi.
+- **QC IDC Ölçümleri Genişletilmesi:** `qc.py` içindeki IDC validasyonu `120-IDC Connector`'a ek olarak `110-Connector` item grubunu da kapsayacak şekilde güncellendi. Artık iki gruptaki hammaddeler de eklenebiliyor.
+
+
 ### Vardiya Net Süre Simülasyonu ve Düzeltmeler
 
 #### `docstatus` Filtre Düzeltmesi
