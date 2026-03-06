@@ -2,6 +2,23 @@
 
 > Son güncelleme: 2026-03-05 (dashboard chart altyapısı)
 
+### Dashboard Charts (Tamamlandı)
+- [x] Basic dashboard (Günlük durum ve Net Süre) - JSON & Source Script
+- [x] `dashboard_chart_source` için 4 yeni metric geliştirilmesi
+  - [x] Operasyon Başına Tamamlanan Miktar (Bar)
+  - [x] Duruş Nedeni Dağılımı (Donut)
+  - [x] Kalite Kontrol Dağılımı (Donut)
+  - [x] Departman Bazlı Net Çalışma Süresi (Bar)
+- [x] 6 Grafik için rol yetkileri eklendi (System, Dashboard, Manufacturing, Quality Manager)
+- [x] "Çalışan Kart Sayısı" ve "Duruşta Olan Kartlar" isminde iki Number Card ve custom backend methodları sisteme eklendi
+- [x] Workspace ve Dashboard entegrasyonları tamamlandı (Çalışma Kartı menüsünde listelenmesi sağlandı)
+
+### Maintenance & Testing (Yeni - Tamamlandı)
+- [x] `scripts/seed_test_data.py`: Geçmişe dönük (son 14 iş günü) sanal kart ve alt-hesaplamalar barındıran script
+- [x] `scripts/clear_test_data.py`: Tüm Calisma Karti verisini ve child tablolarını silen script
+
+### Next Steps / Pendings
+
 ## Çalışan Özellikler
 
 ### Dashboard ✅

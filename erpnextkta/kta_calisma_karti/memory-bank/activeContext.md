@@ -8,25 +8,31 @@ Dashboard chart altyapısı oluşturuldu. İki custom chart source eklendi: gün
 
 ## Son Değişiklikler (2026-03-05) — Dashboard Chart
 
-### Dashboard Chart Source — `calisma_karti`
-- **Python kaynak:** `dashboard_chart_source/calisma_karti/calisma_karti.py`
-  - Son N günü günlük dilimlere bölerek 5 durum (Hazır/Çalışıyor/Duruşta/Bitmiş/Reddedildi) bazında kart sayısı döner
-  - Dinamik SQL WHERE: `operasyon`, `is_istasyonu` filtreleri destekli
-  - `frappe.form_dict.get("filters")` ile okuma (Frappe typing wrapper bypass)
-  - `for _ in range(days)` → `for i in range(days)` düzeltmesi (`_` çeviri fn. eziliyordu)
-- **JS kaynak:** Filtreler: Gün Sayısı (7/14/30/60/90 select), Operasyon (Link), İş İstasyonu (Link)
-- **Chart JSON:** Bar, timeseries=0, source=Calisma Karti, `currency` alanı YOK
+## Current Focus
+*   Sistemde test verisi yaratma ve temizleme sürecinin oluşturulması (`seed_test_data.py` / `clear_test_data.py`).
+*   Çalışma Kartı dashboard analitiği için 4 yeni metrik ve kaynak grafiğin (Source + JSON) sisteme entegrasyonu.
+*   Dashboard grafiklerinin görüntülenme yetkilerinin (Roles: System/Dashboard/Manufacturing/Quality Manager) ayarlanması.
 
-### Dashboard Chart Source — `operator_net_sure`
-- **Python kaynak:** `dashboard_chart_source/operator_net_sure/operator_net_sure.py`
-  - Son N günde operatör başına toplam net çalışma süresi (dakika)
-  - `M:SS` formatını dakikaya çeviren `_parse_minsec_to_minutes` yardımcısı
-  - `is_istasyonu` filtresi destekli; `top_n` ile kaç operatör gösterileceği ayarlanabilir
-- **JS kaynak:** Filtreler: Gün Sayısı, İş İstasyonu (Link), Top N (5/10/15/20 select)
-- **Chart JSON:** Bar, show_values_over_chart=1, `currency` alanı YOK
+## Recent Changes
+*   **Seed Scripti Geliştirildi**: 14 iş günü geçmişe yönelik, sadece operasyonda tanımlı (veya `DEPT_ANAHTAR_KELIMELERI` ile seçilmiş) departman çalışanlarına yönelik 5 farklı statüdeki Çalışma Kartlarını simüle eden test verisi seed yazılımı oluşturuldu.
+*   **Grafik Kaynakları (Backend & Frontend) Oluşturuldu**:
+    *   `Operasyon Başına Tamamlanan Miktar` (Bar): Her operasyonda kaç parça çıktığını gösterir.
+    *   `Duruş Nedeni Dağılımı` (Donut): Sisteme girilen duruş kodlarının toplam dakika dağılımını gösterir.
+    *   `Kalite Kontrol Dağılımı` (Donut): Onay durumu ve ret oranlarını dağılım olarak gösterir.
+    *   `Departman Bazlı Net Çalışma Süresi` (Bar): Operatör performansını departman kırılımında toplam net süre olarak gösterir.
+*   **Yetkilendirme Geliştirmesi**: Tüm 6 ana grafikte (ilk 2 temel grafik dahil) ilgili yetkili roller sisteme eklendi.
+*   **Versiyonlama**: Tüm grafik, fixture ve test kaynak dosyaları `feat(dashboard): add 4 new charts and configure roles` mesajıyla commit'lendi.
 
 ### Dashboard Fixture — `kta_calisma_karti_dashboard`
 - `calisma_karti.json` güncellendi: İki chart da Full genişlikte eklendi
+- `calisma_karti.json` güncellendi: "Calisan Kart Sayisi" ve "Durusta Kart Sayisi" adında iki yeni Number Card Dashboard ana görünümüne entegre edildi.
+
+### Workspace Fixture — `çalışma_kartı`
+- Çalışma Kartı workspace ana ekranına (JSON) "Calisan Kart Sayisi" ve "Durusta Kart Sayisi" Number Card'ları eklendi.
+
+### Number Cards
+- Eski "Toplam Açık Kart Sayısı" mantığı "Çalışan" ve "Duruşta" kart sayıları veren iki ayrı karta bölündü.
+- `calisan_kart_sayisi` ve `durusta_kart_sayisi` (JSON ve Custom Python Backend) klasörlerine kendi isimleriyle yerleştirildi.
 
 ### Teknik Notlar
 - Frappe Dashboard Chart Source `filters` parametresi her zaman JSON string olarak gelir → backend'de `json.loads` ile parse edilmeli
