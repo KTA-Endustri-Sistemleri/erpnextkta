@@ -8,7 +8,6 @@ from frappe.utils import (
 )
 from datetime import timedelta
 
-
 @frappe.whitelist()
 def get_data(**kwargs):
     """

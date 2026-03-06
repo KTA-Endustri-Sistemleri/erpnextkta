@@ -8,6 +8,22 @@
         {
             "chart": "Operator Net Sure",
             "width": "Full"
+        },
+        {
+            "chart": "Operasyon Bazi Miktar",
+            "width": "Full"
+        },
+        {
+            "chart": "Durus Nedeni Dagilimi",
+            "width": "Half"
+        },
+        {
+            "chart": "Kalite Kontrol Dagilimi",
+            "width": "Half"
+        },
+        {
+            "chart": "Departman Net Sure",
+            "width": "Full"
         }
     ],
     "creation": "2026-03-05 15:54:17.057921",
@@ -17,7 +33,7 @@
     "idx": 0,
     "is_default": 0,
     "is_standard": 1,
-    "modified": "2026-03-05 16:56:00.000000",
+    "modified": "2026-03-06 12:15:00.000000",
     "modified_by": "Administrator",
     "module": "kta_calisma_karti",
     "name": "Calisma Karti",
