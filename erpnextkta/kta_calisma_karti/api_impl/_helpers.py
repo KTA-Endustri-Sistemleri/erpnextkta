@@ -115,10 +115,35 @@ def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = 
     else:
         # Hurda logic (or missing alt_operasyon): fallback to parent_operation based on Calisma Karti
         if ck.operasyon:
-            op_doc = frappe.get_doc("KTA Calisma Karti Operasyonlari", ck.operasyon)
-            for row in getattr(op_doc, "allowed_material_groups", []):
-                if row.item_group:
-                    allowed_groups.append(row.item_group)
+            current_op_doc = frappe.get_doc("KTA Calisma Karti Operasyonlari", ck.operasyon)
+            current_sequence = getattr(current_op_doc, "sequence", 0)
+
+            # Kendisine eşit veya daha küçük sequence numarasına sahip TÜM Ana Operasyonları al
+            previous_main_ops = frappe.get_all(
+                "KTA Calisma Karti Operasyonlari",
+                filters={"sequence": ["<=", current_sequence]},
+                fields=["name"]
+            )
+
+            for main_op in previous_main_ops:
+                op_doc = frappe.get_doc("KTA Calisma Karti Operasyonlari", main_op.name)
+                
+                # 1. Ana operasyonun kendisindeki malzeme gruplarını ekle
+                for row in getattr(op_doc, "allowed_material_groups", []):
+                    if row.item_group:
+                        allowed_groups.append(row.item_group)
+
+                # 2. Bu ana operasyona bağlı tüm Alt Operasyonların malzeme gruplarını çek ve ekle
+                sub_ops = frappe.get_all(
+                    "KTA Calisma Karti Alt Operasyonlari",
+                    filters={"parent_operation": main_op.name},
+                    fields=["name"]
+                )
+                for sub_op in sub_ops:
+                    sub_op_doc = frappe.get_doc("KTA Calisma Karti Alt Operasyonlari", sub_op.name)
+                    for row in getattr(sub_op_doc, "allowed_material_groups", []):
+                        if row.item_group:
+                            allowed_groups.append(row.item_group)
 
     allowed_groups = list(set(allowed_groups))
 
