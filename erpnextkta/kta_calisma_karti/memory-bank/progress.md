@@ -18,7 +18,11 @@
 - [x] `scripts/clear_test_data.py`: Tüm Calisma Karti verisini ve child tablolarını silen script
 
 ### Next Steps / Pendings
-
+- [ ] **Kalite Kontrol (QC) Standart Entegrasyonu (Gelecek Planı):**
+  - ERPNext standart Quality Inspection (MAT-QA) belgesinin Custom Vue Frontend üzerinden modal (popup) aracılığıyla basitleştirilmesi.
+  - Çalışma Kartı üzerindeki "Kalite Onay" sürecinde, sistemin Work Order'daki ürünün (Item) `quality_inspection_template` (Kalite Şablonu) alanını okuyarak kullanıcıya test parametrelerini listelemesi.
+  - Kullanıcı formu onayladığında, arka planda otomatik bir MAT-QA taslağı oluşturulup submit edilmesi ve işlem sonunda Çalışma Kartının durumsal ("Onaylandı" / "Reddedildi") olarak senkronize edilmesi.
+  - İlgili DocType `reference_type` ayarlarına "Calisma Karti" eklenmesi.
 ## Çalışan Özellikler
 
 ### Dashboard ✅
