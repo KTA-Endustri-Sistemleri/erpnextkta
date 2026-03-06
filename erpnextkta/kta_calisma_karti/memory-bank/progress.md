@@ -73,9 +73,8 @@
   - Tikli değilse miktar 0 ile bitirilebilir (fakat en az bir alt operasyon zorunlu)
   - UI Duruş ve Bitiş formu `tamamlanan_miktar` field'ı opsiyonel (`reqd: 0`) yapıldı
 - [x] Hurda Filtreleme Kapsamının Genişletilmesi  
-  - `hurda.py` içerisindeki filtreleme operatörün o an bulunduğu `BOM Operation`'ın `idx` (sıra) değerini baz alacak şekilde güncellendi  
-  - Sadece mevcut operasyon değil, kendinden önceki (idx <= mevcut idx) tüm operasyonların materyalleri serbest bırakıldı  
-- [x] Hammadde Filtreleme — item-group Tabanlı Mimari (Commit: `dcd1b05` + `b769ea3`)
+  - Filtreleme mekanizması, aktif operasyonun `KTA Calisma Karti Operasyonlari` tanımındaki `sequence` (sıra) değerini baz alacak şekilde güncellendi.
+  - Sadece mevcut operasyon değil; bu sıraya eşit veya kendinden önceki (`sequence <= mevcut`) **tüm ana operasyonlar** ve bunlara bağlı **tüm alt operasyonların** materyalleri (Item Group'ları) serbest bırakıldı.- [x] Hammadde Filtreleme — item-group Tabanlı Mimari (Commit: `dcd1b05` + `b769ea3`)
   - `get_allowed_items_with_groups(calisma_karti_name, alt_operasyon=None)` merkezi yardımcı fonksiyon `_helpers.py`'e eklendi
   - BOM/Job Card bağlantısından tamamen bağımsız: WO `required_items` ∩ operasyon `allowed_material_groups` ı filtreler
   - Alt-op kendi grubu tanımlıysa YALNIZCA o grup; boşsa sequence cözümlemesi ile önceki alt-op'lar + parent op birleştirilir

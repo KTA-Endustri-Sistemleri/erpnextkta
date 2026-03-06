@@ -20,8 +20,17 @@ Dashboard chart altyapısı oluşturuldu. İki custom chart source eklendi: gün
     *   `Duruş Nedeni Dağılımı` (Donut): Sisteme girilen duruş kodlarının toplam dakika dağılımını gösterir.
     *   `Kalite Kontrol Dağılımı` (Donut): Onay durumu ve ret oranlarını dağılım olarak gösterir.
     *   `Departman Bazlı Net Çalışma Süresi` (Bar): Operatör performansını departman kırılımında toplam net süre olarak gösterir.
-*   **Yetkilendirme Geliştirmesi**: Tüm 6 ana grafikte (ilk 2 temel grafik dahil) ilgili yetkili roller sisteme eklendi.
-*   **Versiyonlama**: Tüm grafik, fixture ve test kaynak dosyaları `feat(dashboard): add 4 new charts and configure roles` mesajıyla commit'lendi.
+*   **Yetkilendirme Geliştirmesi**: Tüm ana grafiklerde ve Kalite Kontrol Dağılımı Dashboard konfigürasyonlarında (Dashboard Manager, System Manager vb.) roller eklendi.
+*   **Özel Renklendirme (Custom Colors)**: "Kalite Kontrol Dagilimi" grafiği için Mavi ve Yeşil gibi custom hex kodları (JSON seviyesinde) atandı.
+
+### Hurda Filtreleme Kapsamı Genişletildi
+*   Hurda (Scrap) Item bazlı `_helpers.py` doğrulama mantığı (ve arayüzdeki büyüteç listesi) değiştirildi.
+*   Artık operatör hurda parçası eklerken sadece o andaki operasyonun grubunu değil; o anki `KTA Calisma Karti Operasyonlari` dokümanının `sequence`'ine bakarak **kendinden önceki veya eşit sıradaki tüm Ana ve Alt operasyonların** gruplarından gelen 30+ onaylı materyali topluca görüntüleyebiliyor.
+
+### Commit
+`81c9452` — `style(dashboard): set custom colors for kalite_kontrol_dagilimi chart`
+`b6493d3` — `feat(kta-calisma-karti): extend scrap filtering to include all prior KTA operations and sub-operations`
+`e6b53a0` — `feat(dashboard): add active and paused number cards`
 
 ### Dashboard Fixture — `kta_calisma_karti_dashboard`
 - `calisma_karti.json` güncellendi: İki chart da Full genişlikte eklendi
