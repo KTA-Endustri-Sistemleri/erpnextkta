@@ -13,7 +13,7 @@
     "is_standard": 1,
     "message": "Yeni bir Çalışma Kartı ({{ doc.name }}) oluşturuldu.",
     "message_type": "Markdown",
-    "modified": "2026-03-09 17:00:00.000000",
+    "modified": "2026-03-09 16:20:34.293208",
     "modified_by": "Administrator",
     "module": "kta_calisma_karti",
     "name": "\u00c7al\u0131\u015fma Kart\u0131 Olu\u015fturuldu",
