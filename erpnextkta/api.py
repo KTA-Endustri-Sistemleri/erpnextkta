@@ -1,23 +1,3 @@
-def _get_last_batch_number_for_base(base_batch_number):
-    if not base_batch_number: return 0
-
-    prefix_len = len(base_batch_number)
-
-    total_len = prefix_len + 4
-    
-    # Sadece tam olarak [BASE][4 haneli rakam] formatındakileri bul
-    last_batch = frappe.db.sql("""
-        SELECT name FROM `tabBatch` 
-        WHERE name LIKE %s 
-        AND LENGTH(name) = %s
-        ORDER BY name DESC LIMIT 1
-    """, (f"{base_batch_number}%", total_len))
-
-    if not last_batch:
-        return 0
-    
-    suffix = last_batch[0][0][prefix_len:]
-    return int(suffix) if suffix.isdigit() else 0
 import socket
 import frappe
 import json
@@ -475,12 +455,35 @@ def _get_reliable_incoming_rate(row, bundle_doc):
     """
     Güvenilir incoming_rate belirler.
     Fallback zinciri (öncelik sırasıyla):
+    0. Submitted bundle ise bağlı SLE'nin incoming_rate'i (QI-path için kritik)
     1. Bundle entry'lerindeki mevcut incoming_rate
     2. DB'den PR Item / SE Detail valuation_rate (taze okuma)
     3. DB'den PR Item rate veya base_rate
     4. Item Master valuation_rate
     5. Item Master last_purchase_rate
+
+    Öncelik 0'ın önemi:
+    QI (Kalite Kontrol) akışında bundle, SLE oluşturulduktan SONRA değiştiriliyor.
+    Eski bundle entry'leri incoming_rate=0 içerebilir ya da farklı bir rate döndürebilir.
+    SLE zaten doğru rate ile kaydedilmiş, bu yüzden oradan okumak en güvenli.
     """
+    # 0. Submitted bundle için bağlı SLE'den incoming_rate al
+    # Bu, QI onayı sırasında split edilen bundle'lar için kritik:
+    # SLE zaten doğru rate ile oluşturulmuş olup bundle entry'lerinden daha güvenilir.
+    if bundle_doc.name and flt(bundle_doc.docstatus) == 1:
+        sle_rate = frappe.db.get_value(
+            "Stock Ledger Entry",
+            {
+                "serial_and_batch_bundle": bundle_doc.name,
+                "actual_qty": (">", 0),
+                "is_cancelled": 0,
+                "docstatus": 1,
+            },
+            "incoming_rate",
+        )
+        if flt(sle_rate):
+            return flt(sle_rate)
+
     # 1. Bundle entry'lerinden
     for entry in bundle_doc.get("entries", []):
         if flt(entry.get("incoming_rate")):
@@ -623,6 +626,27 @@ def custom_create_packages(row, batch_no, qty, sut_code, q_ref):
         )
     )
     etiket.insert(ignore_permissions=True)
+
+
+def _get_last_batch_number_for_base(base_batch_number):
+    if not base_batch_number: return 0
+
+    prefix_len = len(base_batch_number)
+    total_len = prefix_len + 4
+
+    # Sadece tam olarak [BASE][4 haneli rakam] formatındakileri bul
+    last_batch = frappe.db.sql("""
+        SELECT name FROM `tabBatch`
+        WHERE name LIKE %s
+        AND LENGTH(name) = %s
+        ORDER BY name DESC LIMIT 1
+    """, (f"{base_batch_number}%", total_len))
+
+    if not last_batch:
+        return 0
+
+    suffix = last_batch[0][0][prefix_len:]
+    return int(suffix) if suffix.isdigit() else 0
 
 
 def _prepare_batch_allocations(row, base_source_doc, base_batch_number, is_manufacturing=False):
@@ -1383,6 +1407,287 @@ def sync_sales_orders_from_sales_order_update(sales_order_update_name=None, sale
         sales_order_update_name=sales_order_update_name,
         sales_order_update_reference=sales_order_update_reference,
     )
+
+
+@frappe.whitelist()
+def diagnose_bundle_valuation():
+    """Geçici tanı fonksiyonu: bundle/SLE tutarsızlıklarını raporlar."""
+    results = {}
+
+    results["entries_zero_rate"] = frappe.db.sql("""
+        SELECT COUNT(DISTINCT sabb.name) as cnt
+        FROM `tabSerial and Batch Bundle` sabb
+        JOIN `tabStock Ledger Entry` sle ON sle.serial_and_batch_bundle = sabb.name
+        JOIN `tabSerial and Batch Entry` sabe ON sabe.parent = sabb.name
+        WHERE sabb.docstatus=1 AND sabb.is_cancelled=0 AND sabb.type_of_transaction='Inward'
+          AND sle.actual_qty>0 AND sle.is_cancelled=0 AND sle.docstatus=1
+          AND sle.stock_value_difference>0
+          AND (sabe.incoming_rate IS NULL OR sabe.incoming_rate = 0)
+    """)[0][0]
+
+    results["total_amount_zero_but_sle_positive"] = frappe.db.sql("""
+        SELECT COUNT(*) as cnt
+        FROM `tabSerial and Batch Bundle` sabb
+        JOIN `tabStock Ledger Entry` sle ON sle.serial_and_batch_bundle = sabb.name
+        WHERE sabb.docstatus=1 AND sabb.is_cancelled=0 AND sabb.type_of_transaction='Inward'
+          AND sabb.total_amount = 0
+          AND sle.actual_qty>0 AND sle.is_cancelled=0 AND sle.docstatus=1
+          AND sle.stock_value_difference>0
+    """)[0][0]
+
+    results["entries_sum_mismatch"] = frappe.db.sql("""
+        SELECT COUNT(*) as cnt
+        FROM `tabSerial and Batch Bundle` sabb
+        JOIN `tabStock Ledger Entry` sle ON sle.serial_and_batch_bundle = sabb.name
+        WHERE sabb.docstatus=1 AND sabb.is_cancelled=0 AND sabb.type_of_transaction='Inward'
+          AND sle.actual_qty>0 AND sle.is_cancelled=0 AND sle.docstatus=1
+          AND sle.stock_value_difference>0
+          AND ABS(COALESCE((
+              SELECT SUM(s.stock_value_difference)
+              FROM `tabSerial and Batch Entry` s WHERE s.parent=sabb.name
+          ), 0) - sabb.total_amount) > 0.01
+    """)[0][0]
+
+    samples = frappe.db.sql("""
+        SELECT DISTINCT sabb.item_code, sabb.name as bundle,
+               sabb.total_amount as bundle_amt, sle.stock_value_difference as sle_svd,
+               sle.incoming_rate as sle_rate,
+               COALESCE((SELECT SUM(s.stock_value_difference)
+                         FROM `tabSerial and Batch Entry` s WHERE s.parent=sabb.name), 0) as entries_sum,
+               COALESCE((SELECT MIN(s.incoming_rate)
+                         FROM `tabSerial and Batch Entry` s WHERE s.parent=sabb.name), 0) as min_entry_rate
+        FROM `tabSerial and Batch Bundle` sabb
+        JOIN `tabStock Ledger Entry` sle ON sle.serial_and_batch_bundle = sabb.name
+        JOIN `tabSerial and Batch Entry` sabe ON sabe.parent = sabb.name
+        WHERE sabb.docstatus=1 AND sabb.is_cancelled=0 AND sabb.type_of_transaction='Inward'
+          AND sle.actual_qty>0 AND sle.is_cancelled=0 AND sle.docstatus=1
+          AND sle.stock_value_difference>0
+          AND (sabe.incoming_rate IS NULL OR sabe.incoming_rate = 0)
+        LIMIT 5
+    """, as_dict=True)
+    results["samples"] = samples
+
+    return results
+
+
+@frappe.whitelist()
+def fix_zero_rate_qi_bundles(dry_run=True, company=None):
+    """
+    QI (Kalite Kontrol) akışında split edilen ve entry'lerin stock_value_difference=0
+    olduğu eski bundle'ları düzeltir. Bu fonksiyon e668cde fix'inden önce oluşturulan ve
+    Stock Balance raporunda bal_qty=0 ama bal_val!=0 olarak görünen kalemleri onarır.
+
+    Çalışma Mantığı:
+    1. Submitted, Inward tipinde, entry SVD toplamı != bundle total_amount olan bundle'ları bulur
+    2. Bu bundle'lara bağlı SLE'den gerçek incoming_rate'i alır
+    3. Bundle entry'lerini doğru incoming_rate ve stock_value_difference ile günceller
+    4. Repost Item Valuation oluşturur (tüketim SLE'lerini de düzeltmek için)
+
+    Args:
+        dry_run: True ise sadece etkilenen kayıtları listeler, değişiklik yapmaz.
+        company: Belirli bir şirketle sınırlandırmak için (None = tümü).
+
+    Returns:
+        dict: Bulunan ve düzeltilen bundle sayısı ile detaylar.
+    """
+    dry_run = cint(dry_run)
+
+    # Bozuk bundle tespiti: Bundle header'daki total_amount ile entry'lerin
+    # stock_value_difference toplamı arasında anlamlı fark olanlar.
+    # e668cde öncesinde QI split edilen bundle'larda entry'ler svd=0 ile oluşturulmuş
+    # ama bundle.total_amount SLE işlemi sırasında doğru değeri almış.
+    # Dolayısıyla avg_rate=0 veya total_amount=0 kontrolü değil, direkt uyumsuzluk aranır.
+    affected = frappe.db.sql("""
+        SELECT
+            sabb.name          AS bundle_name,
+            sabb.item_code,
+            sabb.warehouse,
+            sabb.voucher_type,
+            sabb.voucher_no,
+            sabb.posting_date,
+            sabb.posting_time,
+            sabb.total_qty,
+            sabb.total_amount  AS bundle_total_amount,
+            ROUND(COALESCE((
+                SELECT SUM(sabe.stock_value_difference)
+                FROM `tabSerial and Batch Entry` sabe
+                WHERE sabe.parent = sabb.name
+            ), 0), 4)          AS entries_svd_sum,
+            sle.incoming_rate  AS sle_incoming_rate,
+            sle.stock_value_difference AS sle_stock_value_diff,
+            sle.name           AS sle_name,
+            sle.company
+        FROM `tabSerial and Batch Bundle` sabb
+        JOIN `tabStock Ledger Entry` sle
+            ON sle.serial_and_batch_bundle = sabb.name
+        WHERE sabb.docstatus = 1
+          AND sabb.is_cancelled = 0
+          AND sabb.type_of_transaction = 'Inward'
+          AND sle.actual_qty > 0
+          AND sle.is_cancelled = 0
+          AND sle.docstatus = 1
+          AND sle.stock_value_difference > 0
+          AND ABS(COALESCE((
+                SELECT SUM(sabe2.stock_value_difference)
+                FROM `tabSerial and Batch Entry` sabe2
+                WHERE sabe2.parent = sabb.name
+            ), 0) - sabb.total_amount) > 0.01
+          {company_filter}
+    """.format(
+        company_filter=f"AND sle.company = {frappe.db.escape(company)}" if company else ""
+    ), as_dict=True)
+
+    if not affected:
+        return {"fixed": 0, "total_found": 0, "details": []}
+
+    results = []
+    fixed_count = 0
+    repost_vouchers = set()  # (voucher_type, voucher_no, posting_date, company)
+
+    for row in affected:
+        total_qty = flt(row.total_qty)
+        entries_svd_sum = flt(row.entries_svd_sum)
+        bundle_total = flt(row.bundle_total_amount)
+        sle_rate = flt(row.sle_incoming_rate)
+        sle_svd = flt(row.sle_stock_value_diff)
+
+        if not total_qty:
+            results.append({"bundle": row.bundle_name, "status": "ATLANDA - total_qty=0"})
+            continue
+
+        # Hangi tarafın bozuk olduğunu belirle:
+        # A) Entries bozuk (svd≈0), total_amount doğru → entry'leri SLE rate ile düzelt
+        # B) total_amount bozuk (≈0), entries doğru → sadece header güncelle
+        # C) Her ikisi de büyük ama fark küçük → floating-point yuvarlama, geç
+        entries_broken = abs(entries_svd_sum) < 0.01 and bundle_total > 0.01
+        header_broken = abs(bundle_total) < abs(entries_svd_sum) * 0.01 and abs(entries_svd_sum) > 0.01
+
+        if not entries_broken and not header_broken:
+            # Fark sadece yuvarlama kaynaklı, güvenli şekilde atla
+            results.append({
+                "bundle": row.bundle_name,
+                "status": "ATLANDA - yuvarlama farkı (entries_sum≈total)",
+                "bundle_total_amount": bundle_total,
+                "entries_svd_sum": entries_svd_sum,
+            })
+            continue
+
+        # Bundle'ın child entry'lerini bul
+        entries = frappe.db.get_all(
+            "Serial and Batch Entry",
+            filters={"parent": row.bundle_name},
+            fields=["name", "batch_no", "qty", "incoming_rate", "stock_value_difference"],
+            order_by="idx asc",
+        )
+
+        if entries_broken:
+            # Durum A: Entry'ler sıfır, SLE rate'i kullan
+            if not sle_rate:
+                if sle_svd and total_qty:
+                    sle_rate = sle_svd / total_qty
+                else:
+                    results.append({
+                        "bundle": row.bundle_name,
+                        "status": "ATLANDA - entries bozuk ama SLE rate hesaplanamadı",
+                    })
+                    continue
+            new_total_amount = total_qty * sle_rate
+            fix_mode = "ENTRIES_FIXED"
+            entry_details = [
+                {"batch_no": e.batch_no, "qty": flt(e.qty),
+                 "old_svd": flt(e.stock_value_difference),
+                 "new_svd": flt(e.qty) * sle_rate}
+                for e in entries
+            ]
+        else:
+            # Durum B: Entries doğru, sadece total_amount bozuk
+            new_total_amount = entries_svd_sum
+            sle_rate = entries_svd_sum / total_qty
+            fix_mode = "HEADER_ONLY"
+            entry_details = [
+                {"batch_no": e.batch_no, "qty": flt(e.qty),
+                 "old_svd": flt(e.stock_value_difference),
+                 "new_svd": flt(e.stock_value_difference)}  # değişmeyecek
+                for e in entries
+            ]
+
+        results.append({
+            "bundle": row.bundle_name,
+            "voucher": f"{row.voucher_type} {row.voucher_no}",
+            "item_code": row.item_code,
+            "warehouse": row.warehouse,
+            "fix_mode": fix_mode,
+            "sle_rate": sle_rate,
+            "total_qty": total_qty,
+            "bundle_total_amount": bundle_total,
+            "entries_svd_sum": entries_svd_sum,
+            "new_total_amount": new_total_amount,
+            "entries": entry_details,
+            "status": "DRY_RUN" if dry_run else "DÜZELTILDI",
+        })
+
+        if dry_run:
+            continue
+
+        if entries_broken:
+            # Entry'leri güncelle
+            for e in entries:
+                new_svd = flt(e.qty) * sle_rate
+                frappe.db.set_value(
+                    "Serial and Batch Entry",
+                    e.name,
+                    {
+                        "incoming_rate": sle_rate,
+                        "stock_value_difference": new_svd,
+                    },
+                    update_modified=False,
+                )
+
+        # Bundle header'ını güncelle (her iki durumda)
+        frappe.db.set_value(
+            "Serial and Batch Bundle",
+            row.bundle_name,
+            {
+                "total_amount": new_total_amount,
+                "avg_rate": sle_rate,
+            },
+            update_modified=False,
+        )
+        frappe.clear_document_cache("Serial and Batch Bundle", row.bundle_name)
+
+        fixed_count += 1
+        repost_vouchers.add((row.voucher_type, row.voucher_no, row.posting_date, row.company))
+
+    # Repost Item Valuation oluştur (tüketim SLE'lerini de düzeltmek için)
+    repost_names = []
+    if not dry_run:
+        for voucher_type, voucher_no, posting_date, comp in repost_vouchers:
+            try:
+                repost_doc = frappe.get_doc({
+                    "doctype": "Repost Item Valuation",
+                    "based_on": "Transaction",
+                    "voucher_type": voucher_type,
+                    "voucher_no": voucher_no,
+                    "posting_date": posting_date,
+                    "company": comp,
+                    "allow_negative_stock": 1,
+                })
+                repost_doc.flags.ignore_permissions = True
+                repost_doc.insert()
+                repost_doc.submit()
+                repost_names.append(repost_doc.name)
+            except Exception as e:
+                frappe.log_error(
+                    f"fix_zero_rate_qi_bundles Repost Hatası: {voucher_type} {voucher_no}: {e}",
+                    "KTA Bundle Fix Repost Error",
+                )
+
+    return {
+        "total_found": len(affected),
+        "fixed": fixed_count,
+        "repost_docs": repost_names,
+        "details": results,
+    }
 
 
 @frappe.whitelist()
