@@ -1,6 +1,12 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-05 (dashboard chart altyapısı)
+> Son güncelleme: 2026-03-09 (Çalışma Kartı Notification Ayarı)
+
+### Notification / Bildirim Yapılandırması (Yeni - Tamamlandı)
+- [x] `çalışma_kartı_oluşturuldu` sistem bildirimi aktifleştirildi.
+- [x] Bildirimin alıcısı `owner` yerine `operator` alanı üzerinden yapılandırıldı.
+- [x] Bildirim başlığı ve içeriği daha açıklayıcı bir formata dönüştürüldü.
+- [x] In-app system alert (Sistem Bildirimi) özelliği aktif edildi.
 
 ### Dashboard Charts (Tamamlandı)
 - [x] Basic dashboard (Günlük durum ve Net Süre) - JSON & Source Script
