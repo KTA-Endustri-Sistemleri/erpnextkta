@@ -20,7 +20,7 @@ from .api_impl.hurda import (
     add_hurda,
     delete_hurda,
     get_hurda_nedeni_options,
-    search_allowed_hurda_items,  # <-- EKLE
+    search_allowed_hurda_items,
     update_hurda,
 )
 
@@ -34,6 +34,9 @@ from .api_impl.qc import (
     add_barkod_kaydi,
     update_barkod_kaydi,
     delete_barkod_kaydi,
+    get_qc_templates_for_ck,
+    get_template_details,
+    submit_kta_quality_inspection,
 )
 
 # Alt Operasyon
@@ -58,6 +61,9 @@ __all__ = [
     "add_barkod_kaydi",
     "update_barkod_kaydi",
     "delete_barkod_kaydi",
+    "get_qc_templates_for_ck",
+    "get_template_details",
+    "submit_kta_quality_inspection",
 
     # Hurda
     "get_hurda_nedeni_options",

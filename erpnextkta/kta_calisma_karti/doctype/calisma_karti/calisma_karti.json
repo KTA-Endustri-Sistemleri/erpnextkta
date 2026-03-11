@@ -14,6 +14,7 @@
         "is_karti",
         "column_break_uqsm",
         "kalite_kontrol",
+        "quality_inspection",
         "durum",
         "olcumler_section",
         "idc_olcumleri",
@@ -161,6 +162,14 @@
             "label": "Kalite Kontrol",
             "options": "Onay Bekliyor\nOnayland\u0131\nReddedildi",
             "permlevel": 1
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "quality_inspection",
+            "fieldtype": "Link",
+            "label": "Kalite Muayene Belgesi",
+            "options": "Quality Inspection",
+            "read_only": 1
         },
         {
             "allow_on_submit": 1,
