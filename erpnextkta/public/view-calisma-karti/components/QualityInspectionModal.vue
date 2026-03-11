@@ -61,11 +61,14 @@ watch(
 
 /** Havuzdan bir parametre ekle */
 function addParam(p: any) {
+  const isNumeric = Boolean(p.numeric);
   readings.value.push({
     specification: p.specification,
-    reading_1: "",
+    // numeric → reading_1 ; text → reading_value  (ERPNext QI Reading DocType)
+    reading_1: isNumeric ? "" : undefined,
+    reading_value: isNumeric ? undefined : "",
     status: "Accepted",
-    numeric: p.numeric,
+    numeric: isNumeric,
     min_value: p.min_value,
     max_value: p.max_value,
   });
@@ -93,8 +96,8 @@ function onReadingChange(index: number) {
     const val = parseFloat(r.reading_1);
     if (!isNaN(val)) {
       r.status =
-        (r.min_value !== null && val < r.min_value) ||
-        (r.max_value !== null && val > r.max_value)
+        (r.min_value !== null && r.min_value !== undefined && val < parseFloat(r.min_value)) ||
+        (r.max_value !== null && r.max_value !== undefined && val > parseFloat(r.max_value))
           ? "Rejected"
           : "Accepted";
     }
@@ -107,7 +110,8 @@ async function handleSubmit() {
     return frappe.msgprint("En az bir parametre eklemelisiniz.");
 
   for (const r of readings.value) {
-    if (r.numeric && (r.reading_1 === "" || r.reading_1 === null)) {
+    const val = r.numeric ? r.reading_1 : r.reading_value;
+    if (r.numeric && (val === "" || val === null || val === undefined)) {
       return frappe.msgprint(`${r.specification} için bir değer girmelisiniz.`);
     }
   }
@@ -208,7 +212,7 @@ async function handleSubmit() {
                 <input
                   v-else
                   type="text"
-                  v-model="r.reading_1"
+                  v-model="r.reading_value"
                   class="ck-input"
                   placeholder="Sonuç"
                 />

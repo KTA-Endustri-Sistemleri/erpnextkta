@@ -510,15 +510,24 @@ def submit_kta_quality_inspection(ck_name, template_name, readings):
         readings = json.loads(readings)
 
     # Add readings
+    # ERPNext Quality Inspection Reading fields:
+    #   numeric=True  → reading_1 (and reading_2..10 for multiple samples)
+    #   numeric=False → reading_value
     for r in readings:
-        qa.append("readings", {
+        is_numeric = bool(r.get("numeric"))
+        raw_val = str(r.get("reading_1") or r.get("reading_value") or "").strip()
+        row = {
             "specification": r.get("specification"),
-            "reading_1": r.get("reading_1"),
-            "status": r.get("status"),
+            "numeric": 1 if is_numeric else 0,
+            "status": r.get("status") or "Accepted",
             "min_value": r.get("min_value"),
             "max_value": r.get("max_value"),
-            "numeric": r.get("numeric")
-        })
+        }
+        if is_numeric:
+            row["reading_1"] = raw_val
+        else:
+            row["reading_value"] = raw_val
+        qa.append("readings", row)
 
     qa.insert(ignore_permissions=True)
     qa.submit()
