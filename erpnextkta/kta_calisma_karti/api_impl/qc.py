@@ -519,6 +519,9 @@ def submit_kta_quality_inspection(ck_name, template_name, readings):
         row = {
             "specification": r.get("specification"),
             "numeric": 1 if is_numeric else 0,
+            # manual_inspection=1: prevent ERPNext from auto-overriding status
+            # on submit (it would compare reading_1 against min/max and force "Rejected")
+            "manual_inspection": 1,
             "status": r.get("status") or "Accepted",
             "min_value": r.get("min_value"),
             "max_value": r.get("max_value"),
