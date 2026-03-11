@@ -47,18 +47,22 @@
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "calisma_karti_ref.urun_kodu",
+   "fetch_if_empty": 1,
    "fieldname": "urun_no",
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Ürün No.",
-   "reqd": 1
+   "read_only": 1
   },
   {
+   "fetch_from": "calisma_karti_ref.custom_work_order",
+   "fetch_if_empty": 1,
    "fieldname": "urun_siparis_no",
    "fieldtype": "Data",
-   "label": "Ürün Sipariş No.",
-   "reqd": 1
+   "label": "Ürün İş Emri",
+   "read_only": 1
   },
   {
    "fieldname": "calisma_karti_ref",

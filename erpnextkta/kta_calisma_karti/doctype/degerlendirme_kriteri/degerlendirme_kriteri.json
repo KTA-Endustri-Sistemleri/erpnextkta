@@ -5,26 +5,17 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "sira_no",
   "kriter_metni",
   "cevap"
  ],
  "fields": [
-  {
-   "fieldname": "sira_no",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "S\u0131ra No",
-   "read_only": 1,
-   "columns": 1
-  },
   {
    "fieldname": "kriter_metni",
    "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Değerlendirme Kriteri",
    "read_only": 1,
-   "columns": 7
+   "columns": 8
   },
   {
    "fieldname": "cevap",
