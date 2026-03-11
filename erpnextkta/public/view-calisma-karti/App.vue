@@ -16,6 +16,8 @@ import HurdaView from "./views/HurdaView.vue";
 import DurusView from "./views/DurusView.vue";
 import KaliteView from "./views/KaliteView.vue";
 
+import QualityInspectionModal from "./components/QualityInspectionModal.vue";
+
 const tab = ref<TabKey>("info");
 
 // ✅ ROUTE'U REACTIVE YAP
@@ -47,7 +49,8 @@ const {
   updateQC, addHurda, updateHurda, deleteHurda,
   addIdcOlcumu, updateIdcOlcumu, deleteIdcOlcumu,
   addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi,
-  addAltOperasyon, updateAltOperasyon, deleteAltOperasyon
+  addAltOperasyon, updateAltOperasyon, deleteAltOperasyon,
+  getQcTemplates, getTemplateDetails, submitStandardQC
 } = useCalismaKarti(docname);
 
 // Reactive now timer for timeout warning (updates every minute)
@@ -100,6 +103,11 @@ const showTimeoutWarning = computed(() => {
 });
 
 const qcSaving = ref(false);
+
+const showQcModal = ref(false);
+const qcTemplates = ref<any[]>([]);
+const qcDefaultTemplate = ref("");
+const qcItemCode = ref("");
 
 function backToList() {
   frappe.set_route("list-calisma-cards");
@@ -158,6 +166,27 @@ async function setQC(nextValue: string) {
     return;
   }
 
+  // standard QC integration logic
+  if (next === "Onaylandı" || next === "Reddedildi") {
+    try {
+      qcSaving.value = true;
+      const res = await getQcTemplates();
+      if (res.message && res.message.templates && res.message.templates.length > 0) {
+        qcTemplates.value = res.message.templates;
+        qcDefaultTemplate.value = res.message.default_template;
+        qcItemCode.value = res.message.item_code;
+        showQcModal.value = true;
+        // Don't update status yet, wait for modal submission
+        qcFormValue.value = current || "Onay Bekliyor";
+        return;
+      }
+    } catch (e) {
+      console.error("QC templates fetch failed", e);
+    } finally {
+      qcSaving.value = false;
+    }
+  }
+
   qcFormValue.value = next;
   qcSaving.value = true;
 
@@ -172,6 +201,16 @@ async function setQC(nextValue: string) {
   } finally {
     qcSaving.value = false;
   }
+}
+
+async function handleStandardQcSubmit(payload: any) {
+    try {
+        await submitStandardQC(payload);
+        frappe.show_alert({ message: "Kalite belgesi oluşturuldu ve durum güncellendi", indicator: "green" });
+    } catch (e) {
+        console.error("Standard QC submission failed", e);
+        throw e;
+    }
 }
 
 watch(
@@ -267,6 +306,16 @@ watch(
         :onDeleteBarkod="deleteBarkodKaydi"
         />
     </template>
+
+    <QualityInspectionModal
+        :show="showQcModal"
+        :templates="qcTemplates"
+        :defaultTemplate="qcDefaultTemplate"
+        :itemCode="qcItemCode"
+        :onClose="() => showQcModal = false"
+        :onFetchDetails="getTemplateDetails"
+        :onSubmit="handleStandardQcSubmit"
+    />
   </div>
 </template>
 <style>

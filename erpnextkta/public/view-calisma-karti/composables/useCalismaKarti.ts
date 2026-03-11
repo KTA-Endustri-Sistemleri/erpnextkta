@@ -229,6 +229,34 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         );
     }
 
+    async function getQcTemplates() {
+        return frappe.call({
+            method: "erpnextkta.kta_calisma_karti.api.get_qc_templates_for_ck",
+            args: { ck_name: docname.value },
+        });
+    }
+
+    async function getTemplateDetails(template_name: string) {
+        return frappe.call({
+            method: "erpnextkta.kta_calisma_karti.api.get_template_details",
+            args: { template_name },
+        });
+    }
+
+    async function submitStandardQC(payload: { template_name: string; readings: any[] }) {
+        return refreshAfter(() =>
+            frappe.call({
+                method: "erpnextkta.kta_calisma_karti.api.submit_kta_quality_inspection",
+                args: {
+                    ck_name: docname.value,
+                    ...payload,
+                },
+                freeze: true,
+                freeze_message: "Kalite belgesi oluşturuluyor...",
+            })
+        );
+    }
+
     // When docname changes (route changes), re-bind realtime listener
     watch(
         () => docname.value,
@@ -265,5 +293,8 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         addAltOperasyon,
         updateAltOperasyon,
         deleteAltOperasyon,
+        getQcTemplates,
+        getTemplateDetails,
+        submitStandardQC,
     };
 }

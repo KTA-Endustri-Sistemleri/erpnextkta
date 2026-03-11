@@ -135,5 +135,21 @@ onMounted(() => {});
       :onEdit="editBarkod"
       :onDelete="deleteBarkod"
     />
+
+    <div v-if="props.doc.quality_inspection" style="height: 1px;background: var(--fg-hover-color);margin-top: 10px;"></div>
+
+    <div v-if="props.doc.quality_inspection" class="ck-qc-header" style="background: var(--ck-info-bg);">
+      <div style="display:flex; flex-direction:column;">
+        <span style="font-size:11px; color: var(--ck-info);">Bağlı Kalite Belgesi</span>
+        <b style="color: var(--ck-info);">{{ props.doc.quality_inspection }}</b>
+      </div>
+      <button 
+        class="ck-btn ck-btn--ghost" 
+        style="padding: 8px 12px; font-size: 12px;"
+        @click="frappe.set_route('Form', 'Quality Inspection', props.doc.quality_inspection)"
+      >
+        Görüntüle ↗
+      </button>
+    </div>
   </div>
 </template>
