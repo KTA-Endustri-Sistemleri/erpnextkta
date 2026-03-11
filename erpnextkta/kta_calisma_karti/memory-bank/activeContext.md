@@ -1,17 +1,17 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-05
+> Son güncelleme: 2026-03-11
 
 ## Mevcut Odak
 
-Dashboard chart altyapısı oluşturuldu. İki custom chart source eklendi: günlük durum özeti ve operatör bazlı net çalışma süresi. Her iki chart da dynamic filtrelerle donatıldı.
+ERPNext standart Kalite Muayene (MAT-QA) entegrasyonu tamamlandı. Operatörler artık ürün bazlı kalite şablonlarını seçerek ölçüm girebiliyor ve bu kayıtlar doğrudan Çalışma Kartı ile ilişkilendiriliyor.
 
-## Son Değişiklikler (2026-03-05) — Dashboard Chart
+## Son Değişiklikler (2026-03-11) — QC Entegrasyonu & Hata Giderimi
 
-## Current Focus
-*   Sistemde test verisi yaratma ve temizleme sürecinin oluşturulması (`seed_test_data.py` / `clear_test_data.py`).
-*   Çalışma Kartı dashboard analitiği için 4 yeni metrik ve kaynak grafiğin (Source + JSON) sisteme entegrasyonu.
-*   Dashboard grafiklerinin görüntülenme yetkilerinin (Roles: System/Dashboard/Manufacturing/Quality Manager) ayarlanması.
+*   **QC Şablon Getirme Hatası Giderildi**: `get_qc_templates_for_ck` ve `get_template_details` metodlarındaki kritik hatalar (`OperationalError` ve `AttributeError`) düzeltildi.
+*   **Çoklu Şablon Desteği (Robust Discovery)**: Şablon toplama mantığı Item Master + Job Card + Wildcard araması olarak genişletildi.
+*   **Arayüz Entegrasyonu**: `QualityInspectionModal.vue` üzerinden veri girişi ve `App.vue` tetikleyicileri hazırlandı.
+*   **🚧 Bekleyen İşler**: Backend fonksiyonları tekil olarak denendi, ancak **uçtan uca (end-to-end) testler evde devam edecek**. Özellikle MAT-QA kaydı sonrası CK statü geçişlerinin tam doğrulanması gerekiyor.
 
 ## Recent Changes
 *   **Seed Scripti Geliştirildi**: 14 iş günü geçmişe yönelik, sadece operasyonda tanımlı (veya `DEPT_ANAHTAR_KELIMELERI` ile seçilmiş) departman çalışanlarına yönelik 5 farklı statüdeki Çalışma Kartlarını simüle eden test verisi seed yazılımı oluşturuldu.

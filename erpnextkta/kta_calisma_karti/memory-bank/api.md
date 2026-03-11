@@ -48,6 +48,9 @@ Frontend method path prefix: `erpnextkta.kta_calisma_karti.api.`
 | `add_barkod_kaydi` | `name, barcode` | KTA Kalite / QM / SM |
 | `update_barkod_kaydi` | `name, rowname, barcode` | KTA Kalite / QM / SM |
 | `delete_barkod_kaydi` | `name, rowname` | KTA Kalite / QM / SM |
+| `get_qc_templates_for_ck` | `ck_name` | `{templates: [], default_template, item_code}` | Herkese açık |
+| `get_template_details` | `template_name` | `[{specification, numeric, min, max, ...}]` | Herkese açık |
+| `submit_kta_quality_inspection`| `ck_name, template_name, readings` | MAT-QA link + status | KTA Kalite / QM / SM |
 
 ## Alt Operasyon
 

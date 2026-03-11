@@ -131,14 +131,25 @@ def autoname(self):
     # Generic: "Kablo Kesme" | Spec: "Kablo Kesme-BOSCH"
 ```
 
-### Kalite Kontrol Güncelleme:
-`update_kalite_kontrol() → _require_qc_role() → değer whitelist kontrolü → ignore_permissions → db_set() → publish_realtime`
+### 11. Standart Kalite Entegrasyon Pattern (MAT-QA)
+```
+QcToggle (Vue) → get_qc_templates_for_ck() 
+  → (Şablon varsa) QualityInspectionModal.vue 
+  → submit_kta_quality_inspection() 
+      → frappe.new_doc("Quality Inspection")
+      → Reference: Job Card (ck.is_karti)
+      → ck.quality_inspection = qa.name
+      → ck.kalite_kontrol = "Onaylandı" / "Reddedildi"
+      → publish_realtime
+```
 
-### Hurda Ekleme (v3 — item-group tabanlı):
-`add_hurda() → _assert_can_write_on_doc() → _assert_cost_center_allowed() → _assert_hurda_item_allowed_for_operation() [get_allowed_items_with_groups()] → doc.append() → doc.save()`
+## Bileşen İlişkileri
 
-### Vardiya Penceresi Net Süre Hesabı:
-`hesapla_toplam_sure() → _shift_window(end_dt) [HRMS Shift Type] → _other_cards_net_seconds_in_shift() → remaining=max_limit-other_net → net_saniye=min(net_saniye, remaining)`
-
-### Create Wizard Operasyon Adımı:
-`JC seç/belirle → fetchOperationsForJobCard(jcName) → get_operations_for_job_card() [Prio-1 → Prio-2 → Prio-3] → filteredOperations computed (customer_group) → StepOperation gösterim`
+```
+Calisma Karti (Ana DocType)
+  ├── hurdalar              → Calisma Karti Hurda
+  ├── duruslar              → Operasyon Duruslari
+  ├── idc_olcumleri         → Calisma Karti IDC Olcumleri
+  ├── barkod_kayitlari      → Calisma Karti Barkod Kayitlari
+  ├── alt_operasyon_kayitlari → Calisma Karti Alt Operasyon Kayitlari
+  └── quality_inspection    → ERPNext Quality Inspection (Link)

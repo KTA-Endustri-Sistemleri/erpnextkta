@@ -23,12 +23,16 @@
 - [x] `scripts/seed_test_data.py`: Geçmişe dönük (son 14 iş günü) sanal kart ve alt-hesaplamalar barındıran script
 - [x] `scripts/clear_test_data.py`: Tüm Calisma Karti verisini ve child tablolarını silen script
 
+### Kalite Kontrol (QC) Standart Entegrasyonu (Tamamlandı)
+- [x] ERPNext standart Quality Inspection (MAT-QA) belgesinin Custom Vue Frontend üzerinden modal (popup) aracılığıyla basitleştirilmesi.
+- [x] Çalışma Kartı üzerindeki "Kalite Onay" sürecinde, sistemin Work Order'daki ürünün (Item) `quality_inspection_template` (Kalite Şablonu) alanını okuyarak kullanıcıya test parametrelerini listelemesi (Çoklu şablon desteği dahil).
+- [x] **Bug-fix**: `get_qc_templates_for_ck` metodundaki `Unknown column` hatası düzeltildi ve robust şablon toplama mantığı (Item + Job Card + Wildcard) eklendi.
+- [x] Kullanıcı formu onayladığında, arka planda otomatik bir MAT-QA oluşturulup submit edilmesi ve Çalışma Kartı ile (`quality_inspection` alanı üzerinden) linklenmesi.
+- [x] Sonuçlara göre Çalışma Kartı durumunun ("Onaylandı" / "Reddedildi") otomatik senkronize edilmesi.
+
 ### Next Steps / Pendings
-- [ ] **Kalite Kontrol (QC) Standart Entegrasyonu (Gelecek Planı):**
-  - ERPNext standart Quality Inspection (MAT-QA) belgesinin Custom Vue Frontend üzerinden modal (popup) aracılığıyla basitleştirilmesi.
-  - Çalışma Kartı üzerindeki "Kalite Onay" sürecinde, sistemin Work Order'daki ürünün (Item) `quality_inspection_template` (Kalite Şablonu) alanını okuyarak kullanıcıya test parametrelerini listelemesi.
-  - Kullanıcı formu onayladığında, arka planda otomatik bir MAT-QA taslağı oluşturulup submit edilmesi ve işlem sonunda Çalışma Kartının durumsal ("Onaylandı" / "Reddedildi") olarak senkronize edilmesi.
-  - İlgili DocType `reference_type` ayarlarına "Calisma Karti" eklenmesi.
+- [ ] CK → Job Card status senkronizasyonu — `on_update` hook veya bitiş anında Job Card'ın ERPNext standart statüsünü (Completed vb.) tetikleme.
+- [ ] Test coverage (Pytest & Jest) artırılması.
 ## Çalışan Özellikler
 
 ### Dashboard ✅

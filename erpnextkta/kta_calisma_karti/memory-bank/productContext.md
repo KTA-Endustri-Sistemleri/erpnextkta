@@ -19,6 +19,7 @@ KTA operatörleri:
 | Anlık liste güncellemesi | Socket.IO realtime: `kta_calisma_karti:list_changed` |
 | Hurda kaydında yanlış parça | BOM + operasyon bazlı item whitelist |
 | IDC ölçümünde yanlış malzeme | `item_group = "120-IDC Connector"` + BOM scope filtresi |
+| Kalite belgelerinin izlenebilirliği | ERPNext standart MAT-QA entegrasyonu ve otomatik linkleme |
 
 ## Kullanıcı Grupları
 
@@ -31,7 +32,8 @@ KTA operatörleri:
 ### Kalite Kullanıcısı (KTA Kalite Kullanıcısı)
 - Tüm kartları görebilir (sorgulamak için)
 - IDC ölçümü ve barkod kaydı ekleyebilir/düzenleyebilir/silebilir
-- Kalite durumunu güncelleyebilir (Onay Bekliyor / Onaylandı / Reddedildi)
+- ERPNext standart Kalite Muayene (MAT-QA) şablonlarını kullanarak ölçüm girişi yapabilir
+- Kalite durumunu güncelleyebilir ve MAT-QA belgesi oluşturabilir
 
 ### Yönetici (System Manager)
 - Tüm operasyonlara tam erişim
