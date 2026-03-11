@@ -14,7 +14,7 @@
    "fieldname": "sira_no",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "No",
+   "label": "S\u0131ra No",
    "read_only": 1,
    "columns": 1
   },

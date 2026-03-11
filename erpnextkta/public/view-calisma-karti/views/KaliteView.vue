@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, computed, ref, watch } from "vue";
 import QcToggle from "../components/QcToggle.vue";
 import IdcSection from "../components/IdcSection.vue";
 import BarkodSection from "../components/BarkodSection.vue";
@@ -103,6 +103,44 @@ function deleteBarkod(row: any) {
 
 // (Opsiyonel) burada bir şey yapmayacağız; sadece Vue shim uyumu için bırakıyorum
 onMounted(() => {});
+
+// --- Test Masası Doğrulama ---
+const requiresBoardDogrulama = ref(false);
+
+watch(() => props.doc?.operasyon, async (op) => {
+  if (op) {
+    try {
+      const resp = await frappe.db.get_value("KTA Calisma Karti Operasyonlari", op, "board_dogrulamasi_gerektirir");
+      requiresBoardDogrulama.value = resp.message?.board_dogrulamasi_gerektirir === 1;
+    } catch (err) {
+      console.error("Board dogrulama kontrol hatasi", err);
+      requiresBoardDogrulama.value = false;
+    }
+  } else {
+    requiresBoardDogrulama.value = false;
+  }
+}, { immediate: true });
+
+const hasDogrulama = computed(() => {
+  return !!props.doc?.test_masasi_dogrulama_kaydi;
+});
+
+function openDogrulama() {
+  if (hasDogrulama.value) {
+    frappe.set_route("Form", "Test Masasi Dogrulama Kaydi", props.doc.test_masasi_dogrulama_kaydi);
+  } else {
+    frappe.msgprint("Kayıtlı bir doğrulama bulunamadı.");
+  }
+}
+
+function createDogrulama() {
+  frappe.new_doc("Test Masasi Dogrulama Kaydi", {
+    is_karti: props.doc.is_karti,
+    urun_no: props.doc.urun_no,
+    urun_siparis_no: props.doc.sales_order,
+    calisma_karti_ref: props.doc.name
+  });
+}
 </script>
 
 <template>
@@ -135,5 +173,35 @@ onMounted(() => {});
       :onEdit="editBarkod"
       :onDelete="deleteBarkod"
     />
+
+    <div style="height: 1px;background: var(--fg-hover-color);margin-top: 10px;"></div>
+    
+    <!-- Test Masası Doğrulama -->
+    <div v-if="requiresBoardDogrulama" style="display: flex; flex-direction: column;">
+      <div class="ck-qc-header">
+        <b>Test Masası Doğrulama</b>
+        <button v-if="hasDogrulama" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="openDogrulama">
+          Aç
+        </button>
+        <button v-else-if="props.canEditQC" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="createDogrulama">
+          + Ekle
+        </button>
+      </div>
+      
+      <div v-if="hasDogrulama" class="ck-mini-list" style="margin-top:8px;">
+        <div class="ck-mini-item">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="ck-row">
+              <span style="font-size: 14px; font-weight: 500;">Kayıt No:</span>
+              <b style="font-size: 14px;">{{ props.doc.test_masasi_dogrulama_kaydi }}</b>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else class="ck-muted" style="margin-top: 14px;padding: 0px 6px;">
+        Henüz doğrulama kaydı yok.
+      </div>
+    </div>
+
   </div>
 </template>
