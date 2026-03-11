@@ -147,6 +147,16 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
         elif durum == "calisiyor":
             frappe.throw("İşlem zaten çalışıyor.")
         elif durum == "hazir":
+            # BOARD DOĞRULAMA KONTROLÜ
+            if doc.operasyon:
+                operasyon_doc = frappe.get_doc("KTA Calisma Karti Operasyonlari", doc.operasyon)
+                if operasyon_doc.board_dogrulamasi_gerektirir:
+                    if not doc.test_masasi_dogrulama_kaydi:
+                        frappe.throw("Bu operasyon için Test Masası Doğrulama Kaydı zorunludur. Lütfen önce 'Bord Doğrulama Yap' butonu ile doğrulama işlemini tamamlayın.")
+                    
+                    # (Opsiyonel) Eğer Test Masası Doğrulama Kaydı'nın da kendi içinde bir "onay" mekanizması eklendiyse kontrol edilebilir.
+                    # Şimdilik sadece belgenin varlığını kontrol ediyoruz.
+
             doc.baslangic_saati = now
         elif durum == "durusta":
             if not doc.duruslar:

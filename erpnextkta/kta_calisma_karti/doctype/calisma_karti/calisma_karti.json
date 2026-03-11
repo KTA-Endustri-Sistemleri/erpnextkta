@@ -17,6 +17,7 @@
   "durum",
   "olcumler_section",
   "idc_olcumleri",
+  "test_masasi_dogrulama_kaydi",
   "column_break_olcum",
   "barkod_kayitlari",
   "zaman_section",
@@ -173,6 +174,13 @@
    "fieldtype": "Table",
    "label": "IDC Ölçümleri",
    "options": "Calisma Karti IDC Olcumleri"
+  },
+  {
+   "fieldname": "test_masasi_dogrulama_kaydi",
+   "fieldtype": "Link",
+   "label": "Test Masas\u0131 Do\u011frulama Kayd\u0131",
+   "options": "Test Masasi Dogrulama Kaydi",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_olcum",

@@ -96,6 +96,24 @@ frappe.ui.form.on('Calisma Karti', {
         frappe.datetime.get_datetime_as_string(frm.doc.baslangic_saati)
       ]), 'blue');
     }
+
+    // Board Doğrulama Butonu Kontrolü
+    if (frm.doc.operasyon && !frm.doc.test_masasi_dogrulama_kaydi) {
+      frappe.db.get_value('KTA Calisma Karti Operasyonlari', frm.doc.operasyon, 'board_dogrulamasi_gerektirir')
+        .then(r => {
+          if (r && r.message && r.message.board_dogrulamasi_gerektirir) {
+            frm.add_custom_button(__('Bord Doğrulama Yap'), () => {
+              frappe.new_doc('Test Masasi Dogrulama Kaydi', {
+                'urun_no': frm.doc.urun_kodu,
+                'urun_siparis_no': frm.doc.custom_work_order,
+                'baglanti_nokta_sayisi': 0, // This is required in kta_board_dogrulama
+                'dogrulama_nedeeni': 'İlk Devreye Alma',
+                'calisma_karti_ref': frm.doc.name // If we add this field to kta_board_dogrulama later
+              });
+            }).addClass('btn-primary');
+          }
+        });
+    }
   },
 
   validate(frm) {
