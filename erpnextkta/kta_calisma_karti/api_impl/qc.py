@@ -414,3 +414,125 @@ def delete_barkod_kaydi(name: str, rowname: str):
     doc.save()
 
     return {"status": "success"}
+
+
+@frappe.whitelist()
+def get_qc_templates_for_ck(ck_name):
+    """Get available quality inspection templates for a Calisma Karti
+    1. From Item master
+    2. From Job Card (Operation)
+    3. Wildcard matching item code
+    """
+    if not ck_name:
+        return {"templates": [], "default_template": None, "item_code": None}
+
+    ck = frappe.get_doc("Calisma Karti", ck_name)
+    if not ck.is_karti:
+        return {"templates": [], "default_template": None, "item_code": None}
+
+    # Job Card üzerinden production_item ve template'i alalım
+    job_card = frappe.get_doc("Job Card", ck.is_karti)
+    item_code = job_card.production_item
+    
+    unique_templates = set()
+
+    # 1. Template from Item master (Default)
+    default_template = frappe.db.get_value("Item", item_code, "quality_inspection_template")
+    if default_template:
+        unique_templates.add(default_template)
+
+    # 2. Template from Job Card (Operation)
+    jc_template = job_card.quality_inspection_template
+    if jc_template:
+        unique_templates.add(jc_template)
+    
+    # 3. Search for templates that might mention the item code in their name
+    wildcard_templates = frappe.get_all(
+        "Quality Inspection Template",
+        filters={"name": ["like", f"%{item_code}%"]},
+        pluck="name"
+    )
+    for t in wildcard_templates:
+        unique_templates.add(t)
+
+    result = [{"name": t_name} for t_name in sorted(list(unique_templates))]
+
+    return {
+        "templates": result,
+        "default_template": default_template,
+        "item_code": item_code
+    }
+
+
+@frappe.whitelist()
+def get_template_details(template_name):
+    """
+    Returns the parameters of a specific Quality Inspection Template.
+    """
+    template = frappe.get_doc("Quality Inspection Template", template_name)
+    params = []
+    for p in template.item_quality_inspection_parameter:
+        params.append({
+            "specification": p.specification,
+            "value": p.value,
+            "numeric": p.numeric,
+            "min_value": p.min_value,
+            "max_value": p.max_value
+        })
+    return params
+
+
+@frappe.whitelist()
+def submit_kta_quality_inspection(ck_name, template_name, readings):
+    """
+    Creates and submits a Quality Inspection (MAT-QA) linked to the Calisma Karti.
+    """
+    ck = frappe.get_doc("Calisma Karti", ck_name)
+    _require_qc_role()
+
+    if not ck.is_karti:
+        frappe.throw(_("Çalışma Kartı bir İş Kartı (Job Card) ile bağlantılı değil."))
+
+    # Create Quality Inspection
+    qa = frappe.new_doc("Quality Inspection")
+    qa.report_date = frappe.utils.nowdate()
+    qa.inspection_type = "In Process"
+    qa.reference_type = "Job Card"
+    qa.reference_name = ck.is_karti
+    qa.item_code = frappe.db.get_value("Job Card", ck.is_karti, "production_item")
+    qa.quality_inspection_template = template_name
+    
+    # Add readings
+    for r in readings:
+        qa.append("readings", {
+            "specification": r.get("specification"),
+            "reading_1": r.get("reading_1"),
+            "status": r.get("status"),
+            "min_value": r.get("min_value"),
+            "max_value": r.get("max_value"),
+            "numeric": r.get("numeric")
+        })
+
+    qa.insert(ignore_permissions=True)
+    qa.submit()
+
+    # Determine final status for Calisma Karti
+    # If MAT-QA is Accepted, we set ck.kalite_kontrol to "Onaylandı"
+    # If Rejected, we set it to "Reddedildi"
+    final_qc_status = "Onaylandı" if qa.status == "Accepted" else "Reddedildi"
+    
+    # Update Calisma Karti
+    ck.db_set("quality_inspection", qa.name)
+    ck.db_set("kalite_kontrol", final_qc_status)
+    
+    if final_qc_status == "Reddedildi":
+        ck.db_set("durum", "Reddedildi")
+
+    # Notify frontend
+    publish_calisma_karti_changed(ck_name, reason=f"qc_submit:{qa.name}")
+
+    return {
+        "status": "success",
+        "quality_inspection": qa.name,
+        "qc_status": final_qc_status
+    }
