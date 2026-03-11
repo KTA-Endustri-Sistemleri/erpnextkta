@@ -484,9 +484,13 @@ def get_template_details(template_name):
 
 
 @frappe.whitelist()
-def submit_kta_quality_inspection(ck_name, template_name, readings):
+def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=1, intent="approve"):
     """
     Creates and submits a Quality Inspection (MAT-QA) linked to the Calisma Karti.
+
+    intent: "approve" → kalite_kontrol = "Onaylandı" (if QA Accepted)
+            "reject"  → all readings forced Rejected, kalite_kontrol = "Reddedildi"
+    sample_size: numune sayısı (kullanıcı tarafından girilir, default 1)
     """
     ck = frappe.get_doc("Calisma Karti", ck_name)
     _require_qc_role()
@@ -503,11 +507,13 @@ def submit_kta_quality_inspection(ck_name, template_name, readings):
     qa.item_code = frappe.db.get_value("Job Card", ck.is_karti, "production_item")
     qa.quality_inspection_template = template_name
     qa.inspected_by = frappe.session.user
-    qa.sample_size = 1
+    qa.sample_size = int(sample_size or 1)
 
     # Parse readings if it arrives as a JSON string (HTTP form data)
     if isinstance(readings, str):
         readings = json.loads(readings)
+
+    is_reject = (intent or "approve") == "reject"
 
     # Add readings
     # ERPNext Quality Inspection Reading fields:
@@ -516,13 +522,15 @@ def submit_kta_quality_inspection(ck_name, template_name, readings):
     for r in readings:
         is_numeric = bool(r.get("numeric"))
         raw_val = str(r.get("reading_1") or r.get("reading_value") or "").strip()
+        # If intent=reject, force all readings to Rejected regardless of what frontend sent
+        row_status = "Rejected" if is_reject else (r.get("status") or "Accepted")
         row = {
             "specification": r.get("specification"),
             "numeric": 1 if is_numeric else 0,
             # manual_inspection=1: prevent ERPNext from auto-overriding status
             # on submit (it would compare reading_1 against min/max and force "Rejected")
             "manual_inspection": 1,
-            "status": r.get("status") or "Accepted",
+            "status": row_status,
             "min_value": r.get("min_value"),
             "max_value": r.get("max_value"),
         }
@@ -535,15 +543,21 @@ def submit_kta_quality_inspection(ck_name, template_name, readings):
     qa.insert(ignore_permissions=True)
     qa.submit()
 
-    # Determine final status for Calisma Karti.
-    # QA "Accepted"  → kalite_kontrol = "Onaylandı"
-    # QA "Rejected"  → kalite_kontrol = "Onay Bekliyor"
-    #                   (explicit rejection requires a QC user action via update_kalite_kontrol)
-    final_qc_status = "Onaylandı" if qa.status == "Accepted" else "Onay Bekliyor"
+    # Determine final kalite_kontrol status for Calisma Karti:
+    #   intent=reject  → always "Reddedildi" (regardless of individual reading outcomes)
+    #   intent=approve → "Onaylandı" if QA Accepted, else "Onay Bekliyor"
+    if is_reject:
+        final_qc_status = "Reddedildi"
+    else:
+        final_qc_status = "Onaylandı" if qa.status == "Accepted" else "Onay Bekliyor"
 
     # Update Calisma Karti
     ck.db_set("quality_inspection", qa.name)
     ck.db_set("kalite_kontrol", final_qc_status)
+
+    # If rejected, also update durum field
+    if final_qc_status == "Reddedildi":
+        ck.db_set("durum", "Reddedildi", update_modified=True)
 
     # Notify frontend
     publish_calisma_karti_changed(ck_name, reason=f"qc_submit:{qa.name}")
@@ -553,3 +567,5 @@ def submit_kta_quality_inspection(ck_name, template_name, readings):
         "quality_inspection": qa.name,
         "qc_status": final_qc_status
     }
+
+

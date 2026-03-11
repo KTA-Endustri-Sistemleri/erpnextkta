@@ -108,6 +108,8 @@ const showQcModal = ref(false);
 const qcTemplates = ref<any[]>([]);
 const qcDefaultTemplate = ref("");
 const qcItemCode = ref("");
+/** "approve" veya "reject" — modal hangi amaçla açıldığını bilir */
+const qcIntent = ref<"approve" | "reject">("approve");
 
 function backToList() {
   frappe.set_route("list-calisma-cards");
@@ -166,25 +168,8 @@ async function setQC(nextValue: string) {
     return;
   }
 
-  // "Reddedildi" → direkt kaydet, modal açma
-  if (next === "Reddedildi") {
-    qcFormValue.value = next;
-    qcSaving.value = true;
-    try {
-      await updateQC(next);
-      frappe.show_alert({ message: "Kalite durumu güncellendi", indicator: "red" });
-      tab.value = "kalite";
-    } catch (e) {
-      qcFormValue.value = (qcLabel.value || "Onay Bekliyor").trim();
-      throw e;
-    } finally {
-      qcSaving.value = false;
-    }
-    return;
-  }
-
-  // "Onaylandı" → QI template varsa modal aç, yoksa direkt kaydet
-  if (next === "Onaylandı") {
+  // "Onaylandı" veya "Reddedildi" → QI template varsa modal aç (her ikisi için)
+  if (next === "Onaylandı" || next === "Reddedildi") {
     try {
       qcSaving.value = true;
       const res = await getQcTemplates();
@@ -192,6 +177,7 @@ async function setQC(nextValue: string) {
         qcTemplates.value = res.message.templates;
         qcDefaultTemplate.value = res.message.default_template;
         qcItemCode.value = res.message.item_code;
+        qcIntent.value = next === "Reddedildi" ? "reject" : "approve";
         showQcModal.value = true;
         // Modal submit edince durum güncellenecek; şimdi UI'yı değiştirme
         qcFormValue.value = current || "Onay Bekliyor";
@@ -204,16 +190,16 @@ async function setQC(nextValue: string) {
     }
   }
 
-  // "Onay Bekliyor" veya template bulunamadı → direkt kaydet
+  // Template bulunamadı veya "Onay Bekliyor" → direkt kaydet
   qcFormValue.value = next;
   qcSaving.value = true;
 
   try {
     await updateQC(next);
-    frappe.show_alert({ message: "Kalite durumu güncellendi", indicator: "green" });
+    const indicator = next === "Reddedildi" ? "red" : "green";
+    frappe.show_alert({ message: "Kalite durumu güncellendi", indicator });
     tab.value = "kalite";
   } catch (e) {
-    // Roll back UI to actual doc value (after load, qcLabel already reflects it)
     qcFormValue.value = (qcLabel.value || "Onay Bekliyor").trim();
     throw e;
   } finally {
@@ -221,11 +207,14 @@ async function setQC(nextValue: string) {
   }
 }
 
-
 async function handleStandardQcSubmit(payload: any) {
     try {
-        await submitStandardQC(payload);
-        frappe.show_alert({ message: "Kalite belgesi oluşturuldu ve durum güncellendi", indicator: "green" });
+        await submitStandardQC({ ...payload, intent: qcIntent.value });
+        const ok = qcIntent.value === "approve";
+        frappe.show_alert({
+            message: ok ? "Kalite belgesi oluşturuldu ve onayandı" : "Kalite belgesi oluşturuldu ve reddedildi",
+            indicator: ok ? "green" : "red",
+        });
     } catch (e) {
         console.error("Standard QC submission failed", e);
         throw e;
@@ -331,6 +320,7 @@ watch(
         :templates="qcTemplates"
         :defaultTemplate="qcDefaultTemplate"
         :itemCode="qcItemCode"
+        :intent="qcIntent"
         :onClose="() => showQcModal = false"
         :onFetchDetails="getTemplateDetails"
         :onSubmit="handleStandardQcSubmit"

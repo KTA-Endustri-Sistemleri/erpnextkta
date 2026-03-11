@@ -243,7 +243,7 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         });
     }
 
-    async function submitStandardQC(payload: { template_name: string; readings: any[] }) {
+    async function submitStandardQC(payload: { template_name: string; readings: any[]; sample_size?: number; intent?: string }) {
         return refreshAfter(() =>
             frappe.call({
                 method: "erpnextkta.kta_calisma_karti.api.submit_kta_quality_inspection",

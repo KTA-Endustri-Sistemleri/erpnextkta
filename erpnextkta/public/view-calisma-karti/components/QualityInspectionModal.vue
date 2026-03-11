@@ -6,9 +6,11 @@ const props = defineProps<{
   templates: any[];
   defaultTemplate?: string;
   itemCode?: string;
+  /** "approve" (default) veya "reject" — amaç Reddedildi de QI belgesi oluşturmak */
+  intent?: "approve" | "reject";
   onClose: () => void;
   onFetchDetails: (name: string) => Promise<any>;
-  onSubmit: (payload: { template_name: string; readings: any[] }) => Promise<void>;
+  onSubmit: (payload: { template_name: string; readings: any[]; sample_size: number }) => Promise<void>;
 }>();
 
 const selectedTemplate = ref(props.defaultTemplate || "");
@@ -18,6 +20,7 @@ const parameters = ref<any[]>([]);
 const readings = ref<any[]>([]);
 const loadingDetails = ref(false);
 const submitting = ref(false);
+const sampleSize = ref(1);
 
 /** Halihazırda eklenmiş parametrelerin specification listesi */
 const addedSpecs = computed(() => new Set(readings.value.map((r) => r.specification)));
@@ -54,6 +57,7 @@ watch(
     if (next) {
       selectedTemplate.value = props.defaultTemplate || "";
       readings.value = [];
+      sampleSize.value = 1;
       if (selectedTemplate.value) loadTemplate(selectedTemplate.value);
     }
   }
@@ -62,12 +66,13 @@ watch(
 /** Havuzdan bir parametre ekle */
 function addParam(p: any) {
   const isNumeric = Boolean(p.numeric);
+  // Reject modunda parametreler varsayılan olarak Rejected gelir
+  const defaultStatus = props.intent === "reject" ? "Rejected" : "Accepted";
   readings.value.push({
     specification: p.specification,
-    // numeric → reading_1 ; text → reading_value  (ERPNext QI Reading DocType)
     reading_1: isNumeric ? "" : undefined,
     reading_value: isNumeric ? undefined : "",
-    status: "Accepted",
+    status: defaultStatus,
     numeric: isNumeric,
     min_value: p.min_value,
     max_value: p.max_value,
@@ -121,6 +126,7 @@ async function handleSubmit() {
     await props.onSubmit({
       template_name: selectedTemplate.value,
       readings: readings.value,
+      sample_size: sampleSize.value || 1,
     });
     props.onClose();
   } finally {
@@ -132,15 +138,21 @@ async function handleSubmit() {
 <template>
   <div v-if="props.show" class="ck-modal-overlay">
     <div class="ck-modal">
-      <div class="ck-modal-header">
-        <b>Kalite Muayene Formu</b>
+      <div class="ck-modal-header" :style="props.intent === 'reject' ? 'border-bottom-color: var(--ck-danger)' : ''">
+        <b>{{ props.intent === 'reject' ? 'Kalite Ret Formu' : 'Kalite Muayene Formu' }}</b>
         <button class="ck-modal-close" @click="props.onClose">&times;</button>
       </div>
 
       <div class="ck-modal-body">
-        <!-- Ürün & Şablon -->
-        <div class="ck-form-group">
-          <label>Ürün: <b>{{ props.itemCode }}</b></label>
+        <!-- Ürün & Sample Size -->
+        <div class="ck-form-row">
+          <div class="ck-form-group" style="flex:1">
+            <label>Ürün: <b>{{ props.itemCode }}</b></label>
+          </div>
+          <div class="ck-form-group" style="width:100px">
+            <label>Numune Sayısı</label>
+            <input type="number" v-model.number="sampleSize" min="1" class="ck-input" style="text-align:center" />
+          </div>
         </div>
 
         <div class="ck-form-group">
@@ -247,12 +259,13 @@ async function handleSubmit() {
       <div class="ck-modal-footer">
         <button class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">Vazgeç</button>
         <button
-          class="ck-btn ck-btn--success"
+          class="ck-btn"
+          :class="props.intent === 'reject' ? 'ck-btn--danger' : 'ck-btn--success'"
           style="flex: 2"
           @click="handleSubmit"
           :disabled="submitting || !selectedTemplate || readings.length === 0"
         >
-          {{ submitting ? "Kaydediliyor..." : "Kaydet ve Onayla" }}
+          {{ submitting ? 'Kaydediliyor...' : (props.intent === 'reject' ? 'Kaydet ve Reddet' : 'Kaydet ve Onayla') }}
         </button>
       </div>
     </div>
@@ -260,6 +273,13 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
+.ck-form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 0;
+}
+
 .ck-modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
