@@ -77,6 +77,6 @@ This file defines the architecture, patterns, and business rules for the `kta_ca
 
 ## Development Workflow
 - **Conventional Commits**: Gitmoji ve kapsam (scope) kullanımı zorunludur.
-  - Format: `type(scope): 󰊄 message`
+  - Format: `type(scope): 📝 message`
   - Kapsam örnekleri: `qc`, `cards`, `kalite`, `ui`.
   - Her zaman anlamlı gitmojiler kullanılmalıdır.
