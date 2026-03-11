@@ -6,18 +6,22 @@
 
 ERPNext standart Kalite Muayene (MAT-QA) entegrasyonu tamamlandı. Operatörler artık ürün bazlı kalite şablonlarını seçerek ölçüm girebiliyor ve bu kayıtlar doğrudan Çalışma Kartı ile ilişkilendiriliyor.
 
-## Son Değişiklikler (2026-03-11) — `submit_kta_quality_inspection` Hata Giderimi
+## Son Değişiklikler (2026-03-11) — Kalite Kontrol (QI) Geliştirmeleri & Draft Akışı
 
-Dört ardışık hata `qc.py` içinde giderildi:
+Kalite kontrol süreci daha esnek ve güvenli bir yapıya kavuşturuldu:
 
-| # | Hata | Düzeltme |
-|---|------|---------|
-| 1 | `AttributeError: 'str' object has no attribute 'get'` | `import json` + `json.loads(readings)` — HTTP form verisi string olarak gelir |
-| 2 | `Could not find Inspected By: user` | `qa.inspected_by = frappe.session.user` eklendi |
-| 3 | `Value missing for Quality Inspection: Sample Size` | `qa.sample_size = 1` eklendi |
-| 4 | Otomatik "Reddedildi" atanması | QA "Rejected" → `kalite_kontrol = "Onay Bekliyor"` (explicit ret için `update_kalite_kontrol` gerekir) |
+*   **Numune Sayısı (sample_size)**: Kullanıcı artık şablondaki numune sayısını modal üzerinden belirleyebiliyor.
+*   **Reddedildi QI Kaydı**: "Reddedildi" (Reject) işlemi yapıldığında da arka planda bir QI belgesi oluşturulması sağlandı. Bu sayede ret kararları da dökümante ediliyor.
+*   **Draft & Auto-Submit**: QI belgeleri artık ilk aşamada **Draft** (docstatus=0) olarak kaydediliyor. Çalışma Kartı "Bitir" (Bitis) işlemine alındığında bağlı olan draft QI belgesi otomatik olarak **Submit** ediliyor (`cards.py:_handle_bitis` üzerinden).
+*   **Manual Inspection Flag**: ERPNext'in otomatik durum hesaplamasının kullanıcı girdisini (Accepted/Rejected) ezmesini önlemek için `manual_inspection: 1` flag'i her reading satırı için zorunlu kılındı.
+*   **Reading Alanları**: Numerik veriler için `reading_1`, metin veriler için `reading_value` ayrımı kesinleştirildi.
+*   **QI Link Görünümü**: Kalite sekmesinde `quality_inspection` alanı doluysa doğrudan link ve "Görüntüle" butonu eklendi.
 
-**Commit**: `fix(qc): parse readings JSON string, set inspected_by/sample_size, prevent auto-rejection`
+**Commitler**: 
+- `405746f` — `feat(kalite): sample_size, rejected QI destegi ve modal iyilestirmeleri`
+- `388719e` — `feat(kalite): QI belgesi kart bitirilince submit edilsin`
+- `3ffdc3c` — `feat(kalite): quality_inspection alani API yanitina eklendi`
+- `cb904d7` — `fix(kalite): QI link QcToggle altina tasindi ve route duzeltildi`
 
 ---
 

@@ -153,3 +153,15 @@ Calisma Karti (Ana DocType)
   ├── barkod_kayitlari      → Calisma Karti Barkod Kayitlari
   ├── alt_operasyon_kayitlari → Calisma Karti Alt Operasyon Kayitlari
   └── quality_inspection    → ERPNext Quality Inspection (Link)
+
+## Kalite Kontrol (QC) Akış Örüntüleri
+
+### 12. Draft & Auto-Submit Akışı
+QI belgeleri `submit_kta_quality_inspection` ile oluşturulduğunda **docstatus=0** (Draft) olarak kaydedilir. Bu, operatörün kartı bitirene kadar kalite verilerini güncellemesine imkan tanır. Nihai onay (Submit), `Calisma Karti` "Bitir"ildiğinde (`_handle_bitis` -> `_submit_linked_quality_inspection`) otomatik olarak yapılır.
+
+### 13. Kullanıcı Girdisini Koruma (`manual_inspection`)
+ERPNext'in sunucu taraflı otomatik Accepted/Rejected hesaplamasının kullanıcı girdisini ezmesini önlemek için her ölçüm satırı için `manual_inspection: 1` ayarı eklenir.
+
+### 14. Alan Eşleme (Reading Mapping)
+- **Numerik**: `reading_1` kullanılır.
+- **Metin/Yorum**: `reading_value` kullanılır.

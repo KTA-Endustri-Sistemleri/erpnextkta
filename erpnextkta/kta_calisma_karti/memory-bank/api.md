@@ -50,7 +50,7 @@ Frontend method path prefix: `erpnextkta.kta_calisma_karti.api.`
 | `delete_barkod_kaydi` | `name, rowname` | KTA Kalite / QM / SM |
 | `get_qc_templates_for_ck` | `ck_name` | `{templates: [], default_template, item_code}` | Herkese açık |
 | `get_template_details` | `template_name` | `[{specification, numeric, min, max, ...}]` | Herkese açık |
-| `submit_kta_quality_inspection`| `ck_name, template_name, readings` | MAT-QA link + status | KTA Kalite / QM / SM |
+| `submit_kta_quality_inspection`| `ck_name, template_name, readings, sample_size=1, intent="approve"` | MAT-QA link + status (Draft) | KTA Kalite / QM / SM |
 
 ## Alt Operasyon
 
