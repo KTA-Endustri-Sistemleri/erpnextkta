@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import frappe
 from frappe import _
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
@@ -501,7 +502,13 @@ def submit_kta_quality_inspection(ck_name, template_name, readings):
     qa.reference_name = ck.is_karti
     qa.item_code = frappe.db.get_value("Job Card", ck.is_karti, "production_item")
     qa.quality_inspection_template = template_name
-    
+    qa.inspected_by = frappe.session.user
+    qa.sample_size = 1
+
+    # Parse readings if it arrives as a JSON string (HTTP form data)
+    if isinstance(readings, str):
+        readings = json.loads(readings)
+
     # Add readings
     for r in readings:
         qa.append("readings", {
@@ -516,17 +523,15 @@ def submit_kta_quality_inspection(ck_name, template_name, readings):
     qa.insert(ignore_permissions=True)
     qa.submit()
 
-    # Determine final status for Calisma Karti
-    # If MAT-QA is Accepted, we set ck.kalite_kontrol to "Onaylandı"
-    # If Rejected, we set it to "Reddedildi"
-    final_qc_status = "Onaylandı" if qa.status == "Accepted" else "Reddedildi"
-    
+    # Determine final status for Calisma Karti.
+    # QA "Accepted"  → kalite_kontrol = "Onaylandı"
+    # QA "Rejected"  → kalite_kontrol = "Onay Bekliyor"
+    #                   (explicit rejection requires a QC user action via update_kalite_kontrol)
+    final_qc_status = "Onaylandı" if qa.status == "Accepted" else "Onay Bekliyor"
+
     # Update Calisma Karti
     ck.db_set("quality_inspection", qa.name)
     ck.db_set("kalite_kontrol", final_qc_status)
-    
-    if final_qc_status == "Reddedildi":
-        ck.db_set("durum", "Reddedildi")
 
     # Notify frontend
     publish_calisma_karti_changed(ck_name, reason=f"qc_submit:{qa.name}")

@@ -6,6 +6,21 @@
 
 ERPNext standart Kalite Muayene (MAT-QA) entegrasyonu tamamlandı. Operatörler artık ürün bazlı kalite şablonlarını seçerek ölçüm girebiliyor ve bu kayıtlar doğrudan Çalışma Kartı ile ilişkilendiriliyor.
 
+## Son Değişiklikler (2026-03-11) — `submit_kta_quality_inspection` Hata Giderimi
+
+Dört ardışık hata `qc.py` içinde giderildi:
+
+| # | Hata | Düzeltme |
+|---|------|---------|
+| 1 | `AttributeError: 'str' object has no attribute 'get'` | `import json` + `json.loads(readings)` — HTTP form verisi string olarak gelir |
+| 2 | `Could not find Inspected By: user` | `qa.inspected_by = frappe.session.user` eklendi |
+| 3 | `Value missing for Quality Inspection: Sample Size` | `qa.sample_size = 1` eklendi |
+| 4 | Otomatik "Reddedildi" atanması | QA "Rejected" → `kalite_kontrol = "Onay Bekliyor"` (explicit ret için `update_kalite_kontrol` gerekir) |
+
+**Commit**: `fix(qc): parse readings JSON string, set inspected_by/sample_size, prevent auto-rejection`
+
+---
+
 ## Son Değişiklikler (2026-03-11) — QC Entegrasyonu & Hata Giderimi
 
 *   **QC Şablon Getirme Hatası Giderildi**: `get_qc_templates_for_ck` ve `get_template_details` metodlarındaki kritik hatalar (`OperationalError` ve `AttributeError`) düzeltildi.
