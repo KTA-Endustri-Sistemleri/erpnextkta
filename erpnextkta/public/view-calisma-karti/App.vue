@@ -168,18 +168,18 @@ async function setQC(nextValue: string) {
     return;
   }
 
-  // "Onaylandı" veya "Reddedildi" → QI template varsa modal aç (her ikisi için)
+  // "Onaylandı" veya "Reddedildi" → önce template'leri kontrol et
   if (next === "Onaylandı" || next === "Reddedildi") {
     try {
       qcSaving.value = true;
       const res = await getQcTemplates();
       if (res.message && res.message.templates && res.message.templates.length > 0) {
+        // Template varsa → modal aç
         qcTemplates.value = res.message.templates;
         qcDefaultTemplate.value = res.message.default_template;
         qcItemCode.value = res.message.item_code;
         qcIntent.value = next === "Reddedildi" ? "reject" : "approve";
         showQcModal.value = true;
-        // Modal submit edince durum güncellenecek; şimdi UI'yı değiştirme
         qcFormValue.value = current || "Onay Bekliyor";
         return;
       }
@@ -187,6 +187,21 @@ async function setQC(nextValue: string) {
       console.error("QC templates fetch failed", e);
     } finally {
       qcSaving.value = false;
+    }
+
+    // Template yoksa: Reddedildi için confirm iste, Onaylandı direkt geç
+    if (next === "Reddedildi") {
+      const confirmed = await new Promise<boolean>((resolve) => {
+        frappe.confirm(
+          "Kalite kontrol belgesi olmadan reddetmek istediğinizden emin misiniz?",
+          () => resolve(true),
+          () => resolve(false)
+        );
+      });
+      if (!confirmed) {
+        qcFormValue.value = current || "Onay Bekliyor";
+        return;
+      }
     }
   }
 
