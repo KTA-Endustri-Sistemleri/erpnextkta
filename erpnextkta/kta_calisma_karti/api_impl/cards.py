@@ -249,6 +249,14 @@ def _handle_baslat(doc, now):
     if durum != "hazir":
         frappe.throw("Sadece Hazır durumundaki işlemler başlatılabilir.")
     
+    # BOARD DOĞRULAMA KONTROLÜ
+    if doc.operasyon:
+        from frappe import get_doc
+        operasyon_doc = get_doc("KTA Calisma Karti Operasyonlari", doc.operasyon)
+        if operasyon_doc.board_dogrulamasi_gerektirir:
+            if not doc.test_masasi_dogrulama_kaydi:
+                frappe.throw("Bu operasyon için Test Masası Doğrulama Kaydı zorunludur. Lütfen önce 'Bord Doğrulama Yap' butonu ile doğrulama işlemini tamamlayın.")
+
     doc.baslangic_saati = now
     
     # Auto-pause other active cards for this operator

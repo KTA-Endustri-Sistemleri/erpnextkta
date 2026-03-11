@@ -9,6 +9,7 @@
     "field_order": [
         "sequence",
         "calisma_karti_op",
+        "board_dogrulamasi_gerektirir",
         "customer_group",
         "plant_floor",
         "miktar_zorunlu_mu",
@@ -28,6 +29,12 @@
             "in_list_view": 1,
             "label": "Calisma Karti Op",
             "reqd": 1
+        },
+        {
+            "default": "0",
+            "fieldname": "board_dogrulamasi_gerektirir",
+            "fieldtype": "Check",
+            "label": "Board Do\u011frulamas\u0131 Gerektirir"
         },
         {
             "fieldname": "customer_group",

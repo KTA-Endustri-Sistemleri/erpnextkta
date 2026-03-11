@@ -9,7 +9,6 @@ from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 @frappe.whitelist()
 def create_calisma_karti(**kwargs):
     """Create Calisma Karti from Vue wizard payload."""
-
     # Merge kwargs with form_dict for flexibility
     data = frappe._dict(frappe.local.form_dict or {})
     data.update(kwargs or {})
