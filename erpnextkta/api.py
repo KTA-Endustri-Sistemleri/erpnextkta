@@ -422,11 +422,19 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
         return
 
     # 1. Mevcut Batch Numarasını Tespit Et
+    # Normal girişlerde is_outward=0, iadelerde (Return) is_outward=1 olur.
     row_batch_number = frappe.db.get_value(
         "Serial and Batch Entry",
         {"parent": row.serial_and_batch_bundle, "is_outward": 0},
         "batch_no"
     )
+
+    if not row_batch_number:
+        row_batch_number = frappe.db.get_value(
+            "Serial and Batch Entry",
+            {"parent": row.serial_and_batch_bundle, "is_outward": 1},
+            "batch_no"
+        )
 
     if not row_batch_number:
         # Fallback: Batch tablosundan PR referansıyla bul
@@ -463,6 +471,66 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
             q_ref=q_ref,
         )
 
+def _get_reliable_incoming_rate(row, bundle_doc):
+    """
+    Güvenilir incoming_rate belirler.
+    Fallback zinciri (öncelik sırasıyla):
+    1. Bundle entry'lerindeki mevcut incoming_rate
+    2. DB'den PR Item / SE Detail valuation_rate (taze okuma)
+    3. DB'den PR Item rate veya base_rate
+    4. Item Master valuation_rate
+    5. Item Master last_purchase_rate
+    """
+    # 1. Bundle entry'lerinden
+    for entry in bundle_doc.get("entries", []):
+        if flt(entry.get("incoming_rate")):
+            return flt(entry.incoming_rate)
+
+    # 2-3. DB'den PR Item veya SE Detail satırını taze oku
+    if row.doctype == "Purchase Receipt Item":
+        db_values = frappe.db.get_value(
+            "Purchase Receipt Item", row.name,
+            ["valuation_rate", "rate", "base_rate"],
+            as_dict=True
+        )
+        if db_values:
+            rate = flt(db_values.valuation_rate) or flt(db_values.rate) or flt(db_values.base_rate)
+            if rate:
+                return rate
+    elif row.doctype == "Stock Entry Detail":
+        db_values = frappe.db.get_value(
+            "Stock Entry Detail", row.name,
+            ["valuation_rate", "basic_rate"],
+            as_dict=True
+        )
+        if db_values:
+            rate = flt(db_values.valuation_rate) or flt(db_values.basic_rate)
+            if rate:
+                return rate
+
+    # In-memory row values (son çare olarak row objesinden)
+    rate = flt(row.get("valuation_rate")) or flt(row.get("rate"))
+    if rate:
+        return rate
+
+    # 4. Item Master valuation_rate
+    item_valuation = frappe.db.get_value("Item", row.item_code, "valuation_rate")
+    if flt(item_valuation):
+        return flt(item_valuation)
+
+    # 5. Son satınalma oranı (Last Purchase Rate)
+    last_purchase_rate = frappe.db.get_value("Item", row.item_code, "last_purchase_rate")
+    if flt(last_purchase_rate):
+        return flt(last_purchase_rate)
+
+    frappe.log_error(
+        f"Incoming rate 0 olarak belirlendi! Row: {row.name}, Item: {row.item_code}, "
+        f"Bundle: {bundle_doc.name}",
+        "KTA Stock Valuation Warning"
+    )
+    return 0.0
+
+
 def _update_bundle_safely(row, allocations):
     """
     Serial and Batch Bundle'ı yeni allocation'lar ile günceller.
@@ -487,18 +555,7 @@ def _update_bundle_safely(row, allocations):
     if not warehouse:
         frappe.throw(_("Warehouse not found for row {0}").format(row.name))
 
-    # Orijinal entry'lerdeki incoming_rate'i sakla (split öncesi)
-    original_incoming_rate = 0.0
-    for entry in bundle_doc.get("entries", []):
-        if entry.get("incoming_rate"):
-            original_incoming_rate = flt(entry.incoming_rate)
-            break
-
-    # Fallback: PR Item satırının valuation_rate'ini kullan
-    if not original_incoming_rate:
-        original_incoming_rate = flt(
-            row.get("valuation_rate") or row.get("rate") or 0.0
-        )
+    original_incoming_rate = _get_reliable_incoming_rate(row, bundle_doc)
 
     bundle_doc.set("entries", [])
     total_qty = 0
@@ -525,6 +582,20 @@ def _update_bundle_safely(row, allocations):
     # Use save(ignore_permissions=True) to trigger a clean update with our flags
     bundle_doc.save(ignore_permissions=True)
     frappe.clear_document_cache("Serial and Batch Bundle", bundle_name)
+
+    # Batch qty güncelle: çocuk batch'lerin qty'sini set et, ana batch'i düşür
+    parent_batch_nos = set()
+    for alloc in allocations:
+        child_batch = alloc["batch_no"]
+        child_qty = flt(alloc["qty"])
+        # Çocuk batch'in qty'sini artır
+        current_qty = flt(frappe.db.get_value("Batch", child_batch, "batch_qty"))
+        frappe.db.set_value("Batch", child_batch, "batch_qty", current_qty + child_qty,
+                           update_modified=False)
+
+    # Ana batch'in qty'sini bundle entry'lerden yeniden hesapla
+    if row.get("batch_no"):
+        _recalculate_batch_qty(row.batch_no)
 
 
 
@@ -608,6 +679,20 @@ def _prepare_batch_allocations(row, base_source_doc, base_batch_number, is_manuf
     return allocations
 
 
+def _recalculate_batch_qty(batch_no):
+    """Batch'in qty'sini Serial and Batch Bundle entry'lerden yeniden hesaplar."""
+    result = frappe.db.sql("""
+        SELECT COALESCE(SUM(sabe.qty), 0) as total_qty
+        FROM `tabSerial and Batch Entry` sabe
+        JOIN `tabSerial and Batch Bundle` sabb ON sabe.parent = sabb.name
+        WHERE sabe.batch_no = %s
+          AND sabb.is_cancelled = 0
+          AND sabb.docstatus = 1
+    """, batch_no)
+    new_qty = flt(result[0][0]) if result else 0.0
+    frappe.db.set_value("Batch", batch_no, "batch_qty", new_qty, update_modified=False)
+
+
 def _create_split_batch_record(row, parent_doc, base_batch_number, pack_no, is_manufacturing):
     batch_id = f"{base_batch_number}{pack_no:04d}"
     
@@ -620,6 +705,7 @@ def _create_split_batch_record(row, parent_doc, base_batch_number, pack_no, is_m
         "item": row.item_code,
         "stock_uom": row.get("stock_uom"),
         "description": row.get("description"),
+        "batch_qty": 0,
     })
 
     if is_manufacturing:

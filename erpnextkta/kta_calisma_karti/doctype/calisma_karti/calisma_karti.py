@@ -251,3 +251,111 @@ def format_sure(seconds):
 def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_miktar=None):
     from erpnextkta.kta_calisma_karti.api_impl.cards import islem_yap as api_islem_yap
     return api_islem_yap(docname, islem_tipi, durus_nedeni, aciklama, tamamlanan_miktar)
+    doc = frappe.get_doc("Calisma Karti", docname)
+    now = now_datetime()
+    durum = doc.get_durum()
+
+
+    # Block any actions on rejected cards
+    if (doc.kalite_kontrol or '').strip() == 'Reddedildi':
+        frappe.throw('Reddedilmiş çalışma kartında işlem yapılamaz.')
+
+    # English comments as requested
+    # Parse optional completed qty entered during stop action
+    qty = 0.0
+    if tamamlanan_miktar is not None and str(tamamlanan_miktar).strip() != "":
+        try:
+            qty = float(tamamlanan_miktar)
+        except Exception:
+            frappe.throw("Tamamlanan miktar sayısal olmalıdır.")
+        if qty < 0:
+            frappe.throw("Tamamlanan miktar negatif olamaz.")
+
+    if islem_tipi == "Baslat":
+        if durum == "bitmis":
+            frappe.throw("Bitmiş bir işlem tekrar başlatılamaz.")
+        elif durum == "calisiyor":
+            frappe.throw("İşlem zaten çalışıyor.")
+        elif durum == "hazir":
+            # BOARD DOĞRULAMA KONTROLÜ
+            if doc.operasyon:
+                operasyon_doc = frappe.get_doc("KTA Calisma Karti Operasyonlari", doc.operasyon)
+                if operasyon_doc.board_dogrulamasi_gerektirir:
+                    if not doc.test_masasi_dogrulama_kaydi:
+                        frappe.throw("Bu operasyon için Test Masası Doğrulama Kaydı zorunludur. Lütfen önce 'Bord Doğrulama Yap' butonu ile doğrulama işlemini tamamlayın.")
+                    
+                    # (Opsiyonel) Eğer Test Masası Doğrulama Kaydı'nın da kendi içinde bir "onay" mekanizması eklendiyse kontrol edilebilir.
+                    # Şimdilik sadece belgenin varlığını kontrol ediyoruz.
+
+            doc.baslangic_saati = now
+        elif durum == "durusta":
+            if not doc.duruslar:
+                frappe.throw("Duruş kaydı bulunamadı.")
+            last_row = doc.duruslar[-1]
+            last_row.durus_bitis = now
+            start_dt = get_datetime(last_row.durus_baslangic)
+            end_dt = get_datetime(last_row.durus_bitis)
+            last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+
+    elif islem_tipi == "Durus":
+        if durum == "bitmis":
+            frappe.throw("Bitmiş bir işlemde duruş yapılamaz.")
+        elif durum == "hazir":
+            frappe.throw("Henüz başlatılmamış bir işlemde duruş yapılamaz.")
+        elif durum == "durusta":
+            frappe.throw("Zaten duruşta.")
+        elif durum == "calisiyor":
+            if not durus_nedeni:
+                frappe.throw("Duruş nedeni gerekli.")
+            row = doc.append("duruslar", {})
+            row.durus_baslangic = now
+            row.durus_nedeni = durus_nedeni
+            row.aciklama = aciklama or ""
+
+            # Add to parent total if provided
+            if qty > 0:
+                doc.tamamlanan_miktar = float(doc.tamamlanan_miktar or 0) + qty
+
+    elif islem_tipi == "Bitis":
+        if durum == "bitmis":
+            frappe.throw("İşlem zaten bitmiş.")
+        elif durum == "hazir":
+            frappe.throw("Başlatılmamış bir işlem bitirilemez.")
+        # QC gate: must be approved to finish
+        if (doc.kalite_kontrol or "").strip() != "Onaylandı":
+            frappe.throw("Kalite kontrol onaylanmadan işlem bitirilemez.")
+
+        # ✅ NEW (Option A): allow adding completed qty on finish as well
+        if qty > 0:
+            doc.tamamlanan_miktar = float(doc.tamamlanan_miktar or 0) + qty
+
+        # Business rule: must have completed qty > 0 to finish
+        total_done = float(doc.tamamlanan_miktar or 0)
+        if total_done <= 0:
+            frappe.throw("Bitirmek için tamamlanan miktar 0'dan büyük olmalı. Duruş sırasında tamamlanan adet girin.")
+
+        if durum == "durusta":
+            if not doc.duruslar:
+                frappe.throw("Duruş kaydı bulunamadı.")
+            last_row = doc.duruslar[-1]
+            last_row.durus_bitis = now
+            start_dt = get_datetime(last_row.durus_baslangic)
+            end_dt = get_datetime(last_row.durus_bitis)
+            last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+
+        doc.bitis_saati = now
+
+    else:
+        frappe.throw(f"Geçersiz işlem tipi: {islem_tipi}. Geçerli değerler: Baslat, Durus, Bitis")
+
+    doc.hesapla_durus_suresi()
+    doc.hesapla_toplam_sure()
+    doc.save()
+    frappe.db.commit()
+
+    return {
+        "status": "success",
+        "message": f"{islem_tipi} işlemi başarıyla tamamlandı.",
+        "durum": doc.get_durum(),
+        "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
+    }
