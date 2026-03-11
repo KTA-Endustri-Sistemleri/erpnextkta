@@ -541,15 +541,16 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
         qa.append("readings", row)
 
     qa.insert(ignore_permissions=True)
-    qa.submit()
+    # QI stays as Draft (docstatus=0) until the Calisma Karti is finished.
+    # It will be submitted automatically in _handle_bitis (cards.py).
 
-    # Determine final kalite_kontrol status for Calisma Karti:
-    #   intent=reject  → always "Reddedildi" (regardless of individual reading outcomes)
-    #   intent=approve → "Onaylandı" if QA Accepted, else "Onay Bekliyor"
+    # Determine temporary kalite_kontrol status for Calisma Karti:
+    #   intent=reject  → "Reddedildi"
+    #   intent=approve → "Onaylandı" (final status will be confirmed on submit)
     if is_reject:
         final_qc_status = "Reddedildi"
     else:
-        final_qc_status = "Onaylandı" if qa.status == "Accepted" else "Onay Bekliyor"
+        final_qc_status = "Onaylandı"
 
     # Update Calisma Karti
     ck.db_set("quality_inspection", qa.name)

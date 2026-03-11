@@ -323,10 +323,39 @@ def _handle_bitis(doc, now, aciklama, qty):
                 frappe.throw("Üretim adedi girilmeden işlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.")
 
     doc.bitis_saati = now
-    
+
     # Optional final note/durus reason
     if aciklama and len(doc.duruslar) > 0:
         doc.duruslar[-1].aciklama = aciklama
+
+    # 4. Submit linked Quality Inspection (if draft)
+    _submit_linked_quality_inspection(doc)
+
+
+def _submit_linked_quality_inspection(doc):
+    """Submit the Quality Inspection linked to this Calisma Karti if it is still a Draft.
+
+    Called when the card is finished (Bitis). Safe — any error is logged but does not
+    block the card from being finished.
+    """
+    qi_name = (getattr(doc, "quality_inspection", None) or "").strip()
+    if not qi_name:
+        return
+
+    try:
+        qi_docstatus = frappe.db.get_value("Quality Inspection", qi_name, "docstatus")
+        if qi_docstatus == 0:  # Draft → submit
+            qi_doc = frappe.get_doc("Quality Inspection", qi_name)
+            qi_doc.submit()
+            frappe.logger().info(
+                f"[kta] Quality Inspection {qi_name} submitted on Bitis of {doc.name}"
+            )
+    except Exception:
+        frappe.log_error(
+            frappe.get_traceback(),
+            f"[kta] QI submit failed for {qi_name} (Calisma Karti: {doc.name})"
+        )
+
 
 def _auto_pause_other_active_cards(hedef_doc, now_dt):
     if not hedef_doc.operator:
