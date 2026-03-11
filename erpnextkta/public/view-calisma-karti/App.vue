@@ -166,8 +166,25 @@ async function setQC(nextValue: string) {
     return;
   }
 
-  // standard QC integration logic
-  if (next === "Onaylandı" || next === "Reddedildi") {
+  // "Reddedildi" → direkt kaydet, modal açma
+  if (next === "Reddedildi") {
+    qcFormValue.value = next;
+    qcSaving.value = true;
+    try {
+      await updateQC(next);
+      frappe.show_alert({ message: "Kalite durumu güncellendi", indicator: "red" });
+      tab.value = "kalite";
+    } catch (e) {
+      qcFormValue.value = (qcLabel.value || "Onay Bekliyor").trim();
+      throw e;
+    } finally {
+      qcSaving.value = false;
+    }
+    return;
+  }
+
+  // "Onaylandı" → QI template varsa modal aç, yoksa direkt kaydet
+  if (next === "Onaylandı") {
     try {
       qcSaving.value = true;
       const res = await getQcTemplates();
@@ -176,7 +193,7 @@ async function setQC(nextValue: string) {
         qcDefaultTemplate.value = res.message.default_template;
         qcItemCode.value = res.message.item_code;
         showQcModal.value = true;
-        // Don't update status yet, wait for modal submission
+        // Modal submit edince durum güncellenecek; şimdi UI'yı değiştirme
         qcFormValue.value = current || "Onay Bekliyor";
         return;
       }
@@ -187,6 +204,7 @@ async function setQC(nextValue: string) {
     }
   }
 
+  // "Onay Bekliyor" veya template bulunamadı → direkt kaydet
   qcFormValue.value = next;
   qcSaving.value = true;
 
@@ -202,6 +220,7 @@ async function setQC(nextValue: string) {
     qcSaving.value = false;
   }
 }
+
 
 async function handleStandardQcSubmit(payload: any) {
     try {

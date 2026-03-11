@@ -81,7 +81,7 @@ def update_kalite_kontrol(name: str, kalite_kontrol: str):
             try:
                 durum_key = doc.get_durum()
                 # STATU_HARITASI lives in the DocType module
-                from kta_calisma_karti.doctype.calisma_karti.calisma_karti import STATU_HARITASI
+                from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import STATU_HARITASI
                 doc.db_set("durum", STATU_HARITASI.get(durum_key, "Hazır"), update_modified=True)
             except Exception:
                 # Fail safe: don't block QC update if status recompute fails
