@@ -165,3 +165,9 @@ ERPNext'in sunucu taraflı otomatik Accepted/Rejected hesaplamasının kullanıc
 ### 14. Alan Eşleme (Reading Mapping)
 - **Numerik**: `reading_1` kullanılır.
 - **Metin/Yorum**: `reading_value` kullanılır.
+
+### 15. Smart Tolerance (Akıllı Tolerans) Deseni
+İş Emri veya İş Kartı "Completed/Closed" olsa dahi, son stok girişine (Manufacture/Repack) bakılarak işlem izni verilir. 
+- Ayar: `KTA Calisma Karti Settings.tolerans_saat`
+- Kontrol: `api_impl/barcode.py` -> `is_work_order_within_tolerance()`
+- Kaynak: `Stock Entry` tablosundaki son başarılı üretim girişinin tarihi ve saati.

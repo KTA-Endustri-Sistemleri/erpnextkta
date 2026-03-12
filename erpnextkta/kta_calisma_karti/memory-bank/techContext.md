@@ -68,6 +68,7 @@ Public: erpnextkta/public/
 3. **Employee eşleştirme fallback** — `user_id → company_email → personal_email` sırası
 4. **`after_commit=True` realtime** — Event DB commit sonrası tetiklenir; başarısızlık CK işlemini bloklamaz
 5. **Vue bundle'lar** — Her SPA bağımsız import zinciri; Frappe'nin hot-reload'u kısıtlıdır (dev'de `bench build` gerekebilir)
+6. **Agresif Modal Susturma** — `App.vue` açıkken `frappe.msgprint` override edilir ve 250ms'de bir mesaj kuyruğu (`frappe.messages`) temizlenir (Sıkıyönetim Modu).
 
 ## Tool & Patterns
 

@@ -1,10 +1,27 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-11
+> Son güncelleme: 2026-03-12
 
 ## Mevcut Odak
 
-ERPNext standart Kalite Muayene (MAT-QA) entegrasyonu tamamlandı. Operatörler artık ürün bazlı kalite şablonlarını seçerek ölçüm girebiliyor ve bu kayıtlar doğrudan Çalışma Kartı ile ilişkilendiriliyor.
+Sihirbaz (Wizard) kullanıcı deneyimi premium seviyeye taşındı. Akıllı barkod algılama, agresif modal susturma ve tamamlanmış iş emirleri için tolerans süresi (Smart Tolerance) özellikleri devreye alındı.
+
+## Son Değişiklikler (2026-03-12) — Sihirbaz UI Revizyonu & Smart Tolerance
+
+Sihirbaz daha akıllı, estetik ve kesintisiz bir yapıya kavuşturuldu:
+
+*   **Smart Tolerance (Akıllı Tolerans)**: İş Emri veya İş Kartı kapalı olsa dahi, son stok girişinden sonraki N saat (ayarlanabilir, varsayılan 8 saat) boyunca Çalışma Kartı açılmasına izin veren backend mantığı eklendi.
+*   **Agresif Modal Susturma**: `App.vue` açıkken Frappe'nin kafa karıştırıcı hata modallarını tamamen susturan "Sıkıyönetim Modu" uygulandı. Hatalar artık animasyonlu (shake) bir Alert kutusunda Türkçe olarak gösteriliyor.
+*   **Premium UI & Karanlık Mod**: 
+    - Tüm seçim listelerindeki (Operatör, Operasyon vb.) sert beyazlıklar giderildi.
+    - Step 3 (İş İstasyonu) mimarisi dikey hiyerarşiye çekilerek metin sıkışmaları önlendi.
+    - Mavi parlama (**glow**) etkili dinamik bilgi şeridi eklendi.
+*   **Akıllı Barkod Arama**: Kullanıcının girdiği eksik barkodlar otomatik olarak `MFG-WO-` veya `PO-` önekleriyle tamamlanarak arama hızı artırıldı.
+
+**Commitler**:
+- `feat(ui): premium wizard redesign, aggressive modal suppression and dark mode polish`
+- `feat(backend): implement smart tolerance for completed work orders via settings`
+- `fix(build): resolve syntax error in getErrorMessage causing build failure`
 
 ## Son Değişiklikler (2026-03-11) — Kalite Kontrol (QI) Geliştirmeleri & Draft Akışı
 
