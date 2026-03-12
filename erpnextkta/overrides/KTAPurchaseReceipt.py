@@ -13,16 +13,86 @@ class KTAPurchaseReceipt(PurchaseReceipt):
     def validate(self):
         self.update_rates_logic()
         super().validate()
+        self._validate_item_rates()
 
     def validate_with_previous_doc(self):
         try:
             super().validate_with_previous_doc()
         except frappe.ValidationError as e:
-            # Bypass strict "Rate must be same as Purchase Order" or similar checks
+            # Bypass strict "Rate must be same as Purchase Order" or similar checks.
+            # Kur farkından kaynaklanan sapmalara izin vermek için bu bypass gereklidir.
+            # Aynı para birimli sapmalar _validate_item_rates() tarafından yakalanır.
             if "Rate must be same as Purchase Order" in str(e):
                 pass
             else:
                 raise e
+
+    def _validate_item_rates(self):
+        """
+        KTA Rate Validation: PR kalemlerinin rate değerlerini kaynak belge (PO/PR) ile karşılaştır.
+
+        Kurallar:
+          1. Aynı para birimi (ör. PO EUR → PR EUR):
+             PR rate, PO rate'den %MAX_RATE_DEVIATION_PCT üzerinde sapamaz.
+             Saparsa kaydet engellenir ve kullanıcıdan düzeltmesi istenir.
+
+          2. Farklı para birimi (ör. PO EUR → PR TRY):
+             Kur çevirimi meşru sapma yaratır, bu durum sessizce kabul edilir.
+             update_rates_logic() zaten doğru değeri hesaplar.
+
+          3. Kaynak belge (PO/önceki PR) yoksa:
+             Doğrulama atlanır (direkt irsaliye senaryosu).
+        """
+        MAX_RATE_DEVIATION_PCT = 20.0  # %20 tolerans
+
+        for item in self.items:
+            po_item_name = item.get("purchase_order_item")
+            pr_item_name = item.get("purchase_receipt_item")
+
+            src_rate = None
+            src_currency = None
+
+            if po_item_name:
+                row = frappe.db.get_value(
+                    "Purchase Order Item",
+                    po_item_name,
+                    ["rate", "parent"],
+                    as_dict=True,
+                )
+                if row and row.rate:
+                    src_rate = row.rate
+                    src_currency = frappe.db.get_value("Purchase Order", row.parent, "currency")
+
+            elif pr_item_name:
+                row = frappe.db.get_value(
+                    "Purchase Receipt Item",
+                    pr_item_name,
+                    ["rate", "parent"],
+                    as_dict=True,
+                )
+                if row and row.rate:
+                    src_rate = row.rate
+                    src_currency = frappe.db.get_value("Purchase Receipt", row.parent, "currency")
+
+            # Kaynak belge yoksa veya kaynak rate 0 ise atla
+            if not src_rate or not src_currency:
+                continue
+
+            # Farklı para birimi → kur çevirimi beklenir, atla
+            if src_currency != self.currency:
+                continue
+
+            # Aynı para birimi → tolerance kontrolü
+            deviation_pct = abs(item.rate - src_rate) / src_rate * 100
+            if deviation_pct > MAX_RATE_DEVIATION_PCT:
+                frappe.throw(
+                    f"Satır {item.idx} — <b>{item.item_code}</b>: "
+                    f"Rate değeri <b>{item.rate:.5f} {self.currency}</b> kabul edilemez. "
+                    f"Kaynak belgeden beklenen: <b>{src_rate:.5f} {self.currency}</b> "
+                    f"(Sapma: %{deviation_pct:.1f}, izin verilen: %{MAX_RATE_DEVIATION_PCT:.0f}). "
+                    f"Fiyatı düzeltin veya önce satın alma siparişini güncelleyin.",
+                    title="Geçersiz Fiyat",
+                )
 
     def _get_exchange_rate(self, from_currency, to_currency, date, for_selling, for_buying):
         result = frappe.db.sql("""
