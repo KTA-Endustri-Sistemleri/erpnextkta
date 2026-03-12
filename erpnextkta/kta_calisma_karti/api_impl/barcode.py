@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
+from frappe.utils import get_datetime, now_datetime, time_diff_in_hours
 from collections import defaultdict
 
 
@@ -34,13 +35,7 @@ def _get_customer_groups_by_item_codes(item_codes: list[str]) -> dict[str, list[
 
 
 def _attach_customer_groups_to_payload(payload: dict) -> dict:
-    """
-    Attach customer_group(s) to a single payload based on payload["production_item"].
-
-    Always adds:
-      - payload["customer_groups"]: list[str]
-      - payload["customer_group"]: str | None
-    """
+    """..."""
     item_code = payload.get("production_item")
     groups_by_item = _get_customer_groups_by_item_codes([item_code] if item_code else [])
 
@@ -48,6 +43,39 @@ def _attach_customer_groups_to_payload(payload: dict) -> dict:
     payload["customer_groups"] = cgs
     payload["customer_group"] = cgs[0] if cgs else None
     return payload
+
+
+def is_work_order_within_tolerance(wo_name: str) -> bool:
+    """
+    Check if a 'Completed' or 'Closed' Work Order is still within the tolerance period
+    based on its last Stock Entry (Manufacture/Repack).
+    """
+    tolerance_hours = frappe.db.get_single_value("KTA Calisma Karti Settings", "tolerans_saat") or 0
+    if tolerance_hours <= 0:
+        return False
+
+    # Find last submitted Stock Entry for this Work Order (Manufacture/Repack)
+    last_stock_entry = frappe.get_all(
+        "Stock Entry",
+        filters={
+            "work_order": wo_name,
+            "purpose": ["in", ["Manufacture", "Repack"]],
+            "docstatus": 1
+        },
+        fields=["posting_date", "posting_time"],
+        order_by="posting_date desc, posting_time desc",
+        limit=1
+    )
+
+    if not last_stock_entry:
+        return False
+
+    se = last_stock_entry[0]
+    posting_datetime = get_datetime(f"{se.posting_date} {se.posting_time}")
+    
+    diff_hours = time_diff_in_hours(now_datetime(), posting_datetime)
+    
+    return diff_hours <= tolerance_hours
 
 
 @frappe.whitelist()
@@ -93,8 +121,13 @@ def get_job_card_by_barcode(barcode: str):
     if wo.docstatus != 1:
         frappe.throw(_("İş Emri onaylanmamış (docstatus != 1)."), title=_("Geçersiz İş Emri"))
 
+    # Status check with tolerance
     if wo.status not in ("Not Started", "In Process"):
-        frappe.throw(_("İş Emri açık değil. Mevcut durum: {0}").format(wo.status), title=_("İş Emri Kapalı"))
+        if not is_work_order_within_tolerance(wo.name):
+            frappe.throw(
+                _("İş Emri kapalı ve tolerans süresi dolmuş. Mevcut durum: {0}").format(wo.status), 
+                title=_("İş Emri Kapalı")
+            )
 
     # 4) Minimal payload + customer group(s)
     payload = {
@@ -132,7 +165,8 @@ def get_work_order_by_barcode(barcode: str):
         frappe.throw(_("İş Emri onaylanmamış (docstatus != 1)."))
 
     if wo.status not in ("Not Started", "In Process"):
-        frappe.throw(_("İş Emri açık değil. Mevcut durum: {0}").format(wo.status))
+        if not is_work_order_within_tolerance(wo.name):
+            frappe.throw(_("İş Emri kapalı ve tolerans süresi dolmuş. Mevcut durum: {0}").format(wo.status))
 
     payload = {
         "name": wo.name,
