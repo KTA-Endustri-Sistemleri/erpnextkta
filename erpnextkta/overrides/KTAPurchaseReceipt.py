@@ -13,33 +13,108 @@ class KTAPurchaseReceipt(PurchaseReceipt):
     def validate(self):
         self.update_rates_logic()
         super().validate()
+        self._validate_item_rates()
 
     def validate_with_previous_doc(self):
         try:
             super().validate_with_previous_doc()
         except frappe.ValidationError as e:
-            # Bypass strict "Rate must be same as Purchase Order" or similar checks
+            # Bypass strict "Rate must be same as Purchase Order" or similar checks.
+            # Kur farkından kaynaklanan sapmalara izin vermek için bu bypass gereklidir.
+            # Aynı para birimli sapmalar _validate_item_rates() tarafından yakalanır.
             if "Rate must be same as Purchase Order" in str(e):
                 pass
             else:
                 raise e
 
+    def _validate_item_rates(self):
+        """
+        KTA Rate Validation: PR kalemlerinin rate değerlerini kaynak belge (PO/PR) ile karşılaştır.
+
+        Kurallar:
+          1. Aynı para birimi (ör. PO EUR → PR EUR):
+             PR rate, PO rate'den %MAX_RATE_DEVIATION_PCT üzerinde sapamaz.
+             Saparsa kaydet engellenir ve kullanıcıdan düzeltmesi istenir.
+
+          2. Farklı para birimi (ör. PO EUR → PR TRY):
+             Kur çevirimi meşru sapma yaratır, bu durum sessizce kabul edilir.
+             update_rates_logic() zaten doğru değeri hesaplar.
+
+          3. Kaynak belge (PO/önceki PR) yoksa:
+             Doğrulama atlanır (direkt irsaliye senaryosu).
+        """
+        MAX_RATE_DEVIATION_PCT = 20.0  # %20 tolerans
+
+        for item in self.items:
+            po_item_name = item.get("purchase_order_item")
+            pr_item_name = item.get("purchase_receipt_item")
+
+            src_rate = None
+            src_currency = None
+
+            if po_item_name:
+                row = frappe.db.get_value(
+                    "Purchase Order Item",
+                    po_item_name,
+                    ["rate", "parent"],
+                    as_dict=True,
+                )
+                if row and row.rate:
+                    src_rate = row.rate
+                    src_currency = frappe.db.get_value("Purchase Order", row.parent, "currency")
+
+            elif pr_item_name:
+                row = frappe.db.get_value(
+                    "Purchase Receipt Item",
+                    pr_item_name,
+                    ["rate", "parent"],
+                    as_dict=True,
+                )
+                if row and row.rate:
+                    src_rate = row.rate
+                    src_currency = frappe.db.get_value("Purchase Receipt", row.parent, "currency")
+
+            # Kaynak belge yoksa veya kaynak rate 0 ise atla
+            if not src_rate or not src_currency:
+                continue
+
+            # Farklı para birimi → kur çevirimi beklenir, atla
+            if src_currency != self.currency:
+                continue
+
+            # Aynı para birimi → tolerance kontrolü
+            deviation_pct = abs(item.rate - src_rate) / src_rate * 100
+            if deviation_pct > MAX_RATE_DEVIATION_PCT:
+                frappe.throw(
+                    f"Satır {item.idx} — <b>{item.item_code}</b>: "
+                    f"Rate değeri <b>{item.rate:.5f} {self.currency}</b> kabul edilemez. "
+                    f"Kaynak belgeden beklenen: <b>{src_rate:.5f} {self.currency}</b> "
+                    f"(Sapma: %{deviation_pct:.1f}, izin verilen: %{MAX_RATE_DEVIATION_PCT:.0f}). "
+                    f"Fiyatı düzeltin veya önce satın alma siparişini güncelleyin.",
+                    title="Geçersiz Fiyat",
+                )
+
+    def _get_exchange_rate(self, from_currency, to_currency, date, for_selling, for_buying):
+        result = frappe.db.sql("""
+            SELECT exchange_rate FROM `tabCurrency Exchange`
+            WHERE date <= %s AND from_currency = %s AND to_currency = %s
+            AND for_selling = %s AND for_buying = %s
+            ORDER BY date DESC LIMIT 1
+        """, (date, from_currency, to_currency, for_selling, for_buying))
+        return result[0][0] if result else None
+
     def update_rates_logic(self):
         """
         Update Purchase Receipt Exchange Rate and Item Prices.
-        
+
         1. Rate Date: Uses 'gumruk_beyanname_tarihi' or 'irsaliye_tarihi' if available, else Posting Date.
         2. Conversion Rate: Uses 'Selling' rate by default.
            Exception: If 'Gümrüksüz' checkbox is checked, uses 'Buying' rate from Posting Date.
         3. Item Rates: Uses Fresh Price List rate effective on Rate Date.
         """
-        
-        # Gümrüksüz ithalat: for_buying kuru, posting_date tarihinde
         use_buying_rate = self.get("custom_gumruksuz")
 
-        # Determine the date to use for rate lookup
         if use_buying_rate:
-            # Gümrüksüz: her zaman posting_date kullan
             rate_date = self.posting_date
         elif self.get("gumruk_beyanname_tarihi"):
             rate_date = self.get("gumruk_beyanname_tarihi")
@@ -48,169 +123,188 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         else:
             rate_date = self.posting_date
 
-        # Rate type flags
         for_selling = 0 if use_buying_rate else 1
         for_buying = 1 if use_buying_rate else 0
-    
+
+        company_currency = frappe.get_cached_value("Company", self.company, "default_currency")
+
         # 1. Update Exchange Rate
-        if self.currency and self.currency != self.company_currency:
-            target_date = rate_date
-            exchange_rate_info = frappe.db.sql("""
-                SELECT exchange_rate 
-                FROM `tabCurrency Exchange`
-                WHERE date <= %s
-                AND from_currency = %s
-                AND to_currency = %s
-                AND for_selling = %s
-                AND for_buying = %s
-                ORDER BY date DESC
-                LIMIT 1
-            """, (target_date, self.currency, self.company_currency, for_selling, for_buying), as_dict=True)
-        
-            if exchange_rate_info:
-                self.conversion_rate = exchange_rate_info[0].exchange_rate
-                # Sync Price List Conversion Rate if currencies match
+        if self.currency and self.currency == company_currency:
+            self.conversion_rate = 1.0
+
+        if self.currency and self.currency != company_currency:
+            rate = self._get_exchange_rate(self.currency, company_currency, rate_date, for_selling, for_buying)
+            if rate:
+                self.conversion_rate = rate
                 if self.price_list_currency == self.currency:
-                    self.plc_conversion_rate = self.conversion_rate
+                    self.plc_conversion_rate = rate
 
-        # Ensure plc_conversion_rate is set if Price List Currency differs from Company Currency
-        if self.price_list_currency and self.price_list_currency != self.company_currency and self.price_list_currency != self.currency:
-            target_date = rate_date
-            plc_rate_info = frappe.db.sql("""
-                SELECT exchange_rate 
-                FROM `tabCurrency Exchange`
-                WHERE date <= %s
-                AND from_currency = %s
-                AND to_currency = %s
-                AND for_selling = %s
-                AND for_buying = %s
-                ORDER BY date DESC
-                LIMIT 1
-            """, (target_date, self.price_list_currency, self.company_currency, for_selling, for_buying), as_dict=True)
-            
-            if plc_rate_info:
-                self.plc_conversion_rate = plc_rate_info[0].exchange_rate
-        
+        if self.price_list_currency and self.price_list_currency != company_currency and self.price_list_currency != self.currency:
+            rate = self._get_exchange_rate(self.price_list_currency, company_currency, rate_date, for_selling, for_buying)
+            if rate:
+                self.plc_conversion_rate = rate
+
+        if not self.items:
+            self.calculate_taxes_and_totals()
+            return
+
+        # Pre-fetch old doc once and build O(1) item lookup map
+        old_doc = None
+        old_items_map = {}
+        if not self.is_new():
+            old_doc = self.get_doc_before_save()
+            if old_doc and old_doc.currency != self.currency:
+                old_items_map = {i.name: i for i in old_doc.items}
+
+        # Batch query Item Price to avoid N+1 per item
+        existing_item_prices = set()
+        if self.buying_price_list and self.supplier:
+            rows = frappe.db.sql("""
+                SELECT CONCAT(item_code, '|', price_list_rate) FROM `tabItem Price`
+                WHERE price_list = %s AND supplier = %s
+            """, (self.buying_price_list, self.supplier))
+            existing_item_prices = {r[0] for r in rows}
+
+        # Per-PR/PO currency cache to avoid N+1 parent lookups
+        _po_currency_cache = {}
+        _pr_currency_cache = {}
+
         # 2. Update Item Rates
-        if self.items:
-            for item in self.items:
-                # KTA Override: Smart Rate Update Prevention
-                # We want to identify if the current 'item.rate' is Manually entered (or customized).
-                # If it is Manual, we MUST NOT overwrite it.
-                # If it is Standard (consistent with Price List), we SHOULD update it to latest Price List Rate.
+        for item in self.items:
+            current_plr = item.price_list_rate or 0.0
+            current_rate = item.rate or 0.0
 
-                # 1. Determine if Rate is "Detached" from Price List Rate
-                # Calculated Expected Rate = price_list_rate * conversion * (1 - discount)
-                
-                current_plr = item.price_list_rate or 0.0
-                current_rate = item.rate or 0.0
-                
-                calc_conversion = 1.0
-                if self.price_list_currency and self.currency and self.price_list_currency != self.currency:
-                    if self.plc_conversion_rate:
-                        calc_conversion = self.plc_conversion_rate
+            calc_conversion = 1.0
+            if self.price_list_currency and self.currency and self.price_list_currency != self.currency:
+                if self.plc_conversion_rate:
+                    calc_conversion = self.plc_conversion_rate
 
-                discount_factor = 1.0 - (item.get("discount_percentage", 0) / 100.0)
-                
-                # Expected rate given current PLR
-                expected_rate = current_plr * calc_conversion * discount_factor
-                
-                # Check deviation (tolerance 0.01)
-                is_detached = abs(current_rate - expected_rate) > 0.01
+            discount_factor = 1.0 - (item.get("discount_percentage", 0) / 100.0)
+            expected_rate = current_plr * calc_conversion * discount_factor
+            is_detached = abs(current_rate - expected_rate) > 0.01
 
-                # 2. Check if the PLR itself is Manual (not in DB)
-                # Only check this if it appears "Attached", because if it's Detached we already know it's manual.
-                # (Or if user manually typed a PLR that isn't in DB, effectively checks validity)
-                is_manual_plr = False
-                if not is_detached and current_plr > 0 and self.buying_price_list:
-                     if not frappe.db.exists("Item Price", {
-                        "item_code": item.item_code, 
-                        "supplier": self.supplier, 
-                        "price_list": self.buying_price_list, 
-                        "price_list_rate": current_plr
-                    }):
-                        is_manual_plr = True
+            is_manual_plr = False
+            if not is_detached and current_plr > 0 and self.buying_price_list:
+                key = f"{item.item_code}|{current_plr}"
+                is_manual_plr = key not in existing_item_prices
 
-                if is_detached or is_manual_plr:
-                    # Treat as Manual: Skip fetching fresh prices.
-                    # But we MUST recalculate based on *Exchange Rate* changes?
-                    # User said: "artık o ürün için rate değeri değiştirilmemeli" (rate should not be changed anymore).
-                    # This implies absolute freeze of the Rate (in Doc Currency)?
-                    # Usually imports (EUR) need to update rate in TRY if Exchange Rate changes.
-                    # BUT here, Doc Currency is EUR (from logs). 
-                    # If Doc Currency matches PL Currency, NO exchange rate effect.
-                    # If Doc Currency is TRY, and we bought in EUR -> We need to update TRY rate.
-                    
-                    # If we simply 'continue', Rate freezes.
-                    # If Doc Coin != Company Coin, and Doc Coin == PL Coin (e.g. all EUR), this is fine.
-                    # If Doc Coin (TRY) != PL Coin (EUR). User typed 100 TRY. Exch Rate changes.
-                    # Should it stay 100 TRY? Or update to equiv of X EUR?
-                    # "Rate değeri değiştirilmemeli" -> DO NOT CHANGE RATE. 
-                    
-                    # We will simply SKIP updates for this item.
-                    # However, we must ensure base_* values are updated for the Document's conversion rate (to company base).
-                    
-                    # Recalculate base values only using CURRENT rate
+            if is_detached or is_manual_plr:
+                # --- KTA Currency Change Fix ---
+                po_rate = None
+                po_currency = None
+                pr_orig_rate = None
+                pr_orig_currency = None
+
+                if item.get("purchase_order_item"):
+                    po_item = frappe.db.get_value("Purchase Order Item", item.purchase_order_item, ["rate", "parent"], as_dict=True)
+                    if po_item:
+                        parent = po_item.parent
+                        if parent not in _po_currency_cache:
+                            _po_currency_cache[parent] = frappe.db.get_value("Purchase Order", parent, "currency")
+                        po_currency = _po_currency_cache[parent]
+                        if po_currency:
+                            po_rate = po_item.rate
+
+                elif item.get("purchase_receipt_item"):
+                    pr_item = frappe.db.get_value("Purchase Receipt Item", item.purchase_receipt_item, ["rate", "parent"], as_dict=True)
+                    if pr_item:
+                        parent = pr_item.parent
+                        if parent not in _pr_currency_cache:
+                            _pr_currency_cache[parent] = frappe.db.get_value("Purchase Receipt", parent, "currency")
+                        pr_orig_currency = _pr_currency_cache[parent]
+                        if pr_orig_currency:
+                            pr_orig_rate = pr_item.rate
+
+                old_currency = None
+                old_conversion_rate = None
+                old_rate = None
+
+                if old_items_map:
+                    old_item = old_items_map.get(item.name)
+                    if old_item:
+                        old_currency = old_doc.currency
+                        old_conversion_rate = old_doc.conversion_rate
+                        old_rate = old_item.rate
+
+                        # Corruption guard: if rate == PO/PR rate but currency doesn't match,
+                        # switching back to source currency → restore original rate directly.
+                        if po_currency and po_rate and old_currency != po_currency and abs(old_rate - po_rate) < 0.001 and self.currency == po_currency:
+                            item.rate = po_rate
+                            old_rate = None  # bypass regular calculation
+                        elif pr_orig_currency and pr_orig_rate and old_currency != pr_orig_currency and abs(old_rate - pr_orig_rate) < 0.001 and self.currency == pr_orig_currency:
+                            item.rate = pr_orig_rate
+                            old_rate = None  # bypass regular calculation
+
+                if self.is_new():
+                    src_currency = (po_currency if po_currency and po_currency != self.currency
+                                    else pr_orig_currency if pr_orig_currency and pr_orig_currency != self.currency
+                                    else None)
+                    if src_currency:
+                        src_rate = po_rate if src_currency == po_currency else pr_orig_rate
+                        old_currency = src_currency
+                        old_rate = src_rate
+                        if src_currency == company_currency:
+                            old_conversion_rate = 1.0
+                        elif src_currency == self.price_list_currency and self.plc_conversion_rate:
+                            old_conversion_rate = self.plc_conversion_rate
+                        elif src_currency == self.currency and self.conversion_rate:
+                            old_conversion_rate = self.conversion_rate
+                        else:
+                            old_conversion_rate = self._get_exchange_rate(src_currency, company_currency, rate_date, for_selling, for_buying)
+
+                if old_currency and old_conversion_rate and self.conversion_rate and old_rate is not None:
+                    correct_new_rate = (old_rate * old_conversion_rate) / self.conversion_rate
+                    difference = abs(item.rate - old_rate)
+                    difference_converted = abs(item.rate - correct_new_rate)
+                    difference_bad1 = abs(item.rate - (old_rate / self.conversion_rate))
+                    if difference < 0.001 or difference_converted < 0.001 or difference_bad1 < 0.001:
+                        item.rate = correct_new_rate
+
+                item.amount = item.rate * item.qty
+                item.net_rate = item.rate
+                item.net_amount = item.amount
+                item.base_rate = item.rate * self.conversion_rate
+                item.base_amount = item.amount * self.conversion_rate
+                item.base_net_rate = item.net_rate * self.conversion_rate
+                item.base_net_amount = item.net_amount * self.conversion_rate
+                continue
+
+            # Standard path: fetch fresh prices
+            args = {
+                "item_code": item.item_code,
+                "warehouse": item.warehouse,
+                "supplier": self.supplier,
+                "price_list": self.buying_price_list,
+                "price_list_currency": self.price_list_currency,
+                "plc_conversion_rate": self.plc_conversion_rate,
+                "company": self.company,
+                "transaction_date": rate_date,
+                "currency": self.currency,
+                "conversion_rate": self.conversion_rate,
+                "qty": item.qty,
+                "doctype": "Purchase Receipt",
+                "name": self.name,
+                "ignore_pricing_rule": 0
+            }
+
+            try:
+                details = get_item_details(args)
+                if details:
+                    if details.get("price_list_rate"):
+                        item.price_list_rate = details.get("price_list_rate")
+                        item.rate = details.get("rate") or item.price_list_rate
+                    if details.get("discount_percentage"):
+                        item.discount_percentage = details.get("discount_percentage")
                     item.amount = item.rate * item.qty
-                    item.net_rate = item.rate
-                    item.net_amount = item.amount
-                    
                     item.base_rate = item.rate * self.conversion_rate
                     item.base_amount = item.amount * self.conversion_rate
+                    item.net_rate = item.rate
+                    item.net_amount = item.amount
                     item.base_net_rate = item.net_rate * self.conversion_rate
                     item.base_net_amount = item.net_amount * self.conversion_rate
-                    
-                    continue
+            except Exception as e:
+                frappe.log_error(f"KTAPurchaseReceipt Rate Update Error: {str(e)}", "KTAPurchaseReceipt")
 
-                # If Not Manual/Detached -> Proceed with Standard Update (Fetch Fresh Prices)
-                # Recalculate base amounts based on new conversion rate
-                
-                # Fetch fresh item details to catch price changes
-                args = {
-                    "item_code": item.item_code,
-                    "warehouse": item.warehouse,
-                    "supplier": self.supplier,
-                    "price_list": self.buying_price_list,
-                    "price_list_currency": self.price_list_currency,
-                    "plc_conversion_rate": self.plc_conversion_rate,
-                    "company": self.company,
-                    "transaction_date": rate_date,
-                    "currency": self.currency,
-                    "conversion_rate": self.conversion_rate,
-                    "qty": item.qty,
-                    # "uom": item.uom, 
-                    "doctype": "Purchase Receipt",
-                    "name": self.name,
-                    "ignore_pricing_rule": 0
-                }
-                
-                try:
-                    details = get_item_details(args)
-                    
-                    if details:
-                         # Update rate if found
-                        if details.get("price_list_rate"):
-                            item.price_list_rate = details.get("price_list_rate")
-                            
-                            # Standard Update
-                            item.rate = details.get("rate") or item.price_list_rate
-                            
-                        if details.get("discount_percentage"):
-                            item.discount_percentage = details.get("discount_percentage")
-
-                        # Recalculate amounts
-                        item.amount = item.rate * item.qty
-                        item.base_rate = item.rate * self.conversion_rate
-                        item.base_amount = item.amount * self.conversion_rate
-                        
-                        item.net_rate = item.rate
-                        item.net_amount = item.amount
-                        item.base_net_rate = item.net_rate * self.conversion_rate
-                        item.base_net_amount = item.net_amount * self.conversion_rate
-                except Exception as e:
-                     frappe.log_error(f"KTAPurchaseReceipt Rate Update Error: {str(e)}", "KTAPurchaseReceipt")
-
-        # Recalculate taxes and totals at the end
         self.calculate_taxes_and_totals()
 
     def verify_batch(self):
