@@ -3,6 +3,61 @@
 
 
 
+## 🚀 v0.20.0 (2026-03-12)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- stock balance svd correction
+      
+      
+    
+      
+      
+        
+- correct stock_value_difference for foreign currency PRs and add SLE balance fix script
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- Add item rate deviation validation for Purchase Receipts and remove the stock value difference fix script.
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.19.0 (2026-03-05)
 
 
