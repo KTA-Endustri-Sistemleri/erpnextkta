@@ -61,9 +61,7 @@ const selectedJobCard = computed(() => {
 
 const selectedOperation = computed(() => {
   return (
-    operations.value.find(
-      (op) => op.calisma_karti_op === selectedOperationName.value
-    ) || null
+    operations.value.find((op) => op.name === selectedOperationName.value) || null
   );
 });
 
@@ -126,6 +124,33 @@ const steps = computed(() => {
     { id: 2, label: 'Operasyon', description: step2Desc },
     { id: 3, label: 'Operatör',  description: step3Desc },
   ];
+});
+
+const activeCustomerGroups = computed(() => {
+  // Prefer Work Order (WO mode), fallback to selected Job Card (JC mode)
+  const wo = workOrder.value;
+  const jc = selectedJobCard.value;
+
+  const fromWo = wo?.customer_groups || (wo?.customer_group ? [wo.customer_group] : []);
+  const fromJc = jc?.customer_groups || (jc?.customer_group ? [jc.customer_group] : []);
+
+  const raw = (fromWo.length ? fromWo : fromJc).filter(Boolean);
+  return Array.from(new Set(raw));
+});
+
+// Eğer operasyonun customer_group alanı doluysa, sadece o gruba ait olan WO/JC'lere göster.
+// Eğer boşsa (generic operasyon), herkese göster.
+const filteredOperations = computed(() => {
+  const ops = operations.value || [];
+  const groups = activeCustomerGroups.value;
+
+  return ops.filter((op) => {
+    const cg = op?.customer_group || null;
+    // Operasyon genel kullanıma açıksa (kısıt yoksa) kabul et:
+    if (!cg) return true;
+    // Operasyon kısıtlıysa, sepetteki gruplardan biriyle eşleşmeli:
+    return groups.includes(cg);
+  });
 });
 
 /* -------------------------------------------------------
@@ -279,6 +304,8 @@ async function fetchJobCardByBarcode() {
         workstation: msg.workstation || null,
         production_item: msg.production_item || null,
         for_quantity: msg.for_quantity || msg.qty || null,
+        customer_group: msg.customer_group || null,
+        customer_groups: msg.customer_groups || [],
       };
 
       // Job Card state
@@ -291,6 +318,8 @@ async function fetchJobCardByBarcode() {
             name: jc.work_order,
             production_item: jc.production_item,
             qty: jc.for_quantity,
+            customer_group: jc.customer_group,
+            customer_groups: jc.customer_groups,
           }
         : null;
 
@@ -341,7 +370,8 @@ async function fetchOperations() {
     await withLoading(async () => {
       const list = await callFrappe('frappe.client.get_list', {
         doctype: 'KTA Calisma Karti Operasyonlari',
-        fields: ['calisma_karti_op'],
+        fields: ['name','calisma_karti_op', 'customer_group'],
+        order_by: 'sequence asc',
         limit_page_length: 500
       });
 
@@ -684,7 +714,7 @@ onBeforeUnmount(() => {
             <!-- STEP 4: Operasyon -->
             <StepOperation
               v-else-if="currentStep === 4"
-              :operations="operations"
+              :operations="filteredOperations"
               v-model:selectedOperation="selectedOperationName"
             />
 
@@ -710,7 +740,7 @@ onBeforeUnmount(() => {
             <!-- STEP 2: Operasyon -->
             <StepOperation
               v-else-if="currentStep === 2"
-              :operations="operations"
+              :operations="filteredOperations"
               v-model:selectedOperation="selectedOperationName"
             />
 

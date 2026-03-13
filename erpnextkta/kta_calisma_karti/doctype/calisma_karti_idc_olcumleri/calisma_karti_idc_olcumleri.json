@@ -1,68 +1,71 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2026-01-20 10:23:44.824057",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "item_code",
-  "yukseklik_mm",
-  "cekme_n",
-  "olcum_tarihi",
-  "olcumu_giren"
- ],
- "fields": [
-  {
-   "fieldname": "item_code",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Item Code",
-   "options": "Item",
-   "reqd": 1
-  },
-  {
-   "description": "Height (mm)",
-   "fieldname": "yukseklik_mm",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Y\u00fckseklik (mm)",
-   "reqd": 1
-  },
-  {
-   "description": "Pull force (N - Newton)",
-   "fieldname": "cekme_n",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "\u00c7ekme (N)",
-   "reqd": 1
-  },
-  {
-   "default": "now",
-   "fieldname": "olcum_tarihi",
-   "fieldtype": "Datetime",
-   "label": "\u00d6l\u00e7\u00fcm Tarihi"
-  },
-  {
-   "fieldname": "olcumu_giren",
-   "fieldtype": "Link",
-   "ignore_user_permissions": 1,
-   "label": "\u00d6l\u00e7\u00fcm\u00fc Giren",
-   "options": "Employee"
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "istable": 1,
- "links": [],
- "modified": "2026-01-21 17:42:19.315789",
- "modified_by": "Administrator",
- "module": "kta_calisma_karti",
- "name": "Calisma Karti IDC Olcumleri",
- "owner": "Administrator",
- "permissions": [],
- "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2026-01-20 10:23:44.824057",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "item_code",
+        "yukseklik_mm",
+        "cekme_n",
+        "olcum_tarihi",
+        "olcumu_giren"
+    ],
+    "fields": [
+        {
+            "allow_on_submit": 1,
+            "fieldname": "item_code",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Item Code",
+            "options": "Item",
+            "reqd": 1
+        },
+        {
+            "allow_on_submit": 1,
+            "description": "Height (mm)",
+            "fieldname": "yukseklik_mm",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "Y\u00fckseklik (mm)"
+        },
+        {
+            "allow_on_submit": 1,
+            "description": "Pull force (N - Newton)",
+            "fieldname": "cekme_n",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "\u00c7ekme (N)"
+        },
+        {
+            "allow_on_submit": 1,
+            "default": "now",
+            "fieldname": "olcum_tarihi",
+            "fieldtype": "Datetime",
+            "label": "\u00d6l\u00e7\u00fcm Tarihi"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "olcumu_giren",
+            "fieldtype": "Link",
+            "ignore_user_permissions": 1,
+            "label": "\u00d6l\u00e7\u00fcm\u00fc Giren",
+            "options": "Employee"
+        }
+    ],
+    "grid_page_length": 50,
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "links": [],
+    "modified": "2026-01-21 17:42:19.315789",
+    "modified_by": "Administrator",
+    "module": "kta_calisma_karti",
+    "name": "Calisma Karti IDC Olcumleri",
+    "owner": "Administrator",
+    "permissions": [],
+    "row_format": "Dynamic",
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
 }

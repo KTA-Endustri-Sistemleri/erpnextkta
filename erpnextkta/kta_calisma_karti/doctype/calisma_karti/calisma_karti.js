@@ -96,6 +96,11 @@ frappe.ui.form.on('Calisma Karti', {
         frappe.datetime.get_datetime_as_string(frm.doc.baslangic_saati)
       ]), 'blue');
     }
+
+    // Makine Günlük Bakım Butonu
+    frm.add_custom_button(__('Günlük Bakım Onayı'), () => {
+      showMaintenanceDialog(frm);
+    }, __("Özel Belgeler")).addClass('btn-primary btn-sm');
   },
 
   validate(frm) {
@@ -170,6 +175,137 @@ function callIslemYap(frm, islemTipi, durusNedeni, aciklama, successCallback) {
     },
     error: () => {
       frappe.msgprint({ title: __("Hata"), message: __("İşlem sırasında bir hata oluştu."), indicator: "red" });
+    }
+  });
+}
+
+// ====== Makine Günlük Bakım Dialog ======
+function showMaintenanceDialog(frm) {
+  // First, fetch the instruction content
+  frappe.call({
+    method: 'frappe.client.get',
+    args: {
+      doctype: 'Bakim Talimati',
+      name: 'PTR.BT.049'
+    },
+    callback: function(r) {
+      if (!r.message) {
+        frappe.msgprint(__('Bakım talimatı bulunamadı.'));
+        return;
+      }
+
+      const instruction = r.message;
+      let html = `
+        <div style="padding: 20px; background-color: #f9f9f9; border-radius: 5px; max-height: 500px; overflow-y: auto;">
+          <h3 style="color: #333; margin-top: 0;">${instruction.talimat_kodu} - ${instruction.talimat_adi}</h3>
+      `;
+
+      if (instruction.amac) {
+        html += `<p><strong>AMAÇ:</strong> ${instruction.amac}</p>`;
+      }
+
+      if (instruction.kapsam) {
+        html += `<p><strong>KAPSAM:</strong> ${instruction.kapsam}</p>`;
+      }
+
+      html += '<hr style="border: 0; border-top: 2px solid #ddd; margin: 15px 0;">';
+
+      if (instruction.talimat_metni) {
+        html += instruction.talimat_metni;
+      }
+
+      html += '</div>';
+
+      // Create the dialog
+      const dialog = new frappe.ui.Dialog({
+        title: __('Günlük Bakım Onayı'),
+        fields: [
+          {
+            fieldtype: 'Link',
+            fieldname: 'makine',
+            label: __('Makine (Asset)'),
+            options: 'Asset',
+            reqd: 1,
+            description: __('Bakım yapılacak makineyi seçin')
+          },
+          {
+            fieldtype: 'Section Break',
+            label: __('Bakım Talimatı')
+          },
+          {
+            fieldtype: 'HTML',
+            fieldname: 'instruction_html',
+            options: html
+          },
+          {
+            fieldtype: 'Section Break',
+            label: __('Onay')
+          },
+          {
+            fieldtype: 'Check',
+            fieldname: 'onay',
+            label: __('Günlük bakımı talimata göre kontrol ettim ve sorun bulunmamıştır.'),
+            reqd: 1
+          },
+          {
+            fieldtype: 'Small Text',
+            fieldname: 'notlar',
+            label: __('Notlar (İsteğe Bağlı)')
+          }
+        ],
+        primary_action_label: __('Onayla ve Kaydet'),
+        primary_action: function(values) {
+          if (!values.onay) {
+            frappe.msgprint(__('Lütfen bakım kontrolünü onaylayın.'));
+            return;
+          }
+
+          if (!values.makine) {
+            frappe.msgprint(__('Lütfen makine seçin.'));
+            return;
+          }
+
+          // Create the maintenance record
+          frappe.call({
+            method: 'frappe.client.insert',
+            args: {
+              doc: {
+                doctype: 'Makine Gunluk Bakim Formu',
+                calisma_karti_ref: frm.doc.name,
+                operator: frm.doc.operator,
+                makine: values.makine,
+                tarih: frappe.datetime.get_today(),
+                bakim_talimati: 'PTR.BT.049',
+                notlar: values.notlar || '',
+                onay: 1
+              }
+            },
+            callback: function(r) {
+              if (r.message) {
+                // Submit the document
+                frappe.call({
+                  method: 'frappe.client.submit',
+                  args: {
+                    doc: r.message
+                  },
+                  callback: function(submit_r) {
+                    dialog.hide();
+                    frappe.msgprint({
+                      title: __('Başarılı'),
+                      message: __('Günlük bakım kaydı oluşturuldu ve onaylandı.'),
+                      indicator: 'green'
+                    });
+                    frm.reload_doc();
+                  }
+                });
+              }
+            }
+          });
+        }
+      });
+
+      dialog.show();
+      dialog.$wrapper.find('.modal-dialog').css("max-width", "800px");
     }
   });
 }

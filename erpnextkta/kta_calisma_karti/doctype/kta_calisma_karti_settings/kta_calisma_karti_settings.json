@@ -1,0 +1,48 @@
+{
+    "actions": [],
+    "creation": "2026-03-02 12:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "max_kart_suresi_dk",
+        "kart_uyari_suresi_dk"
+    ],
+    "fields": [
+        {
+            "default": "430",
+            "fieldname": "max_kart_suresi_dk",
+            "fieldtype": "Int",
+            "in_list_view": 1,
+            "label": "Maksimum \u00c7al\u0131\u015fma Kart\u0131 S\u00fcresi (DK)",
+            "reqd": 1
+        },
+        {
+            "default": "400",
+            "fieldname": "kart_uyari_suresi_dk",
+            "fieldtype": "Int",
+            "label": "Kart Uyar\u0131 S\u00fcresi (DK)",
+            "reqd": 1
+        }
+    ],
+    "issingle": 1,
+    "modified": "2026-03-02 12:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "kta_calisma_karti",
+    "name": "KTA Calisma Karti Settings",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "print": 1,
+            "read": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

@@ -1,0 +1,45 @@
+# Product Context — kta_calisma_karti
+
+## Neden Var?
+
+ERPNext'in standart Job Card formu üretim zemini için fazla karmaşık.  
+KTA operatörleri:
+- Barkod okuyucu ile hızlı kart oluşturmak istiyor
+- Duruş / başlat / bitir işlemlerini sade bir arayüzden yapmak istiyor
+- Kalite ekibi IDC ölçümü ve barkod kayıtlarını mobil uyumlu ekranda girmek istiyor
+- Yöneticiler tüm kartların anlık durumunu görmek istiyor
+
+## Çözdüğü Problemler
+
+| Problem | Çözüm |
+|---------|-------|
+| ERPNext form karmaşıklığı | Adım adım wizard + tek sayfa detay görünümü |
+| Barkod okuyucu entegrasyonu | Global Enter listener + barcode API endpoint |
+| Yetki karmaşası (QC vs. operatör) | Rol bazlı API kapıları + permlevel=1 |
+| Anlık liste güncellemesi | Socket.IO realtime: `kta_calisma_karti:list_changed` |
+| Hurda kaydında yanlış parça | BOM + operasyon bazlı item whitelist |
+| IDC ölçümünde yanlış malzeme | `item_group = "120-IDC Connector"` + BOM scope filtresi |
+
+## Kullanıcı Grupları
+
+### Operatör (Manufacturing User)
+- Kendi kartlarını oluşturur, görür ve yönetir
+- Başlat / Duraklat / Bitir aksiyonları
+- Hurda kaydı (BOM'daki operasyon malzemeleriyle sınırlı)
+- Alt operasyon kayıtları
+
+### Kalite Kullanıcısı (KTA Kalite Kullanıcısı)
+- Tüm kartları görebilir (sorgulamak için)
+- IDC ölçümü ve barkod kaydı ekleyebilir/düzenleyebilir/silebilir
+- Kalite durumunu güncelleyebilir (Onay Bekliyor / Onaylandı / Reddedildi)
+
+### Yönetici (System Manager)
+- Tüm operasyonlara tam erişim
+- Herhangi bir kartı görebilir ve düzenleyebilir
+
+## Kullanıcı Deneyimi Hedefleri
+
+- **Hız:** Barkod okutulduğunda mümkün olan maksimum şey otomatik doldurulsun
+- **Netlik:** Kart durumu (Hazır/Çalışıyor/Duruşta/Bitmiş/Reddedildi) tek bakışta anlaşılsın
+- **Güvenlik:** Yanlış veri girilmesini önleyen sunucu tarafı doğrulama
+- **Canlılık:** Liste ekranı yeni kart oluşturulduğunda ya da durum değiştiğinde anlık güncellensin

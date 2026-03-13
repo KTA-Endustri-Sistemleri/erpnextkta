@@ -1,0 +1,128 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:talimat_kodu",
+ "creation": "2026-03-13 02:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "talimat_kodu",
+  "talimat_adi",
+  "column_break_1",
+  "aktif",
+  "versiyon",
+  "section_break_2",
+  "amac",
+  "kapsam",
+  "section_break_3",
+  "talimat_metni",
+  "section_break_4",
+  "notlar"
+ ],
+ "fields": [
+  {
+   "fieldname": "talimat_kodu",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Talimat Kodu",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "talimat_adi",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Talimat Ad\u0131",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "aktif",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Aktif"
+  },
+  {
+   "default": "1.0",
+   "fieldname": "versiyon",
+   "fieldtype": "Data",
+   "label": "Versiyon"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "A\u00e7\u0131klama"
+  },
+  {
+   "fieldname": "amac",
+   "fieldtype": "Text Editor",
+   "label": "Ama\u00e7"
+  },
+  {
+   "fieldname": "kapsam",
+   "fieldtype": "Text Editor",
+   "label": "Kapsam"
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "Talimat \u0130\u00e7eri\u011fi"
+  },
+  {
+   "fieldname": "talimat_metni",
+   "fieldtype": "Text Editor",
+   "label": "Talimat Metni",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
+   "label": "Ek Bilgiler"
+  },
+  {
+   "fieldname": "notlar",
+   "fieldtype": "Text",
+   "label": "Notlar"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-13 02:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "Bakim Talimati",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

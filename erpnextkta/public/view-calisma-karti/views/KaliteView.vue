@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, computed, ref, watch } from "vue";
 import QcToggle from "../components/QcToggle.vue";
 import IdcSection from "../components/IdcSection.vue";
 import BarkodSection from "../components/BarkodSection.vue";
@@ -135,5 +135,6 @@ onMounted(() => {});
       :onEdit="editBarkod"
       :onDelete="deleteBarkod"
     />
+
   </div>
 </template>

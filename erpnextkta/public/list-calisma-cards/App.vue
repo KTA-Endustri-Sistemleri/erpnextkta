@@ -5,6 +5,8 @@ const loading = ref(false);
 const rows = ref([]);
 const errorMsg = ref("");
 const sortKey = ref("creation_desc");
+const statusFilter = ref("all"); // all | ready | running | paused | finished | rejected
+const qcFilter = ref("all");     // all | waiting | approved | rejected // all | ready | running | paused | finished
 
 const q = ref(""); // search query
 
@@ -25,12 +27,28 @@ async function load(opts = {}) {
   loading.value = true;
   errorMsg.value = "";
   try {
+    const statusMap = {
+      "ready": "Hazır",
+      "running": "Çalışıyor",
+      "paused": "Duruşta",
+      "finished": "Bitmiş",
+      "rejected": "Reddedildi"
+    };
+
+    const qcMap = {
+      "waiting": "Onay Bekliyor",
+      "approved": "Onaylandı",
+      "rejected": "Reddedildi"
+    };
+
     const r = await frappe.call("erpnextkta.kta_calisma_karti.api.get_my_calisma_kartlari", {
       order_by: sortKey.value,
-
-      // ✅ NEW: paging args
       start: start.value,
       page_length: pageLength.value,
+      durum: statusFilter.value !== "all" ? statusMap[statusFilter.value] : null,
+      search_term: q.value,
+      customer_group: customerGroupFilter.value !== "all" ? customerGroupFilter.value : null,
+      qc_filter: qcFilter.value !== "all" ? qcMap[qcFilter.value] : null
     });
 
     const data = r.message || [];
@@ -64,6 +82,16 @@ async function load(opts = {}) {
     loading.value = false;
   }
 }
+
+// Trigger load on filter changes (debounced)
+let searchTimer = null;
+watch([q, statusFilter, qcFilter, customerGroupFilter, sortKey], () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        load();
+    }, 400); 
+}, { deep: true });
+
 // ✅ NEW: load more
 function loadMore() {
   if (loading.value || !hasMore.value) return;
@@ -122,9 +150,6 @@ function openDetail(name) {
   frappe.set_route("view-calisma-karti", name);
 }
 
-const statusFilter = ref("all"); // all | ready | running | paused | finished | rejected
-const qcFilter = ref("all");     // all | waiting | approved | rejected // all | ready | running | paused | finished
-
 function statusKeyFromDurumText(durum) {
   const v = (durum || "").toLowerCase();
   if (v.includes("redd")) return "rejected";
@@ -153,92 +178,34 @@ function qcKeyFromText(qc) {
   return "waiting";
 }
 
-// ✅ NEW: available customer groups from rows
-const availableCustomerGroups = computed(() => {
-  const set = new Set();
+const availableCustomerGroups = ref([]);
+const customerGroupCounts = ref({});
 
-  for (const r of rows.value || []) {
-    const arr = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
-    for (const g of arr) if (g) set.add(g);
-
-    if (r?.customer_group) set.add(r.customer_group);
+watch([rows, customerGroupFilter], ([newRows, filter]) => {
+  if (filter !== "all" && availableCustomerGroups.value.length > 0) {
+    // Keep previously calculated groups and counts visible so user can switch away
+    return;
   }
+  
+  const set = new Set();
+  const c = { all: (newRows || []).length };
 
-  return Array.from(set).sort((a, b) => a.localeCompare(b, "tr"));
-});
-
-// ✅ NEW: counts per group (optional but useful for UI)
-const customerGroupCounts = computed(() => {
-  const c = { all: rows.value.length };
-
-  for (const r of rows.value || []) {
+  for (const r of newRows || []) {
     const groups = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
     const single = r?.customer_group;
-
     const uniq = new Set(groups);
     if (single) uniq.add(single);
 
     for (const g of uniq) {
       if (!g) continue;
+      set.add(g);
       c[g] = (c[g] || 0) + 1;
     }
   }
 
-  return c;
-});
-
-// Lightweight client-side search
-const filteredRows = computed(() => {
-  const needle = (q.value || "").trim().toLowerCase();
-
-  return (rows.value || []).filter((r) => {
-    // 1) Status filter
-    if (statusFilter.value !== "all") {
-      const k = statusKeyFromDurumText(r?.durum);
-      if (k !== statusFilter.value) return false;
-    }
-
-    // 2) QC filter
-    if (qcFilter.value !== "all") {
-      const qk = qcKeyFromText(r?.kalite_kontrol);
-      if (qk !== qcFilter.value) return false;
-    }
-
-    // ✅ NEW: 3) Customer Group filter
-    if (customerGroupFilter.value !== "all") {
-      const target = customerGroupFilter.value;
-
-      const groups = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
-      const single = r?.customer_group;
-
-      const hit = (single === target) || (groups || []).includes(target);
-      if (!hit) return false;
-    }
-
-    // 3) Search filter
-    if (!needle) return true;
-
-    const hay = [
-      r?.name,
-      r?.operator,
-      r?.custom_work_order,
-      r?.is_karti,
-      r?.operasyon,
-      r?.durum,
-      r?.kalite_kontrol, // QC da aransın
-      r?.urun_kodu,
-
-      // ✅ NEW (optional): search in customer group too
-      r?.customer_group,
-      ...(Array.isArray(r?.customer_groups) ? r.customer_groups : []),
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    return hay.includes(needle);
-  });
-});
+  availableCustomerGroups.value = Array.from(set).sort((a, b) => a.localeCompare(b, "tr"));
+  customerGroupCounts.value = c;
+}, { immediate: true });
 
 function statusTone(durum) {
   // Map your text labels to tones (adjust if your API uses different strings)
@@ -288,9 +255,6 @@ function setCustomerGroupFilter(v) {
   scrollToTop();
 }
 
-watch(sortKey, () => {
-  load();
-});
 onMounted(() => {
   load();
   bindListRealtime();
@@ -307,10 +271,6 @@ onUnmounted(() => {
     <div class="ck-header">
       <div class="ck-header-row">
         <div class="ck-title">Çalışma Kartları</div>
-
-        <button class="ck-iconbtn" @click="load" :disabled="loading" aria-label="Yenile">
-          ↻
-        </button>
       </div>
 
       <div class="ck-search">
@@ -425,16 +385,16 @@ onUnmounted(() => {
         <button class="ck-btn" @click="load">Tekrar dene</button>
       </div>
 
-      <div v-else-if="filteredRows.length === 0" class="ck-empty">
+      <div v-else-if="rows.length === 0" class="ck-empty">
         <div class="ck-empty-title">Kayıt yok</div>
         <div class="ck-muted">
-          {{ rows.length === 0 ? "Atanmış çalışma kartı yok." : "Aramana uygun kayıt bulunamadı." }}
+          Aramana uygun çalışma kartı bulunamadı.
         </div>
       </div>
 
       <div v-else class="ck-list">
         <button
-          v-for="r in filteredRows"
+          v-for="r in rows"
           :key="r.name"
           class="ck-card"
           @click="openDetail(r.name)"
@@ -454,14 +414,6 @@ onUnmounted(() => {
                   <span>Ürün Kodu</span>
                   <b>{{ r.urun_kodu|| "-" }}</b>
                 </div>
-
-                <!-- ✅ Optional: show customer group (not required for filtering) -->
-                <!--
-                <div class="ck-kv-item">
-                  <span>Customer Group</span>
-                  <b>{{ r.customer_group || "-" }}</b>
-                </div>
-                -->
 
                 <div class="ck-kv-item">
                   <span>İş Emri</span>
@@ -484,7 +436,7 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <div v-if="!loading && !errorMsg && filteredRows.length > 0" class="ck-loadmore">
+      <div v-if="!loading && !errorMsg && rows.length > 0" class="ck-loadmore">
         <button
           v-if="hasMore"
           class="ck-btn"

@@ -11,9 +11,11 @@ import CkActionbar from "./components/CkActionbar.vue";
 import CkTabs, { type TabKey } from "./components/CkTabs.vue";
 
 import InfoView from "./views/InfoView.vue";
+import AltOperasyonView from "./views/AltOperasyonView.vue";
 import HurdaView from "./views/HurdaView.vue";
 import DurusView from "./views/DurusView.vue";
 import KaliteView from "./views/KaliteView.vue";
+import BakimView from "./views/BakimView.vue";
 
 const tab = ref<TabKey>("info");
 
@@ -28,21 +30,6 @@ function syncRoute() {
 // Keep router listener cleanup safe across Frappe builds
 let unsubscribe: any = null;
 let alive = true;
-
-onMounted(() => {
-  alive = true;
-
-  // first sync
-  syncRoute();
-
-  // sync on route change
-  unsubscribe = frappe.router?.on?.("change", syncRoute);
-});
-
-onUnmounted(() => {
-  alive = false;
-  if (typeof unsubscribe === "function") unsubscribe();
-});
 
 const PAGE = "view-calisma-karti";
 
@@ -60,8 +47,30 @@ const {
   loading, doc, load, callIslem,
   updateQC, addHurda, updateHurda, deleteHurda,
   addIdcOlcumu, updateIdcOlcumu, deleteIdcOlcumu,
-  addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi
+  addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi,
+  addAltOperasyon, updateAltOperasyon, deleteAltOperasyon
 } = useCalismaKarti(docname);
+
+// Reactive now timer for timeout warning (updates every minute)
+const nowTime = ref(Date.now());
+let timerInterval: any = null;
+
+onMounted(() => {
+  alive = true;
+  syncRoute();
+  unsubscribe = frappe.router?.on?.("change", syncRoute);
+  
+  // Update time every minute to keep warning reactive
+  timerInterval = setInterval(() => {
+    nowTime.value = Date.now();
+  }, 60000);
+});
+
+onUnmounted(() => {
+  alive = false;
+  if (typeof unsubscribe === "function") unsubscribe();
+  if (timerInterval) clearInterval(timerInterval);
+});
 
 const {
   state,
@@ -78,6 +87,18 @@ const {
   showStop,
   showFinish,
 } = useCalismaKartiUi(doc);
+
+const showTimeoutWarning = computed(() => {
+  // Yalnızca çalışıyor veya duruşta (henüz bitmemiş, başlatılmış) kartlar için
+  if (!doc.value?.baslangic_saati || doc.value?.bitis_saati) return false;
+  
+  // Süre hesaplama (şimdiki zaman - başlangıç zamanı)
+  const startMs = frappe.datetime.str_to_obj(doc.value.baslangic_saati).getTime();
+  const diffMinutes = (nowTime.value - startMs) / (1000 * 60);
+  
+  const warnLimit = doc.value.kart_uyari_suresi_dk || 400;
+  return diffMinutes > warnLimit;
+});
 
 const qcSaving = ref(false);
 
@@ -203,9 +224,22 @@ watch(
         :onBitir="onBitir"
       />
 
+      <!-- Timeout Banner Uyarısı -->
+      <div v-if="showTimeoutWarning" class="ck-timeout-alert text-center margin-bottom mx-2">
+        <b>⚠️ Dikkat:</b> Bu kart <b>{{ doc.kart_uyari_suresi_dk || 400 }} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.
+      </div>
+
       <CkTabs :modelValue="tab" :onChange="(t) => (tab = t)" />
 
       <InfoView v-if="tab === 'info'" :doc="doc" />
+
+      <AltOperasyonView
+        v-else-if="tab === 'alt_operasyon'"
+        :doc="doc"
+        :onAdd="addAltOperasyon"
+        :onUpdate="updateAltOperasyon"
+        :onDelete="deleteAltOperasyon"
+      />
 
       <HurdaView
         v-else-if="tab === 'hurda'"
@@ -232,6 +266,11 @@ watch(
         :onAddBarkod="addBarkodKaydi"
         :onUpdateBarkod="updateBarkodKaydi"
         :onDeleteBarkod="deleteBarkodKaydi"
+        />
+
+      <BakimView
+        v-else-if="tab === 'bakim'"
+        :doc="doc"
         />
     </template>
   </div>
@@ -307,6 +346,17 @@ watch(
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.ck-timeout-alert {
+  background-color: var(--alert-danger-bg, rgba(239, 68, 68, .14));
+  color: var(--danger, #ef4444);
+  border: 1px solid var(--danger, #ef4444);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+  margin-top: -4px;
+  margin-bottom: 8px;
 }
 
 .ck-btn {

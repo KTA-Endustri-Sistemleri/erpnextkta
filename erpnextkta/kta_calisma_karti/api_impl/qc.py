@@ -137,6 +137,23 @@ def _get_doc_for_qc_write(name: str):
     doc.flags.ignore_permissions = True
     return doc
 
+def _get_doc_for_idc_write(name: str):
+    """Get Calisma Karti for IDC write operations.
+
+    IDC measurements can be entered by:
+    - The operator assigned to this card
+    - QC users / System Manager (full access)
+    """
+    from ._helpers import require_my_employee, is_system_manager, is_quality_user
+    doc = frappe.get_doc("Calisma Karti", name)
+    doc.check_permission("read")
+    if not (is_system_manager() or is_quality_user()):
+        emp = require_my_employee()
+        if doc.operator != emp:
+            frappe.throw(_("Bu çalışma kartı için yetkiniz yok."), frappe.PermissionError)
+    doc.flags.ignore_permissions = True
+    return doc
+
 # Raw Material + IDC Filter Helpers for Calisma Karti.
 
 def _get_work_order_name_from_calisma_karti(doc) -> str:
@@ -203,11 +220,10 @@ def _assert_idc_item_allowed_for_work_order(doc, item_code: str):
 def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters):
     """Link field search for allowed IDC items for given Calisma Karti.
 
+    Open to any user who has read access to the given Calisma Karti.
     filters expected:
       - calisma_karti: Calisma Karti name
     """
-    _require_qc_role()
-
     calisma_karti = (filters or {}).get("calisma_karti")
     if not calisma_karti:
         return []
@@ -250,9 +266,9 @@ def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters
 # ---------- IDC CRUD ----------
 
 @frappe.whitelist()
-def add_idc_olcumu(name: str, item_code: str, yukseklik_mm: float, cekme_n: float,
+def add_idc_olcumu(name: str, item_code: str, yukseklik_mm: float = 0, cekme_n: float = 0,
                   olcum_tarihi: str | None = None, olcumu_giren: str | None = None):
-    doc = _get_doc_for_qc_write(name)
+    doc = _get_doc_for_idc_write(name)
     _assert_child_table_exists(doc, IDC_CHILD_FIELDNAME)
 
     if not (item_code or "").strip():
@@ -269,14 +285,15 @@ def add_idc_olcumu(name: str, item_code: str, yukseklik_mm: float, cekme_n: floa
     }
 
     doc.append(IDC_CHILD_FIELDNAME, row)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
 
 @frappe.whitelist()
-def update_idc_olcumu(name: str, rowname: str, item_code: str, yukseklik_mm: float, cekme_n: float,
+def update_idc_olcumu(name: str, rowname: str, item_code: str, yukseklik_mm: float = 0, cekme_n: float = 0,
                       olcum_tarihi: str | None = None, olcumu_giren: str | None = None):
-    doc = _get_doc_for_qc_write(name)
+    doc = _get_doc_for_idc_write(name)
     _assert_child_table_exists(doc, IDC_CHILD_FIELDNAME)
 
     if not (item_code or "").strip():
@@ -293,17 +310,17 @@ def update_idc_olcumu(name: str, rowname: str, item_code: str, yukseklik_mm: flo
     target.yukseklik_mm = float(yukseklik_mm or 0)
     target.cekme_n = float(cekme_n or 0)
 
-    # If you want "recorded at insert time only", do NOT overwrite these on update:
     target.olcum_tarihi = frappe.utils.now_datetime()
     target.olcumu_giren = _session_employee_name_or_throw()
 
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
 
 @frappe.whitelist()
 def delete_idc_olcumu(name: str, rowname: str):
-    doc = _get_doc_for_qc_write(name)
+    doc = _get_doc_for_idc_write(name)
     _assert_child_table_exists(doc, IDC_CHILD_FIELDNAME)
 
     rows = doc.get(IDC_CHILD_FIELDNAME) or []
@@ -314,6 +331,7 @@ def delete_idc_olcumu(name: str, rowname: str):
 
     rows.pop(idx)
     doc.set(IDC_CHILD_FIELDNAME, rows)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}
@@ -342,6 +360,7 @@ def add_barkod_kaydi(
     }
 
     doc.append(BARKOD_CHILD_FIELDNAME, row)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}
@@ -372,6 +391,7 @@ def update_barkod_kaydi(
     target.olcum_tarihi = frappe.utils.now_datetime()
     target.olcumu_giren = _session_employee_name_or_throw()
 
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
@@ -389,6 +409,7 @@ def delete_barkod_kaydi(name: str, rowname: str):
 
     rows.pop(idx)
     doc.set(BARKOD_CHILD_FIELDNAME, rows)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}
