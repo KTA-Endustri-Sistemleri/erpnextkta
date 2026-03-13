@@ -15,6 +15,7 @@ import AltOperasyonView from "./views/AltOperasyonView.vue";
 import HurdaView from "./views/HurdaView.vue";
 import DurusView from "./views/DurusView.vue";
 import KaliteView from "./views/KaliteView.vue";
+import BakimView from "./views/BakimView.vue";
 
 const tab = ref<TabKey>("info");
 
@@ -265,6 +266,11 @@ watch(
         :onAddBarkod="addBarkodKaydi"
         :onUpdateBarkod="updateBarkodKaydi"
         :onDeleteBarkod="deleteBarkodKaydi"
+        />
+
+      <BakimView
+        v-else-if="tab === 'bakim'"
+        :doc="doc"
         />
     </template>
   </div>

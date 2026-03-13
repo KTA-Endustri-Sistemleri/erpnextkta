@@ -1,5 +1,5 @@
 <script setup lang="ts">
-export type TabKey = "info" | "alt_operasyon" | "hurda" | "durus" | "kalite";
+export type TabKey = "info" | "alt_operasyon" | "hurda" | "durus" | "kalite" | "bakim";
 
 const props = defineProps<{
   modelValue: TabKey;
@@ -12,6 +12,7 @@ const tabs: Array<{ key: TabKey; label: string }> = [
   { key: "hurda", label: "Hurda" },
   { key: "durus", label: "Duruş" },
   { key: "kalite", label: "Kalite" },
+  { key: "bakim", label: "Bakım" },
 ];
 </script>
 
