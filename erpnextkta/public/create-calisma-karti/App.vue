@@ -1422,5 +1422,4 @@ html[data-theme="dark"] .mobile-info-strip,
   opacity: 0;
   transform: translateY(10px);
 }
->>>>>>> origin/feat(kta-calisma-karti)/operation-jc-mapping
 </style>
