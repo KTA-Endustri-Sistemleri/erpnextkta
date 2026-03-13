@@ -76,11 +76,13 @@ Frontend'de:
 frappe.realtime.on("kta_calisma_karti:list_changed", handler)
 ```
 
-### 7. Settings / Configuration Pattern
-```python
-# Sistem genelinde geçerli olan hard limitler (Örn: 430 dk bitiş) "KTA Calisma Karti Settings" tekil tablosu (Single Doctype) qua get_single_value() metodu ile kontrol edilir.
-max_limit = frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430
-```
+### 7. Vardiya Sonu Akıllı Kapatma Deseni (Smart Shift-End)
+Sistem, operatörlerin açık unuttuğu kartları her vardiya sonunda (16:00 ve 00:00) otomatik olarak kapatır.
+- **Kapatma Zamanı**:
+    - **Duruşta Olanlar**: Kartın fiilen durdurulduğu an (`durus_baslangic`) bitiş saati olarak kabul edilir.
+    - **Çalışıyor Olanlar**: Vardiyanın resmi bitiş saati (**16:00** veya **00:00**) bitiş saati olarak kabul edilir.
+- **Tetikleyici**: `hooks.py` içinde birleştirilmiş cron tanımı (`15 0,16 * * *`) ile günde iki kez çalışır.
+- **Süre Sınırı**: 430 dakikalık net çalışma süresi sınırı, kart kapandıktan sonra kümülatif olarak `doc.update_durum()` tarafından uygulanır.
 
 ### 8. Server-Side Filtering Pattern
 Büyük liste verileri içeren (Çalışma Kartları) Vue frontend ekranlarında, `computed` tabanlı tarayıcı düzeyinde döngülerden (client-side data arrays filtering) kaçınılır. Ara yüz sadece arama(`search_term`), durum(`durum`, `qc_filter`) parametrelerini backend'e gönderir. Süzme ve paginasyon işlemleri (SQL `WHERE` ve `LIMIT/OFFSET`) arka tarafta (`frappe.get_all` parametreleri ve `or_filters`) yapılır.

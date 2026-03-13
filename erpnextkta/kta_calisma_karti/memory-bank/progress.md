@@ -105,8 +105,11 @@
 - [x] Vardiya Penceresi + Operatör Net Süre Limiti (Commit: `35bd322`)
   - `_shift_name_by_now`, `_shift_window`, `_parse_minsec`, `_other_cards_net_seconds_in_shift` `calisma_karti.py`'e eklendi
   - `hesapla_toplam_sure()` artık vardiya penceresindeki diğer kartların toplam süresini hesaba katan kapasiteye göre kırpar
-  - `tasks.py`: log eklendi, timeout duruşu sıfır-süreli olarak kaydediliyor, `realtime.publish` kapama sonrası çağrılıyor
-  - `delete_old_unstarted_cards`: `docstatus=["!=", 2]` yapılarak draft/iptal ayrımı düzeltildi
+- [x] **Smart Vardiya Sonu Kapatma & Scheduler Düzeltmesi (2026-03-13)**
+  - `hooks.py`: Cron çakışması giderildi (`15 0,16 * * *` birleştirildi).
+  - `tasks.py`: `auto_close_timed_out_cards` revize edildi. Duruşta olanlar "duruş anında", çalışıyor olanlar "vardiya sonunda" kapatılacak şekilde akıllandırıldı.
+  - Testler `TEST-KULLANICISI` üzerinden doğrulandı.
+- [x] `delete_old_unstarted_cards`: `docstatus=["!=", 2]` yapılarak draft/iptal ayrımı düzeltildi
 - [x] Vardiya Net Süre Simülasyonu ve Düzeltmeler (Bugfix)
   - Tüm net süre hesaplamaları (`_other_cards_net_seconds_in_shift`, `auto_close_timed_out_cards`) `docstatus=1` yerine `["!=", 2]` (Draft kartları da kapsayacak) şekilde düzeltildi
   - DB'ye dokunmayan analiz scripti yazıldı (`vardiya_sim.py`)

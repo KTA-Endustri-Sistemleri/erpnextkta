@@ -3,95 +3,100 @@ import frappe
 from frappe.utils import now_datetime, get_datetime, add_to_date
 from erpnextkta import api as api
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+from datetime import datetime, time
 
 def weekly():
     api.clear_warehouse_labels()
 
 def auto_close_timed_out_cards():
     """
-    Vardiya sonlarında (örn. 16:15 ve 00:15) çalışarak KTA Calisma Karti Settings'te belirlenen dakikayı aşan
-    açık Çalışma Kartlarını otomatik olarak yasal süre sınırında (başlangıç + limit) bitirir.
+    Vardiya sonlarında çalışarak açık kalan kartları akıllıca kapatır:
+    - 'Duruşta' olanlar: Son duruş başlangıç saatinde kapatılır.
+    - 'Çalışıyor' olanlar: Vardiya bitiş saatinde (16:00 veya 00:00) kapatılır.
     """
     frappe.logger().info("auto_close_timed_out_cards started")
-    try:
-        max_limit = frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430
-        max_limit = int(max_limit)
-    except Exception:
-        max_limit = 430
-
+    
     now = now_datetime()
-    # Bitmemiş ve başlatılmış kartları bul (QC Reddedildi vs hariç olması için standart durum filtresi kullanılabilir,
-    # ancak en güvenlisi bitis_saati boş olanlar)
+    t = now.time()
+    
+    # Hedef vardiya sonunu belirle (16:15 civarı çalışıyorsa 16:00, 00:15 civarı ise 00:00)
+    if time(16, 0) <= t < time(17, 0):
+        target_end_time = time(16, 0)
+    else:
+        target_end_time = time(0, 0)
+    
+    target_dt = get_datetime(datetime.combine(now.date(), target_end_time))
+    # Eğer 00:00 ise ve şu an 00:15 ise, tarih bugündür. 
+    # Ama eğer bir önceki günün 00:15'ini hedefliyaksak logic değişir, 
+    # ancak mevcut scheduler 15 dakika sonra çalıştığı için bugünün tarihi doğrudur.
+
     kartlar = frappe.get_all(
         "Calisma Karti",
         filters={
             "baslangic_saati": ["is", "set"],
             "bitis_saati": ["is", "not set"],
-            "docstatus": ["!=", 2]  # draft (0) ve submitted (1) dahil, iptal (2) hariç
+            "docstatus": ["!=", 2]
         },
         fields=["name", "baslangic_saati"]
     )
 
     for k in kartlar:
         try:
-            start_dt = get_datetime(k.baslangic_saati)
-            gecen_dk = (now - start_dt).total_seconds() / 60
-
-            if gecen_dk <= max_limit:
-                continue
-
             doc = frappe.get_doc("Calisma Karti", k.name)
-
-            # QC reddedildiyse elleşme
+            
+            # QC reddedildiyse dokunma
             if (doc.kalite_kontrol or "").strip() == "Reddedildi":
                 continue
 
-            limit_dt = add_to_date(start_dt, minutes=max_limit)
-
-            # Açık duruş varsa, duruşu limit_dt ile kapat
-            if doc.duruslar:
+            # Duruma göre bitiş saatini belirle
+            if doc.aktif_durus_var_mi():
+                # Duruşta olanlar için: Duruşun başladığı an
                 last_row = doc.duruslar[-1]
-                if last_row.durus_baslangic and not last_row.durus_bitis:
-                    last_row.durus_bitis = limit_dt
-                    durus_start = get_datetime(last_row.durus_baslangic)
-                    last_row.durus_suresi = (limit_dt - durus_start).total_seconds() / 60
-
-            # Timeout duruşu ekle (0 süreli bilgi kaydı)
-            doc.append("duruslar", {
-                "durus_baslangic": limit_dt,
-                "durus_bitis": limit_dt,
-                "durus_suresi": 0,
-                "durus_nedeni": "Zaman Aşımı",
-                "aciklama": f"Çalışma Kartı {max_limit} dakikadır bitirilmediği için otomatik olarak durdurulmuştur."
-            })
+                close_dt = get_datetime(last_row.durus_baslangic)
+                
+                # Açık duruşu da kapat
+                last_row.durus_bitis = close_dt
+                last_row.durus_suresi = 0
+            else:
+                # Çalışıyor olanlar için: Vardiya sonu
+                close_dt = target_dt
+                # Eğer kart vardiyadan sonra başladıysa (garip durum), close_dt'yi şimdi yap
+                if get_datetime(doc.baslangic_saati) > close_dt:
+                     close_dt = now
 
             # Kartı bitir
-            doc.bitis_saati = limit_dt
+            doc.bitis_saati = close_dt
+            
+            # Timeout duruşu ekle (Bilgi amaçlı, 0 süreli)
+            doc.append("duruslar", {
+                "durus_baslangic": close_dt,
+                "durus_bitis": close_dt,
+                "durus_suresi": 0,
+                "durus_nedeni": "Zaman Aşımı",
+                "aciklama": "Vardiya sonunda açık unutulduğu için sistem tarafından otomatik kapatılmıştır."
+            })
 
-            # Süre + durum hesaplarını çalıştır (senin asıl hesap motorun burada)
-            doc.update_durum()  # -> hesapla_durus_suresi + hesapla_toplam_sure + durum mapping
+            # Süre + durum hesaplarını çalıştır
+            doc.update_durum()
 
-            # Submitted doc'ta validate/update kısıtlarını bypass (sadece gerekiyorsa)
             if doc.docstatus == 1:
                 doc.flags.ignore_validate_update_after_submit = True
             doc.save(ignore_permissions=True)
 
-            # Read-only alanlar submitted doc'ta doc.save ile DB'ye yazılmayabiliyor.
-            # islem_yap ile aynı şekilde zorla güncelle.
+            # DB zorunlu güncelleme
             frappe.db.set_value("Calisma Karti", doc.name, {
-                "baslangic_saati": doc.baslangic_saati,
                 "bitis_saati": doc.bitis_saati,
                 "durum": doc.durum,
                 "toplam_sure": doc.toplam_sure,
                 "toplam_durus": doc.toplam_durus,
                 "net_calisma_suresi": doc.net_calisma_suresi,
             }, update_modified=False)
+            
             frappe.db.commit()
             publish_calisma_karti_changed(doc.name, reason="scheduler:auto_close")
 
         except Exception as e:
             frappe.log_error(title=f"auto_close_timed_out_cards hatası: {k.name}", message=frappe.get_traceback())
-            # Diğer kartlara devam et
 
 def delete_old_unstarted_cards():
     frappe.logger().info("delete_old_unstarted_cards started")

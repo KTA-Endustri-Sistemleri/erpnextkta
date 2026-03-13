@@ -6,15 +6,16 @@
 
 Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` (Premium Wizard, Smart Tolerance, QI Draft Flow) ve `operation-jc-mapping` (Job Card Mapping, Alt Operasyon Geliştirmeleri) özellikleri tek bir stabil branşta (`combined-op-jc-enhancements`) toplandı. Sistem şu an hem İş Emri (WO) hem de İş Kartı (JC) akışlarında tam kapasiteyle çalışmaktadır.
 
-## Son Değişiklikler (2026-03-13) — Combined Enhancements Merge & Stabilizasyon
+## Son Değişiklikler (2026-03-13) — Akıllı Vardiya Sonu Kapatma & Scheduler Düzeltmesi
 
-İki ana özellik seti birleştirildi ve build/migrate hataları giderildi:
+Otomatik kart kapatma mantığı kullanıcı geri bildirimleri doğrultusunda revize edildi ve scheduler yapılandırması düzeltildi:
 
-*   **Integrated Wizard (Birleşik Sihirbaz)**: Hem WO hem de JC barkodlarıyla uyumlu, akıllı önek algılamalı (MFG-WO-, PO-) ve "Smart Tolerance" destekli yeni sihirbaz devreye alındı.
-*   **Job Card Mapping & Sequence Filtering**: KTA operasyonlarının ERPNext operasyonlarıyla eşleştirilmesi (mapping) ve hammadde/hurda listelerinin operasyon sırasına (`sequence`) göre kümülatif olarak filtrelenmesi sağlandı.
-*   **Smart Tolerance (Akıllı Tolerans)**: İş emri kapalı olsa bile son üretim amaçlı stok girişinden sonraki N saat (ayarlanabilir) boyunca kart açılabilmesi sağlandı.
-*   **QI Draft Flow**: Kalite Kontrol belgelerinin taslak olarak oluşturulup kart bitişinde otomatik onaylanması (`cards.py`) mimarisi stabil hale getirildi.
-*   **Hata Yönetimi**: Agresif modal susturma ve premium alert kutuları ile pürüzsüz bir operatör deneyimi sağlandı.
+*   **Scheduler Cron Birleştirmesi**: `hooks.py` içinde ayrı satırlarda olan `16:15` ve `00:15` cron tanımları, Frappe'nin çakışma nedeniyle sadece birini çalıştırmasından dolayı `15 0,16 * * *` şeklinde tek satırda birleştirildi.
+*   **Akıllı Bitiş Mantığı (Smart Shift-End)**: 
+    *   **Duruşta Olan Kartlar**: Bitiş saati, kartın duruşa alındığı gerçek zaman (`durus_baslangic`) olarak set edilir.
+    *   **Çalışıyor Olan Kartlar**: Bitiş saati, vardiyanın resmi bitiş saati (`16:00` veya `00:00`) olarak set edilir.
+*   **Kümülatif Süre Sınırı**: 430 dakikalık net çalışma süresi sınırı, kart kapatıldıktan sonra `doc.update_durum()` üzerinden operatörün o vardiyadaki tüm işleri baz alınarak otomatik hesaplanmaya devam eder.
+*   **Hata Giderme**: `TEST-KULLANICISI` üzerinden yapılan simülasyonlarla yeni mantık doğrulandı ve manuel tetikleme ile ucu açık kalan kayıtlar temizlendi.
 
 ## Son Değişiklikler (2026-03-11) — Kalite Kontrol (QI) Geliştirmeleri & Draft Akışı
 
