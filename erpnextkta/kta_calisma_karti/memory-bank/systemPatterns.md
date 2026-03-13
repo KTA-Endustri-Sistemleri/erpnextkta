@@ -146,6 +146,12 @@ Operatörün işe başlamadan veya iş sırasında makine kontrolü yapmasını 
 - **Record**: `Makine Gunluk Bakim Formu` (Submittable) oluşturulur ve `Calisma Karti`'ne referans verilir.
 - **Validation**: Backend veya Frontend'de zorunlu tutulabilir (opsiyonel).
 
+### 11.6. Test Masası Doğrulama Deseni (Planlanan)
+Yüksek riskli operasyonlar için (Board testi vb.) uygulanan kalite güvence deseni:
+- **Trigger**: `KTA Calisma Karti Operasyonlari.board_dogrulamasi_gerektirir == 1`.
+- **Entity**: `Test Masasi Dogrulama Kaydi`.
+- **Enforcement**: Kart bitirilirken (`Bitis`) bu kaydın varlığı ve onaylı olması kontrol edilebilir (Faz 2).
+
 ## Bileşen İlişkileri
 
 ```

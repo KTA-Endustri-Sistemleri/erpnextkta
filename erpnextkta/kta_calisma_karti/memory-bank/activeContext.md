@@ -58,6 +58,11 @@ Kalite kontrol süreci daha esnek ve güvenli bir yapıya kavuşturuldu:
 - **Bakım Formu**: `Makine Gunluk Bakim Formu` ile back-end tarafında submit edilen resmi kayıtlar oluşturulması.
 - **UI Entegrasyonu**: `BakimView.vue` bileşeni ile kart detaylarında "Bakım" sekmesi.
 
+### Test Masası Doğrulama Sistemi (Altyapı)
+- **DocType**: `Test Masasi Dogrulama Kaydi` (PTR 07/005).
+- **Mantık**: KTA Operasyonu üzerinde `board_dogrulamasi_gerektirir` işaretli ise, karta bir doğrulama kaydı (Bağlantı noktaları, kriterler vb.) bağlanması gerekir.
+- **Durum**: Şu an için back-end tarafında referans bağı (`on_submit` / `after_insert`) aktiftir, ancak Vue SPA arayüzüne entegrasyonu (buton/sekme) henüz yapılmamıştır.
+
 ## Proje İçgörüleri
 - `api.py` stable facade mantığı korunuyor.
 - Realtime events (Socket.io) tüm CRUD işlemlerini kapsıyor.
