@@ -22,9 +22,10 @@ ERPNext’in standart üretim akışlarını gerçek atölye senaryolarına uyar
 
 **Öne çıkan özellikler:**
 
-- Job Card alt operasyonları (KTA Çalışma Kartı Operasyonları)  
-- Zaman loglarını ve üretim miktarlarını daha detaylı işleyen yapı  
-- İş Emri → İş Kartı dönüşümünde gelişmiş validasyonlar ve Real-Time İş Emri Durum & Operasyon Güncellemesi 
+- [KTA Çalışma Kartı Kullanım Kılavuzu](kta_calisma_karti_kilavuzu.html) (Arayüz kullanım detayları) 🚀
+- Job Card alt operasyonları (KTA Çalışma Kartı Operasyonları)
+- Zaman loglarını ve üretim miktarlarını daha detaylı işleyen yapı
+- İş Emri → İş Kartı dönüşümünde gelişmiş validasyonlar ve Real-Time İş Emri Durum & Operasyon Güncellemesi
 
 **Dosya yapısı (örnek):**
 
@@ -77,8 +78,8 @@ KTA’nın üretim modeli için gerekli olan özel “negatif stok izinleri” v
 
 **Özellikler:**
 
-- Negatif stok girişlerine kontrollü izin  
-- Çeşitli stok hareketleri için özel validasyonlar  
+- Negatif stok girişlerine kontrollü izin
+- Çeşitli stok hareketleri için özel validasyonlar
 - ERPNext’in varsayılan stok kurallarını genişletme
 
 **Dosya yapısı (örnek):**
@@ -96,9 +97,9 @@ KTA QR tarama sistemi (qr_scanner app & mobil uygulama) ile ERPNext arasında k�
 
 **Özellikler:**
 
-- İş Kartı’nı QR ile doğrulama  
-- Duplicate detection  
-- Job Card → QR scanner workflow uyarlamaları  
+- İş Kartı’nı QR ile doğrulama
+- Duplicate detection
+- Job Card → QR scanner workflow uyarlamaları
 - Gerekirse ek API endpoint’leri
 
 **Dosya yapısı (örnek):**
@@ -119,8 +120,8 @@ ERPNext’in üretim ekranlarını daha anlamlı hale getiren özel raporlar ve 
 
 **Örnekler:**
 
-- Operatör Performans Raporu  
-- Günlük Üretim Hızı  
+- Operatör Performans Raporu
+- Günlük Üretim Hızı
 
 **Dosya yapısı (örnek):**
 

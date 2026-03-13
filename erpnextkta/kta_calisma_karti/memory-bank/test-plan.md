@@ -32,3 +32,9 @@ Bu doküman, gece boyunca geliştirilen özelliklerin doğrulanması için kulla
 
 ## ⚡ 8. Frontend SQL Filtreleme (Client-Side'dan Server-Side'a Geçiş)
 - [ ] **Arayüz (Load / Paginasyon) Testi:** Vue arayüzünde filtreler sekmesine, Arama (`q`) sekmesine VEYA sayfayı aşağı kaydırma (Load More) işlemine basıldığında sayfa asla takılmıyor, kilitlenmiyor ve hedef doğru veriyi (`network` üzerinden SQL aracılığıyla milisaniyelerde) ekrana yansıtıyor mu?
+## 🛡️ 9. Standart Kalite Muayene (QC) Entegrasyonu
+- [ ] **Şablon Algılama Testi:** Şablonu olan bir ürünün Çalışma Kartında "Onaylandı" butonuna basıldığında Kalite Muayene modalı otomatik olarak açılıyor mu?
+- [ ] **Çoklu Şablon Testi:** Üçün birden fazla kalite şablonu (Quality Inspection Template) varsa, kullanıcıya modal başında seçim yaptırıyor mu?
+- [ ] **Ölçüm Giriş ve Limit Testi:** Sayısal parametrelerde girilen değerler Low/High limit dışındaysa durum otomatik "Rejected" (Reddedildi) olarak değişiyor mu?
+- [ ] **Belge Linkleme Testi:** Kayıt sonrası Çalışma Kartı üzerinde "Bağlı Kalite Belgesi" linki beliriyor mu ve tıklandığında doğru MAT-QA formuna yönlendiriyor mu?
+- [ ] **Durum Senkronizasyon Testi:** Kalite muayenesi "Accepted" (Kabul) ise Çalışma Kartı Quality Control durumu "Onaylandı", "Rejected" ise "Reddedildi" olarak güncelleniyor mu?

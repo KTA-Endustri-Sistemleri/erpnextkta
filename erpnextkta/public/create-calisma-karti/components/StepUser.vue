@@ -182,13 +182,13 @@ function getInitials(emp) {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--ck-text);
 }
 
 .step-user__subtitle {
   margin: 0.25rem 0 0;
   font-size: 0.85rem;
-  color: #4b5563;
+  color: var(--ck-text-muted);
 }
 
 .step-user__count {
@@ -207,7 +207,9 @@ function getInitials(emp) {
   font-size: 0.85rem;
   padding: 0.4rem 0.6rem;
   border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--ck-border);
+  background: var(--ck-input-bg);
+  color: var(--ck-input-text);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -230,15 +232,15 @@ function getInitials(emp) {
 .step-user__list {
   max-height: 260px;
   border-radius: 0.5rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--ck-border);
   overflow-y: auto;
-  background: #ffffff;
+  background: var(--ck-card-bg);
 }
 
 .step-user__item {
   width: 100%;
   border: 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--ck-border);
   background: transparent;
   padding: 0.45rem 0.6rem;
   display: flex;
@@ -255,12 +257,12 @@ function getInitials(emp) {
 }
 
 .step-user__item:hover {
-  background: #f9fafb;
+  background: var(--ck-ghost-bg);
 }
 
 .step-user__item--selected {
-  background: #eff6ff;
-  box-shadow: inset 2px 0 0 #2563eb;
+  background: var(--ck-ghost-bg);
+  box-shadow: inset 3px 0 0 var(--ck-accent);
 }
 
 .step-user__avatar {
@@ -273,8 +275,8 @@ function getInitials(emp) {
   justify-content: center;
   font-size: 0.7rem;
   font-weight: 600;
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--ck-border);
+  color: var(--ck-text-muted);
 }
 
 .step-user__item--selected .step-user__avatar {
@@ -295,7 +297,7 @@ function getInitials(emp) {
 
 .step-user__name {
   font-weight: 600;
-  color: #111827;
+  color: var(--ck-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -303,16 +305,16 @@ function getInitials(emp) {
 
 .step-user__department {
   font-size: 0.7rem;
-  color: #6b7280;
+  color: var(--ck-text-muted);
   border-radius: 999px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--ck-border);
   padding: 0.05rem 0.4rem;
   white-space: nowrap;
 }
 
 .step-user__email {
   font-size: 0.75rem;
-  color: #4b5563;
+  color: var(--ck-text-muted);
 }
 
 .step-user__badge {
@@ -320,10 +322,16 @@ function getInitials(emp) {
   font-size: 0.7rem;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  color: #4b5563;
+  border: 1px solid var(--ck-border);
+  background: var(--ck-bg);
+  color: var(--ck-text-muted);
   white-space: nowrap;
+}
+
+.step-user__item--selected .step-user__badge {
+  background: var(--ck-accent);
+  border-color: var(--ck-accent);
+  color: #ffffff;
 }
 
 /* Seçili özet */
@@ -331,10 +339,10 @@ function getInitials(emp) {
   margin-top: 0.25rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid #bfdbfe;
-  background: #eff6ff;
+  border: 1px solid var(--ck-accent);
+  background: var(--ck-ghost-bg) !important;
   font-size: 0.8rem;
-  color: #1e3a8a;
+  color: var(--ck-text) !important;
 }
 
 .step-user__summary-title {

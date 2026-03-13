@@ -112,11 +112,62 @@ Bağlı ERPNext Doktipleri:
 ### CK Oluşturma:
 `create_calisma_karti() → JC yükle → WO çöz → Status kontrol (docstatus=1, Not Started/In Process) → doc.insert() → publish_realtime → Departman tag ekle`
 
-### Kalite Kontrol Güncelleme:
-`update_kalite_kontrol() → _require_qc_role() → değer whitelist kontrolü → ignore_permissions → db_set() → publish_realtime`
+### 9. Operasyon → JC Eşleştirme Pattern
+```
+get_operations_for_job_card(job_card)
+  → jc.operation + jc.production_item okunur
+  → Tüm KTA Operasyonları + mapping satırları tek sorguda çekilir
+  → Prio-1: erpnext_operation == jc.operation AND production_item == jc.production_item → döndür
+  → Prio-2: erpnext_operation == jc.operation AND production_item boş → döndür
+  → Prio-3: Hiç mapping satırı olmayan KTA operasyonları → döndür
+```
 
-### Hurda Ekleme (v3 — item-group tabanlı):
-`add_hurda() → _assert_can_write_on_doc() → _assert_cost_center_allowed() → _assert_hurda_item_allowed_for_operation() [get_allowed_items_with_groups()] → doc.append() → doc.save()`
+### 10. Koşullu Autoname Pattern (KTA Operasyonlari)
+```python
+def autoname(self):
+    op = self.calisma_karti_op.strip()
+    cg = (self.customer_group or "").strip()
+    self.name = f"{op}-{cg}" if cg else op
+    # Generic: "Kablo Kesme" | Spec: "Kablo Kesme-BOSCH"
+```
 
-### Vardiya Penceresi Net Süre Hesabı:
-`hesapla_toplam_sure() → _shift_window(end_dt) [HRMS Shift Type] → _other_cards_net_seconds_in_shift() → remaining=max_limit-other_net → net_saniye=min(net_saniye, remaining)`
+### 11. Standart Kalite Entegrasyon Pattern (MAT-QA)
+```
+QcToggle (Vue) → get_qc_templates_for_ck() 
+  → (Şablon varsa) QualityInspectionModal.vue 
+  → submit_kta_quality_inspection() 
+      → frappe.new_doc("Quality Inspection")
+      → Reference: Job Card (ck.is_karti)
+      → ck.quality_inspection = qa.name
+      → ck.kalite_kontrol = "Onaylandı" / "Reddedildi"
+      → publish_realtime
+```
+
+## Bileşen İlişkileri
+
+```
+Calisma Karti (Ana DocType)
+  ├── hurdalar              → Calisma Karti Hurda
+  ├── duruslar              → Operasyon Duruslari
+  ├── idc_olcumleri         → Calisma Karti IDC Olcumleri
+  ├── barkod_kayitlari      → Calisma Karti Barkod Kayitlari
+  ├── alt_operasyon_kayitlari → Calisma Karti Alt Operasyon Kayitlari
+  └── quality_inspection    → ERPNext Quality Inspection (Link)
+
+## Kalite Kontrol (QC) Akış Örüntüleri
+
+### 12. Draft & Auto-Submit Akışı
+QI belgeleri `submit_kta_quality_inspection` ile oluşturulduğunda **docstatus=0** (Draft) olarak kaydedilir. Bu, operatörün kartı bitirene kadar kalite verilerini güncellemesine imkan tanır. Nihai onay (Submit), `Calisma Karti` "Bitir"ildiğinde (`_handle_bitis` -> `_submit_linked_quality_inspection`) otomatik olarak yapılır.
+
+### 13. Kullanıcı Girdisini Koruma (`manual_inspection`)
+ERPNext'in sunucu taraflı otomatik Accepted/Rejected hesaplamasının kullanıcı girdisini ezmesini önlemek için her ölçüm satırı için `manual_inspection: 1` ayarı eklenir.
+
+### 14. Alan Eşleme (Reading Mapping)
+- **Numerik**: `reading_1` kullanılır.
+- **Metin/Yorum**: `reading_value` kullanılır.
+
+### 15. Smart Tolerance (Akıllı Tolerans) Deseni
+İş Emri veya İş Kartı "Completed/Closed" olsa dahi, son stok girişine (Manufacture/Repack) bakılarak işlem izni verilir. 
+- Ayar: `KTA Calisma Karti Settings.tolerans_saat`
+- Kontrol: `api_impl/barcode.py` -> `is_work_order_within_tolerance()`
+- Kaynak: `Stock Entry` tablosundaki son başarılı üretim girişinin tarihi ve saati.

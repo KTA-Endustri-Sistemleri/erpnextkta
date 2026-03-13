@@ -2,7 +2,7 @@
     "actions": [],
     "allow_import": 1,
     "allow_rename": 1,
-    "autoname": "format:{calisma_karti_op}-{customer_group}",
+    "autoname": "Prompt",
     "creation": "2025-08-11 15:28:08.976412",
     "doctype": "DocType",
     "engine": "InnoDB",
@@ -13,6 +13,7 @@
         "customer_group",
         "plant_floor",
         "miktar_zorunlu_mu",
+        "erpnext_operations",
         "allowed_material_groups"
     ],
     "fields": [
@@ -34,7 +35,7 @@
             "default": "0",
             "fieldname": "board_dogrulamasi_gerektirir",
             "fieldtype": "Check",
-            "label": "Board Do\u011frulamas\u0131 Gerektirir"
+            "label": "Board Doğrulaması Gerektirir"
         },
         {
             "fieldname": "customer_group",
@@ -60,6 +61,13 @@
             "description": "Seçiliyse kart bitirilirken tamamlanan miktar > 0 olmak zorundadır. Seçili değilse alt operasyon girilerek 0 miktarla bitirilebilir."
         },
         {
+            "fieldname": "erpnext_operations",
+            "fieldtype": "Table",
+            "label": "ERPNext Operasyon Eşleştirmeleri",
+            "options": "KTA Operation ERPNext Mappings",
+            "description": "Bu KTA operasyonuyla eşleşecek ERPNext operasyonları. Boş bırakılırsa tüm Job Card'lara genel olarak uygulanır."
+        },
+        {
             "fieldname": "allowed_material_groups",
             "fieldtype": "Table",
             "label": "Allowed Material Groups",
@@ -72,7 +80,7 @@
     "modified_by": "Administrator",
     "module": "kta_calisma_karti",
     "name": "KTA Calisma Karti Operasyonlari",
-    "naming_rule": "By fieldname",
+    "naming_rule": "Set by user",
     "owner": "Administrator",
     "permissions": [
         {
@@ -85,6 +93,7 @@
             "report": 1,
             "role": "System Manager",
             "share": 1,
+            "submit": 1,
             "write": 1
         },
         {

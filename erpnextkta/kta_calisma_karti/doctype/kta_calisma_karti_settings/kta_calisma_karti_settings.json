@@ -5,7 +5,12 @@
     "engine": "InnoDB",
     "field_order": [
         "max_kart_suresi_dk",
+<<<<<<< HEAD
         "kart_uyari_suresi_dk"
+=======
+        "kart_uyari_suresi_dk",
+        "tolerans_saat"
+>>>>>>> origin/feat(kta-calisma-karti)/operation-jc-mapping
     ],
     "fields": [
         {
@@ -22,6 +27,16 @@
             "fieldtype": "Int",
             "label": "Kart Uyar\u0131 S\u00fcresi (DK)",
             "reqd": 1
+<<<<<<< HEAD
+=======
+        },
+        {
+            "default": "8",
+            "fieldname": "tolerans_saat",
+            "fieldtype": "Int",
+            "label": "Tamamlanm\u0131\u015f \u0130E Tolerans S\u00fcresi (Saat)",
+            "description": "\u0130\u015f Emri kapansa dahi, son stok giri\u015finden sonraki bu s\u00fcre boyunca \u00c7al\u0131\u015fma Kart\u0131 a\u00e7\u0131labilir."
+>>>>>>> origin/feat(kta-calisma-karti)/operation-jc-mapping
         }
     ],
     "issingle": 1,

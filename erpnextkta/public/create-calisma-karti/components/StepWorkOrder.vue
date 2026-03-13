@@ -97,13 +97,13 @@ function onKeydown(event) {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--ck-text);
 }
 
 .step-wo__subtitle {
   margin-top: 0.25rem;
   font-size: 0.85rem;
-  color: #4b5563;
+  color: var(--ck-text-muted);
 }
 
 /* Input alanı */
@@ -118,8 +118,9 @@ function onKeydown(event) {
   padding: 0.55rem 0.7rem;
   padding-right: 2.4rem;
   border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
+  border: 1px solid var(--ck-border);
+  background: var(--ck-input-bg);
+  color: var(--ck-input-text);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -130,7 +131,7 @@ function onKeydown(event) {
 }
 
 .step-wo__input[readonly] {
-  background: #f3f4f6;
+  background: var(--ck-ghost-bg);
 }
 
 /* Scanner ikonu */

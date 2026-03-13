@@ -4,6 +4,15 @@ from frappe.model.document import Document
 from frappe import _
 
 class KTACalismaKartiOperasyonlari(Document):
+    def autoname(self):
+        """
+        Generic  → 'Kablo Kesme'
+        Specific → 'Kablo Kesme-BOSCH'
+        """
+        op = (self.calisma_karti_op or "").strip()
+        cg = (self.customer_group or "").strip()
+        self.name = f"{op}-{cg}" if cg else op
+
     def validate(self):
         # 1. Müşteri grubu seçildiyse Plant Floor zorunludur
         if self.customer_group and not self.plant_floor:
@@ -20,9 +29,9 @@ class KTACalismaKartiOperasyonlari(Document):
         if existing and existing != self.name:
             frappe.throw(
                 _("Bu operasyon kombinasyonu zaten tanımlı: {0} / {1} / {2} (Kayıt: {3})").format(
-                    self.calisma_karti_op, 
-                    self.customer_group or "Genel (Müşterisiz)", 
-                    self.plant_floor or "-", 
+                    self.calisma_karti_op,
+                    self.customer_group or "Genel (Müşterisiz)",
+                    self.plant_floor or "-",
                     existing
                 ),
                 frappe.DuplicateEntryError,

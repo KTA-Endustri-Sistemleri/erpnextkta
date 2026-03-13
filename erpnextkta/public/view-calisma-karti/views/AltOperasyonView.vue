@@ -80,7 +80,7 @@ function onAltOperasyonSil(h: any) {
 
 <template>
   <div class="ck-card">
-    <div style="display: flex;gap: 8px;padding: 0px 10px 10px;">
+    <div style="display: flex;gap: 8px;padding: 0px 10px 10px;" v-if="doc.durum !== 'Hazır' && doc.durum !== 'Bitmiş'">
       <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onAltOperasyonEkle">Alt İşlem Ekle</button>
     </div>
 

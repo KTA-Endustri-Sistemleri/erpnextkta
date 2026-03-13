@@ -82,7 +82,7 @@ def _other_cards_net_seconds_in_shift(operator: str, shift_start, shift_end, exc
         "Calisma Karti",
         filters={
             "operator": operator,
-            "docstatus": 1,
+            "docstatus": ["!=", 2],  # draft (0) ve submitted (1) dahil, iptal (2) hariç
             "baslangic_saati": ["between", [shift_start, shift_end]],
             "name": ["!=", exclude_name],
         },

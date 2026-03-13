@@ -19,6 +19,8 @@ KTA operatörleri:
 | Anlık liste güncellemesi | Socket.IO realtime: `kta_calisma_karti:list_changed` |
 | Hurda kaydında yanlış parça | BOM + operasyon bazlı item whitelist |
 | IDC ölçümünde yanlış malzeme | `item_group = "120-IDC Connector"` + BOM scope filtresi |
+| Kalite belgerinin izlenebilirliği | ERPNext standart MAT-QA entegrasyonu ve otomatik linkleme |
+| Tamamlanmış iş emirlerinde tıkanma | **Smart Tolerance**: Son stok girişinden sonraki N saat (varsayılan 8) boyunca işlem izni |
 
 ## Kullanıcı Grupları
 
@@ -31,7 +33,8 @@ KTA operatörleri:
 ### Kalite Kullanıcısı (KTA Kalite Kullanıcısı)
 - Tüm kartları görebilir (sorgulamak için)
 - IDC ölçümü ve barkod kaydı ekleyebilir/düzenleyebilir/silebilir
-- Kalite durumunu güncelleyebilir (Onay Bekliyor / Onaylandı / Reddedildi)
+- ERPNext standart Kalite Muayene (MAT-QA) şablonlarını kullanarak ölçüm girişi yapabilir
+- Kalite durumunu güncelleyebilir ve MAT-QA belgesi oluşturabilir
 
 ### Yönetici (System Manager)
 - Tüm operasyonlara tam erişim
@@ -39,7 +42,8 @@ KTA operatörleri:
 
 ## Kullanıcı Deneyimi Hedefleri
 
-- **Hız:** Barkod okutulduğunda mümkün olan maksimum şey otomatik doldurulsun
+- **Hız:** Barkod okutulduğunda mümkün olan maksimum şey otomatik doldurulsun (Smart Prefix: 2026-0 -> MFG-WO-2026-0)
 - **Netlik:** Kart durumu (Hazır/Çalışıyor/Duruşta/Bitmiş/Reddedildi) tek bakışta anlaşılsın
 - **Güvenlik:** Yanlış veri girilmesini önleyen sunucu tarafı doğrulama
 - **Canlılık:** Liste ekranı yeni kart oluşturulduğunda ya da durum değiştiğinde anlık güncellensin
+- **Premium UX:** Hata modalları yerine modern Alert kutuları, akıcı animasyonlar (shake) ve tam karanlık mod uyumu

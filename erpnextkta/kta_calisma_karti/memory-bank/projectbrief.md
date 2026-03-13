@@ -10,18 +10,20 @@ KTA Endüstri Sistemleri operatörlerinin ERPNext'in karmaşık formlarına girm
 ## Kapsam
 
 ### Backend
-- `Calisma Karti` DocType ve 5 child table
-- `api.py` stable facade → `api_impl/` implementasyonları
+- `Calisma Karti` DocType ve 5 child table + `quality_inspection` Link alanı
+- `api.py` stable facade → `api_impl/` (qc, cards, hurda, idc, etc.)
 - Rol bazlı güvenlik (System Manager / KTA Kalite Kullanıcısı / Manufacturing User)
+- ERPNext Quality Inspection (MAT-QA) entegrasyon API'ları
 - Socket.IO realtime events
 
 ### Frontend (Vue 3 SPA)
 - **create-calisma-karti**: Barkod ile WO veya JC'den CK oluşturma wizard'ı
 - **list-calisma-cards**: Realtime güncellemeli, çok filtreli kart listesi
-- **view-calisma-karti**: Başlat/Durdur/Bitir + QC + Hurda + IDC + Barkod tab arayüzü
+- **view-calisma-karti**: Başlat/Durdur/Bitir + Standart QC Modal + Hurda + IDC + Barkod tab arayüzü
 
 ## Başarı Kriterleri
 - Operatör, barkod okutarak 3–5 adımda CK oluşturabilmeli
+- QC süreçlerinde ERPNext standart MAT-QA belgeleri otomatik oluşturulup bağlanmalı
 - QC kullanıcısı IDC ölçümü ve barkod kaydı yapabilmeli
 - Hurda kaydı BOM/operasyon kısıtı ile sınırlanmalı
 - Liste ekranı anlık güncellenmeli (Socket.IO)

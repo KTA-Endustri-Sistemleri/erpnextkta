@@ -17,6 +17,8 @@ import DurusView from "./views/DurusView.vue";
 import KaliteView from "./views/KaliteView.vue";
 import BakimView from "./views/BakimView.vue";
 
+import QualityInspectionModal from "./components/QualityInspectionModal.vue";
+
 const tab = ref<TabKey>("info");
 
 // ✅ ROUTE'U REACTIVE YAP
@@ -48,7 +50,8 @@ const {
   updateQC, addHurda, updateHurda, deleteHurda,
   addIdcOlcumu, updateIdcOlcumu, deleteIdcOlcumu,
   addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi,
-  addAltOperasyon, updateAltOperasyon, deleteAltOperasyon
+  addAltOperasyon, updateAltOperasyon, deleteAltOperasyon,
+  getQcTemplates, getTemplateDetails, submitStandardQC
 } = useCalismaKarti(docname);
 
 // Reactive now timer for timeout warning (updates every minute)
@@ -101,6 +104,13 @@ const showTimeoutWarning = computed(() => {
 });
 
 const qcSaving = ref(false);
+
+const showQcModal = ref(false);
+const qcTemplates = ref<any[]>([]);
+const qcDefaultTemplate = ref("");
+const qcItemCode = ref("");
+/** "approve" veya "reject" — modal hangi amaçla açıldığını bilir */
+const qcIntent = ref<"approve" | "reject">("approve");
 
 function backToList() {
   frappe.set_route("list-calisma-cards");
@@ -159,20 +169,72 @@ async function setQC(nextValue: string) {
     return;
   }
 
+  // "Onaylandı" veya "Reddedildi" → önce template'leri kontrol et
+  if (next === "Onaylandı" || next === "Reddedildi") {
+    try {
+      qcSaving.value = true;
+      const res = await getQcTemplates();
+      if (res.message && res.message.templates && res.message.templates.length > 0) {
+        // Template varsa → modal aç
+        qcTemplates.value = res.message.templates;
+        qcDefaultTemplate.value = res.message.default_template;
+        qcItemCode.value = res.message.item_code;
+        qcIntent.value = next === "Reddedildi" ? "reject" : "approve";
+        showQcModal.value = true;
+        qcFormValue.value = current || "Onay Bekliyor";
+        return;
+      }
+    } catch (e) {
+      console.error("QC templates fetch failed", e);
+    } finally {
+      qcSaving.value = false;
+    }
+
+    // Template yoksa: Reddedildi için confirm iste, Onaylandı direkt geç
+    if (next === "Reddedildi") {
+      const confirmed = await new Promise<boolean>((resolve) => {
+        frappe.confirm(
+          "Kalite kontrol belgesi olmadan reddetmek istediğinizden emin misiniz?",
+          () => resolve(true),
+          () => resolve(false)
+        );
+      });
+      if (!confirmed) {
+        qcFormValue.value = current || "Onay Bekliyor";
+        return;
+      }
+    }
+  }
+
+  // Template bulunamadı veya "Onay Bekliyor" → direkt kaydet
   qcFormValue.value = next;
   qcSaving.value = true;
 
   try {
     await updateQC(next);
-    frappe.show_alert({ message: "Kalite durumu güncellendi", indicator: "green" });
+    const indicator = next === "Reddedildi" ? "red" : "green";
+    frappe.show_alert({ message: "Kalite durumu güncellendi", indicator });
     tab.value = "kalite";
   } catch (e) {
-    // Roll back UI to actual doc value (after load, qcLabel already reflects it)
     qcFormValue.value = (qcLabel.value || "Onay Bekliyor").trim();
     throw e;
   } finally {
     qcSaving.value = false;
   }
+}
+
+async function handleStandardQcSubmit(payload: any) {
+    try {
+        await submitStandardQC({ ...payload, intent: qcIntent.value });
+        const ok = qcIntent.value === "approve";
+        frappe.show_alert({
+            message: ok ? "Kalite belgesi oluşturuldu ve onayandı" : "Kalite belgesi oluşturuldu ve reddedildi",
+            indicator: ok ? "green" : "red",
+        });
+    } catch (e) {
+        console.error("Standard QC submission failed", e);
+        throw e;
+    }
 }
 
 watch(
@@ -273,6 +335,17 @@ watch(
         :doc="doc"
         />
     </template>
+
+    <QualityInspectionModal
+        :show="showQcModal"
+        :templates="qcTemplates"
+        :defaultTemplate="qcDefaultTemplate"
+        :itemCode="qcItemCode"
+        :intent="qcIntent"
+        :onClose="() => showQcModal = false"
+        :onFetchDetails="getTemplateDetails"
+        :onSubmit="handleStandardQcSubmit"
+    />
   </div>
 </template>
 <style>

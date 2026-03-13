@@ -14,8 +14,10 @@
         "is_karti",
         "column_break_uqsm",
         "kalite_kontrol",
+        "quality_inspection",
         "durum",
         "olcumler_section",
+        "idc_olcumleri",
         "column_break_olcum",
         "barkod_kayitlari",
         "zaman_section",
@@ -36,13 +38,13 @@
         {
             "fieldname": "istasyon_section",
             "fieldtype": "Section Break",
-            "label": "\u0130stasyon"
+            "label": "İstasyon"
         },
         {
             "fieldname": "is_istasyonu",
             "fieldtype": "Link",
             "in_list_view": 1,
-            "label": "\u0130\u015f \u0130stasyonu",
+            "label": "İş İstasyonu",
             "options": "Workstation",
             "reqd": 1
         },
@@ -55,7 +57,7 @@
             "fieldtype": "Link",
             "in_list_view": 1,
             "in_standard_filter": 1,
-            "label": "Operat\u00f6r",
+            "label": "Operatör",
             "options": "Employee"
         },
         {
@@ -75,7 +77,7 @@
             "fieldname": "is_karti",
             "fieldtype": "Link",
             "in_list_view": 1,
-            "label": "\u0130\u015f Karti",
+            "label": "İş Karti",
             "options": "Job Card",
             "reqd": 1
         },
@@ -88,14 +90,14 @@
             "allow_on_submit": 1,
             "fieldname": "baslangic_saati",
             "fieldtype": "Datetime",
-            "label": "Ba\u015flang\u0131\u00e7 Saati",
+            "label": "Başlangıç Saati",
             "read_only": 1
         },
         {
             "allow_on_submit": 1,
             "fieldname": "bitis_saati",
             "fieldtype": "Datetime",
-            "label": "Biti\u015f Saati",
+            "label": "Bitiş Saati",
             "read_only": 1
         },
         {
@@ -107,33 +109,33 @@
             "fieldname": "toplam_sure",
             "fieldtype": "Data",
             "in_list_view": 1,
-            "label": "Toplam S\u00fcre (dk:sn)",
+            "label": "Toplam Süre (dk:sn)",
             "read_only": 1
         },
         {
             "allow_on_submit": 1,
             "fieldname": "toplam_durus",
             "fieldtype": "Data",
-            "label": "Toplam Duru\u015f S\u00fcresi (dk:sn)",
+            "label": "Toplam Duruş Süresi (dk:sn)",
             "read_only": 1
         },
         {
             "allow_on_submit": 1,
             "fieldname": "net_calisma_suresi",
             "fieldtype": "Data",
-            "label": "Net \u00c7al\u0131\u015fma S\u00fcresi (dk:sn)",
+            "label": "Net Çalışma Süresi (dk:sn)",
             "read_only": 1
         },
         {
             "fieldname": "operasyon_duruslari_section",
             "fieldtype": "Section Break",
-            "label": "Operasyon Duru\u015flar\u0131"
+            "label": "Operasyon Duruşları"
         },
         {
             "allow_on_submit": 1,
             "fieldname": "duruslar",
             "fieldtype": "Table",
-            "label": "Duru\u015flar",
+            "label": "Duruşlar",
             "options": "Operasyon Duruslari"
         },
         {
@@ -160,8 +162,16 @@
             "in_list_view": 1,
             "in_standard_filter": 1,
             "label": "Kalite Kontrol",
-            "options": "Onay Bekliyor\nOnayland\u0131\nReddedildi",
+            "options": "Onay Bekliyor\nOnaylandı\nReddedildi",
             "permlevel": 1
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "quality_inspection",
+            "fieldtype": "Link",
+            "label": "Kalite Muayene Belgesi",
+            "options": "Quality Inspection",
+            "read_only": 1
         },
         {
             "allow_on_submit": 1,
@@ -170,7 +180,7 @@
             "in_list_view": 1,
             "in_standard_filter": 1,
             "label": "Durum",
-            "options": "Haz\u0131r\n\u00c7al\u0131\u015f\u0131yor\nDuru\u015fta\nBitmi\u015f\nReddedildi",
+            "options": "Hazır\nÇalışıyor\nDuruşta\nBitmiş\nReddedildi",
             "read_only": 1
         },
         {
@@ -186,12 +196,6 @@
             "options": "Calisma Karti IDC Olcumleri"
         },
         {
-            "fieldname": "test_masasi_dogrulama_kaydi",
-            "fieldtype": "Link",
-            "label": "Test Masas\u0131 Do\u011frulama Kayd\u0131",
-            "options": "Test Masasi Dogrulama Kaydi"
-        },
-        {
             "fieldname": "column_break_olcum",
             "fieldtype": "Column Break"
         },
@@ -203,9 +207,15 @@
             "options": "Calisma Karti Barkod Kayitlari"
         },
         {
+            "fieldname": "test_masasi_dogrulama_kaydi",
+            "fieldtype": "Link",
+            "label": "Test Masası Doğrulama Kaydı",
+            "options": "Test Masasi Dogrulama Kaydi"
+        },
+        {
             "fieldname": "ozel_belgeler_section",
             "fieldtype": "Section Break",
-            "label": "\u00d6zel Belgeler"
+            "label": "Özel Belgeler"
         }
     ],
     "grid_page_length": 50,

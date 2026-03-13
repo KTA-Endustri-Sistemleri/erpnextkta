@@ -227,6 +227,7 @@ def get_calisma_karti_detail(name: str):
         "alt_operasyon_kayitlari": alt_operasyon_kayitlari,
         "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
         "kalite_kontrol": doc.kalite_kontrol,
+        "quality_inspection": doc.quality_inspection or None,
         "creation": doc.creation,
         "max_kart_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430,
         "kart_uyari_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "kart_uyari_suresi_dk") or 400,
@@ -249,7 +250,6 @@ def _handle_baslat(doc, now):
     if durum != "hazir":
         frappe.throw("Sadece Hazır durumundaki işlemler başlatılabilir.")
     
-
     doc.baslangic_saati = now
     
     # Auto-pause other active cards for this operator
@@ -324,11 +324,38 @@ def _handle_bitis(doc, now, aciklama, qty):
                 frappe.throw("Üretim adedi girilmeden işlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.")
 
     doc.bitis_saati = now
-    
+
     # Optional final note/durus reason
     if aciklama and len(doc.duruslar) > 0:
         doc.duruslar[-1].aciklama = aciklama
 
+    # 4. Submit linked Quality Inspection (if draft)
+    _submit_linked_quality_inspection(doc)
+
+
+def _submit_linked_quality_inspection(doc):
+    """Submit the Quality Inspection linked to this Calisma Karti if it is still a Draft.
+
+    Called when the card is finished (Bitis). Safe — any error is logged but does not
+    block the card from being finished.
+    """
+    qi_name = (getattr(doc, "quality_inspection", None) or "").strip()
+    if not qi_name:
+        return
+
+    try:
+        qi_docstatus = frappe.db.get_value("Quality Inspection", qi_name, "docstatus")
+        if qi_docstatus == 0:  # Draft → submit
+            qi_doc = frappe.get_doc("Quality Inspection", qi_name)
+            qi_doc.submit()
+            frappe.logger().info(
+                f"[kta] Quality Inspection {qi_name} submitted on Bitis of {doc.name}"
+            )
+    except Exception:
+        frappe.log_error(
+            frappe.get_traceback(),
+            f"[kta] QI submit failed for {qi_name} (Calisma Karti: {doc.name})"
+        )
 def _auto_pause_other_active_cards(hedef_doc, now_dt):
     if not hedef_doc.operator:
         return

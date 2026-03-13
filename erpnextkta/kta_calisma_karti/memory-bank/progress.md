@@ -1,8 +1,48 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-04 (vardiya bazlı net süre, item-group hammadde filtresi, dinamik uyarı süresi)
+> Son güncelleme: 2026-03-09 (Çalışma Kartı Notification Ayarı)
+
+### Notification / Bildirim Yapılandırması (Yeni - Tamamlandı)
+- [x] `çalışma_kartı_oluşturuldu` sistem bildirimi aktifleştirildi.
+- [x] Bildirimin alıcısı `operator` alanı üzerinden yapılandırıldı.
+- [x] Bildirim başlığı ve içeriği daha açıklayıcı bir formata dönüştürüldü.
+- [x] In-app system alert (Sistem Bildirimi) özelliği aktif edildi.
+
+### Dashboard Charts (Tamamlandı)
+- [x] Basic dashboard (Günlük durum ve Net Süre) - JSON & Source Script
+- [x] `dashboard_chart_source` için 4 yeni metric geliştirilmesi
+  - [x] Operasyon Başına Tamamlanan Miktar (Bar)
+  - [x] Duruş Nedeni Dağılımı (Donut)
+  - [x] Kalite Kontrol Dağılımı (Donut)
+  - [x] Departman Bazlı Net Çalışma Süresi (Bar)
+- [x] 6 Grafik için rol yetkileri eklendi (System, Dashboard, Manufacturing, Quality Manager)
+- [x] "Çalışan Kart Sayısı" ve "Duruşta Olan Kartlar" isminde iki Number Card ve custom backend methodları sisteme eklendi
+- [x] Workspace ve Dashboard entegrasyonları tamamlandı (Çalışma Kartı menüsünde listelenmesi sağlandı)
+
+### Maintenance & Testing (Yeni - Tamamlandı)
+- [x] `scripts/seed_test_data.py`: Geçmişe dönük (son 14 iş günü) sanal kart ve alt-hesaplamalar barındıran script
+- [x] `scripts/clear_test_data.py`: Tüm Calisma Karti verisini ve child tablolarını silen script
+
+- [x] **Kalite Kontrol (QI) Geliştirmeleri**: `sample_size` desteği, reddedilen kartlar için otomatik QI kaydı, numerik/metin ayrımı (`reading_1`/`reading_value`) ve `manual_inspection` senkronizasyonu. (Commit: `405746f`)
+- [x] **QI Draft & Auto-Submit**: QI belgelerinin taslak olarak kaydedilmesi ve kart bitirildiğinde otomatik onaylanması. (Commit: `388719e`)
+- [x] **QI UI İyileştirmeleri**: Kalite sekmesinde bağlı QI belgesine link ve route düzeltmeleri. (Commit: `cb904d7`)
+
+### Next Steps / Pendings
+- [ ] CK → Job Card status senkronizasyonu — `on_update` hook veya bitiş anında Job Card'ın ERPNext standart statüsünü (Completed vb.) tetikleme.
+- [ ] Test coverage (Pytest & Jest) artırılması.
 
 ## Çalışan Özellikler
+
+### Dashboard ✅
+- [x] **`Calisma Karti` Chart Source** (`dashboard_chart_source/calisma_karti/`)
+  - Günlük durum dağılımı bar chart (5 durum × N gün)
+  - Filtreler: `days` (7-90), `operasyon` (Link), `is_istasyonu` (Link)
+  - `frappe.form_dict` üzerinden filtre okuma (typing wrapper bypass)
+- [x] **`Operator Net Sure` Chart Source** (`dashboard_chart_source/operator_net_sure/`)
+  - Operatör bazlı net çalışma süresi bar chart (M:SS → dakika)
+  - Filtreler: `days`, `is_istasyonu` (Link), `top_n` (5-20)
+- [x] **Dashboard Fixture** — `kta_calisma_karti_dashboard/calisma_karti.json` (Full width, iki chart)
+- [x] Chart JSON fixture'larında `currency` alanı kaldırıldı (TRY format sorunu)
 
 ### Backend ✅
 - [x] Concurrency (Anti-Double-Click) Koruması — `create_calisma_karti()` 30 saniye geciktirmeli blokaj
@@ -17,7 +57,7 @@
 - [x] `get_work_order_by_barcode()` — WO barkod arama
 - [x] Hurda CRUD — BOM/operasyon bazlı item kısıtı dahil
 - [x] Kalite kontrol güncelleme — permlevel bypass + rol kapısı
-- [x] IDC ölçüm CRUD — item_group + BOM scope filtresi; operatörler de girebilir (QC kısıtı kaldırıldı)
+- [x] IDC ölçüm CRUD — item_group (120-IDC ve 110-Connector) + BOM scope filtresi; operatörler de girebilir (QC kısıtı kaldırıldı)
 - [x] `yukseklik_mm` ve `cekme_n` opsiyonel (default 0, `reqd: 1` kaldırıldı)
 - [x] Barkod kaydı CRUD
 - [x] Alt operasyon CRUD
@@ -45,8 +85,8 @@
   - Tikli değilse miktar 0 ile bitirilebilir (fakat en az bir alt operasyon zorunlu)
   - UI Duruş ve Bitiş formu `tamamlanan_miktar` field'ı opsiyonel (`reqd: 0`) yapıldı
 - [x] Hurda Filtreleme Kapsamının Genişletilmesi  
-  - `hurda.py` içerisindeki filtreleme operatörün o an bulunduğu `BOM Operation`'ın `idx` (sıra) değerini baz alacak şekilde güncellendi  
-  - Sadece mevcut operasyon değil, kendinden önceki (idx <= mevcut idx) tüm operasyonların materyalleri serbest bırakıldı  
+  - Filtreleme mekanizması, aktif operasyonun `KTA Calisma Karti Operasyonlari` tanımındaki `sequence` (sıra) değerini baz alacak şekilde güncellendi.
+  - Sadece mevcut operasyon değil; bu sıraya eşit veya kendinden önceki (`sequence <= mevcut`) **tüm ana operasyonlar** ve bunlara bağlı **tüm alt operasyonların** materyalleri (Item Group'ları) serbest bırakıldı.
 - [x] Hammadde Filtreleme — item-group Tabanlı Mimari (Commit: `dcd1b05` + `b769ea3`)
   - `get_allowed_items_with_groups(calisma_karti_name, alt_operasyon=None)` merkezi yardımcı fonksiyon `_helpers.py`'e eklendi
   - BOM/Job Card bağlantısından tamamen bağımsız: WO `required_items` ∩ operasyon `allowed_material_groups` ı filtreler
@@ -60,7 +100,20 @@
   - `_shift_name_by_now`, `_shift_window`, `_parse_minsec`, `_other_cards_net_seconds_in_shift` `calisma_karti.py`'e eklendi
   - `hesapla_toplam_sure()` artık vardiya penceresindeki diğer kartların toplam süresini hesaba katan kapasiteye göre kırpar
   - `tasks.py`: log eklendi, timeout duruşu sıfır-süreli olarak kaydediliyor, `realtime.publish` kapama sonrası çağrılıyor
-  - `delete_old_unstarted_cards`: `docstatus=1` ise silmeden önce `cancel()` yapılıyor
+  - `delete_old_unstarted_cards`: `docstatus=["!=", 2]` yapılarak draft/iptal ayrımı düzeltildi
+- [x] Vardiya Net Süre Simülasyonu ve Düzeltmeler (Bugfix)
+  - Tüm net süre hesaplamaları (`_other_cards_net_seconds_in_shift`, `auto_close_timed_out_cards`) `docstatus=1` yerine `["!=", 2]` (Draft kartları da kapsayacak) şekilde düzeltildi
+  - DB'ye dokunmayan analiz scripti yazıldı (`vardiya_sim.py`)
+  - Zamanaşımı kapatma scripti eklendi (`cleanup_timed_out.py`)
+  - Eski aşırı değerli kartları düzeltme scripti yazıldı (`fix_closed_cards_net_time.py`)
+- [x] Operasyon → Job Card Eşleştirme Sistemi
+  - **Yeni child doctype** `KTA Operation ERPNext Mappings`: `erpnext_operation` (zorunlu) + `production_item` (isteğe bağlı)
+  - `KTA Calisma Karti Operasyonlari`'na `erpnext_operations` Table alanı eklendi
+  - Koşullu `autoname()`: `customer_group` doluysa `Op-CG`, boşsa yalnızca `Op` ID'şi
+  - `get_operations_for_job_card(job_card)` — JC'nin `operation` + `production_item`'a göre üçlü öncelik filtresi
+    - Prio-1: operation + product tam eşleşmesi (BOM-spec)
+    - Prio-2: operation eşleşmesi + boş product (operation-generic)
+    - Prio-3: hiç mapping yok (fully generic fallback)
 
 ### Frontend ✅
 - [x] Server-Side Filtering & Initialization Fixes — `list-calisma-cards` sayfasındaki ağır Vue array filtrelemeleri SQL API'ye bağlandı.
@@ -70,10 +123,14 @@
 - [x] `create-calisma-karti` wizard — WO modu (5 adım) + JC modu (3 adım)
 - [x] `list-calisma-cards` — Realtime list, çok filtreli (durum, QC, customer group), paginasyon
 - [x] `view-calisma-karti` — Tab'lı detay (Info, Alt Operasyon, Hurda, Duruş, Kalite)
+- [x] `AltOperasyonView.vue` ve `HurdaView.vue` — Kart "Hazır" veya "Bitmiş" durumdayken Ekle butonlarının iptali
 - [x] `AltOperasyonView.vue` — `sortedRows` computed (sequence sırası), `alt_operasyon_title` fallback gösterimi
 - [x] `App.vue` Timeout Banner (Katman 3 / UI) — İşlem uyarı süresini aşarsa tepeye kırmızı 🚨 alert banner açılır (**dinamik**: `kart_uyari_suresi_dk` KTA Settings'ten okunur)
 - [x] `prompts.ts` `altOperasyonFields` — `calismaKartiName` + `getAltOpValue` callback eklendi; hammadde `get_query` `calisma_karti` filtresi gönderiyor
 - [x] `AltOperasyonView.vue` dialog referansı (`let d`) — `getAltOpValue` callback'ine aktarılıyor
+- [x] `create-calisma-karti` wizard operasyon adımı JC bazlıya geçirildi
+  - `fetchOperations()` kaldırıldı; `fetchOperationsForJobCard(jcName)` yeni API'yi çağırıyor
+  - JC ve WO modlarında JC seçimi/belirlenmesi sonrası operasyon listesi otomatik çekiliyor
 
 ## Eksik / Belirsiz
 
@@ -82,7 +139,6 @@
 - [x] ~~`calisma_karti.py` controller~~ → `STATU_HARITASI`, `get_durum()`, `hesapla_*` metodları, `islem_yap` okundu
 - [x] ~~`tamamlanan_miktar`~~ → `islem_yap` içinde `doc.tamamlanan_miktar` olarak kullanılıyor (Custom Field)
 - [ ] CK → Job Card status senkronizasyonu — `on_update` hook Job Card'ı güncellemiyor; sadece `doc_events → Job Card → update_work_order_status` var
-- [ ] `rest-api/` klasörü — Tam içerik incelenmedi
 
 ### Potansiyel İyileştirmeler
 - [ ] Liste sayfasındaki filtreler server-side hale getirilebilir (şu an client-side)
@@ -91,7 +147,7 @@
 ### Karar Verilmiş / Gerekmiyor
 - ✅ `create-calisma-karti` wizard'a alt operasyon adımı eklenMEyecek (operatör CK içinden kendi dolduruyor)
 - ✅ `list-calisma-cards`'ta alt operasyon özeti gösterilMEyecek (şu an için gerek yok)
-- ✅ Material group kısıtı ana operasyonda tanımlanır; alt op isteðe bağlı daraltabilir
+- ✅ Material group kısıtı ana operasyonda tanımlir; alt op isteðe bağlı daraltabilir
 
 ## Bilinen Sorunlar
 

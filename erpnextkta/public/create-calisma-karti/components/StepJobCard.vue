@@ -114,13 +114,13 @@ function isSelected(name) {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #111827; /* koyu gri */
+  color: var(--ck-text);
 }
 
 .step-jobcard__subtitle {
   margin: 0.25rem 0 0;
   font-size: 0.85rem;
-  color: #4b5563; /* gri */
+  color: var(--ck-text-muted);
 }
 
 .step-jobcard__count {
@@ -132,10 +132,10 @@ function isSelected(name) {
 .step-jobcard__empty {
   padding: 0.6rem 0.75rem;
   font-size: 0.85rem;
-  color: #4b5563;
-  border: 1px dashed #d1d5db;
+  color: var(--ck-text-muted);
+  border: 1px dashed var(--ck-border);
   border-radius: 0.5rem;
-  background: #f9fafb;
+  background: var(--ck-ghost-bg);
 }
 
 /* Kart grid */
@@ -152,10 +152,10 @@ function isSelected(name) {
 }
 
 .step-jobcard__card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--ck-border);
   border-radius: 0.5rem;
   padding: 0.6rem 0.75rem;
-  background: #ffffff;
+  background: var(--ck-card-bg);
   text-align: left;
   font-size: 0.85rem;
   cursor: pointer;
@@ -163,14 +163,15 @@ function isSelected(name) {
 }
 
 .step-jobcard__card:hover {
-  border-color: #bfdbfe;
-  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.15);
+  border-color: var(--ck-accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--ck-ghost-bg);
 }
 
 .step-jobcard__card--selected {
-  border-color: #2563eb;
+  border-color: var(--ck-accent);
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
-  background: #eff6ff;
+  background: var(--ck-ghost-bg);
 }
 
 .step-jobcard__card-header {
@@ -184,7 +185,7 @@ function isSelected(name) {
 .step-jobcard__card-name {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--ck-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -198,15 +199,15 @@ function isSelected(name) {
 }
 
 .step-jobcard__badge--default {
-  border-color: #d1d5db;
-  background: #f9fafb;
-  color: #4b5563;
+  border-color: var(--ck-border);
+  background: var(--ck-bg);
+  color: var(--ck-text-muted);
 }
 
 .step-jobcard__badge--selected {
-  border-color: #3b82f6;
-  background: #dbeafe;
-  color: #1d4ed8;
+  border-color: var(--ck-accent);
+  background: var(--ck-accent);
+  color: #ffffff;
 }
 
 .step-jobcard__card-body {
@@ -220,7 +221,7 @@ function isSelected(name) {
 
 .step-jobcard__label {
   font-weight: 500;
-  color: #374151;
+  color: var(--ck-text-muted);
 }
 
 /* Summary */
@@ -228,10 +229,10 @@ function isSelected(name) {
   margin-top: 0.25rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid #bfdbfe;
-  background: #eff6ff;
+  border: 1px solid var(--ck-accent);
+  background: var(--ck-ghost-bg) !important;
   font-size: 0.8rem;
-  color: #1e3a8a;
+  color: var(--ck-text) !important;
 }
 
 .step-jobcard__summary-title {
