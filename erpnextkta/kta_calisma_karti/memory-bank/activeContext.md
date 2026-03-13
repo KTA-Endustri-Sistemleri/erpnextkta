@@ -4,19 +4,17 @@
 
 ## Mevcut Odak
 
-Sihirbaz (Wizard) kullanıcı deneyimi premium seviyeye taşındı. Akıllı barkod algılama, agresif modal susturma ve tamamlanmış iş emirleri için tolerans süresi (Smart Tolerance) özellikleri devreye alındı. Ayrıca branş birleştirmesi yapılarak tüm özellikler tek bir çatı altında toplandı.
+Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` (Premium Wizard, Smart Tolerance, QI Draft Flow) ve `operation-jc-mapping` (Job Card Mapping, Alt Operasyon Geliştirmeleri) özellikleri tek bir stabil branşta (`combined-op-jc-enhancements`) toplandı. Sistem şu an hem İş Emri (WO) hem de İş Kartı (JC) akışlarında tam kapasiteyle çalışmaktadır.
 
-## Son Değişiklikler (2026-03-12) — Sihirbaz UI Revizyonu & Smart Tolerance
+## Son Değişiklikler (2026-03-13) — Combined Enhancements Merge & Stabilizasyon
 
-Sihirbaz daha akıllı, estetik ve kesintisiz bir yapıya kavuşturuldu:
+İki ana özellik seti birleştirildi ve build/migrate hataları giderildi:
 
-*   **Smart Tolerance (Akıllı Tolerans)**: İş Emri veya İş Kartı kapalı olsa dahi, son stok girişinden sonraki N saat (ayarlanabilir, varsayılan 8 saat) boyunca Çalışma Kartı açılmasına izin veren backend mantığı eklendi.
-*   **Agresif Modal Susturma**: `App.vue` açıkken Frappe'nin kafa karıştırıcı hata modallarını tamamen susturan "Sıkıyönetim Modu" uygulandı. Hatalar artık animasyonlu (shake) bir Alert kutusunda Türkçe olarak gösteriliyor.
-*   **Premium UI & Karanlık Mod**: 
-    - Tüm seçim listelerindeki (Operatör, Operasyon vb.) sert beyazlıklar giderildi.
-    - Step 3 (İş İstasyonu) mimarisi dikey hiyerarşiye çekilerek metin sıkışmaları önlendi.
-    - Mavi parlama (**glow**) etkili dinamik bilgi şeridi eklendi.
-*   **Akıllı Barkod Arama**: Kullanıcının girdiği eksik barkodlar otomatik olarak `MFG-WO-` veya `PO-` önekleriyle tamamlanarak arama hızı artırıldı.
+*   **Integrated Wizard (Birleşik Sihirbaz)**: Hem WO hem de JC barkodlarıyla uyumlu, akıllı önek algılamalı (MFG-WO-, PO-) ve "Smart Tolerance" destekli yeni sihirbaz devreye alındı.
+*   **Job Card Mapping & Sequence Filtering**: KTA operasyonlarının ERPNext operasyonlarıyla eşleştirilmesi (mapping) ve hammadde/hurda listelerinin operasyon sırasına (`sequence`) göre kümülatif olarak filtrelenmesi sağlandı.
+*   **Smart Tolerance (Akıllı Tolerans)**: İş emri kapalı olsa bile son üretim amaçlı stok girişinden sonraki N saat (ayarlanabilir) boyunca kart açılabilmesi sağlandı.
+*   **QI Draft Flow**: Kalite Kontrol belgelerinin taslak olarak oluşturulup kart bitişinde otomatik onaylanması (`cards.py`) mimarisi stabil hale getirildi.
+*   **Hata Yönetimi**: Agresif modal susturma ve premium alert kutuları ile pürüzsüz bir operatör deneyimi sağlandı.
 
 ## Son Değişiklikler (2026-03-11) — Kalite Kontrol (QI) Geliştirmeleri & Draft Akışı
 

@@ -51,14 +51,15 @@ Public: erpnextkta/public/
 
 ```python
 # ERPNext doktipleri (dış bağımlılık)
-"Job Card"              # is_karti → operasyon, workstation, bom_no
-"Work Order"            # custom_work_order → bom_no, status, docstatus
-"BOM Item"              # hurda + IDC item whitelist
-"Employee"              # operator eşleştirme (user_id / company_email / personal_email)
+"Job Card"              # is_karti → operasyon, workstation, bom_no, production_item
+"Work Order"            # custom_work_order → bom_no, status, docstatus, required_items
+"Stock Entry"           # Smart Tolerance kontrolü için (Manufacture/Repack)
+"KTA Operation ERPNext Mappings" # Operasyon bazlı Job Card eşleştirmesi
+"KTA Operation Allowed Material Groups" # Ana operasyon kısıtları
+"KTA Sub Operation Allowed Material Groups" # Alt operasyon kısıtları
+"Employee"              # operator eşleştirme
 "Workstation"           # is_istasyonu
-"Cost Center"           # hurda_nedeni (parent_cost_center = "Malzeme Sarfları - KTA")
-"Item Customer Detail"  # customer_group türetme (liste ve wizard için)
-"Item"                  # IDC item_group="120-IDC Connector" kontrolü
+"Item"                  # item_group ve customer_group kontrolleri
 ```
 
 ## Teknik Kısıtlar

@@ -52,19 +52,15 @@ for df in meta.fields:
         return df.fieldname
 ```
 
-### 5. item-group Tabanlı Whitelist Pattern (v3)
-```python
-# Hurda: WO required_items ∩ operasyon allowed_material_groups filtresi
-# (BOM/JC bağlantısından bağımsız)
-get_allowed_items_with_groups(calisma_karti_name, alt_operasyon=None)
+### 5. Kümülatif Material Group Whitelist Pattern (v4)
+Hammadde ve hurda listeleri, operasyonun iş akışındaki sırasına (`sequence`) göre kümülatif olarak genişletilir:
 
-# Alt-op: alt-op grubu tanımlıysa YALNIZCA o grup
-#         boşsa: sequence ≤ current alt-op + parent op grupları
-# Hurda (alt_operasyon=None): parent operasyon grupları
-
-# IDC: sadece Work Order BOM'undaki item_group="120-IDC Connector" kalemler
-BOM Item JOIN Item WHERE item_group="120-IDC Connector"
-```
+- **Alt Operasyon (Hammadde)**:
+    - Akut Kısıt: Alt operasyonun kendi `allowed_material_groups` listesi doluysa **SADECE** o gruplar kullanılır.
+    - Kümülatif Fallback: Liste boşsa, aynı ana operasyona bağlı olan ve sequence numarası mevcut olandan küçük/eşit olan **TÜM** alt operasyonların grupları + ana operasyonun grupları birleştirilir.
+- **Hurda (Genel)**:
+    - Aktif operasyondan önceki (sequence <= current) **TÜM** ana operasyonların ve bu ana operasyonlara bağlı **TÜM** alt operasyonların malzeme grupları serbest bırakılır.
+- **Intersection**: Son liste, Work Order'ın `required_items` listesi ile bu izinli grupların kesişimidir.
 
 ### 6. Realtime Event Pattern
 ```python
@@ -166,8 +162,14 @@ ERPNext'in sunucu taraflı otomatik Accepted/Rejected hesaplamasının kullanıc
 - **Numerik**: `reading_1` kullanılır.
 - **Metin/Yorum**: `reading_value` kullanılır.
 
-### 15. Smart Tolerance (Akıllı Tolerans) Deseni
-İş Emri veya İş Kartı "Completed/Closed" olsa dahi, son stok girişine (Manufacture/Repack) bakılarak işlem izni verilir. 
-- Ayar: `KTA Calisma Karti Settings.tolerans_saat`
-- Kontrol: `api_impl/barcode.py` -> `is_work_order_within_tolerance()`
-- Kaynak: `Stock Entry` tablosundaki son başarılı üretim girişinin tarihi ve saati.
+### 16. Agresif Modal Susturma (Sıkıyönetim Modu)
+Frontend sihirbazı açıkken, Frappe'nin standart ve kafa karıştırıcı hata modallarının kullanıcı deneyimini bozmasını önlemek için uygulanan desen:
+- **Override**: `frappe.msgprint` fonksiyonu geçici olarak yakalanır ve sadece 'başarı' mesajlarının geçmesine izin verilir.
+- **Poll & Clear**: Her 250ms'de bir `frappe.messages` kuyruğu zorla temizlenerek arka planda kalan bildirimlerin popup açması engellenir.
+- **Local Error UI**: Yakalanan hatalar, bileşen içindeki `wizard-error-alert` kutusuna animasyonlu (`shake`) şekilde yansıtılır.
+
+### 17. Smart Prefix Barkod Çözümleme
+Kullanıcı girişini kolaylaştırmak için uygulanan örüntü:
+- `2026-X` formatındaki girişler otomatik olarak `MFG-WO-2026-X` haline getirilir.
+- `JOBX` veya sayısal ID'ler `PO-JOBX` veya ilgili `PO-` önekleriyle zenginleştirilir.
+- Bu işlem hem frontend (`App.vue`) hem de backend (`barcode.py`) düzeyinde normalize edilir.

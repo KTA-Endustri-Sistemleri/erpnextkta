@@ -9,17 +9,14 @@ KTA operatörleri:
 - Kalite ekibi IDC ölçümü ve barkod kayıtlarını mobil uyumlu ekranda girmek istiyor
 - Yöneticiler tüm kartların anlık durumunu görmek istiyor
 
-## Çözdüğü Problemler
-
 | Problem | Çözüm |
 |---------|-------|
 | ERPNext form karmaşıklığı | Adım adım wizard + tek sayfa detay görünümü |
-| Barkod okuyucu entegrasyonu | Global Enter listener + barcode API endpoint |
+| Barkod okuyucu entegrasyonu | Global Enter listener + barcode API endpoint (Smart Prefix desteğiyle) |
 | Yetki karmaşası (QC vs. operatör) | Rol bazlı API kapıları + permlevel=1 |
 | Anlık liste güncellemesi | Socket.IO realtime: `kta_calisma_karti:list_changed` |
-| Hurda kaydında yanlış parça | BOM + operasyon bazlı item whitelist |
-| IDC ölçümünde yanlış malzeme | `item_group = "120-IDC Connector"` + BOM scope filtresi |
-| Kalite belgerinin izlenebilirliği | ERPNext standart MAT-QA entegrasyonu ve otomatik linkleme |
+| Hurda kaydında yanlış parça | Kümülatif sequence tabanlı hammadde whitelist |
+| İş Emri - KTA Operasyon uyumsuzluğu | **Job Card Mapping**: ERPNext operasyonlarını esnek şekilde KTA operasyonlarına bağlayan eşleştirme tablosu |
 | Tamamlanmış iş emirlerinde tıkanma | **Smart Tolerance**: Son stok girişinden sonraki N saat (varsayılan 8) boyunca işlem izni |
 
 ## Kullanıcı Grupları

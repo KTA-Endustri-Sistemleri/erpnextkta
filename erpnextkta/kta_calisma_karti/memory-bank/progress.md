@@ -27,8 +27,13 @@
 - [x] **QI Draft & Auto-Submit**: QI belgelerinin taslak olarak kaydedilmesi ve kart bitirildiğinde otomatik onaylanması. (Commit: `388719e`)
 - [x] **QI UI İyileştirmeleri**: Kalite sekmesinde bağlı QI belgesine link ve route düzeltmeleri. (Commit: `cb904d7`)
 
+### 🚀 Combined Enhancements Merge (Tamamlandı)
+- [x] `calisma-karti-op-enhancements` ve `operation-jc-mapping` branşları `combined-op-jc-enhancements` altında birleştirildi.
+- [x] Birleştirme sonrası `bench build` ve `bench migrate` hataları (JSON/CSS syntax errors) giderildi.
+- [x] Tüm modüller `0.20.0` versiyonuna çekildi.
+
 ### Next Steps / Pendings
-- [ ] CK → Job Card status senkronizasyonu — `on_update` hook veya bitiş anında Job Card'ın ERPNext standart statüsünü (Completed vb.) tetikleme.
+- [ ] CK → Job Card status senkronizasyonu — `on_update` hook veya bitiş anında Job Card'ın ERPNext standart statüsünü (Completed vb.) tetikleme. (Hala tasarım aşamasında)
 - [ ] Test coverage (Pytest & Jest) artırılması.
 
 ## Çalışan Özellikler
