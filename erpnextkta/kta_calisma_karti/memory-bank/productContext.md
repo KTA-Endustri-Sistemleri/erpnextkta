@@ -15,9 +15,9 @@ KTA operatörleri:
 | Barkod okuyucu entegrasyonu | Global Enter listener + barcode API endpoint (Smart Prefix desteğiyle) |
 | Yetki karmaşası (QC vs. operatör) | Rol bazlı API kapıları + permlevel=1 |
 | Anlık liste güncellemesi | Socket.IO realtime: `kta_calisma_karti:list_changed` |
-| Hurda kaydında yanlış parça | Kümülatif sequence tabanlı hammadde whitelist |
 | İş Emri - KTA Operasyon uyumsuzluğu | **Job Card Mapping**: ERPNext operasyonlarını esnek şekilde KTA operasyonlarına bağlayan eşleştirme tablosu |
 | Tamamlanmış iş emirlerinde tıkanma | **Smart Tolerance**: Son stok girişinden sonraki N saat (varsayılan 8) boyunca işlem izni |
+| Makine arızaları / Denetim eksikliği | **Makine Günlük Bakım**: Operatörün işe başlamadan önce makine kontrolü yapmasını sağlayan talimat ve form sistemi |
 
 ## Kullanıcı Grupları
 

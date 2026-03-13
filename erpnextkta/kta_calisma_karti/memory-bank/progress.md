@@ -29,6 +29,7 @@
 
 ### 🚀 Combined Enhancements Merge (Tamamlandı)
 - [x] `calisma-karti-op-enhancements` ve `operation-jc-mapping` branşları `combined-op-jc-enhancements` altında birleştirildi.
+- [x] **Makine Günlük Bakım**: `Bakim Talimati` ve `Makine Gunluk Bakim Formu` sistemi devreye alındı. (Alpkan tarafından geliştirildi)
 - [x] Birleştirme sonrası `bench build` ve `bench migrate` hataları (JSON/CSS syntax errors) giderildi.
 - [x] Tüm modüller `0.20.0` versiyonuna çekildi.
 

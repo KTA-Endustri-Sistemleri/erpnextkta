@@ -52,9 +52,11 @@ Kalite kontrol süreci daha esnek ve güvenli bir yapıya kavuşturuldu:
 ### Hurda Filtreleme Kapsamı Genişletildi
 - Operatörün o anki operasyon sırasına (sequence) göre önceki tüm operasyonların malzemelerini görebilmesi.
 
-### Dinamik Ayarlar ve UI
-- `KTA Calisma Karti Settings` ile dinamik uyarı ve limit süreleri.
-- Premium Wizard UI ve Aggressive Modal Suppression.
+### Makine Günlük Bakım Sistemi
+- **Bakım Talimatı**: `Bakim Talimati` DocType'ı ile tanımlanan (örn: `PTR.BT.049`) standart talimatların operatöre gösterilmesi.
+- **Bakım Onayı**: Operatörün kart üzerinde çalışırken ilgili makineyi (Asset) seçip talimata göre onay vermesi.
+- **Bakım Formu**: `Makine Gunluk Bakim Formu` ile back-end tarafında submit edilen resmi kayıtlar oluşturulması.
+- **UI Entegrasyonu**: `BakimView.vue` bileşeni ile kart detaylarında "Bakım" sekmesi.
 
 ## Proje İçgörüleri
 - `api.py` stable facade mantığı korunuyor.

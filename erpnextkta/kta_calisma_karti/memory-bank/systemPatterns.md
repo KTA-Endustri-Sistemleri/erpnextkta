@@ -139,6 +139,13 @@ QcToggle (Vue) → get_qc_templates_for_ck()
       → publish_realtime
 ```
 
+### 11.5. Makine Günlük Bakım Workflow Deseni
+Operatörün işe başlamadan veya iş sırasında makine kontrolü yapmasını sağlar:
+- **Fetch**: `Bakim Talimati` (PTR.BT.049) içeriği HTML olarak çekilir.
+- **UI**: `frappe.ui.Dialog` içinde talimat metni + Asset seçimi + Onay kutusu.
+- **Record**: `Makine Gunluk Bakim Formu` (Submittable) oluşturulur ve `Calisma Karti`'ne referans verilir.
+- **Validation**: Backend veya Frontend'de zorunlu tutulabilir (opsiyonel).
+
 ## Bileşen İlişkileri
 
 ```

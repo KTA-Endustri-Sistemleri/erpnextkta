@@ -57,6 +57,8 @@ Public: erpnextkta/public/
 "KTA Operation ERPNext Mappings" # Operasyon bazlı Job Card eşleştirmesi
 "KTA Operation Allowed Material Groups" # Ana operasyon kısıtları
 "KTA Sub Operation Allowed Material Groups" # Alt operasyon kısıtları
+"Makine Gunluk Bakim Formu" # Günlük bakım kayıtları
+"Bakim Talimati"        # Standart bakım talimatları (Örn: PTR.BT.049)
 "Employee"              # operator eşleştirme
 "Workstation"           # is_istasyonu
 "Item"                  # item_group ve customer_group kontrolleri
