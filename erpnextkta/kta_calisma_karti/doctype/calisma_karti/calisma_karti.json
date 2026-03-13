@@ -16,8 +16,6 @@
         "kalite_kontrol",
         "durum",
         "olcumler_section",
-        "idc_olcumleri",
-        "test_masasi_dogrulama_kaydi",
         "column_break_olcum",
         "barkod_kayitlari",
         "zaman_section",
@@ -30,7 +28,9 @@
         "operasyon_duruslari_section",
         "column_break_sqky",
         "hurdalar",
-        "duruslar"
+        "duruslar",
+        "ozel_belgeler_section",
+        "test_masasi_dogrulama_kaydi"
     ],
     "fields": [
         {
@@ -189,8 +189,7 @@
             "fieldname": "test_masasi_dogrulama_kaydi",
             "fieldtype": "Link",
             "label": "Test Masas\u0131 Do\u011frulama Kayd\u0131",
-            "options": "Test Masasi Dogrulama Kaydi",
-            "read_only": 1
+            "options": "Test Masasi Dogrulama Kaydi"
         },
         {
             "fieldname": "column_break_olcum",
@@ -202,6 +201,11 @@
             "fieldtype": "Table",
             "label": "Barkod Kayıtları",
             "options": "Calisma Karti Barkod Kayitlari"
+        },
+        {
+            "fieldname": "ozel_belgeler_section",
+            "fieldtype": "Section Break",
+            "label": "\u00d6zel Belgeler"
         }
     ],
     "grid_page_length": 50,
