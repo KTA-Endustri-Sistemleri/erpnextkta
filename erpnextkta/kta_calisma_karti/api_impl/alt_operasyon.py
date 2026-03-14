@@ -150,3 +150,18 @@ def delete_alt_operasyon_kaydi(calisma_karti: str, row_id: str):
     frappe.db.commit()
     publish_calisma_karti_changed(calisma_karti, reason="alt_operasyon:delete")
     return True
+
+
+@frappe.whitelist()
+def get_alt_operasyon_options(parent_operation: str):
+    """Return active sub-operations for a given parent operation as {label, value} pairs."""
+    ops = frappe.get_all(
+        "KTA Calisma Karti Alt Operasyonlari",
+        filters={
+            "parent_operation": parent_operation,
+            "is_active": 1,
+        },
+        fields=["name", "title"],
+        order_by="sequence ASC, title ASC",
+    )
+    return [{"label": o.title, "value": o.name} for o in ops]

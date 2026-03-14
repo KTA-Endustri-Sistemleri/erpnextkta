@@ -44,13 +44,7 @@ from .api_impl.alt_operasyon import (
     add_alt_operasyon_kaydi,
     update_alt_operasyon_kaydi,
     delete_alt_operasyon_kaydi,
-)
-
-# Alt Operasyon
-from .api_impl.alt_operasyon import (
-    add_alt_operasyon_kaydi,
-    update_alt_operasyon_kaydi,
-    delete_alt_operasyon_kaydi,
+    get_alt_operasyon_options,
 )
 
 __all__ = [
@@ -83,6 +77,7 @@ __all__ = [
     "add_alt_operasyon_kaydi",
     "update_alt_operasyon_kaydi",
     "delete_alt_operasyon_kaydi",
+    "get_alt_operasyon_options",
 
     # Create + barcode helpers
     "create_calisma_karti",
