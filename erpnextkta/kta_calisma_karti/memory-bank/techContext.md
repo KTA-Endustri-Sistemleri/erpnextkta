@@ -20,18 +20,24 @@
 | Realtime | `frappe.realtime.on/off` (Socket.IO) |
 | Routing | `frappe.set_route()` / `frappe.get_route()` |
 | CSS | Scoped CSS + Frappe CSS değişkenleri |
-| Build | Frappe asset build (`*.bundle.js` entry point) |
+| Build | Frappe asset build (`bench build --app erpnextkta --production`) |
+
+> [!CAUTION]
+> **Build Zorunluluğu**: Frontend dosyalarında (`public/` altı) yapılan her değişiklikten sonra derleme (build) komutu çalıştırılmalıdır. Aksi takdirde değişiklikler arayüze yansımaz.
 
 ## Geliştirme Ortamı
 
 ```
 Root: c:\Users\ufukk\GitHub\frappe_docker\development\frappe-bench\apps\erpnextkta
-Module: erpnextkta/kta_calisma_karti/
-Public: erpnextkta/public/
+Module (Backend): erpnextkta/kta_calisma_karti/
+Public (Frontend): erpnextkta/public/
   ├── create-calisma-karti/  ← create-calisma-karti.bundle.js
   ├── list-calisma-cards/    ← list-calisma-cards.bundle.js
   └── view-calisma-karti/    ← view-calisma-karti.bundle.js
 ```
+
+> [!NOTE]
+> Geliştirme sürecinde backend (`kta_calisma_karti`) ve frontend (`public/*`) klasörleri tek bir "Çalışma Kartı Paketi" olarak düşünülmelidir.
 
 ## Frappe Entegrasyon Noktaları
 

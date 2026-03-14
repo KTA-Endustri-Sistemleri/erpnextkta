@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { altOperasyonFields } from "../composables/prompts";
 
 const props = defineProps<{
@@ -19,9 +19,23 @@ const sortedRows = computed(() => {
   });
 });
 
+const altOpOptions = ref<any[]>([]);
+
+async function fetchAltOpOptions() {
+  const r = await frappe.call({
+    method: "erpnextkta.kta_calisma_karti.api.get_alt_operasyon_options",
+    args: { parent_operation: props.doc.operasyon },
+  });
+  altOpOptions.value = r.message || [];
+}
+
+onMounted(() => {
+  fetchAltOpOptions();
+});
+
 function onAltOperasyonEkle() {
   let d: any;
-  const fields = altOperasyonFields(props.doc.operasyon, props.doc.name, {}, () => d?.get_value("alt_operasyon"));
+  const fields = altOperasyonFields(props.doc.operasyon, props.doc.name, {}, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = frappe.prompt(
     fields,
     async (v: any) => {
@@ -46,7 +60,7 @@ function onAltOperasyonDuzenle(h: any) {
   }
 
   let d: any;
-  const fields = altOperasyonFields(props.doc.operasyon, props.doc.name, h, () => d?.get_value("alt_operasyon"));
+  const fields = altOperasyonFields(props.doc.operasyon, props.doc.name, h, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = frappe.prompt(
     fields,
     async (v: any) => {

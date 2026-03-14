@@ -147,21 +147,15 @@ export function barkodKayitFields(defaults: any = {}) {
     ];
 }
 
-export function altOperasyonFields(parentOperationLabel: string, calismaKartiName: string, defaults: any = {}, getAltOpValue?: () => string) {
+export function altOperasyonFields(parentOperationLabel: string, calismaKartiName: string, defaults: any = {}, getAltOpValue?: () => string, altOpOptions: any[] = []) {
     return [
         {
-            fieldtype: "Link",
+            fieldtype: "Select",
             label: "Alt İşlem",
             fieldname: "alt_operasyon",
-            options: "KTA Calisma Karti Alt Operasyonlari",
+            options: altOpOptions,
             reqd: 1,
             default: defaults.alt_operasyon || "",
-            get_query: () => ({
-                filters: {
-                    parent_operation: parentOperationLabel,
-                    is_active: 1
-                }
-            })
         },
         {
             fieldtype: "Link",

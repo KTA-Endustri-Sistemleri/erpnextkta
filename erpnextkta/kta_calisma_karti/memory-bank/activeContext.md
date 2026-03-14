@@ -1,10 +1,22 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-12
+> Son güncelleme: 2026-03-14
+
+Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle alt operasyonların ID yerine başlık (Title) üzerinden seçilmesi sağlandı.
 
 ## Mevcut Odak
+*   **Hata Giderme (Tamamlandı)**: 
+    *   QI onaylama yetki hatası (`frappe.set_user` swap ile) çözüldü.
+    *   Operasyon bazlı miktar girişi mantığı (`miktar_zorunlu_mu`) eklendi.
+*   **Geliştirme Kuralları**: Frontend build kuralı ve bütünleşik modül dökümantasyonu eklendi (Tamamlandı).
+*   **Arayüz İyileştirmeleri**: Alt operasyon seçiminin iyileştirilmesi (Tamamlandı).
+*   **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
+*   **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
 
-Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` (Premium Wizard, Smart Tolerance, QI Draft Flow) ve `operation-jc-mapping` (Job Card Mapping, Alt Operasyon Geliştirmeleri) özellikleri tek bir stabil branşta (`combined-op-jc-enhancements`) toplandı. Sistem şu an hem İş Emri (WO) hem de İş Kartı (JC) akışlarında tam kapasiteyle çalışmaktadır.
+## Son Değişiklikler (2026-03-14) — Alt Operasyon Başlık Seçimi
+*   **Backend API**: `get_alt_operasyon_options` fonksiyonu ile sub-op'ların Title ve ID'leri çekiliyor.
+*   **Prompt Güncellemesi**: `prompts.ts` içindeki alt operasyon alanı `Select` tipine çevrildi, başlık gösterimi sağlandı.
+*   **Vue Entegrasyonu**: `AltOperasyonView.vue` bileşeni API ile beslenerek kullanıcı deneyimi iyileştirildi.
 
 ## Son Değişiklikler (2026-03-13) — Akıllı Vardiya Sonu Kapatma & Scheduler Düzeltmesi
 

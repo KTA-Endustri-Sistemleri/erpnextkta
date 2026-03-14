@@ -142,16 +142,25 @@ function onDurus() {
 }
 
 function onBitir() {
-  frappe.prompt(
-    bitirFields(),
-    async (v: any) => {
-      frappe.confirm("İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?", async () =>
-        callIslem("Bitis", null, null, v.tamamlanan_miktar)
-      );
-    },
-    "Bitir",
-    "Devam"
-  );
+  const isMiktarZorunlu = doc.value?.miktar_zorunlu_mu !== 0; // default true if null/undefined
+
+  if (isMiktarZorunlu) {
+    frappe.prompt(
+      bitirFields(),
+      async (v: any) => {
+        frappe.confirm("İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?", async () =>
+          callIslem("Bitis", null, null, v.tamamlanan_miktar)
+        );
+      },
+      "Bitir",
+      "Devam"
+    );
+  } else {
+    // Miktar zorunlu değilse direkt bitir
+    frappe.confirm("Herhangi bir üretim miktarı bildirmeden işlem bitirilecek. Emin misiniz?", async () =>
+      callIslem("Bitis", null, null, 0)
+    );
+  }
 }
 
 async function setQC(nextValue: string) {
@@ -522,28 +531,48 @@ watch(
   text-align: right;
   color: var(--ck-text);
 }
-
 .ck-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 10px 0;
-  border-top: 2px solid var(--gray-100);
+  border-top: 1px solid var(--ck-border-soft);
 }
 
 .ck-tab {
-  flex: 1;
+  /* Mobilde 3 sütun düzeni için: %33'ten biraz az yer kapla ve büyüdüğünde satırı doldur */
+  flex: 1 1 calc(33.33% - 8px);
   border: 1px solid var(--ck-border);
   border-radius: 12px;
-  padding: 10px 8px;
+  padding: 12px 8px;
   font-weight: 800;
-  background: var(--btn-default-bg);
+  background: var(--control-bg, var(--btn-default-bg));
   color: var(--ck-text);
+  font-size: 13px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  text-align: center;
+}
+
+.ck-tab:active {
+  transform: scale(0.95);
 }
 
 .ck-tab.is-active {
-  background: var(--btn-default-hover-bg);
-  border-color: var(--gray-400);
+  background: var(--ck-warning);
+  border-color: var(--ck-warning);
+  color: #000; /* Siyah metin, sarı/turuncu üzerinde daha iyi okunur */
+  box-shadow: 0 0 8px var(--ck-warning); /* Parlama efekti */
 }
+
+/* Masaüstü: Tüm butonlar tek satırda */
+@media (min-width: 768px) {
+  .ck-tab {
+    flex: 1;
+  }
+}
+
 
 .ck-mini-list {
   display: grid;

@@ -1,6 +1,6 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-09 (Çalışma Kartı Notification Ayarı)
+> Son güncelleme: 2026-03-14 (Alt Operasyon Başlık Seçimi)
 
 ### Notification / Bildirim Yapılandırması (Yeni - Tamamlandı)
 - [x] `çalışma_kartı_oluşturuldu` sistem bildirimi aktifleştirildi.
@@ -31,7 +31,8 @@
 - [x] `calisma-karti-op-enhancements` ve `operation-jc-mapping` branşları `combined-op-jc-enhancements` altında birleştirildi.
 - [x] **Makine Günlük Bakım**: `Bakim Talimati` ve `Makine Gunluk Bakim Formu` sistemi devreye alındı. (Alpkan tarafından geliştirildi)
 - [x] Birleştirme sonrası `bench build` ve `bench migrate` hataları (JSON/CSS syntax errors) giderildi.
-- [x] Tüm modüller `0.20.0` versiyonuna çekildi.
+- [x] **QI Onay & Miktar Esnekliği (Bugfix)**: Operatör yetki sorunu (`set_user` ile) ve operasyon bazlı miktar sorgusu mantığı eklendi. (Commit: `-`)
+- [x] **Arayüz İyileştirmeleri**: Alt operasyon seçiminin iyileştirilmesi (Tamamlandı).
 
 ### Next Steps / Pendings
 - [ ] CK → Job Card status senkronizasyonu — `on_update` hook veya bitiş anında Job Card'ın ERPNext standart statüsünü (Completed vb.) tetikleme. (Hala tasarım aşamasında)
@@ -69,6 +70,9 @@
 - [x] Alt operasyon CRUD
 - [x] Alt operasyon realtime event (`publish_calisma_karti_changed` add/update/delete sonrası)
 - [x] Alt operasyon detail API'sinde `alt_operasyon_title` + `alt_operasyon_sequence` enrichment
+- [x] Alt operasyon seçimi için başlık (Title) desteği
+  - `get_alt_operasyon_options(parent_operation)` API'si ile `{label, value}` çiftleri dönülüyor
+  - Prompt ekranında `Select` alanına geçilerek kullanıcıya başlık seçtiriliyor
 - [x] Alt operasyon hammadde için 2 katmanlı material group kısıtı
   - `KTA Operation Allowed Material Groups` child doctype (ana op)
   - `KTA Sub Operation Allowed Material Groups` child doctype (alt op)

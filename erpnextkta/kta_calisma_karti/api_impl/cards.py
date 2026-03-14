@@ -228,6 +228,7 @@ def get_calisma_karti_detail(name: str):
         "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
         "kalite_kontrol": doc.kalite_kontrol,
         "quality_inspection": doc.quality_inspection or None,
+        "miktar_zorunlu_mu": frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu"),
         "creation": doc.creation,
         "max_kart_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430,
         "kart_uyari_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "kart_uyari_suresi_dk") or 400,
@@ -347,9 +348,15 @@ def _submit_linked_quality_inspection(doc):
         qi_docstatus = frappe.db.get_value("Quality Inspection", qi_name, "docstatus")
         if qi_docstatus == 0:  # Draft → submit
             qi_doc = frappe.get_doc("Quality Inspection", qi_name)
-            qi_doc.submit()
+            # Submit as the owner (quality person) to avoid permission/ownership errors for operators
+            original_user = frappe.session.user
+            try:
+                frappe.set_user(qi_doc.owner)
+                qi_doc.submit()
+            finally:
+                frappe.set_user(original_user)
             frappe.logger().info(
-                f"[kta] Quality Inspection {qi_name} submitted on Bitis of {doc.name}"
+                f"[kta] Quality Inspection {qi_name} submitted on Bitis of {doc.name} as user {qi_doc.owner}"
             )
     except Exception:
         frappe.log_error(

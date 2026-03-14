@@ -4,6 +4,9 @@
 `kta_calisma_karti`, `erpnextkta` Frappe uygulaması içindeki bir modüldür.  
 ERPNext'in standart **Job Card / Work Order** akışını genişleterek fabrika zeminine yönelik bir **üretim takip ve kalite kontrol** sistemi sunar.
 
+> [!IMPORTANT]
+> **Bütünleşik Yapı**: `kta_calisma_karti` klasörü (backend) ve `public/` altındaki ilgili frontend klasörleri bir bütün olarak ele alınmalıdır. Birinde yapılan değişiklik diğerini doğrudan etkiler.
+
 ## Neden?
 KTA Endüstri Sistemleri operatörlerinin ERPNext'in karmaşık formlarına girmeden, mobil-dostu ve barkod destekli arayüzlerle çalışabilmesi gerekiyor.
 
@@ -17,6 +20,7 @@ KTA Endüstri Sistemleri operatörlerinin ERPNext'in karmaşık formlarına girm
 - Socket.IO realtime events
 
 ### Frontend (Vue 3 SPA)
+Bu bileşenler `erpnextkta/public/` dizini altında bulunur:
 - **create-calisma-karti**: Barkod ile WO veya JC'den CK oluşturma wizard'ı
 - **list-calisma-cards**: Realtime güncellemeli, çok filtreli kart listesi
 - **view-calisma-karti**: Başlat/Durdur/Bitir + Standart QC Modal + Hurda + IDC + Barkod tab arayüzü

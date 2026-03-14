@@ -154,6 +154,12 @@ Yüksek riskli operasyonlar için (Board testi vb.) uygulanan kalite güvence de
 - **Entity**: `Test Masasi Dogrulama Kaydi`.
 - **Enforcement**: Kart bitirilirken (`Bitis`) bu kaydın varlığı ve onaylı olması kontrol edilebilir (Faz 2).
 
+### 11.7. Birleşik Geliştirme ve Build İş Akışı
+Modülün frontend ve backend bileşenlerinin senkronize kalmasını sağlayan iş akışı:
+- **Kapsam**: `kta_calisma_karti/` ve `public/create|list|view-calisma-karti/` klasörleri.
+- **Kural**: Frontend tarafındaki her `*.vue`, `*.ts` veya `*.css` değişikliği sonrası derleme zorunludur.
+- **Komut**: `bench build --app erpnextkta --production`.
+
 ## Bileşen İlişkileri
 
 ```
