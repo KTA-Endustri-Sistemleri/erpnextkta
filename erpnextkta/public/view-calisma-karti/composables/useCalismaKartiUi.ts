@@ -54,6 +54,10 @@ export function useCalismaKartiUi(docRef: any) {
     const qcOptions = ["Onay Bekliyor", "Onaylandı", "Reddedildi"];
 
     const canEditQC = computed(() => {
+        // [STRATEGY] Locked if a QI document is already linked. 
+        // Quality status must then be managed via the QI document itself.
+        if (docRef.value?.quality_inspection) return false;
+
         const roles = frappe?.boot?.user?.roles || [];
         return (
             roles.includes("System Manager") ||

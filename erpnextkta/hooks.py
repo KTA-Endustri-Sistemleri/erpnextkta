@@ -155,6 +155,10 @@ doc_events = {
     "Job Card": {
         "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status"
     },
+    "Quality Inspection": {
+        "on_update": "erpnextkta.kta_calisma_karti.api_impl.qc.sync_qi_to_calisma_karti",
+        "on_submit": "erpnextkta.kta_calisma_karti.api_impl.qc.sync_qi_to_calisma_karti"
+    },
     "Stock Reconciliation": {
         "on_update": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
         "on_cancel": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",

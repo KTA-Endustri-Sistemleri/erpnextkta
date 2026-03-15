@@ -67,6 +67,10 @@ def update_kalite_kontrol(name: str, kalite_kontrol: str):
     doc = frappe.get_doc("Calisma Karti", name)
     doc.check_permission("read")
 
+    # [STRATEGY] If a Quality Inspection is already linked, manual updates via UI are forbidden.
+    if doc.quality_inspection:
+        frappe.throw(_("Bu karta bağlı bir kalite belgesi ({0}) bulunmaktadır. Durum değişikliği sadece ilgili belge üzerinden yapılabilir.").format(doc.quality_inspection))
+
     # permlevel=1 field -> bypass via ignore_permissions AFTER strict role gate
     doc.flags.ignore_permissions = True
     doc.db_set("kalite_kontrol", val, update_modified=True)
@@ -570,3 +574,56 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
     }
 
 
+@frappe.whitelist()
+def sync_qi_to_calisma_karti(doc, method=None):
+    """Synchronize Quality Inspection status back to Calisma Karti.
+    Hooked to Quality Inspection on_update and on_submit.
+    This logic handles restoration: if QI moves from Rejected -> Accepted,
+    the work card status is re-calculated based on its time records.
+    """
+    # Only sync for Process/Operation inspections linked to Job Cards
+    if doc.reference_type != "Job Card" or not doc.reference_name:
+        return
+
+    # Find Calisma Karti linked to this Job Card
+    ck_name = frappe.db.get_value("Calisma Karti", {"is_karti": doc.reference_name}, "name")
+    if not ck_name:
+        return
+
+    # Map QI status to Calisma Karti QC status
+    # QI status is 'Accepted' or 'Rejected' (usually)
+    qi_status = (doc.status or "Accepted").strip()
+    final_qc_status = "Onaylandı" if qi_status == "Accepted" else "Reddedildi"
+
+    ck = frappe.get_doc("Calisma Karti", ck_name)
+    
+    # Avoid redundant updates if both QI link and status are already correct
+    if ck.quality_inspection == doc.name and ck.kalite_kontrol == final_qc_status:
+        return
+
+    # Update Calisma Karti fields
+    ck.flags.ignore_permissions = True
+    ck.db_set("quality_inspection", doc.name, update_modified=True)
+    ck.db_set("kalite_kontrol", final_qc_status, update_modified=True)
+
+    if final_qc_status == "Reddedildi":
+        # Force critical lock status
+        ck.db_set("durum", "Reddedildi", update_modified=True)
+    else:
+        # Restoration logic:
+        # If we just moved away from Reddedildi, or if we were never Reddedildi but need a sync,
+        # re-calculate the 'natural' status (Hazır/Çalışıyor/Duruşta/Bitmiş) using DocType logic.
+        try:
+            durum_key = ck.get_durum()
+            # STATU_HARITASI maps logic keys (ready, running, etc.) to user-facing labels
+            from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import STATU_HARITASI
+            label = STATU_HARITASI.get(durum_key, "Hazır")
+            ck.db_set("durum", label, update_modified=True)
+        except Exception:
+            # Fallback for safety
+            if ck.durum == "Reddedildi":
+                 ck.db_set("durum", "Hazır", update_modified=True)
+
+    # Trigger UI update
+    frappe.db.commit()
+    publish_calisma_karti_changed(ck_name, reason=f"qi_sync:{method or 'hook'}")
