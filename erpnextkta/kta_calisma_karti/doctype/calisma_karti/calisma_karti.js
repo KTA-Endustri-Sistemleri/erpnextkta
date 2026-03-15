@@ -73,6 +73,7 @@ frappe.ui.form.on('Calisma Karti', {
     if (frm.doc.__islocal) return;
 
     const getDurum = () => {
+      if (frm.doc.kalite_kontrol === 'Reddedildi' || frm.doc.durum === 'Reddedildi') return 'reddedildi';
       const aktifDurusVarMi = (frm.doc.duruslar || []).some(row => row && row.durus_baslangic && !row.durus_bitis);
       if (frm.doc.bitis_saati) return 'bitmis';
       if (!frm.doc.baslangic_saati) return 'hazir';
@@ -81,14 +82,15 @@ frappe.ui.form.on('Calisma Karti', {
     };
 
     const durum = getDurum();
-    const durumRenkleri = { 'hazir': 'gray', 'calisiyor': 'green', 'durusta': 'orange', 'bitmis': 'blue' };
-    const durumMetinleri = { 'hazir': 'Hazır', 'calisiyor': 'Çalışıyor', 'durusta': 'Durusta', 'bitmis': 'Bitmiş' };
+    const durumRenkleri = { 'hazir': 'gray', 'calisiyor': 'green', 'durusta': 'orange', 'bitmis': 'blue', 'reddedildi': 'red' };
+    const durumMetinleri = { 'hazir': 'Hazır', 'calisiyor': 'Çalışıyor', 'durusta': 'Duruşta', 'bitmis': 'Bitmiş', 'reddedildi': 'Reddedildi' };
     frm.dashboard.add_indicator(__('Durum: {0}', [durumMetinleri[durum]]), durumRenkleri[durum]);
 
     switch (durum) {
       case 'hazir': addBaslatButton(frm, false, 'İşlemi başlat'); break;
       case 'calisiyor': addDurusButton(frm); addBitisButton(frm); break;
       case 'durusta': addBaslatButton(frm, true, 'Duruştan devam et'); addBitisButton(frm); break;
+      case 'reddedildi': break; // No action buttons for rejected cards
     }
 
     if (frm.doc.baslangic_saati) {
