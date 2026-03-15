@@ -194,3 +194,9 @@ Kullanıcı girişini kolaylaştırmak için uygulanan örüntü:
 - `2026-X` formatındaki girişler otomatik olarak `MFG-WO-2026-X` haline getirilir.
 - `JOBX` veya sayısal ID'ler `PO-JOBX` veya ilgili `PO-` önekleriyle zenginleştirilir.
 - Bu işlem hem frontend (`App.vue`) hem de backend (`barcode.py`) düzeyinde normalize edilir.
+
+### 18. QI Statü Senkronizasyonu ve Restorasyon Deseni
+Kalite belgesi (QI) ile Çalışma Kartı (CK) arasındaki derin entegrasyonu yöneten desendir:
+- **Linkage Protection**: Bir karta QI belgesi bağlandığı anda, hem Backend (`qc.py`) hem de Frontend (`useCalismaKartiUi.ts`) seviyesinde manuel kalite güncellemeleri kilitlenir. Tek veri kaynağı QI belgesi olur.
+- **Dynamic Restoration**: QI statüsü "Rejected" durumundan "Accepted" durumuna döndüğünde, kartın genel durumu (`durum` alanı) körü körüne eski haline getirilmez. Bunun yerine `ck.get_durum()` metodu tetiklenerek, kartın o anki zaman kayıtlarına (Çalışıyor, Duruşta, Hazır) göre en güncel ve doğru statü otomatik olarak hesaplanıp restore edilir.
+- **Transactional Integrity**: Arka plan işlemleri (hook) sırasında veritabanı tutarlılığını sağlamak için `db_set` sonrası `frappe.db.commit()` ve `update_modified=True` kullanılarak verinin ve Real-time bildirimlerin senkronize kalması garanti edilir.

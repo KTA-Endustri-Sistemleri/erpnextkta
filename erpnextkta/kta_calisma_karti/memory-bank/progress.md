@@ -19,10 +19,7 @@
 - [x] "Çalışan Kart Sayısı" ve "Duruşta Olan Kartlar" isminde iki Number Card ve custom backend methodları sisteme eklendi
 - [x] Workspace ve Dashboard entegrasyonları tamamlandı (Çalışma Kartı menüsünde listelenmesi sağlandı)
 
-### Maintenance & Testing (Yeni - Tamamlandı)
-- [x] `scripts/seed_test_data.py`: Geçmişe dönük (son 14 iş günü) sanal kart ve alt-hesaplamalar barındıran script
-- [x] `scripts/clear_test_data.py`: Tüm Calisma Karti verisini ve child tablolarını silen script
-
+- [x] **Kalite Statü Kilidi ve Senkronizasyonu**: QI belgesi üzerinden statü kilidi, "Reddedildi" durumundan otomatik restorasyon (get_durum), backend linkage koruması ve UI kilitleri uygulandı. (Commit: `8d89a2b`)
 - [x] **Kalite Kontrol (QI) Geliştirmeleri**: `sample_size` desteği, reddedilen kartlar için otomatik QI kaydı, numerik/metin ayrımı (`reading_1`/`reading_value`) ve `manual_inspection` senkronizasyonu. (Commit: `405746f`)
 - [x] **QI Draft & Auto-Submit**: QI belgelerinin taslak olarak kaydedilmesi ve kart bitirildiğinde otomatik onaylanması. (Commit: `388719e`)
 - [x] **QI UI İyileştirmeleri**: Kalite sekmesinde bağlı QI belgesine link ve route düzeltmeleri. (Commit: `cb904d7`)

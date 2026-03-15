@@ -4,14 +4,15 @@
 
 Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle alt operasyonların ID yerine başlık (Title) üzerinden seçilmesi sağlandı.
 
-## Mevcut Odak
-*   **Hata Giderme (Tamamlandı)**: 
-    *   QI onaylama yetki hatası (`frappe.set_user` swap ile) çözüldü.
-    *   Operasyon bazlı miktar girişi mantığı (`miktar_zorunlu_mu`) eklendi.
-*   **Geliştirme Kuralları**: Frontend build kuralı ve bütünleşik modül dökümantasyonu eklendi (Tamamlandı).
-*   **Arayüz İyileştirmeleri**: Alt operasyon seçiminin iyileştirilmesi (Tamamlandı).
-*   **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
-*   **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+- [x] **Kalite Onay Kilitleme & Senkronizasyon**: Reddedilen kartların statü tutarlılığını korumak için QI bağımlı kontrol ve geri dönüş (restoration) mantığı eklendi. (Tamamlandı)
+- [x] **QI Onay & Miktar Esnekliği (Bugfix)**: Operatör yetki sorunu (`set_user` ile) ve operasyon bazlı miktar sorgusu mantığı eklendi. (Tamamlandı)
+- [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
+- [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-03-15) — Kalite Statü Kilidi ve Senkronizasyonu
+*   **Statü Restorasyonu**: QI belgesi "Rejected" -> "Accepted" olduğunda, kartın statüsü sadece onaylanmakla kalmaz, zaman kayıtlarına bakılarak (Çalışıyor/Hazır vb.) otomatik restore edilir.
+*   **Source of Truth**: QI bağlandığı anda CK üzerindeki kalite butonları kilitlenir; statü sadece QI üzerinden yönetilir.
+*   **Backend Koruması**: `qc.py` içinde QI linki olan kartlarda manuel statü güncellemesi frappe.throw ile engellendi.
 
 ## Son Değişiklikler (2026-03-14) — Alt Operasyon Başlık Seçimi
 *   **Backend API**: `get_alt_operasyon_options` fonksiyonu ile sub-op'ların Title ve ID'leri çekiliyor.
