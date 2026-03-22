@@ -14,16 +14,24 @@ Frappe ORM → MariaDB
 
 ## Tasarım Desenleri
 
-### 1. Facade Pattern — `api.py`
+### 1. Facade Pattern (`api.py`)
 ```python
 # api.py sadece re-export yapar
 from .api_impl.cards import get_my_calisma_kartlari, get_calisma_karti_detail
 from .api_impl.hurda import add_hurda, ...
 ```
-- Frontend method string'leri `erpnextkta.kta_calisma_karti.api.*` şeklinde sabit kalır
-- İmplementasyon yerine `api_impl/` içinde değiştirilebilir
+- `api.py` dosyası sadece import ve re-export içermelidir. Asıl mantık `api_impl/` altında yer alır.
+- Frontend tarafındaki metod isimleri `erpnextkta.kta_calisma_karti.api.*` şeklinde sabit kalmalıdır.
 
-### 2. Role-Gate Pattern
+### 2. Vue Component Decomposition (Bileşen Parçalama)
+- **Kural**: Bir Vue dosyası (özellikle `App.vue` veya ana görünümler) 500 satırı geçtiğinde veya mantıksal olarak ayrılabilir parçalar (liste kartı, filtre barı vb.) içerdiğinde mutlaka alt bileşenlere bölünmelidir.
+- **Desen**:
+  - `CkCard.vue`: Tekil veri gösterimi ve kart içi mantık.
+  - `CkFilters.vue`: Arama/filtreleme UI ve state yönetimi.
+  - `CkSkeleton.vue`: Yükleme durumu görseli (Shimmer efektli).
+- **Fayda**: Kod okunabilirliği artar, stil kapsülleme (scoped CSS) daha verimli çalışır ve büyük dosyaların yönetimi kolaylaşır.
+
+### 3. Role-Gate Pattern
 ```python
 # Tüm write endpoint'lerinde:
 if is_system_manager(): return  # tam yetki

@@ -39,6 +39,12 @@ Public (Frontend): erpnextkta/public/
 > [!NOTE]
 > Geliştirme sürecinde backend (`kta_calisma_karti`) ve frontend (`public/*`) klasörleri tek bir "Çalışma Kartı Paketi" olarak düşünülmelidir.
 
+#### Liste Görünümü (`list-calisma-cards`)
+- **Modüler Yapı**: Büyük bir monolith (`App.vue`) yerine, her bir parçanın kendi bileşeninde (`CkCard`, `CkFilters`, `CkSkeleton`) yaşadığı modüler bir yapı kullanılır.
+- **Server-Side Filtering**: Arama, sıralama ve kategorik filtreler (Durum, QC, Müşteri Grubu) doğrudan SQL API'ye (`get_my_calisma_kartlari`) parametre olarak gönderilir.
+- **Realtime Sync**: Socket.io üzerinden `list_changed` event'i dinlenerek liste anlık güncellenir.
+- **Modern UI**: Shimmer efektli skeleton loading ve gölge/ovallik bazlı premium kart tasarımı.
+
 ## Frappe Entegrasyon Noktaları
 
 | Frappe API | Kullanım Yeri |

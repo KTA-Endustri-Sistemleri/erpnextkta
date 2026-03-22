@@ -1,6 +1,12 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-14 (Alt Operasyon Başlık Seçimi)
+> Son güncelleme: 2026-03-19 (Liste Görünümü Modernizasyonu & Refactoring)
+
+### Frontend Modernizasyon & Refactoring (2026-03-19 - Tamamlandı)
+- [x] **Skeleton Güzelleştirme**: `CkSkeleton.vue` ile shimmer özellikli, kart yapısına uygun dinamik yükleme ekranı.
+- [x] **App.vue Refactoring**: Liste sayfasının bileşenlere (`CkCard`, `CkFilters`, `CkSkeleton`) ayrıştırılması.
+- [x] **Görsel Fix**: Badge zigzag maskesi rendering hatasının giderilmesi.
+- [x] **Kod Temizliği**: Kullanılmayan stillerin ve mükerrer mantığın temizlenmesi.
 
 ### Notification / Bildirim Yapılandırması (Yeni - Tamamlandı)
 - [x] `çalışma_kartı_oluşturuldu` sistem bildirimi aktifleştirildi.

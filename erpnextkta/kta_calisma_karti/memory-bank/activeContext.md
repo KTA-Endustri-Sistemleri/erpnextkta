@@ -1,13 +1,20 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-14
+> Son güncelleme: 2026-03-19
 
 Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle alt operasyonların ID yerine başlık (Title) üzerinden seçilmesi sağlandı.
 
+- [x] **Liste Görünümü & Skeleton Modernizasyonu**: `App.vue` içindeki skeleton yapısı modern shimmer animasyonu ile yenilendi ve asıl kart yapısına sadık hale getirildi. (Tamamlandı)
+- [x] **Frontend Refactoring**: Dev boyutlu `App.vue` (~900 satır), `CkCard`, `CkFilters` ve `CkSkeleton` bileşenlerine ayrılarak modüler hale getirildi. (Tamamlandı)
 - [x] **Kalite Onay Kilitleme & Senkronizasyon**: Reddedilen kartların statü tutarlılığını korumak için QI bağımlı kontrol ve geri dönüş (restoration) mantığı eklendi. (Tamamlandı)
 - [x] **QI Onay & Miktar Esnekliği (Bugfix)**: Operatör yetki sorunu (`set_user` ile) ve operasyon bazlı miktar sorgusu mantığı eklendi. (Tamamlandı)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-03-19) — Liste Görünümü & Refactoring
+*   **Skeleton Yenileme**: Statik yükleme ekranı yerine, asıl kart yapısıyla (pill + grid) uyumlu, shimmer efektli modern bir skeleton yapısı (`CkSkeleton.vue`) getirildi.
+*   **Bileşen Ayrıştırma**: `App.vue` dosyasındaki karmaşıklığı azaltmak için liste kartları (`CkCard.vue`) ve filtreleme/arama alanı (`CkFilters.vue`) ayrı bileşenlere taşındı. Dosya boyutu %50'den fazla azaltıldı.
+*   **Görsel Hata Giderimi**: Badge kenarlarındaki zigzag maskesinin rendering hataları (1px'lik beyaz çizgiler) border temizliği ve overlap optimizasyonu ile giderildi.
 
 ## Son Değişiklikler (2026-03-15) — Kalite Statü Kilidi ve Senkronizasyonu
 *   **Statü Restorasyonu**: QI belgesi "Rejected" -> "Accepted" olduğunda, kartın statüsü sadece onaylanmakla kalmaz, zaman kayıtlarına bakılarak (Çalışıyor/Hazır vb.) otomatik restore edilir.
