@@ -8,7 +8,13 @@
 - [x] **Görsel Fix**: Badge zigzag maskesi rendering hatasının giderilmesi.
 - [x] **Kod Temizliği**: Kullanılmayan stillerin ve mükerrer mantığın temizlenmesi.
 
-### Notification / Bildirim Yapılandırması (Yeni - Tamamlandı)
+### Kart Geçiş Kısıtlaması & Veri Doğrulama (2026-03-23 - Tamamlandı)
+- [x] KTA Ayarlarına `kart_gecis_modu` eklendi (Sıkı/Esnek).
+- [x] Backend `check_active_card_data` API'si ve `_check_card_data_complete` doğrulama mantığı yazıldı (`miktar_zorunlu_mu` koşullu).
+- [x] Backend `_handle_baslat` ve `_handle_devam_et` içine hard-mod engeli eklendi.
+- [x] Frontend `onBaslatDevam()` pre-check dialog (Eski Karta Git / Yine de Başlat) mantığı kuruldu.
+
+### Notification / Bildirim Yapılandırması (Tamamlandı)
 - [x] `çalışma_kartı_oluşturuldu` sistem bildirimi aktifleştirildi.
 - [x] Bildirimin alıcısı `operator` alanı üzerinden yapılandırıldı.
 - [x] Bildirim başlığı ve içeriği daha açıklayıcı bir formata dönüştürüldü.

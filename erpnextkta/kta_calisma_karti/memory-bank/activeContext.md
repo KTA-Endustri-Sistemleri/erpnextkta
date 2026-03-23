@@ -7,9 +7,15 @@ Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı.
 - [x] **Liste Görünümü & Skeleton Modernizasyonu**: `App.vue` içindeki skeleton yapısı modern shimmer animasyonu ile yenilendi ve asıl kart yapısına sadık hale getirildi. (Tamamlandı)
 - [x] **Frontend Refactoring**: Dev boyutlu `App.vue` (~900 satır), `CkCard`, `CkFilters` ve `CkSkeleton` bileşenlerine ayrılarak modüler hale getirildi. (Tamamlandı)
 - [x] **Kalite Onay Kilitleme & Senkronizasyon**: Reddedilen kartların statü tutarlılığını korumak için QI bağımlı kontrol ve geri dönüş (restoration) mantığı eklendi. (Tamamlandı)
-- [x] **QI Onay & Miktar Esnekliği (Bugfix)**: Operatör yetki sorunu (`set_user` ile) ve operasyon bazlı miktar sorgusu mantığı eklendi. (Tamamlandı)
+- [x] **Kart Geçiş Kısıtlaması (Veri Doğrulama)**: Operatörlerin veri girmeden açık kartlar arasında gezmesini önlemek için "Sıkı / Esnek" modlu geçiş onay sistemi eklendi. (Tamamlandı)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-03-23) — Kart Geçiş Kısıtlaması
+*   **Modüler Ayar**: `KTA Calisma Karti Settings`'e `kart_gecis_modu` eklendi (Sıkı/Esnek).
+*   **Backend Validasyonu**: `check_active_card_data` API'si eklendi; `miktar_zorunlu_mu=1` ise `tamamlanan_miktar > 0`, `0` ise `alt_operasyon_kayitlari ≥ 1` kontrolü yapıyor.
+*   **Çift Katmanlı Koruma**: Hem Vue SPA arayüzünde (Modal Dialog/Engel) hem de backend hook'larında (`_handle_baslat`, `_handle_devam_et`) aktif kartların durumu denetleniyor.
+*   **Akıllı UI**: Veri eksiği durumunda operatöre doğrudan eksik olan alanları listeleyip "Eski Karta Git" yönlendirmesi sağlayan dialog eklendi.
 
 ## Son Değişiklikler (2026-03-19) — Liste Görünümü & Refactoring
 *   **Skeleton Yenileme**: Statik yükleme ekranı yerine, asıl kart yapısıyla (pill + grid) uyumlu, shimmer efektli modern bir skeleton yapısı (`CkSkeleton.vue`) getirildi.
