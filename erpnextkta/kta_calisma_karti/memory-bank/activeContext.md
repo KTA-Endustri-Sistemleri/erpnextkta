@@ -1,15 +1,22 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-19
+> Son güncelleme: 2026-03-23
 
 Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle alt operasyonların ID yerine başlık (Title) üzerinden seçilmesi sağlandı.
 
 - [x] **Liste Görünümü & Skeleton Modernizasyonu**: `App.vue` içindeki skeleton yapısı modern shimmer animasyonu ile yenilendi ve asıl kart yapısına sadık hale getirildi. (Tamamlandı)
 - [x] **Frontend Refactoring**: Dev boyutlu `App.vue` (~900 satır), `CkCard`, `CkFilters` ve `CkSkeleton` bileşenlerine ayrılarak modüler hale getirildi. (Tamamlandı)
+- [x] **SPA Glassmorphism UI**: Uygulama arayüzü tam uyumlu Açık/Koyu tema değişkenleri ve akıcı tab animasyonları ile premium seviyeye çekildi. (Tamamlandı)
 - [x] **Kalite Onay Kilitleme & Senkronizasyon**: Reddedilen kartların statü tutarlılığını korumak için QI bağımlı kontrol ve geri dönüş (restoration) mantığı eklendi. (Tamamlandı)
 - [x] **Kart Geçiş Kısıtlaması (Veri Doğrulama)**: Operatörlerin veri girmeden açık kartlar arasında gezmesini önlemek için "Sıkı / Esnek" modlu geçiş onay sistemi eklendi. (Tamamlandı)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-03-23) — Glassmorphism SPA Arayüz Modernizasyonu
+*   **Arayüz Paradigması**: Uygulama görünümü tamamen modern "Glassmorphism" (Cam efekti) tarzına dönüştürüldü. Arkaplan görselleri olmadan, derinlik ve gölge algısıyla (Soft UI) premium bir endüstriyel arayüz tasarlandı.
+*   **Dinamik Tema Kontrastı**: Açık (Light) ve Koyu (Dark) temalar için fiziksel ışık kuralları (`--ck-glass-highlight`, `--ck-glass-bottom-edge`) katı kurallara bağlandı. Her iki temada yüksek okunanabilirlik sağlandı.
+*   **Performanslı Geçişler (SPA)**: Alt sekmeler (Info, Operasyon, Kalite vb.) arasında sayfa yenilemesiz, Vue `<Transition mode="out-in">` ile donanım hızlandırmalı pürüzsüz animasyonlar eklendi.
+*   **Dinamik Bileşenler**: `KaliteView` içerisindeki Kalite Belgesi linkleri, Frappe'nin lokalizasyon stringlerine ("Onaylandı", "Reddedildi") duyarlı hale getirilerek anında yeşil/kırmızı temaya bürünecek şekilde akıllandırıldı.
 
 ## Son Değişiklikler (2026-03-23) — Kart Geçiş Kısıtlaması
 *   **Modüler Ayar**: `KTA Calisma Karti Settings`'e `kart_gecis_modu` eklendi (Sıkı/Esnek).

@@ -9,6 +9,14 @@ title: "KTA Çalışma Kartı Kullanım Kılavuzu"
 
 **KTA Çalışma Kartı**, operatörlerin sahada üretim süreçlerini gerçek zamanlı olarak takip etmelerini, süreleri ölçmelerini, hurdaları ve ölçümleri kaydetmelerini sağlayan özel üretim arayüzüdür.
 
+## 🌟 Modern SPA ve Kullanıcı Deneyimi (UI/UX)
+
+Çalışma Kartı arayüzü, operatör kullanım kolaylığını en üst düzeye çıkarmak için modern bir **Single Page Application (SPA)** mimarisiyle çalışır.
+- **Glassmorphism (Yarı Saydam Cam Efekti):** Arayüz, derinlik hissi veren, hem Açık (Light) hem de Koyu (Dark) temalara tam uyum gösteren *Soft UI* kart ve buton tasarımlarına sahiptir. 
+- **Akıcı Tab Geçişleri:** Kalite, Hurda, Alt İşlem gibi alt sayfalar arasında hiçbir sayfa yenilenmesi olmadan, yüksek performanslı donanımsal (hardware-accelerated) kayma animasyonlarıyla pürüzsüzce geçiş yapılır.
+- **Dinamik Geri Bildirim:** Kalite Kontrol sekmesi gibi alanlar, işlem durumlarına ("Onaylandı" - Yeşil, "Reddedildi" - Kırmızı) göre dinamik olarak renk değiştirerek kullanıcıya anında görsel onay sunar.
+- **Mobil Öncelikli Endüstriyel Tasarım:** Çok dar (321px ve altı) ekranlı endüstriyel el terminallerinde bile yatay taşma yapmadan, bilgileri CSS Grid yapısıyla alt alta düzenleyerek mükemmel okunabilirlik sağlar.
+
 ---
 
 ## 🚀 1. Çalışma Kartı Oluşturma ve Başlatma

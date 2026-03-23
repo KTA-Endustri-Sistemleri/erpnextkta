@@ -168,6 +168,12 @@ Modülün frontend ve backend bileşenlerinin senkronize kalmasını sağlayan i
 - **Kural**: Frontend tarafındaki her `*.vue`, `*.ts` veya `*.css` değişikliği sonrası derleme zorunludur.
 - **Komut**: `bench build --app erpnextkta --production`.
 
+### 11.8. Modern SPA UI & Tema Deseni
+KTA Çalışma Kartı arayüzü, endüstriyel cihazlarda yüksek performans veren bir Glassmorphism (Cam Efekti) mimarisi kullanır:
+- **Tema Değişkenleri**: Renk kodları asla hardcode yazılmaz. `App.vue` kök dizininde `:root` ve `[data-theme="dark"]` içinde tanımlanan akıllı değişkenler (`var(--ck-glass-bg)`, `var(--ck-success-bg)`) kullanılır.
+- **Performanslı Animasyon**: Sub-view değişimlerinde Vue'nun `<Transition mode="out-in">` elementi kullanılarak, sadece `opacity` ve `transform` manipüle edilir; işlemci tüketen CSS hesaplamalarından (layout thrashing) kaçınılır.
+- **Akıllı Bileşen Durumu**: Semantic statüler (örn: Kalite için "Onaylandı", "Reddedildi"), Vue componentlerinde Computed Property yardımıyla saptanır ve ana konteynıra (`is-accepted`, `is-rejected`) CSS sınıfı olarak CSS Cascade avantajı kullanılarak geçirilir.
+
 ## Bileşen İlişkileri
 
 ```

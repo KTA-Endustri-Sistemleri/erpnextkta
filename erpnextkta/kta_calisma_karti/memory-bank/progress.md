@@ -1,6 +1,13 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-19 (Liste Görünümü Modernizasyonu & Refactoring)
+> Son güncelleme: 2026-03-23 (Glassmorphism SPA Arayüz Modernizasyonu)
+
+### SPA UI & Glassmorphism Modernizasyonu (2026-03-23 - Tamamlandı)
+- [x] Tüm sistemin CSS altyapısı genel değişkenlerle (CSS Variables) modernize edildi.
+- [x] Koyu (Dark) ve Açık (Light) temalar için 3 boyutlu "Drop Shadow" ve "Inner Highlight" özellikleri hassas ayara çekildi.
+- [x] InfoView, AltOperasyonView, HurdaView dahil tüm alt sayfalar yeni `ck-mini-item` (Grid Tile) yapısına geçirildi.
+- [x] Sekme geçişleri Vue `<Transition mode="out-in">` ile donanım ivmeli hale getirildi (Slide & Fade efekti).
+- [x] KaliteView banner'ı kalite belgesi sonucuna (Accepted / Rejected / Onaylandı / Reddedildi) dinamik olarak renk alacak şekilde düzenlendi.
 
 ### Frontend Modernizasyon & Refactoring (2026-03-19 - Tamamlandı)
 - [x] **Skeleton Güzelleştirme**: `CkSkeleton.vue` ile shimmer özellikli, kart yapısına uygun dinamik yükleme ekranı.
