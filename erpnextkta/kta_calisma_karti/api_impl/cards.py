@@ -13,6 +13,104 @@ from ._helpers import (
     require_my_employee,
 )
 
+
+# ---------------------------------------------------------------------------
+# Card switching validation helpers
+# ---------------------------------------------------------------------------
+
+def _get_kart_gecis_modu():
+    """Return 'hard' or 'soft' from KTA Settings."""
+    val = (frappe.db.get_single_value("KTA Calisma Karti Settings", "kart_gecis_modu") or "").strip()
+    if "Esnek" in val or "Soft" in val:
+        return "soft"
+    return "hard"
+
+
+def _check_card_data_complete(doc):
+    """Check if a Calisma Karti has the required data filled in.
+
+    Returns a list of missing-data keys (empty list = complete).
+    Logic mirrors _handle_bitis validation:
+      - miktar_zorunlu_mu=1  →  tamamlanan_miktar > 0
+      - miktar_zorunlu_mu=0  →  at least 1 alt_operasyon row
+    """
+    missing = []
+
+    miktar_zorunlu = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu"
+    )
+    if miktar_zorunlu is None:
+        miktar_zorunlu = 1  # default true
+
+    if miktar_zorunlu:
+        if float(doc.tamamlanan_miktar or 0) <= 0:
+            missing.append("tamamlanan_miktar")
+    else:
+        alt_op_count = frappe.db.count(
+            "Calisma Karti Alt Operasyon Kayitlari",
+            {"parent": doc.name, "parenttype": "Calisma Karti"},
+        )
+        if alt_op_count == 0:
+            missing.append("alt_operasyon")
+
+    return missing
+
+
+def _check_incomplete_before_start(operator, exclude_name):
+    """If operator has an active 'Çalışıyor' card with missing data, return info.
+
+    Returns None if no incomplete card exists.
+    """
+    active_cards = frappe.get_all(
+        "Calisma Karti",
+        filters={
+            "operator": operator,
+            "name": ["!=", exclude_name],
+            "docstatus": 1,
+            "bitis_saati": ["is", "not set"],
+        },
+        fields=["name", "operasyon", "urun_kodu"],
+    )
+
+    for card_info in active_cards:
+        card_doc = frappe.get_doc("Calisma Karti", card_info.name)
+        if card_doc.get_durum() != "calisiyor":
+            continue
+
+        missing = _check_card_data_complete(card_doc)
+        if missing:
+            op_label = frappe.db.get_value(
+                "KTA Calisma Karti Operasyonlari",
+                card_doc.operasyon,
+                "calisma_karti_op",
+            ) or card_doc.operasyon
+            return {
+                "has_incomplete": True,
+                "card_name": card_doc.name,
+                "card_label": f"{op_label} — {card_doc.urun_kodu or ''}".strip(" —"),
+                "missing": missing,
+            }
+
+    return None
+
+
+@frappe.whitelist()
+def check_active_card_data():
+    """Frontend pre-check: does the current operator have an incomplete active card?
+
+    Returns dict with has_incomplete, mode, card_name, card_label, missing.
+    """
+    emp = require_my_employee()
+    mode = _get_kart_gecis_modu()
+    result = _check_incomplete_before_start(emp, exclude_name="")
+
+    if result:
+        result["mode"] = mode
+        return result
+
+    return {"has_incomplete": False, "mode": mode}
+
+
 def _attach_customer_groups(rows):
     """Attach customer_group(s) for each row (based on urun_kodu). Always adds keys."""
     item_codes = sorted({r.get("urun_kodu") for r in rows if r.get("urun_kodu")})
@@ -250,6 +348,15 @@ def _handle_baslat(doc, now):
         
     if durum != "hazir":
         frappe.throw("Sadece Hazır durumundaki işlemler başlatılabilir.")
+
+    # Backend guard: block start if hard mode and incomplete active card exists
+    if doc.operator and _get_kart_gecis_modu() == "hard":
+        inc = _check_incomplete_before_start(doc.operator, doc.name)
+        if inc:
+            frappe.throw(
+                _("Mevcut çalışan kartınızda ({0}) eksik veri var. "
+                  "Önce o kartı tamamlayın.").format(inc["card_name"])
+            )
     
     doc.baslangic_saati = now
     
@@ -259,6 +366,15 @@ def _handle_baslat(doc, now):
 def _handle_devam_et(doc, now):
     if doc.get_durum() != "durusta":
         frappe.throw("Sadece durdurulmuş bir işlem devam ettirilebilir.")
+
+    # Backend guard: block resume if hard mode and incomplete active card exists
+    if doc.operator and _get_kart_gecis_modu() == "hard":
+        inc = _check_incomplete_before_start(doc.operator, doc.name)
+        if inc:
+            frappe.throw(
+                _("Mevcut çalışan kartınızda ({0}) eksik veri var. "
+                  "Önce o kartı tamamlayın.").format(inc["card_name"])
+            )
     
     if doc.duruslar:
         last_row = doc.duruslar[-1]

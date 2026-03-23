@@ -6,7 +6,9 @@
     "field_order": [
         "max_kart_suresi_dk",
         "kart_uyari_suresi_dk",
-        "tolerans_saat"
+        "tolerans_saat",
+        "sb_kart_gecis",
+        "kart_gecis_modu"
     ],
     "fields": [
         {
@@ -30,6 +32,19 @@
             "fieldtype": "Int",
             "label": "Tamamlanm\u0131\u015f \u0130E Tolerans S\u00fcresi (Saat)",
             "description": "\u0130\u015f Emri kapansa dahi, son stok giri\u015finden sonraki bu s\u00fcre boyunca \u00c7al\u0131\u015fma Kart\u0131 a\u00e7\u0131labilir."
+        },
+        {
+            "fieldname": "sb_kart_gecis",
+            "fieldtype": "Section Break",
+            "label": "Kart Ge\u00e7i\u015f Ayarlar\u0131"
+        },
+        {
+            "default": "S\u0131k\u0131 (Hard)",
+            "fieldname": "kart_gecis_modu",
+            "fieldtype": "Select",
+            "label": "Kart Ge\u00e7i\u015f Modu",
+            "options": "S\u0131k\u0131 (Hard)\nEsnek (Soft)",
+            "description": "S\u0131k\u0131: Veri eksikse yeni kart ba\u015flat\u0131lamaz. Esnek: Uyar\u0131 g\u00f6sterilir, operat\u00f6r devam edebilir."
         }
     ],
     "issingle": 1,

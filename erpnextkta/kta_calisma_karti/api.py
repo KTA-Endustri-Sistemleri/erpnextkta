@@ -14,7 +14,7 @@ from __future__ import annotations
 
 # Re-export whitelisted functions
 from .api_impl.barcode import get_job_card_by_barcode, get_work_order_by_barcode
-from .api_impl.cards import get_calisma_karti_detail, get_my_calisma_kartlari
+from .api_impl.cards import get_calisma_karti_detail, get_my_calisma_kartlari, check_active_card_data
 from .api_impl.create import create_calisma_karti, get_operations_for_job_card
 from .api_impl.hurda import (
     add_hurda,
@@ -50,6 +50,7 @@ from .api_impl.alt_operasyon import (
 __all__ = [
     "get_my_calisma_kartlari",
     "get_calisma_karti_detail",
+    "check_active_card_data",
 
     # QC
     "update_kalite_kontrol",
