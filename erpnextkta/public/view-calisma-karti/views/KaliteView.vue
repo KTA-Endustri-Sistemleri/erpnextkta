@@ -30,6 +30,13 @@ const props = defineProps<{
   onDeleteBarkod: (rowname: string) => Promise<void>;
 }>();
 
+const qiThemeClass = computed(() => {
+  const val = (props.qcFormValue || '').toLowerCase();
+  if (val === 'accepted' || val === 'onaylandı') return 'is-accepted';
+  if (val === 'rejected' || val === 'reddedildi' || val === 'red') return 'is-rejected';
+  return 'is-default';
+});
+
 function addIdc() {
   frappe.prompt(
     idcOlcumFields(props.doc.name),
@@ -105,12 +112,11 @@ function deleteBarkod(row: any) {
   });
 }
 
-// (Opsiyonel) burada bir şey yapmayacağız; sadece Vue shim uyumu için bırakıyorum
 onMounted(() => {});
 </script>
 
 <template>
-  <div class="ck-card">
+  <div class="ck-card ck-kalite-card">
     <QcToggle
       :qcLabel="props.qcLabel"
       :qcOptions="props.qcOptions"
@@ -120,22 +126,20 @@ onMounted(() => {});
       :onSetQC="props.onSetQC"
     />
 
-    <!-- Bağlı Kalite Belgesi linki: QcToggle hemen altında -->
-    <div v-if="props.doc.quality_inspection" class="ck-qi-link">
-      <div class="ck-qi-link__info">
+    <div v-if="props.doc.quality_inspection" :class="['ck-qi-link', qiThemeClass]">
+      <div class="ck-mini-content">
         <span class="ck-qi-link__label">Kalite Belgesi</span>
-        <b class="ck-qi-link__name">{{ props.doc.quality_inspection }}</b>
+        <b class="ck-mini-title">{{ props.doc.quality_inspection }}</b>
       </div>
       <button
-        class="ck-btn ck-btn--ghost ck-qi-link__btn"
+        class="ck-btn ck-btn-small"
         @click="openQualityInspection(props.doc.quality_inspection)"
       >
         Görüntüle ↗
       </button>
     </div>
 
-    <div style="height: 1px;background: var(--fg-hover-color);margin-top: 10px;"></div>
-
+    <!-- IdcSection & BarkodSection automatically match since they exist within the flow -->
     <IdcSection
       :rows="props.doc.idc_olcumleri || []"
       :canEditQC="props.canEditQC"
@@ -143,8 +147,6 @@ onMounted(() => {});
       :onEdit="editIdc"
       :onDelete="deleteIdc"
     />
-
-    <div style="height: 1px;background: var(--fg-hover-color);margin-top: 10px;"></div>
 
     <BarkodSection
       :rows="props.doc.barkod_kayitlari || []"
@@ -158,40 +160,91 @@ onMounted(() => {});
 </template>
 
 <style scoped>
+.ck-kalite-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 14px 10px;
+}
+.ck-mini-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ck-mini-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ck-text);
+}
+.ck-btn-small {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+/* Base Link Banner */
 .ck-qi-link {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  margin: 8px 6px 0;
-  padding: 10px 12px;
-  background: var(--ck-info-bg);
-  border: 1px solid color-mix(in srgb, var(--ck-info) 25%, transparent);
-  border-radius: 10px;
-}
-
-.ck-qi-link__info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  box-shadow: var(--ck-glass-highlight);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .ck-qi-link__label {
   font-size: 11px;
-  color: var(--ck-info);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  opacity: 0.9;
 }
 
-.ck-qi-link__name {
-  font-size: 14px;
-  color: var(--ck-info);
+/* Default (Info/Blue) */
+.ck-qi-link.is-default {
+  background: var(--ck-info-bg);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+.ck-qi-link.is-default .ck-qi-link__label,
+.ck-qi-link.is-default .ck-btn {
+  color: var(--info, #3b82f6);
+}
+.ck-qi-link.is-default .ck-btn {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
-.ck-qi-link__btn {
-  padding: 7px 12px;
-  font-size: 12px;
-  white-space: nowrap;
+/* Accepted (Success/Green) */
+.ck-qi-link.is-accepted {
+  background: var(--ck-success-bg);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+}
+.ck-qi-link.is-accepted .ck-qi-link__label,
+.ck-qi-link.is-accepted .ck-btn {
+  color: var(--success, #22c55e);
+}
+.ck-qi-link.is-accepted .ck-btn {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+/* Rejected (Danger/Red) */
+.ck-qi-link.is-rejected {
+  background: var(--ck-danger-bg);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+}
+.ck-qi-link.is-rejected .ck-qi-link__label,
+.ck-qi-link.is-rejected .ck-btn {
+  color: var(--danger, #ef4444);
+}
+.ck-qi-link.is-rejected .ck-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 </style>

@@ -341,47 +341,51 @@ watch(
 
       <CkTabs :modelValue="tab" :onChange="(t) => (tab = t)" />
 
-      <InfoView v-if="tab === 'info'" :doc="doc" />
+      <Transition name="ck-fade" mode="out-in">
+        <div :key="tab" class="ck-tab-anim-wrapper">
+          <InfoView v-if="tab === 'info'" :doc="doc" />
 
-      <AltOperasyonView
-        v-else-if="tab === 'alt_operasyon'"
-        :doc="doc"
-        :onAdd="addAltOperasyon"
-        :onUpdate="updateAltOperasyon"
-        :onDelete="deleteAltOperasyon"
-      />
+          <AltOperasyonView
+            v-else-if="tab === 'alt_operasyon'"
+            :doc="doc"
+            :onAdd="addAltOperasyon"
+            :onUpdate="updateAltOperasyon"
+            :onDelete="deleteAltOperasyon"
+          />
 
-      <HurdaView
-        v-else-if="tab === 'hurda'"
-        :doc="doc"
-        :onAdd="addHurda"
-        :onUpdate="updateHurda"
-        :onDelete="deleteHurda"
-      />
+          <HurdaView
+            v-else-if="tab === 'hurda'"
+            :doc="doc"
+            :onAdd="addHurda"
+            :onUpdate="updateHurda"
+            :onDelete="deleteHurda"
+          />
 
-      <DurusView v-else-if="tab === 'durus'" :doc="doc" />
+          <DurusView v-else-if="tab === 'durus'" :doc="doc" />
 
-      <KaliteView
-        v-else-if="tab === 'kalite'"
-        :doc="doc"
-        :qcLabel="qcLabel"
-        :qcOptions="qcOptions"
-        :qcFormValue="qcFormValue"
-        :canEditQC="canEditQC"
-        :qcSaving="qcSaving"
-        :onSetQC="setQC"
-        :onAddIdc="addIdcOlcumu"
-        :onUpdateIdc="updateIdcOlcumu"
-        :onDeleteIdc="deleteIdcOlcumu"
-        :onAddBarkod="addBarkodKaydi"
-        :onUpdateBarkod="updateBarkodKaydi"
-        :onDeleteBarkod="deleteBarkodKaydi"
-        />
+          <KaliteView
+            v-else-if="tab === 'kalite'"
+            :doc="doc"
+            :qcLabel="qcLabel"
+            :qcOptions="qcOptions"
+            :qcFormValue="qcFormValue"
+            :canEditQC="canEditQC"
+            :qcSaving="qcSaving"
+            :onSetQC="setQC"
+            :onAddIdc="addIdcOlcumu"
+            :onUpdateIdc="updateIdcOlcumu"
+            :onDeleteIdc="deleteIdcOlcumu"
+            :onAddBarkod="addBarkodKaydi"
+            :onUpdateBarkod="updateBarkodKaydi"
+            :onDeleteBarkod="deleteBarkodKaydi"
+            />
 
-      <BakimView
-        v-else-if="tab === 'bakim'"
-        :doc="doc"
-        />
+          <BakimView
+            v-else-if="tab === 'bakim'"
+            :doc="doc"
+            />
+        </div>
+      </Transition>
     </template>
 
     <QualityInspectionModal
@@ -396,20 +400,29 @@ watch(
     />
   </div>
 </template>
+
 <style>
 :root {
   /* Surfaces */
-  --ck-bg: var(--bg-color, #fff);
-  --ck-surface: var(--card-bg, var(--fg-color, #fff));
+  --ck-bg: var(--bg-color, #f3f4f6);
+  --ck-surface: var(--card-bg, var(--fg-color, #ffffff));
 
   /* Text */
-  --ck-text: var(--text-color, #111);
-  --ck-text-muted: var(--text-muted, rgba(0, 0, 0, .65));
+  --ck-text: var(--text-color, #111827);
+  --ck-text-muted: var(--text-muted, rgba(17, 24, 39, 0.65));
+
+  /* Glassmorphism Variables (Light Default) */
+  --ck-glass-bg: rgba(0, 0, 0, 0.03);
+  --ck-glass-border: rgba(0, 0, 0, 0.08);
+  --ck-glass-border-soft: rgba(0, 0, 0, 0.04);
+  --ck-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --ck-glass-bottom-edge: rgba(0, 0, 0, 0.1);
+  --ck-glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
   /* Borders */
-  --ck-border: var(--border-color, rgba(0, 0, 0, .12));
-  --ck-border-soft: var(--border-color, rgba(0, 0, 0, .08));
-  --ck-border-strong: var(--border-color, rgba(0, 0, 0, .16));
+  --ck-border: var(--ck-glass-border);
+  --ck-border-soft: var(--ck-glass-border-soft);
+  --ck-border-strong: rgba(0, 0, 0, 0.16);
 
   /* Brand */
   --ck-primary: var(--primary, #111);
@@ -420,18 +433,35 @@ watch(
   --ck-ghost-bg: var(--control-bg, rgba(0, 0, 0, .06));
   --ck-focus: var(--primary, #3b82f6);
 
-  /* Semantic colors (Frappe varsa ondan, yoksa fallback) */
+  /* Semantic colors */
   --ck-danger: var(--danger, #ef4444);
   --ck-warning: var(--warning, #f59e0b);
   --ck-success: var(--success, #22c55e);
   --ck-finished-bg: var(--success, #22c55e);
   --ck-info: var(--info, #3b82f6);
 
-  /* Badge backgrounds: Frappe alert bg'lerine yaslan (yoksa fallback) */
+  /* Badge backgrounds */
   --ck-danger-bg: var(--alert-danger-bg, rgba(239, 68, 68, .14));
   --ck-warning-bg: var(--alert-warning-bg, rgba(245, 158, 11, .16));
   --ck-success-bg: var(--alert-success-bg, rgba(34, 197, 94, .14));
   --ck-info-bg: var(--alert-info-bg, rgba(59, 130, 246, .14));
+}
+
+[data-theme="dark"] {
+  --ck-glass-bg: rgba(255, 255, 255, 0.04);
+  --ck-glass-border: rgba(255, 255, 255, 0.08);
+  --ck-glass-border-soft: rgba(255, 255, 255, 0.04);
+  
+  --ck-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --ck-glass-bottom-edge: rgba(0, 0, 0, 0.3);
+  --ck-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+
+  --ck-border-strong: rgba(255, 255, 255, 0.15);
+
+  --ck-danger-bg: rgba(239, 68, 68, 0.18);
+  --ck-warning-bg: rgba(245, 158, 11, 0.18);
+  --ck-success-bg: rgba(34, 197, 94, 0.18);
+  --ck-info-bg: rgba(59, 130, 246, 0.18);
 }
 
 /* =========================
@@ -481,11 +511,20 @@ watch(
 }
 
 .ck-btn {
-  border: 0;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border: 1px solid var(--ck-glass-border);
+  border-bottom: 2px solid var(--ck-glass-bottom-edge);
+  border-radius: 12px;
+  padding: 12px 14px;
   font-weight: 800;
-  border: 0.1px solid var(--gray-300);
+  box-shadow: var(--ck-glass-shadow), var(--ck-glass-highlight);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  font-size: 14px;
+}
+
+.ck-btn:active {
+  transform: scale(0.96) translateY(2px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-bottom-width: 1px;
 }
 
 .ck-btn--wide {
@@ -540,18 +579,33 @@ watch(
 }
 
 .ck-card {
-  border: 1px solid var(--ck-border);
-  border-radius: 14px;
-  padding: 10px 0px;
+  border: 1px solid var(--ck-glass-border);
+  border-radius: 16px;
+  padding: 12px 6px;
   background: var(--ck-surface);
+  box-shadow: var(--ck-glass-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .ck-row {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 6px;
-  border-bottom: 1px dashed var(--ck-border-soft);
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--ck-glass-border-soft);
+  align-items: center;
+}
+
+@media (max-width: 320px) {
+  .ck-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .ck-row b {
+    text-align: left;
+  }
 }
 
 .ck-row:last-child {
@@ -559,38 +613,52 @@ watch(
 }
 
 .ck-row span {
-  opacity: 1;
+  opacity: 0.8;
   color: var(--ck-text-muted);
-  font-size: 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .ck-row b {
   font-weight: 800;
-  font-size: 13px;
+  font-size: 14px;
   text-align: right;
   color: var(--ck-text);
+  word-break: break-word;
 }
 .ck-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px 0;
-  border-top: 1px solid var(--ck-border-soft);
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding: 6px;
+  background: var(--ck-glass-bg);
+  border-radius: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border: 1px solid var(--ck-glass-border-soft);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.ck-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .ck-tab {
-  /* Mobilde 3 sütun düzeni için: %33'ten biraz az yer kapla ve büyüdüğünde satırı doldur */
-  flex: 1 1 calc(33.33% - 8px);
-  border: 1px solid var(--ck-border);
+  flex: 0 0 auto;
+  white-space: nowrap;
+  border: none;
   border-radius: 12px;
-  padding: 12px 8px;
-  font-weight: 800;
-  background: var(--control-bg, var(--btn-default-bg));
-  color: var(--ck-text);
+  padding: 10px 16px;
+  font-weight: 700;
+  background: transparent;
+  color: var(--ck-text-muted);
   font-size: 13px;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   text-align: center;
 }
 
@@ -599,13 +667,12 @@ watch(
 }
 
 .ck-tab.is-active {
-  background: var(--ck-warning);
-  border-color: var(--ck-warning);
-  color: #000; /* Siyah metin, sarı/turuncu üzerinde daha iyi okunur */
-  box-shadow: 0 0 8px var(--ck-warning); /* Parlama efekti */
+  background: var(--ck-surface);
+  color: var(--ck-text);
+  box-shadow: var(--ck-glass-shadow);
+  border: 1px solid var(--ck-glass-border);
 }
 
-/* Masaüstü: Tüm butonlar tek satırda */
 @media (min-width: 768px) {
   .ck-tab {
     flex: 1;
@@ -629,26 +696,32 @@ watch(
 
 .ck-status-badge {
   font-size: 12px;
-  padding: 6px 10px;
-  font-weight: 600;
+  padding: 6px 14px;
+  font-weight: 800;
   white-space: nowrap;
-  border-radius: 6px 0px 0px 6px;
+  border-radius: 16px 0px 0px 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 .ck-chips {
   display: flex;
   flex-direction: row;
-  margin: 8px 0 8px;
+  margin: 12px 0 14px;
   justify-content: space-between;
   align-items: center;
+  border-radius: 16px;
+  background: var(--ck-glass-bg);
+  border: 1px solid var(--ck-glass-border-soft);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
 }
 
 .ck-chip {
   font-size: 12px;
-  padding: 6px 10px;
-  font-weight: 600;
+  padding: 6px 14px;
+  font-weight: 800;
   text-align: end;
-  border-radius: 0px 6px 6px 0px;
+  border-radius: 0px 16px 16px 0px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 /* =========================
@@ -794,5 +867,18 @@ watch(
   .ck-qc-toggle__btn:nth-child(3) {
     grid-column: 1 / -1;
   }
+}
+
+/* =========================
+   TAB TRANSITIONS
+   ========================= */
+.ck-fade-enter-active,
+.ck-fade-leave-active {
+  transition: opacity 0.12s ease-out, transform 0.12s ease-out;
+}
+.ck-fade-enter-from,
+.ck-fade-leave-to {
+  opacity: 0;
+  transform: translateY(4px) scale(0.995);
 }
 </style>
