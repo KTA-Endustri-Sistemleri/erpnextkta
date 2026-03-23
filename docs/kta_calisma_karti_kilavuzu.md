@@ -23,7 +23,10 @@ title: "KTA Çalışma Kartı Kullanım Kılavuzu"
 
 ### Kartı Başlatma:
 Kartı oluşturduktan sonra içine girip, üst kısımdaki **"Başlat"** butonuna basın. Durum **"Çalışıyor"** olarak güncellenecek ve süre sayacı başlayacaktır.
-> **Not:** Bir operatör hesabında yeni bir kart başlatılırsa ve açıkta kalan, durdurulmamış başka kartlar varsa, onlar sistem tarafından otomatik olarak "Diğer" açıklamasıyla mola (Duruş) moduna alınır.
+
+> **Önemli Kural (Kart Geçişi ve Veri Doğrulama):**
+> Bir operatör hesabında yeni bir kart başlatıldığında, açıkta kalan diğer kartlar sistem tarafından otomatik olarak mola (Duruş) moduna alınır.
+> **Ancak**, halihazırda "Çalışıyor" durumunda olan kartınızda henüz hiçbir işlem verisi girilmemişse (Örn: Alt operasyon kaydı yoksa veya miktar girilmemişse), sistem yeni kartı başlatmanıza izin vermez veya sizi uyarır. Bu durumda ekrana gelen **"Eski Karta Git"** butonunu kullanarak önceki işleminize ait verileri tamamlamanız gerekir.
 
 ---
 
