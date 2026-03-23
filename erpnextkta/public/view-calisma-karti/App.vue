@@ -46,7 +46,7 @@ const docname = computed(() => {
 });
 
 const {
-  loading, doc, load, callIslem,
+  loading, doc, load, checkActiveCardData, callIslem,
   updateQC, addHurda, updateHurda, deleteHurda,
   addIdcOlcumu, updateIdcOlcumu, deleteIdcOlcumu,
   addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi,
@@ -124,7 +124,46 @@ function openForm() {
 // --------------------
 // Actions (same behavior as your original)
 // --------------------
-function onBaslatDevam() {
+async function onBaslatDevam() {
+  // Pre-check: does operator have an incomplete active card?
+  try {
+    const check = await checkActiveCardData();
+    if (check.has_incomplete) {
+      const missingLabels = (check.missing || []).map((m: string) => {
+        if (m === "tamamlanan_miktar") return "Tamamlanan Miktar";
+        if (m === "alt_operasyon") return "Alt Operasyon Kaydı";
+        return m;
+      });
+      const msg =
+        `<b>${check.card_name}</b> kartınızda eksik veri var:<br>` +
+        `<ul>${missingLabels.map((l: string) => `<li>${l}</li>`).join("")}</ul>` +
+        `Lütfen önce o kartı tamamlayın.`;
+
+      if (check.mode === "hard") {
+        // Hard mode: block and redirect
+        frappe.confirm(
+          msg + `<br><br>Eski karta gitmek ister misiniz?`,
+          () => frappe.set_route("view-calisma-karti", check.card_name),
+          () => {} // do nothing on cancel
+        );
+        return;
+      } else {
+        // Soft mode: warn but allow continue
+        const proceed = await new Promise<boolean>((resolve) => {
+          frappe.confirm(
+            msg + `<br><br><b>Yine de devam etmek istiyor musunuz?</b>`,
+            () => resolve(true),
+            () => resolve(false)
+          );
+        });
+        if (!proceed) return;
+      }
+    }
+  } catch (e) {
+    console.error("[onBaslatDevam] pre-check failed:", e);
+    // If the check fails, allow the action to proceed
+  }
+
   const confirmText =
     state.value === "paused"
       ? "Duruş sonlandırılıp işleme devam edilecek."

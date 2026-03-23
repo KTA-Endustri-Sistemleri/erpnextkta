@@ -61,6 +61,19 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         return res;
     }
 
+    async function checkActiveCardData(): Promise<{
+        has_incomplete: boolean;
+        mode?: "hard" | "soft";
+        card_name?: string;
+        card_label?: string;
+        missing?: string[];
+    }> {
+        const r = await frappe.call(
+            "erpnextkta.kta_calisma_karti.api.check_active_card_data"
+        );
+        return r.message || { has_incomplete: false };
+    }
+
     async function callIslem(
         islem_tipi: string,
         durus_nedeni: string | null = null,
@@ -279,6 +292,7 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         loading,
         doc,
         load,
+        checkActiveCardData,
         callIslem,
         updateQC,
         addHurda,
