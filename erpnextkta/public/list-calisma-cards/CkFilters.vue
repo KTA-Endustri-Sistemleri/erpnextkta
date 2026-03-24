@@ -120,13 +120,14 @@ const qcFilters = [
   flex-direction: column;
 }
 
-/* Search */
+/* Glass Search */
 .ck-search {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, .10);
+  background: var(--ck-glass-border-soft); /* subtly inset */
+  border: 1px solid var(--ck-glass-border);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); /* inset shadow for depth */
   border-radius: 14px;
   padding: 10px 12px;
 }
@@ -138,13 +139,14 @@ const qcFilters = [
   outline: none;
   font-size: 14px;
   background: transparent;
-  color: var(--dark);
+  color: var(--text-color);
 }
 .ck-clear {
   border: 0;
   background: transparent;
   font-size: 14px;
   opacity: .6;
+  color: var(--text-color);
 }
 
 /* Sort */
@@ -154,13 +156,17 @@ const qcFilters = [
 
 .ck-sort-select {
   width: 100%;
-  border: 1px solid rgba(0, 0, 0, .10);
-  background: var(--bg-color);
+  border: 1px solid var(--ck-glass-border);
+  border-top: 1px solid var(--ck-glass-highlight);
+  background: var(--ck-glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-radius: 14px;
   padding: 10px 12px;
   font-size: 13px;
   font-weight: 700;
   color: var(--text-color);
+  box-shadow: 0 4px 6px var(--ck-glass-shadow);
 }
 
 /* Filters */
@@ -168,7 +174,7 @@ const qcFilters = [
   display: flex;
   gap: 8px;
   overflow: auto;
-  padding: 10px 0 0;
+  padding: 12px 0 0;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   justify-content: space-between;
@@ -176,13 +182,18 @@ const qcFilters = [
 .ck-filters::-webkit-scrollbar { display: none; }
 
 .ck-filters--sub {
-  padding-top: 8px;
+  padding-top: 10px;
   justify-content: space-between;
 }
 
 .ck-filter {
-  border: 1px solid rgba(0, 0, 0, .10);
-  background: var(--bg-color);
+  border: 1px solid var(--ck-glass-border-soft);
+  border-top: 1px solid var(--ck-glass-highlight);
+  border-bottom: 1px solid var(--ck-glass-bottom-edge);
+  background: var(--ck-glass-bg);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 2px 6px var(--ck-glass-shadow);
   border-radius: 999px;
   padding: 8px 10px;
   font-size: 12px;
@@ -191,13 +202,16 @@ const qcFilters = [
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: all 0.15s ease;
+  color: var(--text-color);
 }
-.ck-filter:active { transform: scale(.99); }
+.ck-filter:active { transform: scale(.96); box-shadow: 0 1px 2px var(--ck-glass-shadow); }
 
 .ck-filter.active {
-  background: var(--bg-light-blue);
-  color: var(--text-color) !important;
-  border-color: var(--blue-400);
+  background: var(--blue-500);
+  color: #fff !important;
+  border-color: var(--blue-600);
+  border-top-color: rgba(255,255,255,0.4);
 }
 
 .ck-filter-count {
@@ -210,9 +224,10 @@ const qcFilters = [
   border-radius: 999px;
   font-size: 11px;
   font-weight: 900;
-  background: var(--fg-hover-color);
+  background: var(--ck-glass-border);
+  color: inherit;
 }
 .ck-filter.active .ck-filter-count {
-  background: var(--blue-400);
+  background: rgba(0,0,0,0.25);
 }
 </style>

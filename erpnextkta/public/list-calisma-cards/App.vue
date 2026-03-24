@@ -386,3 +386,31 @@ onUnmounted(() => {
 .w50{ width:50%; }
 .w40{ width:40%; }
 </style>
+
+<style>
+/* Global Glassmorphism Variables for List App */
+:root {
+  --ck-glass-bg: rgba(255, 255, 255, 0.45);
+  --ck-glass-border: rgba(0, 0, 0, 0.1);
+  --ck-glass-border-soft: rgba(0, 0, 0, 0.05);
+  --ck-glass-shadow: rgba(0, 0, 0, 0.03);
+  --ck-glass-highlight: rgba(255, 255, 255, 0.9);
+  --ck-glass-bottom-edge: rgba(0, 0, 0, 0.05);
+  --ck-skeleton-shine: rgba(255, 255, 255, 0.6);
+  --ck-success-bg: rgba(34, 197, 94, 0.55); /* Increased for highly visible prominence in light mode */
+  --ck-danger-bg: rgba(239, 68, 68, 0.55);
+
+}
+
+[data-theme="dark"] {
+  --ck-glass-bg: rgba(28, 33, 39, 0.6);
+  --ck-glass-border: rgba(255, 255, 255, 0.12);
+  --ck-glass-border-soft: rgba(255, 255, 255, 0.05);
+  --ck-glass-shadow: rgba(0, 0, 0, 0.5);
+  --ck-glass-highlight: rgba(255, 255, 255, 0.08);
+  --ck-glass-bottom-edge: rgba(0, 0, 0, 0.3);
+  --ck-skeleton-shine: rgba(255, 255, 255, 0.05);
+  --ck-success-bg: rgba(34, 197, 94, 0.55); /* Harder, glowing greens */
+  --ck-danger-bg: rgba(239, 68, 68, 0.55);
+}
+</style>
