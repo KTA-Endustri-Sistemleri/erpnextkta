@@ -12,7 +12,7 @@
               <span>Ürün Kodu</span>
               <b>{{ row.urun_kodu || "-" }}</b>
             </div>
-            <div v-if="row.custom_musteri_indeksi_no" style="border-left: 1px solid lightgray;border-bottom: 1px solid lightgray;text-align: left;padding-left: 6px;margin-left: 6px;border-radius: 0px 0px 0px 8px;">
+            <div v-if="row.custom_musteri_indeksi_no" style="border-left: 1px solid lightgray;text-align: left;padding-left: 5px;margin-left: 5px;border-top-color: lightgray;border-right-color: lightgray;">
               <span>Index (Revision)</span>
               <b>
                 {{ row.custom_musteri_indeksi_no }}

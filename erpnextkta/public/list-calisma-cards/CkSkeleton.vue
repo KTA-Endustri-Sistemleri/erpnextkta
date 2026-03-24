@@ -82,11 +82,12 @@ defineProps({
   height: 100%;
   background: linear-gradient(
     90deg,
-    transparent 0%,
-    var(--ck-skeleton-shine, rgba(255, 255, 255, 0.4)) 50%,
-    transparent 100%
+    rgba(255, 255, 255, 0) 0%,
+    var(--ck-skeleton-shine, rgba(255, 255, 255, 0.4)) 45%,
+    var(--ck-skeleton-shine, rgba(255, 255, 255, 0.4)) 55%,
+    rgba(255, 255, 255, 0) 100%
   );
-  animation: ck-shimmer 3s infinite ease-in-out;
+  animation: ck-shimmer 1s infinite ease-in-out;
   pointer-events: none;
 }
 
