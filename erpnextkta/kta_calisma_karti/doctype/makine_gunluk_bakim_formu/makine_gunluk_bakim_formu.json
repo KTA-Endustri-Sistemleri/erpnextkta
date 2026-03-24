@@ -40,7 +40,7 @@
    "fieldname": "makine",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Makine (Asset)",
+   "label": "Makine No",
    "options": "Asset",
    "reqd": 1
   },

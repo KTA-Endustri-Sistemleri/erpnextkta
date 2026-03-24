@@ -225,10 +225,10 @@ function showMaintenanceDialog(frm) {
           {
             fieldtype: 'Link',
             fieldname: 'makine',
-            label: __('Makine (Asset)'),
+            label: __('Makine No'),
             options: 'Asset',
             reqd: 1,
-            description: __('Bakım yapılacak makineyi seçin')
+            description: __('Makine numarasını yazarak seçin (ör: M 1)')
           },
           {
             fieldtype: 'Section Break',

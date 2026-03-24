@@ -48,10 +48,10 @@ function openMaintenanceDialog() {
           {
             fieldtype: 'Link',
             fieldname: 'makine',
-            label: 'Makine (Asset)',
+            label: 'Makine No',
             options: 'Asset',
             reqd: 1,
-            description: 'Bakım yapılacak makineyi seçin'
+            description: 'Makine numarasını yazarak seçin (ör: M 1)'
           },
           {
             fieldtype: 'Section Break',

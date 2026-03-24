@@ -2,6 +2,13 @@
  {
   "docstatus": 0,
   "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Teknik Resim",
+  "modified": "2025-11-18 14:56:17.429516",
+  "name": "Teknik Resim"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
   "kta_olcu_metodu": "Görsel",
   "modified": "2025-07-16 08:36:19.896514",
   "name": "Görsel"
