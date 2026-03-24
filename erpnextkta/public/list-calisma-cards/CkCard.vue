@@ -7,9 +7,17 @@
       <div class="col-9 py-2 pl-2">
         <div class="ck-name">{{ row.operator }}</div>
         <div class="ck-kv">
-          <div class="ck-kv-item">
-            <span>Ürün Kodu</span>
-            <b>{{ row.urun_kodu || "-" }}</b>
+          <div class="ck-kv-item" style="display:flex; align-items:flex-start;">
+            <div>
+              <span>Ürün Kodu</span>
+              <b>{{ row.urun_kodu || "-" }}</b>
+            </div>
+            <div v-if="row.custom_musteri_indeksi_no" style="text-align: left;margin-left: 10px;">
+              <span>Index (Revision)</span>
+              <b>
+                {{ row.custom_musteri_indeksi_no }}
+              </b>
+            </div>
           </div>
 
           <div class="ck-kv-item">
@@ -66,29 +74,52 @@ const statusTone = computed(() => {
 .ck-card {
   width: 100%;
   text-align: left;
-  background: var(--card-bg);
-  border: 1px solid rgba(0, 0, 0, .08);
+  background: var(--ck-glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--ck-glass-border-soft);
+  border-top: 1px solid var(--ck-glass-highlight);
+  border-bottom: 1px solid var(--ck-glass-bottom-edge);
   border-radius: 18px;
   padding: 0;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, .02);
+  box-shadow: 0 4px 12px var(--ck-glass-shadow);
   margin-bottom: 12px;
   display: block;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .ck-card:active {
-  transform: scale(.995);
+  transform: scale(.985);
+  box-shadow: 0 2px 6px var(--ck-glass-shadow);
 }
 
 .ck-pill {
   font-size: 12px;
   font-weight: 900;
-  padding: 6px 10px;
+  padding: 6px 16px 6px 6px;
   border-radius: 18px 0px 0px 18px;
   line-height: 1;
-  /* border: 1px solid rgba(0, 0, 0, .08); */
   position: relative;
   overflow: hidden;
   min-height: 100px;
+  /* Kendi üzerinde pozitif bir zikzak kesimi yapan kreatif özellik */
+  clip-path: polygon(
+    0 0, 
+    100% 0, 
+    calc(100% - 8px) 8%, 
+    100% 16%, 
+    calc(100% - 8px) 24%, 
+    100% 32%, 
+    calc(100% - 8px) 40%, 
+    100% 48%, 
+    calc(100% - 8px) 56%, 
+    100% 64%, 
+    calc(100% - 8px) 72%, 
+    100% 80%, 
+    calc(100% - 8px) 88%, 
+    100% 100%, 
+    0 100%
+  );
 }
 
 .ck-pill span {
@@ -101,37 +132,12 @@ const statusTone = computed(() => {
   text-transform: uppercase;
 }
 
-/* Tone mapping and decorative edges */
+/* Tone mapping */
 .ck-pill[data-tone="ready"] { background: var(--blue); color: var(--white-overlay-900); }
-.ck-pill[data-tone="running"] { background: var(--yellow-500); color: var(--white-overlay-900); }
+.ck-pill[data-tone="running"] { background: var(--yellow-500); color: var(--dark); } /* better contrast for yellow */
 .ck-pill[data-tone="paused"] { background: var(--orange-500); color: var(--white-overlay-900); }
 .ck-pill[data-tone="finished"] { background: var(--green); color: var(--white-overlay-900); }
 .ck-pill[data-tone="rejected"] { background: var(--red); color: var(--white-overlay-900); }
-
-.ck-pill::after {
-  content: "";
-  position: absolute;
-  top: -1px;
-  bottom: -1px;
-  right: -1px;
-  width: 17px;
-  background: var(--card-bg);
-  clip-path: polygon(
-    100% 0%,
-    0% 8%,
-    100% 16%,
-    0% 24%,
-    100% 32%,
-    0% 40%,
-    100% 48%,
-    0% 56%,
-    100% 64%,
-    0% 72%,
-    100% 80%,
-    0% 88%,
-    100% 100%
-  );
-}
 
 .ck-name {
   font-weight: 900;
@@ -161,12 +167,14 @@ const statusTone = computed(() => {
 }
 
 .ck-chevron {
-  font-size: 48px;
+  font-size: 32px;
   opacity: .25;
   line-height: 1;
+  transform: translateX(4px);
 }
 
-.ck-status-card-qc--running { background: linear-gradient(270deg, var(--green), transparent, transparent); border-radius: 16px; }
-.ck-status-card-qc--rejected { background: linear-gradient(270deg, var(--red), transparent, transparent); border-radius: 16px; }
-.ck-status-card-qc--pending { background: linear-gradient(270deg, var(--blue), transparent, transparent); border-radius: 16px; }
+/* Quality Control Status Highlights */
+.ck-status-card-qc--running { background: linear-gradient(270deg, var(--ck-success-bg), transparent, transparent); border-radius: 16px; }
+.ck-status-card-qc--rejected { background: linear-gradient(270deg, var(--ck-danger-bg), transparent, transparent); border-radius: 16px; }
+.ck-status-card-qc--pending { background: linear-gradient(270deg, rgba(59, 130, 246, 0.55), transparent, transparent); border-radius: 16px; }
 </style>
