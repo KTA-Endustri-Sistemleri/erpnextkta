@@ -1,6 +1,15 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-23 (Glassmorphism SPA Arayüz Modernizasyonu)
+> Son güncelleme: 2026-03-25 (Süre Formatı & Bağlantı Düzeltmesi)
+
+### Süre Formatı & UX İyileştirmeleri (2026-03-25 - Tamamlandı)
+- [x] Tüm sistem genelinde süre formatı `dk:sn`'den `ss:dk:sn` (`HH:MM:SS`) formatına geçirildi.
+- [x] Backend `format_sure` ve `_parse_minsec` fonksiyonları yeni standarda göre güncellendi.
+- [x] Mevcut 18 adet Çalışma Kartı kaydı toplu patch ile yeni formata dönüştürüldü.
+- [x] `Calisma Karti` ve `Operasyon Duruslari` DocType etiketleri (Label) güncellendi.
+- [x] Frontend için `formatDuration` yardımcı aracı (`utils/format.ts`) oluşturuldu ve `DurusView` güncellendi.
+- [x] Standart form dashboard'una (Indicators) `Net Süre` ve `Toplam Duruş` göstergeleri eklendi.
+- [x] **Bağlantı Fix**: Yeni kart oluşturma sihirbazındaki yönlendirme linki `view-calisma-karti` sayfasına bağlandı.
 
 ### SPA UI & Glassmorphism Modernizasyonu (2026-03-23 - Tamamlandı)
 - [x] Tüm sistemin CSS altyapısı genel değişkenlerle (CSS Variables) modernize edildi.

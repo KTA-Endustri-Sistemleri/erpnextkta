@@ -1,9 +1,11 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-23
+> Son güncelleme: 2026-03-25
 
-Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle alt operasyonların ID yerine başlık (Title) üzerinden seçilmesi sağlandı.
+Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle süre formatları `ss:dk:sn` olarak standartlaştırıldı ve sihirbazdaki yönlendirme hatası giderildi.
 
+- [x] **Süre Formatı Standartlaştırması**: Tüm çalışma ve duruş süreleri `dk:sn` formatından `ss:dk:sn` formatına dönüştürüldü. (Tamamlandı)
+- [x] **Bağlantı Hatası Düzeltmesi**: Yeni kart oluşturma sonrası "Çalışma Kartına Git" butonu artık doğru şekilde `view-calisma-karti` sayfasına yönlendiriyor. (Tamamlandı)
 - [x] **Liste Görünümü & Skeleton Modernizasyonu**: `App.vue` içindeki skeleton yapısı modern shimmer animasyonu ile yenilendi ve asıl kart yapısına sadık hale getirildi. (Tamamlandı)
 - [x] **Frontend Refactoring**: Dev boyutlu `App.vue` (~900 satır), `CkCard`, `CkFilters` ve `CkSkeleton` bileşenlerine ayrılarak modüler hale getirildi. (Tamamlandı)
 - [x] **SPA Glassmorphism UI**: Uygulama arayüzü tam uyumlu Açık/Koyu tema değişkenleri ve akıcı tab animasyonları ile premium seviyeye çekildi. (Tamamlandı)
@@ -11,6 +13,15 @@ Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı.
 - [x] **Kart Geçiş Kısıtlaması (Veri Doğrulama)**: Operatörlerin veri girmeden açık kartlar arasında gezmesini önlemek için "Sıkı / Esnek" modlu geçiş onay sistemi eklendi. (Tamamlandı)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-03-25) — Süre Formatı Standartlaştırması
+*   **Backend Mantığı**: `calisma_karti.py` içindeki `format_sure` fonksiyonu `HH:MM:SS` döndürecek şekilde, `_parse_minsec` ise hem eski (`M:SS`) hem yeni formatı tanıyacak şekilde güncellendi.
+*   **Veri Göçü (Migration)**: Mevcut tüm `Calisma Karti` kayıtlarındaki süre alanları toplu bir patch ile `ss:dk:sn` formatına dönüştürüldü.
+*   **DocType Etiketleri**: `Calisma Karti` ve `Operasyon Duruslari` DocType'larındaki süre alanlarının etiketleri `(ss:dk:sn)` olarak güncellendi.
+*   **Frontend Görünümü**: `formatDuration` yardımcı fonksiyonu eklenerek durations SPA arayüzünde (DurusView vb.) ve standart form dashboard'unda (Indicators) yeni formatta gösterilmesi sağlandı.
+
+## Son Değişiklikler (2026-03-25) — Bağlantı Hatası Düzeltmesi
+*   **Yönlendirme Mantığı**: `create-calisma-karti` sihirbazındaki `goToCreatedDoc` fonksiyonu, standart form yerine özel `view-calisma-karti` sayfasına yönlendirme yapacak şekilde (`frappe.set_route`) güncellendi.
 
 ## Son Değişiklikler (2026-03-23) — Glassmorphism SPA Arayüz Modernizasyonu
 *   **Arayüz Paradigması**: Uygulama görünümü tamamen modern "Glassmorphism" (Cam efekti) tarzına dönüştürüldü. Arkaplan görselleri olmadan, derinlik ve gölge algısıyla (Soft UI) premium bir endüstriyel arayüz tasarlandı.

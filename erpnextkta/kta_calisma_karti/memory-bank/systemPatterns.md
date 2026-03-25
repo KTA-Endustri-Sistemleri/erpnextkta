@@ -213,4 +213,8 @@ Kullanıcı girişini kolaylaştırmak için uygulanan örüntü:
 Kalite belgesi (QI) ile Çalışma Kartı (CK) arasındaki derin entegrasyonu yöneten desendir:
 - **Linkage Protection**: Bir karta QI belgesi bağlandığı anda, hem Backend (`qc.py`) hem de Frontend (`useCalismaKartiUi.ts`) seviyesinde manuel kalite güncellemeleri kilitlenir. Tek veri kaynağı QI belgesi olur.
 - **Dynamic Restoration**: QI statüsü "Rejected" durumundan "Accepted" durumuna döndüğünde, kartın genel durumu (`durum` alanı) körü körüne eski haline getirilmez. Bunun yerine `ck.get_durum()` metodu tetiklenerek, kartın o anki zaman kayıtlarına (Çalışıyor, Duruşta, Hazır) göre en güncel ve doğru statü otomatik olarak hesaplanıp restore edilir.
-- **Transactional Integrity**: Arka plan işlemleri (hook) sırasında veritabanı tutarlılığını sağlamak için `db_set` sonrası `frappe.db.commit()` ve `update_modified=True` kullanılarak verinin ve Real-time bildirimlerin senkronize kalması garanti edilir.
+### 19. Zaman Formatı Standardı (`ss:dk:sn`)
+Tüm çalışma ve duruş süreleri için proje genelinde `HH:MM:SS` (Saat:Dakika:Saniye) formatı uygulanır:
+- **Backend**: `calisma_karti.py` içindeki `format_sure` fonksiyonu bu formatı üretir. `_parse_minsec` ise hem legacy hem yeni formatı destekler.
+- **Frontend**: `public/view-calisma-karti/utils/format.ts` içindeki `formatDuration` yardımcı aracı ile süreler standardize edilir.
+- **Indicators**: Standart form dashboard'unda da süreler bu formatta gösterilmelidir.

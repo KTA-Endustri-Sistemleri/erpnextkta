@@ -33,7 +33,13 @@ Module (Backend): erpnextkta/kta_calisma_karti/
 Public (Frontend): erpnextkta/public/
   ├── create-calisma-karti/  ← create-calisma-karti.bundle.js
   ├── list-calisma-cards/    ← list-calisma-cards.bundle.js
-  └── view-calisma-karti/    ← view-calisma-karti.bundle.js
+/srv/workspaces/apps/erpnextkta/erpnextkta/public/view-calisma-karti/
+  ├── components/
+  ├── composables/
+  ├── utils/
+  │   └── format.ts    ← Yeni formatDuration yardımcı aracı
+  ├── views/
+  └── App.vue
 ```
 
 > [!NOTE]
