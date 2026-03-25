@@ -2,7 +2,7 @@
 
 > Son güncelleme: 2026-03-25
 
-Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle süre formatları `ss:dk:sn` olarak standartlaştırıldı ve sihirbazdaki yönlendirme hatası giderildi.
+Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle süre formatları `ss:dk:sn` olarak standartlaştırıldı, sihirbazdaki yönlendirme hatası giderildi ve otomatik kapatılan kartların kalite belgelerinin onaylanması sağlandı.
 
 - [x] **Süre Formatı Standartlaştırması**: Tüm çalışma ve duruş süreleri `dk:sn` formatından `ss:dk:sn` formatına dönüştürüldü. (Tamamlandı)
 - [x] **Bağlantı Hatası Düzeltmesi**: Yeni kart oluşturma sonrası "Çalışma Kartına Git" butonu artık doğru şekilde `view-calisma-karti` sayfasına yönlendiriyor. (Tamamlandı)
@@ -20,8 +20,9 @@ Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı.
 *   **DocType Etiketleri**: `Calisma Karti` ve `Operasyon Duruslari` DocType'larındaki süre alanlarının etiketleri `(ss:dk:sn)` olarak güncellendi.
 *   **Frontend Görünümü**: `formatDuration` yardımcı fonksiyonu eklenerek durations SPA arayüzünde (DurusView vb.) ve standart form dashboard'unda (Indicators) yeni formatta gösterilmesi sağlandı.
 
-## Son Değişiklikler (2026-03-25) — Bağlantı Hatası Düzeltmesi
+## Son Değişiklikler (2026-03-25) — Bağlantı Hatası Düzeltmesi & Scheduler QI Onayı
 *   **Yönlendirme Mantığı**: `create-calisma-karti` sihirbazındaki `goToCreatedDoc` fonksiyonu, standart form yerine özel `view-calisma-karti` sayfasına yönlendirme yapacak şekilde (`frappe.set_route`) güncellendi.
+*   **Otomatik QI Onayı**: `tasks.py` içindeki `auto_close_timed_out_cards` fonksiyonu, kart kapatılırken bağlı olan taslak (Draft) durumundaki `Quality Inspection` belgelerini otomatik olarak onaylayacak (Submit) şekilde güçlendirildi.
 
 ## Son Değişiklikler (2026-03-23) — Glassmorphism SPA Arayüz Modernizasyonu
 *   **Arayüz Paradigması**: Uygulama görünümü tamamen modern "Glassmorphism" (Cam efekti) tarzına dönüştürüldü. Arkaplan görselleri olmadan, derinlik ve gölge algısıyla (Soft UI) premium bir endüstriyel arayüz tasarlandı.

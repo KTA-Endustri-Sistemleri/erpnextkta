@@ -10,6 +10,7 @@
 - [x] Frontend için `formatDuration` yardımcı aracı (`utils/format.ts`) oluşturuldu ve `DurusView` güncellendi.
 - [x] Standart form dashboard'una (Indicators) `Net Süre` ve `Toplam Duruş` göstergeleri eklendi.
 - [x] **Bağlantı Fix**: Yeni kart oluşturma sihirbazındaki yönlendirme linki `view-calisma-karti` sayfasına bağlandı.
+- [x] **Scheduler QI Fix**: Otomatik kapatılan kartlara bağlı kalite belgelerinin (QI) otomatik olarak onaylanması sağlandı.
 
 ### SPA UI & Glassmorphism Modernizasyonu (2026-03-23 - Tamamlandı)
 - [x] Tüm sistemin CSS altyapısı genel değişkenlerle (CSS Variables) modernize edildi.
