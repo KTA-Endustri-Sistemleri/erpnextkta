@@ -33,7 +33,7 @@
             "fieldname": "durus_suresi",
             "fieldtype": "Float",
             "in_list_view": 1,
-            "label": "Durus Suresi (dk)",
+            "label": "Durus Suresi (ss:dk:sn)",
             "precision": "2",
             "read_only": 1
         },
