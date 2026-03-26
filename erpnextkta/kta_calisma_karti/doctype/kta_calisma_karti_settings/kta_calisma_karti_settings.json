@@ -8,7 +8,9 @@
         "kart_uyari_suresi_dk",
         "tolerans_saat",
         "sb_kart_gecis",
-        "kart_gecis_modu"
+        "kart_gecis_modu",
+        "sb_stok",
+        "hurda_gider_hesabi"
     ],
     "fields": [
         {
@@ -45,6 +47,18 @@
             "label": "Kart Ge\u00e7i\u015f Modu",
             "options": "S\u0131k\u0131 (Hard)\nEsnek (Soft)",
             "description": "S\u0131k\u0131: Veri eksikse yeni kart ba\u015flat\u0131lamaz. Esnek: Uyar\u0131 g\u00f6sterilir, operat\u00f6r devam edebilir."
+        },
+        {
+            "fieldname": "sb_stok",
+            "fieldtype": "Section Break",
+            "label": "Stok Ayarlar\u0131"
+        },
+        {
+            "default": "710.001 - 1.D\u00f6nem \u0130lkmadde ve Malz Gider - KTA",
+            "fieldname": "hurda_gider_hesabi",
+            "fieldtype": "Link",
+            "label": "Hurda Gider Hesab\u0131",
+            "options": "Account"
         }
     ],
     "issingle": 1,

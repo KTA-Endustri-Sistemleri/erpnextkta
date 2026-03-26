@@ -91,6 +91,7 @@ app_include_js = [
 
 after_migrate = [
     "erpnextkta.overrides.apply",
+    "erpnextkta.kta_calisma_karti.setup.setup_scrap_stock_entry_type",
 ]
 
 # Uninstallation
@@ -167,6 +168,11 @@ doc_events = {
     },
     "Stock Entry": {
         "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
+        "on_update": "erpnextkta.kta_calisma_karti.api_impl.hurda.sync_stock_entry_to_calisma_karti",
+        "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash"
+    },
+    "Calisma Karti": {
+        # Hurda sync is now handled in the controller's on_update directly
     },
     "Purchase Invoice": {
         "validate": "erpnextkta.overrides.purchase_invoice.validate_purchase_invoice"

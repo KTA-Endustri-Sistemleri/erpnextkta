@@ -9,7 +9,10 @@
     "parca_no",
     "hurda_nedeni",
     "miktar",
-    "birim"
+    "birim",
+    "depo",
+    "aciklama",
+    "stock_entry_detail_id"
   ],
   "fields": [
     {
@@ -45,6 +48,19 @@
       "fieldtype": "Link",
       "label": "Depo",
       "options": "Warehouse"
+    },
+    {
+      "allow_on_submit": 1,
+      "fieldname": "aciklama",
+      "fieldtype": "Small Text",
+      "label": "A\u00e7\u0131klama"
+    },
+    {
+      "allow_on_submit": 1,
+      "fieldname": "stock_entry_detail_id",
+      "fieldtype": "Data",
+      "label": "Stock Entry Detail ID",
+      "read_only": 1
     }
   ],
   "grid_page_length": 50,

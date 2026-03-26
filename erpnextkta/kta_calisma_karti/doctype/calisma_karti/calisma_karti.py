@@ -111,6 +111,11 @@ def _other_cards_net_seconds_in_shift(operator: str, shift_start, shift_end, exc
 class CalismaKarti(Document):
     def on_update(self):
         publish_calisma_karti_changed(self.name, reason="doc:on_update")
+        from erpnextkta.kta_calisma_karti.api_impl.hurda import sync_calisma_karti_hurdalar_to_se
+        sync_calisma_karti_hurdalar_to_se(self)
+
+    def on_update_after_submit(self):
+        self.on_update()
 
     def autoname(self):
         """
