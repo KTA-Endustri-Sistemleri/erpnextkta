@@ -110,14 +110,12 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         parca_no: string;
         hurda_nedeni: string;
         miktar: number;
-        birim: string;
-        depo?: string | null;
+        aciklama?: string | null;
     }) {
         return refreshAfter(() =>
-            frappe.call("erpnextkta.kta_calisma_karti.api.add_hurda", {
+            frappe.call("erpnextkta.kta_calisma_karti.api_impl.hurda.add_hurda", {
                 name: docname.value,
                 ...payload,
-                depo: payload.depo || null,
             })
         );
     }
@@ -127,21 +125,19 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         parca_no: string;
         hurda_nedeni: string;
         miktar: number;
-        birim: string;
-        depo?: string | null;
+        aciklama?: string | null;
     }) {
         return refreshAfter(() =>
-            frappe.call("erpnextkta.kta_calisma_karti.api.update_hurda", {
+            frappe.call("erpnextkta.kta_calisma_karti.api_impl.hurda.update_hurda", {
                 name: docname.value,
                 ...payload,
-                depo: payload.depo || null,
             })
         );
     }
 
     async function deleteHurda(rowname: string) {
         return refreshAfter(() =>
-            frappe.call("erpnextkta.kta_calisma_karti.api.delete_hurda", {
+            frappe.call("erpnextkta.kta_calisma_karti.api_impl.hurda.delete_hurda", {
                 name: docname.value,
                 rowname,
             })
