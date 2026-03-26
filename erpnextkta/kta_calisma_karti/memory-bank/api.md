@@ -71,6 +71,16 @@ docs> **Not:** `hammadde`, `uom`, `note` opsiyonel. `adet` default `0`.
 | `kta_calisma_karti:list_changed` | her create/update/qc sonrası | list SPA |
 | `kta_calisma_karti:doc_changed:{name}` | aynı, docname ile | view SPA |
 
+## Dahili Hooklar (Internal Hooks)
+
+Bu fonksiyonlar `hooks.py` veya DocType controller üzerinden otomatik tetiklenir:
+
+| Fonksiyon | Tetikleyici | Açıklama |
+|-----------|------------|----------|
+| `sync_stock_entry_to_calisma_karti` | `Stock Entry` (on_update) | SE'den yapılan manuel değişiklikleri CK'ya senkronize eder. |
+| `sync_calisma_karti_hurdalar_to_se` | `Calisma Karti` (on_update / after_submit) | CK tablosundaki değişiklikleri SE'ye senkronize eder. |
+| `on_stock_entry_trash` | `Stock Entry` (on_trash) | SE silindiğinde CK üzerindeki linki temizler. |
+
 ## Sabitler (_helpers.py)
 
 ```python

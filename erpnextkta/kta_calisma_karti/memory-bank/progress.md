@@ -1,6 +1,14 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-25 (Süre Formatı & Bağlantı Düzeltmesi)
+> Son güncelleme: 2026-03-26 (Hurda Modülü Modernizasyonu)
+
+### Hurda (Scrap) Modülü Modernizasyonu (2026-03-26 - Tamamlandı)
+- [x] **1:1 Operatör Bazlı Senkronizasyon**: Her kart için bağımsız Stok Belgesi yapısı kuruldu.
+- [x] **Çift Yönlü Sync**: SPA, Desk ve Stok Belgesi arasındaki tüm veri akışı senkronize edildi.
+- [x] **Onay Sonrası Revizyon**: Submitted kartlarda hurda düzenleme desteği eklendi.
+- [x] **CkHurdaModal**: Modern, auto-fill destekli Vue bileşeni; `Teleport` entegrasyonu ve dikey sığma (vertical fit) düzeltmeleri yapıldı.
+- [x] **UX Geliştirmesi**: Hurda nedeni seçimi için "pill" (chip) tabanlı interaktif tasarım uygulandı.
+- [x] **Veri Güvenliği**: ERPNext validation kurallarına karşı `work_order` koruma mekanizması eklendi.
 
 ### Süre Formatı & UX İyileştirmeleri (2026-03-25 - Tamamlandı)
 - [x] Tüm sistem genelinde süre formatı `dk:sn`'den `ss:dk:sn` (`HH:MM:SS`) formatına geçirildi.

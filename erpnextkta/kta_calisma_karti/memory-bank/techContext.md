@@ -65,6 +65,16 @@ Public (Frontend): erpnextkta/public/
 | `frappe.validate_and_sanitize_search_inputs` | Link field search decorator |
 | `frappe.db.sql()` | BOM item whitelist sorguları (JOIN gerekli) |
 
+- **`hurda_gider_hesabi`** (Link → Account): Hurda Stok Belgelerinde (`Stock Entry Item`) kullanılacak olan varsayılan gider hesabı.
+- **`kart_gecis_modu`** (Select): Sıkı / Esnek.
+
+## Yeni ERPNext Doküman Özellikleri
+
+### Stock Entry Type: `Scrap for Manufacturing`
+- **Purpose**: `Material Issue`
+- **Custom Logic**: Bu tipteki belgeler için `on_update` ve `on_trash` hook'ları üzerinden `Calisma Karti` senkronizasyonu tetiklenir.
+- **Field Enrichment**: `is_scrap_item: 1` bayrağı ile hurda satırları normal sarfiyat satırlarından ayırt edilir.
+
 ## Kritik Bağımlılıklar
 
 ```python
