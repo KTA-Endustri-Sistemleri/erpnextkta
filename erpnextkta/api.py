@@ -1387,6 +1387,7 @@ def get_items_from_calisma_karti(source_name: str, target_doc=None):
             "conversion_factor": conv,
             FIELD_QTY: qty,
             FIELD_S_WAREHOUSE: s_wh,
+            "cost_center": hurda_nedeni_val
         })
 
     if not items:
