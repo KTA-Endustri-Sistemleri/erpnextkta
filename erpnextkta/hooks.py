@@ -91,7 +91,7 @@ app_include_js = [
 
 after_migrate = [
     "erpnextkta.overrides.apply",
-    "erpnextkta.kta_calisma_karti.setup.setup_scrap_stock_entry_type",
+    "erpnextkta.kta_calisma_karti.setup.setup",
 ]
 
 # Uninstallation
