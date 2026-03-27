@@ -321,6 +321,12 @@ fixtures = [
         ]
     },
     {
+        "doctype": "Custom DocPerm",
+        "filters": [
+            ["parent", "in", ["Asset Maintenance", "Asset Maintenance Log"]]
+        ]
+    },
+    {
         "doctype": "Role Profile",
         "filters": [
             ["name", "like", "KTA%"]

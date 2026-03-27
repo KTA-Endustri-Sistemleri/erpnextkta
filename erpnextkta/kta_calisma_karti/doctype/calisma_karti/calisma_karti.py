@@ -328,6 +328,7 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
             "maintenance_type": "Arıza Bakımı",
             "maintenance_status": "Arıza Bildirimi",
             "start_date": today(),
+            "next_due_date": today(),
             "end_date": frappe.utils.add_days(today(), 1),
             "periodicity": "Daily",
             "description": aciklama,

@@ -1,9 +1,27 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 
 const props = defineProps<{
   doc: any;
 }>();
+
+// Data Refs
+const maintenanceRecords = ref([]);
+const arizaRecords = ref([]);
+const makineNoOptions = ref([]);
+
+// Loading States
+const loading = ref(false);
+const arizaLoading = ref(false);
+
+// Reactive Watcher for Data Loading
+watch(() => props.doc?.name, (newVal) => {
+  if (newVal) {
+    loadMaintenanceRecords();
+    loadArizaRecords();
+    loadMakineNoOptions();
+  }
+}, { immediate: true });
 
 function openMaintenanceDialog() {
   // Fetch instruction content
@@ -121,8 +139,8 @@ function openMaintenanceDialog() {
                       indicator: 'green'
                     });
 
-                    // Reload the page to refresh data
-                    frappe.set_route('view-calisma-karti', props.doc.name);
+                    // Refresh data
+                    loadMaintenanceRecords();
                   }
                 });
               }
@@ -192,7 +210,7 @@ function openArizaDialog() {
               message: 'Arıza bildirimi oluşturuldu ve bakım ekibine iletildi.',
               indicator: 'green'
             });
-            loadArizaRecords(); // Refresh the fault list
+            loadArizaRecords();
           }
         }
       });
@@ -202,101 +220,82 @@ function openArizaDialog() {
   dialog.show();
 }
 
-// Fetch existing maintenance records for today
-const maintenanceRecords = ref<any[]>([]);
-const loading = ref(false);
-
 async function loadMaintenanceRecords() {
+  if (!props.doc?.name) return;
   loading.value = true;
   try {
-    const result = await frappe.call({
-      method: 'frappe.client.get_list',
+    const response = await frappe.call({
+      method: "frappe.client.get_list",
       args: {
-        doctype: 'Makine Gunluk Bakim Formu',
+        doctype: "Makine Gunluk Bakim Formu",
         filters: {
           calisma_karti_ref: props.doc.name,
-          docstatus: ['!=', 2] // Not cancelled
+          docstatus: ["!=", 2]
         },
-        fields: ['name', 'makine', 'tarih', 'onay', 'docstatus', 'creation'],
-        order_by: 'creation desc',
+        fields: ["name", "makine", "tarih", "onay", "docstatus", "creation"],
+        order_by: "creation desc",
         limit_page_length: 10
       }
     });
-
-    maintenanceRecords.value = result.message || [];
+    maintenanceRecords.value = response.message || [];
   } catch (error) {
-    console.error('Error loading maintenance records:', error);
-    maintenanceRecords.value = [];
+    console.error("Error loading maintenance records:", error);
   } finally {
     loading.value = false;
   }
 }
 
-// Load records on mount
-loadMaintenanceRecords();
-
-function openMaintenanceRecord(recordName: string) {
-  frappe.set_route('Form', 'Makine Gunluk Bakim Formu', recordName);
-}
-
-// Fetch existing Ariza records 
-const arizaRecords = ref<any[]>([]);
-const arizaLoading = ref(false);
-
-const makineNoOptions = ref<string[]>([]);
-
 async function loadMakineNoOptions() {
   try {
-    const result = await frappe.call({
-      method: 'frappe.client.get_list',
+    const response = await frappe.call({
+      method: "frappe.client.get_list",
       args: {
-        doctype: 'Asset',
-        filters: { custom_makine_no: ['!=', ''] },
-        fields: ['custom_makine_no'],
+        doctype: "Asset",
+        filters: { custom_makine_no: ["!=", ""] },
+        fields: ["custom_makine_no"],
         limit_page_length: 0
       }
     });
-    if (result.message) {
-      makineNoOptions.value = [...new Set(result.message.map((r: any) => r.custom_makine_no).filter(Boolean))] as string[];
+    if (response.message) {
+      const options = response.message.map(r => r.custom_makine_no).filter(Boolean);
+      makineNoOptions.value = [...new Set(options)];
     }
   } catch (error) {
-    console.error('Error loading makine options:', error);
+    console.error("Error loading makine options:", error);
   }
 }
 
-// Fetch existing Ariza records 
 async function loadArizaRecords() {
+  if (!props.doc?.name) return;
   arizaLoading.value = true;
   try {
-    const result = await frappe.call({
-      method: 'frappe.client.get_list',
+    const response = await frappe.call({
+      method: "frappe.client.get_list",
       args: {
-        doctype: 'Asset Maintenance Log',
+        doctype: "Asset Maintenance Log",
         filters: {
           custom_calisma_karti_ref: props.doc.name,
-          maintenance_status: 'Arıza Bildirimi'
+          maintenance_status: "Arıza Bildirimi"
         },
-        fields: ['name', 'asset_name', 'due_date', 'custom_ariza_nedeni', 'custom_ariza_aciklamasi', 'creation'],
-        order_by: 'creation desc',
+        fields: ["name", "asset_name", "due_date", "custom_ariza_nedeni", "custom_ariza_aciklamasi", "creation"],
+        order_by: "creation desc",
         limit_page_length: 10
       }
     });
-
-    arizaRecords.value = result.message || [];
+    arizaRecords.value = response.message || [];
   } catch (error) {
-    console.error('Error loading ariza records:', error);
-    arizaRecords.value = [];
+    console.error("Error loading ariza records:", error);
   } finally {
     arizaLoading.value = false;
   }
 }
 
-// Load ariza records on mount
-loadArizaRecords();
-loadMakineNoOptions();
+function openMaintenanceRecord(recordName) {
+  frappe.set_route("Form", "Makine Gunluk Bakim Formu", recordName);
+}
 
-function openArizaRecord(recordName: string) {
-  frappe.set_route('Form', 'Asset Maintenance Log', recordName);
+function openArizaRecord(recordName) {
+  frappe.set_route("Form", "Asset Maintenance Log", recordName);
 }
 
 </script>
@@ -314,7 +313,7 @@ function openArizaRecord(recordName: string) {
       Yükleniyor...
     </div>
 
-    <div v-else-if="maintenanceRecords.length === 0" class="ck-empty-state">
+    <div v-else-if="!maintenanceRecords || maintenanceRecords.length === 0" class="ck-empty-state">
       Henüz bakım kaydı yok.
     </div>
 
@@ -328,7 +327,7 @@ function openArizaRecord(recordName: string) {
             </span>
           </div>
           <div class="ck-muted ck-mini-sub">Makine: <strong style="color:var(--ck-text);">{{ record.makine }}</strong></div>
-          <div class="ck-muted ck-mini-sub">Tarih: {{ frappe.datetime.str_to_user(record.tarih) }}</div>
+          <div class="ck-muted ck-mini-sub">Tarih: {{ record.tarih ? frappe.datetime.str_to_user(record.tarih) : '---' }}</div>
         </div>
       </div>
     </div>
@@ -347,7 +346,7 @@ function openArizaRecord(recordName: string) {
       Yükleniyor...
     </div>
 
-    <div v-else-if="arizaRecords.length === 0" class="ck-empty-state">
+    <div v-else-if="!arizaRecords || arizaRecords.length === 0" class="ck-empty-state">
       Henüz arıza bildirimi yapılmamış.
     </div>
 
@@ -360,9 +359,9 @@ function openArizaRecord(recordName: string) {
               Arıza Bildirimi
             </span>
           </div>
-          <div class="ck-muted ck-mini-sub">Makine: <strong style="color:var(--ck-text);">{{ record.asset_name }}</strong> &nbsp;|&nbsp; Neden: <strong>{{ record.custom_ariza_nedeni }}</strong></div>
+          <div class="ck-muted ck-mini-sub">Makine: <strong style="color:var(--ck-text);">{{ record.asset_name || '---' }}</strong> &nbsp;|&nbsp; Neden: <strong>{{ record.custom_ariza_nedeni }}</strong></div>
           <div class="ck-muted ck-mini-sub" style="margin-top: 4px; font-style: italic;">"{{ record.custom_ariza_aciklamasi }}"</div>
-          <div class="ck-muted ck-mini-sub" style="margin-top: 4px;">Tarih: {{ frappe.datetime.str_to_user(record.due_date) }}</div>
+          <div class="ck-muted ck-mini-sub" style="margin-top: 4px;">Tarih: {{ record.due_date ? frappe.datetime.str_to_user(record.due_date) : (record.creation ? frappe.datetime.str_to_user(record.creation.split(' ')[0]) : '---') }}</div>
         </div>
       </div>
     </div>
