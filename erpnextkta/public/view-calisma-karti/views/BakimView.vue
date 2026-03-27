@@ -21,8 +21,8 @@ function openMaintenanceDialog() {
 
       const instruction = r.message;
       let html = `
-        <div style="padding: 20px; background-color: #f9f9f9; border-radius: 5px; max-height: 500px; overflow-y: auto;">
-          <h3 style="color: #333; margin-top: 0;">${instruction.talimat_kodu} - ${instruction.talimat_adi}</h3>
+        <div style="padding: 20px; background-color: var(--control-bg, #f9f9f9); border-radius: 5px; max-height: 500px; overflow-y: auto;">
+          <h3 style="color: var(--text-color, #333); margin-top: 0;">${instruction.talimat_kodu} - ${instruction.talimat_adi}</h3>
       `;
 
       if (instruction.amac) {
@@ -33,7 +33,7 @@ function openMaintenanceDialog() {
         html += `<p><strong>KAPSAM:</strong> ${instruction.kapsam}</p>`;
       }
 
-      html += '<hr style="border: 0; border-top: 2px solid #ddd; margin: 15px 0;">';
+      html += '<hr style="border: 0; border-top: 2px solid var(--border-color, #ddd); margin: 15px 0;">';
 
       if (instruction.talimat_metni) {
         html += instruction.talimat_metni;
@@ -303,9 +303,9 @@ function openArizaRecord(recordName: string) {
 
 <template>
   <div class="ck-card">
-    <div class="ck-view-action">
+    <div class="ck-qc-header">
       <b style="font-size: 15px;">Makine Günlük Bakım</b>
-      <button class="ck-btn ck-btn--ghost ck-btn-small" @click="openMaintenanceDialog">
+      <button class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="openMaintenanceDialog">
         + Ekle
       </button>
     </div>
@@ -336,9 +336,9 @@ function openArizaRecord(recordName: string) {
     <!-- ARIZA BİLDİRİMİ KISMI -->
     <div style="margin-top: 24px;"></div>
     
-    <div class="ck-view-action" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
-      <b style="font-size: 15px; color: var(--ck-danger, #ef4444);">Makine Arıza Bildirimi</b>
-      <button class="ck-btn ck-btn--ghost ck-btn-small" style="color: var(--ck-danger, #ef4444); border-color: rgba(239, 68, 68, 0.3);" @click="openArizaDialog">
+    <div class="ck-qc-header">
+      <b style="font-size: 15px;">Makine Arıza Bildirimi</b>
+      <button class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg); padding: 8px 10px;" @click="openArizaDialog">
         + Arıza Bildir
       </button>
     </div>
@@ -371,7 +371,7 @@ function openArizaRecord(recordName: string) {
 </template>
 
 <style scoped>
-.ck-view-action {
+.ck-qc-header {
   padding: 6px 14px 14px 14px;
   display: flex;
   justify-content: space-between;
