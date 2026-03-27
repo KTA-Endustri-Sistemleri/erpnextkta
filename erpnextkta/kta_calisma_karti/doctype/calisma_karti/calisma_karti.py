@@ -317,10 +317,10 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
         # Append new task
         new_task = asset_maint.append("asset_maintenance_tasks", {})
         new_task.maintenance_task = task_name
-        new_task.maintenance_type = "Corrective" # Or whatever fits best
+        new_task.maintenance_type = "Arıza Bakımı" 
         new_task.maintenance_status = "Arıza Bildirimi"
         new_task.start_date = today()
-        new_task.end_date = today() # Prevent recurrence for one-off breakdowns
+        new_task.end_date = frappe.utils.add_days(today(), 1) # Prevent recurrence for one-off breakdowns
         new_task.periodicity = "Daily" # Just a placeholder since it's required
         new_task.description = aciklama
         

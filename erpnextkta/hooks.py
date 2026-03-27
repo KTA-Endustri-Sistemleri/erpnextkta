@@ -362,6 +362,9 @@ fixtures = [
                     "Stock Settings-barcode_quiet_zone",
                     "Buying Settings-custom_use_price_list_currency",
                     "Asset-custom_makine_no",
+                    "Asset Maintenance Log-custom_calisma_karti_ref",
+                    "Asset Maintenance Log-custom_ariza_nedeni",
+                    "Asset Maintenance Log-custom_ariza_aciklamasi",
                 ],
             ]
         ],
@@ -374,6 +377,9 @@ fixtures = [
                 "in",
                 [
                     "Asset-main-search_fields",
+                    "Asset Maintenance Task-maintenance_status-options",
+                    "Asset Maintenance Log-maintenance_status-options",
+                    "Asset Maintenance Task-maintenance_type-options",
                 ],
             ]
         ],
