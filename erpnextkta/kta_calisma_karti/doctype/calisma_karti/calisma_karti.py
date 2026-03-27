@@ -346,9 +346,10 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     aml.custom_ariza_aciklamasi = aciklama
     aml.due_date = today()
     aml.insert(ignore_permissions=True)
-    aml.submit()
     
-    # Optional: Send notification or ToDo if assign_tasks in asset_maintenance.py doesn't cover this specific status properly
+    # Not: aml.submit() yapılmıyor çünkü ERPNext standarta "Completed" veya "Cancelled" 
+    # durumu olmadan gönderime izin vermez. Bildirim draft olarak kalacak, 
+    # bakım ekibi işi bitirince statüyü "Completed" yapıp submit edecek.
     
     return aml.name
 
