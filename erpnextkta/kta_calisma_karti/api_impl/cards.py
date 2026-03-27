@@ -239,6 +239,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
         "modified",
         "creation",
         "kalite_kontrol",
+        "docstatus",
     ]
 
     allowed = {
@@ -366,6 +367,7 @@ def get_calisma_karti_detail(name: str):
         "quality_inspection": doc.quality_inspection or None,
         "miktar_zorunlu_mu": frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu"),
         "creation": doc.creation,
+        "docstatus": doc.docstatus,
         "max_kart_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430,
         "kart_uyari_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "kart_uyari_suresi_dk") or 400,
     }
@@ -487,6 +489,10 @@ def _handle_bitis(doc, now, aciklama, qty):
     # 4. Submit linked Quality Inspection (if draft)
     _submit_linked_quality_inspection(doc)
 
+    # 5. Auto-submit the card if it is still a Draft
+    if doc.docstatus == 0:
+        doc.submit()
+
 
 def _submit_linked_quality_inspection(doc):
     """Submit the Quality Inspection linked to this Calisma Karti if it is still a Draft.
@@ -526,7 +532,7 @@ def _auto_pause_other_active_cards(hedef_doc, now_dt):
         filters={
             "operator": hedef_doc.operator,
             "name": ["!=", hedef_doc.name],
-            "docstatus": 1,
+            "docstatus": ["in", [0, 1]],
             "bitis_saati": ["is", "not set"]
         },
         fields=["name"]
@@ -540,16 +546,19 @@ def _auto_pause_other_active_cards(hedef_doc, now_dt):
                 "durus_baslangic": now_dt,
             })
             eski_doc.update_durum()
-            eski_doc.flags.ignore_validate_update_after_submit = True
-            eski_doc.save(ignore_permissions=True)
-
-            # Force-update read-only status fields on submitted document
-            frappe.db.set_value("Calisma Karti", eski_doc.name, {
-                "durum": eski_doc.durum,
-                "toplam_sure": eski_doc.toplam_sure,
-                "toplam_durus": eski_doc.toplam_durus,
-                "net_calisma_suresi": eski_doc.net_calisma_suresi
-            }, update_modified=False)
+            if eski_doc.docstatus == 1:
+                eski_doc.flags.ignore_validate_update_after_submit = True
+                eski_doc.save(ignore_permissions=True)
+                
+                # Force-update read-only status fields on submitted document
+                frappe.db.set_value("Calisma Karti", eski_doc.name, {
+                    "durum": eski_doc.durum,
+                    "toplam_sure": eski_doc.toplam_sure,
+                    "toplam_durus": eski_doc.toplam_durus,
+                    "net_calisma_suresi": eski_doc.net_calisma_suresi
+                }, update_modified=False)
+            else:
+                eski_doc.save(ignore_permissions=True)
             from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
             publish_calisma_karti_changed(eski_doc.name, reason="auto_pause")
 
@@ -562,8 +571,8 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
 
     doc.reload()
 
-    if doc.docstatus != 1:
-        frappe.throw(_("İşlem yapmak için kartın 'Onaylı' (Submit edilmiş) olması gerekir."))
+    if doc.docstatus not in (0, 1):
+        frappe.throw(_("İptal edilmiş kartta işlem yapılamaz."))
 
     durum = doc.get_durum()
     if (doc.kalite_kontrol or '').strip() == 'Reddedildi':
@@ -595,19 +604,23 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
 
     doc.update_durum()
 
-    doc.flags.ignore_validate_update_after_submit = True
-    doc.save(ignore_permissions=True)
-    
-    # Force-update read-only fields on submitted document using db.set_value.
-    # Standard doc.save() often ignores read-only fields even if allow_on_submit is 1.
-    frappe.db.set_value("Calisma Karti", doc.name, {
-        "baslangic_saati": doc.baslangic_saati,
-        "bitis_saati": doc.bitis_saati,
-        "durum": doc.durum,
-        "toplam_sure": doc.toplam_sure,
-        "toplam_durus": doc.toplam_durus,
-        "net_calisma_suresi": doc.net_calisma_suresi
-    }, update_modified=False)
+    if doc.docstatus == 1:
+        doc.flags.ignore_validate_update_after_submit = True
+        doc.save(ignore_permissions=True)
+        
+        # Force-update read-only fields on submitted document using db.set_value.
+        # Standard doc.save() often ignores read-only fields even if allow_on_submit is 1.
+        frappe.db.set_value("Calisma Karti", doc.name, {
+            "baslangic_saati": doc.baslangic_saati,
+            "bitis_saati": doc.bitis_saati,
+            "durum": doc.durum,
+            "toplam_sure": doc.toplam_sure,
+            "toplam_durus": doc.toplam_durus,
+            "net_calisma_suresi": doc.net_calisma_suresi,
+            "tamamlanan_miktar": doc.tamamlanan_miktar
+        }, update_modified=False)
+    else:
+        doc.save(ignore_permissions=True)
     
     frappe.db.commit()
 

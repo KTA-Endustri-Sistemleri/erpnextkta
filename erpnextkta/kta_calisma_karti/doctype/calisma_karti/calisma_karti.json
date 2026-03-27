@@ -264,7 +264,28 @@
     "row_format": "Dynamic",
     "sort_field": "modified",
     "sort_order": "DESC",
-    "states": [],
+    "states": [
+        {
+            "color": "Gray",
+            "title": "Hazır"
+        },
+        {
+            "color": "Green",
+            "title": "Çalışıyor"
+        },
+        {
+            "color": "Orange",
+            "title": "Duruşta"
+        },
+        {
+            "color": "Blue",
+            "title": "Bitmiş"
+        },
+        {
+            "color": "Red",
+            "title": "Reddedildi"
+        }
+    ],
     "track_changes": 1,
     "track_seen": 1
 }
