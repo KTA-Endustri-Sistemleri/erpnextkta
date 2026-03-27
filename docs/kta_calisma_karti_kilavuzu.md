@@ -27,7 +27,7 @@ title: "KTA Çalışma Kartı Kullanım Kılavuzu"
 1. **İş Kartı Seçimi:** QR kod okutarak veya listeden "İş Kartı" (`Job Card`) seçerek başlayın. İş Emri ve Üretilecek Ürün bilgileri otomatik olarak gelecektir. (Sistem akıllı barkod desteği ile `2026-X` gibi kısa girişleri otomatik tamamlar).
 2. **Operasyon Seçimi:** Yapılacak işlemi (örneğin: *Kablo Kesme ve Kontak Basma*) seçin.
 3. **İş İstasyonu ve Operatör:** Hangi istasyonda çalışılacağını ve operatörü belirleyin.
-4. **Oluştur:** "Oluştur" butonuna basarak kartı sisteme kaydedin. Kart, başlangıçta **"Hazır"** statüsünde bekleyecektir.
+4. **Oluştur:** "Oluştur" butonuna basarak kartı sisteme kaydedin. Kart, başlangıçta **"Taslak" (Draft)** durumunda ve **"Hazır"** statüsünde bekleyecektir.
 
 ### Kartı Başlatma:
 Kartı oluşturduktan sonra içine girip, üst kısımdaki **"Başlat"** butonuna basın. Durum **"Çalışıyor"** olarak güncellenecek ve süre sayacı başlayacaktır.
@@ -113,6 +113,7 @@ Kartı açık unutmanız durumunda sistem vardiya sonlarında (**16:00** ve **00
 - **Duruşta olan kartlar**, duruşa geçtikleri saat itibariyle kapatılır.
 - **Çalışıyor olan kartlar**, vardiyanın tam bitiş saatinde (16:00 / 00:00) kapatılır.
 - Kapatılan kartların net süreleri vardiya sınırı olan **430 dakika** ile kısıtlanır.
+- **İptal Edildi (Cancelled) Durumu:** Eğer bir kart yönetici tarafından veya hatalı olduğu için "İptal Edildi" (docstatus=2) konumuna getirilirse, arayüzde **Gri** renkte ve "İptal Edildi" etiketiyle görünür. Bu durumdaki kartlarda herhangi bir işlem yapılamaz ve tüm aksiyon butonları gizlenir.
 
 ---
 
