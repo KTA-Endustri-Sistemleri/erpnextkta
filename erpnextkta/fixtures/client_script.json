@@ -196,5 +196,16 @@
   "name": "KTA Satınalma Para Birimi",
   "script": "frappe.ui.form.on('Purchase Order', {\n    supplier: function(frm) {\n        if (!frm.doc.supplier) return;\n\n        frappe.db.get_single_value('Buying Settings', 'custom_use_price_list_currency')\n            .then(enabled => {\n                if (!enabled) return;\n\n                let check_interval = setInterval(function() {\n                    if (!frm.updating_party_details && frm.doc.buying_price_list) {\n                        clearInterval(check_interval);\n\n                        frappe.db.get_value('Price List', frm.doc.buying_price_list, 'currency')\n                            .then(r => {\n                                if (r.message && r.message.currency) {\n                                    let pl_currency = r.message.currency;\n                                    if (pl_currency !== frm.doc.currency) {\n                                        frm.set_value('currency', pl_currency);\n                                        frappe.show_alert({\n                                            message: __('Para birimi fiyat listesine göre {0} olarak ayarlandı', [pl_currency]),\n                                            indicator: 'blue'\n                                        }, 5);\n                                    }\n                                }\n                            });\n                    }\n                }, 200);\n\n                setTimeout(() => clearInterval(check_interval), 10000);\n            });\n    }\n});",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Asset Maintenance Log",
+  "enabled": 1,
+  "modified": "2026-03-27 16:24:39.669330",
+  "module": "erpnextkta",
+  "name": "KTA Asset Maintenance Log UX",
+  "script": "\nfrappe.ui.form.on(\"Asset Maintenance Log\", {\n    refresh: function(frm) {\n        // Task linkini salt okunur yapıyoruz çünkü Child DocType müstakil açılamaz\n        if (frm.doc.task) {\n            frm.set_df_property(\"task\", \"read_only\", 1);\n        }\n        \n        if (frm.doc.asset_maintenance) {\n            frm.add_custom_button(__(\"Bakım Planına Git\"), function() {\n                frappe.set_route(\"Form\", \"Asset Maintenance\", frm.doc.asset_maintenance);\n            }, \"Girişler\");\n        }\n    }\n});\n",
+  "view": "Form"
  }
 ]

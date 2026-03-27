@@ -314,26 +314,26 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     if existing_task:
         task_id = existing_task
     else:
-        # Append new task
-        new_task = asset_maint.append("asset_maintenance_tasks", {})
-        new_task.maintenance_task = task_name
-        new_task.maintenance_type = "Arıza Bakımı" 
-        new_task.maintenance_status = "Arıza Bildirimi"
-        new_task.start_date = today()
-        new_task.end_date = frappe.utils.add_days(today(), 1) # Prevent recurrence for one-off breakdowns
-        new_task.periodicity = "Daily" # Just a placeholder since it's required
-        new_task.description = aciklama
+        # Bir task satırı eklenmek zorunda. Ancak parent.save() dersek 
+        # Asset Maintenance içindeki on_update her satır için tekrar ToDo oluşturmaya çalışıyor
+        # ve "Zaten şu kullanıcının yapılacaklar listesinde" hatası veriyor.
+        # Bu yüzden satırı manuel insert ediyoruz.
         
-        # Atama yapılacak kişiyi maintenance_manager veya ilk member seçelim
-        if asset_maint.maintenance_manager:
-            new_task.assign_to = asset_maint.maintenance_manager
-        else:
-            team_members = frappe.db.get_values("Maintenance Team Member", {"parent": asset_maint.maintenance_team}, "team_member")
-            if team_members:
-                new_task.assign_to = team_members[0][0]
-                
-        asset_maint.save(ignore_permissions=True)
-        # after save, get the actual task row name
+        new_task = frappe.get_doc({
+            "doctype": "Asset Maintenance Task",
+            "parent": asset_maint.name,
+            "parenttype": "Asset Maintenance",
+            "parentfield": "asset_maintenance_tasks",
+            "maintenance_task": task_name,
+            "maintenance_type": "Arıza Bakımı",
+            "maintenance_status": "Arıza Bildirimi",
+            "start_date": today(),
+            "end_date": frappe.utils.add_days(today(), 1),
+            "periodicity": "Daily",
+            "description": aciklama,
+            "assign_to": asset_maint.maintenance_manager or (frappe.db.get_values("Maintenance Team Member", {"parent": asset_maint.maintenance_team}, "team_member")[0][0] if frappe.db.get_values("Maintenance Team Member", {"parent": asset_maint.maintenance_team}, "team_member") else None)
+        })
+        new_task.insert(ignore_permissions=True)
         task_id = new_task.name
 
     # 3. Asset Maintenance Log (Arıza Bildirimi) oluştur
