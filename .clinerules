@@ -1,95 +1,50 @@
-# KTA Calisma Karti (erpnextkta) Development Rules
+# erpnextkta — KTA Endüstri Özelleştirmeleri
 
-This file defines the architecture, patterns, and business rules for the `kta_calisma_karti` module within the `erpnextkta` app.
+This project is a Frappe/ERPNext app containing customizations for KTA Endüstri (Çerkezköy, Türkiye). It follows standard Frappe best practices while implementing complex business modules.
 
-## Architecture Overview
-- **Frontend**: Vue 3 SPA communicating via `frappe.call()` and `frappe.realtime`.
-- **Backend Facade**: `kta_calisma_karti/api.py` is the single stable entry point for the frontend. It re-exports methods from the implementation layer.
-- **Implementation Layer**: `kta_calisma_karti/api_impl/` contains the logic for different domains (qc, cards, hurda, etc.).
-- **Data Layer**: Frappe ORM interacting with MariaDB.
+## Architecture & Project Structure
+- **Core App**: `erpnextkta/erpnextkta/`
+- **Modules**:
+  - `kta_calisma_karti`: Multi-SPA production interface (Vue 3). Detailed rules in [kta_calisma_karti/.clinerules](file:///srv/workspaces/bench/frappe-bench/apps/erpnextkta/erpnextkta/kta_calisma_karti/.clinerules).
+  - `kta_stock`: Stock tracking, labels, and real-time dashboards.
+  - `kta_mrp`: Production planning and reporting.
+  - `kta_sales`: Sales order syncing and comparisons.
+  - `overrides`: Centralized DocType class overrides.
 
-## Core Design Patterns
+## Core Development Patterns
 
-### 1. Facade Pattern (`api.py`)
-- The `api.py` file should only contain imports and re-exports. Actual logic resides in `api_impl/`.
-- Frontend method strings should stay consistent as `erpnextkta.kta_calisma_karti.api.*`.
+### 1. DocType Overrides
+- **Rule**: Never modify standard ERPNext DocType files. Always use the `overrides` folder.
+- **Mechanism**: Standard classes are overridden in `hooks.py:override_doctype_class`.
+- **Implementation**: Implementation logic should reside in `erpnextkta/overrides/*.py`.
 
-### 2. Role-Gate Pattern
-- Enforce strict role checks in all write endpoints.
-- Pattern:
-  ```python
-  if is_system_manager(): return
-  if is_quality_user(): return
-  emp = require_my_employee()
-  if doc.operator != emp: frappe.throw(PermissionError)
-  ```
+### 2. Event-Driven Logic
+- Use `doc_events` in `hooks.py` to hook into standard DocType lifecycles (validate, on_update, on_submit).
+- For cross-module logic (e.g., Stock Entry affecting Calisma Karti), use these hooks to maintain decoupling.
 
-### 3. Permlevel Bypass Pattern (QC)
-- Fields like `kalite_kontrol` (permlevel 1) require specialized handlers.
-- Pattern:
-  ```python
-  _require_qc_role()
-  doc.flags.ignore_permissions = True
-  doc.db_set("kalite_kontrol", val)
-  ```
+### 3. Global API & Helpers (`erpnextkta/api.py`)
+- `erpnextkta/api.py` serves as a central repository for app-wide utility functions:
+  - Zebra printing and label formatting.
+  - Purchase Receipt split logic and Batch allocations.
+  - Global constants for DocType and field names.
+- Always check if a utility exists in `api.py` before re-implementing it.
 
-### 4. Realtime Event Pattern
-- Trigger `publish_calisma_karti_changed(docname, reason)` after every significant data change.
-- Frontend listens to `kta_calisma_karti:list_changed` or `kta_calisma_karti:doc_changed:{name}`.
+### 4. Scheduler & Tasks (`erpnextkta/tasks.py`)
+- Background jobs are managed in `tasks.py` and defined in `hooks.py:scheduler_events`.
+- Common tasks: `auto_close_timed_out_cards`, `delete_old_unstarted_cards`.
 
-### 5. Settings Pattern
-- Use the Single DocType `KTA Calisma Karti Settings` for global hard limits and configurations via `frappe.db.get_single_value`.
+## Business Rules & Standards
 
-## Quality Control (QC) Workflow
-- **Template Discovery**: Finds templates based on Item master, Job Card, or Item Code matching (`qc.py:get_qc_templates_for_ck`).
-- **Reading Fields**:
-  - `reading_1` for numeric values.
-  - `reading_value` for non-numeric values.
-  - `manual_inspection: 1` is **mandatory** to preserve user-selected status.
-- **Document Lifecycle**:
-  - QI documents are created as **Draft** (docstatus: 0).
-  - Automatically submitted in `cards.py:_handle_bitis` when the Work Card is finished.
-- **Status Mapping**:
-  - `intent="reject"` forces all readings to "Rejected" and sets card status to "Reddedildi".
-  - `intent="approve"` sets card status based on QI outcome (Accepted -> Onaylandı).
+### 1. Fixtures & Customization
+- **Rule**: Use `hooks.py:fixtures` for Role Profiles, Client Scripts, Custom Fields, and Property Setters.
+- **Naming**: Use `KTA` prefix for custom assets where applicable to avoid collisions.
 
-## Business Rules & Validation
+### 2. Frontend Conventions
+- **Asset Build**: All frontend changes require a build: `bench build --app erpnextkta --production`.
+- **Custom JS**: Standard desk customizations should be in `public/js/` and linked via `hooks.py:doctype_js` or `app_include_js`.
 
-### 1. Hurda (Scrap)
-- Item selection is restricted by `item-group` (BOM items intersecting with operation allowed groups).
-- Requires `add_hurda`, `update_hurda`, and `delete_hurda` helpers.
-
-### 2. IDC Measurement
-- Restricted to "120-IDC Connector" item group items within the Work Order BOM.
-
-### 3. Alt-Operasyon (Sub-Operation)
-- Restricted by material groups if defined; otherwise based on sequence logic.
-
-## Frontend (Vue.js) Guidelines
-- **Composables**: Centralize API logic in `useCalismaKarti.ts`.
-- **Modals**: REDESIGNED modals should support selective parameter addition from a pool.
-- **Navigation**: Use `openQualityInspection(name)` helper with `frappe.set_route`.
-- **Theme**: Neutral dark palette (`#0a0a0a`, `#171717`, `#f5f5f5`).
-
-## API Implementation Details
-- Avoid client-side filtering for large lists; use SQL `WHERE`, `LIMIT`, and `OFFSET` in the backend.
-- Use `first_child_table(doc, list_of_possible_names)` to handle dynamic child table field names.
-
-- **Build**: Frappe asset build (`bench build --app erpnextkta --production`).
-
-## Unified Module Concept
-The `kta_calisma_karti` folder (backend) and the frontend folders listed below must be treated as a **single, unified module**. Any changes to one may affect the other.
-- `public/create-calisma-karti`
-- `public/list-calisma-cards`
-- `public/view-calisma-karti`
-
-## Development Workflow & Build Rules
-- **Mandatory Build**: After any change in the frontend folders (especially inside `public/`), you **MUST** run the following command to reflect changes:
-  ```bash
-  bench build --app erpnextkta --production
-  ```
-- **Conventional Commits**: Gitmoji ve kapsam (scope) kullanımı zorunludur.
-  - Format: `type(scope): 📝 message`
-  - Kapsam örnekleri: `qc`, `cards`, `kalite`, `ui`.
-  - Her zaman anlamlı gitmojiler kullanılmalıdır.
+## Workflow & Commits
+- **Conventional Commits**: Format `type(scope): 📝 message`.
+- **Scope Examples**: `qc`, `cards`, `stock`, `sales`, `mrp`, `ui`.
+- Always use meaningful gitmojis.
 

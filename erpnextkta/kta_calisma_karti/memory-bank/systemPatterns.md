@@ -213,4 +213,24 @@ Kullanıcı girişini kolaylaştırmak için uygulanan örüntü:
 Kalite belgesi (QI) ile Çalışma Kartı (CK) arasındaki derin entegrasyonu yöneten desendir:
 - **Linkage Protection**: Bir karta QI belgesi bağlandığı anda, hem Backend (`qc.py`) hem de Frontend (`useCalismaKartiUi.ts`) seviyesinde manuel kalite güncellemeleri kilitlenir. Tek veri kaynağı QI belgesi olur.
 - **Dynamic Restoration**: QI statüsü "Rejected" durumundan "Accepted" durumuna döndüğünde, kartın genel durumu (`durum` alanı) körü körüne eski haline getirilmez. Bunun yerine `ck.get_durum()` metodu tetiklenerek, kartın o anki zaman kayıtlarına (Çalışıyor, Duruşta, Hazır) göre en güncel ve doğru statü otomatik olarak hesaplanıp restore edilir.
-- **Transactional Integrity**: Arka plan işlemleri (hook) sırasında veritabanı tutarlılığını sağlamak için `db_set` sonrası `frappe.db.commit()` ve `update_modified=True` kullanılarak verinin ve Real-time bildirimlerin senkronize kalması garanti edilir.
+### 20. 1:1 Çift Yönlü Hurda Senkronizasyon Deseni (Bidirectional Sync)
+Her `Calisma Karti` ile bir `Stock Entry` (Scrap for Manufacturing) arasında 1:1 ilişki kuran ve veri tutarlılığını her iki yönde koruyan desendir:
+- **Kaynak (Source)**: `scrap_stock_entry` alanı kart üzerindeki tekil bağlantıdır.
+- **Döngü Koruması**: `frappe.flags.syncing_hurda_from_se` ve `syncing_hurda_from_card` bayrakları ile bitmeyen güncellemeler engellenir.
+- **Konsolidasyon Yok**: Operatör bazlı takip için İş Emri seviyesinde birleştirme yapılmaz; her kart kendi belgesini yönetir.
+- **ID Eşleme**: Karta eklenen her hurda satırı, SE'deki karşılığının ID'sini (`stock_entry_detail_id`) saklar.
+
+### 21. Controller-Level After-Submit Sync Deseni
+Frappe'nin standart "Onaylı belgede değişiklik yapılamaz" kuralını bypass ederek senkronizasyonun devam etmesini sağlayan desendir:
+- **Tetikleyici**: Controller içindeki `on_update_after_submit` metodu.
+- **Uygulama**: `ck_doc.save(ignore_permissions=True)` çağrısı ile onaylı kartlar üzerinde alt tablo güncellemeleri yapılır.
+- **Bypass Flag**: `doc.flags.ignore_validate_update_after_submit = True` kullanılarak standart validation'lar aşılır (sadece hurda tablosu için).
+
+### 22. DB-Level Field Protection Pattern (Work Order Restoration)
+ERPNext'in standart `Stock Entry` validasyonlarının `job_card` yoksa `work_order` alanını temizlemesini engellemek için kullanılır:
+- **Mekanizma**: `se_doc.save()` veya `insert()` işleminden hemen sonra `frappe.db.set_value` ile veriyi doğrudan DB'ye zorla yazma.
+- **Gerekçe**: Bellekteki (in-memory) döküman objesi validasyon sırasında alanı boşaltsa dahi, işlem bitiminde DB seviyesinde veri restore edilmiş olur.
+### 23. Modal Teleportation Pattern (Vue 3)
+Modalların (Hurda, Kalite vb.) `sticky` elementler veya farklı `stacking context` (z-index) yaratan konteynırlar tarafından perdelenmesini önlemek için kullanılan desendir:
+- **Uygulama**: Modal template'i `<Teleport to="body">` ile sarmalanır.
+- **Fayda**: Modal, DOM ağacında en üst seviyeye (body) taşınarak, uygulama içindeki hiyerarşiden bağımsız olarak her zaman en üst katmanda renders edilmesi garanti altına alınır.

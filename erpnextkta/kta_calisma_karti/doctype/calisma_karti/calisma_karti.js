@@ -99,6 +99,14 @@ frappe.ui.form.on('Calisma Karti', {
       ]), 'blue');
     }
 
+    if (frm.doc.net_calisma_suresi) {
+      frm.dashboard.add_indicator(__('Net Süre: {0}', [frm.doc.net_calisma_suresi]), 'cyan');
+    }
+
+    if (frm.doc.toplam_durus && frm.doc.toplam_durus !== "00:00:00") {
+      frm.dashboard.add_indicator(__('Toplam Duruş: {0}', [frm.doc.toplam_durus]), 'orange');
+    }
+
     // Makine Günlük Bakım Butonu
     frm.add_custom_button(__('Günlük Bakım Onayı'), () => {
       showMaintenanceDialog(frm);

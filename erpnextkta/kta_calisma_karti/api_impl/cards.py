@@ -184,6 +184,43 @@ def _attach_alt_operasyon_titles(rows):
 
     return rows
 
+def _attach_bom_musteri_indeksi(rows):
+    """Enrich rows with custom_musteri_indeksi_no from BOM via Work Order."""
+    wo_names = list({r.get("custom_work_order") for r in rows if r.get("custom_work_order")})
+    if not wo_names:
+        return rows
+
+    wos = frappe.get_all(
+        "Work Order",
+        filters={"name": ["in", wo_names]},
+        fields=["name", "bom_no"],
+        limit_page_length=len(wo_names),
+    )
+    wo_bom_map = {w["name"]: w.get("bom_no") for w in wos if w.get("bom_no")}
+    
+    bom_names = list(set(wo_bom_map.values()))
+    if not bom_names:
+        return rows
+
+    # Error handling in case the BOM doctype does not have the custom field installed yet
+    try:
+        boms = frappe.get_all(
+            "BOM",
+            filters={"name": ["in", bom_names]},
+            fields=["name", "custom_musteri_indeksi_no"],
+            limit_page_length=len(bom_names),
+        )
+        bom_index_map = {b["name"]: b.get("custom_musteri_indeksi_no") for b in boms}
+    except Exception:
+        bom_index_map = {}
+
+    for r in rows:
+        wo = r.get("custom_work_order")
+        bom = wo_bom_map.get(wo)
+        r["custom_musteri_indeksi_no"] = bom_index_map.get(bom)
+
+    return rows
+
 @frappe.whitelist()
 def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None, durum=None, search_term=None, qc_filter=None):
     """Return assigned Calisma Karti rows for list UI (with customer_group info and filters)."""
@@ -276,6 +313,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
 
     rows = _attach_customer_groups(rows)
     rows = _attach_operasyon_label(rows)
+    rows = _attach_bom_musteri_indeksi(rows)
     
     if customer_group:
         rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]

@@ -60,17 +60,26 @@ def _shift_window(now_dt):
 
 
 def _parse_minsec(value: str) -> int:
-    """Parse 'M:SS' into total seconds. Returns 0 on invalid input."""
-    if not value:
+    """Parse 'HH:MM:SS' or 'M:SS' into total seconds. Returns 0 on invalid input."""
+    if not value or not isinstance(value, str):
         return 0
     s = str(value).strip()
     if ":" not in s:
         return 0
-    m, sec = s.split(":", 1)
+    
+    parts = s.split(":")
     try:
-        return int(m) * 60 + int(sec)
+        if len(parts) == 3:
+            # HH:MM:SS
+            h, m, sec = parts
+            return int(h) * 3600 + int(m) * 60 + int(sec)
+        elif len(parts) == 2:
+            # M:SS
+            m, sec = parts
+            return int(m) * 60 + int(sec)
     except Exception:
-        return 0
+        pass
+    return 0
 
 
 def _other_cards_net_seconds_in_shift(operator: str, shift_start, shift_end, exclude_name: str) -> int:
@@ -102,6 +111,11 @@ def _other_cards_net_seconds_in_shift(operator: str, shift_start, shift_end, exc
 class CalismaKarti(Document):
     def on_update(self):
         publish_calisma_karti_changed(self.name, reason="doc:on_update")
+        from erpnextkta.kta_calisma_karti.api_impl.hurda import sync_calisma_karti_hurdalar_to_se
+        sync_calisma_karti_hurdalar_to_se(self)
+
+    def on_update_after_submit(self):
+        self.on_update()
 
     def autoname(self):
         """
@@ -241,11 +255,15 @@ class CalismaKarti(Document):
             return 'calisiyor'
 
 def format_sure(seconds):
-    if not seconds or seconds < 0:
-        return "0:00"
-    minutes = int(seconds // 60)
-    seconds = int(seconds % 60)
-    return f"{minutes}:{seconds:02d}"
+    if seconds is None or seconds < 0:
+        return "00:00:00"
+    
+    total_seconds = int(round(seconds))
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    secs = total_seconds % 60
+    
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 @frappe.whitelist()
 def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_miktar=None):

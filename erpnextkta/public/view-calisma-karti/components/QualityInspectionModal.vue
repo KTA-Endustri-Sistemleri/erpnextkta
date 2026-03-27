@@ -136,140 +136,142 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div v-if="props.show" class="ck-modal-overlay">
-    <div class="ck-modal">
-      <div class="ck-modal-header" :style="props.intent === 'reject' ? 'border-bottom-color: var(--ck-danger)' : ''">
-        <b>{{ props.intent === 'reject' ? 'Kalite Ret Formu' : 'Kalite Muayene Formu' }}</b>
-        <button class="ck-modal-close" @click="props.onClose">&times;</button>
-      </div>
-
-      <div class="ck-modal-body">
-        <!-- Ürün & Sample Size -->
-        <div class="ck-form-row">
-          <div class="ck-form-group" style="flex:1">
-            <label>Ürün: <b>{{ props.itemCode }}</b></label>
-          </div>
-          <div class="ck-form-group" style="width:100px">
-            <label>Numune Sayısı</label>
-            <input type="number" v-model.number="sampleSize" min="1" class="ck-input" style="text-align:center" />
-          </div>
+  <Teleport to="body">
+    <div v-if="props.show" class="ck-modal-overlay">
+      <div class="ck-modal">
+        <div class="ck-modal-header" :style="props.intent === 'reject' ? 'border-bottom-color: var(--ck-danger)' : ''">
+          <b>{{ props.intent === 'reject' ? 'Kalite Ret Formu' : 'Kalite Muayene Formu' }}</b>
+          <button class="ck-modal-close" @click="props.onClose">&times;</button>
         </div>
 
-        <div class="ck-form-group">
-          <label>Kalite Şablonu</label>
-          <select v-model="selectedTemplate" class="ck-select">
-            <option value="">Şablon Seçiniz...</option>
-            <option v-for="t in props.templates" :key="t.name" :value="t.name">
-              {{ t.quality_inspection_template_name || t.name }}
-            </option>
-          </select>
-        </div>
-
-        <div v-if="loadingDetails" class="ck-muted text-center" style="padding: 20px;">
-          Parametreler yükleniyor...
-        </div>
-
-        <template v-else-if="parameters.length > 0">
-          <!-- Parametre havuzu (henüz eklenmeyenler) -->
-          <div v-if="availableParams.length > 0" class="ck-param-pool">
-            <div class="ck-pool-header">
-              <span class="ck-pool-title">Parametreler</span>
-              <button class="ck-add-all-btn" type="button" @click="addAll">
-                + Tümünü Ekle
-              </button>
+        <div class="ck-modal-body">
+          <!-- Ürün & Sample Size -->
+          <div class="ck-form-row">
+            <div class="ck-form-group" style="flex:1">
+              <label>Ürün: <b>{{ props.itemCode }}</b></label>
             </div>
-            <div class="ck-param-chips">
-              <button
-                v-for="p in availableParams"
-                :key="p.specification"
-                type="button"
-                class="ck-param-chip"
-                @click="addParam(p)"
-              >
-                + {{ p.specification }}
-                <span v-if="p.numeric" class="ck-chip-limits">
-                  ({{ p.min_value }}–{{ p.max_value }})
-                </span>
-              </button>
+            <div class="ck-form-group" style="width:100px">
+              <label>Numune Sayısı</label>
+              <input type="number" v-model.number="sampleSize" min="1" class="ck-input" style="text-align:center" />
             </div>
           </div>
 
-          <div
-            v-if="availableParams.length > 0 && readings.length > 0"
-            class="ck-divider"
-          ></div>
+          <div class="ck-form-group">
+            <label>Kalite Şablonu</label>
+            <select v-model="selectedTemplate" class="ck-select">
+              <option value="">Şablon Seçiniz...</option>
+              <option v-for="t in props.templates" :key="t.name" :value="t.name">
+                {{ t.quality_inspection_template_name || t.name }}
+              </option>
+            </select>
+          </div>
 
-          <!-- Eklenen okumalar -->
-          <div v-if="readings.length > 0" class="ck-reading-list">
-            <div v-for="(r, i) in readings" :key="i" class="ck-reading-item">
-              <div class="ck-reading-info">
-                <span class="ck-reading-spec">{{ r.specification }}</span>
-                <div style="display:flex; align-items:center; gap:6px;">
-                  <span v-if="r.numeric" class="ck-reading-limits">
-                    ({{ r.min_value }} – {{ r.max_value }})
+          <div v-if="loadingDetails" class="ck-muted text-center" style="padding: 20px;">
+            Parametreler yükleniyor...
+          </div>
+
+          <template v-else-if="parameters.length > 0">
+            <!-- Parametre havuzu (henüz eklenmeyenler) -->
+            <div v-if="availableParams.length > 0" class="ck-param-pool">
+              <div class="ck-pool-header">
+                <span class="ck-pool-title">Parametreler</span>
+                <button class="ck-add-all-btn" type="button" @click="addAll">
+                  + Tümünü Ekle
+                </button>
+              </div>
+              <div class="ck-param-chips">
+                <button
+                  v-for="p in availableParams"
+                  :key="p.specification"
+                  type="button"
+                  class="ck-param-chip"
+                  @click="addParam(p)"
+                >
+                  + {{ p.specification }}
+                  <span v-if="p.numeric" class="ck-chip-limits">
+                    ({{ p.min_value }}–{{ p.max_value }})
                   </span>
-                  <button class="ck-remove-btn" type="button" @click="removeReading(i)">✕</button>
-                </div>
+                </button>
               </div>
+            </div>
 
-              <div class="ck-reading-input-row">
-                <input
-                  v-if="r.numeric"
-                  type="number"
-                  v-model="r.reading_1"
-                  class="ck-input"
-                  placeholder="Değer"
-                  @input="onReadingChange(i)"
-                />
-                <input
-                  v-else
-                  type="text"
-                  v-model="r.reading_value"
-                  class="ck-input"
-                  placeholder="Sonuç"
-                />
+            <div
+              v-if="availableParams.length > 0 && readings.length > 0"
+              class="ck-divider"
+            ></div>
 
-                <div class="ck-status-btns">
-                  <button
-                    class="ck-status-btn"
-                    :class="r.status === 'Accepted' && 'is-ok'"
-                    @click="updateStatus(i, 'Accepted')"
-                  >✔</button>
-                  <button
-                    class="ck-status-btn"
-                    :class="r.status === 'Rejected' && 'is-reject'"
-                    @click="updateStatus(i, 'Rejected')"
-                  >✖</button>
+            <!-- Eklenen okumalar -->
+            <div v-if="readings.length > 0" class="ck-reading-list">
+              <div v-for="(r, i) in readings" :key="i" class="ck-reading-item">
+                <div class="ck-reading-info">
+                  <span class="ck-reading-spec">{{ r.specification }}</span>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span v-if="r.numeric" class="ck-reading-limits">
+                      ({{ r.min_value }} – {{ r.max_value }})
+                    </span>
+                    <button class="ck-remove-btn" type="button" @click="removeReading(i)">✕</button>
+                  </div>
+                </div>
+
+                <div class="ck-reading-input-row">
+                  <input
+                    v-if="r.numeric"
+                    type="number"
+                    v-model="r.reading_1"
+                    class="ck-input"
+                    placeholder="Değer"
+                    @input="onReadingChange(i)"
+                  />
+                  <input
+                    v-else
+                    type="text"
+                    v-model="r.reading_value"
+                    class="ck-input"
+                    placeholder="Sonuç"
+                  />
+
+                  <div class="ck-status-btns">
+                    <button
+                      class="ck-status-btn"
+                      :class="r.status === 'Accepted' && 'is-ok'"
+                      @click="updateStatus(i, 'Accepted')"
+                    >✔</button>
+                    <button
+                      class="ck-status-btn"
+                      :class="r.status === 'Rejected' && 'is-reject'"
+                      @click="updateStatus(i, 'Rejected')"
+                    >✖</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Hiç eklenmemiş -->
-          <div v-else class="ck-empty" style="padding: 16px 0;">
-            Yukarıdan parametre ekleyin.
-          </div>
-        </template>
+            <!-- Hiç eklenmemiş -->
+            <div v-else class="ck-empty" style="padding: 16px 0;">
+              Yukarıdan parametre ekleyin.
+            </div>
+          </template>
 
-        <div v-else-if="selectedTemplate" class="ck-empty">
-          Bu şablonda parametre tanımlanmamış.
+          <div v-else-if="selectedTemplate" class="ck-empty">
+            Bu şablonda parametre tanımlanmamış.
+          </div>
         </div>
-      </div>
 
-      <div class="ck-modal-footer">
-        <button class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">Vazgeç</button>
-        <button
-          class="ck-btn"
-          :class="props.intent === 'reject' ? 'ck-btn--danger' : 'ck-btn--success'"
-          style="flex: 2"
-          @click="handleSubmit"
-          :disabled="submitting || !selectedTemplate || readings.length === 0"
-        >
-          {{ submitting ? 'Kaydediliyor...' : (props.intent === 'reject' ? 'Kaydet ve Reddet' : 'Kaydet ve Onayla') }}
-        </button>
+        <div class="ck-modal-footer">
+          <button class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">Vazgeç</button>
+          <button
+            class="ck-btn"
+            :class="props.intent === 'reject' ? 'ck-btn--danger' : 'ck-btn--success'"
+            style="flex: 2"
+            @click="handleSubmit"
+            :disabled="submitting || !selectedTemplate || readings.length === 0"
+          >
+            {{ submitting ? 'Kaydediliyor...' : (props.intent === 'reject' ? 'Kaydet ve Reddet' : 'Kaydet ve Onayla') }}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <style scoped>

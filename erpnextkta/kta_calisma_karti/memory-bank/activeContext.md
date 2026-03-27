@@ -1,16 +1,46 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-23
+> Son güncelleme: 2026-03-25
 
-Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle alt operasyonların ID yerine başlık (Title) üzerinden seçilmesi sağlandı.
+Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle süre formatları `ss:dk:sn` olarak standartlaştırıldı, sihirbazdaki yönlendirme hatası giderildi ve otomatik kapatılan kartların kalite belgelerinin onaylanması sağlandı.
 
+- [x] **Süre Formatı Standartlaştırması**: Tüm çalışma ve duruş süreleri `dk:sn` formatından `ss:dk:sn` formatına dönüştürüldü. (Tamamlandı)
+- [x] **Bağlantı Hatası Düzeltmesi**: Yeni kart oluşturma sonrası "Çalışma Kartına Git" butonu artık doğru şekilde `view-calisma-karti` sayfasına yönlendiriyor. (Tamamlandı)
 - [x] **Liste Görünümü & Skeleton Modernizasyonu**: `App.vue` içindeki skeleton yapısı modern shimmer animasyonu ile yenilendi ve asıl kart yapısına sadık hale getirildi. (Tamamlandı)
 - [x] **Frontend Refactoring**: Dev boyutlu `App.vue` (~900 satır), `CkCard`, `CkFilters` ve `CkSkeleton` bileşenlerine ayrılarak modüler hale getirildi. (Tamamlandı)
 - [x] **SPA Glassmorphism UI**: Uygulama arayüzü tam uyumlu Açık/Koyu tema değişkenleri ve akıcı tab animasyonları ile premium seviyeye çekildi. (Tamamlandı)
 - [x] **Kalite Onay Kilitleme & Senkronizasyon**: Reddedilen kartların statü tutarlılığını korumak için QI bağımlı kontrol ve geri dönüş (restoration) mantığı eklendi. (Tamamlandı)
 - [x] **Kart Geçiş Kısıtlaması (Veri Doğrulama)**: Operatörlerin veri girmeden açık kartlar arasında gezmesini önlemek için "Sıkı / Esnek" modlu geçiş onay sistemi eklendi. (Tamamlandı)
+- [x] **Hurda (Scrap) Modülü Modernizasyonu**: Çalışma Kartı ve Stok Belgesi (Stock Entry) arasında 1:1 tam çift yönlü, real-time senkronizasyon sağlandı. (Tamamlandı)
+- [x] **Çift Yönlü Senkronizasyon (Bidirectional Sync)**: SPA, Desk ve Stok Belgesi üzerinden yapılan tüm değişiklikler (ekleme, silme, güncelleme) karşılıklı olarak anında yansıtılıyor. (Tamamlandı)
+- [x] **Onay Sonrası Düzenleme (After-Submit Sync)**: Çalışma Kartı onaylanmış (Submitted) olsa dahi hurda girişlerinin senkronize kalması sağlandı. (Tamamlandı)
+- [x] **Gelişmiş Hurda Arayüzü (CkHurdaModal)**: İş Emri verileriyle (Depo, Birim) otomatik dolan, tam ekran ve modern bir giriş arayüzü tasarlandı. (Tamamlandı)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+- [x] **Hurda Senkronizasyonu (v2)**: Operatör bazlı 1:1 Stok Belgesi eşleşmesi ve çift yönlü senkronizasyon tamamlandı. (Tamamlandı)
+
+## Son Değişiklikler (2026-03-26) — Hurda Modülü Modernizasyonu & 1:1 Senkronizasyon
+*   **Operatör Bazlı Mimari (1:1)**: Her `Calisma Karti`'nin kendine ait bir `Stock Entry` (Scrap for Manufacturing) belgesi olması sağlandı. İş Emri bazlı konsolidasyon yerine operatör/kart bazlı izlenebilirlik önceliklendirildi.
+*   **Çift Yönlü Eşzamanlılık (Bidirectional)**:
+    *   **SPA/Desk → SE**: Kart üzerinden (vue veya desk formu) yapılan ekleme, silme ve miktar güncellemeleri bağlı SE'ye anında yansıtılır.
+    *   **SE → Kart**: Stok Belgesi üzerinden manuel satır silme veya düzenleme işlemleri karta geri yansıtılır. `syncing_hurda_from_se` flag'i ile döngü koruması sağlandı.
+*   **Onay Sonrası Revizyon Desteği**: `on_update_after_submit` eklenerek, Çalışma Kartı onaylandığında dahi hurda değişikliklerinin senkronize kalması sağlandı.
+*   **Veri Bütünlüğü Koruması**: ERPNext'in `validate()` sırasında `work_order` alanını temizlemesini önlemek için, her kayıt sonrası `frappe.db.set_value` ile İş Emri bilgisi doğrudan DB'ye zorla (force) yazılır.
+*   **Arayüz İyileştirmeleri (CkHurdaModal)**:
+    *   `frappe.prompt` yerine modern Vue bileşeni tasarlandı ve `Teleport` ile body'ye taşınarak katman (z-index) çakışmaları giderildi.
+    *   **Pill (Chip) Seçimi**: Hurda nedeni seçimi için dropdown yerine interaktif tıklanabilir piller (chips) eklendi.
+    *   **Dikey Sığma (Vertical Fit)**: Küçük ekranlarda modalın alt kısmının kesilmemesi için `max-height: 92vh` ve dahili `overflow-y: auto` (flex-body) yapısı kuruldu.
+    *   İş Emri verileriyle (Depo, Birim) otomatik dolum mantığı korundu.
+
+## Son Değişiklikler (2026-03-25) — Süre Formatı Standartlaştırması
+*   **Backend Mantığı**: `calisma_karti.py` içindeki `format_sure` fonksiyonu `HH:MM:SS` döndürecek şekilde, `_parse_minsec` ise hem eski (`M:SS`) hem yeni formatı tanıyacak şekilde güncellendi.
+*   **Veri Göçü (Migration)**: Mevcut tüm `Calisma Karti` kayıtlarındaki süre alanları toplu bir patch ile `ss:dk:sn` formatına dönüştürüldü.
+*   **DocType Etiketleri**: `Calisma Karti` ve `Operasyon Duruslari` DocType'larındaki süre alanlarının etiketleri `(ss:dk:sn)` olarak güncellendi.
+*   **Frontend Görünümü**: `formatDuration` yardımcı fonksiyonu eklenerek durations SPA arayüzünde (DurusView vb.) ve standart form dashboard'unda (Indicators) yeni formatta gösterilmesi sağlandı.
+
+## Son Değişiklikler (2026-03-25) — Bağlantı Hatası Düzeltmesi & Scheduler QI Onayı
+*   **Yönlendirme Mantığı**: `create-calisma-karti` sihirbazındaki `goToCreatedDoc` fonksiyonu, standart form yerine özel `view-calisma-karti` sayfasına yönlendirme yapacak şekilde (`frappe.set_route`) güncellendi.
+*   **Otomatik QI Onayı**: `tasks.py` içindeki `auto_close_timed_out_cards` fonksiyonu, kart kapatılırken bağlı olan taslak (Draft) durumundaki `Quality Inspection` belgelerini otomatik olarak onaylayacak (Submit) şekilde güçlendirildi.
 
 ## Son Değişiklikler (2026-03-23) — Glassmorphism SPA Arayüz Modernizasyonu
 *   **Arayüz Paradigması**: Uygulama görünümü tamamen modern "Glassmorphism" (Cam efekti) tarzına dönüştürüldü. Arkaplan görselleri olmadan, derinlik ve gölge algısıyla (Soft UI) premium bir endüstriyel arayüz tasarlandı.

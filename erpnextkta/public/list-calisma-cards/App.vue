@@ -28,6 +28,7 @@ async function load(opts = {}) {
   }
 
   loading.value = true;
+  const startTime = Date.now();
   errorMsg.value = "";
   try {
     const statusMap = {
@@ -82,7 +83,14 @@ async function load(opts = {}) {
   } catch (e) {
     errorMsg.value = e?.message || "Liste alınamadı.";
   } finally {
-    loading.value = false;
+    // Ensure skeleton is visible for at least 800ms for a smoother UX
+    const elapsed = Date.now() - startTime;
+    const minDelay = 1000;
+    const remaining = Math.max(0, minDelay - elapsed);
+    
+    setTimeout(() => {
+      loading.value = false;
+    }, remaining);
   }
 }
 
@@ -271,30 +279,32 @@ onUnmounted(() => {
 
     <!-- Content -->
     <div class="ck-body">
-      <!-- Loading skeleton -->
-      <CkSkeleton v-if="loading" :count="6" />
+      <Transition name="ck-fade" mode="out-in">
+        <!-- Loading skeleton -->
+        <CkSkeleton v-if="loading" :count="6" key="skeleton" />
 
-      <div v-else-if="errorMsg" class="ck-error">
-        <div class="ck-error-title">Hata</div>
-        <div class="ck-error-msg">{{ errorMsg }}</div>
-        <button class="ck-btn" @click="load">Tekrar dene</button>
-      </div>
-
-      <div v-else-if="rows.length === 0" class="ck-empty">
-        <div class="ck-empty-title">Kayıt yok</div>
-        <div class="ck-muted">
-          Aramana uygun çalışma kartı bulunamadı.
+        <div v-else-if="errorMsg" class="ck-error" key="error">
+          <div class="ck-error-title">Hata</div>
+          <div class="ck-error-msg">{{ errorMsg }}</div>
+          <button class="ck-btn" @click="load">Tekrar dene</button>
         </div>
-      </div>
 
-      <div v-else class="ck-list">
-        <CkCard
-          v-for="r in rows"
-          :key="r.name"
-          :row="r"
-          @click="openDetail(r.name)"
-        />
-      </div>
+        <div v-else-if="rows.length === 0" class="ck-empty" key="empty">
+          <div class="ck-empty-title">Kayıt yok</div>
+          <div class="ck-muted">
+            Aramana uygun çalışma kartı bulunamadı.
+          </div>
+        </div>
+
+        <div v-else class="ck-list" key="list">
+          <CkCard
+            v-for="r in rows"
+            :key="r.name"
+            :row="r"
+            @click="openDetail(r.name)"
+          />
+        </div>
+      </Transition>
 
       <div v-if="!loading && !errorMsg && rows.length > 0" class="ck-loadmore">
         <button
@@ -378,6 +388,17 @@ onUnmounted(() => {
 
 .ck-list{ display:grid; gap:12px; }
 
+/* Transition: Smooth Fade for Loading Skeleton */
+.ck-fade-enter-active,
+.ck-fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+
+.ck-fade-enter-from,
+.ck-fade-leave-to {
+  opacity: 0;
+}
+
 /* Skeleton placeholder util classes (if needed elsewhere) */
 .w90{ width:90%; }
 .w80{ width:80%; }
@@ -385,4 +406,31 @@ onUnmounted(() => {
 .w60{ width:60%; }
 .w50{ width:50%; }
 .w40{ width:40%; }
+</style>
+
+<style>
+/* Global Glassmorphism Variables for List App */
+:root {
+  --ck-glass-bg: rgba(255, 255, 255, 0.45);
+  --ck-glass-border: rgba(0, 0, 0, 0.1);
+  --ck-glass-border-soft: rgba(0, 0, 0, 0.05);
+  --ck-glass-shadow: rgba(0, 0, 0, 0.03);
+  --ck-glass-highlight: rgba(255, 255, 255, 0.9);
+  --ck-glass-bottom-edge: rgba(0, 0, 0, 0.05);
+  --ck-skeleton-shine: rgba(255, 255, 255, 0.85); /* Much more visible light shine */
+  --ck-success-bg: rgba(34, 197, 94, 0.55);
+  --ck-danger-bg: rgba(239, 68, 68, 0.55);
+}
+
+[data-theme="dark"] {
+  --ck-glass-bg: rgba(28, 33, 39, 0.8);
+  --ck-glass-border: rgba(255, 255, 255, 0.12);
+  --ck-glass-border-soft: rgba(255, 255, 255, 0.05);
+  --ck-glass-shadow: rgba(0, 0, 0, 0.5);
+  --ck-glass-highlight: rgba(255, 255, 255, 0.15);
+  --ck-glass-bottom-edge: rgba(0, 0, 0, 0.3);
+  --ck-skeleton-shine: rgba(255, 255, 255, 0.18); /* Clearly visible shimmer in dark mode */
+  --ck-success-bg: rgba(34, 197, 94, 0.55);
+  --ck-danger-bg: rgba(239, 68, 68, 0.55);
+}
 </style>

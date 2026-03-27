@@ -3,6 +3,7 @@ import frappe
 from frappe.utils import now_datetime, get_datetime, add_to_date
 from erpnextkta import api as api
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+from erpnextkta.kta_calisma_karti.api_impl.cards import _submit_linked_quality_inspection
 from datetime import datetime, time
 
 def weekly():
@@ -78,6 +79,9 @@ def auto_close_timed_out_cards():
 
             # Süre + durum hesaplarını çalıştır
             doc.update_durum()
+
+            # Bağlı kalite belgesini onayla
+            _submit_linked_quality_inspection(doc)
 
             if doc.docstatus == 1:
                 doc.flags.ignore_validate_update_after_submit = True

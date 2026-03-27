@@ -33,7 +33,13 @@ Module (Backend): erpnextkta/kta_calisma_karti/
 Public (Frontend): erpnextkta/public/
   ├── create-calisma-karti/  ← create-calisma-karti.bundle.js
   ├── list-calisma-cards/    ← list-calisma-cards.bundle.js
-  └── view-calisma-karti/    ← view-calisma-karti.bundle.js
+/srv/workspaces/apps/erpnextkta/erpnextkta/public/view-calisma-karti/
+  ├── components/
+  ├── composables/
+  ├── utils/
+  │   └── format.ts    ← Yeni formatDuration yardımcı aracı
+  ├── views/
+  └── App.vue
 ```
 
 > [!NOTE]
@@ -58,6 +64,16 @@ Public (Frontend): erpnextkta/public/
 | `frappe.publish_realtime()` | after_commit=True ile olay yayını |
 | `frappe.validate_and_sanitize_search_inputs` | Link field search decorator |
 | `frappe.db.sql()` | BOM item whitelist sorguları (JOIN gerekli) |
+
+- **`hurda_gider_hesabi`** (Link → Account): Hurda Stok Belgelerinde (`Stock Entry Item`) kullanılacak olan varsayılan gider hesabı.
+- **`kart_gecis_modu`** (Select): Sıkı / Esnek.
+
+## Yeni ERPNext Doküman Özellikleri
+
+### Stock Entry Type: `Scrap for Manufacturing`
+- **Purpose**: `Material Issue`
+- **Custom Logic**: Bu tipteki belgeler için `on_update` ve `on_trash` hook'ları üzerinden `Calisma Karti` senkronizasyonu tetiklenir.
+- **Field Enrichment**: `is_scrap_item: 1` bayrağı ile hurda satırları normal sarfiyat satırlarından ayırt edilir.
 
 ## Kritik Bağımlılıklar
 

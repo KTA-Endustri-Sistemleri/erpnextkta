@@ -31,8 +31,8 @@ defineProps({
 
 <style scoped>
 @keyframes ck-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(150%); }
 }
 
 .ck-skel {
@@ -41,38 +41,60 @@ defineProps({
 }
 
 .ck-skel-card {
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, .08);
+  background: var(--ck-glass-bg, rgba(255, 255, 255, 0.6));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--ck-glass-border-soft, rgba(0, 0, 0, 0.05));
+  border-top: 1px solid var(--ck-glass-highlight, rgba(255, 255, 255, 0.8));
+  box-shadow: 0 4px 12px var(--ck-glass-shadow, rgba(0, 0, 0, 0.03));
   border-radius: 18px;
   overflow: hidden;
   height: 140px;
+  position: relative;
 }
 
+/* Base shape styles */
 .ck-skel-pill {
-  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-  background-size: 200% 100%;
-  animation: ck-shimmer 2s infinite linear;
+  background: var(--ck-glass-border, rgba(0,0,0,0.04));
   border-radius: 18px 0 0 18px;
+  height: 100%;
 }
 
 .ck-skel-line {
-  background: linear-gradient(90deg, #f3f4f6 25%, #f9fafb 50%, #f3f4f6 75%);
-  background-size: 200% 100%;
-  animation: ck-shimmer 2s infinite linear;
+  background: var(--ck-glass-border, rgba(0,0,0,0.04));
   border-radius: 8px;
+}
+
+.ck-skel-chevron {
+  width: 12px;
+  height: 24px;
+  background: var(--ck-glass-border, rgba(0,0,0,0.04));
+  border-radius: 4px;
+}
+
+/* Global Shimmer Overlay for the whole card */
+.ck-skel-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    var(--ck-skeleton-shine, rgba(255, 255, 255, 0.4)) 45%,
+    var(--ck-skeleton-shine, rgba(255, 255, 255, 0.4)) 55%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: ck-shimmer 1s infinite ease-in-out;
+  pointer-events: none;
 }
 
 .ck-skel-kv {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-}
-
-.ck-skel-chevron {
-  width: 12px;
-  height: 24px;
-  background: #f3f4f6;
-  border-radius: 4px;
 }
 
 .w60 { width: 60%; }

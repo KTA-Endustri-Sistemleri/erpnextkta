@@ -625,7 +625,7 @@ function resetWizard() {
 
 function goToCreatedDoc() {
   if (!createdDoc.value || !createdDoc.value.name) return;
-  frappe.set_route('Form', 'Calisma Karti', createdDoc.value.name);
+  frappe.set_route('view-calisma-karti', createdDoc.value.name);
 }
 
 function startNewWorkCard() {

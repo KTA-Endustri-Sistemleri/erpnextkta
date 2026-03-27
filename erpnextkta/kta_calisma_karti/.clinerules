@@ -1,0 +1,59 @@
+# KTA Çalışma Kartı (kta_calisma_karti) Development Rules
+
+This file defines the architecture, patterns, and business rules specific to the `kta_calisma_karti` module.
+
+## Architecture Overview
+- **Unified Module**: This folder and the frontend bundles (`public/create|list|view-calisma-karti`) are a single unit.
+- **Frontend**: Vue 3 SPA (Composition API) communicating via `frappe.call()` and `frappe.realtime`.
+- **Backend Facade**: `api.py` is the single stable entry point.
+- **Logic Layer**: `api_impl/` contains domain-specific logic.
+
+## Core Patterns
+
+### 1. Facade Pattern
+- `api.py` only contains imports and re-exports from `api_impl/`.
+- Frontend methods: `erpnextkta.kta_calisma_karti.api.*`.
+
+### 2. Role-Gate & Permissions
+- Strict role checks in write endpoints: `is_system_manager()`, `is_quality_user()`, `require_my_employee()`.
+- `kalite_kontrol` field (permlevel 1) bypass: Use `doc.db_set` with `ignore_permissions = True` after `_require_qc_role()`.
+
+### 3. Realtime Events
+- Call `publish_calisma_karti_changed` after mutations.
+- Events: `list_changed`, `doc_changed:{name}`.
+
+## Business Rules
+
+### 1. Material Group Whitelist (v4)
+- **Alt Operasyon**: Priority to own `allowed_material_groups`. Fallback to cumulative sequence-based groups of previous sub-ops + parent op.
+- **Hurda**: Cumulative whitelist of ALL previous parent ops and their sub-ops.
+- **Intersection**: Valid items = (BOM Required Items) ∩ (Whitelisted Groups).
+
+### 2. Shift-End Smart Close
+- Automated closing at **16:00** and **00:00**.
+- Time calculation: On Hold cards use `durus_baslangic`; Working cards use official shift end.
+- Operator limit: **430 minutes** net time per shift.
+
+### 3. Hurda 1:1 Bidirectional Sync
+- Linked `Stock Entry` (Scrap for Manufacturing) for each card.
+- Use `syncing_hurda_from_se` and `syncing_hurda_from_card` flags.
+- `on_update_after_submit` for synced updates on submitted cards.
+
+### 4. Quality Control
+- **QI Draft Flow**: Create QI as Draft (0), auto-submit on card Bitir (Bitis).
+- **Manual Inspection**: `manual_inspection: 1` is mandatory for each reading.
+- **Restoration**: QI Rejected -> Accepted restores card status via `ck.get_durum()`.
+
+## Frontend (Vue.js)
+
+### 1. Decomposition Rule
+- If a Vue file exceeds **500 lines**, split it into `CkCard.vue`, `CkFilters.vue`, etc.
+
+### 2. UI/UX Standard
+- **Glassmorphism**: Use `--ck-glass-*` CSS variables and support Light/Dark modes.
+- **Modal Control**: Use `<Teleport to="body">`.
+- **Sıkıyönetim (Martial Law)**: Override `frappe.msgprint` and clear `frappe.messages` every 250ms when wizards are active.
+
+## Workflow
+- **Barcode Prefixing**: Normalize `2026-X` to `MFG-WO-2026-X`.
+- **Mandatory Build**: Run `bench build --app erpnextkta --production` after frontend changes.

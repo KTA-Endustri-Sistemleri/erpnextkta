@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatDuration } from "../utils/format";
 const props = defineProps<{ doc: any }>();
 </script>
 
@@ -11,7 +12,7 @@ const props = defineProps<{ doc: any }>();
         <div class="ck-mini-content">
           <b class="ck-mini-title">{{ d.durus_nedeni || ('Duruş #' + (i+1)) }}</b>
           <div class="ck-muted ck-mini-sub">{{ d.durus_baslangic || "-" }} → {{ d.durus_bitis || "Devam ediyor" }}</div>
-          <div class="ck-muted ck-mini-sub">Süre: <strong style="color:var(--ck-text);">{{ d.durus_suresi ?? "-" }}</strong> dk</div>
+          <div class="ck-muted ck-mini-sub">Süre: <strong style="color:var(--ck-text);">{{ formatDuration(d.durus_suresi) }}</strong></div>
           <div v-if="d.aciklama" class="ck-muted ck-mini-sub">{{ d.aciklama }}</div>
         </div>
       </div>
