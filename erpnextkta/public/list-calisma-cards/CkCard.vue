@@ -2,7 +2,7 @@
   <button class="ck-card" @click="$emit('click')">
     <div class="row no-gutters" :class="qcClasses">
       <div class="col-2 p-0 ck-pill" :data-tone="statusTone">
-        <span>{{ row.durum || "-" }}</span>
+        <span>{{ statusTone === 'cancelled' ? 'İptal Edildi' : (row.durum || "-") }}</span>
       </div>
       <div class="col-9 py-2 pl-2">
         <div class="ck-name">{{ row.operator }}</div>
@@ -61,6 +61,7 @@ const qcClasses = computed(() => ({
 
 const statusTone = computed(() => {
   const v = (props.row.durum || "").toLowerCase();
+  if (Number(props.row.docstatus) === 2 || v.includes("iptal")) return "cancelled";
   if (v.includes("redd")) return "rejected";
   if (v.includes("bit")) return "finished";
   if (v.includes("duru")) return "paused";
@@ -138,6 +139,7 @@ const statusTone = computed(() => {
 .ck-pill[data-tone="paused"] { background: var(--orange-500); color: var(--white-overlay-900); }
 .ck-pill[data-tone="finished"] { background: var(--green); color: var(--white-overlay-900); }
 .ck-pill[data-tone="rejected"] { background: var(--red); color: var(--white-overlay-900); }
+.ck-pill[data-tone="cancelled"] { background: var(--gray-500); color: var(--white-overlay-900); }
 
 .ck-name {
   font-weight: 900;

@@ -439,6 +439,7 @@ watch(
   --ck-success: var(--success, #22c55e);
   --ck-finished-bg: var(--success, #22c55e);
   --ck-info: var(--info, #3b82f6);
+  --ck-cancelled: var(--gray-500, #6b7280);
 
   /* Badge backgrounds */
   --ck-danger-bg: var(--alert-danger-bg, rgba(239, 68, 68, .14));
@@ -755,6 +756,11 @@ watch(
 
 .ck-status--rejected {
   background: linear-gradient(90deg, var(--ck-danger), transparent);
+  color: var(--white-overlay-900);
+}
+
+.ck-status--cancelled {
+  background: linear-gradient(90deg, var(--ck-cancelled), transparent);
   color: var(--white-overlay-900);
 }
 
