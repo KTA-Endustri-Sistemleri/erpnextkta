@@ -18,11 +18,16 @@ This file defines the architecture, patterns, and business rules specific to the
 - Strict role checks in write endpoints: `is_system_manager()`, `is_quality_user()`, `require_my_employee()`.
 - `kalite_kontrol` field (permlevel 1) bypass: Use `doc.db_set` with `ignore_permissions = True` after `_require_qc_role()`.
 
-### 3. Realtime Events
-- Call `publish_calisma_karti_changed` after mutations.
-- Events: `list_changed`, `doc_changed:{name}`.
+### 4. Draft-First Lifecycle (v4)
+- **Creation**: New cards are created as `docstatus: 0` (Draft).
+- **Auto-Submit**: Submitted automatically ONLY during the `Bitis` (Finish) action.
+- **Operations**: `islem_yap` supports both Draft and Submitted documents.
 
-## Business Rules
+### 5. Cancelled Status
+- **Display**: Cards with `docstatus: 2` are shown as "İptal Edildi" (Grey) in all SPAs.
+- **Priority**: This status takes precedence over `durum` field or `bitis_saati` in UI logic.
+
+## Realtime Events
 
 ### 1. Material Group Whitelist (v4)
 - **Alt Operasyon**: Priority to own `allowed_material_groups`. Fallback to cumulative sequence-based groups of previous sub-ops + parent op.
