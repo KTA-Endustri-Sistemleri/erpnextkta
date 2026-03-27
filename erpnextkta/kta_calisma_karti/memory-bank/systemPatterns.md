@@ -70,6 +70,16 @@ Hammadde ve hurda listeleri, operasyonun iş akışındaki sırasına (`sequence
     - Aktif operasyondan önceki (sequence <= current) **TÜM** ana operasyonların ve bu ana operasyonlara bağlı **TÜM** alt operasyonların malzeme grupları serbest bırakılır.
 - **Intersection**: Son liste, Work Order'ın `required_items` listesi ile bu izinli grupların kesişimidir.
 
+### 8. Draft-First Lifecycle (v4)
+- **Strateji**: Belgelerin veri girişi tamamlanmadan "Onaylı" (Submitted) olmasını engellemek için tüm yeni kayıtlar `docstatus: 0` (Taslak) olarak başlatılır.
+- **Tetikleyici**: Belge sadece "Bitir" (Finish) aksiyonu sonucunda `doc.submit()` ile onaylanır. Diğer tüm ara işlemler (Başlat, Duraklat, Devam) Taslak belge üzerinde yürütülür.
+- **Esneklik**: `islem_yap` metodu, hem taslak hem de onaylı belgelerde `db_set` kullanarak veri güncelleyebilir.
+
+### 9. Cancelled Status Priority (UI)
+- **Kural**: Belgenin `docstatus` değeri `2` (Cancelled) ise, frontend üzerindeki diğer tüm durum hesaplama mantığı baypas edilir.
+- **Görünüm**: İptal edilen belgeler her zaman Gri ("İptal Edildi") olarak ve inaktif aksiyon butonlarıyla gösterilir.
+- **Veri Kaynağı**: Detay ve Liste API'leri mutlaka `docstatus` alanını içermelidir.
+
 ### 6. Realtime Event Pattern
 ```python
 # Her yazma işlemi sonrası (create.py, qc.py, ...):

@@ -2,6 +2,16 @@
 
 > Son güncelleme: 2026-03-26 (Hurda Modülü Modernizasyonu)
 
+### Çalışma Kartı Lifecycle & UI Modernizasyonu (2026-03-27 - Tamamlandı)
+- [x] **Draft-First Mimari**: Belge yaratımında `doc.submit()` kaldırıldı; kartlar Taslak olarak başlıyor.
+- [x] **Otomatik Onay (Auto-Submit)**: `islem_yap` bitiş anında belgeyi otomatik olarak Submit edecek şekilde güncellendi.
+- [x] **Native States**: DocType seviyesinde "Document States" (Hazır, Çalışıyor, Duruşta, Bitmiş, Reddedildi) tanımlandı.
+- [x] **İptal Edildi (docstatus=2) Desteği**: İptal edilen kartların hem Liste hem Detay SPA'larında Grey (İptal Edildi) olarak gösterilmesi sağlandı.
+- [x] **API Veri Entegrasyonu**: `docstatus` alanı hem liste hem detay API payload'larına dahil edildi.
+- [x] **Tema Uyumu**: Koyu/Açık temalarda "İptal Edildi" durumu için özel cam efekti ve renk paleti uygulandı.
+- [x] **Yetki Güncellemesi**: `Asset Maintenance Log` okuma yetkileri operatör ve yönetici rollerine eklendi.
+- [x] **Production Build**: Tüm değişiklikler `bench build` ile derlenerek canlıya alındı.
+
 ### Hurda (Scrap) Modülü Modernizasyonu (2026-03-26 - Tamamlandı)
 - [x] **1:1 Operatör Bazlı Senkronizasyon**: Her kart için bağımsız Stok Belgesi yapısı kuruldu.
 - [x] **Çift Yönlü Sync**: SPA, Desk ve Stok Belgesi arasındaki tüm veri akışı senkronize edildi.

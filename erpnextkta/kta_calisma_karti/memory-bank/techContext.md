@@ -64,6 +64,7 @@ Public (Frontend): erpnextkta/public/
 | `frappe.publish_realtime()` | after_commit=True ile olay yayını |
 | `frappe.validate_and_sanitize_search_inputs` | Link field search decorator |
 | `frappe.db.sql()` | BOM item whitelist sorguları (JOIN gerekli) |
+| `doc.docstatus` | API yanıtlarına mutlaka dahil edilmelidir (UI statü önceliği için) |
 
 - **`hurda_gider_hesabi`** (Link → Account): Hurda Stok Belgelerinde (`Stock Entry Item`) kullanılacak olan varsayılan gider hesabı.
 - **`kart_gecis_modu`** (Select): Sıkı / Esnek.

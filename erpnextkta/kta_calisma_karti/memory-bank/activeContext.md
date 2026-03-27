@@ -1,23 +1,17 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-25
+> Son güncelleme: 2026-03-27
 
-Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı. `calisma-karti-op-enhancements` ve `operation-jc-mapping` özellikleri tek bir stabil branşta toplandı. Bugün yapılan geliştirmeyle süre formatları `ss:dk:sn` olarak standartlaştırıldı, sihirbazdaki yönlendirme hatası giderildi ve otomatik kapatılan kartların kalite belgelerinin onaylanması sağlandı.
+Çalışma Kartı modülü Frappe-native document state mimarisine taşındı. "Draft-First" (Önce Taslak) yaratım akışı, iptal edilmiş belge desteği ve detaylı yetkilendirme güncellemeleri tamamlandı. Ayrıca toplu build işlemleriyle frontend-backend veri tutarlılığı sağlandı.
 
-- [x] **Süre Formatı Standartlaştırması**: Tüm çalışma ve duruş süreleri `dk:sn` formatından `ss:dk:sn` formatına dönüştürüldü. (Tamamlandı)
-- [x] **Bağlantı Hatası Düzeltmesi**: Yeni kart oluşturma sonrası "Çalışma Kartına Git" butonu artık doğru şekilde `view-calisma-karti` sayfasına yönlendiriyor. (Tamamlandı)
-- [x] **Liste Görünümü & Skeleton Modernizasyonu**: `App.vue` içindeki skeleton yapısı modern shimmer animasyonu ile yenilendi ve asıl kart yapısına sadık hale getirildi. (Tamamlandı)
-- [x] **Frontend Refactoring**: Dev boyutlu `App.vue` (~900 satır), `CkCard`, `CkFilters` ve `CkSkeleton` bileşenlerine ayrılarak modüler hale getirildi. (Tamamlandı)
-- [x] **SPA Glassmorphism UI**: Uygulama arayüzü tam uyumlu Açık/Koyu tema değişkenleri ve akıcı tab animasyonları ile premium seviyeye çekildi. (Tamamlandı)
-- [x] **Kalite Onay Kilitleme & Senkronizasyon**: Reddedilen kartların statü tutarlılığını korumak için QI bağımlı kontrol ve geri dönüş (restoration) mantığı eklendi. (Tamamlandı)
-- [x] **Kart Geçiş Kısıtlaması (Veri Doğrulama)**: Operatörlerin veri girmeden açık kartlar arasında gezmesini önlemek için "Sıkı / Esnek" modlu geçiş onay sistemi eklendi. (Tamamlandı)
-- [x] **Hurda (Scrap) Modülü Modernizasyonu**: Çalışma Kartı ve Stok Belgesi (Stock Entry) arasında 1:1 tam çift yönlü, real-time senkronizasyon sağlandı. (Tamamlandı)
-- [x] **Çift Yönlü Senkronizasyon (Bidirectional Sync)**: SPA, Desk ve Stok Belgesi üzerinden yapılan tüm değişiklikler (ekleme, silme, güncelleme) karşılıklı olarak anında yansıtılıyor. (Tamamlandı)
-- [x] **Onay Sonrası Düzenleme (After-Submit Sync)**: Çalışma Kartı onaylanmış (Submitted) olsa dahi hurda girişlerinin senkronize kalması sağlandı. (Tamamlandı)
-- [x] **Gelişmiş Hurda Arayüzü (CkHurdaModal)**: İş Emri verileriyle (Depo, Birim) otomatik dolan, tam ekran ve modern bir giriş arayüzü tasarlandı. (Tamamlandı)
+- [x] **Draft-First Lifecycle**: Yeni kartlar artık "Taslak" (docstatus=0) olarak açılıyor ve sadece "Bitir" anında otomatik submit ediliyor. (Tamamlandı)
+- [x] **Native Document States**: Hazır, Çalışıyor, Duruşta, Bitmiş, Reddedildi durumları Frappe standart statüleri olarak sisteme işlendi. (Tamamlandı)
+- [x] **Cancelled Status Display**: `docstatus=2` (İptal Edildi) olan kartların hem list-view hem de view-calisma-karti SPA'larında doğru (Gri) ve yüksek öncelikli gösterilmesi sağlandı. (Tamamlandı)
+- [x] **Theme-Aware UI Sync**: "İptal Edildi" durumu için cam tasarımı (Glassmorphism) Açık/Koyu tema değişkenleri eklendi. (Tamamlandı)
+- [x] **API Veri Tutarlılığı**: `get_calisma_karti_detail` ve `get_my_calisma_kartlari` API'lerine `docstatus` alanı eklenerek frontend belirsizliği giderildi. (Tamamlandı)
+- [x] **Yetki Güncellemesi**: `Asset Maintenance Log` DocType'ı için standart operatör ve yönetici rollerine okuma yetkisi tanımlandı. (Tamamlandı)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
-- [x] **Hurda Senkronizasyonu (v2)**: Operatör bazlı 1:1 Stok Belgesi eşleşmesi ve çift yönlü senkronizasyon tamamlandı. (Tamamlandı)
 
 ## Son Değişiklikler (2026-03-26) — Hurda Modülü Modernizasyonu & 1:1 Senkronizasyon
 *   **Operatör Bazlı Mimari (1:1)**: Her `Calisma Karti`'nin kendine ait bir `Stock Entry` (Scrap for Manufacturing) belgesi olması sağlandı. İş Emri bazlı konsolidasyon yerine operatör/kart bazlı izlenebilirlik önceliklendirildi.
