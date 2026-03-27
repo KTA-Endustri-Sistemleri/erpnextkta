@@ -137,6 +137,71 @@ function openMaintenanceDialog() {
   });
 }
 
+// ==========================================
+// ARIZA BİLDİRİMİ EKRANI
+// ==========================================
+function openArizaDialog() {
+  const dialog = new frappe.ui.Dialog({
+    title: 'Arıza Bildirimi',
+    fields: [
+      {
+        fieldtype: 'Autocomplete',
+        fieldname: 'makine_no',
+        label: 'Makine No',
+        reqd: 1,
+        options: makineNoOptions.value.length ? makineNoOptions.value.join('\n') : '',
+        description: 'Arıza yaşanan makine numarasını bulup seçin (örn: M 01)'
+      },
+      {
+        fieldtype: 'Link',
+        fieldname: 'ariza_nedeni',
+        label: 'Arıza Nedeni',
+        options: 'Ariza Nedeni',
+        reqd: 1
+      },
+      {
+        fieldtype: 'Small Text',
+        fieldname: 'aciklama',
+        label: 'Açıklama',
+        reqd: 1,
+        description: 'Arıza hakkında kısa ve net bilgi verin.'
+      }
+    ],
+    primary_action_label: 'Bildirimi Gönder',
+    primary_action: function(values) {
+      if (!values.makine_no || !values.ariza_nedeni || !values.aciklama) {
+        frappe.msgprint('Lütfen tüm zorunlu alanları doldurun.');
+        return;
+      }
+
+      const method = 'erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.create_ariza_bildirimi';
+      
+      frappe.call({
+        method: method,
+        args: {
+          calisma_karti: props.doc.name,
+          makine_no: values.makine_no,
+          ariza_nedeni: values.ariza_nedeni,
+          aciklama: values.aciklama
+        },
+        callback: function(r) {
+          if (!r.exc) {
+            dialog.hide();
+            frappe.msgprint({
+              title: 'Başarılı',
+              message: 'Arıza bildirimi oluşturuldu ve bakım ekibine iletildi.',
+              indicator: 'green'
+            });
+            loadArizaRecords(); // Refresh the fault list
+          }
+        }
+      });
+    }
+  });
+  
+  dialog.show();
+}
+
 // Fetch existing maintenance records for today
 const maintenanceRecords = ref<any[]>([]);
 const loading = ref(false);
@@ -173,6 +238,67 @@ loadMaintenanceRecords();
 function openMaintenanceRecord(recordName: string) {
   frappe.set_route('Form', 'Makine Gunluk Bakim Formu', recordName);
 }
+
+// Fetch existing Ariza records 
+const arizaRecords = ref<any[]>([]);
+const arizaLoading = ref(false);
+
+const makineNoOptions = ref<string[]>([]);
+
+async function loadMakineNoOptions() {
+  try {
+    const result = await frappe.call({
+      method: 'frappe.client.get_list',
+      args: {
+        doctype: 'Asset',
+        filters: { custom_makine_no: ['!=', ''] },
+        fields: ['custom_makine_no'],
+        limit_page_length: 0
+      }
+    });
+    if (result.message) {
+      makineNoOptions.value = [...new Set(result.message.map((r: any) => r.custom_makine_no).filter(Boolean))] as string[];
+    }
+  } catch (error) {
+    console.error('Error loading makine options:', error);
+  }
+}
+
+// Fetch existing Ariza records 
+async function loadArizaRecords() {
+  arizaLoading.value = true;
+  try {
+    const result = await frappe.call({
+      method: 'frappe.client.get_list',
+      args: {
+        doctype: 'Asset Maintenance Log',
+        filters: {
+          custom_calisma_karti_ref: props.doc.name,
+          maintenance_status: 'Arıza Bildirimi'
+        },
+        fields: ['name', 'asset_name', 'due_date', 'custom_ariza_nedeni', 'custom_ariza_aciklamasi', 'creation'],
+        order_by: 'creation desc',
+        limit_page_length: 10
+      }
+    });
+
+    arizaRecords.value = result.message || [];
+  } catch (error) {
+    console.error('Error loading ariza records:', error);
+    arizaRecords.value = [];
+  } finally {
+    arizaLoading.value = false;
+  }
+}
+
+// Load ariza records on mount
+loadArizaRecords();
+loadMakineNoOptions();
+
+function openArizaRecord(recordName: string) {
+  frappe.set_route('Form', 'Asset Maintenance Log', recordName);
+}
+
 </script>
 
 <template>
@@ -206,6 +332,41 @@ function openMaintenanceRecord(recordName: string) {
         </div>
       </div>
     </div>
+    
+    <!-- ARIZA BİLDİRİMİ KISMI -->
+    <div style="margin-top: 24px;"></div>
+    
+    <div class="ck-view-action" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
+      <b style="font-size: 15px; color: var(--ck-danger, #ef4444);">Makine Arıza Bildirimi</b>
+      <button class="ck-btn ck-btn--ghost ck-btn-small" style="color: var(--ck-danger, #ef4444); border-color: rgba(239, 68, 68, 0.3);" @click="openArizaDialog">
+        + Arıza Bildir
+      </button>
+    </div>
+
+    <div v-if="arizaLoading" class="ck-empty-state">
+      Yükleniyor...
+    </div>
+
+    <div v-else-if="arizaRecords.length === 0" class="ck-empty-state">
+      Henüz arıza bildirimi yapılmamış.
+    </div>
+
+    <div v-else class="ck-mini-list">
+      <div v-for="record in arizaRecords" :key="record.name" class="ck-mini-item" @click="openArizaRecord(record.name)" style="cursor: pointer; border-left: 3px solid var(--ck-danger, #ef4444);">
+        <div class="ck-mini-content">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <b class="ck-mini-title">{{ record.name }}</b>
+            <span class="ck-status-pill is-danger" style="background: rgba(239, 68, 68, 0.12); color: var(--ck-danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">
+              Arıza Bildirimi
+            </span>
+          </div>
+          <div class="ck-muted ck-mini-sub">Makine: <strong style="color:var(--ck-text);">{{ record.asset_name }}</strong> &nbsp;|&nbsp; Neden: <strong>{{ record.custom_ariza_nedeni }}</strong></div>
+          <div class="ck-muted ck-mini-sub" style="margin-top: 4px; font-style: italic;">"{{ record.custom_ariza_aciklamasi }}"</div>
+          <div class="ck-muted ck-mini-sub" style="margin-top: 4px;">Tarih: {{ frappe.datetime.str_to_user(record.due_date) }}</div>
+        </div>
+      </div>
+    </div>
+    
   </div>
 </template>
 

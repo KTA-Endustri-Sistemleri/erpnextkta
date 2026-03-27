@@ -251,3 +251,85 @@ def format_sure(seconds):
 def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_miktar=None):
     from erpnextkta.kta_calisma_karti.api_impl.cards import islem_yap as api_islem_yap
     return api_islem_yap(docname, islem_tipi, durus_nedeni, aciklama, tamamlanan_miktar)
+
+
+@frappe.whitelist()
+def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
+    """
+    Operatör tarafından Çalışma Kartı üzerinden yapılan Arıza Bildirimini
+    Asset Maintenance Log olarak kaydeder.
+    """
+    from frappe.utils import today
+    from frappe import _
+
+    if not calisma_karti or not makine_no or not ariza_nedeni or not aciklama:
+        frappe.throw(_("Çalışma Kartı, Makine No, Arıza Nedeni ve Açıklama alanları zorunludur."))
+
+    ck_doc = frappe.get_doc("Calisma Karti", calisma_karti)
+    if not ck_doc:
+        frappe.throw(_("Çalışma kartı bulunamadı."))
+        
+    asset_name = frappe.db.get_value("Asset", {"custom_makine_no": makine_no}, "name")
+    if not asset_name:
+        frappe.throw(_("Sistemde {0} numarasına sahip bir makine/varlık bulunamadı.").format(makine_no))
+        
+    asset_doc = frappe.get_doc("Asset", asset_name)
+
+    # 1. Asset Maintenance kaydını bul (varsa)
+    asset_maint_name = frappe.db.get_value("Asset Maintenance", {"asset_name": asset_name})
+    
+    if not asset_maint_name:
+        frappe.throw(_("{0} makinesi için sistemde 'Asset Maintenance' (Varlık Bakımı) kaydı bulunamadı. Lütfen önce bakım ekibini atayın.").format(makine_no))
+        
+    asset_maint = frappe.get_doc("Asset Maintenance", asset_maint_name)
+    
+    # 2. Asset Maintenance Task oluştur (Arıza Bildirimi için bir kerelik görev)
+    task_name = f"Arıza Bildirimi - {frappe.utils.now_datetime().strftime('%Y-%m-%d %H:%M')}"
+    
+    # Check if a similar task recently created to prevent duplicates in case of double clicks
+    existing_task = frappe.db.get_value("Asset Maintenance Task", {
+        "parent": asset_maint.name,
+        "maintenance_status": "Arıza Bildirimi",
+        "description": aciklama
+    }, "name")
+    
+    if existing_task:
+        task_id = existing_task
+    else:
+        # Append new task
+        new_task = asset_maint.append("asset_maintenance_tasks", {})
+        new_task.maintenance_task = task_name
+        new_task.maintenance_type = "Corrective" # Or whatever fits best
+        new_task.maintenance_status = "Arıza Bildirimi"
+        new_task.start_date = today()
+        new_task.periodicity = "Daily" # Just a placeholder since it's required
+        new_task.description = aciklama
+        
+        # Atama yapılacak kişiyi maintenance_manager veya ilk member seçelim
+        if asset_maint.maintenance_manager:
+            new_task.assign_to = asset_maint.maintenance_manager
+        else:
+            team_members = frappe.db.get_values("Maintenance Team Member", {"parent": asset_maint.maintenance_team}, "team_member")
+            if team_members:
+                new_task.assign_to = team_members[0][0]
+                
+        asset_maint.save(ignore_permissions=True)
+        # after save, get the actual task row name
+        task_id = new_task.name
+
+    # 3. Asset Maintenance Log (Arıza Bildirimi) oluştur
+    aml = frappe.new_doc("Asset Maintenance Log")
+    aml.asset_maintenance = asset_maint.name
+    aml.task = task_id
+    aml.maintenance_status = "Arıza Bildirimi"
+    aml.custom_calisma_karti_ref = calisma_karti
+    aml.custom_ariza_nedeni = ariza_nedeni
+    aml.custom_ariza_aciklamasi = aciklama
+    aml.due_date = today()
+    aml.insert(ignore_permissions=True)
+    aml.submit()
+    
+    # Optional: Send notification or ToDo if assign_tasks in asset_maintenance.py doesn't cover this specific status properly
+    
+    return aml.name
+
