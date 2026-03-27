@@ -30,6 +30,7 @@ Branş birleştirmesi (**Combined Enhancements Merge**) başarıyla tamamlandı.
     *   `frappe.prompt` yerine modern Vue bileşeni tasarlandı ve `Teleport` ile body'ye taşınarak katman (z-index) çakışmaları giderildi.
     *   **Pill (Chip) Seçimi**: Hurda nedeni seçimi için dropdown yerine interaktif tıklanabilir piller (chips) eklendi.
     *   **Dikey Sığma (Vertical Fit)**: Küçük ekranlarda modalın alt kısmının kesilmemesi için `max-height: 92vh` ve dahili `overflow-y: auto` (flex-body) yapısı kuruldu.
+    *   **Silme Hatası Giderimi**: Son hurda silinirken oluşan "Document Modified" hatası, `on_stock_entry_trash` hook'unda `update_modified=False` kullanılarak ve redundant save'ler temizlenerek giderildi.
     *   İş Emri verileriyle (Depo, Birim) otomatik dolum mantığı korundu.
 
 ## Son Değişiklikler (2026-03-25) — Süre Formatı Standartlaştırması

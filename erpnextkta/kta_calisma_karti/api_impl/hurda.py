@@ -369,9 +369,9 @@ def on_stock_entry_trash(se_doc, method=None):
         
     ck_names = frappe.get_all("Calisma Karti", filters={"scrap_stock_entry": se_doc.name}, fields=["name"])
     for ck in ck_names:
-        ck_doc = frappe.get_doc("Calisma Karti", ck.name)
-        ck_doc.scrap_stock_entry = None
-        ck_doc.save(ignore_permissions=True)
+        # Use set_value instead of save() to avoid timestamp mismatch errors 
+        # when triggered during another document's save process or sync.
+        frappe.db.set_value("Calisma Karti", ck.name, "scrap_stock_entry", None, update_modified=False)
 
 # -----------------------------
 # CRUD (updated)
@@ -563,10 +563,12 @@ def delete_hurda(name: str, rowname: str):
                     if se_doc.items:
                         se_doc.save(ignore_permissions=True)
                     else:
-                        # SE is now empty — delete it and clear the link
+                        # SE is now empty — delete it.
+                        # The on_stock_entry_trash hook will handle clearing the link in DB safely.
                         se_doc.delete(ignore_permissions=True)
-                        frappe.db.set_value("Calisma Karti", name, "scrap_stock_entry", None, update_modified=False)
-                        frappe.db.commit()
+                        doc.scrap_stock_entry = None
+                
+                frappe.db.commit() # Ensure SE deletion/update is committed
             except Exception:
                 frappe.log_error(title="HURDA DELETE ERROR", message=frappe.get_traceback())
 

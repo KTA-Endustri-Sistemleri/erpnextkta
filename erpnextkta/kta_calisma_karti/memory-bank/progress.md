@@ -6,7 +6,7 @@
 - [x] **1:1 Operatör Bazlı Senkronizasyon**: Her kart için bağımsız Stok Belgesi yapısı kuruldu.
 - [x] **Çift Yönlü Sync**: SPA, Desk ve Stok Belgesi arasındaki tüm veri akışı senkronize edildi.
 - [x] **Onay Sonrası Revizyon**: Submitted kartlarda hurda düzenleme desteği eklendi.
-- [x] **CkHurdaModal**: Modern, auto-fill destekli Vue bileşeni; `Teleport` entegrasyonu ve dikey sığma (vertical fit) düzeltmeleri yapıldı.
+- [x] **CkHurdaModal**: Modern, auto-fill destekli Vue bileşeni; `Teleport` entegrasyonu, dikey sığma (vertical fit) ve silme sırasındaki "Document Modified" hatası düzeltildi.
 - [x] **UX Geliştirmesi**: Hurda nedeni seçimi için "pill" (chip) tabanlı interaktif tasarım uygulandı.
 - [x] **Veri Güvenliği**: ERPNext validation kurallarına karşı `work_order` koruma mekanizması eklendi.
 
