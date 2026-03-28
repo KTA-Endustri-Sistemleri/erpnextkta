@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from "vue";
+
 const props = defineProps<{
   showStart: boolean;
   showResume: boolean;
@@ -9,10 +11,14 @@ const props = defineProps<{
   onDurus: () => void;
   onBitir: () => void;
 }>();
+
+const isVisible = computed(() => {
+  return props.showStart || props.showResume || props.showStop || props.showFinish;
+});
 </script>
 
 <template>
-  <div class="ck-actionbar">
+  <div v-if="isVisible" class="ck-actionbar">
     <button
       v-if="props.showStart"
       class="ck-btn ck-btn--success ck-btn--wide"

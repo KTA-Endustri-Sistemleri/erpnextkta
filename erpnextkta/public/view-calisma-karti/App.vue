@@ -335,7 +335,7 @@ watch(
       />
 
       <!-- Timeout Banner Uyarısı -->
-      <div v-if="showTimeoutWarning" class="ck-timeout-alert text-center margin-bottom mx-2">
+      <div v-if="showTimeoutWarning" class="ck-timeout-alert text-center margin-bottom">
         <b>⚠️ Dikkat:</b> Bu kart <b>{{ doc.kart_uyari_suresi_dk || 400 }} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.
       </div>
 
@@ -695,89 +695,9 @@ watch(
   border-bottom: 0;
 }
 
-.ck-status-badge {
-  font-size: 12px;
-  padding: 6px 14px;
-  font-weight: 800;
-  white-space: nowrap;
-  border-radius: 16px 0px 0px 16px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-.ck-chips {
-  display: flex;
-  flex-direction: row;
-  margin: 12px 0 14px;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 16px;
-  background: var(--ck-glass-bg);
-  border: 1px solid var(--ck-glass-border-soft);
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
-}
-
-.ck-chip {
-  font-size: 12px;
-  padding: 6px 14px;
-  font-weight: 800;
-  text-align: end;
-  border-radius: 0px 16px 16px 0px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
 /* =========================
-   STATES (theme-friendly)
+   STATES (primarily for global or external use if any)
    ========================= */
-
-.ck-status--ready {
-  background: linear-gradient(90deg, var(--blue), transparent);
-  color: var(--white-overlay-900);
-}
-
-.ck-status--running {
-  background: linear-gradient(90deg, var(--green), transparent);
-  color: var(--white-overlay-900);
-}
-
-.ck-status-qc--running {
-  background: linear-gradient(270deg, var(--green), transparent);
-  color: var(--white-overlay-900);
-}
-
-.ck-status--paused {
-  background: linear-gradient(90deg, var(--ck-warning), transparent);
-  color: var(--ck-paused-fg);
-}
-
-.ck-status--finished {
-  background: linear-gradient(90deg, var(--ck-finished-bg), transparent);
-  color: var(--white-overlay-900);
-}
-
-.ck-status--rejected {
-  background: linear-gradient(90deg, var(--ck-danger), transparent);
-  color: var(--white-overlay-900);
-}
-
-.ck-status--cancelled {
-  background: linear-gradient(90deg, var(--ck-cancelled), transparent);
-  color: var(--white-overlay-900);
-}
-
-.ck-status-qc--rejected {
-  background: linear-gradient(270deg, var(--ck-danger), transparent);
-  color: var(--white-overlay-900);
-}
-
-.ck-status--pending {
-    background: linear-gradient(90deg, var(--blue), transparent);
-    color: var(--white-overlay-900);
-}
-
-.ck-status-qc--pending {
-    background: linear-gradient(270deg, var(--blue), transparent);
-    color: var(--white-overlay-900);
-}
 
 /* =========================
    QC segmented toggle
