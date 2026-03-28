@@ -13,19 +13,29 @@
       <button v-if="q" class="ck-clear" @click="$emit('update:q', '')">✕</button>
     </div>
 
-    <div class="ck-sort">
-      <select 
-        :value="sortKey" 
-        @change="$emit('update:sortKey', $event.target.value)"
-        class="ck-sort-select"
-      >
-        <option value="modified_desc">Son Güncellenen ↓</option>
-        <option value="modified_asc">Son Güncellenen ↑</option>
-        <option value="creation_desc">Yeni Oluşturulan ↓</option>
-        <option value="creation_asc">Yeni Oluşturulan ↑</option>
-        <option value="name_asc">Kart No A → Z</option>
-        <option value="name_desc">Kart No Z → A</option>
-      </select>
+    <!-- Premium Sort Bar (Custom Toggle) -->
+    <div class="ck-sort-row">
+      <div class="ck-sort-container">
+        <button 
+          v-for="cat in sortCategories" 
+          :key="cat.key"
+          class="ck-sort-btn"
+          :class="{ active: currentSortKey === cat.key }"
+          @click="handleSort(cat.key)"
+        >
+          <span class="ck-sort-label">{{ cat.label }}</span>
+          <div v-if="currentSortKey === cat.key" class="ck-sort-icon-wrap">
+            <svg 
+              class="ck-sort-arrow" 
+              :class="{ 'is-asc': currentSortDir === 'asc' }"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            >
+              <polyline points="7 13 12 18 17 13"></polyline>
+              <polyline points="7 6 12 11 17 6"></polyline>
+            </svg>
+          </div>
+        </button>
+      </div>
     </div>
 
     <div class="ck-filters">
@@ -77,7 +87,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from "vue";
+
+const props = defineProps({
   q: String,
   sortKey: String,
   statusFilter: String,
@@ -89,13 +101,30 @@ defineProps({
   availableCustomerGroups: Array
 });
 
-defineEmits([
+const emit = defineEmits([
   "update:q", 
   "update:sortKey", 
   "update:statusFilter", 
   "update:qcFilter", 
   "update:customerGroupFilter"
 ]);
+
+const sortCategories = [
+  { key: "modified", label: "Güncellenme" },
+  { key: "creation", label: "Oluşturulma" },
+  { key: "name", label: "İsim" }
+];
+
+const currentSortKey = computed(() => (props.sortKey || "modified_desc").split('_')[0]);
+const currentSortDir = computed(() => (props.sortKey || "modified_desc").split('_')[1] || 'desc');
+
+function handleSort(key) {
+  let dir = 'desc';
+  if (currentSortKey.value === key) {
+    dir = currentSortDir.value === 'desc' ? 'asc' : 'desc';
+  }
+  emit('update:sortKey', `${key}_${dir}`);
+}
 
 const statusFilters = [
   { key: "all", label: "Tümü" },
@@ -149,24 +178,65 @@ const qcFilters = [
   color: var(--text-color);
 }
 
-/* Sort */
-.ck-sort {
-  margin-top: 10px;
+/* Premium Sort UI */
+.ck-sort-row {
+  margin-top: 12px;
+  position: relative;
 }
 
-.ck-sort-select {
-  width: 100%;
+.ck-sort-container {
+  display: flex;
+  gap: 8px;
+  background: var(--ck-glass-border-soft);
+  padding: 4px;
+  border-radius: 16px;
   border: 1px solid var(--ck-glass-border);
-  border-top: 1px solid var(--ck-glass-highlight);
-  background: var(--ck-glass-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 14px;
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 700;
+}
+
+.ck-sort-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  border-radius: 12px;
   color: var(--text-color);
-  box-shadow: 0 4px 6px var(--ck-glass-shadow);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.ck-sort-btn.active {
+  background: var(--ck-glass-highlight);
+  box-shadow: 0 4px 12px var(--ck-glass-shadow);
+  opacity: 1;
+  color: var(--blue-600);
+}
+
+.ck-sort-label {
+  text-transform: uppercase;
+}
+
+.ck-sort-icon-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.ck-sort-arrow {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.4s ease;
+  color: var(--blue-600);
+}
+
+.ck-sort-arrow.is-asc {
+  transform: rotate(180deg);
 }
 
 /* Filters */
@@ -229,5 +299,15 @@ const qcFilters = [
 }
 .ck-filter.active .ck-filter-count {
   background: rgba(0,0,0,0.25);
+}
+
+/* Theme Adjustments */
+[data-theme="dark"] .ck-sort-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .ck-sort-arrow {
+  color: #60a5fa;
 }
 </style>
