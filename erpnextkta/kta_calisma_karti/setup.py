@@ -65,7 +65,16 @@ def setup_permissions():
         {"parent": "Stock Settings", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         # Warehouse
         {"parent": "Warehouse", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
-        {"parent": "Warehouse", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0}
+        {"parent": "Warehouse", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        # Page
+        {"parent": "Page", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        {"parent": "Page", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        # Work Order
+        {"parent": "Work Order", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        {"parent": "Work Order", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        # Job Card
+        {"parent": "Job Card", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        {"parent": "Job Card", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
     ]
 
     for role in roles:
