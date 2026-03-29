@@ -54,7 +54,6 @@
             "label": "Stok Ayarlar\u0131"
         },
         {
-            "default": "710.001 - 1.D\u00f6nem \u0130lkmadde ve Malz Gider - KTA",
             "fieldname": "hurda_gider_hesabi",
             "fieldtype": "Link",
             "label": "Hurda Gider Hesab\u0131",

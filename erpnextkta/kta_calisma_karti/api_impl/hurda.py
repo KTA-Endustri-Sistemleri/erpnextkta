@@ -187,7 +187,7 @@ def _get_or_create_scrap_se(ck_name: str, ck_doc=None):
 def _get_expense_account():
     account = frappe.db.get_single_value("KTA Calisma Karti Settings", "hurda_gider_hesabi")
     if not account:
-        account = "710.001 - 1.Dönem İlkmadde ve Malz Gider - KTA"
+        frappe.throw(_("Lütfen KTA Çalışma Kartı Ayarları panelinden 'Hurda Gider Hesabı' bilgisini tanımlayın."), title=_("Ayarlar Eksik"))
     return account
 
 
