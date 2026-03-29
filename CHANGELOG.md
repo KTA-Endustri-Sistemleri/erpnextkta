@@ -3,6 +3,49 @@
 
 
 
+## 🚀 v0.20.1 (2026-03-29)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- purchase receipt rate update
+      
+      
+    
+      
+      
+        
+- posting_date değişikliğinde frontend kur/fiyat zincirini engelle
+      
+      
+    
+      
+      
+        
+- override controller cscript method, not just form handler
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.20.0 (2026-03-12)
 
 
