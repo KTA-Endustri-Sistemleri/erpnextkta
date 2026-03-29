@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v1.0.0 (2026-03-29)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- modernize UI/UX and migrate to Draft-First architecture
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v0.20.1 (2026-03-29)
 
 
