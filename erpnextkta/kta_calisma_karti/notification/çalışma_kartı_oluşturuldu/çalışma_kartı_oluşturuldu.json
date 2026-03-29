@@ -1,0 +1,30 @@
+{
+    "attach_files": "",
+    "attach_print": 0,
+    "channel": "System Notification",
+    "creation": "2026-03-09 16:20:34.293208",
+    "days_in_advance": 0,
+    "docstatus": 0,
+    "doctype": "Notification",
+    "document_type": "Calisma Karti",
+    "enabled": 1,
+    "event": "New",
+    "idx": 0,
+    "is_standard": 1,
+    "message": "Yeni bir Çalışma Kartı ({{ doc.name }}) oluşturuldu.",
+    "message_type": "Markdown",
+    "modified": "2026-03-09 16:20:34.293208",
+    "modified_by": "Administrator",
+    "module": "kta_calisma_karti",
+    "name": "\u00c7al\u0131\u015fma Kart\u0131 Olu\u015fturuldu",
+    "owner": "Administrator",
+    "recipients": [
+        {
+            "receiver_by_document_field": "operator"
+        }
+    ],
+    "send_system_notification": 1,
+    "send_to_all_assignees": 0,
+    "set_property_after_alert": "",
+    "subject": "Yeni Çalışma Kartı: {{ doc.name }}"
+}

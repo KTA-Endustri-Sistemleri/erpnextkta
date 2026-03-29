@@ -187,5 +187,32 @@
     "role": "Purchase User"
    }
   ]
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Role Profile",
+  "modified": "2026-01-06 17:03:44.137963",
+  "name": "KTA Çalışma Kartı",
+  "role_profile": "KTA Çalışma Kartı ",
+  "roles": [
+   {
+    "parent": "KTA Çalışma Kartı",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "KTA Çalışma Kartı Kullanıcısı"
+   },
+   {
+    "parent": "KTA Çalışma Kartı",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "Employee"
+   },
+   {
+    "parent": "KTA Çalışma Kartı",
+    "parentfield": "roles",
+    "parenttype": "Role Profile",
+    "role": "QR Scanner User"
+   }
+  ]
  }
 ]

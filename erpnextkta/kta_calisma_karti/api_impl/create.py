@@ -9,10 +9,32 @@ from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 @frappe.whitelist()
 def create_calisma_karti(**kwargs):
     """Create Calisma Karti from Vue wizard payload."""
-
     # Merge kwargs with form_dict for flexibility
     data = frappe._dict(frappe.local.form_dict or {})
     data.update(kwargs or {})
+
+    operator = data.get("operator")  # Employee.name
+
+    # --- ANTI DOUBLE-CLICK (RACE CONDITION) KORUMASI (30 Saniye Kuralı) ---
+    if data.get("is_karti") and data.get("operasyon"):
+        from frappe.utils import add_to_date, now_datetime
+
+        thirty_secs_ago = add_to_date(now_datetime(), seconds=-30)
+        recent_card = frappe.db.get_value(
+            "Calisma Karti",
+            {
+                "is_karti": data.get("is_karti"),
+                "operasyon": data.get("operasyon"),
+                "operator": operator,
+                "creation": [">=", thirty_secs_ago]
+            },
+            "name"
+        )
+        if recent_card:
+            # Sessizce yakın zamanda oluşturulan asıl kartı döndür
+            return frappe.get_doc("Calisma Karti", recent_card).as_dict()
+    # ----------------------------------------------------------------------
+
 
     required_fields = ["is_karti", "operasyon", "is_istasyonu"]
     # custom_work_order is not strictly required; can be resolved from Job Card
@@ -80,8 +102,6 @@ def create_calisma_karti(**kwargs):
     if not is_istasyonu:
         frappe.throw(_("İş İstasyonu zorunludur (Job Card veya wizard tarafından sağlanmalı)."))
 
-    operator = data.get("operator")  # Employee.name
-
     # 8) Build and insert doc
     doc_dict = {
         "doctype": "Calisma Karti",
@@ -126,3 +146,73 @@ def create_calisma_karti(**kwargs):
 
     frappe.db.commit()
     return doc.as_dict()
+
+
+@frappe.whitelist()
+def get_operations_for_job_card(job_card: str):
+    """Return KTA Operasyonlari filtered by Job Card's operation and production item.
+
+    Priority logic (highest to lowest):
+      1. Mapping row has BOTH erpnext_operation == jc.operation
+                          AND production_item == jc.production_item  → most specific
+      2. Mapping row has erpnext_operation == jc.operation AND production_item is empty
+                                                                      → operation-generic
+      3. KTA op has NO mapping rows at all                            → fully generic fallback
+
+    If jc.operation is blank → return all KTA ops (cannot filter).
+    """
+    jc = frappe.get_doc("Job Card", job_card)
+    jc_operation    = (getattr(jc, "operation",       None) or "").strip()
+    jc_product      = (getattr(jc, "production_item", None) or "").strip()
+
+    all_ops = frappe.get_all(
+        "KTA Calisma Karti Operasyonlari",
+        fields=["name", "calisma_karti_op", "customer_group", "sequence"],
+        order_by="sequence asc",
+        limit_page_length=500,
+    )
+
+    if not jc_operation:
+        return all_ops  # No operation info on JC → show all
+
+    op_names = [o["name"] for o in all_ops]
+
+    # Fetch all mapping rows for these KTA ops in a single query
+    mapping_rows = frappe.get_all(
+        "KTA Operation ERPNext Mappings",
+        filters={"parent": ["in", op_names], "parenttype": "KTA Calisma Karti Operasyonlari"},
+        fields=["parent", "erpnext_operation", "production_item"],
+    )
+
+    # Build lookup: kta_op_name → list of (erpnext_operation, production_item) tuples
+    op_to_rows: dict[str, list] = {}
+    for row in mapping_rows:
+        op_to_rows.setdefault(row["parent"], []).append((
+            (row.get("erpnext_operation") or "").strip(),
+            (row.get("production_item")   or "").strip(),
+        ))
+
+    # Priority 1: operation + product exact match
+    specific = [
+        o for o in all_ops
+        if any(
+            erp_op == jc_operation and prod == jc_product
+            for erp_op, prod in op_to_rows.get(o["name"], [])
+        )
+    ]
+    if specific:
+        return specific
+
+    # Priority 2: operation match, product field empty (operation-generic)
+    op_generic = [
+        o for o in all_ops
+        if any(
+            erp_op == jc_operation and prod == ""
+            for erp_op, prod in op_to_rows.get(o["name"], [])
+        )
+    ]
+    if op_generic:
+        return op_generic
+
+    # Priority 3: KTA ops with NO mapping rows at all (fully generic)
+    return [o for o in all_ops if o["name"] not in op_to_rows]

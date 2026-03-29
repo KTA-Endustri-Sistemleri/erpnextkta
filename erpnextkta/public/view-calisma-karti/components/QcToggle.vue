@@ -16,11 +16,7 @@ const props = defineProps<{
     <b>{{ props.qcLabel }}</b>
   </div>
 
-  <div v-if="!props.canEditQC" class="ck-muted" style="margin-top:10px;">
-    Bu sekmeyi görüntüleyebilirsiniz ancak güncelleme yetkiniz yok.
-  </div>
-
-  <div v-else style="margin-top:10px;">
+  <div v-if="props.canEditQC" style="margin-top:10px;">
     <div class="ck-qc-toggle" role="group" aria-label="Kalite durumu">
       <button
         v-for="o in props.qcOptions"

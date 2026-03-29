@@ -91,6 +91,7 @@ app_include_js = [
 
 after_migrate = [
     "erpnextkta.overrides.apply",
+    "erpnextkta.kta_calisma_karti.setup.setup",
 ]
 
 # Uninstallation
@@ -155,6 +156,10 @@ doc_events = {
     "Job Card": {
         "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status"
     },
+    "Quality Inspection": {
+        "on_update": "erpnextkta.kta_calisma_karti.api_impl.qc.sync_qi_to_calisma_karti",
+        "on_submit": "erpnextkta.kta_calisma_karti.api_impl.qc.sync_qi_to_calisma_karti"
+    },
     "Stock Reconciliation": {
         "on_update": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
         "on_cancel": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
@@ -163,6 +168,11 @@ doc_events = {
     },
     "Stock Entry": {
         "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
+        "on_update": "erpnextkta.kta_calisma_karti.api_impl.hurda.sync_stock_entry_to_calisma_karti",
+        "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash"
+    },
+    "Calisma Karti": {
+        # Hurda sync is now handled in the controller's on_update directly
     },
     "Purchase Invoice": {
         "validate": "erpnextkta.overrides.purchase_invoice.validate_purchase_invoice"
@@ -196,6 +206,12 @@ scheduler_events = {
 # 	"hourly": [
 # 		"erpnextkta.tasks.hourly"
 # 	],
+    "cron": {
+        # Vardiya sonları: her gün 00:15 ve 16:15 (Toleranslı kapanma için)
+        "15 0,16 * * *": ["erpnextkta.tasks.auto_close_timed_out_cards"],
+        # Her gece saat 04:00'da oluşturulmuş ama başlatılmamış kartların temizliği
+        "0 4 * * *": ["erpnextkta.tasks.delete_old_unstarted_cards"],
+    },
     "weekly": [
         "erpnextkta.tasks.weekly"
     ],
@@ -305,6 +321,12 @@ fixtures = [
         ]
     },
     {
+        "doctype": "Custom DocPerm",
+        "filters": [
+            ["parent", "in", ["Asset Maintenance", "Asset Maintenance Log"]]
+        ]
+    },
+    {
         "doctype": "Role Profile",
         "filters": [
             ["name", "like", "KTA%"]
@@ -345,6 +367,25 @@ fixtures = [
                     "Stock Settings-serial_barcode_quiet_zone",
                     "Stock Settings-barcode_quiet_zone",
                     "Buying Settings-custom_use_price_list_currency",
+                    "Asset-custom_makine_no",
+                    "Asset Maintenance Log-custom_calisma_karti_ref",
+                    "Asset Maintenance Log-custom_ariza_nedeni",
+                    "Asset Maintenance Log-custom_ariza_aciklamasi",
+                ],
+            ]
+        ],
+    },
+    {
+        "doctype": "Property Setter",
+        "filters": [
+            [
+                "name",
+                "in",
+                [
+                    "Asset-main-search_fields",
+                    "Asset Maintenance Task-maintenance_status-options",
+                    "Asset Maintenance Log-maintenance_status-options",
+                    "Asset Maintenance Task-maintenance_type-options",
                 ],
             ]
         ],

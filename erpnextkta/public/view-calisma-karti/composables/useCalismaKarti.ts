@@ -61,6 +61,19 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         return res;
     }
 
+    async function checkActiveCardData(): Promise<{
+        has_incomplete: boolean;
+        mode?: "hard" | "soft";
+        card_name?: string;
+        card_label?: string;
+        missing?: string[];
+    }> {
+        const r = await frappe.call(
+            "erpnextkta.kta_calisma_karti.api.check_active_card_data"
+        );
+        return r.message || { has_incomplete: false };
+    }
+
     async function callIslem(
         islem_tipi: string,
         durus_nedeni: string | null = null,
@@ -97,14 +110,12 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         parca_no: string;
         hurda_nedeni: string;
         miktar: number;
-        birim: string;
-        depo?: string | null;
+        aciklama?: string | null;
     }) {
         return refreshAfter(() =>
-            frappe.call("erpnextkta.kta_calisma_karti.api.add_hurda", {
+            frappe.call("erpnextkta.kta_calisma_karti.api_impl.hurda.add_hurda", {
                 name: docname.value,
                 ...payload,
-                depo: payload.depo || null,
             })
         );
     }
@@ -114,23 +125,61 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         parca_no: string;
         hurda_nedeni: string;
         miktar: number;
-        birim: string;
-        depo?: string | null;
+        aciklama?: string | null;
     }) {
         return refreshAfter(() =>
-            frappe.call("erpnextkta.kta_calisma_karti.api.update_hurda", {
+            frappe.call("erpnextkta.kta_calisma_karti.api_impl.hurda.update_hurda", {
                 name: docname.value,
                 ...payload,
-                depo: payload.depo || null,
             })
         );
     }
 
     async function deleteHurda(rowname: string) {
         return refreshAfter(() =>
-            frappe.call("erpnextkta.kta_calisma_karti.api.delete_hurda", {
+            frappe.call("erpnextkta.kta_calisma_karti.api_impl.hurda.delete_hurda", {
                 name: docname.value,
                 rowname,
+            })
+        );
+    }
+
+    async function addAltOperasyon(payload: {
+        alt_operasyon: string;
+        hammadde?: string;
+        adet: number;
+        uom?: string;
+        note?: string;
+    }) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.add_alt_operasyon_kaydi", {
+                calisma_karti: docname.value,
+                ...payload,
+            })
+        );
+    }
+
+    async function updateAltOperasyon(payload: {
+        row_id: string;
+        alt_operasyon: string;
+        hammadde?: string;
+        adet: number;
+        uom?: string;
+        note?: string;
+    }) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.update_alt_operasyon_kaydi", {
+                calisma_karti: docname.value,
+                ...payload,
+            })
+        );
+    }
+
+    async function deleteAltOperasyon(row_id: string) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.delete_alt_operasyon_kaydi", {
+                calisma_karti: docname.value,
+                row_id,
             })
         );
     }
@@ -189,6 +238,34 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         );
     }
 
+    async function getQcTemplates() {
+        return frappe.call({
+            method: "erpnextkta.kta_calisma_karti.api.get_qc_templates_for_ck",
+            args: { ck_name: docname.value },
+        });
+    }
+
+    async function getTemplateDetails(template_name: string) {
+        return frappe.call({
+            method: "erpnextkta.kta_calisma_karti.api.get_template_details",
+            args: { template_name },
+        });
+    }
+
+    async function submitStandardQC(payload: { template_name: string; readings: any[]; sample_size?: number; intent?: string }) {
+        return refreshAfter(() =>
+            frappe.call({
+                method: "erpnextkta.kta_calisma_karti.api.submit_kta_quality_inspection",
+                args: {
+                    ck_name: docname.value,
+                    ...payload,
+                },
+                freeze: true,
+                freeze_message: "Kalite belgesi oluşturuluyor...",
+            })
+        );
+    }
+
     // When docname changes (route changes), re-bind realtime listener
     watch(
         () => docname.value,
@@ -211,6 +288,7 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         loading,
         doc,
         load,
+        checkActiveCardData,
         callIslem,
         updateQC,
         addHurda,
@@ -222,5 +300,11 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         addBarkodKaydi,
         updateBarkodKaydi,
         deleteBarkodKaydi,
+        addAltOperasyon,
+        updateAltOperasyon,
+        deleteAltOperasyon,
+        getQcTemplates,
+        getTemplateDetails,
+        submitStandardQC,
     };
 }

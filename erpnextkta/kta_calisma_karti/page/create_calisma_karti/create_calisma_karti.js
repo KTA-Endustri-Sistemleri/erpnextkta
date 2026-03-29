@@ -21,7 +21,7 @@ frappe.pages['create-calisma-karti'].on_page_load = function (wrapper) {
 
 // ❌ BURADA TEKRAR MOUNT ETMEK UYARIYI TETİKLİYOR
 // Eğer gerçekten gerek yoksa tamamen kaldır:
-frappe.pages['kta-calisma-karti'].on_page_show = (wrapper) => {
+frappe.pages['create-calisma-karti'].on_page_show = (wrapper) => {
   // load_vue(wrapper); // BUNU ARTIK ÇALIŞTIRMAYALIM
   // İleride istersen burada sadece Vue'ya bir "page-show" event'i emit edebiliriz.
 };
@@ -44,7 +44,7 @@ async function load_vue(wrapper) {
 
   // 🔥 Teleport için sabit bir hedef div oluştur
   // Her load_vue çağrısında yeniden yaratılacak
-  const $teleport_target = $('<div class="kta-ck-header"></div>').css({width: "100%"});
+  const $teleport_target = $('<div class="kta-ck-header"></div>').css({ width: "100%" });
   $teleport_target.appendTo($page_header);
 
   await frappe.require('create-calisma-karti.bundle.js');

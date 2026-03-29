@@ -1,0 +1,144 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:MGBF-{YYYY}-{MM}-{DD}-{####}",
+ "creation": "2026-03-13 01:23:19.555522",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "calisma_karti_ref",
+  "operator",
+  "makine",
+  "tarih",
+  "column_break1",
+  "bakim_talimati",
+  "notlar",
+  "section_break1",
+  "talimat_metni",
+  "onay",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "calisma_karti_ref",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u00c7al\u0131\u015fma Kart\u0131",
+   "options": "Calisma Karti",
+   "reqd": 1
+  },
+  {
+   "fieldname": "operator",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Operat\u00f6r",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "makine",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Makine No",
+   "options": "Asset",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "tarih",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Tarih",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "PTR.BT.049",
+   "fieldname": "bakim_talimati",
+   "fieldtype": "Link",
+   "label": "Bak\u0131m Talimat\u0131",
+   "options": "Bakim Talimati",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notlar",
+   "fieldtype": "Text",
+   "label": "Notlar"
+  },
+  {
+   "fieldname": "section_break1",
+   "fieldtype": "Section Break",
+   "label": "Bak\u0131m Talimat\u0131"
+  },
+  {
+   "fieldname": "talimat_metni",
+   "fieldtype": "HTML",
+   "label": "Talimat Metni"
+  },
+  {
+   "default": "0",
+   "fieldname": "onay",
+   "fieldtype": "Check",
+   "label": "G\u00fcnl\u00fck bak\u0131m\u0131 talimata g\u00f6re kontrol ettim ve sorun bulunmam\u0131\u015ft\u0131r."
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Makine Gunluk Bakim Formu",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-03-13 01:23:19.555522",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "Makine Gunluk Bakim Formu",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+}

@@ -13,6 +13,104 @@ from ._helpers import (
     require_my_employee,
 )
 
+
+# ---------------------------------------------------------------------------
+# Card switching validation helpers
+# ---------------------------------------------------------------------------
+
+def _get_kart_gecis_modu():
+    """Return 'hard' or 'soft' from KTA Settings."""
+    val = (frappe.db.get_single_value("KTA Calisma Karti Settings", "kart_gecis_modu") or "").strip()
+    if "Esnek" in val or "Soft" in val:
+        return "soft"
+    return "hard"
+
+
+def _check_card_data_complete(doc):
+    """Check if a Calisma Karti has the required data filled in.
+
+    Returns a list of missing-data keys (empty list = complete).
+    Logic mirrors _handle_bitis validation:
+      - miktar_zorunlu_mu=1  →  tamamlanan_miktar > 0
+      - miktar_zorunlu_mu=0  →  at least 1 alt_operasyon row
+    """
+    missing = []
+
+    miktar_zorunlu = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu"
+    )
+    if miktar_zorunlu is None:
+        miktar_zorunlu = 1  # default true
+
+    if miktar_zorunlu:
+        if float(doc.tamamlanan_miktar or 0) <= 0:
+            missing.append("tamamlanan_miktar")
+    else:
+        alt_op_count = frappe.db.count(
+            "Calisma Karti Alt Operasyon Kayitlari",
+            {"parent": doc.name, "parenttype": "Calisma Karti"},
+        )
+        if alt_op_count == 0:
+            missing.append("alt_operasyon")
+
+    return missing
+
+
+def _check_incomplete_before_start(operator, exclude_name):
+    """If operator has an active 'Çalışıyor' card with missing data, return info.
+
+    Returns None if no incomplete card exists.
+    """
+    active_cards = frappe.get_all(
+        "Calisma Karti",
+        filters={
+            "operator": operator,
+            "name": ["!=", exclude_name],
+            "docstatus": 1,
+            "bitis_saati": ["is", "not set"],
+        },
+        fields=["name", "operasyon", "urun_kodu"],
+    )
+
+    for card_info in active_cards:
+        card_doc = frappe.get_doc("Calisma Karti", card_info.name)
+        if card_doc.get_durum() != "calisiyor":
+            continue
+
+        missing = _check_card_data_complete(card_doc)
+        if missing:
+            op_label = frappe.db.get_value(
+                "KTA Calisma Karti Operasyonlari",
+                card_doc.operasyon,
+                "calisma_karti_op",
+            ) or card_doc.operasyon
+            return {
+                "has_incomplete": True,
+                "card_name": card_doc.name,
+                "card_label": f"{op_label} — {card_doc.urun_kodu or ''}".strip(" —"),
+                "missing": missing,
+            }
+
+    return None
+
+
+@frappe.whitelist()
+def check_active_card_data():
+    """Frontend pre-check: does the current operator have an incomplete active card?
+
+    Returns dict with has_incomplete, mode, card_name, card_label, missing.
+    """
+    emp = require_my_employee()
+    mode = _get_kart_gecis_modu()
+    result = _check_incomplete_before_start(emp, exclude_name="")
+
+    if result:
+        result["mode"] = mode
+        return result
+
+    return {"has_incomplete": False, "mode": mode}
+
+
 def _attach_customer_groups(rows):
     """Attach customer_group(s) for each row (based on urun_kodu). Always adds keys."""
     item_codes = sorted({r.get("urun_kodu") for r in rows if r.get("urun_kodu")})
@@ -40,9 +138,92 @@ def _attach_customer_groups(rows):
 
     return rows
 
+def _attach_operasyon_label(rows):
+    """Replace Calisma Karti.operasyon (child row ID) with its calisma_karti_op label."""
+    op_ids = sorted({r.get("operasyon") for r in rows if r.get("operasyon")})
+    if not op_ids:
+        return rows
+
+    ops = frappe.get_all(
+        "KTA Calisma Karti Operasyonlari",
+        filters={"name": ["in", op_ids]},
+        fields=["name", "calisma_karti_op"],
+        limit_page_length=len(op_ids),
+    )
+    label_by_id = {o["name"]: o.get("calisma_karti_op") for o in ops}
+
+    for r in rows:
+        op_id = r.get("operasyon")
+        if op_id:
+            # If missing, keep original id to avoid breaking UI
+            r["operasyon"] = label_by_id.get(op_id) or op_id
+
+    return rows
+
+def _attach_alt_operasyon_titles(rows):
+    """Enrich alt_operasyon child table rows with title and sequence from master doctype."""
+    if not rows:
+        return rows
+
+    names = sorted({r.get("alt_operasyon") for r in rows if r.get("alt_operasyon")})
+    if not names:
+        return rows
+
+    masters = frappe.get_all(
+        "KTA Calisma Karti Alt Operasyonlari",
+        filters={"name": ["in", names]},
+        fields=["name", "title", "sequence"],
+        limit_page_length=len(names),
+    )
+    meta_by_name = {m["name"]: m for m in masters}
+
+    for r in rows:
+        master = meta_by_name.get(r.get("alt_operasyon"), {})
+        r["alt_operasyon_title"] = master.get("title") or r.get("alt_operasyon")
+        r["alt_operasyon_sequence"] = master.get("sequence") or 0
+
+    return rows
+
+def _attach_bom_musteri_indeksi(rows):
+    """Enrich rows with custom_musteri_indeksi_no from BOM via Work Order."""
+    wo_names = list({r.get("custom_work_order") for r in rows if r.get("custom_work_order")})
+    if not wo_names:
+        return rows
+
+    wos = frappe.get_all(
+        "Work Order",
+        filters={"name": ["in", wo_names]},
+        fields=["name", "bom_no"],
+        limit_page_length=len(wo_names),
+    )
+    wo_bom_map = {w["name"]: w.get("bom_no") for w in wos if w.get("bom_no")}
+    
+    bom_names = list(set(wo_bom_map.values()))
+    if not bom_names:
+        return rows
+
+    # Error handling in case the BOM doctype does not have the custom field installed yet
+    try:
+        boms = frappe.get_all(
+            "BOM",
+            filters={"name": ["in", bom_names]},
+            fields=["name", "custom_musteri_indeksi_no"],
+            limit_page_length=len(bom_names),
+        )
+        bom_index_map = {b["name"]: b.get("custom_musteri_indeksi_no") for b in boms}
+    except Exception:
+        bom_index_map = {}
+
+    for r in rows:
+        wo = r.get("custom_work_order")
+        bom = wo_bom_map.get(wo)
+        r["custom_musteri_indeksi_no"] = bom_index_map.get(bom)
+
+    return rows
+
 @frappe.whitelist()
-def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None):
-    """Return assigned Calisma Karti rows for list UI (with customer_group info)."""
+def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None, durum=None, search_term=None, qc_filter=None):
+    """Return assigned Calisma Karti rows for list UI (with customer_group info and filters)."""
 
     fields = [
         "name",
@@ -58,6 +239,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
         "modified",
         "creation",
         "kalite_kontrol",
+        "docstatus",
     ]
 
     allowed = {
@@ -72,32 +254,71 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
     start = int(start or 0)
     page_length = int(page_length or 200)
 
-    if is_system_manager():
-        rows = frappe.get_all("Calisma Karti", fields=fields, order_by=order_by, limit_start=start,limit_page_length=page_length,)
-        rows = _attach_customer_groups(rows)
-        if customer_group:
-            rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
-        return rows
+    # Build filters dynamically
+    db_filters = {}
+    
+    if durum:
+        db_filters["durum"] = durum
+        
+    if search_term:
+        search_term = f"%{search_term}%"
+        # Since frappe.get_all or_filters are tricky with dicts, we use SQL where conditions if needed, 
+        # but typical ERPNext allows lists in filters for IN, or string for LIKE in specific fields. 
+        # A safer cross-field search requires custom SQL or specific fields.
+        # We'll map search_term to name or custom_work_order or is_karti
+        db_filters["name"] = ["like", search_term]
+        
+    if not (is_system_manager() or is_quality_user()):
+        db_filters["operator"] = require_my_employee()
+        
+    if qc_filter:
+        db_filters["kalite_kontrol"] = qc_filter
 
-    if is_quality_user():
-        rows = frappe.get_all("Calisma Karti", fields=fields, order_by=order_by, limit_start=start,limit_page_length=page_length,)
-        rows = _attach_customer_groups(rows)
-        if customer_group:
-            rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
-        return rows
-
-    emp = require_my_employee()
     rows = frappe.get_all(
         "Calisma Karti",
-        filters={"operator": emp},
+        filters=db_filters,
         fields=fields,
         order_by=order_by,
         limit_start=start,
         limit_page_length=page_length,
     )
+
+    # If search_term is provided, frappe's dictionary filters perform AND logic.
+    # For a true OR search across name, work_order, item_code, it's better to fetch and filter in app
+    # OR write Frappe DB OR filters.
+    # To be safe and keep it simple: if search_term is given, we fetch broader and filter in memory if DB fails us,
+    # OR we use frappe.get_list with `or_filters`.
+    
+    if search_term:
+        # Re-fetch with proper OR filters if search_term is present to cover all bases
+        or_filters = {
+            "name": ["like", search_term],
+            "custom_work_order": ["like", search_term],
+            "is_karti": ["like", search_term],
+            "urun_kodu": ["like", search_term]
+        }
+        
+        # Remove the 'name' strict filter from db_filters used previously
+        if "name" in db_filters:
+            del db_filters["name"]
+            
+        rows = frappe.get_all(
+            "Calisma Karti",
+            filters=db_filters,
+            or_filters=or_filters,
+            fields=fields,
+            order_by=order_by,
+            limit_start=start,
+            limit_page_length=page_length,
+        )
+
     rows = _attach_customer_groups(rows)
+    rows = _attach_operasyon_label(rows)
+    rows = _attach_bom_musteri_indeksi(rows)
+    
     if customer_group:
         rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
+        
     return rows
 
 @frappe.whitelist()
@@ -120,6 +341,10 @@ def get_calisma_karti_detail(name: str):
     duruslar = first_child_table(doc, ["duruslar", "durus", "operasyon_duruslari"])
     idc_olcumleri = first_child_table(doc, ["idc_olcumleri", "idc_olcumleri", "calisma_karti_idc_olcumleri"])
     barkod_kayitlari = first_child_table(doc, ["barkod_kayitlari", "barkod_kayitlari", "calisma_karti_barkod_kayitlari"])
+    alt_operasyon_kayitlari = first_child_table(doc, ["alt_operasyon_kayitlari", "alt_operasyon", "calisma_karti_alt_operasyon_kayitlari"])
+
+    # Enrich alt_operasyon rows with title and sequence from the master doctype
+    _attach_alt_operasyon_titles(alt_operasyon_kayitlari)
 
     return {
         "name": doc.name,
@@ -136,7 +361,276 @@ def get_calisma_karti_detail(name: str):
         "duruslar": duruslar,
         "idc_olcumleri": idc_olcumleri,
         "barkod_kayitlari": barkod_kayitlari,
+        "alt_operasyon_kayitlari": alt_operasyon_kayitlari,
         "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
         "kalite_kontrol": doc.kalite_kontrol,
+        "quality_inspection": doc.quality_inspection or None,
+        "miktar_zorunlu_mu": frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu"),
         "creation": doc.creation,
+        "docstatus": doc.docstatus,
+        "max_kart_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430,
+        "kart_uyari_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "kart_uyari_suresi_dk") or 400,
+    }
+
+def _assert_can_write_on_doc(doc):
+    if is_system_manager() or is_quality_user():
+        return
+    emp = require_my_employee()
+    if doc.operator != emp:
+        frappe.throw(_("Bu İşlem için yetkiniz yok."), frappe.PermissionError)
+
+def _handle_baslat(doc, now):
+    durum = doc.get_durum()
+    if durum == "durusta":
+        # Handle as continuation if "Baslat" sent for a paused card
+        _handle_devam_et(doc, now)
+        return
+        
+    if durum != "hazir":
+        frappe.throw("Sadece Hazır durumundaki işlemler başlatılabilir.")
+
+    # Backend guard: block start if hard mode and incomplete active card exists
+    if doc.operator and _get_kart_gecis_modu() == "hard":
+        inc = _check_incomplete_before_start(doc.operator, doc.name)
+        if inc:
+            frappe.throw(
+                _("Mevcut çalışan kartınızda ({0}) eksik veri var. "
+                  "Önce o kartı tamamlayın.").format(inc["card_name"])
+            )
+    
+    doc.baslangic_saati = now
+    
+    # Auto-pause other active cards for this operator
+    _auto_pause_other_active_cards(doc, now)
+
+def _handle_devam_et(doc, now):
+    if doc.get_durum() != "durusta":
+        frappe.throw("Sadece durdurulmuş bir işlem devam ettirilebilir.")
+
+    # Backend guard: block resume if hard mode and incomplete active card exists
+    if doc.operator and _get_kart_gecis_modu() == "hard":
+        inc = _check_incomplete_before_start(doc.operator, doc.name)
+        if inc:
+            frappe.throw(
+                _("Mevcut çalışan kartınızda ({0}) eksik veri var. "
+                  "Önce o kartı tamamlayın.").format(inc["card_name"])
+            )
+    
+    if doc.duruslar:
+        last_row = doc.duruslar[-1]
+        if not last_row.durus_bitis:
+            last_row.durus_bitis = now
+            from frappe.utils import get_datetime
+            start_dt = get_datetime(last_row.durus_baslangic)
+            end_dt = get_datetime(last_row.durus_bitis)
+            last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+            
+    _auto_pause_other_active_cards(doc, now)
+
+def _handle_durus(doc, now, durus_nedeni, aciklama):
+    durum = doc.get_durum()
+    if durum == "bitmis":
+        frappe.throw("Bitmiş bir işlemde duruş yapılamaz.")
+    if durum == "hazir":
+        frappe.throw("Başlamamış bir işlemde duruş yapılamaz.")
+    if doc.aktif_durus_var_mi():
+        frappe.throw("Bu işlem zaten durdurulmuş.")
+
+    if not durus_nedeni:
+        frappe.throw("Duruşa geçmek için Duruş Nedeni belirtilmelidir.")
+        
+    doc.append(
+        "duruslar",
+        {
+            "durus_nedeni": durus_nedeni,
+            "durus_baslangic": now,
+            "aciklama": aciklama,
+        },
+    )
+
+def _handle_bitis(doc, now, aciklama, qty):
+    durum = doc.get_durum()
+    if durum == "hazir":
+        frappe.throw("Başlamamış işlem bitirilemez.")
+    if durum == "bitmis":
+        frappe.throw("Bu kart zaten bitmiş.")
+
+    # 1. Close active durus if any
+    if doc.aktif_durus_var_mi():
+        last_row = doc.duruslar[-1]
+        last_row.durus_bitis = now
+        from frappe.utils import get_datetime
+        start_dt = get_datetime(last_row.durus_baslangic)
+        end_dt = get_datetime(last_row.durus_bitis)
+        last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+
+    # 2. Add requested amount
+    doc.tamamlanan_miktar = (doc.tamamlanan_miktar or 0.0) + qty
+
+    # 3. Check amount constraint
+    total_done = float(doc.tamamlanan_miktar or 0)
+    if total_done <= 0:
+        # Check operation strictness config
+        op_doc = frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu")
+        miktar_zorunlu_mu = op_doc if op_doc is not None else 1
+
+        if miktar_zorunlu_mu:
+            frappe.throw("Bu operasyon için tamamlanan miktar (üretim adedi) bildirilmesi zorunludur.")
+        else:
+            if not doc.get("alt_operasyon_kayitlari"):
+                frappe.throw("Üretim adedi girilmeden işlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.")
+
+    doc.bitis_saati = now
+
+    # Optional final note/durus reason
+    if aciklama and len(doc.duruslar) > 0:
+        doc.duruslar[-1].aciklama = aciklama
+
+    # 4. Submit linked Quality Inspection (if draft)
+    _submit_linked_quality_inspection(doc)
+
+    # 5. Auto-submit the card if it is still a Draft
+    if doc.docstatus == 0:
+        doc.submit()
+
+
+def _submit_linked_quality_inspection(doc):
+    """Submit the Quality Inspection linked to this Calisma Karti if it is still a Draft.
+
+    Called when the card is finished (Bitis). Safe — any error is logged but does not
+    block the card from being finished.
+    """
+    qi_name = (getattr(doc, "quality_inspection", None) or "").strip()
+    if not qi_name:
+        return
+
+    try:
+        qi_docstatus = frappe.db.get_value("Quality Inspection", qi_name, "docstatus")
+        if qi_docstatus == 0:  # Draft → submit
+            qi_doc = frappe.get_doc("Quality Inspection", qi_name)
+            # Submit as the owner (quality person) to avoid permission/ownership errors for operators
+            original_user = frappe.session.user
+            try:
+                frappe.set_user(qi_doc.owner)
+                qi_doc.submit()
+            finally:
+                frappe.set_user(original_user)
+            frappe.logger().info(
+                f"[kta] Quality Inspection {qi_name} submitted on Bitis of {doc.name} as user {qi_doc.owner}"
+            )
+    except Exception:
+        frappe.log_error(
+            frappe.get_traceback(),
+            f"[kta] QI submit failed for {qi_name} (Calisma Karti: {doc.name})"
+        )
+def _auto_pause_other_active_cards(hedef_doc, now_dt):
+    if not hedef_doc.operator:
+        return
+        
+    kartlar = frappe.get_all(
+        "Calisma Karti",
+        filters={
+            "operator": hedef_doc.operator,
+            "name": ["!=", hedef_doc.name],
+            "docstatus": ["in", [0, 1]],
+            "bitis_saati": ["is", "not set"]
+        },
+        fields=["name"]
+    )
+    
+    for k in kartlar:
+        eski_doc = frappe.get_doc("Calisma Karti", k.name)
+        if eski_doc.get_durum() == "calisiyor":
+            eski_doc.append("duruslar", {
+                "durus_nedeni": "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.",
+                "durus_baslangic": now_dt,
+            })
+            eski_doc.update_durum()
+            if eski_doc.docstatus == 1:
+                eski_doc.flags.ignore_validate_update_after_submit = True
+                eski_doc.save(ignore_permissions=True)
+                
+                # Force-update read-only status fields on submitted document
+                frappe.db.set_value("Calisma Karti", eski_doc.name, {
+                    "durum": eski_doc.durum,
+                    "toplam_sure": eski_doc.toplam_sure,
+                    "toplam_durus": eski_doc.toplam_durus,
+                    "net_calisma_suresi": eski_doc.net_calisma_suresi
+                }, update_modified=False)
+            else:
+                eski_doc.save(ignore_permissions=True)
+            from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+            publish_calisma_karti_changed(eski_doc.name, reason="auto_pause")
+
+@frappe.whitelist()
+def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_miktar=None):
+    doc = frappe.get_doc("Calisma Karti", docname)
+
+    doc.check_permission("write")
+    _assert_can_write_on_doc(doc)
+
+    doc.reload()
+
+    if doc.docstatus not in (0, 1):
+        frappe.throw(_("İptal edilmiş kartta işlem yapılamaz."))
+
+    durum = doc.get_durum()
+    if (doc.kalite_kontrol or '').strip() == 'Reddedildi':
+        frappe.throw('Reddedilmiş çalışma kartında işlem yapılamaz.')
+
+    from frappe.utils import now_datetime
+    now = now_datetime()
+    qty = 0.0
+    if tamamlanan_miktar is not None and str(tamamlanan_miktar).strip() != "":
+        try:
+            qty = float(tamamlanan_miktar)
+        except Exception:
+            frappe.throw("Tamamlanan miktar sayısal olmalıdır.")
+        if qty < 0:
+            frappe.throw("Tamamlanan miktar negatif olamaz.")
+
+    if islem_tipi == "Baslat":
+        _handle_baslat(doc, now)
+    elif islem_tipi == "Durus":
+        _handle_durus(doc, now, durus_nedeni, aciklama)
+        if qty > 0:
+            doc.tamamlanan_miktar = (doc.tamamlanan_miktar or 0.0) + qty
+    elif islem_tipi == "DevamEt":
+        _handle_devam_et(doc, now)
+    elif islem_tipi == "Bitis":
+        _handle_bitis(doc, now, aciklama, qty)
+    else:
+        frappe.throw("Geçersiz işlem tipi.")
+
+    doc.update_durum()
+
+    if doc.docstatus == 1:
+        doc.flags.ignore_validate_update_after_submit = True
+        doc.save(ignore_permissions=True)
+        
+        # Force-update read-only fields on submitted document using db.set_value.
+        # Standard doc.save() often ignores read-only fields even if allow_on_submit is 1.
+        frappe.db.set_value("Calisma Karti", doc.name, {
+            "baslangic_saati": doc.baslangic_saati,
+            "bitis_saati": doc.bitis_saati,
+            "durum": doc.durum,
+            "toplam_sure": doc.toplam_sure,
+            "toplam_durus": doc.toplam_durus,
+            "net_calisma_suresi": doc.net_calisma_suresi,
+            "tamamlanan_miktar": doc.tamamlanan_miktar
+        }, update_modified=False)
+    else:
+        doc.save(ignore_permissions=True)
+    
+    frappe.db.commit()
+
+    from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+    publish_calisma_karti_changed(docname, reason=f"islem_yap:{islem_tipi}")
+
+    return {
+        "status": "success",
+        "docname": docname,
+        "islem_tipi": islem_tipi,
+        "durum": doc.get_durum(),
+        "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
     }

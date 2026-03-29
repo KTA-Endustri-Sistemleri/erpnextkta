@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import frappe
 from frappe import _
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
@@ -66,6 +67,10 @@ def update_kalite_kontrol(name: str, kalite_kontrol: str):
     doc = frappe.get_doc("Calisma Karti", name)
     doc.check_permission("read")
 
+    # [STRATEGY] If a Quality Inspection is already linked, manual updates via UI are forbidden.
+    if doc.quality_inspection:
+        frappe.throw(_("Bu karta bağlı bir kalite belgesi ({0}) bulunmaktadır. Durum değişikliği sadece ilgili belge üzerinden yapılabilir.").format(doc.quality_inspection))
+
     # permlevel=1 field -> bypass via ignore_permissions AFTER strict role gate
     doc.flags.ignore_permissions = True
     doc.db_set("kalite_kontrol", val, update_modified=True)
@@ -80,7 +85,7 @@ def update_kalite_kontrol(name: str, kalite_kontrol: str):
             try:
                 durum_key = doc.get_durum()
                 # STATU_HARITASI lives in the DocType module
-                from kta_calisma_karti.doctype.calisma_karti.calisma_karti import STATU_HARITASI
+                from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import STATU_HARITASI
                 doc.db_set("durum", STATU_HARITASI.get(durum_key, "Hazır"), update_modified=True)
             except Exception:
                 # Fail safe: don't block QC update if status recompute fails
@@ -137,6 +142,23 @@ def _get_doc_for_qc_write(name: str):
     doc.flags.ignore_permissions = True
     return doc
 
+def _get_doc_for_idc_write(name: str):
+    """Get Calisma Karti for IDC write operations.
+
+    IDC measurements can be entered by:
+    - The operator assigned to this card
+    - QC users / System Manager (full access)
+    """
+    from ._helpers import require_my_employee, is_system_manager, is_quality_user
+    doc = frappe.get_doc("Calisma Karti", name)
+    doc.check_permission("read")
+    if not (is_system_manager() or is_quality_user()):
+        emp = require_my_employee()
+        if doc.operator != emp:
+            frappe.throw(_("Bu çalışma kartı için yetkiniz yok."), frappe.PermissionError)
+    doc.flags.ignore_permissions = True
+    return doc
+
 # Raw Material + IDC Filter Helpers for Calisma Karti.
 
 def _get_work_order_name_from_calisma_karti(doc) -> str:
@@ -166,17 +188,18 @@ def _assert_idc_item_allowed_for_work_order(doc, item_code: str):
     bom_no = _get_bom_no_from_work_order(wo_name)
 
     # 1) Item constraints
-    ok_item = frappe.db.exists(
+    ok_item = frappe.db.get_value(
         "Item",
         {
             "name": code,
-            "item_group": "120-IDC Connector",
+            "item_group": ["in", ["120-IDC Connector", "110-Connector"]],
             "custom_ara_malzeme_grubu": "HAMMADDE",
         },
+        "name"
     )
     if not ok_item:
         frappe.throw(
-            _("Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)"),
+            _("Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector veya 110-Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)"),
             frappe.ValidationError,
         )
 
@@ -203,11 +226,10 @@ def _assert_idc_item_allowed_for_work_order(doc, item_code: str):
 def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters):
     """Link field search for allowed IDC items for given Calisma Karti.
 
+    Open to any user who has read access to the given Calisma Karti.
     filters expected:
       - calisma_karti: Calisma Karti name
     """
-    _require_qc_role()
-
     calisma_karti = (filters or {}).get("calisma_karti")
     if not calisma_karti:
         return []
@@ -230,7 +252,7 @@ def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters
             bi.parent = %(bom_no)s
             and bi.parenttype = 'BOM'
             and bi.parentfield = 'items'
-            and i.item_group = '120-IDC Connector'
+            and i.item_group in ('120-IDC Connector', '110-Connector')
             and ifnull(i.custom_ara_malzeme_grubu, '') = 'HAMMADDE'
             and (
                 i.name like %(like)s
@@ -250,9 +272,9 @@ def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters
 # ---------- IDC CRUD ----------
 
 @frappe.whitelist()
-def add_idc_olcumu(name: str, item_code: str, yukseklik_mm: float, cekme_n: float,
+def add_idc_olcumu(name: str, item_code: str, yukseklik_mm: float = 0, cekme_n: float = 0,
                   olcum_tarihi: str | None = None, olcumu_giren: str | None = None):
-    doc = _get_doc_for_qc_write(name)
+    doc = _get_doc_for_idc_write(name)
     _assert_child_table_exists(doc, IDC_CHILD_FIELDNAME)
 
     if not (item_code or "").strip():
@@ -269,14 +291,15 @@ def add_idc_olcumu(name: str, item_code: str, yukseklik_mm: float, cekme_n: floa
     }
 
     doc.append(IDC_CHILD_FIELDNAME, row)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
 
 @frappe.whitelist()
-def update_idc_olcumu(name: str, rowname: str, item_code: str, yukseklik_mm: float, cekme_n: float,
+def update_idc_olcumu(name: str, rowname: str, item_code: str, yukseklik_mm: float = 0, cekme_n: float = 0,
                       olcum_tarihi: str | None = None, olcumu_giren: str | None = None):
-    doc = _get_doc_for_qc_write(name)
+    doc = _get_doc_for_idc_write(name)
     _assert_child_table_exists(doc, IDC_CHILD_FIELDNAME)
 
     if not (item_code or "").strip():
@@ -293,17 +316,17 @@ def update_idc_olcumu(name: str, rowname: str, item_code: str, yukseklik_mm: flo
     target.yukseklik_mm = float(yukseklik_mm or 0)
     target.cekme_n = float(cekme_n or 0)
 
-    # If you want "recorded at insert time only", do NOT overwrite these on update:
     target.olcum_tarihi = frappe.utils.now_datetime()
     target.olcumu_giren = _session_employee_name_or_throw()
 
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
 
 @frappe.whitelist()
 def delete_idc_olcumu(name: str, rowname: str):
-    doc = _get_doc_for_qc_write(name)
+    doc = _get_doc_for_idc_write(name)
     _assert_child_table_exists(doc, IDC_CHILD_FIELDNAME)
 
     rows = doc.get(IDC_CHILD_FIELDNAME) or []
@@ -314,6 +337,7 @@ def delete_idc_olcumu(name: str, rowname: str):
 
     rows.pop(idx)
     doc.set(IDC_CHILD_FIELDNAME, rows)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}
@@ -342,6 +366,7 @@ def add_barkod_kaydi(
     }
 
     doc.append(BARKOD_CHILD_FIELDNAME, row)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}
@@ -372,6 +397,7 @@ def update_barkod_kaydi(
     target.olcum_tarihi = frappe.utils.now_datetime()
     target.olcumu_giren = _session_employee_name_or_throw()
 
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
     return {"status": "success"}
 
@@ -389,6 +415,215 @@ def delete_barkod_kaydi(name: str, rowname: str):
 
     rows.pop(idx)
     doc.set(BARKOD_CHILD_FIELDNAME, rows)
+    doc.flags.ignore_validate_update_after_submit = True
     doc.save()
 
     return {"status": "success"}
+
+
+@frappe.whitelist()
+def get_qc_templates_for_ck(ck_name):
+    """Get available quality inspection templates for a Calisma Karti
+    1. From Item master
+    2. From Job Card (Operation)
+    3. Wildcard matching item code
+    """
+    if not ck_name:
+        return {"templates": [], "default_template": None, "item_code": None}
+
+    ck = frappe.get_doc("Calisma Karti", ck_name)
+    if not ck.is_karti:
+        return {"templates": [], "default_template": None, "item_code": None}
+
+    # Job Card üzerinden production_item ve template'i alalım
+    job_card = frappe.get_doc("Job Card", ck.is_karti)
+    item_code = job_card.production_item
+    
+    unique_templates = set()
+
+    # 1. Template from Item master (Default)
+    default_template = frappe.db.get_value("Item", item_code, "quality_inspection_template")
+    if default_template:
+        unique_templates.add(default_template)
+
+    # 2. Template from Job Card (Operation)
+    jc_template = job_card.quality_inspection_template
+    if jc_template:
+        unique_templates.add(jc_template)
+    
+    # 3. Search for templates that might mention the item code in their name
+    wildcard_templates = frappe.get_all(
+        "Quality Inspection Template",
+        filters={"name": ["like", f"%{item_code}%"]},
+        pluck="name"
+    )
+    for t in wildcard_templates:
+        unique_templates.add(t)
+
+    result = [{"name": t_name} for t_name in sorted(list(unique_templates))]
+
+    return {
+        "templates": result,
+        "default_template": default_template,
+        "item_code": item_code
+    }
+
+
+@frappe.whitelist()
+def get_template_details(template_name):
+    """
+    Returns the parameters of a specific Quality Inspection Template.
+    """
+    template = frappe.get_doc("Quality Inspection Template", template_name)
+    params = []
+    for p in template.item_quality_inspection_parameter:
+        params.append({
+            "specification": p.specification,
+            "value": p.value,
+            "numeric": p.numeric,
+            "min_value": p.min_value,
+            "max_value": p.max_value
+        })
+    return params
+
+
+@frappe.whitelist()
+def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=1, intent="approve"):
+    """
+    Creates and submits a Quality Inspection (MAT-QA) linked to the Calisma Karti.
+
+    intent: "approve" → kalite_kontrol = "Onaylandı" (if QA Accepted)
+            "reject"  → all readings forced Rejected, kalite_kontrol = "Reddedildi"
+    sample_size: numune sayısı (kullanıcı tarafından girilir, default 1)
+    """
+    ck = frappe.get_doc("Calisma Karti", ck_name)
+    _require_qc_role()
+
+    if not ck.is_karti:
+        frappe.throw(_("Çalışma Kartı bir İş Kartı (Job Card) ile bağlantılı değil."))
+
+    # Create Quality Inspection
+    qa = frappe.new_doc("Quality Inspection")
+    qa.report_date = frappe.utils.nowdate()
+    qa.inspection_type = "In Process"
+    qa.reference_type = "Job Card"
+    qa.reference_name = ck.is_karti
+    qa.item_code = frappe.db.get_value("Job Card", ck.is_karti, "production_item")
+    qa.quality_inspection_template = template_name
+    qa.inspected_by = frappe.session.user
+    qa.sample_size = int(sample_size or 1)
+
+    # Parse readings if it arrives as a JSON string (HTTP form data)
+    if isinstance(readings, str):
+        readings = json.loads(readings)
+
+    is_reject = (intent or "approve") == "reject"
+
+    # Add readings
+    # ERPNext Quality Inspection Reading fields:
+    #   numeric=True  → reading_1 (and reading_2..10 for multiple samples)
+    #   numeric=False → reading_value
+    for r in readings:
+        is_numeric = bool(r.get("numeric"))
+        raw_val = str(r.get("reading_1") or r.get("reading_value") or "").strip()
+        # If intent=reject, force all readings to Rejected regardless of what frontend sent
+        row_status = "Rejected" if is_reject else (r.get("status") or "Accepted")
+        row = {
+            "specification": r.get("specification"),
+            "numeric": 1 if is_numeric else 0,
+            # manual_inspection=1: prevent ERPNext from auto-overriding status
+            # on submit (it would compare reading_1 against min/max and force "Rejected")
+            "manual_inspection": 1,
+            "status": row_status,
+            "min_value": r.get("min_value"),
+            "max_value": r.get("max_value"),
+        }
+        if is_numeric:
+            row["reading_1"] = raw_val
+        else:
+            row["reading_value"] = raw_val
+        qa.append("readings", row)
+
+    qa.insert(ignore_permissions=True)
+    # QI stays as Draft (docstatus=0) until the Calisma Karti is finished.
+    # It will be submitted automatically in _handle_bitis (cards.py).
+
+    # Determine temporary kalite_kontrol status for Calisma Karti:
+    #   intent=reject  → "Reddedildi"
+    #   intent=approve → "Onaylandı" (final status will be confirmed on submit)
+    if is_reject:
+        final_qc_status = "Reddedildi"
+    else:
+        final_qc_status = "Onaylandı"
+
+    # Update Calisma Karti
+    ck.db_set("quality_inspection", qa.name)
+    ck.db_set("kalite_kontrol", final_qc_status)
+
+    # If rejected, also update durum field
+    if final_qc_status == "Reddedildi":
+        ck.db_set("durum", "Reddedildi", update_modified=True)
+
+    # Notify frontend
+    publish_calisma_karti_changed(ck_name, reason=f"qc_submit:{qa.name}")
+
+    return {
+        "status": "success",
+        "quality_inspection": qa.name,
+        "qc_status": final_qc_status
+    }
+
+
+@frappe.whitelist()
+def sync_qi_to_calisma_karti(doc, method=None):
+    """Synchronize Quality Inspection status back to Calisma Karti.
+    Hooked to Quality Inspection on_update and on_submit.
+    This logic handles restoration: if QI moves from Rejected -> Accepted,
+    the work card status is re-calculated based on its time records.
+    """
+    # Only sync for Process/Operation inspections linked to Job Cards
+    if doc.reference_type != "Job Card" or not doc.reference_name:
+        return
+
+    # Find Calisma Karti linked to this Job Card
+    ck_name = frappe.db.get_value("Calisma Karti", {"is_karti": doc.reference_name}, "name")
+    if not ck_name:
+        return
+
+    # Map QI status to Calisma Karti QC status
+    # QI status is 'Accepted' or 'Rejected' (usually)
+    qi_status = (doc.status or "Accepted").strip()
+    final_qc_status = "Onaylandı" if qi_status == "Accepted" else "Reddedildi"
+
+    ck = frappe.get_doc("Calisma Karti", ck_name)
+    
+    # Avoid redundant updates if both QI link and status are already correct
+    if ck.quality_inspection == doc.name and ck.kalite_kontrol == final_qc_status:
+        return
+
+    # Update Calisma Karti fields
+    ck.flags.ignore_permissions = True
+    ck.db_set("quality_inspection", doc.name, update_modified=True)
+    ck.db_set("kalite_kontrol", final_qc_status, update_modified=True)
+
+    if final_qc_status == "Reddedildi":
+        # Force critical lock status
+        ck.db_set("durum", "Reddedildi", update_modified=True)
+    else:
+        # Restoration logic:
+        # If we just moved away from Reddedildi, or if we were never Reddedildi but need a sync,
+        # re-calculate the 'natural' status (Hazır/Çalışıyor/Duruşta/Bitmiş) using DocType logic.
+        try:
+            durum_key = ck.get_durum()
+            # STATU_HARITASI maps logic keys (ready, running, etc.) to user-facing labels
+            from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import STATU_HARITASI
+            label = STATU_HARITASI.get(durum_key, "Hazır")
+            ck.db_set("durum", label, update_modified=True)
+        except Exception:
+            # Fallback for safety
+            if ck.durum == "Reddedildi":
+                 ck.db_set("durum", "Hazır", update_modified=True)
+
+    # Trigger UI update
+    frappe.db.commit()
+    publish_calisma_karti_changed(ck_name, reason=f"qi_sync:{method or 'hook'}")

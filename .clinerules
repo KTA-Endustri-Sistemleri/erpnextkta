@@ -1,0 +1,50 @@
+# erpnextkta — KTA Endüstri Özelleştirmeleri
+
+This project is a Frappe/ERPNext app containing customizations for KTA Endüstri (Çerkezköy, Türkiye). It follows standard Frappe best practices while implementing complex business modules.
+
+## Architecture & Project Structure
+- **Core App**: `erpnextkta/erpnextkta/`
+- **Modules**:
+  - `kta_calisma_karti`: Multi-SPA production interface (Vue 3). Detailed rules in [kta_calisma_karti/.clinerules](file:///srv/workspaces/bench/frappe-bench/apps/erpnextkta/erpnextkta/kta_calisma_karti/.clinerules).
+  - `kta_stock`: Stock tracking, labels, and real-time dashboards.
+  - `kta_mrp`: Production planning and reporting.
+  - `kta_sales`: Sales order syncing and comparisons.
+  - `overrides`: Centralized DocType class overrides.
+
+## Core Development Patterns
+
+### 1. DocType Overrides
+- **Rule**: Never modify standard ERPNext DocType files. Always use the `overrides` folder.
+- **Mechanism**: Standard classes are overridden in `hooks.py:override_doctype_class`.
+- **Implementation**: Implementation logic should reside in `erpnextkta/overrides/*.py`.
+
+### 2. Event-Driven Logic
+- Use `doc_events` in `hooks.py` to hook into standard DocType lifecycles (validate, on_update, on_submit).
+- For cross-module logic (e.g., Stock Entry affecting Calisma Karti), use these hooks to maintain decoupling.
+
+### 3. Global API & Helpers (`erpnextkta/api.py`)
+- `erpnextkta/api.py` serves as a central repository for app-wide utility functions:
+  - Zebra printing and label formatting.
+  - Purchase Receipt split logic and Batch allocations.
+  - Global constants for DocType and field names.
+- Always check if a utility exists in `api.py` before re-implementing it.
+
+### 4. Scheduler & Tasks (`erpnextkta/tasks.py`)
+- Background jobs are managed in `tasks.py` and defined in `hooks.py:scheduler_events`.
+- Common tasks: `auto_close_timed_out_cards`, `delete_old_unstarted_cards`.
+
+## Business Rules & Standards
+
+### 1. Fixtures & Customization
+- **Rule**: Use `hooks.py:fixtures` for Role Profiles, Client Scripts, Custom Fields, and Property Setters.
+- **Naming**: Use `KTA` prefix for custom assets where applicable to avoid collisions.
+
+### 2. Frontend Conventions
+- **Asset Build**: All frontend changes require a build: `bench build --app erpnextkta --production`.
+- **Custom JS**: Standard desk customizations should be in `public/js/` and linked via `hooks.py:doctype_js` or `app_include_js`.
+
+## Workflow & Commits
+- **Conventional Commits**: Format `type(scope): 📝 message`.
+- **Scope Examples**: `qc`, `cards`, `stock`, `sales`, `mrp`, `ui`.
+- Always use meaningful gitmojis.
+

@@ -51,6 +51,10 @@ const errorMessage = ref(null);
 // Oluşturulan Çalışma Kartı
 const createdDoc = ref(null);
 
+// Hata modallarını susturmak için global flag
+const isAppQuiet = ref(false);
+let originalMsgprint = null;
+
 /* -------------------------------------------------------
  *  DERIVED
  * -----------------------------------------------------*/
@@ -61,9 +65,7 @@ const selectedJobCard = computed(() => {
 
 const selectedOperation = computed(() => {
   return (
-    operations.value.find(
-      (op) => op.calisma_karti_op === selectedOperationName.value
-    ) || null
+    operations.value.find((op) => op.name === selectedOperationName.value) || null
   );
 });
 
@@ -128,6 +130,33 @@ const steps = computed(() => {
   ];
 });
 
+const activeCustomerGroups = computed(() => {
+  // Prefer Work Order (WO mode), fallback to selected Job Card (JC mode)
+  const wo = workOrder.value;
+  const jc = selectedJobCard.value;
+
+  const fromWo = wo?.customer_groups || (wo?.customer_group ? [wo.customer_group] : []);
+  const fromJc = jc?.customer_groups || (jc?.customer_group ? [jc.customer_group] : []);
+
+  const raw = (fromWo.length ? fromWo : fromJc).filter(Boolean);
+  return Array.from(new Set(raw));
+});
+
+// Eğer operasyonun customer_group alanı doluysa, sadece o gruba ait olan WO/JC'lere göster.
+// Eğer boşsa (generic operasyon), herkese göster.
+const filteredOperations = computed(() => {
+  const ops = operations.value || [];
+  const groups = activeCustomerGroups.value;
+
+  return ops.filter((op) => {
+    const cg = op?.customer_group || null;
+    // Operasyon genel kullanıma açıksa (kısıt yoksa) kabul et:
+    if (!cg) return true;
+    // Operasyon kısıtlıysa, sepetteki gruplardan biriyle eşleşmeli:
+    return groups.includes(cg);
+  });
+});
+
 /* -------------------------------------------------------
  *  HELPERS
  * -----------------------------------------------------*/
@@ -137,14 +166,77 @@ function callFrappe(method, args = {}) {
     frappe.call({
       method,
       args,
+      quiet: true,
       callback: (r) => {
+        // Her ihtimale karşı temizle
+        if (window.frappe) frappe.messages = [];
         resolve(r.message);
       },
       error: (err) => {
+        if (window.frappe) frappe.messages = [];
         reject(err);
       }
     });
   });
+}
+
+/**
+ * Frappe hata objesinden temiz mesaj ayıran yardımcı
+ */
+function getErrorMessage(err, defaultMsg) {
+  if (!err) return defaultMsg;
+  let rawMsg = '';
+
+  // 1. Ham mesajı ayıkla
+  if (typeof err === 'string') {
+    rawMsg = err;
+  } else if (err._server_messages) {
+    try {
+      const msgs = typeof err._server_messages === 'string'
+        ? JSON.parse(err._server_messages)
+        : err._server_messages;
+      rawMsg = msgs.map(m => {
+        try {
+          const p = typeof m === 'string' ? JSON.parse(m) : m;
+          return p.message || m;
+        } catch { return m; }
+      }).join(' ');
+    } catch { rawMsg = String(err._server_messages); }
+  } else {
+    rawMsg = err.message || err.statusText || defaultMsg;
+  }
+
+  // 2. Teknik gürültüyü temizle ve Türkçeleştir
+  let cleanMsg = rawMsg;
+
+  // Bilinen Frappe kalıplarını Türkçeleştir
+  const patterns = [
+    { reg: /Work Order (.*) not found/i, repl: 'İş Emri bulunamadı.' },
+    { reg: /Job Card (.*) not found/i, repl: 'İş Kartı bulunamadı.' },
+    { reg: /Employee (.*) not found/i, repl: 'Personel kaydı bulunamadı.' },
+    { reg: /Operation (.*) not found/i, repl: 'Operasyon bulunamadı.' },
+    { reg: /Not permitted/i, repl: 'Bu işlem için yetkiniz yok.' },
+    { reg: /Insufficient Permission/i, repl: 'Yetki yetersiz.' }
+  ];
+
+  for (const p of patterns) {
+    if (p.reg.test(cleanMsg)) {
+      cleanMsg = p.repl;
+      break; 
+    }
+  }
+
+  // Eğer hala İngilizce "not found" falan varsa genel bir temizlik yap
+  if (cleanMsg.toLowerCase().includes('not found')) {
+    return defaultMsg;
+  }
+
+  // Çok uzun/teknik mesajları default'a çek (Örn: SQL hataları)
+  if (cleanMsg.includes('Traceback') || cleanMsg.includes('OperationalError')) {
+    return defaultMsg;
+  }
+
+  return cleanMsg;
 }
 
 // Merkezi loading helper (min süre garantili)
@@ -214,9 +306,18 @@ async function fetchWorkOrderByBarcode() {
 
   try {
     await withLoading(async () => {
+      let barcode = workOrderBarcode.value.trim();
+      if (!barcode) return;
+
+      // Smart Prefix: 2026-01110 -> MFG-WO-2026-01110
+      if (/^\d{4}-\d+$/.test(barcode)) {
+        barcode = `MFG-WO-${barcode}`;
+        workOrderBarcode.value = barcode;
+      }
+
       const msg = await callFrappe(
         'erpnextkta.kta_calisma_karti.api.get_work_order_by_barcode',
-        { barcode: workOrderBarcode.value.trim() }
+        { barcode }
       );
 
       workOrder.value = msg || null;
@@ -231,10 +332,7 @@ async function fetchWorkOrderByBarcode() {
     }, 800);
   } catch (err) {
     console.error(err);
-    errorMessage.value =
-      (err && err.message) ||
-      (err && err._server_messages) ||
-      'Work Order alınırken hata oluştu.';
+    errorMessage.value = getErrorMessage(err, 'Work Order alınırken hata oluştu.');
     workOrder.value = null;
     jobCards.value = [];
     selectedJobCardName.value = null;
@@ -248,9 +346,18 @@ async function fetchJobCardByBarcode() {
 
   try {
     await withLoading(async () => {
+      let barcode = jobCardBarcode.value.trim();
+      if (!barcode) return;
+
+      // Smart Prefix: JOB16115 -> PO-JOB16115
+      if (/^JOB\d+$/i.test(barcode)) {
+        barcode = `PO-${barcode.toUpperCase()}`;
+        jobCardBarcode.value = barcode;
+      }
+
       const msg = await callFrappe(
         'erpnextkta.kta_calisma_karti.api.get_job_card_by_barcode',
-        { barcode: jobCardBarcode.value.trim() }
+        { barcode }
       );
 
       // Beklenen çıktı (örnek):
@@ -279,6 +386,8 @@ async function fetchJobCardByBarcode() {
         workstation: msg.workstation || null,
         production_item: msg.production_item || null,
         for_quantity: msg.for_quantity || msg.qty || null,
+        customer_group: msg.customer_group || null,
+        customer_groups: msg.customer_groups || [],
       };
 
       // Job Card state
@@ -291,6 +400,8 @@ async function fetchJobCardByBarcode() {
             name: jc.work_order,
             production_item: jc.production_item,
             qty: jc.for_quantity,
+            customer_group: jc.customer_group,
+            customer_groups: jc.customer_groups,
           }
         : null;
 
@@ -298,14 +409,12 @@ async function fetchJobCardByBarcode() {
       selectedWorkstation.value = jc.workstation || null;
 
       // JC flow'da 1. adım tamam → Operasyona geç
+      await fetchOperationsForJobCard(jcName);
       currentStep.value = 2;
     }, 800);
   } catch (err) {
     console.error(err);
-    errorMessage.value =
-      (err && err.message) ||
-      (err && err._server_messages) ||
-      'İş Kartı alınırken hata oluştu.';
+    errorMessage.value = getErrorMessage(err, 'İş Kartı alınırken hata oluştu.');
     jobCards.value = [];
     selectedJobCardName.value = null;
     workOrder.value = null;
@@ -333,26 +442,23 @@ async function fetchJobCardsForWorkOrder() {
   }
 }
 
-// Operasyon listesi
-async function fetchOperations() {
+// Operasyon listesi — JC'ye göre filtrelenmiş
+async function fetchOperationsForJobCard(jcName) {
   errorMessage.value = null;
 
   try {
     await withLoading(async () => {
-      const list = await callFrappe('frappe.client.get_list', {
-        doctype: 'KTA Calisma Karti Operasyonlari',
-        fields: ['calisma_karti_op'],
-        limit_page_length: 500
-      });
+      const list = await callFrappe(
+        'erpnextkta.kta_calisma_karti.api.get_operations_for_job_card',
+        { job_card: jcName }
+      );
 
       operations.value = list || [];
       selectedOperationName.value = null;
     }, 500);
   } catch (err) {
     console.error(err);
-    errorMessage.value =
-      (err && err.message) ||
-      'Operasyon listesi alınırken hata oluştu.';
+    errorMessage.value = getErrorMessage(err, 'Operasyon listesi alınırken hata oluştu.');
     operations.value = [];
     selectedOperationName.value = null;
   }
@@ -462,9 +568,7 @@ async function submitWorkCard() {
     }, 900);
   } catch (err) {
     console.error(err);
-    errorMessage.value =
-      (err && err.message) ||
-      'Çalışma Kartı oluşturulurken hata oluştu.';
+    errorMessage.value = getErrorMessage(err, 'Çalışma Kartı oluşturulurken hata oluştu.');
   }
 }
 
@@ -521,7 +625,7 @@ function resetWizard() {
 
 function goToCreatedDoc() {
   if (!createdDoc.value || !createdDoc.value.name) return;
-  frappe.set_route('Form', 'Calisma Karti', createdDoc.value.name);
+  frappe.set_route('view-calisma-karti', createdDoc.value.name);
 }
 
 function startNewWorkCard() {
@@ -582,9 +686,13 @@ function onGlobalKeydown(e) {
  *  WATCHERS + LIFECYCLE
  * -----------------------------------------------------*/
 
-watch(selectedJobCardName, () => {
+watch(selectedJobCardName, (newJcName) => {
   syncWorkstationFromJobCard();
   releaseFocusAfterSelection();
+  // WO mode: fetch operations filtered by this Job Card
+  if (searchMode.value === 'WO' && newJcName) {
+    fetchOperationsForJobCard(newJcName);
+  }
 });
 
 watch(selectedWorkstation, (val) => {
@@ -599,15 +707,40 @@ watch(selectedUser, (val) => {
   if (val) releaseFocusAfterSelection();
 });
 
-// İlk açılışta operasyon + kullanıcı listeleri + global Enter listener
+// İlk açılışta kullanıcı listesi + global Enter listener
 onMounted(() => {
-  fetchOperations();
   fetchUsers();
   window.addEventListener('keydown', onGlobalKeydown, { capture: true });
+
+  // Agresif Modal Susturma: Sihirbaz açıkken TÜM Frappe modallarını engelle
+  if (window.frappe && frappe.msgprint) {
+    originalMsgprint = frappe.msgprint;
+    frappe.msgprint = (args) => {
+      // SADECE 'green' (Başarı) olan mesajlara izin ver, gerisini yut
+      if (typeof args === 'object' && (args.indicator === 'green' || args.indicator === 'success')) {
+        return originalMsgprint(args);
+      }
+      console.warn("[App] Blocked Modal while Wizard is active:", args);
+      // Mesaj kuyruğunu anında temizle
+      if (frappe.messages) frappe.messages = [];
+      return;
+    };
+  }
+
+  // Yedek temizleyici: Bazı durumlarda Frappe mesajları kuyrukta bekletebilir
+  window._msgCleaner = setInterval(() => {
+    if (window.frappe && frappe.messages && frappe.messages.length > 0) {
+      frappe.messages = [];
+    }
+  }, 250);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onGlobalKeydown, { capture: true });
+  if (window._msgCleaner) clearInterval(window._msgCleaner);
+  if (originalMsgprint && window.frappe) {
+    frappe.msgprint = originalMsgprint;
+  }
 });
 </script>
 <template>
@@ -643,16 +776,26 @@ onBeforeUnmount(() => {
         />
       </div>
 
-      <!-- HATA MESAJI -->
-      <div
-        v-if="errorMessage"
-        class="p-2 text-sm text-red-700 border border-red-300 rounded bg-red-50"
-      >
-        {{ errorMessage }}
-      </div>
-
       <!-- CARD -->
       <div class="wizard-card space-y-4">
+        <!-- Mobil Info Strip (321px altı için seçili WO ve Operasyon) -->
+        <div v-if="currentStep > 1 && searchMode === 'WO' && (workOrder || selectedOperationName)" class="mobile-info-strip">
+          <div v-if="workOrder" class="mobile-info-strip__item">
+            <span class="label">WO:</span> {{ workOrder.name }}
+          </div>
+          <div v-if="selectedOperationName" class="mobile-info-strip__item">
+            <span class="label">Op:</span> {{ selectedOperationName }}
+          </div>
+        </div>
+        <div v-else-if="currentStep > 1 && searchMode === 'JC' && (selectedJobCardName || selectedOperationName)" class="mobile-info-strip mobile-info-strip--jc">
+          <div v-if="selectedJobCardName" class="mobile-info-strip__item">
+            <span class="label">JC:</span> {{ selectedJobCardName }}
+          </div>
+          <div v-if="selectedOperationName" class="mobile-info-strip__item">
+            <span class="label">Op:</span> {{ selectedOperationName }}
+          </div>
+        </div>
+
         <Transition name="fade-step" mode="out-in">
           <!-- WO MODE: 5 adım -->
           <template v-if="searchMode === 'WO'">
@@ -684,7 +827,7 @@ onBeforeUnmount(() => {
             <!-- STEP 4: Operasyon -->
             <StepOperation
               v-else-if="currentStep === 4"
-              :operations="operations"
+              :operations="filteredOperations"
               v-model:selectedOperation="selectedOperationName"
             />
 
@@ -710,7 +853,7 @@ onBeforeUnmount(() => {
             <!-- STEP 2: Operasyon -->
             <StepOperation
               v-else-if="currentStep === 2"
-              :operations="operations"
+              :operations="filteredOperations"
               v-model:selectedOperation="selectedOperationName"
             />
 
@@ -728,6 +871,20 @@ onBeforeUnmount(() => {
           <div class="wizard-card__spinner"></div>
         </div>
       </div>
+
+      <!-- HATA MESAJI (ALTTA) -->
+      <Transition name="fade-error">
+        <div
+          v-if="errorMessage"
+          class="wizard-error-alert"
+        >
+          <div class="wizard-error-alert__icon">!</div>
+          <div class="wizard-error-alert__content">
+            {{ errorMessage }}
+          </div>
+          <button class="wizard-error-alert__close" @click="errorMessage = null">×</button>
+        </div>
+      </Transition>
 
       <!-- NAVIGATION BAR -->
       <div class="wizard-nav">
@@ -812,12 +969,47 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
+<style>
+:root {
+  --ck-bg: #f9fafb;
+  --ck-card-bg: #ffffff;
+  --ck-text: #111827;
+  --ck-text-muted: #4b5563;
+  --ck-border: #e5e7eb;
+  --ck-input-bg: #ffffff;
+  --ck-input-text: #111827;
+  --ck-ghost-bg: #f3f4f6;
+  --ck-accent: #2563eb;
+  --ck-accent-hover: #1d4ed8;
+  --ck-success: #16a34a;
+  --ck-success-hover: #15803d;
+}
+
+:root[data-theme="dark"],
+html[data-theme="dark"],
+body.dark,
+.dark {
+  --ck-bg: #0f172a;
+  --ck-card-bg: #1e293b;
+  --ck-text: #f1f5f9;
+  --ck-text-muted: #94a3b8;
+  --ck-border: #334155;
+  --ck-input-bg: #0f172a;
+  --ck-input-text: #f1f5f9;
+  --ck-ghost-bg: #1e293b;
+  --ck-accent: #3b82f6;
+  --ck-accent-hover: #60a5fa;
+  --ck-success: #22c55e;
+  --ck-success-hover: #4ade80;
+}
+</style>
+
 <style scoped>
 .wizard-card {
-  position: relative;  /* BUNU ekle */
-  background: #ffffff;
+  position: relative;
+  background: var(--ck-card-bg);
   border-radius: 0.75rem;
-  border: 1px solid #e5e7eb; /* gray-200 */
+  border: 1px solid var(--ck-border);
   padding: 1rem;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
 }
@@ -828,17 +1020,17 @@ onBeforeUnmount(() => {
   margin: 0em 0.4rem;
   padding: 0.35rem 0.7rem;
   border-radius: 5px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  color: #4b5563;
+  border: 1px solid var(--ck-border);
+  background: var(--ck-ghost-bg);
+  color: var(--ck-text-muted);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
     box-shadow 0.15s ease;
 }
 
 .mode-pill--active {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  background: var(--ck-accent);
+  border-color: var(--ck-accent);
   color: #ffffff;
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
 }
@@ -919,28 +1111,60 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--ck-text);
 }
 
 .success-card__subtitle {
   margin: 0.15rem 0 0;
   font-size: 0.85rem;
-  color: #4b5563;
+  color: var(--ck-text-muted);
 }
 
-.success-card__doc {
-  margin-top: 0.5rem;
+.success-card__details {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--ck-ghost-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.success-card__detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
   font-size: 0.85rem;
-  color: #374151;
+  padding: 0.25rem 0;
 }
 
-.success-card__doc-label {
-  font-weight: 500;
+.success-card__detail-label {
+  color: var(--ck-text-muted);
+  white-space: nowrap;
 }
 
-.success-card__doc-value {
-  margin-left: 0.25rem;
+.success-card__detail-value {
   font-weight: 600;
+  color: var(--ck-text);
+  text-align: right;
+  word-break: break-all;
+}
+
+/* 340px altı için alt alta dizilim */
+@media (max-width: 340px) {
+  .success-card__detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--ck-border);
+  }
+  .success-card__detail-row:last-child {
+    border-bottom: none;
+  }
+  .success-card__detail-value {
+    text-align: left;
+  }
 }
 
 /* ACTION BUTTONS */
@@ -970,26 +1194,26 @@ onBeforeUnmount(() => {
 }
 
 .success-btn--primary {
-  background: #16a34a;
-  border-color: #16a34a;
+  background: var(--ck-success);
+  border-color: var(--ck-success);
   color: #ffffff;
 }
 
 .success-btn--primary:hover {
-  background: #15803d;
-  border-color: #15803d;
+  background: var(--ck-success-hover);
+  border-color: var(--ck-success-hover);
   box-shadow: 0 1px 3px rgba(22, 163, 74, 0.4);
 }
 
 .success-btn--secondary {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  color: #111827;
+  background: var(--ck-ghost-bg);
+  border-color: var(--ck-border);
+  color: var(--ck-text);
 }
 
 .success-btn--secondary:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
+  background: var(--ck-ghost-bg);
+  border-color: var(--ck-text-muted);
 }
 /* STEP GEÇİŞ ANİMASYONU */
 .fade-step-enter-active,
@@ -1033,34 +1257,34 @@ onBeforeUnmount(() => {
 
 /* Secondary (geri) */
 .nav-btn--secondary {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  color: #374151;
+  background: var(--ck-ghost-bg);
+  border-color: var(--ck-border);
+  color: var(--ck-text);
 }
 .nav-btn--secondary:hover:enabled {
-  background: #e5e7eb;
+  background: var(--ck-border);
 }
 
 /* Primary (ileri) */
 .nav-btn--primary {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: var(--ck-accent);
+  border-color: var(--ck-accent);
   color: #fff;
 }
 .nav-btn--primary:hover:enabled {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  background: var(--ck-accent-hover);
+  border-color: var(--ck-accent-hover);
 }
 
 /* Success (submit) */
 .nav-btn--success {
-  background: #16a34a;
-  border-color: #16a34a;
+  background: var(--ck-success);
+  border-color: var(--ck-success);
   color: #fff;
 }
 .nav-btn--success:hover:enabled {
-  background: #15803d;
-  border-color: #15803d;
+  background: var(--ck-success-hover);
+  border-color: var(--ck-success-hover);
 }
 
 /* Disabled state */
@@ -1069,13 +1293,133 @@ onBeforeUnmount(() => {
   cursor: not-allowed;
 }
 
-/* Mobil uyumlu */
+/* MOBIL INFO STRIP (Sub-321px) */
+.mobile-info-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--ck-ghost-bg);
+  border-radius: 0.6rem;
+  border-left: 5px solid var(--ck-accent);
+  margin-bottom: 1rem;
+  border-top: 1px solid var(--ck-border);
+  border-right: 1px solid var(--ck-border);
+  border-bottom: 1px solid var(--ck-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="dark"] .mobile-info-strip,
+html[data-theme="dark"] .mobile-info-strip,
+.dark .mobile-info-strip {
+  background: rgba(59, 130, 246, 0.08); /* Hafif mavi transparan arka plan */
+  border-color: var(--ck-border);
+  border-left-color: var(--ck-accent);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.15); /* Hafif parlama */
+}
+
+@media (min-width: 322px) {
+  .mobile-info-strip {
+    display: none; /* WO için 321px üstü gizle */
+  }
+}
+
 @media (max-width: 640px) {
-  .wizard-nav {
-    justify-content: center;
+  .mobile-info-strip--jc {
+    display: flex !important; /* JC için 640px'e kadar zorla göster */
   }
-  .nav-btn {
-    width: 100%;
-  }
+}
+
+.mobile-info-strip__item {
+  font-size: 0.75rem;
+  color: var(--ck-text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-info-strip__item .label {
+  color: var(--ck-text-muted);
+  font-weight: normal;
+  margin-right: 0.2rem;
+}
+
+/* HATA ALERT KUTUSU */
+.wizard-error-alert {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+  40%, 60% { transform: translate3d(3px, 0, 0); }
+}
+
+:root[data-theme="dark"] .wizard-error-alert {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.wizard-error-alert__icon {
+  width: 22px;
+  height: 22px;
+  background: #dc2626;
+  color: white;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.wizard-error-alert__content {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #991b1b;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+:root[data-theme="dark"] .wizard-error-alert__content {
+  color: #fca5a5;
+}
+
+.wizard-error-alert__close {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.wizard-error-alert__close:hover {
+  opacity: 1;
+}
+
+.fade-error-enter-active, .fade-error-leave-active {
+  transition: all 0.3s ease;
+}
+.fade-error-enter-from, .fade-error-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 </style>

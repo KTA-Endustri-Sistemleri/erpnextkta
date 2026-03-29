@@ -123,11 +123,11 @@ const totalSteps = computed(() => props.steps.length);
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 2px solid #d1d5db; /* gray-300 */
+  border: 2px solid var(--ck-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f9fafb; /* gray-50 */
+  background: var(--ck-ghost-bg);
   flex-shrink: 0;
   transition: all 0.16s ease-out;
 }
@@ -135,12 +135,12 @@ const totalSteps = computed(() => props.steps.length);
 .step-circle__text {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #6b7280; /* gray-500 */
+  color: var(--ck-text-muted);
 }
 
 .step-circle--active {
-  border-color: #2563eb; /* blue-600 */
-  background: #2563eb;
+  border-color: var(--ck-accent);
+  background: var(--ck-accent);
 }
 
 .step-circle--active .step-circle__text {
@@ -148,8 +148,8 @@ const totalSteps = computed(() => props.steps.length);
 }
 
 .step-circle--done {
-  border-color: #16a34a; /* green-600 */
-  background: #16a34a;
+  border-color: var(--ck-success);
+  background: var(--ck-success);
 }
 
 .step-circle--done .step-circle__text {
@@ -163,20 +163,20 @@ const totalSteps = computed(() => props.steps.length);
 .step-label__title {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #111827; /* gray-900 */
+  color: var(--ck-text);
   white-space: nowrap;
 }
 
 .step-label__desc {
   font-size: 0.7rem;
-  color: #6b7280; /* gray-500 */
+  color: var(--ck-text-muted);
   white-space: nowrap;
 }
 
 .step-connector {
   flex: 1 1 0;
   height: 2px;
-  background: #e5e7eb; /* gray-200 */
+  background: var(--ck-border);
   margin-left: 0.5rem;
   margin-right: 0.5rem;
   border-radius: 999px;
@@ -184,7 +184,7 @@ const totalSteps = computed(() => props.steps.length);
 }
 
 .step-connector--active {
-  background: #2563eb; /* blue-600 */
+  background: var(--ck-accent);
 }
 
 /* ---------- Mobile compact görünüm ---------- */
@@ -198,13 +198,13 @@ const totalSteps = computed(() => props.steps.length);
   align-items: baseline;
   gap: 0.25rem;
   font-size: 0.78rem;
-  color: #4b5563; /* gray-600 */
+  color: var(--ck-text-muted);
   margin-bottom: 0.25rem;
 }
 
 .step-compact__stage {
   font-weight: 600;
-  color: #111827; /* gray-900 */
+  color: var(--ck-text);
 }
 
 .step-compact__label {
@@ -230,17 +230,17 @@ const totalSteps = computed(() => props.steps.length);
 
 /* Bitti -> Yeşil */
 .segment--done {
-  background: #16a34a; /* green-600 */
+  background: var(--ck-success);
 }
 
 /* Şu anki aşama -> Mavi */
 .segment--active {
-  background: #2563eb; /* blue-600 */
+  background: var(--ck-accent);
 }
 
 /* Gelecek aşama -> Gri */
 .segment--pending {
-  background: #d1d5db; /* gray-300 */
+  background: var(--ck-border);
 }
 
 /* 🔹 Ekran daraldığında: sadece compact görünüm kalsın */

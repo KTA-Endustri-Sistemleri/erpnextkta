@@ -14,13 +14,13 @@ from __future__ import annotations
 
 # Re-export whitelisted functions
 from .api_impl.barcode import get_job_card_by_barcode, get_work_order_by_barcode
-from .api_impl.cards import get_calisma_karti_detail, get_my_calisma_kartlari
-from .api_impl.create import create_calisma_karti
+from .api_impl.cards import get_calisma_karti_detail, get_my_calisma_kartlari, check_active_card_data
+from .api_impl.create import create_calisma_karti, get_operations_for_job_card
 from .api_impl.hurda import (
     add_hurda,
     delete_hurda,
     get_hurda_nedeni_options,
-    search_allowed_hurda_items,  # <-- EKLE
+    search_allowed_hurda_items,
     update_hurda,
 )
 
@@ -34,11 +34,23 @@ from .api_impl.qc import (
     add_barkod_kaydi,
     update_barkod_kaydi,
     delete_barkod_kaydi,
+    get_qc_templates_for_ck,
+    get_template_details,
+    submit_kta_quality_inspection,
+)
+
+# Alt Operasyon
+from .api_impl.alt_operasyon import (
+    add_alt_operasyon_kaydi,
+    update_alt_operasyon_kaydi,
+    delete_alt_operasyon_kaydi,
+    get_alt_operasyon_options,
 )
 
 __all__ = [
     "get_my_calisma_kartlari",
     "get_calisma_karti_detail",
+    "check_active_card_data",
 
     # QC
     "update_kalite_kontrol",
@@ -51,6 +63,9 @@ __all__ = [
     "add_barkod_kaydi",
     "update_barkod_kaydi",
     "delete_barkod_kaydi",
+    "get_qc_templates_for_ck",
+    "get_template_details",
+    "submit_kta_quality_inspection",
 
     # Hurda
     "get_hurda_nedeni_options",
@@ -59,8 +74,15 @@ __all__ = [
     "update_hurda",
     "delete_hurda",
 
+    # Alt Operasyon
+    "add_alt_operasyon_kaydi",
+    "update_alt_operasyon_kaydi",
+    "delete_alt_operasyon_kaydi",
+    "get_alt_operasyon_options",
+
     # Create + barcode helpers
     "create_calisma_karti",
+    "get_operations_for_job_card",
     "get_job_card_by_barcode",
     "get_work_order_by_barcode",
 ]

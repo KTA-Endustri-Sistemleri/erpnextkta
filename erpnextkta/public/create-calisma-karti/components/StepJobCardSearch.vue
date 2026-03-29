@@ -85,6 +85,30 @@ function onKeydown(event) {
     <div v-if="loading" class="step-wo__loading-text">
       İş Kartı doğrulanıyor...
     </div>
+
+    <!-- Seçili İş Kartı Özeti -->
+    <Transition name="fade-step">
+      <div v-if="jobCard && !loading" class="step-wo__summary">
+        <div class="step-wo__summary-header">
+          <span class="step-wo__summary-icon">✓</span>
+          <span class="step-wo__summary-title">Seçili İş Kartı Bilgisi</span>
+        </div>
+        <div class="step-wo__summary-body">
+          <div class="step-wo__summary-row">
+            <span class="label">İş Kartı:</span>
+            <span class="value">{{ jobCard.name }}</span>
+          </div>
+          <div v-if="jobCard.work_order" class="step-wo__summary-row">
+            <span class="label">İş Emri:</span>
+            <span class="value">{{ jobCard.work_order }}</span>
+          </div>
+          <div v-if="jobCard.production_item" class="step-wo__summary-row">
+            <span class="label">Ürün:</span>
+            <span class="value">{{ jobCard.production_item }}</span>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </section>
 </template>
 
@@ -99,13 +123,13 @@ function onKeydown(event) {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--ck-text);
 }
 
 .step-wo__subtitle {
   margin-top: 0.25rem;
   font-size: 0.85rem;
-  color: #4b5563;
+  color: var(--ck-text-muted);
 }
 
 /* Input alanı */
@@ -120,8 +144,9 @@ function onKeydown(event) {
   padding: 0.55rem 0.7rem;
   padding-right: 2.4rem;
   border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
+  border: 1px solid var(--ck-border);
+  background: var(--ck-input-bg);
+  color: var(--ck-input-text);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -132,7 +157,7 @@ function onKeydown(event) {
 }
 
 .step-wo__input[readonly] {
-  background: #f3f4f6;
+  background: var(--ck-ghost-bg);
 }
 
 /* Scanner ikonu */
@@ -159,6 +184,65 @@ function onKeydown(event) {
 
 .step-wo__loading-text {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--ck-text-muted);
+}
+
+/* Seçili Özet Paneli */
+.step-wo__summary {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ck-accent);
+  background: var(--ck-ghost-bg) !important;
+  color: var(--ck-text) !important;
+}
+
+.step-wo__summary-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.step-wo__summary-icon {
+  width: 18px;
+  height: 18px;
+  background: var(--ck-success);
+  color: white;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.step-wo__summary-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ck-text);
+}
+
+.step-wo__summary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.step-wo__summary-row {
+  display: flex;
+  font-size: 0.8rem;
+  gap: 0.5rem;
+}
+
+.step-wo__summary-row .label {
+  font-weight: 500;
+  color: var(--ck-text-muted);
+  min-width: 70px;
+}
+
+.step-wo__summary-row .value {
+  color: var(--ck-text);
+  font-weight: 600;
 }
 </style>

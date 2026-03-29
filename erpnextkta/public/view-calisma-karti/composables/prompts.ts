@@ -29,10 +29,10 @@ export function hurdaFields(defaults: any = {}) {
             get_query: () => ({
                 query: "erpnextkta.kta_calisma_karti.api.search_allowed_hurda_items",
                 filters: {
-                calisma_karti: defaults.calisma_karti_name,
+                    calisma_karti: defaults.calisma_karti_name,
                 },
             }),
-            },
+        },
         hurdaNedeniLinkField(defaults.hurda_nedeni || ""),
         {
             fieldtype: "Float",
@@ -97,9 +97,9 @@ export function bitirFields() {
             fieldtype: "Float",
             label: "Tamamlanan Miktar",
             fieldname: "tamamlanan_miktar",
-            reqd: 1,
+            reqd: 0,
             default: 0,
-            description: "İşlemi bitirmek için tamamlanan miktar 0'dan büyük olmalı.",
+            description: "Varsa bitiş aşamasında tamamlanan ek miktar.",
         },
     ];
 }
@@ -122,14 +122,14 @@ export function idcOlcumFields(docname: string, defaults: any = {}) {
             fieldtype: "Float",
             label: "Yükseklik (mm)",
             fieldname: "yukseklik_mm",
-            reqd: 1,
+            reqd: 0,
             default: defaults.yukseklik_mm ?? 0,
         },
         {
             fieldtype: "Float",
             label: "Çekme (N)",
             fieldname: "cekme_n",
-            reqd: 1,
+            reqd: 0,
             default: defaults.cekme_n ?? 0,
         },
     ];
@@ -143,6 +143,56 @@ export function barkodKayitFields(defaults: any = {}) {
             fieldname: "barcode",
             reqd: 1,
             default: defaults.barcode || "",
+        },
+    ];
+}
+
+export function altOperasyonFields(parentOperationLabel: string, calismaKartiName: string, defaults: any = {}, getAltOpValue?: () => string, altOpOptions: any[] = []) {
+    return [
+        {
+            fieldtype: "Select",
+            label: "Alt İşlem",
+            fieldname: "alt_operasyon",
+            options: altOpOptions,
+            reqd: 1,
+            default: defaults.alt_operasyon || "",
+        },
+        {
+            fieldtype: "Link",
+            label: "Hammadde (Opsiyonel)",
+            fieldname: "hammadde",
+            options: "Item",
+            reqd: 0,
+            default: defaults.hammadde || "",
+            get_query: () => {
+                const currentOp = getAltOpValue ? getAltOpValue() : defaults.alt_operasyon;
+                return {
+                    query: "erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.search_allowed_hammadde_items",
+                    filters: { calisma_karti: calismaKartiName, alt_operasyon: currentOp || "" }
+                };
+            }
+        },
+        {
+            fieldtype: "Float",
+            label: "Adet",
+            fieldname: "adet",
+            reqd: 0,
+            default: defaults.adet ?? 1,
+        },
+        {
+            fieldtype: "Link",
+            label: "Birim",
+            fieldname: "uom",
+            options: "UOM",
+            reqd: 0,
+            default: defaults.uom || "",
+        },
+        {
+            fieldtype: "Small Text",
+            label: "Not Açıklama",
+            fieldname: "note",
+            reqd: 0,
+            default: defaults.note || "",
         },
     ];
 }

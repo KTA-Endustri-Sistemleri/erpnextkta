@@ -1,17 +1,22 @@
 import { computed, ref, watch } from "vue";
 
-export type CKState = "ready" | "running" | "paused" | "finished" | "rejected";
+export type CKState = "ready" | "running" | "paused" | "finished" | "rejected" | "cancelled";
 
 export function useCalismaKartiUi(docRef: any) {
     function computeState(d: any): CKState {
-        // If QC rejected, lock UI state
-        if ((d?.kalite_kontrol || '').trim() === 'Reddedildi' || (d?.durum || '').toString().includes('Reddedildi')) return 'rejected';
+        if (!d) return "ready";
+        
+        // Cancelled status takes absolute precedence
+        if (Number(d.docstatus) === 2 || (d.durum || "").toString().toLowerCase().includes("iptal")) return "cancelled";
 
-        const duruslar = d?.duruslar || [];
+        // If QC rejected, lock UI state
+        if ((d.kalite_kontrol || "").trim() === "Reddedildi" || (d.durum || "").toString().includes("Reddedildi")) return "rejected";
+
+        const duruslar = d.duruslar || [];
         const hasOpenStop = duruslar.some((x: any) => x?.durus_baslangic && !x?.durus_bitis);
 
-        if (d?.bitis_saati) return "finished";
-        if (!d?.baslangic_saati) return "ready";
+        if (d.bitis_saati) return "finished";
+        if (!d.baslangic_saati) return "ready";
         if (hasOpenStop) return "paused";
         return "running";
     }
@@ -26,6 +31,7 @@ export function useCalismaKartiUi(docRef: any) {
             paused: "Duruşta",
             finished: "Bitmiş",
             rejected: "Reddedildi",
+            cancelled: "İptal Edildi",
         }[state.value] || "-")
     );
 
@@ -37,6 +43,7 @@ export function useCalismaKartiUi(docRef: any) {
             paused: "ck-status--paused",
             finished: "ck-status--finished",
             rejected: "ck-status--rejected",
+            cancelled: "ck-status--cancelled",
         }[state.value] || "ck-status--ready")
     );
 
@@ -54,6 +61,10 @@ export function useCalismaKartiUi(docRef: any) {
     const qcOptions = ["Onay Bekliyor", "Onaylandı", "Reddedildi"];
 
     const canEditQC = computed(() => {
+        // [STRATEGY] Locked if a QI document is already linked. 
+        // Quality status must then be managed via the QI document itself.
+        if (docRef.value?.quality_inspection) return false;
+
         const roles = frappe?.boot?.user?.roles || [];
         return (
             roles.includes("System Manager") ||
@@ -71,12 +82,13 @@ export function useCalismaKartiUi(docRef: any) {
         { immediate: true }
     );
 
-    const showStart = computed(() => state.value === "ready");
+    const isCancelled = computed(() => state.value === "cancelled");
+    const showStart = computed(() => state.value === "ready" && !isCancelled.value);
     const isRejected = computed(() => state.value === "rejected");
-    const showResume = computed(() => state.value === "paused" && !isRejected.value);
-    const showStop = computed(() => state.value === "running" && !isRejected.value);
+    const showResume = computed(() => state.value === "paused" && !isRejected.value && !isCancelled.value);
+    const showStop = computed(() => state.value === "running" && !isRejected.value && !isCancelled.value);
     const showFinish = computed(
-        () => !isRejected.value && (state.value === "running" || state.value === "paused") && qcApproved.value
+        () => !isRejected.value && !isCancelled.value && (state.value === "running" || state.value === "paused") && qcApproved.value
     );
 
     return {
@@ -95,5 +107,6 @@ export function useCalismaKartiUi(docRef: any) {
         showStop,
         showFinish,
         isRejected,
+        isCancelled,
     };
 }
