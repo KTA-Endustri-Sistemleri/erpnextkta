@@ -3,6 +3,26 @@ import { computed, ref, onMounted, onUnmounted, watch } from "vue";
 export function useCalismaKarti(docname: ReturnType<typeof computed<string | null>>) {
     const loading = ref(false);
     const doc = ref<any | null>(null);
+    const lastRefreshTime = ref(0);
+    const pendingUpdate = ref(false);
+    const settings = ref({
+        liste_yenileme_araligi_sn: 30,
+        detay_yenileme_araligi_sn: 10
+    });
+
+    async function loadSettings() {
+        try {
+            const r = await (window as any).frappe.db.get_doc("KTA Calisma Karti Settings");
+            if (r) {
+                settings.value = {
+                    liste_yenileme_araligi_sn: r.liste_yenileme_araligi_sn || 30,
+                    detay_yenileme_araligi_sn: r.detay_yenileme_araligi_sn || 10
+                };
+            }
+        } catch (e) {
+            console.error("Settings load failed", e);
+        }
+    }
 
     async function load() {
         if (!docname.value) return;
@@ -13,6 +33,8 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
                 { name: docname.value }
             );
             doc.value = r.message || null;
+            lastRefreshTime.value = Date.now();
+            pendingUpdate.value = false;
         } finally {
             loading.value = false;
         }
@@ -31,11 +53,21 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         const eventName = `kta_calisma_karti:doc_changed:${name}`;
 
         docHandler = (_payload: any) => {
-            clearTimeout(docTimer);
-            docTimer = setTimeout(() => {
-                // Avoid stacking loads
-                if (!loading.value) load();
-            }, 150);
+            if (loading.value) return;
+
+            const now = Date.now();
+            const intervalMs = settings.value.detay_yenileme_araligi_sn * 1000;
+            const timeSinceLast = now - lastRefreshTime.value;
+
+            if (timeSinceLast >= intervalMs) {
+                load();
+            } else {
+                pendingUpdate.value = true;
+                clearTimeout(docTimer);
+                docTimer = setTimeout(() => {
+                    if (!loading.value) load();
+                }, intervalMs - timeSinceLast);
+            }
         };
 
         rt.on(eventName, docHandler);
@@ -276,7 +308,8 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         { immediate: true }
     );
 
-    onMounted(() => {
+    onMounted(async () => {
+        await loadSettings();
         if (docname.value) bindDocRealtime(docname.value);
     });
 
@@ -306,5 +339,6 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         getQcTemplates,
         getTemplateDetails,
         submitStandardQC,
+        pendingUpdate
     };
 }

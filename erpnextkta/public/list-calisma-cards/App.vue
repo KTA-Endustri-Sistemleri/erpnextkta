@@ -12,6 +12,26 @@ const statusFilter = ref("all"); // all | ready | running | paused | finished | 
 const qcFilter = ref("all");     // all | waiting | approved | rejected // all | ready | running | paused | finished
 
 const q = ref(""); // search query
+const settings = ref({
+  liste_yenileme_araligi_sn: 30,
+  detay_yenileme_araligi_sn: 10
+});
+const pendingUpdate = ref(false);
+const lastRefreshTime = ref(0);
+
+async function loadSettings() {
+  try {
+    const r = await frappe.db.get_doc("KTA Calisma Karti Settings");
+    if (r) {
+      settings.value = {
+        liste_yenileme_araligi_sn: r.liste_yenileme_araligi_sn || 30,
+        detay_yenileme_araligi_sn: r.detay_yenileme_araligi_sn || 10
+      };
+    }
+  } catch (e) {
+    console.error("Settings load failed", e);
+  }
+}
 
 // ✅ NEW: customer group filter
 const customerGroupFilter = ref("all"); // all | <customer group name>
@@ -83,6 +103,8 @@ async function load(opts = {}) {
   } catch (e) {
     errorMsg.value = e?.message || "Liste alınamadı.";
   } finally {
+    lastRefreshTime.value = Date.now();
+    pendingUpdate.value = false;
     // Ensure skeleton is visible for at least 800ms for a smoother UX
     const elapsed = Date.now() - startTime;
     const minDelay = 1000;
@@ -119,13 +141,23 @@ function bindListRealtime() {
   const rt = window?.frappe?.realtime;
   if (!rt) return;
 
-  // Debounced refresh to avoid spamming API calls
+  // Throttled refresh to avoid spamming API calls
   listHandler = (_payload) => {
-    clearTimeout(listTimer);
-    listTimer = setTimeout(() => {
-      // Don't hammer if user is already loading
-      if (!loading.value) load();
-    }, 250);
+    if (loading.value) return;
+
+    const now = Date.now();
+    const intervalMs = settings.value.liste_yenileme_araligi_sn * 1000;
+    const timeSinceLast = now - lastRefreshTime.value;
+
+    if (timeSinceLast >= intervalMs) {
+      load();
+    } else {
+      pendingUpdate.value = true;
+      clearTimeout(listTimer);
+      listTimer = setTimeout(() => {
+        if (!loading.value) load();
+      }, intervalMs - timeSinceLast);
+    }
   };
 
   rt.on("kta_calisma_karti:list_changed", listHandler);
@@ -245,7 +277,8 @@ function setCustomerGroupFilter(v) {
   scrollToTop();
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadSettings();
   load();
   bindListRealtime();
 });
@@ -261,6 +294,12 @@ onUnmounted(() => {
     <div class="ck-header">
       <div class="ck-header-row">
         <div class="ck-title">Çalışma Kartları</div>
+        <Transition name="ck-slide-down">
+          <div v-if="pendingUpdate && !loading" class="ck-pending-badge">
+            <span class="ck-dot"></span>
+            Bekleyen güncellemeler var...
+          </div>
+        </Transition>
       </div>
 
       <CkFilters
@@ -387,6 +426,44 @@ onUnmounted(() => {
 .ck-empty-title{ font-weight:900; margin-bottom:4px; }
 
 .ck-list{ display:grid; gap:12px; }
+
+/* Pending Update Badge */
+.ck-pending-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--ck-info-bg);
+  color: var(--ck-info);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.ck-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--ck-info);
+  border-radius: 50%;
+  animation: ck-pulse 1.5s infinite;
+}
+
+@keyframes ck-pulse {
+  0% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.5; }
+}
+
+/* Transitions */
+.ck-slide-down-enter-active, .ck-slide-down-leave-active {
+  transition: all 0.3s ease;
+}
+.ck-slide-down-enter-from, .ck-slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
 
 /* Transition: Smooth Fade for Loading Skeleton */
 .ck-fade-enter-active,

@@ -51,7 +51,8 @@ const {
   addIdcOlcumu, updateIdcOlcumu, deleteIdcOlcumu,
   addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi,
   addAltOperasyon, updateAltOperasyon, deleteAltOperasyon,
-  getQcTemplates, getTemplateDetails, submitStandardQC
+  getQcTemplates, getTemplateDetails, submitStandardQC,
+  pendingUpdate
 } = useCalismaKarti(docname);
 
 // Reactive now timer for timeout warning (updates every minute)
@@ -312,6 +313,13 @@ watch(
   <div class="ck-page">
     <CkTopbar :onBack="backToList" :onOpenForm="openForm" />
 
+    <Transition name="ck-slide-down">
+      <div v-if="pendingUpdate && !loading" class="ck-pending-floating">
+        <span class="ck-dot"></span>
+        Bekleyen güncellemeler var...
+      </div>
+    </Transition>
+
     <div v-if="loading" class="ck-muted">Yükleniyor...</div>
     <div v-else-if="!doc" class="ck-empty">Kayıt bulunamadı.</div>
 
@@ -402,6 +410,50 @@ watch(
 </template>
 
 <style>
+/* Pending Update Indicator */
+.ck-pending-floating {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ck-info-bg);
+  color: var(--ck-info);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.ck-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--ck-info);
+  border-radius: 50%;
+  animation: ck-pulse 1.5s infinite;
+}
+
+@keyframes ck-pulse {
+  0% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.5; }
+}
+
+/* Transitions */
+.ck-slide-down-enter-active, .ck-slide-down-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ck-slide-down-enter-from, .ck-slide-down-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -20px);
+}
+
 :root {
   /* Surfaces */
   --ck-bg: var(--bg-color, #f3f4f6);
