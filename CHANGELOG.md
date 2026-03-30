@@ -3,6 +3,103 @@
 
 
 
+## 🚀 v1.1.0 (2026-03-30)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: quality debounce and auto close function
+      
+      
+    
+      
+      
+        
+- **permissions**: uom permission added to calisma karti yoneticisi and calisma karti kullanicisi
+      
+      
+    
+      
+      
+        
+- **permissions**: KTA Calisma Karti Settings permission added to calisma karti yoneticisi and calisma karti kullanicisi
+      
+      
+    
+      
+      
+        
+- **tasks**: prevent premature auto-close of cards during shift transition
+      
+      
+    
+      
+      
+        
+- **permissions**: calisma karti submit, delete permission added to calisma karti yoneticisi and calisma karti kullanicisi
+      
+      
+    
+      
+      
+        
+- **permissions**: add if_owner permission to KTA Çalışma Kartı Kullanıcısı role in setup.py
+      
+      
+    
+      
+      
+        
+- **permissions**: add read-only permission for KTA Çalışma Kartı Kullanıcısı role
+      
+      
+    
+      
+      
+        
+- **permissions**: remove redundant permission entry and clean up attributes for Calisma Karti role
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- implement configurable throttled real-time updates with pending notification UI for list and detail views
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.0.0 (2026-03-29)
 
 
