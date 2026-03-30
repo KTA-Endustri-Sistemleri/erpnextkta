@@ -77,7 +77,10 @@ def setup_permissions():
         {"parent": "Job Card", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         # Quality Inspection
         {"parent": "Quality Inspection", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
-        {"parent": "Quality Inspection", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0}
+        {"parent": "Quality Inspection", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        # Quality Inspection
+        {"parent": "UOM", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        {"parent": "UOM", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0}
     ]
 
     for role in roles:
