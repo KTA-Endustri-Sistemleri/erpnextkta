@@ -45,6 +45,10 @@ def auto_close_timed_out_cards():
         try:
             doc = frappe.get_doc("Calisma Karti", k.name)
             
+            # Eğer kart, hedef vardiya bitiş saatinden SONRA başlamışsa, bu vardiya kapatmasına dahil etme.
+            if get_datetime(doc.baslangic_saati) >= target_dt:
+                continue
+
             # QC reddedildiyse dokunma
             if (doc.kalite_kontrol or "").strip() == "Reddedildi":
                 continue
