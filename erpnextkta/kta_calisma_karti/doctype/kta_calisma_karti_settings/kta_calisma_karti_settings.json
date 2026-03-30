@@ -7,6 +7,9 @@
         "max_kart_suresi_dk",
         "kart_uyari_suresi_dk",
         "tolerans_saat",
+        "sb_yenileme",
+        "liste_yenileme_araligi_sn",
+        "detay_yenileme_araligi_sn",
         "sb_kart_gecis",
         "kart_gecis_modu",
         "sb_stok",
@@ -34,6 +37,25 @@
             "fieldtype": "Int",
             "label": "Tamamlanm\u0131\u015f \u0130E Tolerans S\u00fcresi (Saat)",
             "description": "\u0130\u015f Emri kapansa dahi, son stok giri\u015finden sonraki bu s\u00fcre boyunca \u00c7al\u0131\u015fma Kart\u0131 a\u00e7\u0131labilir."
+        },
+        {
+            "fieldname": "sb_yenileme",
+            "fieldtype": "Section Break",
+            "label": "Anl\u0131k Yenileme Ayarlar\u0131"
+        },
+        {
+            "default": "30",
+            "fieldname": "liste_yenileme_araligi_sn",
+            "fieldtype": "Int",
+            "label": "Liste Yenileme Aral\u0131\u011f\u0131 (Saniye)",
+            "description": "Kullan\u0131c\u0131 say\u0131s\u0131 artt\u0131\u011f\u0131nda trafi\u011fi azaltmak i\u00e7in listeyi en fazla bu s\u00fcrede bir yeniler."
+        },
+        {
+            "default": "10",
+            "fieldname": "detay_yenileme_araligi_sn",
+            "fieldtype": "Int",
+            "label": "Detay Yenileme Aral\u0131\u011f\u0131 (Saniye)",
+            "description": "Kart detay ekran\u0131n\u0131 en fazla bu s\u00fcrede bir yeniler."
         },
         {
             "fieldname": "sb_kart_gecis",
