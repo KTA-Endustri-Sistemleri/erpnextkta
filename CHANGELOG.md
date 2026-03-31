@@ -3,6 +3,61 @@
 
 
 
+## 🚀 v1.2.0 (2026-03-31)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: kta-dashboard-metrics
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: enable MultiSelectList and update dashboard charts with 1-day filter and improved data processing
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_calisma_karti**: add daily completed work card count number card to dashboard
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.1.0 (2026-03-30)
 
 
