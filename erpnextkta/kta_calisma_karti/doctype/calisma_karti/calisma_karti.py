@@ -26,11 +26,18 @@ def get_kta_settings():
 
 
 def _shift_name_by_now(now_dt):
-    """Pick shift name by current time-of-day (fallback when Shift Assignment is not used)."""
+    """Pick shift name by current time-of-day (fallback when Shift Assignment is not used).
+
+    Boundary rule: exact boundary times belong to the ENDING shift, not the starting one.
+      - 00:00 → 2. Vardiya  (end of 2nd shift, not start of 3rd)
+      - 08:00 → 3. Vardiya  (end of 3rd shift, not start of 1st)
+      - 16:00 → 1. Vardiya  (end of 1st shift, not start of 2nd)
+    This is critical for auto-close cards whose bitis_saati sits exactly on the boundary.
+    """
     t = now_dt.time()
-    if time(0, 0) <= t < time(8, 0):
+    if time(0, 0) < t <= time(8, 0):
         return "3. Vardiya"
-    elif time(8, 0) <= t < time(16, 0):
+    elif time(8, 0) < t <= time(16, 0):
         return "1. Vardiya"
     else:
         return "2. Vardiya"
