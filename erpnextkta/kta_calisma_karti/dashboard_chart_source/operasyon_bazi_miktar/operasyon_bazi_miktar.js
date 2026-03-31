@@ -1,14 +1,14 @@
 frappe.provide("frappe.dashboards.chart_sources");
 
 frappe.dashboards.chart_sources["Operasyon Bazi Miktar"] = {
-    method:
-        "erpnextkta.kta_calisma_karti.dashboard_chart_source.operasyon_bazi_miktar.operasyon_bazi_miktar.get_data",
+    method: "erpnextkta.kta_calisma_karti.dashboard_chart_source.operasyon_bazi_miktar.operasyon_bazi_miktar.get_data",
     filters: [
         {
             fieldname: "days",
             label: __("Gün Sayısı"),
             fieldtype: "Select",
             options: [
+                { value: 1, label: __("Son 1 Gün") },
                 { value: 7, label: __("Son 7 Gün") },
                 { value: 14, label: __("Son 14 Gün") },
                 { value: 30, label: __("Son 30 Gün") },
@@ -20,8 +20,10 @@ frappe.dashboards.chart_sources["Operasyon Bazi Miktar"] = {
         {
             fieldname: "is_istasyonu",
             label: __("İş İstasyonu"),
-            fieldtype: "Link",
-            options: "Workstation",
+            fieldtype: "MultiSelectList",
+            get_data: function(txt) {
+                return frappe.db.get_link_options("Workstation", txt);
+            },
         },
     ],
 };

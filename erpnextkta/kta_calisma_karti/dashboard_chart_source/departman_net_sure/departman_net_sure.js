@@ -9,6 +9,7 @@ frappe.dashboards.chart_sources["Departman Net Sure"] = {
             label: __("Gün Sayısı"),
             fieldtype: "Select",
             options: [
+                { value: 1, label: __("Son 1 Gün") },
                 { value: 7, label: __("Son 7 Gün") },
                 { value: 14, label: __("Son 14 Gün") },
                 { value: 30, label: __("Son 30 Gün") },
@@ -16,6 +17,14 @@ frappe.dashboards.chart_sources["Departman Net Sure"] = {
                 { value: 90, label: __("Son 90 Gün") },
             ],
             default: 30,
+        },
+        {
+            fieldname: "is_istasyonu",
+            label: __("İş İstasyonu"),
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Workstation", txt);
+            },
         },
     ],
 };
