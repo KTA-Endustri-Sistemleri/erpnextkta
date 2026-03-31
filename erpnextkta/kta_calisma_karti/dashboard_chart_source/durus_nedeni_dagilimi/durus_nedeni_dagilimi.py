@@ -31,6 +31,7 @@ def get_data(**kwargs):
         "od.durus_suresi > 0",
         "od.durus_nedeni IS NOT NULL",
         "od.durus_nedeni != ''",
+        "od.durus_nedeni != 'Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.'"
     ]
     params = {"start": start_date, "end": today}
 

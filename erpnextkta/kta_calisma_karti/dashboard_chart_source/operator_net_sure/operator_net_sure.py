@@ -11,14 +11,12 @@ def get_data(**kwargs):
     Filtreler: days, is_istasyonu, top_n
     net_calisma_suresi alanı 'M:SS' formatında saklanıyor.
     """
-    # Read directly from request form_dict to bypass Frappe typing wrappers
-    raw = frappe.form_dict.get("filters") or "{}"
-    try:
-        filters = json.loads(raw) if isinstance(raw, str) else raw
-    except Exception:
-        filters = {}
-    if not isinstance(filters, dict):
-        filters = {}
+    filters = kwargs.get("filters") or {}
+    if isinstance(filters, str):
+        try:
+            filters = json.loads(filters)
+        except Exception:
+            filters = {}
 
     days         = int(filters.get("days", 30))
     is_istasyonu = filters.get("is_istasyonu") or None
@@ -38,8 +36,11 @@ def get_data(**kwargs):
     params = {"start": start_date, "end": today}
 
     if is_istasyonu:
-        conditions.append("ck.is_istasyonu = %(is_istasyonu)s")
-        params["is_istasyonu"] = is_istasyonu
+        if isinstance(is_istasyonu, str):
+            is_istasyonu = [s.strip() for s in is_istasyonu.split(",") if s.strip()]
+        if is_istasyonu:
+            conditions.append("ck.is_istasyonu IN %(is_istasyonu)s")
+            params["is_istasyonu"] = is_istasyonu
 
     where_clause = " AND ".join(conditions)
 
@@ -50,7 +51,7 @@ def get_data(**kwargs):
             COALESCE(emp.employee_name, ck.operator) AS operator_label,
             ck.net_calisma_suresi
         FROM `tabCalisma Karti` ck
-        LEFT JOIN `tabEmployee` emp ON emp.name = ck.operator
+        LEFT JOIN `tabEmployee` emp ON emp.employee_name = ck.operator
         WHERE {where_clause}
         ORDER BY ck.operator
         """,
@@ -65,7 +66,7 @@ def get_data(**kwargs):
         op = row.operator or _("Bilinmiyor")
         labels_map[op] = row.operator_label or op
         raw_dur  = (row.net_calisma_suresi or "").strip()
-        minutes  = _parse_minsec_to_minutes(raw_dur)
+        minutes  = _parse_duration_to_minutes(raw_dur)
         totals[op] = totals.get(op, 0) + minutes
 
     if not totals:
@@ -88,15 +89,23 @@ def get_data(**kwargs):
     }
 
 
-def _parse_minsec_to_minutes(value: str) -> float:
-    """Convert 'M:SS' string to total minutes as a float."""
+def _parse_duration_to_minutes(value: str) -> float:
+    """
+    Convert duration string to total minutes as a float.
+    Supported formats: 'HH:MM:SS', 'M:SS', 'S'.
+    """
     if not value:
         return 0.0
     try:
         parts = value.split(":")
-        if len(parts) == 2:
+        if len(parts) == 3:
+            # HH:MM:SS
+            return int(parts[0]) * 60.0 + int(parts[1]) + int(parts[2]) / 60.0
+        elif len(parts) == 2:
+            # M:SS
             return int(parts[0]) + int(parts[1]) / 60.0
         elif len(parts) == 1:
+            # Simple integer or float (e.g. minutes)
             return float(parts[0])
     except (ValueError, IndexError):
         pass

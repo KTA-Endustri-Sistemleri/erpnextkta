@@ -9,6 +9,7 @@ frappe.dashboards.chart_sources["Kalite Kontrol Dagilimi"] = {
             label: __("Gün Sayısı"),
             fieldtype: "Select",
             options: [
+                { value: 1, label: __("Son 1 Gün") },
                 { value: 7, label: __("Son 7 Gün") },
                 { value: 14, label: __("Son 14 Gün") },
                 { value: 30, label: __("Son 30 Gün") },
