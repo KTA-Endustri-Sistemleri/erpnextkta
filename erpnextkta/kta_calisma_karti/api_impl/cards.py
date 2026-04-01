@@ -8,8 +8,7 @@ from collections import defaultdict
 
 from ._helpers import (
     first_child_table,
-    is_system_manager,
-    is_quality_user,
+    has_admin_roles,
     require_my_employee,
 )
 
@@ -268,7 +267,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
         # We'll map search_term to name or custom_work_order or is_karti
         db_filters["name"] = ["like", search_term]
         
-    if not (is_system_manager() or is_quality_user()):
+    if not has_admin_roles():
         db_filters["operator"] = require_my_employee()
         
     if qc_filter:
@@ -332,7 +331,7 @@ def get_calisma_karti_detail(name: str):
     doc = frappe.get_doc("Calisma Karti", name)
     doc.check_permission("read")
 
-    if not (is_system_manager() or is_quality_user()):
+    if not has_admin_roles():
         emp = require_my_employee()
         if doc.operator != emp:
             frappe.throw(_("Bu çalışma kartını görüntüleme yetkiniz yok."), frappe.PermissionError)
@@ -373,7 +372,7 @@ def get_calisma_karti_detail(name: str):
     }
 
 def _assert_can_write_on_doc(doc):
-    if is_system_manager() or is_quality_user():
+    if has_admin_roles():
         return
     emp = require_my_employee()
     if doc.operator != emp:
@@ -539,7 +538,7 @@ def _auto_pause_other_active_cards(hedef_doc, now_dt):
     )
     
     for k in kartlar:
-        eski_doc = frappe.get_doc("Calisma Karti", k.name)
+        eski_doc = frappe.get_doc("Calisma Karti", k.name, for_update=True)
         if eski_doc.get_durum() == "calisiyor":
             eski_doc.append("duruslar", {
                 "durus_nedeni": "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.",
@@ -564,7 +563,8 @@ def _auto_pause_other_active_cards(hedef_doc, now_dt):
 
 @frappe.whitelist()
 def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_miktar=None):
-    doc = frappe.get_doc("Calisma Karti", docname)
+    # Lock the row for the duration of this transaction to prevent double-submit race conditions
+    doc = frappe.get_doc("Calisma Karti", docname, for_update=True)
 
     doc.check_permission("write")
     _assert_can_write_on_doc(doc)

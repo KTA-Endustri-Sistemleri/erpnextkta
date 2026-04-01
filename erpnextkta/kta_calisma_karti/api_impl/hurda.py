@@ -8,7 +8,7 @@ from frappe import _
 from ._helpers import (
     HURDA_PARENT_COST_CENTER,
     get_child_table_fieldname,
-    is_system_manager,
+    has_admin_roles,
     require_my_employee,
     get_allowed_items_with_groups,
 )
@@ -28,7 +28,12 @@ def get_hurda_nedeni_options(parent_cost_center: str = HURDA_PARENT_COST_CENTER)
 
 def _assert_can_write_on_doc(doc):
     """Non-System Manager must be operator to modify."""
-    if is_system_manager():
+    if doc.docstatus == 2:
+        frappe.throw(_("İptal edilmiş kartta işlem yapılamaz."))
+    if doc.get_durum() in ["bitmis", "reddedildi"]:
+        frappe.throw(_("İşlemi bitmiş veya reddedilmiş karta müdahale edemezsiniz."))
+
+    if has_admin_roles():
         return
     emp = require_my_employee()
     if doc.operator != emp:

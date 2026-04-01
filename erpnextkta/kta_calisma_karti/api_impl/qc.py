@@ -64,7 +64,7 @@ def update_kalite_kontrol(name: str, kalite_kontrol: str):
     if val not in QC_ALLOWED_VALUES:
         frappe.throw(_("Geçersiz kalite kontrol durumu."))
 
-    doc = frappe.get_doc("Calisma Karti", name)
+    doc = frappe.get_doc("Calisma Karti", name, for_update=True)
     doc.check_permission("read")
 
     # [STRATEGY] If a Quality Inspection is already linked, manual updates via UI are forbidden.
@@ -137,8 +137,12 @@ def _get_doc_for_qc_write(name: str):
     - We enforce role gate first, then bypass permissions safely.
     """
     _require_qc_role()
-    doc = frappe.get_doc("Calisma Karti", name)
+    doc = frappe.get_doc("Calisma Karti", name, for_update=True)
     doc.check_permission("read")
+    if doc.docstatus == 2:
+        frappe.throw(_("İptal edilmiş kartta işlem yapılamaz."))
+    if doc.get_durum() in ["bitmis", "reddedildi"]:
+        frappe.throw(_("İşlemi bitmiş veya reddedilmiş karta müdahale edemezsiniz."))
     doc.flags.ignore_permissions = True
     return doc
 
@@ -149,10 +153,14 @@ def _get_doc_for_idc_write(name: str):
     - The operator assigned to this card
     - QC users / System Manager (full access)
     """
-    from ._helpers import require_my_employee, is_system_manager, is_quality_user
-    doc = frappe.get_doc("Calisma Karti", name)
+    from ._helpers import require_my_employee, has_admin_roles
+    doc = frappe.get_doc("Calisma Karti", name, for_update=True)
     doc.check_permission("read")
-    if not (is_system_manager() or is_quality_user()):
+    if doc.docstatus == 2:
+        frappe.throw(_("İptal edilmiş kartta işlem yapılamaz."))
+    if doc.get_durum() in ["bitmis", "reddedildi"]:
+        frappe.throw(_("İşlemi bitmiş veya reddedilmiş karta müdahale edemezsiniz."))
+    if not has_admin_roles():
         emp = require_my_employee()
         if doc.operator != emp:
             frappe.throw(_("Bu çalışma kartı için yetkiniz yok."), frappe.PermissionError)
@@ -496,7 +504,7 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
             "reject"  → all readings forced Rejected, kalite_kontrol = "Reddedildi"
     sample_size: numune sayısı (kullanıcı tarafından girilir, default 1)
     """
-    ck = frappe.get_doc("Calisma Karti", ck_name)
+    ck = frappe.get_doc("Calisma Karti", ck_name, for_update=True)
     _require_qc_role()
 
     if not ck.is_karti:

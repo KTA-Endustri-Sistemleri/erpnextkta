@@ -397,3 +397,5 @@ doctype_js = {
     "Stock Entry": "public/js/stock_entry_get_items_from_calisma_karti.js",
     "Purchase Receipt": "public/js/purchase_receipt.js"
 }
+
+extend_boot_session = "erpnextkta.boot.boot_session"

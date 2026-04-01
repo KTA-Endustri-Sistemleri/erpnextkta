@@ -7,13 +7,20 @@ from frappe import _
 
 HURDA_PARENT_COST_CENTER = "Malzeme Sarfları - KTA"
 
-def is_system_manager() -> bool:
-    """Return True if current user has System Manager role."""
-    return "System Manager" in (frappe.get_roles(frappe.session.user) or [])
-
-def is_quality_user() -> bool:
-    """Return True if current user has KTA Kalite Kullanıcısı role."""
-    return "KTA Kalite Kullanıcısı" in (frappe.get_roles(frappe.session.user) or [])
+def has_admin_roles() -> bool:
+    """Return True if current user is authorized to bypass card state restrictions."""
+    # Since boot_session only triggers on desk load, API calls should read from DB (cached by Frappe).
+    admin_roles = frappe.db.get_single_value("KTA Calisma Karti Settings", "admin_roles") or ""
+    configured = [r.strip() for r in admin_roles.split(",") if r.strip()]
+    if not configured:
+        configured = ["System Manager", "Quality Manager", "Manufacturing Manager"]
+    
+    user_roles = frappe.get_roles(frappe.session.user) or []
+    for role in configured:
+        if role in user_roles:
+            return True
+            
+    return False
 
 def get_my_employee_or_none() -> str | None:
     """Resolve current user's Employee.name robustly.
