@@ -15,9 +15,9 @@ export function useCalismaKartiUi(docRef: any) {
         const duruslar = d.duruslar || [];
         const hasOpenStop = duruslar.some((x: any) => x?.durus_baslangic && !x?.durus_bitis);
 
-        if (d.bitis_saati) return "finished";
-        if (!d.baslangic_saati) return "ready";
-        if (hasOpenStop) return "paused";
+        if (d.durum === "Bitmiş" || d.bitis_saati) return "finished";
+        if (d.durum === "Duruşta" || hasOpenStop) return "paused";
+        if (!d.baslangic_saati && d.durum === "Hazır") return "ready";
         return "running";
     }
 

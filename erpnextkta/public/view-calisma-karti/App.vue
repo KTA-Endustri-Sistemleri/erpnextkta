@@ -87,6 +87,7 @@ const {
   canEditQC,
   qcFormValue,
   showStart,
+  showResume,
   showStop,
   showFinish,
   canEditData,
