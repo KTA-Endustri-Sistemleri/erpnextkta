@@ -267,3 +267,9 @@ Alt operasyonlara girilen üretim miktarlarında zorunlu üst kısıt (Upper Bou
 - **IDC ve Soket Basma Operasyonları**: Girilen miktar, Work Order'ın BOM'undaki (Ürün Ağacı) ilgili bileşenin **sarf (tüketim) miktarına** bakılarak doğrulanır.
 - **Tolerans (Overproduction)**: Endüstriyel üretimde sıfır hata toleransı mümkün olmayabilir (%10 Üretim Fazlası Payı). Bu durum ciddi konfigürasyon gerektirir (`KTA Calisma Karti Settings` içinde global % tolerans veya `KTA Calisma Karti Operasyonlari` DocType'ına "Miktar Kısıt Tipi" [None, WorkOrder, BOM] ve "Tolerans Yüzdesi" eklenerek modellenmelidir).
 
+### 27. Dinamik Rol Yönetimi (Configured RBAC)
+Uygulama genelinde ve UI'daki kısıtlamalarda (Örneğin bitmiş karta müdahale) rol isimlerini (System Manager vs.) kaynak koda (hardcode) gömmekten kaçınan mimari:
+- **Storage**: KTA Calisma Karti Settings DocType üzerindeki `admin_roles` alanı. Yöneticiler tarafından virgülle (örn: `Manufacturing Manager, Quality Manager`) güncellenir.
+- **Backend İletimi**: `boot_session` (`hooks.py` içinden `extend_boot_session`) ile bu liste, sayfa ilk yüklendiğinde `frappe.boot.kta_admin_roles` objesine `List[str]` olarak itilir (inject).
+- **Backend Bypass İşleyişi**: `_helpers.py` içindeki tekil `has_admin_roles()` metodu doğrudan Frappe DB'sine giderek (`get_single_value`) o anki kullanıcının rollerini kıyaslar.
+- **Frontend Gözlemi**: `canEditData` veya benzeri Computed property'ler hardcoded "Quality Manager" sorgusu yapmak yerine `frappe.boot.kta_admin_roles` array'inde `Array.some(r => roles.includes(r))` şeklinde tarar.

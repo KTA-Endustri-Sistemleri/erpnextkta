@@ -13,14 +13,17 @@
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
 
-## Son Değişiklikler (2026-04-01) — Güvenlik ve Mantık Denetimi (Logic Audit) Planlaması
-Çalışma Kartı modülünde tespit edilen asenkron sızıntılar, yarış durumları (race conditions) ve yetki/durum atlama (state bypass) zafiyetlerine karşı geniş çaplı bir güvenlik denetimi gerçekleştirildi ve tüm planlar Memory Bank'e (`systemPatterns.md`) işlendi. Kodu etkileyen ana zafiyetler:
+## Son Değişiklikler (2026-04-01) — Güvenlik ve Mantık Denetimi (Logic Audit) Tamamlandı
+Çalışma Kartı modülünde tespit edilen asenkron sızıntılar, yarış durumları (race conditions) ve yetki/durum atlama (state bypass) zafiyetlerine karşı geniş çaplı bir güvenlik denetimi gerçekleştirildi. Zafiyetler başarıyla kapatıldı ve dinamik yetki yönetimi eklendi:
 
-*   **Zafiyet 1 — Vue State Leakage (Kritik)**: Operatör Kalite onayı (QC) verirken oluşan asenkron (API) gecikmesi sırasında kart değiştirildiğinde, eski kartın kalite şablonu yeni karta bağlanarak yanlış formla kalite kaydı ("kendiliğinden oluşan belge") üretiliyordu. (Bkz. Model 24: Reactivity State Leakage Koruma Deseni)
-*   **Zafiyet 2 — Race Conditions**: `islem_yap` gibi kritik statü API'lerine çoklu tıklama yapıldığında state tutarsızlıkları ve miktar kaybı yaşanabiliyor. (Bkz. Model 25: Pessimistic Locking)
-*   **Zafiyet 3 — State Bypass**: Hurda, Barkod ve IDC arka uç API'leri, istek geldiği anda ana kartın o anki durumunun (`docstatus=1` veya `durum=bitmis/reddedildi`) kontrolünü sıkıca yeniden yapmamaktadır (stale data kabulü).
-*   **Zafiyet 4 — Operasyonel Üretim Fazlası (Overproduction) Kısıtları**: Alt operasyon girişlerinde operatörün sınırsız miktar girebilmesi sorunu incelendi. Sınırlandırmanın operasyona göre ayrıştığı ("Son Kontrol" -> WO Qty, "IDC/Soket" -> BOM qty) ve esnek tolerans gerektiren yapısı (Overproduction Tolerance) tespit edildiği için öncelikle dokümante edilerek tasarlandı. (Bkz. Model 26)
-*   **Durum**: İlgili onarımların (`App.vue` route kilitleri, backend `for_update=True` eklentileri) kodlanması için uygulama planı (implementation_plan) sistem düzeyinde benimsendi. Onay bekliyor.
+*   **Zafiyet 1 — Vue State Leakage (Kritik - Çözüldü)**: `App.vue` üzerindeki Kalite onayı (QC) gecikmesinde kart uyuşmazlığı yaşanması Reactivity Context Lock deseniyle engellendi. İstek esnasında kart isimleri `currentDocname` ile donduruldu.
+*   **Zafiyet 2 — Race Conditions (Çözüldü)**: Kritik state değiştiren (`islem_yap`) ve child-table yazan backend API'lerine `for_update=True` pesimistik veritabanı kilidi uygulandı. Eş zamanlı isteklerin (Double Submit) birbirini ezmesi ve Miktar Kayıpları engellendi.
+*   **Zafiyet 3 — State Bypass & Dinamik Otorizasyon (Çözüldü)**: 
+    * Tüm arka uç API'leri `docstatus` ve `durum` kontrollerini giriş anında doğrulayacak şekilde katılaştırıldı. İptal edilmiş kartlara `System Manager` bile müdahale edemez.
+    * Hardcoded yönetici rolleri yerine, `KTA Calisma Karti Settings` paneline **Admin Kontrol Rolleri (`admin_roles`)** ayarı eklendi. (Varsayılan: `System Manager, Quality Manager, Manufacturing Manager`)
+    * Seçili `admin_roles` yetkisine sahip kişiler "Bitmiş" veya "Reddedilmiş" kartların içindeki verileri güncelleyebilirken, normal operatörler sadece aktif kartlarda çalışabilir.
+*   **Frontend UI Gizliliği**: İptal veya bitmiş kartlarda yetkisi olmayan operatörler için veri düzenleme butonları (Ekle/Sil/Düzenle) `frappe.boot.kta_admin_roles` array'ini dinleyen `canEditData` state'i aracılığıyla SPA üzerinden de tamamen gizlendi.
+*   **Zafiyet 4 — Operasyonel Üretim Fazlası Kısıtları**: Beklemede (Gelecek iterasyonda işlenecektir).
 
 ## Son Değişiklikler (2026-03-31) — Vardiya Sınır Değeri Hesaplama Hatası Düzeltmesi
 *   **Bug Fix — `_shift_name_by_now` Boundary Condition**: `_shift_name_by_now()` fonksiyonundaki vardiya sınır koşulları `[start, end)` yerine `(start, end]` olarak değiştirildi. Sınır zamanları (16:00, 00:00, 08:00) artık **biten vardiyaya** aittir.
