@@ -87,9 +87,9 @@ const {
   canEditQC,
   qcFormValue,
   showStart,
-  showResume,
   showStop,
   showFinish,
+  canEditData,
 } = useCalismaKartiUi(doc);
 
 const showTimeoutWarning = computed(() => {
@@ -220,9 +220,14 @@ async function setQC(nextValue: string) {
 
   // "Onaylandı" veya "Reddedildi" → önce template'leri kontrol et
   if (next === "Onaylandı" || next === "Reddedildi") {
+    const currentDocname = docname.value; // LOCK DOCNAME TO PREVENT STATE LEAKAGE
     try {
       qcSaving.value = true;
       const res = await getQcTemplates();
+      
+      // ABAORT IF ROUTE CHANGED DURING ASYNC FETCH
+      if (docname.value !== currentDocname) return;
+
       if (res.message && res.message.templates && res.message.templates.length > 0) {
         // Template varsa → modal aç
         qcTemplates.value = res.message.templates;
@@ -248,11 +253,17 @@ async function setQC(nextValue: string) {
           () => resolve(false)
         );
       });
+      // ABAORT IF ROUTE CHANGED DURING CONFIRM
+      if (docname.value !== currentDocname) return;
+
       if (!confirmed) {
         qcFormValue.value = current || "Onay Bekliyor";
         return;
       }
     }
+    
+    // Last safety check
+    if (docname.value !== currentDocname) return;
   }
 
   // Template bulunamadı veya "Onay Bekliyor" → direkt kaydet
@@ -356,6 +367,7 @@ watch(
           <AltOperasyonView
             v-else-if="tab === 'alt_operasyon'"
             :doc="doc"
+            :canEditData="canEditData"
             :onAdd="addAltOperasyon"
             :onUpdate="updateAltOperasyon"
             :onDelete="deleteAltOperasyon"
@@ -364,6 +376,7 @@ watch(
           <HurdaView
             v-else-if="tab === 'hurda'"
             :doc="doc"
+            :canEditData="canEditData"
             :onAdd="addHurda"
             :onUpdate="updateHurda"
             :onDelete="deleteHurda"
@@ -378,6 +391,7 @@ watch(
             :qcOptions="qcOptions"
             :qcFormValue="qcFormValue"
             :canEditQC="canEditQC"
+            :canEditData="canEditData"
             :qcSaving="qcSaving"
             :onSetQC="setQC"
             :onAddIdc="addIdcOlcumu"

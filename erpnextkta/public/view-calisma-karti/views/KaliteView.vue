@@ -16,6 +16,7 @@ const props = defineProps<{
   qcOptions: string[];
   qcFormValue: string;
   canEditQC: boolean;
+  canEditData: boolean;
   qcSaving: boolean;
   onSetQC: (next: string) => void;
 
@@ -143,6 +144,7 @@ onMounted(() => {});
     <IdcSection
       :rows="props.doc.idc_olcumleri || []"
       :canEditQC="props.canEditQC"
+      :canEditData="props.canEditData"
       :onAdd="addIdc"
       :onEdit="editIdc"
       :onDelete="deleteIdc"
@@ -151,6 +153,7 @@ onMounted(() => {});
     <BarkodSection
       :rows="props.doc.barkod_kayitlari || []"
       :canEditQC="props.canEditQC"
+      :canEditData="props.canEditData"
       :onAdd="addBarkod"
       :onEdit="editBarkod"
       :onDelete="deleteBarkod"
