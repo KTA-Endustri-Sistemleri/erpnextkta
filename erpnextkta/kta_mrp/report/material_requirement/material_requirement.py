@@ -46,7 +46,7 @@ def execute(filters=None):
             "Item",filters={"name": ["in", finished_items]},
             fields=["name", "custom_musteri_grubu"]
         )
-        item_customer_group_map = {i.name: i.custom_musteri_grubu_musteri_grubu for i in item_meta}
+        item_customer_group_map = {i.name: i.custom_musteri_grubu for i in item_meta}
 
     
     # BOM'ları toplu al
