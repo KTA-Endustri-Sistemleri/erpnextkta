@@ -13,23 +13,24 @@
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
 
-## Son Değişiklikler (2026-04-01) — Güvenlik ve Mantık Denetimi (Logic Audit) Tamamlandı
-Çalışma Kartı modülünde tespit edilen asenkron sızıntılar, yarış durumları (race conditions) ve yetki/durum atlama (state bypass) zafiyetlerine karşı geniş çaplı bir güvenlik denetimi gerçekleştirildi. Zafiyetler başarıyla kapatıldı ve dinamik yetki yönetimi eklendi:
+## Son Değişiklikler (2026-04-01) — Güvenlik, Mantık ve Süre Hesaplama Overhaul
+Çalışma Kartı modülünde güvenlik denetimleri ve süre hesaplama mantığında köklü değişiklikler yapıldı:
 
-*   **Zafiyet 1 — Vue State Leakage (Kritik - Çözüldü)**: `App.vue` üzerindeki Kalite onayı (QC) gecikmesinde kart uyuşmazlığı yaşanması Reactivity Context Lock deseniyle engellendi. İstek esnasında kart isimleri `currentDocname` ile donduruldu.
-*   **Zafiyet 2 — Race Conditions (Çözüldü)**: Kritik state değiştiren (`islem_yap`) ve child-table yazan backend API'lerine `for_update=True` pesimistik veritabanı kilidi uygulandı. Eş zamanlı isteklerin (Double Submit) birbirini ezmesi ve Miktar Kayıpları engellendi.
-*   **Zafiyet 3 — State Bypass & Dinamik Otorizasyon (Çözüldü)**: 
-    * Tüm arka uç API'leri `docstatus` ve `durum` kontrollerini giriş anında doğrulayacak şekilde katılaştırıldı. İptal edilmiş kartlara `System Manager` bile müdahale edemez.
-    * Hardcoded yönetici rolleri yerine, `KTA Calisma Karti Settings` paneline **Admin Kontrol Rolleri (`admin_roles`)** ayarı eklendi. (Varsayılan: `System Manager, Quality Manager, Manufacturing Manager`)
-    * Seçili `admin_roles` yetkisine sahip kişiler "Bitmiş" veya "Reddedilmiş" kartların içindeki verileri güncelleyebilirken, normal operatörler sadece aktif kartlarda çalışabilir.
-*   **Frontend UI Gizliliği**: İptal veya bitmiş kartlarda yetkisi olmayan operatörler için veri düzenleme butonları (Ekle/Sil/Düzenle) `frappe.boot.kta_admin_roles` array'ini dinleyen `canEditData` state'i aracılığıyla SPA üzerinden de tamamen gizlendi.
-*   **Zafiyet 4 — Operasyonel Üretim Fazlası Kısıtları**: Beklemede (Gelecek iterasyonda işlenecektir).
+*   **Süre Hesaplama Devrimi (Logic Overhaul)**: Net çalışma süresi artık `Elapsed - Pauses` değil, **Shift Capacity (430 dk) - Pauses** formülüyle hesaplanıyor. Bu, operatörlerin fiili çalışma saatinden bağımsız olarak vardiye kapasitesine göre (makine kapasitesi odaklı) raporlanmasını sağlar. (Patch: `v1_2_0/fix_calisma_karti_net_durations.py`)
+*   **Zafiyet 1 — Vue State Leakage (Kritik - Çözüldü)**: `App.vue` üzerindeki Kalite onayı (QC) gecikmesinde kart uyuşmazlığı yaşanması Reactivity Context Lock deseniyle engellendi.
+*   **Zafiyet 2 — Race Conditions (Çözüldü)**: Kritik state değiştiren (`islem_yap`) API'lere `for_update=True` pesimistik veritabanı kilidi uygulandı.
+*   **Zafiyet 3 — State Bypass & Dinamik Otorizasyon (Çözüldü)**: `KTA Calisma Karti Settings` paneline **Admin Kontrol Rolleri (`admin_roles`)** eklendi. Yetkili kullanıcılar "Bitmiş" kartları düzenleyebilir.
+*   **UI/UX İyileştirmeleri**:
+    *   **Loading Indicators**: Kalite kontrol (onay/ret) butonlarına asenkron işlem sırasında loading animasyonu eklendi.
+    *   **'Devam Et' Buton Fix**: `App.vue` içindeki `showResume` değişkeninin yanlış yıkılması (destructuring) nedeniyle kaybolan buton geri getirildi.
+    *   **Yazım Hatası (Typo)**: `Rededildi` statüsü veritabanı ve backend seviyesinde `Reddedildi` olarak düzeltildi.
+*   **Belgeleme**: `README.md` ve `User Guide` yeni dinamik rol yönetimi ve vardiya penceresi kurallarıyla güncellendi.
 
 ## Son Değişiklikler (2026-03-31) — Vardiya Sınır Değeri Hesaplama Hatası Düzeltmesi
 *   **Bug Fix — `_shift_name_by_now` Boundary Condition**: `_shift_name_by_now()` fonksiyonundaki vardiya sınır koşulları `[start, end)` yerine `(start, end]` olarak değiştirildi. Sınır zamanları (16:00, 00:00, 08:00) artık **biten vardiyaya** aittir.
 *   **Kök Neden**: `auto_close_timed_out_cards` cron job'ı kartları tam sınır saatinde (örn. `16:00:00`) kapattığında, eski mantık bu zamanı bir sonraki vardiyaya atıyordu. Bu durumda `_other_cards_net_seconds_in_shift` yanlış vardiya penceresine bakarak `other_net=0` döndürüyor ve 430 dk limiti uygulanmıyordu.
 *   **Etki**: 12 vardiya aşımı, 10 operatör, 27 kart etkilenmiş. En büyük aşım: +45 dk (475→430).
-*   **Migration Patch**: `erpnextkta.patches.v0_20.fix_shift_boundary_net_times` — `bench migrate` sırasında etkilenen kartları kronolojik sırayla `update_durum()` ile yeniden hesaplatır.
+*   **Migration Patch**: `erpnextkta.patches.v1_2_0.fix_shift_boundary_net_times` — `bench migrate` sırasında etkilenen kartları kronolojik sırayla `update_durum()` ile yeniden hesaplatır.
 *   **Branch**: `fix/shift-boundary-net-time-calculation`
 
 ## Son Değişiklikler (2026-03-26) — Hurda Modülü Modernizasyonu & 1:1 Senkronizasyon

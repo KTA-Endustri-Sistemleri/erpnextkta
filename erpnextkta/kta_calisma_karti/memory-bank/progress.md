@@ -2,18 +2,19 @@
 
 > Son güncelleme: 2026-04-01 (Security & Logic Audit)
 
-### Çalışma Kartı Security & Logic Audit (2026-04-01 - Tamamlandı)
-- [x] **Reactivity State Leakage Fix:** `App.vue` içerisinde asenkron modal yüklemelerinde yanlış karta parametre eklenmesi engellendi. (Context Lock Pattern tabanlı)
-- [x] **Pessimistic Locking:** Çift tıklama ve eş zamanlı işlem `tamamlanan_miktar` yarış durumunu (`Race Condition`) engellemek için `for_update=True` eklendi.
-- [x] **Dinamik Rol Yönetimi:** Hardcoded olarak yazılan yönetici rolleri kaldırılarak Settings paneline `admin_roles` (`Manufacturing Manager` vb.) eklendi ve `frappe.boot.kta_admin_roles` yapısıyla UI'ye iletildi.
-- [x] **Arayüz (Frontend) Güvenliği:** `canEditData` compute fonksiyonu oluşturularak, bitmiş veya reddedilmiş kartlardaki değiştirme butonları (Opearasyon, Hurda, Barkod, IDC) yetkisiz kişilerden gizlendi.
-- [x] **Arka Uç State Kilitleri:** `docstatus == 2` ve state zafiyetleri `_assert_can_write` metodlarıyla güvence altına alındı. Sadece yetkililere bypass yetkisi verildi.
-
+### Çalışma Kartı Güvenlik, Mantık ve Süre Revizyonu (2026-04-01 - Tamamlandı)
+- [x] **Logic Overhaul**: Net çalışma süresi hesaplama mantığı `Elapsed - Pauses` yerine `ShiftCapacity (430m) - Pauses` olarak değiştirildi. (Kapasite odaklı model)
+- [x] **Typo Fix**: `Rededildi` → `Reddedildi` yazım hatası tüm katmanlarda düzeltildi.
+- [x] **Migration Patch (v1.2.0)**: `fix_calisma_karti_net_durations.py` — 389 kart (Taslak + Onaylı) güncellendi.
+- [x] **UI/UX Fixes**: Kalite butonlarına loading indicator eklendi; `showResume` (Devam Et) buton hatası giderildi.
+- [x] **Reactivity State Leakage Fix:** `App.vue` asenkron modal sızıntıları engellendi. (Context Lock Pattern)
+- [x] **Pessimistic Locking:** `for_update=True` ile yarışı durumları (Race Condition) engellendi.
+- [x] **Dinamik Rol Yönetimi:** Hardcoded roller yerine `admin_roles` ayarı eklendi.
+- [x] **Belgeleme**: README ve User Guide güncellendi.
 
 ### Vardiya Sınır Değeri Hesaplama Bug Fix (2026-03-31 - Tamamlandı)
-- [x] **`_shift_name_by_now` Boundary Fix**: Vardiya sınır koşulları `[start, end)` → `(start, end]` olarak düzeltildi.
-- [x] **Sistem Taraması**: Tüm operatör-vardiya kombinasyonları tarandı — 12 aşım, 10 operatör, 27 kart tespit edildi.
-- [x] **Migration Patch**: `v0_20/fix_shift_boundary_net_times.py` — `bench migrate` ile otomatik çalışır.
+- [x] **`_shift_name_by_now` Boundary Fix**: `[start, end)` → `(start, end]` (Sınır saati biten vardiyanındır).
+- [x] **Migration Patch**: `v1_2_0/fix_shift_boundary_net_times.py` (Registry güncellendi).
 - [x] **patches.txt Kayıt**: Patch Frappe patch registry'sine eklendi.
 - [x] **Branch**: `fix/shift-boundary-net-time-calculation` oluşturuldu ve push edildi.
 - [x] **Doğrulama**: X Kişisi 31 Mart toplam net süresi 475 dk → 430 dk doğrulandı.
