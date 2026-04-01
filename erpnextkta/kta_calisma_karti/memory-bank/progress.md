@@ -8,7 +8,7 @@
 - [x] **Migration Patch**: `v0_20/fix_shift_boundary_net_times.py` — `bench migrate` ile otomatik çalışır.
 - [x] **patches.txt Kayıt**: Patch Frappe patch registry'sine eklendi.
 - [x] **Branch**: `fix/shift-boundary-net-time-calculation` oluşturuldu ve push edildi.
-- [x] **Doğrulama**: SENA NUR BEREKET 31 Mart toplam net süresi 475 dk → 430 dk doğrulandı.
+- [x] **Doğrulama**: X Kişisi 31 Mart toplam net süresi 475 dk → 430 dk doğrulandı.
 
 ### Çalışma Kartı Lifecycle & UI Modernizasyonu (2026-03-27 - Tamamlandı)
 - [x] **Draft-First Mimari**: Belge yaratımında `doc.submit()` kaldırıldı; kartlar Taslak olarak başlıyor.
