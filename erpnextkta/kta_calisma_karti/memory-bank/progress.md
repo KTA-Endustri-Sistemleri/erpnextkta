@@ -1,6 +1,14 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-31 (Vardiya Sınır Değeri Bug Fix)
+> Son güncelleme: 2026-04-01 (Security & Logic Audit)
+
+### Çalışma Kartı Security & Logic Audit (2026-04-01 - Tamamlandı)
+- [x] **Reactivity State Leakage Fix:** `App.vue` içerisinde asenkron modal yüklemelerinde yanlış karta parametre eklenmesi engellendi. (Context Lock Pattern tabanlı)
+- [x] **Pessimistic Locking:** Çift tıklama ve eş zamanlı işlem `tamamlanan_miktar` yarış durumunu (`Race Condition`) engellemek için `for_update=True` eklendi.
+- [x] **Dinamik Rol Yönetimi:** Hardcoded olarak yazılan yönetici rolleri kaldırılarak Settings paneline `admin_roles` (`Manufacturing Manager` vb.) eklendi ve `frappe.boot.kta_admin_roles` yapısıyla UI'ye iletildi.
+- [x] **Arayüz (Frontend) Güvenliği:** `canEditData` compute fonksiyonu oluşturularak, bitmiş veya reddedilmiş kartlardaki değiştirme butonları (Opearasyon, Hurda, Barkod, IDC) yetkisiz kişilerden gizlendi.
+- [x] **Arka Uç State Kilitleri:** `docstatus == 2` ve state zafiyetleri `_assert_can_write` metodlarıyla güvence altına alındı. Sadece yetkililere bypass yetkisi verildi.
+
 
 ### Vardiya Sınır Değeri Hesaplama Bug Fix (2026-03-31 - Tamamlandı)
 - [x] **`_shift_name_by_now` Boundary Fix**: Vardiya sınır koşulları `[start, end)` → `(start, end]` olarak düzeltildi.
