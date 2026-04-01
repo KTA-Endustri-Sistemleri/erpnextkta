@@ -124,4 +124,21 @@ Yöneticiler ve kalite sorumluları, **Çalışma Kartı Dashboard** ekranı üz
 - Operatör net çalışma sürelerini,
 - Kalite kontrol ve hurda dağılımlarını anlık olarak takip edebilirler.
 
+---
+
+## 🔒 9. Yetki Yönetimi ve Konfigürasyon (Yöneticiler İçin)
+
+Çalışma Kartı üzerindeki veri düzenleme yetkileri (alt işlem ekleme, hurda silme, kalite girme), kartların **"Bitmiş"** veya **"İptal Edilmiş"** statüsünde olup olmadığına ve kullanıcının sahip olduğu rollere göre sistem tarafından dinamik olarak yönetilir:
+
+- **Operatör Kısıtı:** Normal operatörler, yalnızca "Çalışıyor" veya "Duruşta" olan aktif kartlarda veri girişi/silme yapabilir. Bitmiş kartlarda arayüz kilitlenir.
+- **İptal Kısıtı:** Bir kart iptal edildiyse hiçbir yetkili buna müdahale edemez.
+
+### Admin Rolleri Konfigürasyonu:
+Örneğin "Manufacturing Manager" rolüne sahip bir yöneticinin kapalı/bitmiş kartlara da müdahale etmesini istiyorsanız, bu yetkiler tek merkezden konfigüre edilebilir:
+
+1. **ERPNext Arama Çubuğuna** `KTA Calisma Karti Settings` yazıp ayarlar paneline gidin.
+2. **Admin Kontrol Rolleri (`admin_roles`)** alanını bulun.
+3. Bu alana sistemi doğrudan bypass edip müdahale yetkisine sahip olacak rolleri **virgülle ayırarak** yazın. *(Örnek: `System Manager, Quality Manager, Manufacturing Manager`)*
+4. **Kaydet** butonuna basın. Belirttiğiniz rollere sahip kullanıcılar, çalışma kartlarında gizli kalan tüm "Düzenle/Sil/Ekle" butonlarına otomatik olarak erişebilir duruma gelecektir.
+
 </main>
