@@ -5,6 +5,7 @@ import { copyToClipboard, fmtDt, openActionSheet } from "../utils/kalite_ui";
 const props = defineProps<{
   rows: any[];
   canEditQC: boolean;
+  canEditData: boolean;
   onAdd: () => void;
   onEdit: (row: any) => void;
   onDelete: (row: any) => void;
@@ -12,7 +13,7 @@ const props = defineProps<{
 
 function actions(r: any) {
   const opts = ["Kopyala"];
-  if (props.canEditQC) opts.push("Düzenle", "Sil");
+  if (props.canEditData) opts.push("Düzenle", "Sil");
 
   openActionSheet("Barkod İşlemleri", opts, (a) => {
     if (a === "Kopyala") copyToClipboard(r.barcode);
@@ -25,7 +26,7 @@ function actions(r: any) {
 <template>
   <div class="ck-qc-header">
     <b>Barkod Kayıtları</b>
-    <button class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
+    <button v-if="props.canEditData" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
       + Ekle
     </button>
   </div>
@@ -59,7 +60,7 @@ function actions(r: any) {
         </div>
 
         <div style="display:flex; justify-content:flex-end;">
-          <button v-if="props.canEditQC" class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
+          <button v-if="props.canEditData" class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
             DETAY ▾
           </button>
         </div>

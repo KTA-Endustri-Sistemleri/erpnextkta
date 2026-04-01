@@ -4,6 +4,7 @@ import { altOperasyonFields } from "../composables/prompts";
 
 const props = defineProps<{
   doc: any;
+  canEditData: boolean;
   onAdd: (payload: any) => Promise<void>;
   onUpdate: (payload: any) => Promise<void>;
   onDelete: (rowname: string) => Promise<void>;
@@ -94,7 +95,7 @@ function onAltOperasyonSil(h: any) {
 
 <template>
   <div class="ck-card">
-    <div class="ck-view-action" v-if="doc.durum !== 'Hazır' && doc.durum !== 'Bitmiş'">
+    <div class="ck-view-action" v-if="props.canEditData">
       <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onAltOperasyonEkle">Alt İşlem Ekle</button>
     </div>
 
@@ -109,7 +110,7 @@ function onAltOperasyonSil(h: any) {
             <div class="ck-muted ck-mini-sub" v-if="h.note">{{ h.note }}</div>
         </div>
 
-        <div class="ck-mini-actions">
+        <div class="ck-mini-actions" v-if="props.canEditData">
           <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onAltOperasyonDuzenle(h)">Düzenle</button>
           <button class="ck-btn ck-btn--danger ck-btn-small" @click="onAltOperasyonSil(h)">Sil</button>
         </div>

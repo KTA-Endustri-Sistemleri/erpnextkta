@@ -4,6 +4,7 @@ import { fmtDt, openActionSheet } from "../utils/kalite_ui";
 const props = defineProps<{
   rows: any[];
   canEditQC: boolean;
+  canEditData: boolean;
   onAdd: () => void;
   onEdit: (row: any) => void;
   onDelete: (row: any) => void;
@@ -20,7 +21,7 @@ function actions(r: any) {
 <template>
   <div class="ck-qc-header">
     <b>IDC Ölçümleri</b>
-    <button class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
+    <button v-if="props.canEditData" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
       + Ekle
     </button>
   </div>
@@ -55,7 +56,7 @@ function actions(r: any) {
           <div v-if="r.olcumu_giren">Giren: {{ r.olcumu_giren }}</div>
         </div>
 
-        <div v-if="props.canEditQC" style="display:flex; justify-content:flex-end;">
+        <div v-if="props.canEditData" style="display:flex; justify-content:flex-end;">
           <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
             DETAY ▾
           </button>

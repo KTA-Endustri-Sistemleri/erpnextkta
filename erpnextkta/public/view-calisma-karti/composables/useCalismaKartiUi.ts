@@ -66,11 +66,22 @@ export function useCalismaKartiUi(docRef: any) {
         if (docRef.value?.quality_inspection) return false;
 
         const roles = frappe?.boot?.user?.roles || [];
-        return (
-            roles.includes("System Manager") ||
-            roles.includes("Quality Manager") ||
-            roles.includes("KTA Kalite Kullanıcısı")
-        );
+        const adminRoles = frappe?.boot?.kta_admin_roles || ["System Manager", "Quality Manager", "Manufacturing Manager"];
+        return adminRoles.some((r: string) => roles.includes(r));
+    });
+
+    const canEditData = computed(() => {
+        if (state.value === "cancelled") return false;
+
+        const roles = frappe?.boot?.user?.roles || [];
+        const adminRoles = frappe?.boot?.kta_admin_roles || ["System Manager", "Quality Manager", "Manufacturing Manager"];
+        
+        const isManager = adminRoles.some((r: string) => roles.includes(r));
+                          
+        if (isManager) return true;
+
+        // Normal operators can only edit if not finished/rejected/cancelled, and maybe not 'ready'
+        return state.value !== "finished" && state.value !== "rejected" && state.value !== "ready";
     });
 
     const qcFormValue = ref("Onay Bekliyor");
@@ -108,5 +119,6 @@ export function useCalismaKartiUi(docRef: any) {
         showFinish,
         isRejected,
         isCancelled,
+        canEditData,
     };
 }
