@@ -133,12 +133,19 @@ Yöneticiler ve kalite sorumluları, **Çalışma Kartı Dashboard** ekranı üz
 - **Operatör Kısıtı:** Normal operatörler, yalnızca "Çalışıyor" veya "Duruşta" olan aktif kartlarda veri girişi/silme yapabilir. Bitmiş kartlarda arayüz kilitlenir.
 - **İptal Kısıtı:** Bir kart iptal edildiyse hiçbir yetkili buna müdahale edemez.
 
-### Admin Rolleri Konfigürasyonu:
-Örneğin "Manufacturing Manager" rolüne sahip bir yöneticinin kapalı/bitmiş kartlara da müdahale etmesini istiyorsanız, bu yetkiler tek merkezden konfigüre edilebilir:
+### Sistem ve Performans Ayarları:
+ERPNext Arama Çubuğuna `KTA Calisma Karti Settings` yazarak ulaşabileceğiniz konfigürasyonlar şunlardır:
 
-1. **ERPNext Arama Çubuğuna** `KTA Calisma Karti Settings` yazıp ayarlar paneline gidin.
-2. **Admin Kontrol Rolleri (`admin_roles`)** alanını bulun.
-3. Bu alana sistemi doğrudan bypass edip müdahale yetkisine sahip olacak rolleri **virgülle ayırarak** yazın. *(Örnek: `System Manager, Quality Manager, Manufacturing Manager`)*
-4. **Kaydet** butonuna basın. Belirttiğiniz rollere sahip kullanıcılar, çalışma kartlarında gizli kalan tüm "Düzenle/Sil/Ekle" butonlarına otomatik olarak erişebilir duruma gelecektir.
+1. **Maksimum Çalışma Kartı Süresi (Örn: 430 dk):** Bir kartın açık kalabileceği (Çalışıyor) maksimum vardiya süresi. Bu süreyi aşan kartlar sistem tarafından (cron-job) otomatik kapatılır veya duraklatılır.
+2. **Kart Uyarı Süresi (Örn: 400 dk):** Çalışan kartlar bu süreye ulaştığında operatöre arayüz üzerinden kırmızı "Vardiya Sonuna Yaklaşıyor" uyarısı verilir.
+3. **Tamamlanmış İE Tolerans Süresi (Örn: 8 saat):** İş Emri ERPNext üzerinden resmi olarak "Kapatıldı" konumuna alınsa bile, son stok girişinden itibaren bu kadar saat boyunca operatörler o iş emri için yeni çalışma kartı başlatabilir. Fazladan stok veya rütuş işlemlerini destekler.
+4. **Kart Geçiş Modu (Sıkı / Esnek):**
+    - `Sıkı (Hard)`: Operatör güncel kartına hiçbir veri girmediyse (Alt işlem vb.) yeni bir karta geçişine/iş başlatmasına **izin verilmez**.
+    - `Esnek (Soft)`: Operatör uyarılır ancak yeni karta geçmesine veya eskisini duraklatmasına müsaade edilir.
+5. **Yenileme Aralıkları (Liste ve Detay - Saniye):** Sahadaki tablet sayısının artışına bağlı olarak sunucu yükünü (API Rate) dengelemek için verilerin hangi aralıklarla polling ile (arka planda) güncelleneceğini belirler. Standart değerler Liste için 30, Detay için 10 saniyedir.
+6. **Hurda Gider Hesabı:** Stok belgeleri (SE) otomatik oluşurken hurdaların muhasebeleşeceği gider veya hurda deposu hesabını tanımlar.
+7. **Admin Kontrol Rolleri (`admin_roles`):**
+    - İçeriği virgülle ayırarak genişletilir (Örnek: `System Manager, Quality Manager, Manufacturing Manager`).
+    - Bu alana sistemdeki rollerin isimlerini girdiğinizde, ilgili role sahip yöneticiler; **"Bitmiş"** durumda kilitlenen kartlardaki Düzenle/Sil/Ekle gibi butonlara yeniden erişip (bypass edip) verileri düzeltebilir. İptal edilmiş (docstatus=2) kartlara ise hiçbir rol müdahale edemez.
 
 </main>
