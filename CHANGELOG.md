@@ -3,6 +3,157 @@
 
 
 
+## 🚀 v1.3.0 (2026-04-01)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: move patches to v1_2_0 and add net duration correction patch
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: calculate net duration based on shift capacity minus pauses
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti_ui**: restore missing 'Devam Et' button by fixing showResume variable destructing in App.vue and strictly mapping paused state from backend durum
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: make quality_inspection field editable by authorities (permlevel 1) instead of read_only
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: shift boundary time causing 430min limit bypass
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- **memory-bank**: update progress, active context and patterns for duration logic overhaul
+      
+      
+    
+      
+      
+        
+- correct the rule regarding card start and finish logic based on qc and sub-operations
+      
+      
+    
+      
+      
+        
+- add comprehensive settings parameters to the user guide
+      
+      
+    
+      
+      
+        
+- update readme and user guide with dynamic admin roles configuration
+      
+      
+    
+      
+      
+        
+- **memory-bank**: update security audit patterns and progress
+      
+      
+    
+      
+      
+        
+- **memory-bank**: progress file updated
+      
+      
+    
+      
+      
+        
+- **memory-bank**: update memory-bank files
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_calisma_karti_ui**: add loading indicator to quality toggle buttons
+      
+      
+    
+      
+      
+        
+- **ui**: prevent vue state leakage and restrict action buttons by status and configured admin roles
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: implement pessimistic locking and dynamic admin roles configuration
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.2.0 (2026-03-31)
 
 
