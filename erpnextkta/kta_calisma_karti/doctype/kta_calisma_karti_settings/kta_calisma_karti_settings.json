@@ -13,7 +13,8 @@
         "sb_kart_gecis",
         "kart_gecis_modu",
         "sb_stok",
-        "hurda_gider_hesabi"
+        "hurda_gider_hesabi",
+        "admin_roles"
     ],
     "fields": [
         {
@@ -78,8 +79,15 @@
         {
             "fieldname": "hurda_gider_hesabi",
             "fieldtype": "Link",
-            "label": "Hurda Gider Hesab\u0131",
+            "label": "Hurda Gider Hesabı",
             "options": "Account"
+        },
+        {
+            "default": "System Manager, Quality Manager, Manufacturing Manager",
+            "fieldname": "admin_roles",
+            "fieldtype": "Small Text",
+            "label": "Admin Kontrol Rolleri",
+            "description": "Bitmiş, reddedilmiş veya kilitli kartlardaki verileri düzeltebilecek/bypass edebilecek rol adlarını virgülle ayırarak giriniz."
         }
     ],
     "issingle": 1,

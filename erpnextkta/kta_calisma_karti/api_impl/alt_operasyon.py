@@ -2,7 +2,7 @@ from __future__ import annotations
 import frappe
 from frappe import _
 
-from ._helpers import require_my_employee, is_system_manager, is_quality_user, get_allowed_items_with_groups
+from ._helpers import require_my_employee, has_admin_roles, get_allowed_items_with_groups
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 
 
@@ -25,7 +25,12 @@ def _assert_hammadde_allowed(calisma_karti: str, hammadde: str, alt_operasyon: s
 
 def _assert_can_write(doc):
     """Raise PermissionError if current user is not allowed to write the given CK."""
-    if is_system_manager() or is_quality_user():
+    if doc.docstatus == 2:
+        frappe.throw(_("İptal edilmiş kartta işlem yapılamaz."))
+    if doc.get_durum() in ["bitmis", "reddedildi"]:
+        frappe.throw(_("İşlemi bitmiş veya reddedilmiş karta müdahale edemezsiniz."))
+
+    if has_admin_roles():
         return
     emp = require_my_employee()
     if doc.operator != emp:
