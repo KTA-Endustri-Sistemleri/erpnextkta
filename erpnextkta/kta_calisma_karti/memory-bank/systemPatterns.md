@@ -100,7 +100,9 @@ Sistem, operatörlerin açık unuttuğu kartları her vardiya sonunda (16:00 ve 
     - **Duruşta Olanlar**: Kartın fiilen durdurulduğu an (`durus_baslangic`) bitiş saati olarak kabul edilir.
     - **Çalışıyor Olanlar**: Vardiyanın resmi bitiş saati (**16:00** veya **00:00**) bitiş saati olarak kabul edilir.
 - **Tetikleyici**: `hooks.py` içinde birleştirilmiş cron tanımı (`15 0,16 * * *`) ile günde iki kez çalışır.
-- **Süre Sınırı**: 430 dakikalık net çalışma süresi sınırı, kart kapandıktan sonra kümülatif olarak `doc.update_durum()` tarafından uygulanır.
+- **Süre Sınırı**: 430 dakikalık net çalışma süresi sınırı, `doc.update_durum()` tarafından **Shift Capacity Model** ile uygulanır.
+    - **Model**: `Net Süre = 430dk - Toplam Duruş`.
+    - **Shift Cap**: Operatörün aynı vardiyadaki tüm kartlarının toplam net süresi 430 dakikayı aşamaz (ilk kartlardan itibaren kapasite doldurulur).
 - **⚠️ Boundary Rule (Kritik)**: `_shift_name_by_now()` fonksiyonu `(start, end]` mantığı kullanır:
     - `time(0,0) < t <= time(8,0)` → 3. Vardiya
     - `time(8,0) < t <= time(16,0)` → 1. Vardiya
