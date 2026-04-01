@@ -1,6 +1,6 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-27
+> Son güncelleme: 2026-03-31
 
 Çalışma Kartı modülü Frappe-native document state mimarisine taşındı. "Draft-First" (Önce Taslak) yaratım akışı, iptal edilmiş belge desteği ve detaylı yetkilendirme güncellemeleri tamamlandı. Ayrıca toplu build işlemleriyle frontend-backend veri tutarlılığı sağlandı.
 
@@ -12,6 +12,22 @@
 - [x] **Yetki Güncellemesi**: `Asset Maintenance Log` DocType'ı için standart operatör ve yönetici rollerine okuma yetkisi tanımlandı. (Tamamlandı)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-04-01) — Güvenlik ve Mantık Denetimi (Logic Audit) Planlaması
+Çalışma Kartı modülünde tespit edilen asenkron sızıntılar, yarış durumları (race conditions) ve yetki/durum atlama (state bypass) zafiyetlerine karşı geniş çaplı bir güvenlik denetimi gerçekleştirildi ve tüm planlar Memory Bank'e (`systemPatterns.md`) işlendi. Kodu etkileyen ana zafiyetler:
+
+*   **Zafiyet 1 — Vue State Leakage (Kritik)**: Operatör Kalite onayı (QC) verirken oluşan asenkron (API) gecikmesi sırasında kart değiştirildiğinde, eski kartın kalite şablonu yeni karta bağlanarak yanlış formla kalite kaydı ("kendiliğinden oluşan belge") üretiliyordu. (Bkz. Model 24: Reactivity State Leakage Koruma Deseni)
+*   **Zafiyet 2 — Race Conditions**: `islem_yap` gibi kritik statü API'lerine çoklu tıklama yapıldığında state tutarsızlıkları ve miktar kaybı yaşanabiliyor. (Bkz. Model 25: Pessimistic Locking)
+*   **Zafiyet 3 — State Bypass**: Hurda, Barkod ve IDC arka uç API'leri, istek geldiği anda ana kartın o anki durumunun (`docstatus=1` veya `durum=bitmis/reddedildi`) kontrolünü sıkıca yeniden yapmamaktadır (stale data kabulü).
+*   **Zafiyet 4 — Operasyonel Üretim Fazlası (Overproduction) Kısıtları**: Alt operasyon girişlerinde operatörün sınırsız miktar girebilmesi sorunu incelendi. Sınırlandırmanın operasyona göre ayrıştığı ("Son Kontrol" -> WO Qty, "IDC/Soket" -> BOM qty) ve esnek tolerans gerektiren yapısı (Overproduction Tolerance) tespit edildiği için öncelikle dokümante edilerek tasarlandı. (Bkz. Model 26)
+*   **Durum**: İlgili onarımların (`App.vue` route kilitleri, backend `for_update=True` eklentileri) kodlanması için uygulama planı (implementation_plan) sistem düzeyinde benimsendi. Onay bekliyor.
+
+## Son Değişiklikler (2026-03-31) — Vardiya Sınır Değeri Hesaplama Hatası Düzeltmesi
+*   **Bug Fix — `_shift_name_by_now` Boundary Condition**: `_shift_name_by_now()` fonksiyonundaki vardiya sınır koşulları `[start, end)` yerine `(start, end]` olarak değiştirildi. Sınır zamanları (16:00, 00:00, 08:00) artık **biten vardiyaya** aittir.
+*   **Kök Neden**: `auto_close_timed_out_cards` cron job'ı kartları tam sınır saatinde (örn. `16:00:00`) kapattığında, eski mantık bu zamanı bir sonraki vardiyaya atıyordu. Bu durumda `_other_cards_net_seconds_in_shift` yanlış vardiya penceresine bakarak `other_net=0` döndürüyor ve 430 dk limiti uygulanmıyordu.
+*   **Etki**: 12 vardiya aşımı, 10 operatör, 27 kart etkilenmiş. En büyük aşım: +45 dk (475→430).
+*   **Migration Patch**: `erpnextkta.patches.v0_20.fix_shift_boundary_net_times` — `bench migrate` sırasında etkilenen kartları kronolojik sırayla `update_durum()` ile yeniden hesaplatır.
+*   **Branch**: `fix/shift-boundary-net-time-calculation`
 
 ## Son Değişiklikler (2026-03-26) — Hurda Modülü Modernizasyonu & 1:1 Senkronizasyon
 *   **Operatör Bazlı Mimari (1:1)**: Her `Calisma Karti`'nin kendine ait bir `Stock Entry` (Scrap for Manufacturing) belgesi olması sağlandı. İş Emri bazlı konsolidasyon yerine operatör/kart bazlı izlenebilirlik önceliklendirildi.
@@ -103,6 +119,7 @@ Kalite kontrol süreci daha esnek ve güvenli bir yapıya kavuşturuldu:
 ### Vardiya Penceresi + Operatör Net Süre Limiti
 - Aynı vardiyada birden fazla kart açan operatörlerin toplam süresini kontrol eden `hesapla_toplam_sure()` güncellemesi.
 - `auto_close_timed_out_cards` ve `delete_old_unstarted_cards` cron job iyileştirmeleri.
+- **⚠️ Boundary Pattern**: `_shift_name_by_now()` (start, end] mantığı kullanır — sınır zamanı biten vardiyaya aittir. Kesinlikle `[start, end)` yapılmamalıdır.
 
 ### Hammadde Filtreleme — item-group Tabanlı Mimari
 - BOM/Job Card bağımsızlığı: WO `required_items` ∩ operasyon `allowed_material_groups`.
