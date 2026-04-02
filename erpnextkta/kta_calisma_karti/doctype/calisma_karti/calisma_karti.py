@@ -217,12 +217,9 @@ class CalismaKarti(Document):
                 active_durus_seconds = (end_dt - durus_start).total_seconds()
                 toplam_durus_saniye += active_durus_seconds
 
-            # Net çalışma süresi = max_limit - toplam_durus
-            # Toplam geçen süreden değil, sabit tavan olan max_limit'ten düşülür.
+            # Vardiya kapasitesi (max_limit) tavan olarak kullanılır.
             max_limit, _ = get_kta_settings()
             max_saniye = max_limit * 60
-
-            net_saniye = max(0, max_saniye - toplam_durus_saniye)
 
             # Vardiya içindeki diğer kartların net süresiyle birlikte tavan aşılmamalı
             ws, we = _shift_window(end_dt)
@@ -233,7 +230,12 @@ class CalismaKarti(Document):
                 exclude_name=self.name,
             )
             remaining = max(0, max_saniye - other_net)
-            net_saniye = min(net_saniye, remaining)
+
+            # Önce toplam süreyi kalan kapasiteyle sınırla, sonra duruşları düş.
+            # Böylece duruşlar her zaman net süreden düşer.
+            # Örnek: 480 dk çalışma, 20 dk duruş → min(480, 430) = 430 → 430 - 20 = 410 dk
+            capped_saniye = min(toplam_saniye, remaining)
+            net_saniye = max(0, capped_saniye - toplam_durus_saniye)
 
             self.toplam_sure = format_sure(toplam_saniye)
             self.net_calisma_suresi = format_sure(net_saniye)
