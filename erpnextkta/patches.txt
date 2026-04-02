@@ -7,3 +7,4 @@
 erpnextkta.patches.v0_20.create_ptr_bt_049_bakim_talimati
 erpnextkta.patches.v1_2_0.fix_shift_boundary_net_times
 erpnextkta.patches.v1_2_0.fix_calisma_karti_net_durations
+erpnextkta.patches.v1_2_0.fix_net_duration_logic_final
