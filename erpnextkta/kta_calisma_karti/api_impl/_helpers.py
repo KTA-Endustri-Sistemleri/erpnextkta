@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
+from frappe.utils import get_datetime, now_datetime, time_diff_in_hours
 
 HURDA_PARENT_COST_CENTER = "Malzeme Sarfları - KTA"
 
@@ -170,3 +171,35 @@ def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = 
 
     # If no groups are configured anywhere, just return work order items
     return list(set(wo_items))
+
+def is_work_order_within_tolerance(wo_name: str) -> bool:
+    """
+    Check if a 'Completed' Work Order is still within the tolerance period
+    based on its last Stock Entry (Manufacture/Repack).
+    """
+    tolerance_hours = frappe.db.get_single_value("KTA Calisma Karti Settings", "tolerans_saat") or 0
+    if tolerance_hours <= 0:
+        return False
+
+    # Find last submitted Stock Entry for this Work Order (Manufacture/Repack)
+    last_stock_entry = frappe.get_all(
+        "Stock Entry",
+        filters={
+            "work_order": wo_name,
+            "purpose": ["in", ["Manufacture", "Repack"]],
+            "docstatus": 1
+        },
+        fields=["posting_date", "posting_time"],
+        order_by="posting_date desc, posting_time desc",
+        limit=1
+    )
+
+    if not last_stock_entry:
+        return False
+
+    se = last_stock_entry[0]
+    posting_datetime = get_datetime(f"{se.posting_date} {se.posting_time}")
+    
+    diff_hours = time_diff_in_hours(now_datetime(), posting_datetime)
+    
+    return diff_hours <= tolerance_hours

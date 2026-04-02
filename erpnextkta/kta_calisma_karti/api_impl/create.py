@@ -5,6 +5,7 @@ from __future__ import annotations
 import frappe
 from frappe import _
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+from ._helpers import is_work_order_within_tolerance
 
 @frappe.whitelist()
 def create_calisma_karti(**kwargs):
@@ -91,8 +92,19 @@ def create_calisma_karti(**kwargs):
     if wo.docstatus != 1:
         frappe.throw(_("İş Emri onaylanmamış (docstatus != 1)."), title=_("Geçersiz İş Emri"))
 
-    if wo.status not in ("Not Started", "In Process"):
-        frappe.throw(_("İş Emri açık değil. Mevcut durum: {0}").format(wo.status), title=_("İş Emri Kapalı"))
+    if wo.status in ("In Process", "Stopped", "Not Started"):
+        pass
+    elif wo.status == "Completed":
+        if not is_work_order_within_tolerance(wo.name):
+            frappe.throw(
+                _("İş Emri tamamlanmış ve tolerans süresi dolmuş."), 
+                title=_("İş Emri Kapalı")
+            )
+    else:
+        frappe.throw(
+            _("Bu durumdaki bir İş Emri için kart açılamaz: {0}").format(wo.status),
+            title=_("Geçersiz İş Emri Durumu")
+        )
 
     # 7) Derive fields
     urun_kodu = getattr(jc, "production_item", None) or getattr(wo, "production_item", None)
