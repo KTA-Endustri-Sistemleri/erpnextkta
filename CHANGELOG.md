@@ -3,6 +3,54 @@
 
 
 
+## 🚀 v1.4.0 (2026-04-03)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- add MRP Analysis report to visualize material consumption by customer group and stock levels
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **kta_calisma_karti**: move is_work_order_within_tolerance to helpers and update Work Order status validation logic
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.3.0 (2026-04-01)
 
 
