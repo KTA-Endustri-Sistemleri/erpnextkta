@@ -169,6 +169,8 @@ class CalismaKarti(Document):
         if not self.kalite_kontrol:
             self.kalite_kontrol = "Onay Bekliyor"
 
+        self.check_duplicate_quality_docs()
+
         # Proaktif Operatör İkazı (Dinamik Uyarı Süresi)
         durum_key = self.get_durum()
         if durum_key in ['calisiyor', 'durusta'] and self.baslangic_saati:
@@ -200,6 +202,26 @@ class CalismaKarti(Document):
         self.hesapla_toplam_sure()
         durum_key = self.get_durum()
         self.durum = STATU_HARITASI.get(durum_key, "Hazır")
+
+    def check_duplicate_quality_docs(self):
+        # Mükerrer kalite belgesi kontrolü
+        fields = {
+            "quality_inspection": "Kalite Muayene Belgesi",
+            "test_masasi_dogrulama_kaydi": "Test Masası Doğrulama Kaydı"
+        }
+        for field, label in fields.items():
+            val = self.get(field)
+            if val:
+                duplicate = frappe.db.get_value("Calisma Karti", {
+                    field: val,
+                    "name": ["!=", self.name],
+                    "docstatus": ["<", 2]  # İptal edilmemiş
+                }, "name")
+                if duplicate:
+                    frappe.throw(
+                        frappe._("{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.").format(label, val, duplicate),
+                        title=frappe._("Mükerrer Kayıt")
+                    )
 
     def hesapla_toplam_sure(self):
         if self.baslangic_saati:
