@@ -3,6 +3,42 @@
 
 
 
+## 🚀 v1.4.1 (2026-04-04)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: implement duplicate quality document validation and restructure Calisma Karti form layout
+      
+      
+    
+      
+      
+        
+- update net duration calculation logic and apply patch to recalibrate existing work card records
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.4.0 (2026-04-03)
 
 
