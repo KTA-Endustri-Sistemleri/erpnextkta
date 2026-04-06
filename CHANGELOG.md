@@ -3,6 +3,73 @@
 
 
 
+## 🚀 v1.4.3 (2026-04-06)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **purchase_order**: duplicate/amend işlemlerinde fiyat listesi para birimi güncellemesi
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- modularize price list currency logic in client script and remove redundant save operation in shift boundary patch
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- Revert "refactor: modularize price list currency logic in client script and remove redundant save operation in shift boundary patch"
+
+This reverts commit 7eea0e239e6f59bf4aaacd2aef1022df20fd1cee.
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.4.2 (2026-04-06)
 
 
