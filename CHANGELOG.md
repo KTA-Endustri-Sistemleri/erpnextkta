@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v1.4.2 (2026-04-06)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- restrict duplicate validation to changed fields to prevent blocking existing records
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.4.1 (2026-04-04)
 
 
