@@ -212,16 +212,23 @@ class CalismaKarti(Document):
         for field, label in fields.items():
             val = self.get(field)
             if val:
-                duplicate = frappe.db.get_value("Calisma Karti", {
-                    field: val,
-                    "name": ["!=", self.name],
-                    "docstatus": ["<", 2]  # İptal edilmemiş
-                }, "name")
-                if duplicate:
-                    frappe.throw(
-                        frappe._("{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.").format(label, val, duplicate),
-                        title=frappe._("Mükerrer Kayıt")
-                    )
+                # Sadece değer gerçekten değişmişse veya yeni kayıt ise mükerrerlik kontrolü yap
+                # Bu sayede geçmişteki hatalı (çift) kayıtlar sistemi kilitlemez
+                stored_val = None
+                if not self.is_new():
+                    stored_val = frappe.db.get_value("Calisma Karti", self.name, field)
+                
+                if str(val) != str(stored_val):
+                    duplicate = frappe.db.get_value("Calisma Karti", {
+                        field: val,
+                        "name": ["!=", self.name],
+                        "docstatus": ["<", 2]  # İptal edilmemiş
+                    }, "name")
+                    if duplicate:
+                        frappe.throw(
+                            frappe._("{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.").format(label, val, duplicate),
+                            title=frappe._("Mükerrer Kayıt")
+                        )
 
     def hesapla_toplam_sure(self):
         if self.baslangic_saati:
