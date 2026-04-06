@@ -95,6 +95,10 @@ def execute():
             doc.update_durum()
 
             if doc.net_calisma_suresi != old_net:
+                if doc.docstatus == 1:
+                    doc.flags.ignore_validate_update_after_submit = True
+                doc.save(ignore_permissions=True)
+
                 frappe.db.set_value("Calisma Karti", doc.name, {
                     "durum": doc.durum,
                     "toplam_sure": doc.toplam_sure,
