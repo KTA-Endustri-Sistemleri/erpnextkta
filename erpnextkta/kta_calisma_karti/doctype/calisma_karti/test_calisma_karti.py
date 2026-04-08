@@ -382,7 +382,7 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 					"quality_inspection": qi_name,
 					"operator": f"worker-{card_id}@kta.com"
 				})
-				doc.insert(ignore_permissions=True)
+				doc.insert(ignore_permissions=True, ignore_links=True)
 				# Commit to ensure the lock is actually released/tested
 				frappe.db.commit() 
 				results.append("SUCCESS")
