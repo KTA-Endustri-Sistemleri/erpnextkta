@@ -103,6 +103,7 @@
 - [x] **Arayüz İyileştirmeleri**: Alt operasyon seçiminin iyileştirilmesi (Tamamlandı).
 
 ### Next Steps / Pendings
+- [ ] **CI Test Otomasyonu**: `.github/workflows/tests.yml` dosyasına `bench run-tests` adımının eklenmesi ve `act` ile yerel ortamda doğrulanması.
 - [ ] CK → Job Card status senkronizasyonu — `on_update` hook veya bitiş anında Job Card'ın ERPNext standart statüsünü (Completed vb.) tetikleme. (Hala tasarım aşamasında)
 - [ ] Test coverage (Pytest & Jest) artırılması.
 

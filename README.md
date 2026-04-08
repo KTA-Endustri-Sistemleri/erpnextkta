@@ -280,6 +280,55 @@ docs: update semantic release installation guide
 
 ---
 
+# 🛠️ Test Otomasyonu ve Kalite Kontrol (QA)
+
+ERPNextKTA projesi, kod kalitesini korumak ve regresyonu önlemek için kapsamlı bir test altyapısına sahiptir.
+
+## 🧪 Birim Testleri (Unit Tests)
+
+Uygulamanın mantıksal doğruluğunu test etmek için Frappe'nin yerleşik test runner'ı kullanılır.
+
+### Manuel Test Çalıştırma
+Spesifik bir modülü test etmek için:
+```bash
+bench --site [site-adı] run-tests --module erpnextkta.kta_calisma_karti.doctype.calisma_karti.test_calisma_karti
+```
+
+### VS Code Entegrasyonu
+`.code-workspace` dosyasındaki tanımlı görevler sayesinde:
+- **KTA: Run Specific Test (Local)**: Terminale girmeden doğrudan aktif testi koşturur.
+- **KTA: Local CI Simulation (act)**: GitHub ortamını yerelde simüle eder.
+
+---
+
+## 🤖 CI/CD ve Otomatik Testler
+
+Her `push` ve `Pull Request` işleminde `.github/workflows/tests.yml` akışı otomatik olarak tetiklenir.
+
+### İşleyiş:
+1.  **Ortam Hazırlığı:** Ubuntu konteyner üzerinde MariaDB ve Redis servisleri ayağa kaldırılır.
+2.  **Bağımlılıkların Kurulumu:** ERPNext ve gerekli tüm yan uygulamalar (trtaxoffices vb.) temiz bir şekilde kurulur.
+3.  **Otomatik Test Koşumu:** Tüm unit testler izole bir veri tabanı üzerinde koşturulur.
+4.  **Sonuç Raporlama:** Başarısız testler Pull Request aşamasında bloklanır.
+
+---
+
+## 🎭 Yerel CI Simülasyonu (`act`)
+
+GitHub sunucularına kod göndermeden önce tüm test sürecini kendi makinenizde (Docker üzerinde) deneyebilirsiniz.
+
+### Ön Gereksinimler:
+- Docker yüklü olmalıdır.
+- `act` aracı sistemde kurulu olmalıdır.
+
+### Çalıştırma:
+```bash
+act -j tests
+```
+*Not: Yerel Redis/MariaDB portlarıyla çakışma yaşanmaması için workflow dosyasında port remapping (33066, 11001, 13001) uygulanmıştır.*
+
+---
+
 ## 🎉 Sonuç
 
 Bu yapı sayesinde:
