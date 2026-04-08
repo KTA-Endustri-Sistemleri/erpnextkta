@@ -104,7 +104,9 @@ jobs:
           echo "BIN_DIR=$BIN_DIR" >> $GITHUB_ENV
           
           # Initialize bench as non-root user with PATH included for uv and redis-tools
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench init --frappe-branch version-15 --skip-redis-config-generation --skip-assets --python "$(which python)" $FRA_HOME/frappe-bench
+          if [ ! -d $FRA_HOME/frappe-bench ]; then
+            sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench init --frappe-branch version-15 --skip-redis-config-generation --skip-assets --python "$(which python)" $FRA_HOME/frappe-bench
+          fi
           
           # DB ready check (mariadb can run as root)
           for i in {1..30}; do
@@ -120,25 +122,25 @@ jobs:
           CI: 'Yes'
         run: |
           cd $FRA_HOME/frappe-bench
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app payments
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app hrms --branch version-15
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app erpnext https://github.com/frappe/erpnext --branch version-15
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trtcmb.git --branch version-15
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trebelge.git --branch version-15
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app erpnextkta $GITHUB_WORKSPACE
+          [ -d apps/payments ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app payments
+          [ -d apps/hrms ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app hrms --branch version-15
+          [ -d apps/erpnext ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app erpnext https://github.com/frappe/erpnext --branch version-15
+          [ -d apps/trtaxoffices ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15
+          [ -d apps/trtcmb ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trtcmb.git --branch version-15
+          [ -d apps/trebelge ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trebelge.git --branch version-15
+          [ -d apps/erpnextkta ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app erpnextkta $GITHUB_WORKSPACE
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench setup requirements --dev
-          sudo ./env/bin/pip install --force-reinstall 'setuptools<81'
+          sudo ./env/bin/pip install --force-reinstall 'setuptools==80.9.0'
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config -g db_host 127.0.0.1
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config -g db_port 33066
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench new-site --db-root-password root --admin-password admin test_site
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app payments --skip-assets
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app hrms --skip-assets
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app erpnext --skip-assets
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trtaxoffices --skip-assets
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trtcmb --skip-assets
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trebelge --skip-assets
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app erpnextkta --skip-assets
+          [ -d sites/test_site ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench new-site --db-root-password root --admin-password admin test_site
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app payments
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app hrms
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app erpnext
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trtaxoffices
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trtcmb
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trebelge
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app erpnextkta
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config allow_tests true
       - name: Debug List Files
         run: |
