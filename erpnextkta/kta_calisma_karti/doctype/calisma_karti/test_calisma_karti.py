@@ -364,6 +364,9 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 		results = []
 		site = frappe.local.site
 		test_db_name = frappe.conf.db_name
+		
+		# Synchronization barrier to make them start at the same time
+		barrier = threading.Barrier(2)
 
 		def try_save_card(card_id):
 			try:
@@ -384,15 +387,20 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 					"quality_inspection": qi_name,
 					"operator": f"worker-{card_id}@kta.com"
 				})
+				
+				# Wait for other thread
+				barrier.wait(timeout=10)
+				
 				doc.insert(ignore_permissions=True, ignore_links=True)
 				# Commit to ensure the lock is actually released/tested
 				frappe.db.commit() 
-				results.append("SUCCESS")
+				results.append(f"SUCCESS-{card_id}")
 			except Exception as e:
-				if "LockTimeoutError" in str(e) or "FOR UPDATE" in str(e) or "Zaten" in str(e) or "Another Card" in str(e) or " Duplicate" in str(e) or "aynı Kalite" in str(e):
-					results.append("BLOCKED")
+				err_str = str(e)
+				if any(x in err_str for x in ("LockTimeoutError", "FOR UPDATE", "Zaten", "Another Card", "Duplicate", "aynı Kalite")):
+					results.append(f"BLOCKED-{card_id}")
 				else:
-					results.append(f"EXCEPTION: {str(e)}")
+					results.append(f"EXCEPTION-{card_id}: {err_str}")
 			finally:
 				try:
 					frappe.destroy()
@@ -408,8 +416,16 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 		t1.join()
 		t2.join()
 		
-		self.assertIn("SUCCESS", results, "At least one card must be saved")
-		self.assertIn("BLOCKED", results, "FOR UPDATE lock must block the second concurrent card")
+		# Log results for debugging
+		print(f"\nCONCURRENT TEST RESULTS: {results}")
+		
+		# At least one must succeed
+		successes = [r for r in results if r.startswith("SUCCESS")]
+		self.assertTrue(len(successes) >= 1, f"At least one card must be saved. Results: {results}")
+		
+		# At least one must be blocked
+		blockeds = [r for r in results if r.startswith("BLOCKED")]
+		self.assertTrue(len(blockeds) >= 1, f"FOR UPDATE lock must block the second concurrent card. Results: {results}")
 
 	def test_shift_boundary_integration(self):
 		"""Verify that boundary logic correctly assigns shifts at 16:00:00 vs 16:00:01."""
