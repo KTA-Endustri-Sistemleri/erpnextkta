@@ -362,11 +362,17 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 		
 		results = []
 		site = frappe.local.site
+		test_db_name = frappe.conf.db_name
 
 		def try_save_card(card_id):
 			try:
 				# Initialize frappe local variables for this new thread
 				frappe.init(site=site)
+				# Force the background thread to use the TEST database, not the site_config.json database
+				if not frappe.local.conf:
+					frappe.local.conf = frappe._dict()
+				frappe.local.conf.db_name = test_db_name
+				
 				frappe.connect() 
 				
 				doc = frappe.get_doc({
