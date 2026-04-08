@@ -71,7 +71,24 @@ def before_tests():
 		if not frappe.db.exists("UOM", uom):
 			frappe.get_doc({"doctype": "UOM", "uom_name": uom, "name": uom, "enabled": 1}).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-	# 8. Company (The Big One)
+	# 8. Groups (Mandatory for Customer/Supplier)
+	if not frappe.db.exists("Customer Group", "_Test Customer Group"):
+		frappe.get_doc({
+			"doctype": "Customer Group",
+			"customer_group_name": "_Test Customer Group",
+			"parent_customer_group": "All Customer Groups",
+			"is_group": 0
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+	
+	if not frappe.db.exists("Supplier Group", "_Test Supplier Group"):
+		frappe.get_doc({
+			"doctype": "Supplier Group",
+			"supplier_group_name": "_Test Supplier Group",
+			"parent_supplier_group": "All Supplier Groups",
+			"is_group": 0
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+	# 9. Company (The Big One)
 	company_name = "_Test Company"
 	abbr = "_TC"
 	
@@ -85,7 +102,7 @@ def before_tests():
 			'company_abbr': abbr,
 			'default_currency': 'TRY',
 			'country': 'Turkey',
-			'chart_of_accounts': 'Standard Alternative',
+			'chart_of_accounts': 'Standard', # Safer than Standard Alternative for defaults
 			'domain': 'Manufacturing',
 			'fy_start_date': '2024-01-01',
 			'fy_end_date': '2024-12-31'
@@ -104,13 +121,13 @@ def before_tests():
 					"country": "Turkey"
 				}).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-	# 9. Core Test Records (Match erpnext/tests/test_records.json)
+	# 10. Core Test Records (Match erpnext/tests/test_records.json)
 	# Customer
 	if not frappe.db.exists("Customer", "_Test Customer"):
 		frappe.get_doc({
 			"doctype": "Customer",
 			"customer_name": "_Test Customer",
-			"customer_group": "All Customer Groups",
+			"customer_group": "_Test Customer Group",
 			"territory": "All Territories",
 			"customer_type": "Company"
 		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
@@ -120,7 +137,7 @@ def before_tests():
 		frappe.get_doc({
 			"doctype": "Supplier",
 			"supplier_name": "_Test Supplier",
-			"supplier_group": "All Supplier Groups",
+			"supplier_group": "_Test Supplier Group",
 			"supplier_type": "Company"
 		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
