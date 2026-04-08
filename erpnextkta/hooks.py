@@ -223,7 +223,7 @@ scheduler_events = {
 # Testing
 # -------
 
-# before_tests = "erpnextkta.install.before_tests"
+before_tests = "erpnextkta.tests.test_utils.before_tests"
 
 # Overriding Methods
 # ------------------------------
