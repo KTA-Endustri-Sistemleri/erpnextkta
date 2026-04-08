@@ -27,6 +27,13 @@ frappe.query_reports["MRP Analysis"] = {
 
 	filters: [
 		{
+			fieldname: "periyot",
+			label: __("Periyot"),
+			fieldtype: "Select",
+			options: ["Yıllık", "3 Aylık", "6 Aylık", "Süresiz"],
+			default: "Yıllık",
+		},
+		{
 			fieldname: "ara_malzeme_grubu",
 			label: __("Ara Malzeme Grubu"),
 			fieldtype: "Select",
