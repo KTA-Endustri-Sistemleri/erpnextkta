@@ -346,6 +346,20 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 				"report_date": frappe.utils.nowdate()
 			}).insert(ignore_permissions=True, ignore_links=True)
 		
+		# Ensure workers exist
+		for card_id in ("A", "B"):
+			emp_id = f"worker-{card_id}@kta.com"
+			if not frappe.db.exists("Employee", emp_id):
+				try:
+					frappe.db.sql("""
+						INSERT INTO `tabEmployee` (name, employee_name, first_name, status, creation, modified, modified_by)
+						VALUES (%s, %s, %s, 'Active', NOW(), NOW(), 'Administrator')
+					""", (emp_id, f"Worker {card_id}", f"Worker {card_id}"))
+				except Exception: pass
+				
+		# Commit all mocked data created in the main thread so other connections can see it
+		frappe.db.commit()
+		
 		results = []
 		site = frappe.local.site
 
