@@ -137,6 +137,10 @@ jobs:
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app erpnextkta
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site set-config allow_tests true
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench build
+      - name: Debug List Files
+        run: |
+          ls -R $FRA_HOME/frappe-bench/apps/erpnextkta/erpnextkta
+
       - name: Seed Infrastructure
         run: |
           cd $FRA_HOME/frappe-bench
