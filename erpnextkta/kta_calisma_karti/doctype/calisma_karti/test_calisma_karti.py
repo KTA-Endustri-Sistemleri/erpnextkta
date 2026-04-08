@@ -242,10 +242,11 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 			}).insert(ignore_permissions=True, ignore_links=True)
 
 		# 3.5 Missing Workstation & Operation dependencies
-		if not frappe.db.exists("Workstation", "_Test KTA Workstation"):
+		self.ws_name = "_Test KTA Workstation"
+		if not frappe.db.exists("Workstation", self.ws_name):
 			frappe.get_doc({
 				"doctype": "Workstation",
-				"workstation_name": "_Test KTA Workstation"
+				"workstation_name": self.ws_name
 			}).insert(ignore_permissions=True)
 
 		# 3.6 Shifts
