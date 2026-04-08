@@ -379,6 +379,7 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 					"doctype": "Calisma Karti",
 					"is_karti": self.jc_name,
 					"operasyon": self.kta_op,
+					"is_istasyonu": self.ws_name,
 					"quality_inspection": qi_name,
 					"operator": f"worker-{card_id}@kta.com"
 				})
