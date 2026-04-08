@@ -120,6 +120,8 @@ jobs:
           CI: 'Yes'
         run: |
           cd $FRA_HOME/frappe-bench
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app payments
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app hrms --branch version-15
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app erpnext https://github.com/frappe/erpnext --branch version-15
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trtcmb.git --branch version-15
@@ -130,6 +132,8 @@ jobs:
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config -g db_host 127.0.0.1
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config -g db_port 33066
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench new-site --db-root-password root --admin-password admin test_site
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app payments
+          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app hrms
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app erpnext
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trtaxoffices
           sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trtcmb
