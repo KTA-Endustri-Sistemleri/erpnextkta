@@ -100,9 +100,9 @@ def before_tests():
 		args = frappe._dict({
 			'company_name': company_name,
 			'company_abbr': abbr,
-			'default_currency': 'TRY',
-			'country': 'Turkey',
-			'chart_of_accounts': 'Standard', # Safer than Standard Alternative for defaults
+			'default_currency': 'INR',
+			'country': 'India',
+			'chart_of_accounts': 'Standard',
 			'domain': 'Manufacturing',
 			'fy_start_date': '2024-01-01',
 			'fy_end_date': '2024-12-31'
@@ -117,8 +117,8 @@ def before_tests():
 					"doctype": "Company",
 					"company_name": company_name,
 					"abbr": abbr,
-					"default_currency": "TRY",
-					"country": "Turkey"
+					"default_currency": "INR",
+					"country": "India"
 				}).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 	# 10. Core Test Records (Match erpnext/tests/test_records.json)
@@ -168,8 +168,28 @@ def before_tests():
 			frappe.db.set_value("Account", fullname, "account_type", acc_type)
 
 	# 13. System Settings & Defaults
-	frappe.db.set_single_value('System Settings', 'country', 'Turkey')
+	frappe.db.set_single_value('System Settings', 'country', 'India')
 	frappe.db.set_single_value('System Settings', 'setup_complete', 1)
+
+	# Ensure Currency records exist
+	for cur in ['INR', 'USD', 'EUR']:
+		if not frappe.db.exists('Currency', cur):
+			frappe.get_doc({'doctype': 'Currency', 'currency_name': cur, 'name': cur, 'enabled': 1}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		else:
+			frappe.db.set_value('Currency', cur, 'enabled', 1)
+
+	# Currency Exchange records (needed for BOM test records with currency=USD)
+	for from_cur, to_cur, rate in [('USD', 'INR', 60.0), ('EUR', 'INR', 70.0)]:
+		if not frappe.db.exists('Currency Exchange', {'from_currency': from_cur, 'to_currency': to_cur}):
+			frappe.get_doc({
+				'doctype': 'Currency Exchange',
+				'from_currency': from_cur,
+				'to_currency': to_cur,
+				'exchange_rate': rate,
+				'date': '2024-01-01',
+				'for_buying': 1,
+				'for_selling': 1
+			}).insert(ignore_permissions=True, ignore_if_duplicate=True)
 	
 	# Set _Test Company as global default
 	if frappe.db.exists("Company", company_name):
@@ -187,6 +207,7 @@ def before_tests():
 	# (e.g., BOM conversion_rate, etc.)
 	core_fields_to_relax = [
 		("BOM Item", "conversion_rate"),
+		("BOM", "conversion_rate"),
 		("BOM", "item_code"), # Just in case
 		("Journal Entry Account", "cost_center")
 	]
