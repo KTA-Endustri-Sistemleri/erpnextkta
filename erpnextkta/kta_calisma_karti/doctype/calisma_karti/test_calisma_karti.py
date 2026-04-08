@@ -298,9 +298,12 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 
 		frappe.db.commit()
 
-	@unittest.skip("Application API layer does not inherently prevent creation under same concurrent mocked payload yet.")
 	def test_create_calisma_karti_double_click_protection(self):
 		"""Calling create twice quickly should return the same document."""
+		# Ensure a clean slate for this specific test case payload across runs
+		frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": "test@kta.com"})
+		frappe.db.commit()
+
 		payload = {
 			"is_karti": self.jc_name,
 			"operasyon": self.kta_op,
@@ -324,7 +327,6 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 		})
 		self.assertEqual(count, 1, "Duplicate record should NOT be created")
 
-	@unittest.skip("Frappe test runner drops Db.context in sub-threads causing 'object is not bound' exceptions natively.")
 	def test_race_condition_duplicate_quality_inspection(self):
 		"""Two cards trying to use the same Quality Inspection simultaneously."""
 		
@@ -345,10 +347,14 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 			}).insert(ignore_permissions=True, ignore_links=True)
 		
 		results = []
+		site = frappe.local.site
+
 		def try_save_card(card_id):
 			try:
-				# New connection to simulate isolated transaction
-				frappe.db.connect() 
+				# Initialize frappe local variables for this new thread
+				frappe.init(site=site)
+				frappe.connect() 
+				
 				doc = frappe.get_doc({
 					"doctype": "Calisma Karti",
 					"is_karti": self.jc_name,
@@ -361,13 +367,13 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 				frappe.db.commit() 
 				results.append("SUCCESS")
 			except Exception as e:
-				if "LockTimeoutError" in str(e) or "FOR UPDATE" in str(e):
+				if "LockTimeoutError" in str(e) or "FOR UPDATE" in str(e) or "Zaten" in str(e) or "Another Card" in str(e) or " Duplicate" in str(e) or "aynı Kalite" in str(e):
 					results.append("BLOCKED")
 				else:
 					results.append(f"EXCEPTION: {str(e)}")
 			finally:
 				try:
-					frappe.db.close()
+					frappe.destroy()
 				except Exception:
 					pass
 
