@@ -3,6 +3,49 @@
 
 
 
+## 🚀 v1.5.0 (2026-04-09)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- mrp analysis
+      
+      
+    
+      
+      
+        
+- add MRP Analysis report to visualize material consumption by customer group and stock levels
+      
+      
+    
+      
+      
+        
+- add mrp_analysis report to track material consumption by customer group and stock levels
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.4.3 (2026-04-06)
 
 
