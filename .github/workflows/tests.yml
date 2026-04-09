@@ -20,8 +20,18 @@ jobs:
     services:
       redis-cache:
         image: redis:alpine
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=2s
+          --health-retries=5
       redis-queue:
         image: redis:alpine
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=2s
+          --health-retries=5
       mariadb:
         image: mariadb:10.6
         env:
@@ -124,9 +134,11 @@ jobs:
           sudo -H -u frappe bench setup requirements --dev
           sudo -H -u frappe ./env/bin/pip install --force-reinstall 'setuptools<81'
           sudo -H -u frappe bench set-config -g db_host mariadb
-          sudo -H -u frappe bench set-config -g redis_cache "redis://redis-cache:6379"
-          sudo -H -u frappe bench set-config -g redis_queue "redis://redis-queue:6379"
-          sudo -H -u frappe bench set-config -g redis_socketio "redis://redis-cache:6379"
+          sudo -H -u frappe bench set-config -g redis_cache redis://redis-cache:6379
+          sudo -H -u frappe bench set-config -g redis_queue redis://redis-queue:6379
+          sudo -H -u frappe bench set-config -g redis_socketio redis://redis-cache:6379
+          # Yapılandırmayı doğrulamak için yazdır
+          cat sites/common_site_config.json
           sudo -H -u frappe bench new-site --db-root-password root --admin-password admin test_site
           sudo -H -u frappe bench --site test_site install-app payments
           sudo -H -u frappe bench --site test_site install-app hrms
