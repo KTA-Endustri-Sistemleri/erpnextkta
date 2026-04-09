@@ -179,7 +179,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 if self.plc_conversion_rate:
                     calc_conversion = self.plc_conversion_rate
 
-            discount_factor = 1.0 - (item.get("discount_percentage", 0) / 100.0)
+            discount_factor = 1.0 - ((item.get("discount_percentage") or 0.0) / 100.0)
             expected_rate = current_plr * calc_conversion * discount_factor
             is_detached = abs(current_rate - expected_rate) > 0.01
 

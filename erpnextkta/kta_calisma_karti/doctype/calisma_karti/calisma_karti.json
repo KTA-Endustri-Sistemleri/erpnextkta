@@ -171,7 +171,8 @@
             "fieldtype": "Link",
             "label": "Kalite Muayene Belgesi",
             "options": "Quality Inspection",
-            "permlevel": 1
+            "permlevel": 1,
+            "unique": 1
         },
         {
             "allow_on_submit": 1,

@@ -10,8 +10,19 @@
 - [x] **Theme-Aware UI Sync**: "İptal Edildi" durumu için cam tasarımı (Glassmorphism) Açık/Koyu tema değişkenleri eklendi. (Tamamlandı)
 - [x] **API Veri Tutarlılığı**: `get_calisma_karti_detail` ve `get_my_calisma_kartlari` API'lerine `docstatus` alanı eklenerek frontend belirsizliği giderildi. (Tamamlandı)
 - [x] **Yetki Güncellemesi**: `Asset Maintenance Log` DocType'ı için standart operatör ve yönetici rollerine okuma yetkisi tanımlandı. (Tamamlandı)
+- [x] **Race Condition Protection (Critical)**: `FOR UPDATE` kilitleri ve snapshot bypass mantığı ile 100+ kullanıcı yükü altında veri bütünlüğü sağlandı. (Tamamlandı - 2026-04-06)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-04-06) — Yarış Durumu Çözümü & Stres Testi
+Çalışma Kartı modülünde yüksek eşzamanlı yük (100+ operatör) altında yaşanan veri tutarlılığı sorunları giderildi:
+
+*   **Pessimistic Locking (FOR UPDATE)**: 
+    *   **Kalite Belgesi Kilidi**: `check_duplicate_quality_docs` içerisinde ilgili `Quality Inspection` belgesi üzerinde veritabanı düzeyinde kilit (`FOR UPDATE`) uygulanarak aynı belgenin aynı anda iki karta bağlanması engellendi.
+    *   **Vardiya Kapasite Kilidi**: Operatörün vardiya süresi hesaplanırken o vardiyadaki aktif kartları kilitlenerek 430 dakikalık limitin yarış durumlarında aşılması önlendi.
+*   **Snapshot Isolation Bypass (Kritik Bulgu)**: MariaDB'nin `REPEATABLE READ` izolasyon seviyesinde kilit bekleyen işlemlerin eski snapshot'ı görebilmesi riski (Snapshot Read), mükerrer kontrol sorgularına da `FOR UPDATE` eklenerek (Locking Read) giderildi.
+*   **Stres Testi Doğrulaması**: `ProcessPoolExecutor` ile yapılan 15 eşzamanlı multi-process testinde %100 başarı sağlandı (1 başarılı, 14 engellenen kayıt).
+*   **Settings Senkronizasyonu**: Test ortamlarında `mukerrer_kalite_kontrolu_yap` ayarının aktifliği otomatik kontrol edilerek test güvenilirliği artırıldı.
 
 ## Son Değişiklikler (2026-04-01) — Güvenlik, Mantık ve Süre Hesaplama Overhaul
 Çalışma Kartı modülünde güvenlik denetimleri ve süre hesaplama mantığında köklü değişiklikler yapıldı:

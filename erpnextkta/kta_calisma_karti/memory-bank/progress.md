@@ -1,6 +1,13 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-04-01 (Security & Logic Audit)
+> Son güncelleme: 2026-04-06 (Race Condition Fix & Stress Test)
+
+### Yarış Durumu (Race Condition) ve Veri Bütünlüğü (2026-04-06 - Tamamlandı)
+- [x] **Kalite Belgesi Kilidi**: `check_duplicate_quality_docs` içinde `Quality Inspection` üzerine `FOR UPDATE` kilidi uygulandı.
+- [x] **Vardiya Süresi Kilidi**: `hesapla_toplam_sure` içinde operatör kartlarına `FOR UPDATE` kilidi uygulandı.
+- [x] **Snapshot Bypass Fix**: MariaDB snapshot read sorununu aşmak için mükerrer kontrol sorgularına `FOR UPDATE` eklendi.
+- [x] **Stres Testi**: 15 concurrent process ile yapılan testte %100 başarı sağlandı (1 başarılı, 14 engellenen).
+- [x] **Frappe Settings Sync**: `KTA Calisma Karti Settings` üzerinden mükerrer kontrolün zorunlu açık olması sağlandı.
 
 ### Çalışma Kartı Güvenlik, Mantık ve Süre Revizyonu (2026-04-01 - Tamamlandı)
 - [x] **Logic Overhaul**: Net çalışma süresi hesaplama mantığı `Elapsed - Pauses` yerine `ShiftCapacity (430m) - Pauses` olarak değiştirildi. (Kapasite odaklı model)
@@ -96,6 +103,7 @@
 - [x] **Arayüz İyileştirmeleri**: Alt operasyon seçiminin iyileştirilmesi (Tamamlandı).
 
 ### Next Steps / Pendings
+- [ ] **CI Test Otomasyonu**: `.github/workflows/tests.yml` dosyasına `bench run-tests` adımının eklenmesi ve `act` ile yerel ortamda doğrulanması.
 - [ ] CK → Job Card status senkronizasyonu — `on_update` hook veya bitiş anında Job Card'ın ERPNext standart statüsünü (Completed vb.) tetikleme. (Hala tasarım aşamasında)
 - [ ] Test coverage (Pytest & Jest) artırılması.
 
