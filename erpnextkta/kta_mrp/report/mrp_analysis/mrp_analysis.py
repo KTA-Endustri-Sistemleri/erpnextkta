@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import today, getdate
+from frappe.utils import today, getdate, add_months
 from collections import defaultdict
 from datetime import date
 
@@ -10,7 +10,17 @@ def execute(filters=None):
 
 	current_date = getdate(today())
 	from_date = str(current_date)
-	to_date = str(date(current_date.year, 12, 31))
+
+	# Periyot filtresine göre to_date belirle
+	periyot = filters.get("periyot", "Yıllık")
+	if periyot == "3 Aylık":
+		to_date = str(add_months(current_date, 3))
+	elif periyot == "6 Aylık":
+		to_date = str(add_months(current_date, 6))
+	elif periyot == "Süresiz":
+		to_date = "2099-12-31"
+	else:  # Yıllık (varsayılan)
+		to_date = str(date(current_date.year, 12, 31))
 
 	# Filtre değerlerini al
 	filter_ara_malzeme_grubu = filters.get("ara_malzeme_grubu", "")
@@ -56,6 +66,27 @@ def execute(filters=None):
 		material_all_totals[hammadde] += satir_toplami
 
 	raw_materials = list(material_cg_totals.keys())
+
+	# Sıfır tüketimi göster aktifse stokta bulunan tüm kalemleri de dahil et
+	if filter_sifir_tuketimi_goster:
+		stock_items = frappe.db.sql(
+			"""
+			SELECT DISTINCT bin.item_code
+			FROM `tabBin` bin
+			INNER JOIN `tabWarehouse` wh ON bin.warehouse = wh.name
+			WHERE wh.warehouse_type = 'Kullanılabilir Stok'
+			AND bin.actual_qty > 0
+		""",
+			as_dict=True,
+		)
+		stock_item_codes = {d.item_code for d in stock_items}
+		# Sadece hammadde (BOM'da kullanılan) olmayan kalemleri değil,
+		# tüm stoktaki kalemleri ekle — filtreler aşağıda uygulanacak
+		for item_code in stock_item_codes:
+			if item_code not in material_cg_totals:
+				raw_materials.append(item_code)
+				# defaultdict olduğu için otomatik oluşturulur; material_all_totals'a da ekle
+				material_all_totals[item_code] = 0
 
 	# Hammadde item bilgilerini toplu al
 	item_info_map = {}
