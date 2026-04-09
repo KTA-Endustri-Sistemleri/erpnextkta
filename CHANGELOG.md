@@ -3,6 +3,337 @@
 
 
 
+## 🚀 v1.4.3 (2026-04-06)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **purchase_order**: duplicate/amend işlemlerinde fiyat listesi para birimi güncellemesi
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- modularize price list currency logic in client script and remove redundant save operation in shift boundary patch
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- Revert "refactor: modularize price list currency logic in client script and remove redundant save operation in shift boundary patch"
+
+This reverts commit 7eea0e239e6f59bf4aaacd2aef1022df20fd1cee.
+      
+    
+
+  
+
+
+---
+
+
+## 🚀 v1.4.2 (2026-04-06)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- restrict duplicate validation to changed fields to prevent blocking existing records
+      
+      
+    
+
+  
+
+
+---
+
+
+## 🚀 v1.4.1 (2026-04-04)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: implement duplicate quality document validation and restructure Calisma Karti form layout
+      
+      
+    
+      
+      
+        
+- update net duration calculation logic and apply patch to recalibrate existing work card records
+      
+      
+    
+
+  
+
+
+---
+
+
+## 🚀 v1.4.0 (2026-04-03)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- add MRP Analysis report to visualize material consumption by customer group and stock levels
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **kta_calisma_karti**: move is_work_order_within_tolerance to helpers and update Work Order status validation logic
+      
+      
+    
+
+  
+
+
+---
+
+
+## 🚀 v1.3.0 (2026-04-01)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: move patches to v1_2_0 and add net duration correction patch
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: calculate net duration based on shift capacity minus pauses
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti_ui**: restore missing 'Devam Et' button by fixing showResume variable destructing in App.vue and strictly mapping paused state from backend durum
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: make quality_inspection field editable by authorities (permlevel 1) instead of read_only
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: shift boundary time causing 430min limit bypass
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- **memory-bank**: update progress, active context and patterns for duration logic overhaul
+      
+      
+    
+      
+      
+        
+- correct the rule regarding card start and finish logic based on qc and sub-operations
+      
+      
+    
+      
+      
+        
+- add comprehensive settings parameters to the user guide
+      
+      
+    
+      
+      
+        
+- update readme and user guide with dynamic admin roles configuration
+      
+      
+    
+      
+      
+        
+- **memory-bank**: update security audit patterns and progress
+      
+      
+    
+      
+      
+        
+- **memory-bank**: progress file updated
+      
+      
+    
+      
+      
+        
+- **memory-bank**: update memory-bank files
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_calisma_karti_ui**: add loading indicator to quality toggle buttons
+      
+      
+    
+      
+      
+        
+- **ui**: prevent vue state leakage and restrict action buttons by status and configured admin roles
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: implement pessimistic locking and dynamic admin roles configuration
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.2.0 (2026-03-31)
 
 

@@ -4,6 +4,7 @@ import CkHurdaModal from "../components/CkHurdaModal.vue";
 
 const props = defineProps<{
   doc: any;
+  canEditData: boolean;
   onAdd: (payload: any) => Promise<void>;
   onUpdate: (payload: any) => Promise<void>;
   onDelete: (rowname: string) => Promise<void>;
@@ -53,7 +54,7 @@ function openStockEntry() {
 
 <template>
   <div class="ck-card">
-    <div class="ck-view-action" v-if="doc.durum !== 'Hazır' && doc.durum !== 'Bitmiş'">
+    <div class="ck-view-action" v-if="props.canEditData">
       <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onHurdaEkle">Hurda Ekle</button>
     </div>
 
@@ -78,7 +79,7 @@ function openStockEntry() {
             <div v-if="h.aciklama" class="ck-muted ck-mini-sub italic">"{{ h.aciklama }}"</div>
         </div>
 
-        <div class="ck-mini-actions">
+        <div class="ck-mini-actions" v-if="props.canEditData">
           <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onHurdaDuzenle(h)">Düzenle</button>
           <button class="ck-btn ck-btn--danger ck-btn-small" @click="onHurdaSil(h)">Sil</button>
         </div>

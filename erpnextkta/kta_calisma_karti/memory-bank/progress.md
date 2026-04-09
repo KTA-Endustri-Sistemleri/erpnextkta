@@ -1,6 +1,23 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-03-26 (Hurda Modülü Modernizasyonu)
+> Son güncelleme: 2026-04-01 (Security & Logic Audit)
+
+### Çalışma Kartı Güvenlik, Mantık ve Süre Revizyonu (2026-04-01 - Tamamlandı)
+- [x] **Logic Overhaul**: Net çalışma süresi hesaplama mantığı `Elapsed - Pauses` yerine `ShiftCapacity (430m) - Pauses` olarak değiştirildi. (Kapasite odaklı model)
+- [x] **Typo Fix**: `Rededildi` → `Reddedildi` yazım hatası tüm katmanlarda düzeltildi.
+- [x] **Migration Patch (v1.2.0)**: `fix_calisma_karti_net_durations.py` — 389 kart (Taslak + Onaylı) güncellendi.
+- [x] **UI/UX Fixes**: Kalite butonlarına loading indicator eklendi; `showResume` (Devam Et) buton hatası giderildi.
+- [x] **Reactivity State Leakage Fix:** `App.vue` asenkron modal sızıntıları engellendi. (Context Lock Pattern)
+- [x] **Pessimistic Locking:** `for_update=True` ile yarışı durumları (Race Condition) engellendi.
+- [x] **Dinamik Rol Yönetimi:** Hardcoded roller yerine `admin_roles` ayarı eklendi.
+- [x] **Belgeleme**: README ve User Guide güncellendi.
+
+### Vardiya Sınır Değeri Hesaplama Bug Fix (2026-03-31 - Tamamlandı)
+- [x] **`_shift_name_by_now` Boundary Fix**: `[start, end)` → `(start, end]` (Sınır saati biten vardiyanındır).
+- [x] **Migration Patch**: `v1_2_0/fix_shift_boundary_net_times.py` (Registry güncellendi).
+- [x] **patches.txt Kayıt**: Patch Frappe patch registry'sine eklendi.
+- [x] **Branch**: `fix/shift-boundary-net-time-calculation` oluşturuldu ve push edildi.
+- [x] **Doğrulama**: X Kişisi 31 Mart toplam net süresi 475 dk → 430 dk doğrulandı.
 
 ### Çalışma Kartı Lifecycle & UI Modernizasyonu (2026-03-27 - Tamamlandı)
 - [x] **Draft-First Mimari**: Belge yaratımında `doc.submit()` kaldırıldı; kartlar Taslak olarak başlıyor.
@@ -209,7 +226,8 @@
 
 ## Bilinen Sorunlar
 
-Şu an rapor edilen aktif bir bug yok.
+- [x] ~~Vardiya sınır saatinde (16:00, 00:00) kapanan kartlarda 430 dk limit aşımı~~ — `_shift_name_by_now` boundary fix ile çözüldü (2026-03-31).
+- Şu an rapor edilen aktif bir bug yok.
 
 ## Proje Kararlarının Evrimi
 
@@ -225,3 +243,5 @@
 | 2026-03-02–2026-03-04 | Hammadde filtreleme BOM/JC bağlantısından çıkarıldı; `get_allowed_items_with_groups` (WO + item-group) mantığına geçildi | BOM operasyon etiketleri tutarsız; item-group tabanlı konfigurasyon daha esnek |
 | 2026-03-04 | Vardiya penceresi bazlı operatör net süre biçimlendi | Aynı vardiyada birden fazla kart açan operatörlerin toplam süresi kontrol altına alındı |
 | 2026-03-04 | `kart_uyari_suresi_dk` ve `max_kart_suresi_dk` backend'den frontend'e aktarıldı | Sabit hard-code banner metninin yerini dinamik ayar aldı |
+| 2026-03-31 | `_shift_name_by_now` sınır koşulları `(start, end]` olarak değiştirildi | Tam sınır saatinde kapanan kartlarda yanlış vardiya ataması ve 430 dk limit bypassı önlendi |
+| 2026-03-31 | Migration patch Frappe patch sistemiyle (`patches.txt`) entegre edildi | Squash merge sonrası `bench migrate` ile otomatik çalışsın diye |

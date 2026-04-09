@@ -43,6 +43,7 @@ ERPNextKTA, standart ERPNext işleyişine ek olarak aşağıdaki alanlarda kapsa
 - Özel raporlar  
 - İç süreçlere uygun iş akışları  
 - Kullanıcı dostu ekranlar  
+- Dinamik yetki yönetimi (Admin Rolleri Konfigürasyonu)
 
 </details>
 

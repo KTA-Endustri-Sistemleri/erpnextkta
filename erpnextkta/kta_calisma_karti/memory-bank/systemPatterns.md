@@ -100,7 +100,14 @@ Sistem, operatörlerin açık unuttuğu kartları her vardiya sonunda (16:00 ve 
     - **Duruşta Olanlar**: Kartın fiilen durdurulduğu an (`durus_baslangic`) bitiş saati olarak kabul edilir.
     - **Çalışıyor Olanlar**: Vardiyanın resmi bitiş saati (**16:00** veya **00:00**) bitiş saati olarak kabul edilir.
 - **Tetikleyici**: `hooks.py` içinde birleştirilmiş cron tanımı (`15 0,16 * * *`) ile günde iki kez çalışır.
-- **Süre Sınırı**: 430 dakikalık net çalışma süresi sınırı, kart kapandıktan sonra kümülatif olarak `doc.update_durum()` tarafından uygulanır.
+- **Süre Sınırı**: 430 dakikalık net çalışma süresi sınırı, `doc.update_durum()` tarafından **Shift Capacity Model** ile uygulanır.
+    - **Model**: `Net Süre = 430dk - Toplam Duruş`.
+    - **Shift Cap**: Operatörün aynı vardiyadaki tüm kartlarının toplam net süresi 430 dakikayı aşamaz (ilk kartlardan itibaren kapasite doldurulur).
+- **⚠️ Boundary Rule (Kritik)**: `_shift_name_by_now()` fonksiyonu `(start, end]` mantığı kullanır:
+    - `time(0,0) < t <= time(8,0)` → 3. Vardiya
+    - `time(8,0) < t <= time(16,0)` → 1. Vardiya
+    - `time(16,0) < t` veya `t == time(0,0)` → 2. Vardiya
+    - Tam sınır saati (16:00, 00:00, 08:00) her zaman **biten vardiyaya** aittir. `[start, end)` kullanılmamalıdır!
 
 ### 8. Server-Side Filtering Pattern
 Büyük liste verileri içeren (Çalışma Kartları) Vue frontend ekranlarında, `computed` tabanlı tarayıcı düzeyinde döngülerden (client-side data arrays filtering) kaçınılır. Ara yüz sadece arama(`search_term`), durum(`durum`, `qc_filter`) parametrelerini backend'e gönderir. Süzme ve paginasyon işlemleri (SQL `WHERE` ve `LIMIT/OFFSET`) arka tarafta (`frappe.get_all` parametreleri ve `or_filters`) yapılır.
@@ -244,3 +251,27 @@ ERPNext'in standart `Stock Entry` validasyonlarının `job_card` yoksa `work_ord
 Modalların (Hurda, Kalite vb.) `sticky` elementler veya farklı `stacking context` (z-index) yaratan konteynırlar tarafından perdelenmesini önlemek için kullanılan desendir:
 - **Uygulama**: Modal template'i `<Teleport to="body">` ile sarmalanır.
 - **Fayda**: Modal, DOM ağacında en üst seviyeye (body) taşınarak, uygulama içindeki hiyerarşiden bağımsız olarak her zaman en üst katmanda renders edilmesi garanti altına alınır.
+
+### 24. Vue Reactivity State Leakage Koruma Deseni (Asenkron Sızıntı)
+Vue'nun SPA (Single Page Application) yapısında, router üzerinden geçiş yapıldığında component unmount edilmeyebilir (özellikle aynı route, farklı referans ile). Asenkron işlemler esnasında state sızıntısını önlemek için uygulanan ZORUNLU desendir:
+- **Sorun**: Örneğin Kalite kontrol şablonunu getirmek için atılan `await getQcTemplates()` isteği 500ms sürerken, kullanıcı "Geri" tuşuyla sayfalar arasında gezinip farklı bir karta (Kart 2) geçerse; API'den dönen cevap Kart 1'e ait olmasına rağmen, ekran aktif olan Kart 2 üzerinde açılır. "Kendiliğinden bambaşka karta belge oluştu ve kafasına göre parametre koydu" hatasının kök nedenidir.
+- **Çözüm**: Her asenkron ağ (network) işleminin başında `const currentDocname = docname.value` hafızaya alınır. `await` satırından hemen sonra `if (docname.value !== currentDocname) return;` kontrolü yapılarak işlem derhal **iptal edilir**. Modal submit işlemleri de döküman adını argüman olarak doğrudan hafızadan sabitlemelidir.
+
+### 25. Pessimistic Locking & State Bypass Koruması (Yarış Durumu)
+Çoklu tıklama (Double Submit) veya UI atlatma (Bypass) durumlarında veritabanı tutarlılığını korumak için uygulanan backend desenidir:
+- **Yarış Durumu (Race Condition)**: `islem_yap` API'si (Başlat, Duraklat, Bitiş) çağrıldığında kart durumu belleğe alınır. Art arda iki istek gelirse, okunan bellekteki değer (örneğin `tamamlanan_miktar = 10`) her iki işlemde de 10 olarak baz alınır ve üzerine eklenir; data kaybı yaşanır.
+- **Çözüm**: Kritik yazma işlemlerinde (Status, Miktar) `frappe.get_doc("Calisma Karti", docname, for_update=True)` kullanılarak satır MySQL seviyesinde kilitlenmeli veya Redis cache ile 5 saniyelik debounce/cooldown (Rate Limiting) uygulanmalıdır.
+- **State Bypass**: Vue UI, kart "Bitmiş" veya "Reddedildi" olduğunda form girişlerini gizleyebilir ancak art niyetli/gecikmeli HTTP istekleri (Hurda API'si, Barkod Kaydı API'si, IDC API'si) doğrudan backend'e ulaşabilir. Bu child-table API'lerinin hepsi **en başta** `frappe.db.get_value("Calisma Karti", ck_name, ["docstatus", "durum"])` ile kartın yetki ve statü denetimini taze biçimde yapmak zorundadır.
+
+### 26. Operasyonel Miktar Kısıtı Doğrulama Deseni (Planlanan/Konfigürasyonel)
+Alt operasyonlara girilen üretim miktarlarında zorunlu üst kısıt (Upper Bound Limit) kontrolünün tek tip değil, operasyon tipine göre ayrıştığı dinamik validasyon desenidir:
+- **Son Kontrol ve Paketleme Operasyonu**: Girilen miktar, Work Order'daki (İş Emri) **üretilmesi hedeflenen (qty)** miktardan büyük **Olamaz**.
+- **IDC ve Soket Basma Operasyonları**: Girilen miktar, Work Order'ın BOM'undaki (Ürün Ağacı) ilgili bileşenin **sarf (tüketim) miktarına** bakılarak doğrulanır.
+- **Tolerans (Overproduction)**: Endüstriyel üretimde sıfır hata toleransı mümkün olmayabilir (%10 Üretim Fazlası Payı). Bu durum ciddi konfigürasyon gerektirir (`KTA Calisma Karti Settings` içinde global % tolerans veya `KTA Calisma Karti Operasyonlari` DocType'ına "Miktar Kısıt Tipi" [None, WorkOrder, BOM] ve "Tolerans Yüzdesi" eklenerek modellenmelidir).
+
+### 27. Dinamik Rol Yönetimi (Configured RBAC)
+Uygulama genelinde ve UI'daki kısıtlamalarda (Örneğin bitmiş karta müdahale) rol isimlerini (System Manager vs.) kaynak koda (hardcode) gömmekten kaçınan mimari:
+- **Storage**: KTA Calisma Karti Settings DocType üzerindeki `admin_roles` alanı. Yöneticiler tarafından virgülle (örn: `Manufacturing Manager, Quality Manager`) güncellenir.
+- **Backend İletimi**: `boot_session` (`hooks.py` içinden `extend_boot_session`) ile bu liste, sayfa ilk yüklendiğinde `frappe.boot.kta_admin_roles` objesine `List[str]` olarak itilir (inject).
+- **Backend Bypass İşleyişi**: `_helpers.py` içindeki tekil `has_admin_roles()` metodu doğrudan Frappe DB'sine giderek (`get_single_value`) o anki kullanıcının rollerini kıyaslar.
+- **Frontend Gözlemi**: `canEditData` veya benzeri Computed property'ler hardcoded "Quality Manager" sorgusu yapmak yerine `frappe.boot.kta_admin_roles` array'inde `Array.some(r => roles.includes(r))` şeklinde tarar.

@@ -1,6 +1,6 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-27
+> Son güncelleme: 2026-03-31
 
 Çalışma Kartı modülü Frappe-native document state mimarisine taşındı. "Draft-First" (Önce Taslak) yaratım akışı, iptal edilmiş belge desteği ve detaylı yetkilendirme güncellemeleri tamamlandı. Ayrıca toplu build işlemleriyle frontend-backend veri tutarlılığı sağlandı.
 
@@ -12,6 +12,26 @@
 - [x] **Yetki Güncellemesi**: `Asset Maintenance Log` DocType'ı için standart operatör ve yönetici rollerine okuma yetkisi tanımlandı. (Tamamlandı)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-04-01) — Güvenlik, Mantık ve Süre Hesaplama Overhaul
+Çalışma Kartı modülünde güvenlik denetimleri ve süre hesaplama mantığında köklü değişiklikler yapıldı:
+
+*   **Süre Hesaplama Devrimi (Logic Overhaul)**: Net çalışma süresi artık `Elapsed - Pauses` değil, **Shift Capacity (430 dk) - Pauses** formülüyle hesaplanıyor. Bu, operatörlerin fiili çalışma saatinden bağımsız olarak vardiye kapasitesine göre (makine kapasitesi odaklı) raporlanmasını sağlar. (Patch: `v1_2_0/fix_calisma_karti_net_durations.py`)
+*   **Zafiyet 1 — Vue State Leakage (Kritik - Çözüldü)**: `App.vue` üzerindeki Kalite onayı (QC) gecikmesinde kart uyuşmazlığı yaşanması Reactivity Context Lock deseniyle engellendi.
+*   **Zafiyet 2 — Race Conditions (Çözüldü)**: Kritik state değiştiren (`islem_yap`) API'lere `for_update=True` pesimistik veritabanı kilidi uygulandı.
+*   **Zafiyet 3 — State Bypass & Dinamik Otorizasyon (Çözüldü)**: `KTA Calisma Karti Settings` paneline **Admin Kontrol Rolleri (`admin_roles`)** eklendi. Yetkili kullanıcılar "Bitmiş" kartları düzenleyebilir.
+*   **UI/UX İyileştirmeleri**:
+    *   **Loading Indicators**: Kalite kontrol (onay/ret) butonlarına asenkron işlem sırasında loading animasyonu eklendi.
+    *   **'Devam Et' Buton Fix**: `App.vue` içindeki `showResume` değişkeninin yanlış yıkılması (destructuring) nedeniyle kaybolan buton geri getirildi.
+    *   **Yazım Hatası (Typo)**: `Rededildi` statüsü veritabanı ve backend seviyesinde `Reddedildi` olarak düzeltildi.
+*   **Belgeleme**: `README.md` ve `User Guide` yeni dinamik rol yönetimi ve vardiya penceresi kurallarıyla güncellendi.
+
+## Son Değişiklikler (2026-03-31) — Vardiya Sınır Değeri Hesaplama Hatası Düzeltmesi
+*   **Bug Fix — `_shift_name_by_now` Boundary Condition**: `_shift_name_by_now()` fonksiyonundaki vardiya sınır koşulları `[start, end)` yerine `(start, end]` olarak değiştirildi. Sınır zamanları (16:00, 00:00, 08:00) artık **biten vardiyaya** aittir.
+*   **Kök Neden**: `auto_close_timed_out_cards` cron job'ı kartları tam sınır saatinde (örn. `16:00:00`) kapattığında, eski mantık bu zamanı bir sonraki vardiyaya atıyordu. Bu durumda `_other_cards_net_seconds_in_shift` yanlış vardiya penceresine bakarak `other_net=0` döndürüyor ve 430 dk limiti uygulanmıyordu.
+*   **Etki**: 12 vardiya aşımı, 10 operatör, 27 kart etkilenmiş. En büyük aşım: +45 dk (475→430).
+*   **Migration Patch**: `erpnextkta.patches.v1_2_0.fix_shift_boundary_net_times` — `bench migrate` sırasında etkilenen kartları kronolojik sırayla `update_durum()` ile yeniden hesaplatır.
+*   **Branch**: `fix/shift-boundary-net-time-calculation`
 
 ## Son Değişiklikler (2026-03-26) — Hurda Modülü Modernizasyonu & 1:1 Senkronizasyon
 *   **Operatör Bazlı Mimari (1:1)**: Her `Calisma Karti`'nin kendine ait bir `Stock Entry` (Scrap for Manufacturing) belgesi olması sağlandı. İş Emri bazlı konsolidasyon yerine operatör/kart bazlı izlenebilirlik önceliklendirildi.
@@ -103,6 +123,7 @@ Kalite kontrol süreci daha esnek ve güvenli bir yapıya kavuşturuldu:
 ### Vardiya Penceresi + Operatör Net Süre Limiti
 - Aynı vardiyada birden fazla kart açan operatörlerin toplam süresini kontrol eden `hesapla_toplam_sure()` güncellemesi.
 - `auto_close_timed_out_cards` ve `delete_old_unstarted_cards` cron job iyileştirmeleri.
+- **⚠️ Boundary Pattern**: `_shift_name_by_now()` (start, end] mantığı kullanır — sınır zamanı biten vardiyaya aittir. Kesinlikle `[start, end)` yapılmamalıdır.
 
 ### Hammadde Filtreleme — item-group Tabanlı Mimari
 - BOM/Job Card bağımsızlığı: WO `required_items` ∩ operasyon `allowed_material_groups`.

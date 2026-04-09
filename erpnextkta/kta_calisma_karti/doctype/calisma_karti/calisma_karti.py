@@ -26,11 +26,18 @@ def get_kta_settings():
 
 
 def _shift_name_by_now(now_dt):
-    """Pick shift name by current time-of-day (fallback when Shift Assignment is not used)."""
+    """Pick shift name by current time-of-day (fallback when Shift Assignment is not used).
+
+    Boundary rule: exact boundary times belong to the ENDING shift, not the starting one.
+      - 00:00 → 2. Vardiya  (end of 2nd shift, not start of 3rd)
+      - 08:00 → 3. Vardiya  (end of 3rd shift, not start of 1st)
+      - 16:00 → 1. Vardiya  (end of 1st shift, not start of 2nd)
+    This is critical for auto-close cards whose bitis_saati sits exactly on the boundary.
+    """
     t = now_dt.time()
-    if time(0, 0) <= t < time(8, 0):
+    if time(0, 0) < t <= time(8, 0):
         return "3. Vardiya"
-    elif time(8, 0) <= t < time(16, 0):
+    elif time(8, 0) < t <= time(16, 0):
         return "1. Vardiya"
     else:
         return "2. Vardiya"
@@ -162,6 +169,8 @@ class CalismaKarti(Document):
         if not self.kalite_kontrol:
             self.kalite_kontrol = "Onay Bekliyor"
 
+        self.check_duplicate_quality_docs()
+
         # Proaktif Operatör İkazı (Dinamik Uyarı Süresi)
         durum_key = self.get_durum()
         if durum_key in ['calisiyor', 'durusta'] and self.baslangic_saati:
@@ -194,6 +203,33 @@ class CalismaKarti(Document):
         durum_key = self.get_durum()
         self.durum = STATU_HARITASI.get(durum_key, "Hazır")
 
+    def check_duplicate_quality_docs(self):
+        # Mükerrer kalite belgesi kontrolü
+        fields = {
+            "quality_inspection": "Kalite Muayene Belgesi",
+            "test_masasi_dogrulama_kaydi": "Test Masası Doğrulama Kaydı"
+        }
+        for field, label in fields.items():
+            val = self.get(field)
+            if val:
+                # Sadece değer gerçekten değişmişse veya yeni kayıt ise mükerrerlik kontrolü yap
+                # Bu sayede geçmişteki hatalı (çift) kayıtlar sistemi kilitlemez
+                stored_val = None
+                if not self.is_new():
+                    stored_val = frappe.db.get_value("Calisma Karti", self.name, field)
+                
+                if str(val) != str(stored_val):
+                    duplicate = frappe.db.get_value("Calisma Karti", {
+                        field: val,
+                        "name": ["!=", self.name],
+                        "docstatus": ["<", 2]  # İptal edilmemiş
+                    }, "name")
+                    if duplicate:
+                        frappe.throw(
+                            frappe._("{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.").format(label, val, duplicate),
+                            title=frappe._("Mükerrer Kayıt")
+                        )
+
     def hesapla_toplam_sure(self):
         if self.baslangic_saati:
             start_dt = get_datetime(self.baslangic_saati)
@@ -203,17 +239,18 @@ class CalismaKarti(Document):
             toplam_durus_dk = sum((r.durus_suresi or 0) for r in self.duruslar)
             toplam_durus_saniye = toplam_durus_dk * 60
 
-            net_saniye = max(0, toplam_saniye - toplam_durus_saniye)
-
-            # If there is an active stop, subtract its progress from net_saniye as well
+            # Aktif (devam eden) duruş varsa onu da toplam duruşa ekle
             if self.aktif_durus_var_mi():
                 last_durus = self.duruslar[-1]
                 durus_start = get_datetime(last_durus.durus_baslangic)
                 active_durus_seconds = (end_dt - durus_start).total_seconds()
-                net_saniye = max(0, net_saniye - active_durus_seconds)
+                toplam_durus_saniye += active_durus_seconds
 
-            # --- NEW: Shift total limit (operator total within current shift) ---
+            # Vardiya kapasitesi (max_limit) tavan olarak kullanılır.
             max_limit, _ = get_kta_settings()
+            max_saniye = max_limit * 60
+
+            # Vardiya içindeki diğer kartların net süresiyle birlikte tavan aşılmamalı
             ws, we = _shift_window(end_dt)
             other_net = _other_cards_net_seconds_in_shift(
                 operator=self.operator,
@@ -221,13 +258,13 @@ class CalismaKarti(Document):
                 shift_end=we,
                 exclude_name=self.name,
             )
-            remaining = max(0, (max_limit * 60) - other_net)
-            net_saniye = min(net_saniye, remaining)
+            remaining = max(0, max_saniye - other_net)
 
-            # Sınırlandırma (Hard Limit) - keep as safety net
-            max_saniye = max_limit * 60
-            if net_saniye > max_saniye:
-                net_saniye = max_saniye
+            # Önce toplam süreyi kalan kapasiteyle sınırla, sonra duruşları düş.
+            # Böylece duruşlar her zaman net süreden düşer.
+            # Örnek: 480 dk çalışma, 20 dk duruş → min(480, 430) = 430 → 430 - 20 = 410 dk
+            capped_saniye = min(toplam_saniye, remaining)
+            net_saniye = max(0, capped_saniye - toplam_durus_saniye)
 
             self.toplam_sure = format_sure(toplam_saniye)
             self.net_calisma_suresi = format_sure(net_saniye)
@@ -257,12 +294,12 @@ class CalismaKarti(Document):
 def format_sure(seconds):
     if seconds is None or seconds < 0:
         return "00:00:00"
-    
+
     total_seconds = int(round(seconds))
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
     secs = total_seconds % 60
-    
+
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 @frappe.whitelist()
@@ -286,11 +323,11 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     ck_doc = frappe.get_doc("Calisma Karti", calisma_karti)
     if not ck_doc:
         frappe.throw(_("Çalışma kartı bulunamadı."))
-        
+
     asset_name = frappe.db.get_value("Asset", {"custom_makine_no": makine_no}, "name")
     if not asset_name:
         frappe.throw(_("Sistemde {0} numarasına sahip bir makine/varlık bulunamadı.").format(makine_no))
-        
+
     asset_doc = frappe.get_doc("Asset", asset_name)
 
     # 1. Asset Maintenance kaydını bul (varsa)
@@ -300,7 +337,7 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
         frappe.throw(_("{0} makinesi için sistemde 'Asset Maintenance' (Varlık Bakımı) kaydı bulunamadı. Lütfen önce bakım ekibini atayın.").format(makine_no))
         
     asset_maint = frappe.get_doc("Asset Maintenance", asset_maint_name)
-    
+
     # 2. Asset Maintenance Task oluştur (Arıza Bildirimi için bir kerelik görev)
     task_name = f"Arıza Bildirimi - {frappe.utils.now_datetime().strftime('%Y-%m-%d %H:%M')}"
     
@@ -353,4 +390,3 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     # bakım ekibi işi bitirince statüyü "Completed" yapıp submit edecek.
     
     return aml.name
-

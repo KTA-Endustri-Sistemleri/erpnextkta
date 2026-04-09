@@ -4,16 +4,24 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
+from frappe.utils import get_datetime, now_datetime, time_diff_in_hours
 
 HURDA_PARENT_COST_CENTER = "Malzeme Sarfları - KTA"
 
-def is_system_manager() -> bool:
-    """Return True if current user has System Manager role."""
-    return "System Manager" in (frappe.get_roles(frappe.session.user) or [])
-
-def is_quality_user() -> bool:
-    """Return True if current user has KTA Kalite Kullanıcısı role."""
-    return "KTA Kalite Kullanıcısı" in (frappe.get_roles(frappe.session.user) or [])
+def has_admin_roles() -> bool:
+    """Return True if current user is authorized to bypass card state restrictions."""
+    # Since boot_session only triggers on desk load, API calls should read from DB (cached by Frappe).
+    admin_roles = frappe.db.get_single_value("KTA Calisma Karti Settings", "admin_roles") or ""
+    configured = [r.strip() for r in admin_roles.split(",") if r.strip()]
+    if not configured:
+        configured = ["System Manager", "Quality Manager", "Manufacturing Manager"]
+    
+    user_roles = frappe.get_roles(frappe.session.user) or []
+    for role in configured:
+        if role in user_roles:
+            return True
+            
+    return False
 
 def get_my_employee_or_none() -> str | None:
     """Resolve current user's Employee.name robustly.
@@ -163,3 +171,35 @@ def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = 
 
     # If no groups are configured anywhere, just return work order items
     return list(set(wo_items))
+
+def is_work_order_within_tolerance(wo_name: str) -> bool:
+    """
+    Check if a 'Completed' Work Order is still within the tolerance period
+    based on its last Stock Entry (Manufacture/Repack).
+    """
+    tolerance_hours = frappe.db.get_single_value("KTA Calisma Karti Settings", "tolerans_saat") or 0
+    if tolerance_hours <= 0:
+        return False
+
+    # Find last submitted Stock Entry for this Work Order (Manufacture/Repack)
+    last_stock_entry = frappe.get_all(
+        "Stock Entry",
+        filters={
+            "work_order": wo_name,
+            "purpose": ["in", ["Manufacture", "Repack"]],
+            "docstatus": 1
+        },
+        fields=["posting_date", "posting_time"],
+        order_by="posting_date desc, posting_time desc",
+        limit=1
+    )
+
+    if not last_stock_entry:
+        return False
+
+    se = last_stock_entry[0]
+    posting_datetime = get_datetime(f"{se.posting_date} {se.posting_time}")
+    
+    diff_hours = time_diff_in_hours(now_datetime(), posting_datetime)
+    
+    return diff_hours <= tolerance_hours

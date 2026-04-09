@@ -32,9 +32,9 @@ title: "KTA Çalışma Kartı Kullanım Kılavuzu"
 ### Kartı Başlatma:
 Kartı oluşturduktan sonra içine girip, üst kısımdaki **"Başlat"** butonuna basın. Durum **"Çalışıyor"** olarak güncellenecek ve süre sayacı başlayacaktır.
 
-> **Önemli Kural (Kart Geçişi ve Veri Doğrulama):**
-> Bir operatör hesabında yeni bir kart başlatıldığında, açıkta kalan diğer kartlar sistem tarafından otomatik olarak mola (Duruş) moduna alınır.
-> **Ancak**, halihazırda "Çalışıyor" durumunda olan kartınızda henüz hiçbir işlem verisi girilmemişse (Örn: Alt operasyon kaydı yoksa veya miktar girilmemişse), sistem yeni kartı başlatmanıza izin vermez veya sizi uyarır. Bu durumda ekrana gelen **"Eski Karta Git"** butonunu kullanarak önceki işleminize ait verileri tamamlamanız gerekir.
+> **Önemli Kural (Kartın Bitirilmesi ve Veri Doğrulama):**
+> Bir operatör hesabında yeni bir kart başlatıldığında, açıkta kalan diğer kartlar sistem tarafından otomatik olarak mola (Duruş) statüsüne alınır; yani sistem yeni bir karta geçiş yapmanıza her koşulda izin verecektir.
+> **Ancak**, bir çalışma kartını tamamen *Bitirmek* (Kapatmak) istediğinizde; eğer kalite onayı alınmamışsa veya yapılması zorunlu alt operasyon kayıtları girilmemişse sistem hata verecek ve kartı bitirmenize izin vermeyecektir. İlgili kalite onayı ve alt veri girişleri tamamlandıktan sonra kart kapatılabilir.
 
 ---
 
@@ -123,5 +123,29 @@ Yöneticiler ve kalite sorumluları, **Çalışma Kartı Dashboard** ekranı üz
 - Günlük durum dağılımını (Çalışan, Duruşta, Bitmiş kart sayıları),
 - Operatör net çalışma sürelerini,
 - Kalite kontrol ve hurda dağılımlarını anlık olarak takip edebilirler.
+
+---
+
+## 🔒 9. Yetki Yönetimi ve Konfigürasyon (Yöneticiler İçin)
+
+Çalışma Kartı üzerindeki veri düzenleme yetkileri (alt işlem ekleme, hurda silme, kalite girme), kartların **"Bitmiş"** veya **"İptal Edilmiş"** statüsünde olup olmadığına ve kullanıcının sahip olduğu rollere göre sistem tarafından dinamik olarak yönetilir:
+
+- **Operatör Kısıtı:** Normal operatörler, yalnızca "Çalışıyor" veya "Duruşta" olan aktif kartlarda veri girişi/silme yapabilir. Bitmiş kartlarda arayüz kilitlenir.
+- **İptal Kısıtı:** Bir kart iptal edildiyse hiçbir yetkili buna müdahale edemez.
+
+### Sistem ve Performans Ayarları:
+ERPNext Arama Çubuğuna `KTA Calisma Karti Settings` yazarak ulaşabileceğiniz konfigürasyonlar şunlardır:
+
+1. **Maksimum Çalışma Kartı Süresi (Örn: 430 dk):** Bir kartın açık kalabileceği (Çalışıyor) maksimum vardiya süresi. Bu süreyi aşan kartlar sistem tarafından (cron-job) otomatik kapatılır veya duraklatılır.
+2. **Kart Uyarı Süresi (Örn: 400 dk):** Çalışan kartlar bu süreye ulaştığında operatöre arayüz üzerinden kırmızı "Vardiya Sonuna Yaklaşıyor" uyarısı verilir.
+3. **Tamamlanmış İE Tolerans Süresi (Örn: 8 saat):** İş Emri ERPNext üzerinden resmi olarak "Kapatıldı" konumuna alınsa bile, son stok girişinden itibaren bu kadar saat boyunca operatörler o iş emri için yeni çalışma kartı başlatabilir. Fazladan stok veya rütuş işlemlerini destekler.
+4. **Kart Geçiş Modu (Sıkı / Esnek):**
+    - `Sıkı (Hard)`: Operatör güncel kartına hiçbir veri girmediyse (Alt işlem vb.) yeni bir karta geçişine/iş başlatmasına **izin verilmez**.
+    - `Esnek (Soft)`: Operatör uyarılır ancak yeni karta geçmesine veya eskisini duraklatmasına müsaade edilir.
+5. **Yenileme Aralıkları (Liste ve Detay - Saniye):** Sahadaki tablet sayısının artışına bağlı olarak sunucu yükünü (API Rate) dengelemek için verilerin hangi aralıklarla polling ile (arka planda) güncelleneceğini belirler. Standart değerler Liste için 30, Detay için 10 saniyedir.
+6. **Hurda Gider Hesabı:** Stok belgeleri (SE) otomatik oluşurken hurdaların muhasebeleşeceği gider veya hurda deposu hesabını tanımlar.
+7. **Admin Kontrol Rolleri (`admin_roles`):**
+    - İçeriği virgülle ayırarak genişletilir (Örnek: `System Manager, Quality Manager, Manufacturing Manager`).
+    - Bu alana sistemdeki rollerin isimlerini girdiğinizde, ilgili role sahip yöneticiler; **"Bitmiş"** durumda kilitlenen kartlardaki Düzenle/Sil/Ekle gibi butonlara yeniden erişip (bypass edip) verileri düzeltebilir. İptal edilmiş (docstatus=2) kartlara ise hiçbir rol müdahale edemez.
 
 </main>
