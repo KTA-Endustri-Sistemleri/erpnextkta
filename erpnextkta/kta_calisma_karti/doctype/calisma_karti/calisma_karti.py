@@ -217,51 +217,31 @@ class CalismaKarti(Document):
         self.durum = STATU_HARITASI.get(durum_key, "Hazır")
 
     def check_duplicate_quality_docs(self):
-        # Ayarlar üzerinden kontrolün aktif olup olmadığını denetle
-        check_enabled = frappe.db.get_single_value("KTA Calisma Karti Settings", "mukerrer_kalite_kontrolu_yap")
-        if not check_enabled:
-            return
-
-        fields = [
-            ("quality_inspection", "Kalite Muayene Belgesi"),
-            ("test_masasi_dogrulama_kaydi", "Test Masası Doğrulama Kaydı")
-        ]
-        
-        for field, label in fields:
+        # Mükerrer kalite belgesi kontrolü
+        fields = {
+            "quality_inspection": "Kalite Muayene Belgesi",
+            "test_masasi_dogrulama_kaydi": "Test Masası Doğrulama Kaydı"
+        }
+        for field, label in fields.items():
             val = self.get(field)
-            if not val:
-                continue
-
-            # 1. ADIM: İlgili kalite belgesini veritabanında kilitle (Race condition önleyici)
-            # Bu, aynı anda aynı belgeyi kullanmaya çalışan başka bir işlemi kuyruğa sokar.
-            target_doctype = "Quality Inspection" if field == "quality_inspection" else "Test Masasi Dogrulama Kaydi"
-            
-            # Kayıt var mı diye kontrol et ve kilitle
-            exists = frappe.db.sql("SELECT name FROM `tab{0}` WHERE name = %s FOR UPDATE".format(target_doctype), (val,))
-            if not exists:
-                continue
+            if val:
+                # Sadece değer gerçekten değişmişse veya yeni kayıt ise mükerrerlik kontrolü yap
+                # Bu sayede geçmişteki hatalı (çift) kayıtlar sistemi kilitlemez
+                stored_val = None
+                if not self.is_new():
+                    stored_val = frappe.db.get_value("Calisma Karti", self.name, field)
                 
-            # 2. ADIM: Artık kilit bizde, başka bir kartta (bizim dışımızda) kullanılıp kullanılmadığına bakabiliriz.
-            # docstatus < 2 (Draft + Submitted) dahil, Cancelled (2) hariç
-            # FOR UPDATE ekleyerek Snapshot Isolation (Repeatable Read) engeline takılmadan en güncel veriyi okuyoruz.
-            duplicate = frappe.db.sql("""
-                SELECT name 
-                FROM `tabCalisma Karti` 
-                WHERE `{0}` = %s 
-                  AND name != %s 
-                  AND docstatus < 2
-                LIMIT 1
-                FOR UPDATE
-            """.format(field), (val, self.name))
-
-            if duplicate:
-                dup_name = duplicate[0][0]
-                frappe.throw(
-                    frappe._("{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.").format(label, val, dup_name),
-                    title=frappe._("Mükerrer Kayıt")
-                )
-
-
+                if str(val) != str(stored_val):
+                    duplicate = frappe.db.get_value("Calisma Karti", {
+                        field: val,
+                        "name": ["!=", self.name],
+                        "docstatus": ["<", 2]  # İptal edilmemiş
+                    }, "name")
+                    if duplicate:
+                        frappe.throw(
+                            frappe._("{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.").format(label, val, duplicate),
+                            title=frappe._("Mükerrer Kayıt")
+                        )
 
     def hesapla_toplam_sure(self):
         if self.baslangic_saati:
