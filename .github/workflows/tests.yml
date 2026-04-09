@@ -30,7 +30,7 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
         ports:
-          - 33066:3306
+          - 3306:3306
         options: >-
           --health-cmd="mariadb-admin ping -uroot -proot --silent"
           --health-interval=5s
@@ -83,78 +83,58 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Install System Dependencies
+      - name: Install MariaDB Client
         run: |
           sudo apt-get update
-          sudo apt-get install -y mariadb-client redis-tools cron
+          sudo apt-get install -y mariadb-client
 
       - name: Setup bench and DB
         run: |
-          # Detect non-privileged user and their home directory
-          RUN_USR=$(id -u ubuntu >/dev/null 2>&1 && echo "ubuntu" || echo "$USER")
-          FRA_HOME=$(getent passwd $RUN_USR | cut -d: -f6)
-          echo "RUN_USR=$RUN_USR" >> $GITHUB_ENV
-          echo "FRA_HOME=$FRA_HOME" >> $GITHUB_ENV
-          
-          # Install bench as the simulation user
-          sudo -u $RUN_USR pip install --user frappe-bench --break-system-packages
-          
-          # Identify the bin directory
-          BIN_DIR=$(sudo -u $RUN_USR python3 -m site --user-base)/bin
-          echo "BIN_DIR=$BIN_DIR" >> $GITHUB_ENV
-          
-          # Initialize bench as non-root user with PATH included for uv and redis-tools
-          if [ ! -d $FRA_HOME/frappe-bench ]; then
-            sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench init --frappe-branch version-15 --skip-redis-config-generation --skip-assets --python "$(which python)" $FRA_HOME/frappe-bench
-          fi
-          
-          # DB ready check (mariadb can run as root)
+          pip install frappe-bench
+          bench init --frappe-branch version-15 --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
+          # DB hazır olana kadar bekle
           for i in {1..30}; do
-            mariadb -h 127.0.0.1 -P 33066 -uroot -proot -e "SELECT 1" && break
+            mariadb -h 127.0.0.1 -P 3306 -uroot -proot -e "SELECT 1" && break
             echo "Waiting for MariaDB..."
             sleep 2
           done
-          mariadb -h 127.0.0.1 -P 33066 -uroot -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
-          mariadb -h 127.0.0.1 -P 33066 -uroot -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+          mariadb -h 127.0.0.1 -P 3306 -uroot -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+          mariadb -h 127.0.0.1 -P 3306 -uroot -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
       - name: Install app to test site
+        working-directory: /home/runner/frappe-bench
         env:
           CI: 'Yes'
         run: |
-          cd $FRA_HOME/frappe-bench
-          [ -d apps/payments ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app payments
-          [ -d apps/hrms ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app hrms --branch version-15
-          [ -d apps/erpnext ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app erpnext https://github.com/frappe/erpnext --branch version-15
-          [ -d apps/trtaxoffices ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15
-          [ -d apps/trtcmb ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trtcmb.git --branch version-15
-          [ -d apps/trebelge ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app https://github.com/Framras/trebelge.git --branch version-15
-          [ -d apps/erpnextkta ] || sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench get-app erpnextkta $GITHUB_WORKSPACE
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench setup requirements --dev
-          sudo ./env/bin/pip install --force-reinstall 'setuptools==80.9.0'
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config -g db_host 127.0.0.1
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config -g db_port 33066
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config -g redis_cache "redis://127.0.0.1:13000"
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config -g redis_queue "redis://127.0.0.1:11000"
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench set-config -g redis_socketio "redis://127.0.0.1:13000"
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench new-site --db-root-password root --admin-password admin --force test_site
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app payments
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app hrms
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app erpnext
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trtaxoffices
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trtcmb
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app trebelge
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site install-app erpnextkta
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site set-config allow_tests true
-      - name: Debug List Files
-        run: |
-          ls -R $FRA_HOME/frappe-bench/apps/erpnextkta/erpnextkta
+          bench get-app payments
+          bench get-app hrms --branch version-15
+          bench get-app erpnext https://github.com/frappe/erpnext --branch version-15
+          bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15
+          bench get-app https://github.com/Framras/trtcmb.git --branch version-15
+          bench get-app https://github.com/Framras/trebelge.git --branch version-15
+          bench get-app erpnextkta $GITHUB_WORKSPACE
+          bench setup requirements --dev
+          ./env/bin/pip install --force-reinstall 'setuptools<81'
+          bench set-config -g redis_cache "redis://127.0.0.1:13000"
+          bench set-config -g redis_queue "redis://127.0.0.1:11000"
+          bench set-config -g redis_socketio "redis://127.0.0.1:13000"
+          bench new-site --db-root-password root --admin-password admin test_site
+          bench --site test_site install-app payments
+          bench --site test_site install-app hrms
+          bench --site test_site install-app erpnext
+          bench --site test_site install-app trtaxoffices
+          bench --site test_site install-app trtcmb
+          bench --site test_site install-app trebelge
+          bench --site test_site install-app erpnextkta
+          bench --site test_site set-config allow_tests true
+          bench build
 
       - name: Seed Infrastructure
+        working-directory: /home/runner/frappe-bench
         run: |
-          cd $FRA_HOME/frappe-bench
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site execute erpnextkta.tests.test_utils.before_tests
+          bench --site test_site execute erpnextkta.tests.test_utils.before_tests
 
       - name: Run Tests
+        working-directory: /home/runner/frappe-bench
         run: |
-          cd $FRA_HOME/frappe-bench
-          sudo -u $RUN_USR env "PATH=$BIN_DIR:$PATH" $BIN_DIR/bench --site test_site run-tests --app erpnextkta
+          bench --site test_site run-tests --app erpnextkta
