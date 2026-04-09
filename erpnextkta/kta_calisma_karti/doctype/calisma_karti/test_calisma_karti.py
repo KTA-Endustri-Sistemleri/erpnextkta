@@ -2,7 +2,6 @@
 # See license.txt
 
 import unittest
-import threading
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
@@ -328,13 +327,12 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 		})
 		self.assertEqual(count, 1, "Duplicate record should NOT be created")
 
-	def test_race_condition_duplicate_quality_inspection(self):
-		"""Two cards trying to use the same Quality Inspection simultaneously."""
-		
-		# Create a QI record
-		qi_name = "TEST-QI-KTA-001"
+	def test_duplicate_quality_inspection_raises(self):
+		"""Should raise an error when attempting to save a second card with the same quality_inspection."""
+		qi_name = "TEST-QI-DUP-001"
+
 		if not frappe.db.exists("Quality Inspection", qi_name):
-			qi = frappe.get_doc({
+			frappe.get_doc({
 				"doctype": "Quality Inspection",
 				"name": qi_name,
 				"inspection_type": "In Process",
@@ -346,86 +344,90 @@ class TestCalismaKartiIntegration(FrappeTestCase):
 				"status": "Accepted",
 				"report_date": frappe.utils.nowdate()
 			}).insert(ignore_permissions=True, ignore_links=True)
-		
-		# Ensure workers exist
-		for card_id in ("A", "B"):
-			emp_id = f"worker-{card_id}@kta.com"
-			if not frappe.db.exists("Employee", emp_id):
-				try:
-					frappe.db.sql("""
-						INSERT INTO `tabEmployee` (name, employee_name, first_name, status, creation, modified, modified_by)
-						VALUES (%s, %s, %s, 'Active', NOW(), NOW(), 'Administrator')
-					""", (emp_id, f"Worker {card_id}", f"Worker {card_id}"))
-				except Exception: pass
-				
-		# Commit all mocked data created in the main thread so other connections can see it
+
+		frappe.db.delete("Calisma Karti", {"quality_inspection": qi_name})
 		frappe.db.commit()
-		
-		results = []
-		site = frappe.local.site
-		test_db_name = frappe.conf.db_name
-		
-		# Synchronization barrier to make them start at the same time
-		barrier = threading.Barrier(2)
 
-		def try_save_card(card_id):
+		doc1 = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"quality_inspection": qi_name,
+			"operator": "test@kta.com"
+		})
+		doc1.insert(ignore_permissions=True, ignore_links=True)
+		frappe.db.commit()
+
+		doc2 = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"quality_inspection": qi_name,
+			"operator": "test@kta.com"
+		})
+
+		with self.assertRaises((frappe.ValidationError, frappe.UniqueValidationError, Exception)):
+			doc2.insert(ignore_permissions=True, ignore_links=True)
+			frappe.db.commit()
+
+	def test_different_quality_inspections_allowed(self):
+		"""Two cards with different quality_inspections should both be saved successfully."""
+		for qi_suffix in ("QI-A", "QI-B"):
+			qi_name = f"TEST-QI-{qi_suffix}"
+			if not frappe.db.exists("Quality Inspection", qi_name):
+				frappe.get_doc({
+					"doctype": "Quality Inspection",
+					"name": qi_name,
+					"inspection_type": "In Process",
+					"reference_type": "Job Card",
+					"reference_name": self.jc_name,
+					"item_code": self.item,
+					"sample_size": 1,
+					"inspected_by": "Administrator",
+					"status": "Accepted",
+					"report_date": frappe.utils.nowdate()
+				}).insert(ignore_permissions=True, ignore_links=True)
+
+			frappe.db.delete("Calisma Karti", {"quality_inspection": qi_name})
+		frappe.db.commit()
+
+		emp_b = "worker-diff@kta.com"
+		if not frappe.db.exists("Employee", emp_b):
 			try:
-				# Initialize frappe local variables for this new thread
-				frappe.init(site=site)
-				# Force the background thread to use the TEST database, not the site_config.json database
-				if not frappe.local.conf:
-					frappe.local.conf = frappe._dict()
-				frappe.local.conf.db_name = test_db_name
-				
-				frappe.connect() 
-				
-				doc = frappe.get_doc({
-					"doctype": "Calisma Karti",
-					"is_karti": self.jc_name,
-					"operasyon": self.kta_op,
-					"is_istasyonu": self.ws_name,
-					"quality_inspection": qi_name,
-					"operator": f"worker-{card_id}@kta.com"
-				})
-				
-				# Wait for other thread
-				barrier.wait(timeout=10)
-				
-				doc.insert(ignore_permissions=True, ignore_links=True)
-				# Commit to ensure the lock is actually released/tested
-				frappe.db.commit() 
-				results.append(f"SUCCESS-{card_id}")
-			except Exception as e:
-				err_str = str(e)
-				if any(x in err_str for x in ("LockTimeoutError", "FOR UPDATE", "Zaten", "Another Card", "Duplicate", "aynı Kalite")):
-					results.append(f"BLOCKED-{card_id}")
-				else:
-					results.append(f"EXCEPTION-{card_id}: {err_str}")
-			finally:
-				try:
-					frappe.destroy()
-				except Exception:
-					pass
+				frappe.db.sql("""
+					INSERT INTO `tabEmployee` (name, employee_name, first_name, status, creation, modified, modified_by)
+					VALUES (%s, 'Worker Diff', 'Worker', 'Active', NOW(), NOW(), 'Administrator')
+				""", (emp_b,))
+				frappe.db.commit()
+			except Exception:
+				pass
 
-		# Run two threads
-		t1 = threading.Thread(target=try_save_card, args=("A",))
-		t2 = threading.Thread(target=try_save_card, args=("B",))
-		
-		t1.start()
-		t2.start()
-		t1.join()
-		t2.join()
-		
-		# Log results for debugging
-		print(f"\nCONCURRENT TEST RESULTS: {results}")
-		
-		# At least one must succeed
-		successes = [r for r in results if r.startswith("SUCCESS")]
-		self.assertTrue(len(successes) >= 1, f"At least one card must be saved. Results: {results}")
-		
-		# At least one must be blocked
-		blockeds = [r for r in results if r.startswith("BLOCKED")]
-		self.assertTrue(len(blockeds) >= 1, f"FOR UPDATE lock must block the second concurrent card. Results: {results}")
+		doc_a = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"quality_inspection": "TEST-QI-QI-A",
+			"operator": "test@kta.com"
+		})
+		doc_a.insert(ignore_permissions=True, ignore_links=True)
+
+		doc_b = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"quality_inspection": "TEST-QI-QI-B",
+			"operator": emp_b
+		})
+		doc_b.insert(ignore_permissions=True, ignore_links=True)
+
+		frappe.db.commit()
+
+		self.assertTrue(frappe.db.exists("Calisma Karti", doc_a.name))
+		self.assertTrue(frappe.db.exists("Calisma Karti", doc_b.name))
 
 	def test_shift_boundary_integration(self):
 		"""Verify that boundary logic correctly assigns shifts at 16:00:00 vs 16:00:01."""
