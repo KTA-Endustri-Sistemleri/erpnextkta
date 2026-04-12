@@ -520,6 +520,7 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
     qa.quality_inspection_template = template_name
     qa.inspected_by = frappe.session.user
     qa.sample_size = int(sample_size or 1)
+    qa.custom_calisma_karti = ck_name
 
     # Parse readings if it arrives as a JSON string (HTTP form data)
     if isinstance(readings, str):
@@ -593,8 +594,16 @@ def sync_qi_to_calisma_karti(doc, method=None):
     if doc.reference_type != "Job Card" or not doc.reference_name:
         return
 
-    # Find Calisma Karti linked to this Job Card
-    ck_name = frappe.db.get_value("Calisma Karti", {"is_karti": doc.reference_name}, "name")
+    # Find Calisma Karti linked to this Quality Inspection
+    # PREFERENCE: Exact match via custom field
+    ck_name = None
+    if doc.get("custom_calisma_karti"):
+        ck_name = doc.custom_calisma_karti
+    
+    if not ck_name:
+        # Fallback for manual/old inspections (ambiguous if multiple cards exist for same job card)
+        ck_name = frappe.db.get_value("Calisma Karti", {"is_karti": doc.reference_name}, "name")
+
     if not ck_name:
         return
 

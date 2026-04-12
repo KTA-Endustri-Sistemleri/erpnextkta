@@ -260,7 +260,20 @@ Vue'nun SPA (Single Page Application) yapısında, router üzerinden geçiş yap
 ### 25. Pessimistic Locking & State Bypass Koruması (Yarış Durumu)
 Çoklu tıklama (Double Submit) veya UI atlatma (Bypass) durumlarında veritabanı tutarlılığını korumak için uygulanan backend desenidir:
 - **Yarış Durumu (Race Condition)**: `islem_yap` API'si (Başlat, Duraklat, Bitiş) çağrıldığında kart durumu belleğe alınır. Art arda iki istek gelirse, okunan bellekteki değer (örneğin `tamamlanan_miktar = 10`) her iki işlemde de 10 olarak baz alınır ve üzerine eklenir; data kaybı yaşanır.
-- **Çözüm**: Kritik yazma işlemlerinde (Status, Miktar) `frappe.get_doc("Calisma Karti", docname, for_update=True)` kullanılarak satır MySQL seviyesinde kilitlenmeli veya Redis cache ile 5 saniyelik debounce/cooldown (Rate Limiting) uygulanmalıdır.
+- **Çözüm**: Kritik yazma ve doğrulama süreçlerinde `FOR UPDATE` pesimistik veritabanı kilidi kullanılmalıdır.
+- **Dinamik Debounce**: Redis/Cache tabanlı 5 saniyelik tıklama koruması (Rate Limiting) eklenmelidir.
+
+### 28. Snapshot Isolation Bypass (Locking Read) Deseni
+MariaDB/MySQL varsayılan `REPEATABLE READ` izolasyon seviyesinde, bir işlem başladığı andaki veriyi görür (Snapshot Read). Bu durum, bir kilit (Lock) beklendikten sonra bile eski verinin okunmasına neden olabilir.
+- **Sorun**: Thread-1 kilidi alır, kaydı yapar ve commit eder. Thread-2 kilidi devralır ancak hala işlemin başladığı andaki "boş" tabloyu görür; sonuçta mükerrer kayıt oluşur.
+- **Çözüm**: Mükerrerlik veya kapasite kontrolü yapan `SELECT` sorgularına mutlaka **`FOR UPDATE`** eklenmelidir. Bu, veritabanını snapshot yerine o anki "committed" (onaylanmış) gerçek veriyi okumaya zorlar.
+- **Kullanım Yeri**: `check_duplicate_quality_docs`, `hesapla_toplam_sure`.
+
+### 29. Concurrency Stres Testi Deseni (Multi-Process)
+Kodun yarış durumlarına dayanıklılığını ölçmek için uygulanan desen:
+- **Araç**: `concurrent.futures.ProcessPoolExecutor`.
+- **Neden Process?**: Python'da `ThreadPool` global state paylaşımı yapabilir; `ProcessPool` ise her biri kendi `frappe.init` ve DB bağlantısına sahip tam izole ortamlar sağlar. 100+ kullanıcı senaryosu için en gerçekçi simülasyondur.
+- **Kural**: Test scripti veritabanı temizliği (cleanup) ile başlamalı ve başarılı/bloklanan işlem sayılarını raporlamalıdır.
 - **State Bypass**: Vue UI, kart "Bitmiş" veya "Reddedildi" olduğunda form girişlerini gizleyebilir ancak art niyetli/gecikmeli HTTP istekleri (Hurda API'si, Barkod Kaydı API'si, IDC API'si) doğrudan backend'e ulaşabilir. Bu child-table API'lerinin hepsi **en başta** `frappe.db.get_value("Calisma Karti", ck_name, ["docstatus", "durum"])` ile kartın yetki ve statü denetimini taze biçimde yapmak zorundadır.
 
 ### 26. Operasyonel Miktar Kısıtı Doğrulama Deseni (Planlanan/Konfigürasyonel)

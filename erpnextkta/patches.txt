@@ -1,6 +1,7 @@
 [pre_model_sync]
 # Patches added in this section will be executed before doctypes are migrated
 # Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
+erpnextkta.patches.v1_2_0.clear_duplicate_quality_inspections
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
@@ -8,3 +9,4 @@ erpnextkta.patches.v0_20.create_ptr_bt_049_bakim_talimati
 erpnextkta.patches.v1_2_0.fix_shift_boundary_net_times
 erpnextkta.patches.v1_2_0.fix_calisma_karti_net_durations
 erpnextkta.patches.v1_2_0.fix_net_duration_logic_final
+erpnextkta.patches.v1_2_1.add_custom_calisma_karti_to_qi
