@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v1.6.0 (2026-04-12)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- add custom_calisma_karti field to Quality Inspection for unambiguous linkage and update logic to prioritize it
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.5.0 (2026-04-09)
 
 
