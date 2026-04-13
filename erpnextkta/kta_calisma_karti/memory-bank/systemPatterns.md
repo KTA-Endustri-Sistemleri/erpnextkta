@@ -288,3 +288,12 @@ Uygulama genelinde ve UI'daki kısıtlamalarda (Örneğin bitmiş karta müdahal
 - **Backend İletimi**: `boot_session` (`hooks.py` içinden `extend_boot_session`) ile bu liste, sayfa ilk yüklendiğinde `frappe.boot.kta_admin_roles` objesine `List[str]` olarak itilir (inject).
 - **Backend Bypass İşleyişi**: `_helpers.py` içindeki tekil `has_admin_roles()` metodu doğrudan Frappe DB'sine giderek (`get_single_value`) o anki kullanıcının rollerini kıyaslar.
 - **Frontend Gözlemi**: `canEditData` veya benzeri Computed property'ler hardcoded "Quality Manager" sorgusu yapmak yerine `frappe.boot.kta_admin_roles` array'inde `Array.some(r => roles.includes(r))` şeklinde tarar.
+### 31. Modular Downtime Management Pattern
+Duruş sebeplerinin (Downtime Reasons) statik listelerden dinamik, modüler bir yapıya geçişini sağlayan desendir:
+- **Merkezi Doctype**: `KTA Durus Sebebi`.
+- **Dinamik Link**: Child table'larda (`Operasyon Duruslari`) `Select` yerine `Link` (options: KTA Durus Sebebi) kullanılır.
+- **Categorization Flags**:
+    - `durus_tipi`: Planlı/Plansız ayrımı.
+    - `exclude_from_charts`: İstatistiksel raporlamalarda ve "Net Süre" hesaplamalarında hangi sebeplerin (örn. Otomatik durdurma) filtreleneceğini belirler.
+    - `is_system`: Operatörlerin manuel seçmemesi gereken (API tarafından yönetilen) kayıtları işaretler.
+- **Dashboard Integration**: `LEFT JOIN` mantığı ile `exclude_from_charts` bayrağı üzerinden dinamik filtreleme yapılır (Hardcoded string karşılaştırmalarından kaçınılır).

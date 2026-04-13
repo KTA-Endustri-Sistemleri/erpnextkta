@@ -1,6 +1,16 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-04-06 (Race Condition Fix & Stress Test)
+> Son güncelleme: 2026-04-13 (Downtime Reason Modularization)
+
+### Duruş Sebeplerini Modülerleştirme (2026-04-13 - Tamamlandı)
+- [x] **Yeni DocType: `KTA Durus Sebebi`**: Duruş sebepleri merkezi yönetilebilir tabloya taşındı.
+- [x] **Duruş Tipi Kategorizasyonu**: Planlı/Plansız ayrımı eklendi.
+- [x] **Grafik Filtreleme**: `exclude_from_charts` bayrağı ile dinamik dashboard filtrelemesi sağlandı.
+- [x] **Sistem Kaydı Koruması**: `is_system` bayrağı ile otomatik oluşturulan duruşların kullanıcı tarafından silinmesi engellendi.
+- [x] **Child Table Linkage**: `Operasyon Duruslari` tablosu Link alanına dönüştürüldü.
+- [x] **Backend & Dashboard Refactoring**: Hardcoded string'ler JOIN mantığına çevrildi.
+- [x] **Vue SPA Update**: `view-calisma-karti` ve `create-calisma-karti` arayüzleri yeni yapıya uyumlu hale getirildi.
+- [x] **Data Migration**: Patch ile mevcut veriler ve varsayılan sebepler sisteme işlendi.
 
 ### Yarış Durumu (Race Condition) ve Veri Bütünlüğü (2026-04-06 - Tamamlandı)
 - [x] **Kalite Belgesi Kilidi**: `check_duplicate_quality_docs` içinde `Quality Inspection` üzerine `FOR UPDATE` kilidi uygulandı.

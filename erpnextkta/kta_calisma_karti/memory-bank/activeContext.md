@@ -1,18 +1,34 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-03-31
+> Son güncelleme: 2026-04-13 (Downtime Reason Modularization)
 
-Çalışma Kartı modülü Frappe-native document state mimarisine taşındı. "Draft-First" (Önce Taslak) yaratım akışı, iptal edilmiş belge desteği ve detaylı yetkilendirme güncellemeleri tamamlandı. Ayrıca toplu build işlemleriyle frontend-backend veri tutarlılığı sağlandı.
+Duruş sebepleri sert kodlanmış (hardcoded) metinlerden kurtarılarak dinamik bir yapıya taşındı. Yeni `KTA Durus Sebebi` DocType'ı ile sebepler kategorize edilebilir ve sistem genelinde yönetilebilir hale getirildi.
 
+- [x] **Downtime Modularization**: Duruş sebepleri için `KTA Durus Sebebi` DocType'ı oluşturuldu ve tüm sistem bu yeni yapıya taşındı. (Tamamlandı - 2026-04-13)
 - [x] **Draft-First Lifecycle**: Yeni kartlar artık "Taslak" (docstatus=0) olarak açılıyor ve sadece "Bitir" anında otomatik submit ediliyor. (Tamamlandı)
 - [x] **Native Document States**: Hazır, Çalışıyor, Duruşta, Bitmiş, Reddedildi durumları Frappe standart statüleri olarak sisteme işlendi. (Tamamlandı)
 - [x] **Cancelled Status Display**: `docstatus=2` (İptal Edildi) olan kartların hem list-view hem de view-calisma-karti SPA'larında doğru (Gri) ve yüksek öncelikli gösterilmesi sağlandı. (Tamamlandı)
 - [x] **Theme-Aware UI Sync**: "İptal Edildi" durumu için cam tasarımı (Glassmorphism) Açık/Koyu tema değişkenleri eklendi. (Tamamlandı)
 - [x] **API Veri Tutarlılığı**: `get_calisma_karti_detail` ve `get_my_calisma_kartlari` API'lerine `docstatus` alanı eklenerek frontend belirsizliği giderildi. (Tamamlandı)
 - [x] **Yetki Güncellemesi**: `Asset Maintenance Log` DocType'ı için standart operatör ve yönetici rollerine okuma yetkisi tanımlandı. (Tamamlandı)
-- [x] **Race Condition Protection (Critical)**: `FOR UPDATE` kilitleri ve snapshot bypass mantığı ile 100+ kullanıcı yükü altında veri bütünlüğü sağlandı. (Tamamlandı - 2026-04-06)
+- [x] **Race Condition Protection (Critical)**: `FOR UPDATE` kilitleri ve snapshot bypass mantığı ile 100+ kullanıcı yüku altında veri bütünlüğü sağlandı. (Tamamlandı - 2026-04-06)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-04-13) — Duruş Sebepleri Modülerleştirmesi
+Duruş sebepleri (Downtime Reasons) üzerindeki sert kodlanmış bağımlılıklar kırılarak dinamik bir yapı sağlandı:
+
+*   **Yeni DocType: `KTA Durus Sebebi`**: 
+    - Duruş sebepleri merkezi bir tabloda toplandı. 
+    - `durus_tipi` (Planlı/Plansız), `exclude_from_charts` (Grafik dışı) ve `is_system` (Sistem kaydı) bayrakları eklendi.
+*   **Migration (Patch)**: `create_default_downtime_reasons.py` ile mevcut veriler yeni yapıya aktarıldı ve varsayılan sebepler (Arıza, Malzeme Bekleme vb.) otomatik oluşturuldu.
+*   **Dashboard Dinamizmi**: 
+    - `durus_nedeni_dagilimi.py` ve `departman_net_sure.py` üzerindeki hardcoded string filtreleri kaldırılarak `exclude_from_charts` bayrağına göre dinamik JOIN'lere geçildi.
+*   **Arayüz (SPA & Desk) Senkronizasyonu**: 
+    - `Operasyon Duruslari` child table `Select` yerine `Link` (KTA Durus Sebebi) alanına çevrildi.
+    - Vue SPA (`prompts.ts`) üzerindeki duruş dialogu `is_system: 0` filtresiyle güncellendi.
+    - `view-calisma-karti` üzerinden lüzumsuz `tamamlanan_miktar` alanı kaldırıldı.
+    - `create-calisma-karti` başarı popup'ı (msgprint) tekrardan kaçınmak için kaldırıldı.
 
 ## Son Değişiklikler (2026-04-06) — Yarış Durumu Çözümü & Stres Testi
 Çalışma Kartı modülünde yüksek eşzamanlı yük (100+ operatör) altında yaşanan veri tutarlılığı sorunları giderildi:

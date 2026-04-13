@@ -86,6 +86,7 @@ Public (Frontend): erpnextkta/public/
 "KTA Operation ERPNext Mappings" # Operasyon bazlı Job Card eşleştirmesi
 "KTA Operation Allowed Material Groups" # Ana operasyon kısıtları
 "KTA Sub Operation Allowed Material Groups" # Alt operasyon kısıtları
+"KTA Durus Sebebi"      # Dinamik duruş nedenleri (Planlı/Plansız)
 "Makine Gunluk Bakim Formu" # Günlük bakım kayıtları
 "Bakim Talimati"        # Standart bakım talimatları (Örn: PTR.BT.049)
 "Test Masasi Dogrulama Kaydi" # Test masası doğrulama kayıtları (PTR 07/005)
