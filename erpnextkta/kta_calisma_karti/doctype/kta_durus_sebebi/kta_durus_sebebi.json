@@ -1,0 +1,120 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:reason",
+ "creation": "2026-04-13 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "reason",
+  "column_break_1",
+  "durus_tipi",
+  "section_break_flags",
+  "is_system",
+  "column_break_2",
+  "exclude_from_charts",
+  "section_break_detail",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "reason",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Duru\u015f Sebebi",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Plans\u0131z",
+   "fieldname": "durus_tipi",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Duru\u015f Tipi",
+   "options": "Plans\u0131z\nPlanl\u0131",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_flags",
+   "fieldtype": "Section Break",
+   "label": "Sistem Ayarlar\u0131"
+  },
+  {
+   "default": "0",
+   "description": "Sistem taraf\u0131ndan otomatik kullan\u0131lan sebepleri i\u015faretler. Bu kay\u0131tlar silinemez.",
+   "fieldname": "is_system",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Sistem Kayd\u0131"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Bu sebep dashboard grafiklerinde g\u00f6sterilmez.",
+   "fieldname": "exclude_from_charts",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Grafiklerden Hari\u00e7 Tut"
+  },
+  {
+   "fieldname": "section_break_detail",
+   "fieldtype": "Section Break",
+   "label": "Detay"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "A\u00e7\u0131klama"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-04-13 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "KTA Durus Sebebi",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Manufacturing User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -70,10 +70,11 @@ def get_data(**kwargs):
             ck.operator              AS operator_id,
             ck.net_calisma_suresi    AS stored_net_sure,
             (
-                SELECT IFNULL(SUM(durus_suresi), 0)
-                FROM `tabOperasyon Duruslari`
-                WHERE parent = ck.name 
-                AND durus_nedeni = 'Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.'
+                SELECT IFNULL(SUM(od2.durus_suresi), 0)
+                FROM `tabOperasyon Duruslari` od2
+                LEFT JOIN `tabKTA Durus Sebebi` ds2 ON ds2.name = od2.durus_nedeni
+                WHERE od2.parent = ck.name 
+                AND IFNULL(ds2.exclude_from_charts, 0) = 1
             )                        AS auto_pause_min
         FROM `tabCalisma Karti` ck
         WHERE {where_clause}
