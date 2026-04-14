@@ -148,4 +148,13 @@ ERPNext Arama Çubuğuna `KTA Calisma Karti Settings` yazarak ulaşabileceğiniz
     - İçeriği virgülle ayırarak genişletilir (Örnek: `System Manager, Quality Manager, Manufacturing Manager`).
     - Bu alana sistemdeki rollerin isimlerini girdiğinizde, ilgili role sahip yöneticiler; **"Bitmiş"** durumda kilitlenen kartlardaki Düzenle/Sil/Ekle gibi butonlara yeniden erişip (bypass edip) verileri düzeltebilir. İptal edilmiş (docstatus=2) kartlara ise hiçbir rol müdahale edemez.
 
-</main>
+---
++
++## 🛡️ 10. Sistem Güvenilirliği ve Test Otomasyonu
++
++KTA Çalışma Kartı platformu, endüstriyel sahadaki veri bütünlüğünü korumak için **Otomatik Entegrasyon Testleri** ile korunmaktadır.
++- **Kritik İş Akışları:** Kart başlatma, durdurma, bitirme ve kalite kontrol süreçleri her güncelleme öncesinde otomatik test senaryoları ile denetlenir.
++- **Veri Senkronizasyonu:** Hurda girişlerinin Stok Kayıtları ile senkronizasyonu ve Alt Operasyon kayıtlarının tutarlılığı sistem tarafından anlık olarak izlenir ve doğrulanır.
++- **Hata Önleme:** "Anti-double-click" gibi koruma mekanizmaları, operatörlerin yanlışlıkla mükerrer veri girişi yapmasını engeller ve bu özellikler düzenli olarak test edilir.
++
++</main>

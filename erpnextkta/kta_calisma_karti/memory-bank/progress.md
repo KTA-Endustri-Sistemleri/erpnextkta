@@ -2,6 +2,11 @@
 
 > Son güncelleme: 2026-04-13 (Downtime Reason Modularization)
 
+### API Test Kapsamı ve Stabilizasyon (2026-04-14 - Tamamlandı)
+- [x] **Kritik API Testleri**: `islem_yap`, `qc`, `hurda` ve `alt_op` süreçleri için entegrasyon testleri eklendi.
+- [x] **Test Verisi İzolasyonu**: Monkeypatching ve Employee seeding ile anti-double-click ve validasyon engelleri aşıldı.
+- [x] **Final Doğrulama**: Tüm testlerin `test_site` üzerinde başarılı çalıştığı teyit edildi.
+
 ### Duruş Sebeplerini Modülerleştirme (2026-04-13 - Tamamlandı)
 - [x] **Yeni DocType: `KTA Durus Sebebi`**: Duruş sebepleri merkezi yönetilebilir tabloya taşındı.
 - [x] **Duruş Tipi Kategorizasyonu**: Planlı/Plansız ayrımı eklendi.

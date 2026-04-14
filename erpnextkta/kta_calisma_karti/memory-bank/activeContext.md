@@ -12,8 +12,22 @@ Duruş sebepleri sert kodlanmış (hardcoded) metinlerden kurtarılarak dinamik 
 - [x] **API Veri Tutarlılığı**: `get_calisma_karti_detail` ve `get_my_calisma_kartlari` API'lerine `docstatus` alanı eklenerek frontend belirsizliği giderildi. (Tamamlandı)
 - [x] **Yetki Güncellemesi**: `Asset Maintenance Log` DocType'ı için standart operatör ve yönetici rollerine okuma yetkisi tanımlandı. (Tamamlandı)
 - [x] **Race Condition Protection (Critical)**: `FOR UPDATE` kilitleri ve snapshot bypass mantığı ile 100+ kullanıcı yüku altında veri bütünlüğü sağlandı. (Tamamlandı - 2026-04-06)
+- [x] **API Test Kapsamı ve Stabilizasyon**: Kritik API uç noktaları (`islem_yap`, `qc`, `hurda`, `alt_op`) için entegrasyon testleri oluşturuldu ve veri bağımlılıkları çözüldü. (Tamamlandı - 2026-04-14)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+
+## Son Değişiklikler (2026-04-14) — API Test Kapsamı ve Stabilizasyon
+Kritik iş akışlarını korumak için `tests/test_api.py` altında kapsamlı bir API test süiti oluşturuldu:
+
+*   **Kritik API Testleri**:
+    *   `test_islem_yap_workflow`: Başlat, Duruş, Devam, Bitiş flow'u.
+    *   `test_qc_submission_via_api`: QC Belgesi oluşturma ve kart restorasyonu.
+    *   `test_scrap_synchronization_via_api`: Hurda/Stok Girişi senkronizasyonu.
+    *   `test_alt_operasyon_crud_via_api`: Alt operasyon CRUD işlemleri.
+*   **Stabilizasyon Teknikleri**:
+    *   **Employee Seeding**: Her test için benzersiz email ile operatör oluşturulup "Anti-Double-Click" koruması bypass edildi.
+    *   **Monkeypatching**: Masraf Merkezi (Cost Center) hiyerarşisi ve BOM hammadde validasyonları çalışma zamanında (runtime) yamalanarak test ortamı izole edildi.
+    *   **Mandatory Fields**: Employee, Job Card ve Cost Center üzerindeki zorunlu alan eksiklikleri giderildi.
 
 ## Son Değişiklikler (2026-04-13) — Duruş Sebepleri Modülerleştirmesi
 Duruş sebepleri (Downtime Reasons) üzerindeki sert kodlanmış bağımlılıklar kırılarak dinamik bir yapı sağlandı:

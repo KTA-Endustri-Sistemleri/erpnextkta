@@ -6,7 +6,7 @@ from frappe.model.document import Document
 
 
 class KTADurusSebebi(Document):
-    def before_delete(self):
+    def on_trash(self):
         """Sistem tarafından kullanılan kayıtların silinmesini engelle."""
         if self.is_system:
             frappe.throw(
