@@ -257,3 +257,266 @@ def before_tests():
 	frappe.clear_cache()
 
 	print("DEBUG: All infrastructure seeded successfully.")
+
+from frappe.tests.utils import FrappeTestCase
+
+class KTATestCase(FrappeTestCase):
+	"""Base TestCase for KTA Endüstri Sistemleri apps with shared setup logic."""
+
+	def setUp(self):
+		super().setUp()
+		desc = self.shortDescription()
+		if desc:
+			print(f"\n🔍 [TEST] {self._testMethodName}: {desc}")
+		else:
+			print(f"\n🔍 [TEST] {self._testMethodName}")
+		
+		# Ensure test-specific Job Card and basic data exists
+		self.setup_kta_infrastructure()
+
+	def setup_kta_infrastructure(self):
+		# 1. KTA Settings
+		frappe.db.set_single_value("KTA Calisma Karti Settings", "mukerrer_kalite_kontrolu_yap", 1)
+		frappe.db.set_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk", 430)
+		frappe.db.set_single_value("KTA Calisma Karti Settings", "kart_uyari_suresi_dk", 400)
+
+		self.company = create_test_company()
+		self.item_group = create_test_item_group()
+		self.item = create_test_item(self.item_group)
+		self.wip_warehouse = create_test_warehouse(self.company)
+		self.expense_account = create_test_scrap_account(self.company)
+		
+		# Operations and Stations
+		create_test_plant_floor("L-1")
+		self.kta_op = create_test_kta_operation("KTA-OP-001-TEST", "L-1")
+		self.ws_name = create_test_workstation("_Test KTA Workstation")
+		
+		create_test_shifts(["1. Vardiya", "2. Vardiya"])
+		create_test_operator("test@kta.com", "Test Operator")
+		
+		self.erpnext_op = create_test_erpnext_operation("_Test ERPNext Op", self.ws_name)
+		
+		# WO and Job Card
+		self.wo_name = create_test_work_order(
+			"TEST-WO-KTA-001", self.item, self.company, self.wip_warehouse
+		)
+		self.jc_name = create_test_job_card(
+			"TEST-JC-KTA-001", self.wo_name, self.wip_warehouse, 
+			self.erpnext_op, self.ws_name, self.item, self.company
+		)
+		
+		frappe.db.commit()
+
+
+def create_test_company(company_name="_Test Company KTA"):
+	if not frappe.db.exists("Company", company_name):
+		frappe.get_doc({
+			"doctype": "Company",
+			"company_name": company_name,
+			"abbr": "TKTA",
+			"default_currency": "TRY",
+			"country": "Turkey"
+		}).insert(ignore_permissions=True)
+	return company_name
+
+
+def create_test_item_group(name="_Test Item Group KTA"):
+	if not frappe.db.exists("Item Group", name):
+		frappe.get_doc({
+			"doctype": "Item Group",
+			"item_group_name": name,
+			"is_group": 0,
+			"parent_item_group": "All Item Groups"
+		}).insert(ignore_permissions=True)
+	return name
+
+
+def create_test_item(item_group, item_code="_Test Item KTA"):
+	if not frappe.db.exists("Item", item_code):
+		frappe.get_doc({
+			"doctype": "Item",
+			"item_code": item_code,
+			"item_group": item_group,
+			"is_stock_item": 1,
+			"stock_uom": "Nos"
+		}).insert(ignore_permissions=True)
+	return item_code
+
+
+def create_test_warehouse(company, name="_Test WIP"):
+	fullname = f"{name} - TKTA"
+	if not frappe.db.exists("Warehouse", fullname):
+		try:
+			frappe.get_doc({
+				"doctype": "Warehouse",
+				"warehouse_name": name,
+				"company": company
+			}).insert(ignore_permissions=True)
+		except Exception:
+			pass
+	return fullname
+
+
+def create_test_scrap_account(company, name="Test Scrap Expense"):
+	fullname = f"{name} - TKTA"
+	if not frappe.db.exists("Account", fullname):
+		parent_acc = "Expenses - TKTA"
+		frappe.get_doc({
+			"doctype": "Account",
+			"account_name": name,
+			"company": company,
+			"is_group": 0,
+			"parent_account": parent_acc,
+			"account_type": "Expense Account"
+		}).insert(ignore_permissions=True, ignore_links=True)
+	return fullname
+
+
+def create_test_plant_floor(name="L-1"):
+	if not frappe.db.exists("Plant Floor", name):
+		frappe.get_doc({
+			"doctype": "Plant Floor",
+			"name": name,
+			"plant_name": name,
+			"floor_name": name
+		}).insert(ignore_permissions=True)
+	return name
+
+
+def create_test_kta_operation(name, plant_floor):
+	if not frappe.db.exists("KTA Calisma Karti Operasyonlari", name):
+		frappe.get_doc({
+			"doctype": "KTA Calisma Karti Operasyonlari",
+			"name": name,
+			"calisma_karti_op": "Test Operasyon",
+			"miktar_zorunlu_mu": 1,
+			"plant_floor": plant_floor
+		}).insert(ignore_permissions=True, ignore_links=True)
+	return name
+
+
+def create_test_workstation(name):
+	if not frappe.db.exists("Workstation", name):
+		frappe.get_doc({
+			"doctype": "Workstation",
+			"workstation_name": name
+		}).insert(ignore_permissions=True)
+	return name
+
+
+def create_test_shifts(shift_names):
+	times = {
+		"1. Vardiya": ("08:00:00", "16:00:00"),
+		"2. Vardiya": ("16:00:00", "00:00:00"),
+		"3. Vardiya": ("00:00:00", "08:00:00")
+	}
+	for name in shift_names:
+		if not frappe.db.exists("Shift Type", name):
+			start, end = times.get(name, ("08:00:00", "16:00:00"))
+			try:
+				frappe.get_doc({
+					"doctype": "Shift Type", 
+					"name": name, 
+					"start_time": start, 
+					"end_time": end
+				}).insert(ignore_permissions=True, ignore_links=True)
+			except Exception: pass
+
+
+def create_test_operator(email, name):
+	if not frappe.db.exists("Employee", email):
+		try:
+			frappe.db.sql("""
+				INSERT INTO `tabEmployee` (name, employee_name, first_name, status, creation, modified, modified_by)
+				VALUES (%s, %s, %s, 'Active', NOW(), NOW(), 'Administrator')
+			""", (email, name, name.split()[0]))
+		except Exception: pass
+	return email
+
+
+def create_test_erpnext_operation(name, workstation):
+	if not frappe.db.exists("Operation", name):
+		frappe.get_doc({
+			"doctype": "Operation",
+			"name": name,
+			"workstation": workstation
+		}).insert(ignore_permissions=True)
+	return name
+
+
+def create_test_work_order(name, item, company, warehouse):
+	if not frappe.db.exists("Work Order", name):
+		frappe.db.sql("""
+			INSERT INTO `tabWork Order` (name, production_item, qty, company, wip_warehouse, fg_warehouse, docstatus, status, creation, modified, modified_by)
+			VALUES (%s, %s, 100, %s, %s, %s, 1, 'Not Started', NOW(), NOW(), 'Administrator')
+		""", (name, item, company, warehouse, warehouse))
+	else:
+		frappe.db.set_value("Work Order", name, "docstatus", 1)
+		frappe.db.set_value("Work Order", name, "status", "Not Started")
+	return name
+
+
+def create_test_job_card(name, wo, warehouse, operation, workstation, item, company):
+	if not frappe.db.exists("Job Card", name):
+		frappe.db.sql("""
+			INSERT INTO `tabJob Card` (name, work_order, wip_warehouse, operation, workstation, production_item, for_quantity, company, docstatus, creation, modified, modified_by)
+			VALUES (%s, %s, %s, %s, %s, %s, 100, %s, 1, NOW(), NOW(), 'Administrator')
+		""", (name, wo, warehouse, operation, workstation, item, company))
+	else:
+		frappe.db.set_value("Job Card", name, "docstatus", 1)
+	return name
+
+
+def make_mock_calisma_karti(**kwargs):
+	"""Build a minimal CalismaKarti-like mock object."""
+	from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import CalismaKarti
+	doc = CalismaKarti.__new__(CalismaKarti)
+	doc.name = kwargs.get("name", "TEST-CK-001")
+	doc.doctype = "Calisma Karti"
+	doc.duruslar = kwargs.get("duruslar", [])
+	doc.baslangic_saati = kwargs.get("baslangic_saati", None)
+	doc.bitis_saati = kwargs.get("bitis_saati", None)
+	doc.kalite_kontrol = kwargs.get("kalite_kontrol", None)
+	doc.operator = kwargs.get("operator", None)
+	doc.operasyon = kwargs.get("operasyon", None)
+	doc.is_istasyonu = kwargs.get("is_istasyonu", None)
+	doc.toplam_sure = kwargs.get("toplam_sure", None)
+	doc.toplam_durus = kwargs.get("toplam_durus", None)
+	doc.net_calisma_suresi = kwargs.get("net_calisma_suresi", None)
+	doc.durum = kwargs.get("durum", None)
+	return doc
+
+
+def make_mock_durus(durus_baslangic=None, durus_bitis=None, durus_suresi=None):
+	from unittest.mock import MagicMock
+	row = MagicMock()
+	row.durus_baslangic = durus_baslangic
+	row.durus_bitis = durus_bitis
+	row.durus_suresi = durus_suresi
+	return row
+
+
+def _ensure_standard_roots():
+	"""Ensure essential root groups exist to prevent LinkValidationError during setup."""
+	standard_roots = [
+		{"doctype": "Customer Group", "customer_group_name": "All Customer Groups", "is_group": 1, "parent_customer_group": ""},
+		{"doctype": "Territory", "territory_name": "All Territories", "is_group": 1, "parent_territory": ""},
+		{"doctype": "Item Group", "item_group_name": "All Item Groups", "is_group": 1, "parent_item_group": ""},
+		{"doctype": "Supplier Group", "supplier_group_name": "All Supplier Groups", "is_group": 1, "parent_supplier_group": ""},
+		{"doctype": "Sales Person", "sales_person_name": "Sales Team", "is_group": 1, "parent_sales_person": ""},
+	]
+
+	for root in standard_roots:
+		name_field = {
+			"Customer Group": "customer_group_name",
+			"Territory": "territory_name",
+			"Item Group": "item_group_name",
+			"Supplier Group": "supplier_group_name",
+			"Sales Person": "sales_person_name",
+		}[root["doctype"]]
+		if not frappe.db.exists(root["doctype"], root[name_field]):
+			try:
+				frappe.get_doc(root).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			except Exception:
+				pass
+	frappe.db.commit()
