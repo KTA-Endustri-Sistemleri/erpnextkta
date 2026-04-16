@@ -9,9 +9,10 @@
 - `before_insert`, `validate`, `on_update` ve `after_insert` hook'larının `Calisma Karti` ile veri senkronizasyonu için yapılandırılması.
 
 ## Aktif Kararlar
-- **Modülerlik:** Hafıza bankasının proje kök dizini yerine doğrudan `kta_quality` modülü altına yerleştirilmesi kararlaştırıldı.
-- **Dil Seçimi:** Dokümantasyonun Türkçe olması sağlandı.
-- **Kapsam:** Batch split (parti bölme) ve Zebra yazıcı entegrasyonu gibi stock/labeling işleri, bu modülün dışına (general overrides veya kta_stock gibi yerlere) aktarıldığı için buradaki plana dahil edilmedi.
+- **Krimp Mimarisi:** `KTA Krimp Book`'un bir "Referans Ansiklopedisi" olarak kalmasına, `KTA Krimp Yukseklik Parametreleri`'nin ise bu kitaptan beslenen birer "Onaylı Uygulama" katmanı olmasına karar verildi.
+- **Dinamik Kısıt:** `Kontak No` seçimlerinin `KTA Quality Settings` üzerinden yönetilebilir `Item Group` filtreleri ile yapılması sağlandı.
+- **Fiziksel Bağlantı:** Gelecek fazda `Amboss Takımları` (Kalıp) ile kitap verisi arasındaki Link bağlantılarının kurulması planlanmaktadır.
+- **Dil Seçimi:** Tüm sistem dökümantasyonu Türkçe olarak sürdürülüyor.
 
 ## Sonraki Adımlar
 - [ ] `systemPatterns.md` dosyasının teknik detaylarla (hook'lar ve veri akışı) doldurulması.

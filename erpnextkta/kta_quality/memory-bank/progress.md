@@ -5,13 +5,15 @@
 - [x] **Otomatik Kriter Doldurma:** `before_insert` sırasında 17 maddelik standart listenin otomatik yüklenmesi.
 - [x] **Calisma Karti Entegrasyonu:** Doğrulama sonuçlarının anlık olarak `Calisma Karti` üzerinde güncellenmesi.
 - [x] **Uygulama Metni Yönetimi:** PTR form referanslarını içeren standart metnin formlara eklenmesi.
-- [x] **Hafıza Bankası (Memory Bank):** Modül dokümantasyonunun Türkçe olarak tamamlanması.
+- [x] **KTA Krimp Book DocType:** 1548 adet teknik referans verisinin aktarımı ve kütüphane yapısı.
+- [x] **Dinamik Kontak Kısıtı:** `KTA Quality Settings` üzerinden Item Group bazlı terminal filtreleme altyapısı.
+- [x] **Hafıza Bankası (Memory Bank):** Modül dokümantasyonunun ve Krimp mimari vizyonunun Türkçe olarak tamamlanması.
 
 ## Üzerinde Çalışılanlar (In-Progress)
-- [/] **Dokümantasyon Gözden Geçirme:** Hafıza bankası içeriklerinin kullanıcı geri bildirimiyle kesinleştirilmesi.
+- [/] **Gelecek Mimari Planlama:** Krimp Book ve Amboss Takımları arasındaki Link ilişkisinin detaylandırılması.
 
 ## Gelecek Planları / Yapılacaklar
-- [ ] **Dinamik Kriterler:** Sabit kriter listesinin kodun dışına çıkarılıp ayrı bir DocType (Ayarlar) üzerinden yönetilmesinin sağlanması.
+- [ ] **Krimp Otomasyonu:** Parametreler sayfasında terminal seçildiğinde Book'tan otomatik veri çekme mantığının kurulması.
 - [ ] **Raporlama:** Test masası doğrulama başarı oranlarını ve uygunsuzluk (DÇF) istatistiklerini gösteren özel raporların eklenmesi.
 
 ## Bilinen Sorunlar

@@ -30,9 +30,17 @@ Test masası doğrulaması yapıldığında, bu sonucun ilgili üretim kartına 
           frappe.db.commit()
   ```
 
+### 4. Krimp Teknik Veri Hiyerarşisi (Gelecek Vizyonu)
+Krimp operasyonlarında veri doğruluğunu sağlamak için "Ansiklopedi vs. Uygulama" katmanlı yapısı benimsenmiştir:
+
+- **Katman 1: KTA Krimp Book (Referans/Ansiklopedi):** Üretici kataloglarından gelen 1548+ kayıtlık devasa veri kümesi. Statiktir ve genel standartları tutar.
+- **Katman 2: KTA Krimp Yukseklik Parametreleri (Onaylı Uygulama):** Belirli bir kablo grubu ve fiziksel kalıp (`Amboss Takımı`) seti için onaylanmış süreç standardı. `Krimp Book`'tan veri koparılıp burada "Submit" edilerek dondurulur.
+- **İlişki Mantığı:** Gelecekte `Krimp Book`'taki metin (Data) bazlı kalıp isimleri, `KTA Amboss Takimlari` asset kayıtlarına `Link` ile bağlanarak tam bir izlenebilirlik sağlanacaktır.
+
 ## Veri İlişkileri
 - **Ebeveyn:** `TestMasasiDogrulamaKaydi`
 - **Çocuk Tablolar:**
     - `degerlendirme_kriterleri` (DocType: `Degerlendirme Kriteri`)
     - `baglanti_noktasi_tablosu` (DocType: `Baglanti Noktasi Satiri`)
 - **Referans:** `Calisma Karti` (Linked via `calisma_karti_ref`)
+- **Teknik Kitaplık:** `KTA Krimp Book` (Referans veri kaynağı)
