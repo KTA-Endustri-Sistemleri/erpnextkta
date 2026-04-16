@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "creation": "2026-04-16 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_description",
+  "description_html",
+  "section_customers",
+  "customers"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_description",
+   "fieldtype": "Section Break",
+   "label": "Açıklama"
+  },
+  {
+   "fieldname": "description_html",
+   "fieldtype": "HTML",
+   "label": "Açıklama",
+   "options": "<p class=\"text-muted\">Bu listeye eklenen müşteriler için Sevk İrsaliyesi ve Satış Faturası oluşturulurken <b>Satış Kuru</b> kullanılır. Listede olmayan müşteriler için varsayılan olarak <b>Alış Kuru</b> kullanılır.</p>"
+  },
+  {
+   "fieldname": "section_customers",
+   "fieldtype": "Section Break",
+   "label": "Satış Kuru Uygulanacak Müşteriler"
+  },
+  {
+   "fieldname": "customers",
+   "fieldtype": "Table",
+   "label": "Müşteriler",
+   "options": "KTA Selling Rate Customer Item",
+   "reqd": 0
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-04-16 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_sales",
+ "name": "KTA Selling Rate Customer",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Accounts Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -3,6 +3,7 @@ from frappe import _
 from frappe.utils import add_days, getdate
 from erpnext.stock.doctype.delivery_note.delivery_note import DeliveryNote
 from erpnext.stock.get_item_details import get_item_details
+from erpnextkta.kta_sales.doctype.kta_selling_rate_customer.kta_selling_rate_customer import is_selling_rate_customer
 
 class KTADeliveryNote(DeliveryNote):
     def validate(self):
@@ -35,11 +36,9 @@ class KTADeliveryNote(DeliveryNote):
             target_date = self.posting_date
             
             # Determine if we should use Buying or Selling rate
-            # Exception for BOSCH: They specifically use Selling Rate
-            use_buying_rate = 1
-            if self.customer == "BOSCH TERMOTEKNİK ISITMA VE KLIMA SANAYİ TİC.A.Ş. (MANİSA)":
-                use_buying_rate = 0
-            
+            use_selling = is_selling_rate_customer(self.customer)
+            use_buying_rate = 0 if use_selling else 1
+
             exchange_rate = frappe.db.get_value(
                 "Currency Exchange",
                 {
@@ -62,10 +61,8 @@ class KTADeliveryNote(DeliveryNote):
         if self.price_list_currency and self.price_list_currency != self.company_currency and self.price_list_currency != self.currency:
             target_date = self.posting_date
             
-            # Re-evaluate for specific customer logic (BOSCH)
-            use_buying_rate = 1
-            if self.customer == "BOSCH TERMOTEKNİK ISITMA VE KLIMA SANAYİ TİC.A.Ş. (MANİSA)":
-                use_buying_rate = 0
+            use_selling = is_selling_rate_customer(self.customer)
+            use_buying_rate = 0 if use_selling else 1
 
             # Fetch latest available Exchange Rate on or before posting_date
             # We explicitly check for_buying or for_selling
