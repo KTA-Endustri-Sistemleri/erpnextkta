@@ -289,11 +289,12 @@ class CalismaKarti(Document):
             )
             remaining = max(0, max_saniye - other_net)
 
-            # Önce toplam süreyi kalan kapasiteyle sınırla, sonra duruşları düş.
-            # Böylece duruşlar her zaman net süreden düşer.
-            # Örnek: 480 dk çalışma, 20 dk duruş → min(480, 430) = 430 → 430 - 20 = 410 dk
-            capped_saniye = min(toplam_saniye, remaining)
-            net_saniye = max(0, capped_saniye - toplam_durus_saniye)
+            # Get raw net seconds (total span minus breaks)
+            raw_net_saniye = max(0, toplam_saniye - toplam_durus_saniye)
+            
+            # Apply shift remaining capacity limit to the NET time, not the total span.
+            # This prevents "net squashing" when breaks are long.
+            net_saniye = min(raw_net_saniye, remaining)
 
             self.toplam_sure = format_sure(toplam_saniye)
             self.net_calisma_suresi = format_sure(net_saniye)
