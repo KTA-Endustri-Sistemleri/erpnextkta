@@ -1,6 +1,6 @@
 {
     "actions": [],
-    "autoname": "field:test_masasi_no",
+    "autoname": "MAT-QA-TMD-.YYYY.-.#####",
     "creation": "2024-01-01 00:00:00.000000",
     "doctype": "DocType",
     "engine": "InnoDB",
@@ -17,11 +17,11 @@
         "test_cihaz_no",
         "test_cihazi",
         "col4",
-        "dogrulama_nedeeni",
+        "dogrulama_nedeni",
         "tarih",
         "col5",
-        "sayfa_no",
-        "toplam_sayfa",
+        "urun_kodu",
+        "bolum",
         "section_baglanti",
         "baglanti_noktasi_tablosu",
         "baglanti_noktasi_notlari",
@@ -108,7 +108,7 @@
             "fieldtype": "Column Break"
         },
         {
-            "fieldname": "dogrulama_nedeeni",
+            "fieldname": "dogrulama_nedeni",
             "fieldtype": "Select",
             "in_list_view": 1,
             "in_standard_filter": 1,
@@ -129,14 +129,15 @@
             "fieldtype": "Column Break"
         },
         {
-            "fieldname": "sayfa_no",
-            "fieldtype": "Data",
-            "label": "Sayfa No."
+            "fieldname": "urun_kodu",
+            "fieldtype": "Link",
+            "label": "\u00dcr\u00fcn Kodu",
+            "options": "Item"
         },
         {
-            "fieldname": "toplam_sayfa",
+            "fieldname": "bolum",
             "fieldtype": "Data",
-            "label": "Toplam Sayfa"
+            "label": "Bölüm"
         },
         {
             "fieldname": "section_baglanti",
@@ -194,7 +195,7 @@
     "modified_by": "Administrator",
     "module": "kta_quality",
     "name": "Test Masasi Dogrulama Kaydi",
-    "naming_rule": "By fieldname",
+    "naming_rule": "Expression",
     "owner": "Administrator",
     "permissions": [
         {

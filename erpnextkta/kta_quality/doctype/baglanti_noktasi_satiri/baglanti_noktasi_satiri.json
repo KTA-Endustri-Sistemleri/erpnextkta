@@ -5,16 +5,23 @@
     "editable_grid": 1,
     "engine": "InnoDB",
     "field_order": [
+        "sira_no",
         "tanim",
         "durum"
     ],
     "fields": [
         {
+            "fieldname": "sira_no",
+            "fieldtype": "Int",
+            "label": "S\u0131ra No",
+            "read_only": 1,
+            "columns": 1
+        },
+        {
             "fieldname": "tanim",
             "fieldtype": "Data",
             "in_list_view": 1,
             "label": "Tanımı",
-            "read_only": 1,
             "columns": 7
         },
         {
