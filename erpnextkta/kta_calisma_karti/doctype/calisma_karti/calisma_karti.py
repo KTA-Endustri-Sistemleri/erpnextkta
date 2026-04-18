@@ -280,7 +280,7 @@ class CalismaKarti(Document):
             max_saniye = max_limit * 60
 
             # Vardiya içindeki diğer kartların net süresiyle birlikte tavan aşılmamalı
-            ws, we = _shift_window(end_dt)
+            ws, we = _shift_window(start_dt)
             other_net = _other_cards_net_seconds_in_shift(
                 operator=self.operator,
                 shift_start=ws,
