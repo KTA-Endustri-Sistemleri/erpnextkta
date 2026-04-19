@@ -21,6 +21,12 @@ title: "ERPNext için üretim odaklı KTA özelleştirmeleri"
 </section>
 
 <main class="container">
-  <!-- Buraya az önceki features/modules/install/screenshot/links HTML bloklarını
-       doğrudan koyabilirsin, Jekyll bunları aynen render eder -->
+  
+  ## 📖 Kullanım Kılavuzları
+  Sistem bileşenlerinin detaylı kullanımı için aşağıdaki rehberleri inceleyebilirsiniz:
+
+  - [🚀 KTA Çalışma Kartı Kullanım Kılavuzu](kta_calisma_karti_kilavuzu.html)
+  - [📏 KTA Kalite Yönetimi (Krimp & Test Masası) Kılavuzu](kta_kalite_kilavuzu.html)
+  - [🧬 Modüller ve Teknik Yapı](modules.html)
+
 </main>
