@@ -1,6 +1,10 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-04-13 (Downtime Reason Modularization)
+> Son güncelleme: 2026-04-19 (Dinamik Duruşlar ve Süre Fixleri)
+
+### Vardiya ve Süre Hesaplama Mantığı İyileştirmeleri (2026-04-18 - Tamamlandı)
+- [x] **Vardiya Penceresi Düzeltmesi (836b3b)**: `_shift_window` fonksiyonunda `end_dt` yerine `start_dt` kullanılarak vardiya sınırlarının daha doğru hesaplanması sağlandı.
+- [x] **Net Süre "Squashing" Düzeltmesi (b3ed1e)**: Kapasite sınırının (430 dk) toplam süre yerine "molalar çıkarılmış net süre" üzerine uygulanması sağlandı. Bu sayede uzun mola veren operatörlerin net sürelerinin hatalı şekilde daralması engellendi.
 
 ### Dinamik Duruş Yönetimi ve Standardizasyon (2026-04-19 - Tamamlandı)
 - [x] **Dinamik Ayarlar**: Otomatik duruş metinleri `KTA Calisma Karti Settings` üzerinden yönetilir hale getirildi.

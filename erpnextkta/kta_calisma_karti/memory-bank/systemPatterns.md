@@ -101,13 +101,14 @@ Sistem, operatörlerin açık unuttuğu kartları her vardiya sonunda (16:00 ve 
     - **Çalışıyor Olanlar**: Vardiyanın resmi bitiş saati (**16:00** veya **00:00**) bitiş saati olarak kabul edilir.
 - **Tetikleyici**: `hooks.py` içinde birleştirilmiş cron tanımı (`15 0,16 * * *`) ile günde iki kez çalışır.
 - **Süre Sınırı**: 430 dakikalık net çalışma süresi sınırı, `doc.update_durum()` tarafından **Shift Capacity Model** ile uygulanır.
-    - **Model**: `Net Süre = 430dk - Toplam Duruş`.
-    - **Shift Cap**: Operatörün aynı vardiyadaki tüm kartlarının toplam net süresi 430 dakikayı aşamaz (ilk kartlardan itibaren kapasite doldurulur).
-- **⚠️ Boundary Rule (Kritik)**: `_shift_name_by_now()` fonksiyonu `(start, end]` mantığı kullanır:
+    - **Model (Net Squashing Fix - b3ed1e)**: `Net Süre = min((Toplam Geçen Süre - Toplam Duruş), 430dk)`. 
+      - *Önemli*: Kapasite sınırı, duruşlar çıkarıldıktan sonra kalan "saf çalışma süresine" uygulanır. Bu, uzun molaların net süreyi hatalı daraltmasını önler.
+    - **Shift Cap**: Operatörün aynı vardiyadaki tüm kartlarının toplam net süresi 430 dakikayı aşamaz.
+- **⚠️ Boundary Rule (Kritik - 836b3b)**: `_shift_name_by_now()` ve `_shift_window()` fonksiyonları `(start, end]` mantığı ve `start_dt` referansı kullanır:
     - `time(0,0) < t <= time(8,0)` → 3. Vardiya
     - `time(8,0) < t <= time(16,0)` → 1. Vardiya
     - `time(16,0) < t` veya `t == time(0,0)` → 2. Vardiya
-    - Tam sınır saati (16:00, 00:00, 08:00) her zaman **biten vardiyaya** aittir. `[start, end)` kullanılmamalıdır!
+    - Tam sınır saati (16:00, 00:00, 08:00) her zaman **biten vardiyaya** aittir. Pencere hesaplamaları her zaman kartın gerçek başlangıç zamanı (`start_dt`) üzerinden normalize edilir.
 
 ### 8. Server-Side Filtering Pattern
 Büyük liste verileri içeren (Çalışma Kartları) Vue frontend ekranlarında, `computed` tabanlı tarayıcı düzeyinde döngülerden (client-side data arrays filtering) kaçınılır. Ara yüz sadece arama(`search_term`), durum(`durum`, `qc_filter`) parametrelerini backend'e gönderir. Süzme ve paginasyon işlemleri (SQL `WHERE` ve `LIMIT/OFFSET`) arka tarafta (`frappe.get_all` parametreleri ve `or_filters`) yapılır.
