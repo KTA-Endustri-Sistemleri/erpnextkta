@@ -3,88 +3,127 @@
 
 """
 Patch: Varsayılan duruş sebeplerini KTA Durus Sebebi DocType'ına aktarır.
-
-Mevcut Operasyon Duruslari tablosundaki tüm benzersiz durus_nedeni değerlerini
-yeni DocType'a taşır ve Planlı/Plansız kategorizasyonu uygular.
+Artık Türkçe karakterli ve sistem bayrakları (is_system vb.) doğru set edilmiş durumdadır.
 """
 
 import frappe
 
-
 # Varsayılan duruş sebepleri ve özellikleri
 DEFAULT_REASONS = [
     {
-        "reason": "Ariza",
-        "durus_tipi": "Plansız",
-        "is_system": 0,
-        "exclude_from_charts": 0,
-        "description": "Makine arızası kaynaklı duruş.",
+        "reason": "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.",
+        "durus_tipi": "Sistem",
+        "is_system": 1,
+        "exclude_from_charts": 1,
+        "description": "Aynı operatör başka bir çalışma kartını başlattığında sistem tarafından otomatik olarak eklenen duruş."
     },
     {
-        "reason": "Malzeme Bekleme",
-        "durus_tipi": "Plansız",
-        "is_system": 0,
-        "exclude_from_charts": 0,
-        "description": "Hammadde veya yarı mamul tedarik bekleme süresi.",
+        "reason": "Zaman Aşımı",
+        "durus_tipi": "Sistem",
+        "is_system": 1,
+        "exclude_from_charts": 1,
+        "description": "Vardiya sonunda veya uzun süre işlem yapılmadığında sistem tarafından otomatik kapatılan kartlar için kullanılır."
     },
     {
-        "reason": "Kalite Kontrol",
+        "reason": "Kalıp Bağlama / Makine Ayarı",
         "durus_tipi": "Plansız",
         "is_system": 0,
         "exclude_from_charts": 0,
-        "description": "Kalite kontrol işlemi için bekleme süresi.",
+        "description": "İş değişimi sırasında kalıp bağlama ve makine ayarları için yapılan duruş."
+    },
+    {
+        "reason": "Board Kurma Hazırlık",
+        "durus_tipi": "Plansız",
+        "is_system": 0,
+        "exclude_from_charts": 0,
+        "description": "Üretime başlamadan önceki board kurma ve hazırlık süreci."
+    },
+    {
+        "reason": "Malzeme Taşıma",
+        "durus_tipi": "Plansız",
+        "is_system": 0,
+        "exclude_from_charts": 0,
+        "description": "Ürün, Yarımamul vb. malzemelerin taşınması süreci."
+    },
+    {
+        "reason": "Depo / Hammadde Yerleştirme",
+        "durus_tipi": "Plansız",
+        "is_system": 0,
+        "exclude_from_charts": 0,
+        "description": "Depodan gelen hammaddelerin operatör tarafından yerleştirilmesi ve düzenlenmesi süreci."
+    },
+    {
+        "reason": "Arıza",
+        "durus_tipi": "Plansız",
+        "is_system": 0,
+        "exclude_from_charts": 0,
+        "description": "Makine veya ekipman kaynaklı teknik arızalar."
+    },
+    {
+        "reason": "Bakım",
+        "durus_tipi": "Planlı",
+        "is_system": 0,
+        "exclude_from_charts": 0,
+        "description": "Planlı makine bakımları."
     },
     {
         "reason": "Mola",
         "durus_tipi": "Planlı",
         "is_system": 0,
         "exclude_from_charts": 0,
-        "description": "Operatör mola süresi.",
+        "description": "Standart personel molaları."
     },
     {
-        "reason": "Bakim",
-        "durus_tipi": "Planlı",
-        "is_system": 0,
-        "exclude_from_charts": 0,
-        "description": "Planlı bakım süresi.",
-    },
-    {
-        "reason": "Diger",
+        "reason": "Kalite Kontrol",
         "durus_tipi": "Plansız",
         "is_system": 0,
         "exclude_from_charts": 0,
-        "description": "Diğer nedenlerle oluşan duruş.",
+        "description": "Kalite kontrol onayı beklerken geçen süre."
     },
     {
-        "reason": "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.",
+        "reason": "Malzeme Bekleme",
         "durus_tipi": "Plansız",
-        "is_system": 1,
-        "exclude_from_charts": 1,
-        "description": "Operatör farklı bir çalışma kartı başlattığında sistem tarafından otomatik oluşturulur.",
+        "is_system": 0,
+        "exclude_from_charts": 0,
+        "description": "Hammadde veya yarı mamul eksikliği nedeniyle bekleme."
     },
     {
-        "reason": "Zaman Aşımı",
+        "reason": "Diğer",
         "durus_tipi": "Plansız",
-        "is_system": 1,
-        "exclude_from_charts": 1,
-        "description": "Maksimum çalışma süresi aşıldığında sistem tarafından otomatik oluşturulur.",
-    },
+        "is_system": 0,
+        "exclude_from_charts": 0,
+        "description": "Tanımlananlar dışındaki genel nedenler."
+    }
 ]
 
-
 def execute():
-    """Varsayılan duruş sebeplerini oluştur ve mevcut veritabanı değerlerini de ekle."""
+    """Varsayılan duruş sebeplerini oluştur ve mevcut veritabanı değerlerini aktar."""
 
-    # 1. Varsayılan sebepleri oluştur
-    for reason_data in DEFAULT_REASONS:
-        if not frappe.db.exists("KTA Durus Sebebi", reason_data["reason"]):
-            doc = frappe.new_doc("KTA Durus Sebebi")
-            doc.update(reason_data)
+    # 1. Varsayılan sebepleri oluştur veya güncelle
+    for data in DEFAULT_REASONS:
+        if not frappe.db.exists("KTA Durus Sebebi", data["reason"]):
+            doc = frappe.get_doc({
+                "doctype": "KTA Durus Sebebi",
+                **data
+            })
             doc.insert(ignore_permissions=True)
-            frappe.logger().info(f"[kta] KTA Durus Sebebi oluşturuldu: {reason_data['reason']}")
+            frappe.logger().info(f"[kta] KTA Durus Sebebi oluşturuldu: {data['reason']}")
+        else:
+            # Mevcut kayıtları yeni bayraklarla güncelle (idempotent)
+            frappe.db.set_value("KTA Durus Sebebi", data["reason"], {
+                "is_system": data["is_system"],
+                "durus_tipi": data["durus_tipi"],
+                "exclude_from_charts": data["exclude_from_charts"],
+                "description": data["description"]
+            }, update_modified=False)
 
-    # 2. Veritabanındaki mevcut benzersiz durus_nedeni değerlerini kontrol et
-    #    (Kullanıcılar Select alanına manuel değer girmiş olabilir)
+    # 2. Ayarları otomatik bağla
+    settings = frappe.get_doc("KTA Calisma Karti Settings")
+    settings.auto_pause_durus_nedeni = "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı."
+    settings.timeout_durus_nedeni = "Zaman Aşımı"
+    settings.save(ignore_permissions=True)
+
+    # 3. Eski veriden aktarım (Opsiyonel/Ekstra güvenlik)
     existing_values = frappe.db.sql("""
         SELECT DISTINCT durus_nedeni
         FROM `tabOperasyon Duruslari`
@@ -101,6 +140,5 @@ def execute():
             doc.exclude_from_charts = 0
             doc.description = "Mevcut veriden otomatik aktarıldı."
             doc.insert(ignore_permissions=True)
-            frappe.logger().info(f"[kta] Mevcut veriden KTA Durus Sebebi oluşturuldu: {reason_name}")
 
     frappe.db.commit()

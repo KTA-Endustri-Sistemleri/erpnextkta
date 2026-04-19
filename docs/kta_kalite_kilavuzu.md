@@ -9,6 +9,16 @@ title: "KTA Kalite Yönetimi (Krimp & Test Masası) Kılavuzu"
 
 **KTA Kalite Modülü**, üretim sahasındaki en kritik operasyonlardan olan **Krimp (Kontak Basma)** ve **Test Masası** süreçlerinde hata payını sıfıra indirmek (Poke-Yoke) ve standartlara tam uyumu sağlamak için geliştirilmiştir.
 
+## 📥 Veri Aktarımı (Krimp Book Setup)
+
+Krimp Book kütüphanesinin (1500+ kayıt) sistem performansını etkilememesi ve `bench migrate` sırasında zaman aşımı (timeout) oluşturmaması için manuel aktarılması önerilir.
+
+Yeni bir kurulumda şu komutu terminalden çalıştırınız:
+
+```bash
+bench --site [site-adı] execute erpnextkta.kta_quality.scripts.import_krimp_data.execute
+```
+
 ---
 
 ## 📚 1. Krimp Teknik Kütüphanesi (Krimp Book)

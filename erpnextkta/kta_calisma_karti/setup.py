@@ -4,7 +4,6 @@ def setup():
     setup_scrap_stock_entry_type()
     create_kta_roles()
     setup_permissions()
-    setup_system_downtime_reasons()
 
 def setup_scrap_stock_entry_type():
     """Create 'Scrap for Manufacturing' Stock Entry Type if it doesn't exist."""
