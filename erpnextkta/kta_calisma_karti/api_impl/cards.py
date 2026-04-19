@@ -540,8 +540,13 @@ def _auto_pause_other_active_cards(hedef_doc, now_dt):
     for k in kartlar:
         eski_doc = frappe.get_doc("Calisma Karti", k.name, for_update=True)
         if eski_doc.get_durum() == "calisiyor":
+            # Get the reason from settings, fallback to hardcoded if not set
+            p_reason = frappe.db.get_single_value("KTA Calisma Karti Settings", "auto_pause_durus_nedeni")
+            if not p_reason:
+                p_reason = "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı."
+            
             eski_doc.append("duruslar", {
-                "durus_nedeni": "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.",
+                "durus_nedeni": p_reason,
                 "durus_baslangic": now_dt,
             })
             eski_doc.update_durum()

@@ -1,6 +1,32 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-04-06 (Race Condition Fix & Stress Test)
+> Son güncelleme: 2026-04-19 (Dinamik Duruşlar ve Süre Fixleri)
+
+### Vardiya ve Süre Hesaplama Mantığı İyileştirmeleri (2026-04-18 - Tamamlandı)
+- [x] **Vardiya Penceresi Düzeltmesi (836b3b)**: `_shift_window` fonksiyonunda `end_dt` yerine `start_dt` kullanılarak vardiya sınırlarının daha doğru hesaplanması sağlandı.
+- [x] **Net Süre "Squashing" Düzeltmesi (b3ed1e)**: Kapasite sınırının (430 dk) toplam süre yerine "molalar çıkarılmış net süre" üzerine uygulanması sağlandı. Bu sayede uzun mola veren operatörlerin net sürelerinin hatalı şekilde daralması engellendi.
+
+### Dinamik Duruş Yönetimi ve Standardizasyon (2026-04-19 - Tamamlandı)
+- [x] **Dinamik Ayarlar**: Otomatik duruş metinleri `KTA Calisma Karti Settings` üzerinden yönetilir hale getirildi.
+- [x] **"Sistem" Kategorisi**: Duruş sebeplerine "Sistem" tipi eklenerek manuel nedenlerden ayrıldı.
+- [x] **Görünürlük Kontrolü**: `is_system` bayrağı ile UI filtreleme mantığı düzeltildi (0=görünür, 1=gizli).
+- [x] **Standardizasyon**: 700+ "Diğer" kaydı analiz edilerek 6 yeni standart manuel duruş nedeni eklendi.
+- [x] **Duruş Güvenliği**: Sistem duruşlarının silinmesi engellendi ve ayarlar bazlı senkronizasyon sağlandı.
+
+### API Test Kapsamı ve Stabilizasyon (2026-04-14 - Tamamlandı)
+- [x] **Kritik API Testleri**: `islem_yap`, `qc`, `hurda` ve `alt_op` süreçleri için entegrasyon testleri eklendi.
+- [x] **Test Verisi İzolasyonu**: Monkeypatching ve Employee seeding ile anti-double-click ve validasyon engelleri aşıldı.
+- [x] **Final Doğrulama**: Tüm testlerin `test_site` üzerinde başarılı çalıştığı teyit edildi.
+
+### Duruş Sebeplerini Modülerleştirme (2026-04-13 - Tamamlandı)
+- [x] **Yeni DocType: `KTA Durus Sebebi`**: Duruş sebepleri merkezi yönetilebilir tabloya taşındı.
+- [x] **Duruş Tipi Kategorizasyonu**: Planlı/Plansız ayrımı eklendi.
+- [x] **Grafik Filtreleme**: `exclude_from_charts` bayrağı ile dinamik dashboard filtrelemesi sağlandı.
+- [x] **Sistem Kaydı Koruması**: `is_system` bayrağı ile otomatik oluşturulan duruşların kullanıcı tarafından silinmesi engellendi.
+- [x] **Child Table Linkage**: `Operasyon Duruslari` tablosu Link alanına dönüştürüldü.
+- [x] **Backend & Dashboard Refactoring**: Hardcoded string'ler JOIN mantığına çevrildi.
+- [x] **Vue SPA Update**: `view-calisma-karti` ve `create-calisma-karti` arayüzleri yeni yapıya uyumlu hale getirildi.
+- [x] **Data Migration**: Patch ile mevcut veriler ve varsayılan sebepler sisteme işlendi.
 
 ### Yarış Durumu (Race Condition) ve Veri Bütünlüğü (2026-04-06 - Tamamlandı)
 - [x] **Kalite Belgesi Kilidi**: `check_duplicate_quality_docs` içinde `Quality Inspection` üzerine `FOR UPDATE` kilidi uygulandı.

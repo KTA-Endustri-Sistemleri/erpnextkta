@@ -73,11 +73,15 @@ def auto_close_timed_out_cards():
             doc.bitis_saati = close_dt
             
             # Timeout duruşu ekle (Bilgi amaçlı, 0 süreli)
+            t_reason = frappe.db.get_single_value("KTA Calisma Karti Settings", "timeout_durus_nedeni")
+            if not t_reason:
+                t_reason = "Zaman Aşımı"
+
             doc.append("duruslar", {
                 "durus_baslangic": close_dt,
                 "durus_bitis": close_dt,
                 "durus_suresi": 0,
-                "durus_nedeni": "Zaman Aşımı",
+                "durus_nedeni": t_reason,
                 "aciklama": "Vardiya sonunda açık unutulduğu için sistem tarafından otomatik kapatılmıştır."
             })
 

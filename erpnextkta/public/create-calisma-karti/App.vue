@@ -560,11 +560,6 @@ async function submitWorkCard() {
         createdDoc.value = { name: msg && msg.name ? msg.name : '' };
       }
 
-      frappe.msgprint({
-        title: __('İşlem Başarılı'),
-        message: __('Çalışma Kartı başarıyla oluşturuldu.'),
-        indicator: 'green'
-      });
     }, 900);
   } catch (err) {
     console.error(err);

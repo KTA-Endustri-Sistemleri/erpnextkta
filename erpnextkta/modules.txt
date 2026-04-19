@@ -3,3 +3,4 @@ kta_mrp
 kta_calisma_karti
 kta_sales
 kta_stock
+kta_quality

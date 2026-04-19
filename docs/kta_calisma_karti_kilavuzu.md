@@ -43,7 +43,10 @@ Kartı oluşturduktan sonra içine girip, üst kısımdaki **"Başlat"** butonun
 Üretime ara vermeniz gerektiğinde (yemek, çay molası, arıza vb.) çalışma kartını duraklatmalısınız.
 
 1. **Durdur Butonu:** Kart içindeyken **"Durdur"** butonuna basın.
-2. **Duruş Nedeni:** Açılan ekrandan duruş nedeninizi seçin (Çay Molası, Yemek, Makine Arızası, vs.).
+2. **Duruş Nedeni:** Açılan ekrandan duruş nedeninizi seçin. Duruş nedenleri artık dinamik olarak yönetilir ve üç ana kategoriye ayrılır:
+    - **Plansız Duruşlar**: Makine arızası, malzeme bekleme, kalite onayı bekleme vb. (OEE kayıpları).
+    - **Planlı Duruşlar**: Mola, yemek, eğitim veya planlı bakım süreçleri.
+    - **Sistem Duruşları**: Arka plan görevleri veya otomatik kurallar tarafından eklenen, operatöre gizli duruşlar.
 3. Kartın durumu **"Duruşta"** olarak güncellenir. Bu süre boyunca çalışılan net süre sayacı ilerlemez.
 4. İşe tekrar dönüldüğünde **"Devam Et" (Başlat)** butonuna basarak kaldığınız yerden süre saymaya devam edebilirsiniz.
 
@@ -144,8 +147,19 @@ ERPNext Arama Çubuğuna `KTA Calisma Karti Settings` yazarak ulaşabileceğiniz
     - `Esnek (Soft)`: Operatör uyarılır ancak yeni karta geçmesine veya eskisini duraklatmasına müsaade edilir.
 5. **Yenileme Aralıkları (Liste ve Detay - Saniye):** Sahadaki tablet sayısının artışına bağlı olarak sunucu yükünü (API Rate) dengelemek için verilerin hangi aralıklarla polling ile (arka planda) güncelleneceğini belirler. Standart değerler Liste için 30, Detay için 10 saniyedir.
 6. **Hurda Gider Hesabı:** Stok belgeleri (SE) otomatik oluşurken hurdaların muhasebeleşeceği gider veya hurda deposu hesabını tanımlar.
-7. **Admin Kontrol Rolleri (`admin_roles`):**
+7. **Otomatik Duraklatma Duruş Nedeni**: Yeni bir kart başlatıldığında, operatörün açıkta kalan eski kartlarının hangi duruş nedeniyle duraklatılacağını belirler (Örn: Otomatik Duraklatma).
+8. **Zaman Aşımı Duruş Nedeni**: Vardiya sonunda veya 430 dk limitinde otomatik kapatılan kartlara eklenecek bilgi notu mahiyetindeki duruş nedeni (Örn: Zaman Aşımı).
+9. **Admin Kontrol Rolleri (`admin_roles`):**
     - İçeriği virgülle ayırarak genişletilir (Örnek: `System Manager, Quality Manager, Manufacturing Manager`).
     - Bu alana sistemdeki rollerin isimlerini girdiğinizde, ilgili role sahip yöneticiler; **"Bitmiş"** durumda kilitlenen kartlardaki Düzenle/Sil/Ekle gibi butonlara yeniden erişip (bypass edip) verileri düzeltebilir. İptal edilmiş (docstatus=2) kartlara ise hiçbir rol müdahale edemez.
 
-</main>
+---
++
++## 🛡️ 10. Sistem Güvenilirliği ve Test Otomasyonu
++
++KTA Çalışma Kartı platformu, endüstriyel sahadaki veri bütünlüğünü korumak için **Otomatik Entegrasyon Testleri** ile korunmaktadır.
++- **Kritik İş Akışları:** Kart başlatma, durdurma, bitirme ve kalite kontrol süreçleri her güncelleme öncesinde otomatik test senaryoları ile denetlenir.
++- **Veri Senkronizasyonu:** Hurda girişlerinin Stok Kayıtları ile senkronizasyonu ve Alt Operasyon kayıtlarının tutarlılığı sistem tarafından anlık olarak izlenir ve doğrulanır.
++- **Hata Önleme:** "Anti-double-click" gibi koruma mekanizmaları, operatörlerin yanlışlıkla mükerrer veri girişi yapmasını engeller ve bu özellikler düzenli olarak test edilir.
++
++</main>
