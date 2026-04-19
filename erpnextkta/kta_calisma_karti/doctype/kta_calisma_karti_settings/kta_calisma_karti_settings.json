@@ -12,6 +12,8 @@
         "detay_yenileme_araligi_sn",
         "sb_kart_gecis",
         "kart_gecis_modu",
+        "auto_pause_durus_nedeni",
+        "timeout_durus_nedeni",
         "mukerrer_kalite_kontrolu_yap",
         "sb_stok",
         "hurda_gider_hesabi",
@@ -71,6 +73,20 @@
             "label": "Kart Ge\u00e7i\u015f Modu",
             "options": "S\u0131k\u0131 (Hard)\nEsnek (Soft)",
             "description": "S\u0131k\u0131: Veri eksikse yeni kart ba\u015flat\u0131lamaz. Esnek: Uyar\u0131 g\u00f6sterilir, operat\u00f6r devam edebilir."
+        },
+        {
+            "fieldname": "auto_pause_durus_nedeni",
+            "fieldtype": "Link",
+            "label": "Otomatik Duraklatma Nedeni",
+            "options": "KTA Durus Sebebi",
+            "description": "Aynı operatör başka kart başlattığında eklenecek duruş nedeni."
+        },
+        {
+            "fieldname": "timeout_durus_nedeni",
+            "fieldtype": "Link",
+            "label": "Zaman Aşımı Duruş Nedeni",
+            "options": "KTA Durus Sebebi",
+            "description": "Vardiya sonunda otomatik kapatılan kartlar için kullanılacak duruş nedeni."
         },
         {
             "default": "1",
