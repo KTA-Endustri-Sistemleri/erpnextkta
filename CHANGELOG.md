@@ -3,6 +3,188 @@
 
 
 
+## 🚀 v1.7.0 (2026-04-19)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta-calisma-karti**: fix shift window calculation in calisma_karti.py
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: work card net working time calculation logic
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- test_masasi_dogrulama_kaydi doctype moved to kta_quality module
+      
+      
+    
+      
+      
+        
+- move BaglantiNoktasiSatiri and DegerlendirmeKriteri doctypes to kta_quality module
+      
+      
+    
+      
+      
+        
+- move kta_krimp_yukseklik_parametreleri doctype to kta_quality module
+      
+      
+    
+      
+      
+        
+- rename kta_krimp_book field to izokrimp_yuksekligi
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- modular downtime reasons(kta-calisma-karti) and quality improvments (kta-quality)
+      
+      
+    
+      
+      
+        
+- **downtime**: modularize downtime reasons and remove unused UI fields
+      
+      
+    
+      
+      
+        
+- **kta_quality**: kta_quality module added
+      
+      
+    
+      
+      
+        
+- implement Krimp Book and Quality Settings doctypes with import script
+      
+      
+    
+      
+      
+        
+- **quality**: improve Test Masasi Dogrulama Kaydi functionality
+      
+      
+    
+      
+      
+        
+- **downtime**: implement dynamic downtime reasons and system categorization
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- update module name to kta_quality for Baglanti Noktasi Satiri and Degerlendirme Kriteri doctypes
+      
+      
+    
+      
+      
+        
+- replace hardcoded BOSCH customer check with dynamic DocType for selling exchange rate
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Testing
+
+    
+      
+      
+        
+- **kta-calisma-karti**: modularize and expand test suite
+      
+      
+    
+      
+      
+        
+- fix LinkValidationError by standardizing naming and adding seeding
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.6.0 (2026-04-12)
 
 
