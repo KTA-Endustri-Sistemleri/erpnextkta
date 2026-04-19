@@ -2,6 +2,13 @@
 
 > Son güncelleme: 2026-04-13 (Downtime Reason Modularization)
 
+### Dinamik Duruş Yönetimi ve Standardizasyon (2026-04-19 - Tamamlandı)
+- [x] **Dinamik Ayarlar**: Otomatik duruş metinleri `KTA Calisma Karti Settings` üzerinden yönetilir hale getirildi.
+- [x] **"Sistem" Kategorisi**: Duruş sebeplerine "Sistem" tipi eklenerek manuel nedenlerden ayrıldı.
+- [x] **Görünürlük Kontrolü**: `is_system` bayrağı ile UI filtreleme mantığı düzeltildi (0=görünür, 1=gizli).
+- [x] **Standardizasyon**: 700+ "Diğer" kaydı analiz edilerek 6 yeni standart manuel duruş nedeni eklendi.
+- [x] **Duruş Güvenliği**: Sistem duruşlarının silinmesi engellendi ve ayarlar bazlı senkronizasyon sağlandı.
+
 ### API Test Kapsamı ve Stabilizasyon (2026-04-14 - Tamamlandı)
 - [x] **Kritik API Testleri**: `islem_yap`, `qc`, `hurda` ve `alt_op` süreçleri için entegrasyon testleri eklendi.
 - [x] **Test Verisi İzolasyonu**: Monkeypatching ve Employee seeding ile anti-double-click ve validasyon engelleri aşıldı.

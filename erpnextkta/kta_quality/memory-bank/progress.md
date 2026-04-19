@@ -7,7 +7,8 @@
 - [x] **Uygulama Metni Yönetimi:** PTR form referanslarını içeren standart metnin formlara eklenmesi.
 - [x] **KTA Krimp Book DocType:** 1548 adet teknik referans verisinin aktarımı ve kütüphane yapısı.
 - [x] **Dinamik Kontak Kısıtı:** `KTA Quality Settings` üzerinden Item Group bazlı terminal filtreleme altyapısı.
-- [x] **Hafıza Bankası (Memory Bank):** Modül dokümantasyonunun ve Krimp mimari vizyonunun Türkçe olarak tamamlanması.
+- [x] **Hafıza Bankası (Memory Bank):** Modül dökümantasyonunun ve teknik vizyonunun ilk sürümü tamamlandı (2026-04-19).
+- [x] **Duruş Standardizasyonu Uyumu:** `kta_calisma_karti` tarafındaki "Board Kurma" ve "Kalite Kontrol" gibi yeni standart duruşlar ile kalite onay süreçleri arasındaki bağ kuruldu.
 
 ## Üzerinde Çalışılanlar (In-Progress)
 - [/] **Gelecek Mimari Planlama:** Krimp Book ve Amboss Takımları arasındaki Link ilişkisinin detaylandırılması.

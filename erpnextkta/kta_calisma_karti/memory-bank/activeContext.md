@@ -1,18 +1,17 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-04-13 (Downtime Reason Modularization)
+> Son güncelleme: 2026-04-19 (Dynamic Downtime & Visibility Fix)
 
-Duruş sebepleri sert kodlanmış (hardcoded) metinlerden kurtarılarak dinamik bir yapıya taşındı. Yeni `KTA Durus Sebebi` DocType'ı ile sebepler kategorize edilebilir ve sistem genelinde yönetilebilir hale getirildi.
+Duruş yönetimi tamamen dinamik hale getirildi. `KTA Calisma Karti Settings` üzerinden yönetilen otomatik duruşlar, "Sistem" kategorisi ve `is_system` tabanlı UI filtreleme mantığı devreye alındı.
 
-- [x] **Downtime Modularization**: Duruş sebepleri için `KTA Durus Sebebi` DocType'ı oluşturuldu ve tüm sistem bu yeni yapıya taşındı. (Tamamlandı - 2026-04-13)
-- [x] **Draft-First Lifecycle**: Yeni kartlar artık "Taslak" (docstatus=0) olarak açılıyor ve sadece "Bitir" anında otomatik submit ediliyor. (Tamamlandı)
-- [x] **Native Document States**: Hazır, Çalışıyor, Duruşta, Bitmiş, Reddedildi durumları Frappe standart statüleri olarak sisteme işlendi. (Tamamlandı)
-- [x] **Cancelled Status Display**: `docstatus=2` (İptal Edildi) olan kartların hem list-view hem de view-calisma-karti SPA'larında doğru (Gri) ve yüksek öncelikli gösterilmesi sağlandı. (Tamamlandı)
-- [x] **Theme-Aware UI Sync**: "İptal Edildi" durumu için cam tasarımı (Glassmorphism) Açık/Koyu tema değişkenleri eklendi. (Tamamlandı)
-- [x] **API Veri Tutarlılığı**: `get_calisma_karti_detail` ve `get_my_calisma_kartlari` API'lerine `docstatus` alanı eklenerek frontend belirsizliği giderildi. (Tamamlandı)
-- [x] **Yetki Güncellemesi**: `Asset Maintenance Log` DocType'ı için standart operatör ve yönetici rollerine okuma yetkisi tanımlandı. (Tamamlandı)
-- [x] **Race Condition Protection (Critical)**: `FOR UPDATE` kilitleri ve snapshot bypass mantığı ile 100+ kullanıcı yüku altında veri bütünlüğü sağlandı. (Tamamlandı - 2026-04-06)
-- [x] **API Test Kapsamı ve Stabilizasyon**: Kritik API uç noktaları (`islem_yap`, `qc`, `hurda`, `alt_op`) için entegrasyon testleri oluşturuldu ve veri bağımlılıkları çözüldü. (Tamamlandı - 2026-04-14)
+- [x] **Dynamic Downtime Settings**: Otomatik duruş metinleri koddan arındırılarak Ayarlar tablosuna bağlandı (2026-04-19).
+- [x] **"Sistem" Category**: Otomatik duruşlar "Sistem" tipi ile Manuel duruşlardan (Arıza, Mola vb.) ayrıldı (2026-04-19).
+- [x] **Visibility Logic Fix**: `is_system=0` olanların kullanıcıya görünmesi, `1` olanların ise sadece API/Sistem için gizli kalması sağlandı (2026-04-19).
+- [x] **Downtime Reason Standardization**: "Diğer" kayıtları analiz edilerek 6 yeni standart manuel neden (Arıza, Kalıp vb.) eklendi (2026-04-19).
+- [x] **Downtime Modularization**: Duruş sebepleri için `KTA Durus Sebebi` DocType'ı oluşturuldu (2026-04-13).
+- [x] **Draft-First Lifecycle**: ...
+- [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
+026-04-14)
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
 

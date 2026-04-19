@@ -1,7 +1,7 @@
 # Aktif Bağlam: kta_quality
 
-## Mevcut Odak
-Şu anki odak noktamız, `kta_quality` modülünün temel özelliklerini ve teknik mimarisini bir **Hafıza Bankası (Memory Bank)** yapısında dokümante etmektir. Bu, projenin modüler yapısını korumak ve `kta_calisma_karti` gibi diğer modüllerle olan ilişkisini netleştirmek için gereklidir.
+## Mevcut Odak (2026-04-19)
+Şu anki odak noktamız, `kta_quality` modülünün `kta_calisma_karti` ile olan entegrasyonunu güçlendirmek ve bugün tamamlanan **"Duruş Standardizasyonu"** projesinin (Arıza, Board Kurma, Kalite Kontrol vb.) kalite darboğaz analizleri üzerindeki etkisini izlemek ve raporlamaktır.
 
 ## Son Değişiklikler
 - `TestMasasiDogrulamaKaydi` DocType'ının işlevsel hale getirilmesi.

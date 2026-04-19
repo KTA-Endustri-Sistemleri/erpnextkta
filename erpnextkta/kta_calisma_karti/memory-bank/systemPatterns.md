@@ -295,5 +295,8 @@ Duruş sebeplerinin (Downtime Reasons) statik listelerden dinamik, modüler bir 
 - **Categorization Flags**:
     - `durus_tipi`: Planlı/Plansız ayrımı.
     - `exclude_from_charts`: İstatistiksel raporlamalarda ve "Net Süre" hesaplamalarında hangi sebeplerin (örn. Otomatik durdurma) filtreleneceğini belirler.
-    - `is_system`: Operatörlerin manuel seçmemesi gereken (API tarafından yönetilen) kayıtları işaretler.
+    - `is_system`: UI görünürlük ve sistem koruma bayrağı. 
+        - `0`: Operatörlerin manuel seçim listelerinde (Duruş Başlat) **Görünür**. 
+        - `1`: Sadece sistem/API tarafından kullanılır, manuel listelerde **Gizlenir**. Bu kayıtlar ayrıca manuel silinmeye karşı korunur.
+- **Dinamik Ayarlar Bağlantısı**: Arka plan görevleri (`tasks.py`) ve otomatik duraklatma mantığı (`cards.py`), duruş nedenlerini statik metinler yerine `KTA Calisma Karti Settings` üzerinden dinamik olarak okur.
 - **Dashboard Integration**: `LEFT JOIN` mantığı ile `exclude_from_charts` bayrağı üzerinden dinamik filtreleme yapılır (Hardcoded string karşılaştırmalarından kaçınılır).
