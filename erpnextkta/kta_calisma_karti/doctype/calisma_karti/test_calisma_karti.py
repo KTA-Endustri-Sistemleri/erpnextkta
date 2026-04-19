@@ -191,13 +191,13 @@ class TestCalismaKartiIntegration(KTATestCase):
 		d2_start = add_to_date(start, minutes=30)
 		d2_end = add_to_date(d2_start, minutes=10)
 		
-		doc.append("duruslar", {"durus_baslangic": d1_start, "durus_bitis": d1_end, "durus_nedeni": "Diger"})
-		doc.append("duruslar", {"durus_baslangic": d2_start, "durus_bitis": d2_end, "durus_nedeni": "Diger"})
+		doc.append("duruslar", {"durus_baslangic": d1_start, "durus_bitis": d1_end, "durus_nedeni": "Diğer"})
+		doc.append("duruslar", {"durus_baslangic": d2_start, "durus_bitis": d2_end, "durus_nedeni": "Diğer"})
 		doc.save()
 		
 		# Active downtime row (started 10 mins ago)
 		d3_start = add_to_date(None, minutes=-10)
-		doc.append("duruslar", {"durus_baslangic": d3_start, "durus_nedeni": "Diger"})
+		doc.append("duruslar", {"durus_baslangic": d3_start, "durus_nedeni": "Diğer"})
 		doc.save()
 		
 		doc.hesapla_toplam_sure()

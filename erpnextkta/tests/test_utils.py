@@ -1,4 +1,5 @@
 import frappe
+from erpnextkta.kta_calisma_karti.setup import setup_system_downtime_reasons
 
 
 def before_tests():
@@ -275,6 +276,9 @@ class KTATestCase(FrappeTestCase):
 		self.setup_kta_infrastructure()
 
 	def setup_kta_infrastructure(self):
+		# 0. Infrastructure data seeding
+		setup_system_downtime_reasons()
+
 		# 1. KTA Settings
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "mukerrer_kalite_kontrolu_yap", 1)
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk", 430)

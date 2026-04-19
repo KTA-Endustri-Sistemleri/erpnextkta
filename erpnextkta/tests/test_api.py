@@ -67,7 +67,7 @@ class TestCalismaKartiAPI(KTATestCase):
 		self.assertEqual(res["durum"], "calisiyor")
 		
 		# 2. Duruş
-		res = islem_yap(docname, "Durus", durus_nedeni="Diger", aciklama="Test durusu")
+		res = islem_yap(docname, "Durus", durus_nedeni="Diğer", aciklama="Test durusu")
 		self.assertEqual(res["durum"], "durusta")
 		
 		# 3. Devam Et
