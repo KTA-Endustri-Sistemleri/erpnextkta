@@ -137,7 +137,20 @@ def _get_item_wo_defaults(ck_doc, item_code):
         src_wh = frappe.db.get_value("Work Order", ck_doc.custom_work_order, "source_warehouse")
     
     if not src_wh:
-        src_wh = frappe.db.get_value("Item", item_code, "default_warehouse")
+        try:
+            # Item might not have default_warehouse directly in newer ERPNext versions
+            src_wh = frappe.db.get_value("Item", item_code, "default_warehouse")
+        except Exception:
+            # Fallback to checking Item Default table if company is available
+            company = ck_doc.get("company")
+            if not company and ck_doc.is_karti:
+                company = frappe.db.get_value("Job Card", ck_doc.is_karti, "company")
+            
+            if company:
+                src_wh = frappe.db.get_value("Item Default", 
+                    {"parent": item_code, "company": company}, 
+                    "default_warehouse"
+                )
 
     return src_wh, stock_uom
 
@@ -416,8 +429,9 @@ def add_hurda(
             "stock_uom": stock_uom or "Nos",
             "conversion_factor": 1.0,
             "s_warehouse": src_wh,
-            "cost_center": hurda_nedeni,
             "expense_account": _get_expense_account(),
+            "allow_zero_valuation_rate": 1,
+            "cost_center": hurda_nedeni,
             "is_scrap_item": 1,
             "description": description,
         })

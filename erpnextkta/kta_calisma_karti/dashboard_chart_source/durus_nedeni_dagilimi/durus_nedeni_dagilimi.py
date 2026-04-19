@@ -31,7 +31,6 @@ def get_data(**kwargs):
         "od.durus_suresi > 0",
         "od.durus_nedeni IS NOT NULL",
         "od.durus_nedeni != ''",
-        "od.durus_nedeni != 'Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.'"
     ]
     params = {"start": start_date, "end": today}
 
@@ -48,7 +47,9 @@ def get_data(**kwargs):
             SUM(od.durus_suresi)       AS toplam_dk
         FROM `tabOperasyon Duruslari` od
         INNER JOIN `tabCalisma Karti` ck ON ck.name = od.parent
+        LEFT JOIN `tabKTA Durus Sebebi` ds ON ds.name = od.durus_nedeni
         WHERE {where_clause}
+          AND IFNULL(ds.exclude_from_charts, 0) = 0
         GROUP BY od.durus_nedeni
         ORDER BY toplam_dk DESC
         """,

@@ -176,7 +176,7 @@ async function onBaslatDevam() {
 function onDurus() {
   frappe.prompt(
     durusFields(),
-    async (v: any) => callIslem("Durus", v.durus_nedeni, v.aciklama, v.tamamlanan_miktar),
+    async (v: any) => callIslem("Durus", v.durus_nedeni, v.aciklama),
     "Duruş Bilgisi",
     "Duruş Başlat"
   );

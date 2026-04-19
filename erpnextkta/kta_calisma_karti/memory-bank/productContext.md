@@ -19,6 +19,15 @@ KTA operatörleri:
 | Tamamlanmış iş emirlerinde tıkanma | **Smart Tolerance**: Son stok girişinden sonraki N saat (varsayılan 8) boyunca işlem izni |
 | Makine arızaları / Denetim eksikliği | **Makine Günlük Bakım**: Operatörün işe başlamadan önce makine kontrolü yapmasını sağlayan talimat ve form sistemi |
 
+## Duruş ve Verimlilik Yönetimi
+- **Dinamik Duruş Nedenleri**: Tüm duruş nedenleri `KTA Durus Sebebi` tablosundan yönetilir.
+- **Duruş Tipleri**: 
+    - **Plansız**: Üretim sırasındaki beklenmedik duruşlar (Arıza, Malzeme Bekleme vb.).
+    - **Planlı**: Mola, Eğitim veya Planlı Bakım süreçleri.
+    - **Sistem**: API veya arka plan görevleri tarafından üretilen duruşlar (Otomatik Duraklatma, Zaman Aşımı).
+- **Standart Manuel Nedenler**: Arıza, Bakım, Mola, Kalite Kontrol, Malzeme Bekleme, Diğer, Kalıp Bağlama / Makine Ayarı, Board Kurma Hazırlık, Malzeme Taşıma, Depo / Hammadde Yerleştirme.
+- **Otomatik Duruşlar**: Başka kart başlatıldığında veya vardiya sonu zaman aşımında sistem tarafından otomatik olarak eklenir.
+
 ## Kullanıcı Grupları
 
 ### Operatör (Manufacturing User)

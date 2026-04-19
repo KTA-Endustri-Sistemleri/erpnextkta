@@ -80,14 +80,14 @@ export function hurdaParcaNoField(calismaKartiName: string, defaultValue?: strin
 export function durusFields() {
     return [
         {
-            fieldtype: "Select",
+            fieldtype: "Link",
             label: "Duruş Nedeni",
             fieldname: "durus_nedeni",
             reqd: 1,
-            options: "Ariza\nMalzeme Bekleme\nKalite Kontrol\nMola\nBakim\nDiger",
+            options: "KTA Durus Sebebi",
+            get_query: () => ({ filters: { is_system: 0 } })
         },
-        { fieldtype: "Small Text", label: "Açıklama", fieldname: "aciklama" },
-        { fieldtype: "Float", label: "Tamamlanan Miktar (opsiyonel)", fieldname: "tamamlanan_miktar" },
+        { fieldtype: "Small Text", label: "Açıklama", fieldname: "aciklama" }
     ];
 }
 

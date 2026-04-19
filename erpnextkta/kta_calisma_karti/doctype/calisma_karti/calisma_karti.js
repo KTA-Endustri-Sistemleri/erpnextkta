@@ -142,8 +142,10 @@ function addBaslatButton(frm, isDurusDevami = false, customText = null) {
 function addDurusButton(frm) {
   frm.add_custom_button(__('Duruş'), () => {
     frappe.prompt([
-      { fieldtype: 'Select', label: __('Duruş Nedeni'), fieldname: 'durus_nedeni', reqd: 1,
-        options: 'Ariza\nMalzeme Bekleme\nKalite Kontrol\nMola\nBakim\nDiger' },
+      { fieldtype: 'Link', label: __('Duruş Nedeni'), fieldname: 'durus_nedeni', reqd: 1,
+        options: 'KTA Durus Sebebi',
+        get_query: () => ({ filters: { is_system: 0 } })
+      },
       { fieldtype: 'Small Text', label: __('Açıklama'), fieldname: 'aciklama' }
     ], (values) => {
       callIslemYap(frm, "Durus", values.durus_nedeni, values.aciklama, () => {

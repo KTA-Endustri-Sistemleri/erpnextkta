@@ -101,13 +101,14 @@ Sistem, operatörlerin açık unuttuğu kartları her vardiya sonunda (16:00 ve 
     - **Çalışıyor Olanlar**: Vardiyanın resmi bitiş saati (**16:00** veya **00:00**) bitiş saati olarak kabul edilir.
 - **Tetikleyici**: `hooks.py` içinde birleştirilmiş cron tanımı (`15 0,16 * * *`) ile günde iki kez çalışır.
 - **Süre Sınırı**: 430 dakikalık net çalışma süresi sınırı, `doc.update_durum()` tarafından **Shift Capacity Model** ile uygulanır.
-    - **Model**: `Net Süre = 430dk - Toplam Duruş`.
-    - **Shift Cap**: Operatörün aynı vardiyadaki tüm kartlarının toplam net süresi 430 dakikayı aşamaz (ilk kartlardan itibaren kapasite doldurulur).
-- **⚠️ Boundary Rule (Kritik)**: `_shift_name_by_now()` fonksiyonu `(start, end]` mantığı kullanır:
+    - **Model (Net Squashing Fix - b3ed1e)**: `Net Süre = min((Toplam Geçen Süre - Toplam Duruş), 430dk)`. 
+      - *Önemli*: Kapasite sınırı, duruşlar çıkarıldıktan sonra kalan "saf çalışma süresine" uygulanır. Bu, uzun molaların net süreyi hatalı daraltmasını önler.
+    - **Shift Cap**: Operatörün aynı vardiyadaki tüm kartlarının toplam net süresi 430 dakikayı aşamaz.
+- **⚠️ Boundary Rule (Kritik - 836b3b)**: `_shift_name_by_now()` ve `_shift_window()` fonksiyonları `(start, end]` mantığı ve `start_dt` referansı kullanır:
     - `time(0,0) < t <= time(8,0)` → 3. Vardiya
     - `time(8,0) < t <= time(16,0)` → 1. Vardiya
     - `time(16,0) < t` veya `t == time(0,0)` → 2. Vardiya
-    - Tam sınır saati (16:00, 00:00, 08:00) her zaman **biten vardiyaya** aittir. `[start, end)` kullanılmamalıdır!
+    - Tam sınır saati (16:00, 00:00, 08:00) her zaman **biten vardiyaya** aittir. Pencere hesaplamaları her zaman kartın gerçek başlangıç zamanı (`start_dt`) üzerinden normalize edilir.
 
 ### 8. Server-Side Filtering Pattern
 Büyük liste verileri içeren (Çalışma Kartları) Vue frontend ekranlarında, `computed` tabanlı tarayıcı düzeyinde döngülerden (client-side data arrays filtering) kaçınılır. Ara yüz sadece arama(`search_term`), durum(`durum`, `qc_filter`) parametrelerini backend'e gönderir. Süzme ve paginasyon işlemleri (SQL `WHERE` ve `LIMIT/OFFSET`) arka tarafta (`frappe.get_all` parametreleri ve `or_filters`) yapılır.
@@ -288,3 +289,15 @@ Uygulama genelinde ve UI'daki kısıtlamalarda (Örneğin bitmiş karta müdahal
 - **Backend İletimi**: `boot_session` (`hooks.py` içinden `extend_boot_session`) ile bu liste, sayfa ilk yüklendiğinde `frappe.boot.kta_admin_roles` objesine `List[str]` olarak itilir (inject).
 - **Backend Bypass İşleyişi**: `_helpers.py` içindeki tekil `has_admin_roles()` metodu doğrudan Frappe DB'sine giderek (`get_single_value`) o anki kullanıcının rollerini kıyaslar.
 - **Frontend Gözlemi**: `canEditData` veya benzeri Computed property'ler hardcoded "Quality Manager" sorgusu yapmak yerine `frappe.boot.kta_admin_roles` array'inde `Array.some(r => roles.includes(r))` şeklinde tarar.
+### 31. Modular Downtime Management Pattern
+Duruş sebeplerinin (Downtime Reasons) statik listelerden dinamik, modüler bir yapıya geçişini sağlayan desendir:
+- **Merkezi Doctype**: `KTA Durus Sebebi`.
+- **Dinamik Link**: Child table'larda (`Operasyon Duruslari`) `Select` yerine `Link` (options: KTA Durus Sebebi) kullanılır.
+- **Categorization Flags**:
+    - `durus_tipi`: Planlı/Plansız ayrımı.
+    - `exclude_from_charts`: İstatistiksel raporlamalarda ve "Net Süre" hesaplamalarında hangi sebeplerin (örn. Otomatik durdurma) filtreleneceğini belirler.
+    - `is_system`: UI görünürlük ve sistem koruma bayrağı. 
+        - `0`: Operatörlerin manuel seçim listelerinde (Duruş Başlat) **Görünür**. 
+        - `1`: Sadece sistem/API tarafından kullanılır, manuel listelerde **Gizlenir**. Bu kayıtlar ayrıca manuel silinmeye karşı korunur.
+- **Dinamik Ayarlar Bağlantısı**: Arka plan görevleri (`tasks.py`) ve otomatik duraklatma mantığı (`cards.py`), duruş nedenlerini statik metinler yerine `KTA Calisma Karti Settings` üzerinden dinamik olarak okur.
+- **Dashboard Integration**: `LEFT JOIN` mantığı ile `exclude_from_charts` bayrağı üzerinden dinamik filtreleme yapılır (Hardcoded string karşılaştırmalarından kaçınılır).

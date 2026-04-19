@@ -6,15 +6,15 @@ Frontend method path prefix: `erpnextkta.kta_calisma_karti.api.`
 
 | Fonksiyon | Parametreler | Döner | Yetki |
 |-----------|-------------|-------|-------|
-| `get_my_calisma_kartlari` | `order_by`, `start`, `page_length`, `customer_group` | `[{name, operator, durum, ...}]` | Herkese açık (filtreli) |
-| `get_calisma_karti_detail` | `name` | `{name, hurdalar, duruslar, alt_operasyon_kayitlari[{..., alt_operasyon_title, alt_operasyon_sequence}], max_kart_suresi_dk, kart_uyari_suresi_dk, ...}` | Operator veya SM/QC |
+| `get_my_calisma_kartlari` | `order_by`, `start`, `page_length`, `customer_group` | `[{name, operator, durum, ...}]` | Herkese açık (filtreli) | |
+| `get_calisma_karti_detail` | `name` | `{name, hurdalar, duruslar, alt_operasyon_kayitlari[{..., alt_operasyon_title, alt_operasyon_sequence}], max_kart_suresi_dk, kart_uyari_suresi_dk, ...}` | Operator | |
 
 ## Oluşturma
 
 | Fonksiyon | Parametreler | Döner | Yetki |
 |-----------|-------------|-------|-------|
-| `create_calisma_karti` | `is_karti`, `operasyon`, `is_istasyonu`, `custom_work_order?`, `operator?` | CK dict | Manufacturing User |
-| `get_operations_for_job_card` | `job_card` | `[{name, calisma_karti_op, customer_group, sequence}]` — JC'ye göre filtrelenmiş | Herkese açık |
+| `create_calisma_karti` | `is_karti`, `operasyon`, `is_istasyonu`, `custom_work_order?`, `operator?` | CK dict | Manufacturing User | [Test Doğrulandı] |
+| `get_operations_for_job_card` | `job_card` | `[{name, calisma_karti_op, customer_group, sequence}]` — JC'ye göre filtrelenmiş | Herkese açık | |
 
 ## Barkod
 
@@ -29,9 +29,9 @@ Frontend method path prefix: `erpnextkta.kta_calisma_karti.api.`
 |-----------|-------------|-------|
 | `get_hurda_nedeni_options` | `parent_cost_center?` | Herkese açık |
 | `search_allowed_hurda_items` | `doctype, txt, searchfield, start, page_len, filters{calisma_karti}` | Operator |
-| `add_hurda` | `name, parca_no, hurda_nedeni, miktar, birim, depo?` | Operator |
-| `update_hurda` | `name, rowname, parca_no, hurda_nedeni, miktar, birim, depo?` | Operator |
-| `delete_hurda` | `name, rowname` | Operator |
+| `add_hurda` | `name, parca_no, hurda_nedeni, miktar, birim, depo?` | Operator | [Test Doğrulandı] |
+| `update_hurda` | `name, rowname, parca_no, hurda_nedeni, miktar, birim, depo?` | Operator | |
+| `delete_hurda` | `name, rowname` | Operator | [Test Doğrulandı] |
 
 ## Kalite Kontrol
 
@@ -50,7 +50,7 @@ Frontend method path prefix: `erpnextkta.kta_calisma_karti.api.`
 | `delete_barkod_kaydi` | `name, rowname` | KTA Kalite / QM / SM |
 | `get_qc_templates_for_ck` | `ck_name` | `{templates: [], default_template, item_code}` | Herkese açık |
 | `get_template_details` | `template_name` | `[{specification, numeric, min, max, ...}]` | Herkese açık |
-| `submit_kta_quality_inspection`| `ck_name, template_name, readings, sample_size=1, intent="approve"` | MAT-QA link + status (Draft) | KTA Kalite / QM / SM |
+| `submit_kta_quality_inspection`| `ck_name, template_name, readings, sample_size=1, intent="approve"` | MAT-QA link + status (Draft) | KTA Kalite / QM / SM | [Test Doğrulandı] |
 
 ## Alt Operasyon
 
@@ -59,9 +59,9 @@ docs> **Not:** `hammadde`, `uom`, `note` opsiyonel. `adet` default `0`.
 
 | Fonksiyon | Parametreler | Yetki |
 |-----------|-------------|-------|
-| `add_alt_operasyon_kaydi` | `calisma_karti, alt_operasyon, adet=0, hammadde=None, uom=None, note=None` | Operator / SM / QC |
-| `update_alt_operasyon_kaydi` | `calisma_karti, row_id, alt_operasyon, adet=0, hammadde=None, uom=None, note=None` | Operator / SM / QC |
-| `delete_alt_operasyon_kaydi` | `calisma_karti, row_id` | Operator / SM / QC |
+| `add_alt_operasyon_kaydi` | `calisma_karti, alt_operasyon, adet=0, hammadde=None, uom=None, note=None` | Operator / SM / QC | [Test Doğrulandı] |
+| `update_alt_operasyon_kaydi` | `calisma_karti, row_id, alt_operasyon, adet=0, hammadde=None, uom=None, note=None` | Operator / SM / QC | |
+| `delete_alt_operasyon_kaydi` | `calisma_karti, row_id` | Operator / SM / QC | [Test Doğrulandı] |
 | `search_allowed_hammadde_items` | `filters{calisma_karti, alt_operasyon}` — sub-op grubu tanımlıysa o grup; boşsa sequence çözümlemesi | Herkese açık (Link search) |
 
 ## Realtime Events

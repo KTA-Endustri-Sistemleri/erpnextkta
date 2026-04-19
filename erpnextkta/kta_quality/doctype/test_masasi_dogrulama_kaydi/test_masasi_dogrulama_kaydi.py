@@ -75,3 +75,11 @@ class TestMasasiDogrulamaKaydi(Document):
                     "tanim": tanim,
                     "durum": None,
                 })
+
+
+@frappe.whitelist()
+def get_item_customer_group(item_code):
+    customer_group = frappe.db.get_value(
+        "Item Customer Detail", {"parent": item_code}, "customer_group"
+    )
+    return customer_group

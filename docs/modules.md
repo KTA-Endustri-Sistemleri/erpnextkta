@@ -24,6 +24,8 @@ ERPNext’in standart üretim akışlarını gerçek atölye senaryolarına uyar
 
 - [KTA Çalışma Kartı Kullanım Kılavuzu](kta_calisma_karti_kilavuzu.html) (Arayüz kullanım detayları) 🚀
 - Job Card alt operasyonları (KTA Çalışma Kartı Operasyonları)
+- **Dinamik Duruş Yönetimi & Standardizasyonu**: Duruşların merkezi tablodan (`KTA Durus Sebebi`) kategorize edilerek yönetilmesi.
+- **KTA Çalışma Kartı Ayarları**: Sistem limitleri, otomatik duruş nedenleri ve yetki bypass kontrollerinin merkezi yönetimi.
 - Zaman loglarını ve üretim miktarlarını daha detaylı işleyen yapı
 - İş Emri → İş Kartı dönüşümünde gelişmiş validasyonlar ve Real-Time İş Emri Durum & Operasyon Güncellemesi
 
@@ -127,6 +129,29 @@ ERPNext’in üretim ekranlarını daha anlamlı hale getiren özel raporlar ve 
 
 - `reports/`
 - `dashboard/`
+
+</section>
+
+<section class="module-card" markdown="1">
+
+## 🔍 KTA Quality Control
+
+Üretim sahasındaki kritik kalite kontrol noktalarını (Krimp, Test Masası vb.) dijitalleştiren ve Poke-Yoke sistemlerini yöneten modüldür.
+
+**Öne çıkan özellikler:**
+
+- [KTA Kalite Yönetimi Kılavuzu](kta_kalite_kilavuzu.html) (Test ve Krimp detayları) 📏
+- **Krimp Teknik Kütüphanesi**: 1500+ kayıtlık üretici referans veri seti (KTA Krimp Book).
+- **Test Masası Doğrulama**: 17 maddelik otomatik Poke-Yoke ve Pin kontrol listesi.
+- **Dinamik Krimp Parametreleri**: Terminal bazlı otomatik kısıtlamalar ve ölçüm limitleri.
+- **Cross-Module Sync**: Test sonuçlarının anlık olarak `Calisma Karti`'na işlenmesi.
+
+**Dosya yapısı (örnek):**
+
+- `kta_quality/`
+  - `doctype/test_masasi_dogrulama_kaydi/`
+  - `doctype/kta_krimp_book/`
+  - `doctype/kta_krimp_yukseklik_parametreleri/`
 
 </section>
 

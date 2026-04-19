@@ -13,6 +13,10 @@ Uygulama; iş emirleri, iş kartları, operasyon akışları, üretim planlama, 
 
 Bu bölüm, ERPNextKTA uygulamasını kullanacak <strong>son kullanıcılar</strong> için sade bir genel bakış sunar.
 
+### 📖 Kullanım Kılavuzları
+- 🚀 [KTA Çalışma Kartı Kullanım Kılavuzu](docs/kta_calisma_karti_kilavuzu.html)
+- 📏 [KTA Kalite Yönetimi Kılavuzu](docs/kta_kalite_kilavuzu.html)
+
 ## 🎯 ERPNextKTA Nedir?
 
 ERPNextKTA, standart ERPNext işleyişine ek olarak aşağıdaki alanlarda kapsamlı geliştirmeler içerir:
@@ -21,6 +25,7 @@ ERPNextKTA, standart ERPNext işleyişine ek olarak aşağıdaki alanlarda kapsa
 - Gelişmiş <strong>İş Kartı (Job Card)</strong> akışı  
 - Çoklu operatör desteği  
 - Alt operasyon tanımlama  
+- **Dinamik Duruş Yönetimi**: Duruşların (Planlı, Plansız, Sistem) merkezi tablodan yönetimi ve analizleri
 - Detaylı zaman ve adet kayıtları  
 - Üretim saha süreçlerinde hız ve doğruluk artışı  
 
@@ -38,12 +43,19 @@ ERPNextKTA, standart ERPNext işleyişine ek olarak aşağıdaki alanlarda kapsa
 - Masaüstü + Mobil tarama desteği  
 - Duplicate ve hız kontrol mekanizması  
 - Otomatik hata yönetimi & kullanıcıya anlık geri bildirim  
+- **Krimp & Test Masası Kontrolü**: Krimp Book (Referans Kütüphanesi) ve Test Masası Poke-Yoke sistemleri
+
+### 🔍 Kalite Kontrol (KTA Quality)
+- **Krimp Book**: 1500+ kayıtlık teknik referans kütüphanesi
+- **Test Masası Doğrulama**: 17 maddelik otomatik Poke-Yoke kontrol listesi
+- **Krimp Yükseklik Parametreleri**: Terminal bazlı dinamik kısıtlamalar
 
 ### 📊 Yönetici Araçları  
 - Özel raporlar  
 - İç süreçlere uygun iş akışları  
 - Kullanıcı dostu ekranlar  
 - Dinamik yetki yönetimi (Admin Rolleri Konfigürasyonu)
+- **Duruş Nedenleri & Otomasyon**: Sistem duruşlarının (Zaman Aşımı vb.) ve manuel nedenlerin merkezi kontrolü
 
 </details>
 

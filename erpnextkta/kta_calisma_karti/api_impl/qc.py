@@ -504,6 +504,14 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
             "reject"  → all readings forced Rejected, kalite_kontrol = "Reddedildi"
     sample_size: numune sayısı (kullanıcı tarafından girilir, default 1)
     """
+
+    # [FIX] Mükerrer kayıt kontrolü
+    existing_qi = frappe.db.get_value("Calisma Karti", ck_name, "quality_inspection")
+    if existing_qi:
+        frappe.throw(
+            _("Bu Çalışma Kartı'na ait zaten bir kalite belgesi ({0}) bulunmaktadır. Yeni bir tane oluşturulamaz.").format(existing_qi),
+            title=_("Mükerrer Kayıt Engeli")
+        )
     ck = frappe.get_doc("Calisma Karti", ck_name, for_update=True)
     _require_qc_role()
 

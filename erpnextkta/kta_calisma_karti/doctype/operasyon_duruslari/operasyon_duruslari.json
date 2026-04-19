@@ -40,9 +40,10 @@
         {
             "allow_on_submit": 1,
             "fieldname": "durus_nedeni",
-            "fieldtype": "Select",
+            "fieldtype": "Link",
             "in_list_view": 1,
-            "options": "Ariza\nMalzeme Bekleme\nKalite Kontrol\nMola\nBakim\nDiger\nBaşka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.\nZaman Aşımı",
+            "label": "Duru\u015f Nedeni",
+            "options": "KTA Durus Sebebi",
             "reqd": 1
         },
         {

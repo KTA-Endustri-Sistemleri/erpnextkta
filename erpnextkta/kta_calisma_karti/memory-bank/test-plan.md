@@ -1,6 +1,16 @@
 # 🧪 KTA Çalışma Kartı - Test Planı (Gece Vardiyası Geliştirmeleri)
 
-Bu doküman, gece boyunca geliştirilen özelliklerin doğrulanması için kullanılacak bir checklist (kontrol listesi) barındırır. Herhangi bir maddeyi test ettiğinizde bildirebilir, `[x]` olarak işaretleyebilirsiniz.
+Bu doküman, geliştirilen özelliklerin doğrulanması için kullanılan checklist'leri ve **Otomatik Entegrasyon Testlerini** barındırır.
+
+---
+
+## 🤖 0. Otomatik API Entegrasyon Testleri (`test_api.py`)
+Aşağıdaki kritik uç noktalar artık `bench run-tests` ile otomatik olarak doğrulanmaktadır:
+- [x] `test_islem_yap_workflow`: Kart durum geçişleri (Başlat/Duruş/Bitiş).
+- [x] `test_qc_submission_via_api`: Kalite Muayene Belgesi entegrasyonu.
+- [x] `test_scrap_synchronization_via_api`: Hurda ve Stok Girişi senkronizasyonu.
+- [x] `test_alt_operasyon_crud_via_api`: Alt operasyon yönetimi.
+- [x] `test_create_calisma_karti_double_click_protection`: Mükerrer kayıt koruması.
 
 ---
 

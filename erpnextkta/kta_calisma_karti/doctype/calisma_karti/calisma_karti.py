@@ -232,32 +232,28 @@ class CalismaKarti(Document):
             if not val:
                 continue
 
-            # 1. ADIM: İlgili kalite belgesini veritabanında kilitle (Race condition önleyici)
-            # Bu, aynı anda aynı belgeyi kullanmaya çalışan başka bir işlemi kuyruğa sokar.
+            # 1. ADIM: İlgili kalite belgesini veritabanında kilitle (opsiyonel)
             target_doctype = "Quality Inspection" if field == "quality_inspection" else "Test Masasi Dogrulama Kaydi"
-            
-            # Kayıt var mı diye kontrol et ve kilitle
-            exists = frappe.db.sql("SELECT name FROM `tab{0}` WHERE name = %s FOR UPDATE".format(target_doctype), (val,))
-            if not exists:
-                continue
+            if frappe.db.exists(target_doctype, val):
+                # Kaydı kilitle (Race condition önleyici)
+                frappe.db.sql("SELECT name FROM `tab{0}` WHERE name = %s FOR UPDATE".format(target_doctype), (val,))
                 
-            # 2. ADIM: Artık kilit bizde, başka bir kartta (bizim dışımızda) kullanılıp kullanılmadığına bakabiliriz.
+            # 2. ADIM: Başka bir kartta kullanılıp kullanılmadığına bak
             # docstatus < 2 (Draft + Submitted) dahil, Cancelled (2) hariç
-            # FOR UPDATE ekleyerek Snapshot Isolation (Repeatable Read) engeline takılmadan en güncel veriyi okuyoruz.
-            duplicate = frappe.db.sql("""
-                SELECT name 
-                FROM `tabCalisma Karti` 
-                WHERE `{0}` = %s 
-                  AND name != %s 
-                  AND docstatus < 2
-                LIMIT 1
-                FOR UPDATE
-            """.format(field), (val, self.name))
+            duplicate = frappe.db.get_value(
+                "Calisma Karti", 
+                {
+                    field: val,
+                    "name": ["!=", self.name or ""],
+                    "docstatus": ["<", 2]
+                }, 
+                "name",
+                for_update=True
+            )
 
             if duplicate:
-                dup_name = duplicate[0][0]
                 frappe.throw(
-                    frappe._("{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.").format(label, val, dup_name),
+                    frappe._("{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.").format(label, val, duplicate),
                     title=frappe._("Mükerrer Kayıt")
                 )
 
@@ -284,7 +280,7 @@ class CalismaKarti(Document):
             max_saniye = max_limit * 60
 
             # Vardiya içindeki diğer kartların net süresiyle birlikte tavan aşılmamalı
-            ws, we = _shift_window(end_dt)
+            ws, we = _shift_window(start_dt)
             other_net = _other_cards_net_seconds_in_shift(
                 operator=self.operator,
                 shift_start=ws,
@@ -293,11 +289,12 @@ class CalismaKarti(Document):
             )
             remaining = max(0, max_saniye - other_net)
 
-            # Önce toplam süreyi kalan kapasiteyle sınırla, sonra duruşları düş.
-            # Böylece duruşlar her zaman net süreden düşer.
-            # Örnek: 480 dk çalışma, 20 dk duruş → min(480, 430) = 430 → 430 - 20 = 410 dk
-            capped_saniye = min(toplam_saniye, remaining)
-            net_saniye = max(0, capped_saniye - toplam_durus_saniye)
+            # Get raw net seconds (total span minus breaks)
+            raw_net_saniye = max(0, toplam_saniye - toplam_durus_saniye)
+            
+            # Apply shift remaining capacity limit to the NET time, not the total span.
+            # This prevents "net squashing" when breaks are long.
+            net_saniye = min(raw_net_saniye, remaining)
 
             self.toplam_sure = format_sure(toplam_saniye)
             self.net_calisma_suresi = format_sure(net_saniye)

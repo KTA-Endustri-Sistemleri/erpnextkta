@@ -1,11 +1,39 @@
 frappe.ui.form.on('Test Masasi Dogrulama Kaydi', {
-    refresh: function(frm) {
+    refresh: function (frm) {
         if (frm.is_new()) {
             frm.events.doldur_sabit_satirlar(frm);
         }
+
+        frm.set_query("urun_kodu", function () {
+            return {
+                filters: {
+                    "custom_ara_malzeme_grubu": "ÜRÜN"
+                }
+            };
+        });
     },
-    
-    doldur_sabit_satirlar: function(frm) {
+
+    urun_kodu: function (frm) {
+        if (frm.doc.urun_kodu) {
+            frappe.call({
+                method: "erpnextkta.kta_quality.doctype.test_masasi_dogrulama_kaydi.test_masasi_dogrulama_kaydi.get_item_customer_group",
+                args: {
+                    item_code: frm.doc.urun_kodu
+                },
+                callback: function (r) {
+                    if (r.message) {
+                        frm.set_value('bolum', r.message);
+                    } else {
+                        frm.set_value('bolum', '');
+                    }
+                }
+            });
+        } else {
+            frm.set_value('bolum', '');
+        }
+    },
+
+    doldur_sabit_satirlar: function (frm) {
         let changed = false;
 
         const SABIT_KRITERLER = [
@@ -57,5 +85,12 @@ frappe.ui.form.on('Test Masasi Dogrulama Kaydi', {
             frm.refresh_field('degerlendirme_kriterleri');
             frm.refresh_field('baglanti_noktasi_tablosu');
         }
+    }
+});
+
+frappe.ui.form.on('Baglanti Noktasi Satiri', {
+    baglanti_noktasi_tablosu_add: function (frm, cdt, cdn) {
+        let row = frappe.get_doc(cdt, cdn);
+        row.sira_no = (frm.doc.baglanti_noktasi_tablosu || []).length;
     }
 });
