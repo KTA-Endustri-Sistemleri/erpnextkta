@@ -414,9 +414,33 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     aml.custom_ariza_aciklamasi = aciklama
     aml.due_date = today()
     aml.insert(ignore_permissions=True)
-    
-    # Not: aml.submit() yapılmıyor çünkü ERPNext standarta "Completed" veya "Cancelled" 
-    # durumu olmadan gönderime izin vermez. Bildirim draft olarak kalacak, 
+
+    # 4. Takvim etkinliği (kırmızı) oluştur ve ekip üyelerini participant olarak ekle
+    from erpnextkta.kta_asset_maintenance.events import create_breakdown_event
+    try:
+        event_name = create_breakdown_event(
+            aml,
+            asset_maint.name,
+            asset_doc.asset_name or asset_name,
+            ariza_nedeni,
+            aciklama,
+        )
+        if event_name:
+            frappe.db.set_value(
+                "Asset Maintenance Log",
+                aml.name,
+                "custom_event_id",
+                event_name,
+                update_modified=False,
+            )
+    except Exception:
+        frappe.log_error(
+            title="Arıza Bildirimi - Takvim Etkinliği Oluşturulamadı",
+            message=frappe.get_traceback(),
+        )
+
+    # Not: aml.submit() yapılmıyor çünkü ERPNext standarta "Completed" veya "Cancelled"
+    # durumu olmadan gönderime izin vermez. Bildirim draft olarak kalacak,
     # bakım ekibi işi bitirince statüyü "Completed" yapıp submit edecek.
-    
+
     return aml.name
