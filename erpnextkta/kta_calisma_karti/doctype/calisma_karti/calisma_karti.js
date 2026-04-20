@@ -111,6 +111,11 @@ frappe.ui.form.on('Calisma Karti', {
     frm.add_custom_button(__('Günlük Bakım Onayı'), () => {
       showMaintenanceDialog(frm);
     }, __("Özel Belgeler")).addClass('btn-primary btn-sm');
+
+    // Arıza Bildirimi Butonu
+    frm.add_custom_button(__('Arıza Bildir'), () => {
+      showArizaBildirimiDialog(frm);
+    }, __("Özel Belgeler")).addClass('btn-danger btn-sm');
   },
 
   validate(frm) {
@@ -320,4 +325,82 @@ function showMaintenanceDialog(frm) {
       dialog.$wrapper.find('.modal-dialog').css("max-width", "800px");
     }
   });
+}
+
+// ====== Arıza Bildirimi Dialog ======
+function showArizaBildirimiDialog(frm) {
+  const dialog = new frappe.ui.Dialog({
+    title: __('Arıza Bildirimi'),
+    fields: [
+      {
+        fieldtype: 'Link',
+        fieldname: 'makine',
+        label: __('Makine No'),
+        options: 'Asset',
+        reqd: 1,
+        description: __('Arıza yaşanan makineyi seçin (ör: M 1)')
+      },
+      {
+        fieldtype: 'Link',
+        fieldname: 'ariza_nedeni',
+        label: __('Arıza Nedeni'),
+        options: 'Ariza Nedeni',
+        reqd: 1,
+        get_query: () => ({ filters: { aktif: 1 } })
+      },
+      {
+        fieldtype: 'Small Text',
+        fieldname: 'aciklama',
+        label: __('Arıza Açıklaması'),
+        reqd: 1,
+        description: __('Arızanın detaylarını yazın — bakım ekibine bu bilgi iletilecek.')
+      }
+    ],
+    primary_action_label: __('Bildir'),
+    primary_action: function(values) {
+      const makine_asset = values.makine;
+      frappe.db.get_value('Asset', makine_asset, 'custom_makine_no').then(r => {
+        const makine_no = (r && r.message && r.message.custom_makine_no) || null;
+        if (!makine_no) {
+          frappe.msgprint({
+            title: __('Hata'),
+            message: __('Seçilen varlığın Makine No alanı dolu değil.'),
+            indicator: 'red'
+          });
+          return;
+        }
+
+        frappe.call({
+          method: 'erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.create_ariza_bildirimi',
+          args: {
+            calisma_karti: frm.doc.name,
+            makine_no: makine_no,
+            ariza_nedeni: values.ariza_nedeni,
+            aciklama: values.aciklama
+          },
+          freeze: true,
+          freeze_message: __('Arıza bildirimi oluşturuluyor...'),
+          callback: function(resp) {
+            if (resp.message) {
+              dialog.hide();
+              frappe.msgprint({
+                title: __('Arıza Bildirildi'),
+                message: __('Bakım ekibinin takvimine görev düştü. Kayıt: {0}', [resp.message]),
+                indicator: 'red'
+              });
+            }
+          },
+          error: function() {
+            frappe.msgprint({
+              title: __('Hata'),
+              message: __('Arıza bildirimi oluşturulamadı.'),
+              indicator: 'red'
+            });
+          }
+        });
+      });
+    }
+  });
+
+  dialog.show();
 }
