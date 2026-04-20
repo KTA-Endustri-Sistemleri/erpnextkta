@@ -35,11 +35,16 @@ def get_data(**kwargs):
     if not isinstance(filters, dict):
         filters = {}
 
-    days         = int(filters.get("days", 30))
+    date_range   = filters.get("date_range")
     is_istasyonu = filters.get("is_istasyonu") or None
 
-    today      = getdate(now_datetime())
-    start_date = add_days(today, -days + 1)
+    if date_range and len(date_range) == 2:
+        start_date = getdate(date_range[0])
+        end_date   = getdate(date_range[1])
+    else:
+        days       = int(filters.get("days", 30))
+        end_date   = getdate(now_datetime())
+        start_date = add_days(end_date, -days + 1)
 
     conditions = [
         "DATE(ck.creation) >= %(start)s",
@@ -49,7 +54,7 @@ def get_data(**kwargs):
         "ck.net_calisma_suresi IS NOT NULL",
         "ck.net_calisma_suresi != '0:00:00'"
     ]
-    params = {"start": start_date, "end": today}
+    params = {"start": start_date, "end": end_date}
 
     # İş İstasyonu filtresi (Multi-select desteğiyle)
     if is_istasyonu:
