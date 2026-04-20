@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v1.8.0 (2026-04-20)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- implement automated calendar event synchronization for asset maintenance and add custom fields for maintenance tracking
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.7.0 (2026-04-19)
 
 
