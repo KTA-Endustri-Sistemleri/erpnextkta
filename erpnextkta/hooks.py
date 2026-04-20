@@ -179,6 +179,12 @@ doc_events = {
     },
     "Purchase Receipt": {
         "validate": "erpnextkta.overrides.purchase_receipt_rates.update_purchase_receipt_rates"
+    },
+    "Asset Maintenance Log": {
+        "on_update": "erpnextkta.kta_asset_maintenance.events.on_asset_maintenance_log_update"
+    },
+    "Asset Maintenance": {
+        "on_update": "erpnextkta.kta_asset_maintenance.events.on_asset_maintenance_update"
     }
 }
 # Document Events
@@ -371,6 +377,8 @@ fixtures = [
                     "Asset Maintenance Log-custom_calisma_karti_ref",
                     "Asset Maintenance Log-custom_ariza_nedeni",
                     "Asset Maintenance Log-custom_ariza_aciklamasi",
+                    "Asset Maintenance Log-custom_event_id",
+                    "Asset Maintenance Task-custom_event_id",
                 ],
             ]
         ],
