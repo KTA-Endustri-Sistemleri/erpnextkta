@@ -24,23 +24,28 @@ def get_data(**kwargs):
     if not isinstance(filters, dict):
         filters = {}
 
-    days        = int(filters.get("days", 30))
+    date_range  = filters.get("date_range")
     operasyon   = filters.get("operasyon") or None
     is_istasyonu = filters.get("is_istasyonu") or None
 
-    today      = getdate(now_datetime())
-    start_date = add_days(today, -days + 1)
+    if date_range and len(date_range) == 2:
+        start_date = getdate(date_range[0])
+        end_date   = getdate(date_range[1])
+    else:
+        days       = int(filters.get("days", 30))
+        end_date   = getdate(now_datetime())
+        start_date = add_days(end_date, -days + 1)
 
     statuses = ["Hazır", "Çalışıyor", "Duruşta", "Bitmiş", "Reddedildi"]
 
     # Build date labels and date_list
     labels    = []
     date_list = []
-    d = getdate(start_date)
-    for i in range(days):
-        labels.append(d.strftime("%d %b"))
-        date_list.append(d)
-        d = d + timedelta(days=1)
+    curr_date = start_date
+    while curr_date <= end_date:
+        labels.append(curr_date.strftime("%d %b"))
+        date_list.append(curr_date)
+        curr_date = add_days(curr_date, 1)
 
     # Build SQL with optional filters
     conditions = [
@@ -48,7 +53,7 @@ def get_data(**kwargs):
         "DATE(creation) <= %(end)s",
         "docstatus != 2",
     ]
-    params = {"start": start_date, "end": today}
+    params = {"start": start_date, "end": end_date}
 
     if operasyon:
         conditions.append("operasyon = %(operasyon)s")

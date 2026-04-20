@@ -4913,13 +4913,13 @@ DATA = [
     },
     {
         "kesit": "20 AWG",
-        "kontak": "10001498 Dar parça kullanılacak",
+        "kontak": "10001498",
         "kalip": "108-205",
         "krimp": "1,40",
         "cekme": "60",
         "krimp_gen": "",
         "izok": "",
-        "not": ""
+        "not": "Dar parça kullanılacak"
     },
     {
         "kesit": "18 AWG",
@@ -5853,13 +5853,13 @@ DATA = [
     },
     {
         "kesit": "16 AWG",
-        "kontak": "10023327 Kare parça",
+        "kontak": "10023327",
         "kalip": "121-144",
         "krimp": "2,10",
         "cekme": "135",
         "krimp_gen": "2,20",
         "izok": "",
-        "not": ""
+        "not": "Kare parça"
     },
     {
         "kesit": "16 AWG",
@@ -6113,13 +6113,13 @@ DATA = [
     },
     {
         "kesit": "14 AWG",
-        "kontak": "10023327 (10023326)  parçaları ile basıldı",
+        "kontak": "10023327",
         "kalip": "121-144",
         "krimp": "2,20",
         "cekme": "200",
         "krimp_gen": "2,30",
         "izok": "",
-        "not": ""
+        "not": "(10023326)  parçaları ile basıldı"
     },
     {
         "kesit": "14 AWG",
@@ -10603,13 +10603,13 @@ DATA = [
     },
     {
         "kesit": "0,75 mm²",
-        "kontak": "10024362  Silikon Kablo",
+        "kontak": "10024362",
         "kalip": "327",
         "krimp": "1,55",
         "cekme": "85",
         "krimp_gen": "2,45",
         "izok": "",
-        "not": ""
+        "not": "Silikon Kablo"
     },
     {
         "kesit": "0,75 mm²",
@@ -13467,27 +13467,47 @@ def execute():
     print(f"Total items in list: {len(DATA)}")
     
     added = 0
+    skipped_items = set()
     for item in DATA:
+        kontak = (item.get("kontak") or "").strip()
+        aciklama = (item.get("not") or "").strip()
+        
+        # Safeguard: Eğer kontak içinde boşluk varsa ayır ve not kısmına ekle
+        if " " in kontak:
+            parts = kontak.split(" ", 1)
+            kontak = parts[0].strip()
+            ekstra_not = parts[1].strip()
+            if ekstra_not:
+                aciklama = f"{aciklama} {ekstra_not}".strip()
+
         filters = {
             "kesit": item.get("kesit"),
-            "kontak_no": item.get("kontak"),
+            "kontak_no": kontak,
             "kalip": item.get("kalip")
         }
+        
         if not frappe.db.exists("KTA Krimp Book", filters):
-            doc = frappe.new_doc("KTA Krimp Book")
-            doc.kesit = item.get("kesit")
-            doc.kontak_no = item.get("kontak")
-            doc.kalip = item.get("kalip")
-            doc.krimp_yuksekligi = item.get("krimp")
-            doc.cekme_kuvveti = item.get("cekme")
-            doc.krimp_genisligi = item.get("krimp_gen")
-            doc.izolasyon_krimp = item.get("izok")
-            doc.aciklama = item.get("not")
-            doc.insert()
-            added += 1
-            if added % 100 == 0:
-                frappe.db.commit()
-                print(f"Committed {added} records...")
+            try:
+                doc = frappe.new_doc("KTA Krimp Book")
+                doc.kesit = item.get("kesit")
+                doc.kontak_no = kontak
+                doc.kalip = item.get("kalip")
+                doc.krimp_yuksekligi = item.get("krimp")
+                doc.cekme_kuvveti = item.get("cekme")
+                doc.krimp_genisligi = item.get("krimp_gen")
+                doc.izolasyon_krimp = item.get("izok")
+                doc.aciklama = aciklama
+                doc.insert()
+                added += 1
+                if added % 100 == 0:
+                    frappe.db.commit()
+                    print(f"Committed {added} records...")
+            except frappe.LinkValidationError:
+                skipped_items.add(kontak)
+                continue
     
     frappe.db.commit()
     print(f"Import completed. Total newly added: {added}")
+    if skipped_items:
+        print(f"Skipped items count (not found in Item master): {len(skipped_items)}")
+        print(f"Skipped items: {', '.join(sorted(list(skipped_items)))}")
