@@ -25,11 +25,11 @@ def execute(filters=None):
     for col in capacity_cols:
         if col["fieldtype"] in ("Int", "Float") and col["fieldname"] not in ("total", "unit", "weekly_capacity"):
             fieldname = col["fieldname"]
-            match = re.match(r"w(\d{1,2})_(\d{4})", fieldname)
+            match = re.match(r"(\d{4})_w(\d{1,2})", fieldname)
             if match:
-                week_no = int(match.group(1))
-                year = int(match.group(2))
-                label = f"W{week_no} {year}"
+                year = int(match.group(1))
+                week_no = int(match.group(2))
+                label = f"{year}-W{week_no:02d}"
                 week_fields.append((fieldname, week_no, year))
                 week_labels[fieldname] = label
 
@@ -159,9 +159,8 @@ def execute(filters=None):
                 AND poi.qty > poi.received_qty
             """, [tuple(item_codes)], as_dict=True)
 
-            from_week = from_date.isocalendar().week
-            from_year = from_date.isocalendar().year
-            from_label = f"W{from_week} {from_year}"
+            from_iso_year, from_iso_week, _ = from_date.isocalendar()
+            from_label = f"{from_iso_year}-W{from_iso_week:02d}"
 
             for item in po_items:
                 delivery_date = item.schedule_date
@@ -176,7 +175,8 @@ def execute(filters=None):
                 if delivery_date < from_date.date():
                     future_po_map[key].append((from_label, qty))
                 else:
-                    week_label = f"W{delivery_date.isocalendar().week} {delivery_date.year}"
+                    d_iso_year, d_iso_week, _ = delivery_date.isocalendar()
+                    week_label = f"{d_iso_year}-W{d_iso_week:02d}"
                     future_po_map[key].append((week_label, qty))
 
         # 6. OPTIMIZE: Stock düşme işlemini optimize et

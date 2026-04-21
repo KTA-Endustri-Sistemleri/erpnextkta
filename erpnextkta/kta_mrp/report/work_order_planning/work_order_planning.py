@@ -63,7 +63,7 @@ def execute(filters=None):
             
         # Tüm hafta sütunlarını kontrol et
         for key, val in row.items():
-            if key.startswith("w") and "_" in key:
+            if "_w" in key:
                 planned_map[item][key] = val or 0
 
     # Açık iş emirleri gruplanıyor
@@ -89,7 +89,7 @@ def execute(filters=None):
             past_remaining_by_item[item] += remaining
         else:
             iso_year, iso_week, _ = start_date.isocalendar()
-            week_key = f"w{iso_week}_{iso_year}"
+            week_key = f"{iso_year}_w{iso_week:02d}"
             future_remaining_by_item_week[item][week_key] += remaining
 
     # Rapor satırlarını oluştur
@@ -103,10 +103,10 @@ def execute(filters=None):
         all_weeks = set(planned_map[item].keys()) | set(future_remaining_by_item_week[item].keys())
 
         for key in sorted(all_weeks):
-            if not key.startswith("w") or "_" not in key:
+            if "_w" not in key:
                 continue
             try:
-                week_number, year = key[1:].split("_")
+                year, week_number = key.split("_w")
                 if not week_number.isdigit():
                     continue
             except Exception:
@@ -119,7 +119,7 @@ def execute(filters=None):
             if planned_qty == 0 and future_open == 0:
                 continue
 
-            formatted_week = f"W{int(week_number)} {year}"
+            formatted_week = f"{year}-W{int(week_number):02d}"
             open_qty = future_open
 
             if past_remaining > 0:

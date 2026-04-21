@@ -307,8 +307,8 @@ class SatisAnalizi:
             quarter = (date.month - 1) // 3 + 1
             return f"Q{quarter} {date.year}"
         elif self.filters.range == "Weekly":
-            week_number = date.isocalendar()[1]
-            return f"W{week_number:02d} {date.year}"
+            iso_year, iso_week, _ = date.isocalendar()
+            return f"{iso_year}-W{iso_week:02d}"
         else:
             return str(date.year)
 
