@@ -28,8 +28,9 @@ def iso_week_start(week_str):
     try:
         week_parts = week_str.lower().replace("w", "").split("_")
         if len(week_parts) == 2:
-            week_number, year = int(week_parts[0]), int(week_parts[1])
-            return datetime.strptime(f"{year}-W{week_number}-1", "%Y-W%W-%w").date()
+            year, week_number = int(week_parts[0]), int(week_parts[1])
+            from datetime import date
+            return date.fromisocalendar(year, week_number, 1)
     except:
         return None
 

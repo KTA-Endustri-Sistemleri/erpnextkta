@@ -380,7 +380,8 @@ class ProductionStartWeekReport:
         try:
             if isinstance(date_obj, str):
                 date_obj = getdate(date_obj)
-            return f"W{date_obj.isocalendar()[1]:02d} {date_obj.year}"
+            iso_year, iso_week, _ = date_obj.isocalendar()
+            return f"{iso_year}-W{iso_week:02d}"
         except Exception as e:
             frappe.log_error(f"Period label error: {e}")
             return None
@@ -389,11 +390,11 @@ class ProductionStartWeekReport:
         try:
             if not label or not isinstance(label, str):
                 return None
-            parts = label.split()
+            parts = label.split("-W")
             if len(parts) < 2:
                 return None
-            week = int(parts[0].lstrip("W"))
-            year = int(parts[1])
+            year = int(parts[0])
+            week = int(parts[1])
             monday = date.fromisocalendar(year, week, 1)
             return add_days(monday, 6)
         except Exception as e:

@@ -295,7 +295,7 @@ class KTATestCase(FrappeTestCase):
 		self.kta_op = create_test_kta_operation("KTA-OP-001-TEST", "L-1")
 		self.ws_name = create_test_workstation("_Test KTA Workstation")
 		
-		create_test_shifts(["1. Vardiya", "2. Vardiya"])
+		create_test_shifts(["1. Vardiya", "2. Vardiya", "3. Vardiya"])
 		create_test_operator("test@kta.com", "Test Operator")
 		
 		self.erpnext_op = create_test_erpnext_operation("_Test ERPNext Op", self.ws_name)

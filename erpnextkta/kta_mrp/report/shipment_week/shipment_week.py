@@ -46,7 +46,8 @@ def execute(filters=None):
 
                 week_end_date = week_end_from_label(label)
                 planned_date = week_end_date - timedelta(days=delivery_time)
-                shipment_week = f"W{planned_date.isocalendar()[1]:02d} {planned_date.year}"
+                iso_year, iso_week, _ = planned_date.isocalendar()
+                shipment_week = f"{iso_year}-W{iso_week:02d}"
                 week_labels.add(shipment_week)
 
                 key = (row["tree_key"], row["item_code"], row["item_name"], row["shipping_address_name"])
@@ -102,9 +103,9 @@ def execute(filters=None):
 def week_end_from_label(label):
     """'W26 2025' → haftanın son günü (Pazar)"""
     try:
-        parts = label.strip().split()
-        week_num = int(parts[0][1:])
-        year = int(parts[1])
+        parts = label.strip().split("-W")
+        year = int(parts[0])
+        week_num = int(parts[1])
         start = date.fromisocalendar(year, week_num, 1)
         return start + timedelta(days=6)
     except:
@@ -113,9 +114,9 @@ def week_end_from_label(label):
 def week_sort_key(week_str):
     """W26 2025 → (2025, 26) sıralamak için"""
     try:
-        parts = week_str.strip().split()
-        week = int(parts[0][1:])
-        year = int(parts[1])
+        parts = week_str.strip().split("-W")
+        year = int(parts[0])
+        week = int(parts[1])
         return (year, week)
     except:
         return (9999, 99)
