@@ -56,7 +56,7 @@ def execute(filters=None):
             "paket": paket
         }
 
-        weeks = sorted(weekly_needs.keys(), key=lambda w: datetime.strptime(w + "-1", "W%W %Y-%w"))
+        weeks = sorted(weekly_needs.keys(), key=lambda w: (int(w.split("-W")[0]), int(w.split("-W")[1])))
         remaining = dict(weekly_needs)
         last_week_in_scope = weeks[-1]
 
@@ -97,20 +97,20 @@ def execute(filters=None):
             if qty < moq and order_qty == qty and w != last_week_in_scope:
                 order_qty = moq
 
-            need_week = datetime.strptime(w + "-1", "W%W %Y-%w")
+            y_part, w_part = w.split("-W")
+            need_week = date.fromisocalendar(int(y_part), int(w_part), 1)
             order_date = need_week - timedelta(days=lead_time)
-            week_num = f"{order_date.isocalendar()[1]:02d}"
-            order_week = f"W{week_num} {order_date.isocalendar()[0]}"
+            iso_year, iso_week, _ = order_date.isocalendar()
+            order_week = f"{iso_year}-W{iso_week:02d}"
 
             result_map[(item_code, uom, default_supplier)][order_week] += order_qty
             remaining[w] = 0
             i += 1
 
-    def week_sort_key(week_str):
         try:
-            week_part, year_part = week_str.split()
-            week_num = int(week_part[1:])
-            year_num = int(year_part)
+            parts = week_str.split("-W")
+            year_num = int(parts[0])
+            week_num = int(parts[1])
             return (year_num, week_num)
         except:
             return (9999, 9999)
