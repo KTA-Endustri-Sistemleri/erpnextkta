@@ -1,6 +1,20 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-04-19 (Dinamik Duruşlar ve Süre Fixleri)
+> Son güncelleme: 2026-04-24 (Race Condition & Frontend Testing)
+
+### Frontend Güvenliği ve Yarış Durumu (Race Condition) Korumaları (2026-04-24 - Tamamlandı)
+- [x] **Atomic Guard Clauses**: `fetchWorkOrderByBarcode`, `fetchJobCardByBarcode` ve `submitWorkCard` fonksiyonlarına `loading.value` kontrolü eklenerek eşzamanlı API çağrıları engellendi.
+- [x] **withLoading Refactoring**: Asenkron işlemler için minimum bekleme süresi (900ms) garanti altına alınarak "Enter-spam" ve "Double-click" hataları giderildi.
+- [x] **Vitest Test Suite (113 Test)**: 
+    - [x] `App.race.test.js`: Spamming, network latency ve concurrent handleEnter senaryoları doğrulandı.
+    - [x] `App.api.test.js` & `App.wizard.test.js`: Mevcut testler yeni asenkron yapıya (`runAllTimersAsync`, `flushPromises`) göre stabilize edildi.
+    - [x] Tüm testlerin (113/113) yeşil olduğu teyit edildi.
+
+### Backend Submit Doğrulaması ve İzin Güncellemeleri (2026-04-24 - Tamamlandı)
+- [x] **Submit Koruması**: Bitiş saati (`bitis_saati`) set edilmemiş kartların manuel gönderimi `before_submit` hook'u ile engellendi.
+- [x] **İzin Revizyonu**: `Manufacturing User/Manager` rollerine dashboard ve döküman yetkileri (permlevel 0 & 3) eklendi.
+- [x] **Amend Desteği**: İptal edilen kayıtlar için `amend` (düzeltme) akışı aktifleştirildi.
+- [x] **Integration Tests**: `test_manual_submission_without_bitis_fails` ve `test_amend_flow` entegrasyon testleri eklendi.
 
 ### Vardiya ve Süre Hesaplama Mantığı İyileştirmeleri (2026-04-18 - Tamamlandı)
 - [x] **Vardiya Penceresi Düzeltmesi (836b3b)**: `_shift_window` fonksiyonunda `end_dt` yerine `start_dt` kullanılarak vardiya sınırlarının daha doğru hesaplanması sağlandı.

@@ -11,6 +11,18 @@ Aşağıdaki kritik uç noktalar artık `bench run-tests` ile otomatik olarak do
 - [x] `test_scrap_synchronization_via_api`: Hurda ve Stok Girişi senkronizasyonu.
 - [x] `test_alt_operasyon_crud_via_api`: Alt operasyon yönetimi.
 - [x] `test_create_calisma_karti_double_click_protection`: Mükerrer kayıt koruması.
+- [x] `test_manual_submission_without_bitis_fails`: Bitmemiş kart submission engeli.
+- [x] `test_amend_flow`: İptal edilen kartı düzeltme (amend) akışı.
+
+---
+
+## 🛡️ 10. Frontend Unit & Race Condition Testleri (Vitest)
+Aşağıdaki senaryolar `npm run test` (Vitest) ile otomatik olarak doğrulanmaktadır:
+- [x] **Race Condition (Enter Spam):** Barkod okutulurken Enter tuşuna basılı tutulduğunda (veya çok hızlı basıldığında) sadece ilk isteğin işlendiği, diğerlerinin `loading` guard tarafından reddedildiği.
+- [x] **Race Condition (Click Spam):** "Oluştur" veya "Bitir" butonlarına API yanıtı gelmeden art arda basıldığında mükerrer API çağrısı yapılmadığı.
+- [x] **Network Latency Simulation:** Ağ gecikmesi (örn: 2 saniye) simüle edildiğinde, bu süre zarfında gelen tüm kullanıcı girişlerinin dondurulduğu.
+- [x] **Loading State Consistency:** Her başarılı veya hatalı işlem sonrası `loading` durumunun mutlaka `false`'a çekildiği (`finally` bloğu kontrolü).
+- [x] **Wizard Step Consistency:** Adımlar arası geçişte `loading` aktifken barkod inputunun kilitlendiği.
 
 ---
 

@@ -301,3 +301,19 @@ Duruş sebeplerinin (Downtime Reasons) statik listelerden dinamik, modüler bir 
         - `1`: Sadece sistem/API tarafından kullanılır, manuel listelerde **Gizlenir**. Bu kayıtlar ayrıca manuel silinmeye karşı korunur.
 - **Dinamik Ayarlar Bağlantısı**: Arka plan görevleri (`tasks.py`) ve otomatik duraklatma mantığı (`cards.py`), duruş nedenlerini statik metinler yerine `KTA Calisma Karti Settings` üzerinden dinamik olarak okur.
 - **Dashboard Integration**: `LEFT JOIN` mantığı ile `exclude_from_charts` bayrağı üzerinden dinamik filtreleme yapılır (Hardcoded string karşılaştırmalarından kaçınılır).
+
+### 32. Atomic Frontend Guard Clause Pattern
+Kullanıcı spam girişlerini (Barkod okuturken Enter'a basılı tutma vb.) engellemek için kullanılan atomik koruma desenidir:
+- **Uygulama**: Her API çağrısı yapan fonksiyonun en başına `if (loading.value) return;` kontrolü eklenir.
+- **Önem**: Asenkron `withLoading` bloğu tetiklenmeden ÖNCE senkron olarak kontrol yapılmalıdır. Bu sayede mikro görev kuyruğu (microtask queue) dolmadan işlem reddedilir.
+
+### 33. Minimum Latency Experience (withLoading)
+UI kararlılığını sağlamak ve hızlı ardışık girişleri görsel olarak yavaşlatmak için kullanılan desendir:
+- **Mekanizma**: `Promise.all([originalPromise, delay(minMs)])` kullanılarak işlemin en az belirlenen süre (örn: 900ms) kadar sürmesi sağlanır.
+- **Fayda**: Network çok hızlı olsa bile operatörün butona çift tıklaması veya Enter spam'i yapması için gereken "Loading" süresi suni olarak korunur, böylece durum tutarsızlıkları önlenir.
+
+### 34. Comprehensive Frontend Testing (Vitest Suite)
+Frontend mantığının karmaşıklığını ve yarış durumlarını yönetmek için kullanılan test desenidir:
+- **Tools**: Vitest + `flushPromises` + `vi.useFakeTimers`.
+- **Race Condition Testing**: API mock'ları içerisine suni gecikmeler eklenerek, loading state aktifken gelen ikincil olayların (handleEnter) reddedildiği `App.race.test.js` ile doğrulanır.
+- **Synchronization**: `vi.runAllTimersAsync()` ve `flushPromises()` ikilisi ile asenkron Vue reaktivitesi ve Vitest zamanlayıcıları senkronize edilir.
