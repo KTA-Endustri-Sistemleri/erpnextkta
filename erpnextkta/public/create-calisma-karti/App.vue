@@ -7,6 +7,7 @@ import StepWorkstation from './components/StepWorkstation.vue';
 import StepUser from './components/StepUser.vue';
 import StepIndicator from './components/StepIndicator.vue';
 import StepJobCardSearch from './components/StepJobCardSearch.vue';
+import { getErrorMessage, applyWorkOrderPrefix, applyJobCardPrefix } from './utils.js';
 
 /* -------------------------------------------------------
  *  MODE & STATE
@@ -180,64 +181,7 @@ function callFrappe(method, args = {}) {
   });
 }
 
-/**
- * Frappe hata objesinden temiz mesaj ayıran yardımcı
- */
-function getErrorMessage(err, defaultMsg) {
-  if (!err) return defaultMsg;
-  let rawMsg = '';
-
-  // 1. Ham mesajı ayıkla
-  if (typeof err === 'string') {
-    rawMsg = err;
-  } else if (err._server_messages) {
-    try {
-      const msgs = typeof err._server_messages === 'string'
-        ? JSON.parse(err._server_messages)
-        : err._server_messages;
-      rawMsg = msgs.map(m => {
-        try {
-          const p = typeof m === 'string' ? JSON.parse(m) : m;
-          return p.message || m;
-        } catch { return m; }
-      }).join(' ');
-    } catch { rawMsg = String(err._server_messages); }
-  } else {
-    rawMsg = err.message || err.statusText || defaultMsg;
-  }
-
-  // 2. Teknik gürültüyü temizle ve Türkçeleştir
-  let cleanMsg = rawMsg;
-
-  // Bilinen Frappe kalıplarını Türkçeleştir
-  const patterns = [
-    { reg: /Work Order (.*) not found/i, repl: 'İş Emri bulunamadı.' },
-    { reg: /Job Card (.*) not found/i, repl: 'İş Kartı bulunamadı.' },
-    { reg: /Employee (.*) not found/i, repl: 'Personel kaydı bulunamadı.' },
-    { reg: /Operation (.*) not found/i, repl: 'Operasyon bulunamadı.' },
-    { reg: /Not permitted/i, repl: 'Bu işlem için yetkiniz yok.' },
-    { reg: /Insufficient Permission/i, repl: 'Yetki yetersiz.' }
-  ];
-
-  for (const p of patterns) {
-    if (p.reg.test(cleanMsg)) {
-      cleanMsg = p.repl;
-      break; 
-    }
-  }
-
-  // Eğer hala İngilizce "not found" falan varsa genel bir temizlik yap
-  if (cleanMsg.toLowerCase().includes('not found')) {
-    return defaultMsg;
-  }
-
-  // Çok uzun/teknik mesajları default'a çek (Örn: SQL hataları)
-  if (cleanMsg.includes('Traceback') || cleanMsg.includes('OperationalError')) {
-    return defaultMsg;
-  }
-
-  return cleanMsg;
-}
+// getErrorMessage utils.js'den import edildi
 
 // Merkezi loading helper (min süre garantili)
 async function withLoading(taskFn, minMs = 700) {
@@ -301,6 +245,7 @@ const isStepValid = computed(() => {
 
 // 1A) WO MODE: Barkod -> Work Order
 async function fetchWorkOrderByBarcode() {
+  if (loading.value) return;
   if (!workOrderBarcode.value.trim()) return;
   errorMessage.value = null;
 
@@ -310,8 +255,9 @@ async function fetchWorkOrderByBarcode() {
       if (!barcode) return;
 
       // Smart Prefix: 2026-01110 -> MFG-WO-2026-01110
-      if (/^\d{4}-\d+$/.test(barcode)) {
-        barcode = `MFG-WO-${barcode}`;
+      const woPrefixed = applyWorkOrderPrefix(barcode);
+      if (woPrefixed !== barcode) {
+        barcode = woPrefixed;
         workOrderBarcode.value = barcode;
       }
 
@@ -341,6 +287,7 @@ async function fetchWorkOrderByBarcode() {
 
 // 1B) JC MODE: Barkod / ad -> Job Card (erken WO kontrolü backend'de)
 async function fetchJobCardByBarcode() {
+  if (loading.value) return;
   if (!jobCardBarcode.value.trim()) return;
   errorMessage.value = null;
 
@@ -350,8 +297,9 @@ async function fetchJobCardByBarcode() {
       if (!barcode) return;
 
       // Smart Prefix: JOB16115 -> PO-JOB16115
-      if (/^JOB\d+$/i.test(barcode)) {
-        barcode = `PO-${barcode.toUpperCase()}`;
+      const jcPrefixed = applyJobCardPrefix(barcode);
+      if (jcPrefixed !== barcode) {
+        barcode = jcPrefixed;
         jobCardBarcode.value = barcode;
       }
 
@@ -517,7 +465,7 @@ function syncWorkstationFromJobCard() {
  * -----------------------------------------------------*/
 
 async function submitWorkCard() {
-  if (!isStepValid.value) return;
+  if (!isStepValid.value || loading.value || createdDoc.value) return;
 
   // Payload mode'a göre hazırlanacak,
   // ama her iki modda da create_calisma_karti aynı alanları istiyor.
@@ -596,6 +544,7 @@ function setSearchMode(mode) {
   jobCards.value = [];
   selectedJobCardName.value = null;
   selectedOperationName.value = null;
+  operations.value = [];
   selectedWorkstation.value = null;
   workstationAutoFilled.value = false;
   selectedUser.value = null;
@@ -611,6 +560,7 @@ function resetWizard() {
   jobCards.value = [];
   selectedJobCardName.value = null;
   selectedOperationName.value = null;
+  operations.value = [];
   selectedWorkstation.value = null;
   workstationAutoFilled.value = false;
   selectedUser.value = null;
@@ -641,7 +591,7 @@ function handleJobCardBarcodeSubmit() {
 
 // Global Enter behaviour
 function handleEnter(event) {
-  if (loading.value) return;
+  if (loading.value || createdDoc.value) return;
 
   const tag = (event.target && event.target.tagName) || '';
   if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
@@ -736,6 +686,46 @@ onBeforeUnmount(() => {
   if (originalMsgprint && window.frappe) {
     frappe.msgprint = originalMsgprint;
   }
+});
+
+/* -------------------------------------------------------
+ *  TEST EXPOSE
+ * -----------------------------------------------------*/
+defineExpose({
+  // State
+  currentStep,
+  searchMode,
+  workOrder,
+  workOrderBarcode,
+  jobCardBarcode,
+  jobCards,
+  selectedJobCardName,
+  selectedOperationName,
+  selectedWorkstation,
+  selectedUser,
+  users,
+  operations,
+  loading,
+  errorMessage,
+  createdDoc,
+  // Computed
+  isStepValid,
+  totalSteps,
+  steps,
+  filteredOperations,
+  activeCustomerGroups,
+  selectedJobCard,
+  selectedOperation,
+  selectedEmployee,
+  // Methods
+  goNext,
+  goBack,
+  setSearchMode,
+  resetWizard,
+  fetchWorkOrderByBarcode,
+  fetchJobCardByBarcode,
+  submitWorkCard,
+  syncWorkstationFromJobCard,
 });
 </script>
 <template>
@@ -927,9 +917,9 @@ onBeforeUnmount(() => {
         <div class="success-card__header">
           <div class="success-card__icon">✓</div>
           <div class="success-card__text">
-            <h2 class="success-card__title">Çalışma Kartı oluşturuldu</h2>
+            <h2 class="success-card__title">{{ createdDoc._is_existing ? "Çalışma Kartı zaten mevcut" : "Çalışma Kartı oluşturuldu" }}</h2>
             <p class="success-card__subtitle">
-              Yeni Çalışma Kartı başarıyla kaydedildi.
+              {{ createdDoc._is_existing ? "Bu işlem için aktif bir kartınız zaten bulunuyor." : "Yeni Çalışma Kartı başarıyla kaydedildi." }}
             </p>
           </div>
         </div>
