@@ -37,8 +37,16 @@ def setup_permissions():
     # Accurate transcription from the provided image
     permissions_data = [
         # Calisma Karti
-        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 0, "delete": 0, "submit": 1, "cancel": 0, "amend": 0},
-        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0, "submit": 1, "cancel": 0, "amend": 0, "permlevel": 0},
+        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "permlevel": 3},
+        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1, "permlevel": 0},
+        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "permlevel": 3},
+        {"parent": "Calisma Karti", "role": "Manufacturing User", "read": 1, "write": 1, "create": 1, "submit": 1, "permlevel": 0},
+        {"parent": "Calisma Karti", "role": "Manufacturing User", "read": 1, "write": 1, "permlevel": 3},
+        {"parent": "Calisma Karti", "role": "Manufacturing Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "amend": 1, "permlevel": 0},
+        {"parent": "Calisma Karti", "role": "Manufacturing Manager", "read": 1, "write": 1, "permlevel": 3},
+        {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1, "permlevel": 0},
+        {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "permlevel": 3},
         # Stock Entry
         {"parent": "Stock Entry", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0, "submit": 0, "cancel": 0, "amend": 0, "if_owner": 1},
         {"parent": "Stock Entry", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
@@ -86,15 +94,18 @@ def setup_permissions():
         {"parent": "KTA Calisma Karti Settings", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0}
     ]
 
-    for role in roles:
+    extra_roles = ['Manufacturing User', 'Manufacturing Manager', 'System Manager']
+    for role in roles + extra_roles:
         # Clear existing to ensure clean state
-        frappe.db.delete("Custom DocPerm", {"role": role})
+        frappe.db.delete("Custom DocPerm", {"role": role, "parent": ["in", [p["parent"] for p in permissions_data]]})
         
     for p in permissions_data:
         p_copy = p.copy()
+        if "permlevel" not in p_copy:
+            p_copy["permlevel"] = 0
+            
         p_copy.update({
-            "doctype": "Custom DocPerm",
-            "permlevel": 0
+            "doctype": "Custom DocPerm"
         })
         frappe.get_doc(p_copy).insert(ignore_permissions=True)
     

@@ -301,3 +301,71 @@ class TestCalismaKartiIntegration(KTATestCase):
 		ws2, we2 = _shift_window(get_datetime("2024-01-15 16:00:01"))
 		self.assertEqual(ws2.strftime("%H:%M"), "16:00")
 		self.assertEqual(we2.strftime("%H:%M"), "00:00")
+
+	def test_manual_submission_without_bitis_fails(self):
+		"""Bitiş saati set edilmemiş bir kartın manuel gönderiminin (submit) engellendiğini doğrular."""
+		doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test@kta.com",
+			"baslangic_saati": frappe.utils.now_datetime()
+		}).insert(ignore_permissions=True, ignore_links=True)
+		
+		# Kart 'Bitmiş' değil, bu yüzden submit hata fırlatmalı
+		with self.assertRaises(frappe.exceptions.ValidationError) as cm:
+			doc.submit()
+		
+		self.assertIn("Çalışma Kartı henüz bitirilmemiş", str(cm.exception))
+
+	def test_bitis_submits_successfully(self):
+		"""'Bitir' işlemi yapıldığında kartın otomatik olarak başarıyla gönderildiğini doğrular."""
+		from erpnextkta.kta_calisma_karti.api_impl.cards import islem_yap
+		
+		doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test@kta.com",
+			"baslangic_saati": frappe.utils.add_to_date(None, minutes=-30)
+		}).insert(ignore_permissions=True, ignore_links=True)
+		
+		# Bitiş işlemi yap (miktar zorunlu ise miktar girilmeli)
+		islem_yap(doc.name, "Bitis", tamamlanan_miktar=10)
+		
+		# Docstatus kontrol et (1 = Submitted)
+		doc.reload()
+		self.assertEqual(doc.docstatus, 1)
+		self.assertEqual(doc.durum, "Bitmiş")
+
+	def test_amend_flow(self):
+		"""İptal edilen bir kartın 'Amend' (Düzeltme) akışını doğrular."""
+		# 1. Kartı bitir ve gönder
+		doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test@kta.com",
+			"baslangic_saati": frappe.utils.add_to_date(None, minutes=-30),
+			"bitis_saati": frappe.utils.now_datetime()
+		}).insert(ignore_permissions=True, ignore_links=True)
+		doc.submit()
+		
+		# 2. Kartı iptal et
+		doc.cancel()
+		self.assertEqual(doc.docstatus, 2)
+		
+		# 3. Amend işlemi (Yeni versiyon oluşturma)
+		from frappe.model.mapper import get_mapped_doc
+		new_doc = frappe.copy_doc(doc)
+		new_doc.amended_from = doc.name
+		new_doc.docstatus = 0
+		new_doc.insert(ignore_permissions=True, ignore_links=True)
+		
+		# 4. Doğrulama
+		self.assertEqual(new_doc.amended_from, doc.name)
+		self.assertEqual(new_doc.docstatus, 0)
+		self.assertTrue(new_doc.name.endswith("-1") or "-1" in new_doc.name) # Genelde .##-1 olur

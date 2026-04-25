@@ -16,24 +16,26 @@ def create_calisma_karti(**kwargs):
 
     operator = data.get("operator")  # Employee.name
 
-    # --- ANTI DOUBLE-CLICK (RACE CONDITION) KORUMASI (30 Saniye Kuralı) ---
+    # --- PREVENT DUPLICATE ACTIVE CARDS (Mükerrer Kart Engelleme) ---
+    # If an active (not finished) card already exists for this Job Card, Operation and Operator,
+    # we return that existing card instead of creating a new one.
     if data.get("is_karti") and data.get("operasyon"):
-        from frappe.utils import add_to_date, now_datetime
-
-        thirty_secs_ago = add_to_date(now_datetime(), seconds=-30)
-        recent_card = frappe.db.get_value(
+        existing_card = frappe.db.get_value(
             "Calisma Karti",
             {
                 "is_karti": data.get("is_karti"),
                 "operasyon": data.get("operasyon"),
                 "operator": operator,
-                "creation": [">=", thirty_secs_ago]
+                "docstatus": ["<", 2],        # Not cancelled
+                "bitis_saati": ["is", "not set"] # Not finished
             },
             "name"
         )
-        if recent_card:
-            # Sessizce yakın zamanda oluşturulan asıl kartı döndür
-            return frappe.get_doc("Calisma Karti", recent_card).as_dict()
+        if existing_card:
+            # Return the existing active card silently
+            doc_dict = frappe.get_doc("Calisma Karti", existing_card).as_dict()
+            doc_dict["_is_existing"] = True
+            return doc_dict
     # ----------------------------------------------------------------------
 
 

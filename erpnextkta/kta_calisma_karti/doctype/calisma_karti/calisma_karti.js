@@ -107,6 +107,21 @@ frappe.ui.form.on('Calisma Karti', {
       frm.dashboard.add_indicator(__('Toplam Duruş: {0}', [frm.doc.toplam_durus]), 'orange');
     }
 
+    // Gönderim kontrolü ve mesajı
+    if (frm.doc.docstatus === 0) {
+      if (durum !== 'bitmis') {
+        frm.set_intro(__('Bu kart henüz bitirilmemiş. Gönderim (Submit) yapabilmek için önce işlemi bitirmelisiniz.'), 'orange');
+        // Submit butonunu gizle (Frappe'de docstatus 0 iken kaydedilmişse primary action Submit olur)
+        // Eğer kart bitmemişse kullanıcı sadece "Kaydet" yapabilsin
+        if (!frm.doc.__islocal) {
+          frm.page.set_primary_action(__('Kaydet'), () => frm.save());
+        }
+      } else {
+        frm.set_intro(__('İşlem tamamlandı. Şimdi kartı gönderebilirsiniz (Submit).'), 'blue');
+        // Normal Frappe davranışı: docstatus 0 ise "Submit" butonunu gösterir (zaten öyle)
+      }
+    }
+
     // Makine Günlük Bakım Butonu
     frm.add_custom_button(__('Günlük Bakım Onayı'), () => {
       showMaintenanceDialog(frm);

@@ -9,12 +9,13 @@
 | ORM | Frappe ORM → MariaDB |
 | Realtime | Socket.IO (`frappe.publish_realtime`) |
 | Versiyonlama | Frappe DocType JSON + Python controller |
-| Test | — (henüz test yapısı yok) |
+| Test | Pytest (Integration) |
 
 ### Frontend
 | Katman | Teknoloji |
 |--------|-----------|
 | Framework | Vue 3 (Composition API) |
+| Test | Vitest (Unit/Integration/Race) |
 | Tip sistemi | TypeScript (sadece `view-calisma-karti`) |
 | API köprüsü | `frappe.call()` (global Frappe JS) |
 | Realtime | `frappe.realtime.on/off` (Socket.IO) |
@@ -103,6 +104,8 @@ Public (Frontend): erpnextkta/public/
 4. **`after_commit=True` realtime** — Event DB commit sonrası tetiklenir; başarısızlık CK işlemini bloklamaz
 5. **Vue bundle'lar** — Her SPA bağımsız import zinciri; Frappe'nin hot-reload'u kısıtlıdır (dev'de `bench build` gerekebilir)
 6. **Agresif Modal Susturma** — `App.vue` açıkken `frappe.msgprint` override edilir ve 250ms'de bir mesaj kuyruğu (`frappe.messages`) temizlenir (Sıkıyönetim Modu).
+7. **Frontend Race Condition (loading)** — `withLoading` ve `loading.value` kontrolleri atomiklik sağlamak için senkron olarak API çağrısı öncesi kontrol edilir.
+8. **Double Validation** — Hem frontend (loading guard) hem backend (before_submit) katmanlarında veri bütünlüğü kontrol edilir.
 
 ## Tool & Patterns
 

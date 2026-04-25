@@ -216,6 +216,13 @@ class CalismaKarti(Document):
         durum_key = self.get_durum()
         self.durum = STATU_HARITASI.get(durum_key, "Hazır")
 
+    def before_submit(self):
+        if self.durum != "Bitmiş":
+            frappe.throw(
+                frappe._("Çalışma Kartı henüz bitirilmemiş. Lütfen önce kartı bitirin."),
+                title=frappe._("Gönderim Engellendi")
+            )
+
     def check_duplicate_quality_docs(self):
         # Ayarlar üzerinden kontrolün aktif olup olmadığını denetle
         check_enabled = frappe.db.get_single_value("KTA Calisma Karti Settings", "mukerrer_kalite_kontrolu_yap")
