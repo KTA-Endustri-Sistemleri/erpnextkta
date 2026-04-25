@@ -3,6 +3,277 @@
 
 
 
+## 🚀 v1.9.0 (2026-04-25)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta-calisma-karti**: fix shift window calculation in calisma_karti.py
+      
+      
+    
+      
+      
+        
+- **kta-calisma-karti**: work card net working time calculation logic
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- add shift crossing analysis and bulk recalculation scripts for work cards and dashboard date select
+      
+      
+    
+      
+      
+        
+- test_masasi_dogrulama_kaydi doctype moved to kta_quality module
+      
+      
+    
+      
+      
+        
+- move BaglantiNoktasiSatiri and DegerlendirmeKriteri doctypes to kta_quality module
+      
+      
+    
+      
+      
+        
+- move kta_krimp_yukseklik_parametreleri doctype to kta_quality module
+      
+      
+    
+      
+      
+        
+- rename kta_krimp_book field to izokrimp_yuksekligi
+      
+      
+    
+      
+      
+        
+- add shift crossing analysis and bulk recalculation scripts for work cards and dashboard date select
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- update memory-bank with frontend safeguards and vitest testing architecture
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- implement backend submission validation and permission updates
+      
+      
+    
+      
+      
+        
+- implement frontend safeguards and comprehensive vitest suite
+      
+      
+    
+      
+      
+        
+- implement automated calendar event synchronization for asset maintenance and add custom fields for maintenance tracking
+      
+      
+    
+      
+      
+        
+- modular downtime reasons(kta-calisma-karti) and quality improvments (kta-quality)
+      
+      
+    
+      
+      
+        
+- **downtime**: modularize downtime reasons and remove unused UI fields
+      
+      
+    
+      
+      
+        
+- **kta_quality**: kta_quality module added
+      
+      
+    
+      
+      
+        
+- implement Krimp Book and Quality Settings doctypes with import script
+      
+      
+    
+      
+      
+        
+- **quality**: improve Test Masasi Dogrulama Kaydi functionality
+      
+      
+    
+      
+      
+        
+- **downtime**: implement dynamic downtime reasons and system categorization
+      
+      
+    
+      
+      
+        
+- add custom_calisma_karti field to Quality Inspection for unambiguous linkage and update logic to prioritize it
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- standardize weekly date formatting across all MRP reports and PP reports
+      
+      
+    
+      
+      
+        
+- standardize weekly date formatting across all MRP reports to YYYY-Www format
+      
+      
+    
+      
+      
+        
+- update module name to kta_quality for Baglanti Noktasi Satiri and Degerlendirme Kriteri doctypes
+      
+      
+    
+      
+      
+        
+- replace hardcoded BOSCH customer check with dynamic DocType for selling exchange rate
+      
+      
+    
+      
+      
+        
+- standardize weekly date formatting across all MRP reports and PP reports
+      
+      
+    
+      
+      
+        
+- standardize weekly date formatting across all MRP reports to YYYY-Www format
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Testing
+
+    
+      
+      
+        
+- **kta-calisma-karti**: modularize and expand test suite
+      
+      
+    
+      
+      
+        
+- fix LinkValidationError by standardizing naming and adding seeding
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.8.0 (2026-04-20)
 
 
