@@ -3,6 +3,68 @@
 
 
 
+## 🚀 v1.9.1 (2026-04-27)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **calisma_karti**: remove tamamlanan_miktar requirement, enforce alt_operasyon
+      
+      
+    
+      
+      
+        
+- **calisma_karti**: remove tamamlanan_miktar requirement, enforce alt_operasyon
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Testing
+
+    
+      
+      
+        
+- fix test data isolation across test operators in test_api
+      
+      
+    
+      
+      
+        
+- add mock alt_operasyon before finishing in test_bitis_submits_successfully
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.9.0 (2026-04-25)
 
 
