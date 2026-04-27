@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
 import { useCalismaKarti } from "./composables/useCalismaKarti";
 import { useCalismaKartiUi } from "./composables/useCalismaKartiUi";
-import { durusFields, bitirFields } from "./composables/prompts";
+import { durusFields } from "./composables/prompts";
 
 import CkTopbar from "./components/CkTopbar.vue";
 import CkChips from "./components/CkChips.vue";
@@ -183,25 +183,9 @@ function onDurus() {
 }
 
 function onBitir() {
-  const isMiktarZorunlu = doc.value?.miktar_zorunlu_mu !== 0; // default true if null/undefined
-
-  if (isMiktarZorunlu) {
-    frappe.prompt(
-      bitirFields(),
-      async (v: any) => {
-        frappe.confirm("İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?", async () =>
-          callIslem("Bitis", null, null, v.tamamlanan_miktar)
-        );
-      },
-      "Bitir",
-      "Devam"
-    );
-  } else {
-    // Miktar zorunlu değilse direkt bitir
-    frappe.confirm("Herhangi bir üretim miktarı bildirmeden işlem bitirilecek. Emin misiniz?", async () =>
-      callIslem("Bitis", null, null, 0)
-    );
-  }
+  frappe.confirm("İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?", async () =>
+    callIslem("Bitis", null, null, 0)
+  );
 }
 
 async function setQC(nextValue: string) {

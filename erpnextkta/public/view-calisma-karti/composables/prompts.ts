@@ -91,18 +91,7 @@ export function durusFields() {
     ];
 }
 
-export function bitirFields() {
-    return [
-        {
-            fieldtype: "Float",
-            label: "Tamamlanan Miktar",
-            fieldname: "tamamlanan_miktar",
-            reqd: 0,
-            default: 0,
-            description: "Varsa bitiş aşamasında tamamlanan ek miktar.",
-        },
-    ];
-}
+
 
 export function idcOlcumFields(docname: string, defaults: any = {}) {
     return [

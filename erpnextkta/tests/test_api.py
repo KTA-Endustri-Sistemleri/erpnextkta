@@ -74,7 +74,16 @@ class TestCalismaKartiAPI(KTATestCase):
 		res = islem_yap(docname, "DevamEt")
 		self.assertEqual(res["durum"], "calisiyor")
 		
-		# 4. Bitiş
+		# 4. Bitiş (artık alt operasyon zorunlu)
+		unique_title = f"Test Alt Op {frappe.generate_hash(length=8)}"
+		master_doc = frappe.get_doc({
+			"doctype": "KTA Calisma Karti Alt Operasyonlari",
+			"title": unique_title,
+			"parent_operation": self.kta_op,
+			"sequence": 10
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		add_alt_operasyon_kaydi(docname, master_doc.name)
+		
 		res = islem_yap(docname, "Bitis", tamamlanan_miktar=10)
 		self.assertEqual(res["durum"], "bitmis")
 		
