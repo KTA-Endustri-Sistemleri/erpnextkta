@@ -29,28 +29,15 @@ def _check_card_data_complete(doc):
     """Check if a Calisma Karti has the required data filled in.
 
     Returns a list of missing-data keys (empty list = complete).
-    Logic mirrors _handle_bitis validation:
-      - miktar_zorunlu_mu=1  →  tamamlanan_miktar > 0
-      - miktar_zorunlu_mu=0  →  at least 1 alt_operasyon row
     """
     missing = []
 
-    miktar_zorunlu = frappe.db.get_value(
-        "KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu"
+    alt_op_count = frappe.db.count(
+        "Calisma Karti Alt Operasyon Kayitlari",
+        {"parent": doc.name, "parenttype": "Calisma Karti"},
     )
-    if miktar_zorunlu is None:
-        miktar_zorunlu = 1  # default true
-
-    if miktar_zorunlu:
-        if float(doc.tamamlanan_miktar or 0) <= 0:
-            missing.append("tamamlanan_miktar")
-    else:
-        alt_op_count = frappe.db.count(
-            "Calisma Karti Alt Operasyon Kayitlari",
-            {"parent": doc.name, "parenttype": "Calisma Karti"},
-        )
-        if alt_op_count == 0:
-            missing.append("alt_operasyon")
+    if alt_op_count == 0:
+        missing.append("alt_operasyon")
 
     return missing
 
@@ -466,18 +453,9 @@ def _handle_bitis(doc, now, aciklama, qty):
     # 2. Add requested amount
     doc.tamamlanan_miktar = (doc.tamamlanan_miktar or 0.0) + qty
 
-    # 3. Check amount constraint
-    total_done = float(doc.tamamlanan_miktar or 0)
-    if total_done <= 0:
-        # Check operation strictness config
-        op_doc = frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu")
-        miktar_zorunlu_mu = op_doc if op_doc is not None else 1
-
-        if miktar_zorunlu_mu:
-            frappe.throw("Bu operasyon için tamamlanan miktar (üretim adedi) bildirilmesi zorunludur.")
-        else:
-            if not doc.get("alt_operasyon_kayitlari"):
-                frappe.throw("Üretim adedi girilmeden işlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.")
+    # 3. Check amount constraint (Tamamlanan miktar artık zorunlu değil, alt operasyon zorunlu)
+    if not doc.get("alt_operasyon_kayitlari"):
+        frappe.throw("İşlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.")
 
     doc.bitis_saati = now
 

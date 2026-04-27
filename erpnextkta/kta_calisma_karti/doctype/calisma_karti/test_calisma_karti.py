@@ -332,7 +332,19 @@ class TestCalismaKartiIntegration(KTATestCase):
 			"baslangic_saati": frappe.utils.add_to_date(None, minutes=-30)
 		}).insert(ignore_permissions=True, ignore_links=True)
 		
-		# Bitiş işlemi yap (miktar zorunlu ise miktar girilmeli)
+		# Alt operasyon ekle (Bitiş için zorunlu)
+		unique_title = f"Test Alt Op {frappe.generate_hash(length=8)}"
+		master_doc = frappe.get_doc({
+			"doctype": "KTA Calisma Karti Alt Operasyonlari",
+			"title": unique_title,
+			"parent_operation": self.kta_op,
+			"sequence": 10
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		
+		from erpnextkta.kta_calisma_karti.api_impl.alt_operasyon import add_alt_operasyon_kaydi
+		add_alt_operasyon_kaydi(doc.name, master_doc.name)
+
+		# Bitiş işlemi yap (artık miktar sorulmuyor, ama alt operasyon şart)
 		islem_yap(doc.name, "Bitis", tamamlanan_miktar=10)
 		
 		# Docstatus kontrol et (1 = Submitted)
