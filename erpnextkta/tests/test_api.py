@@ -17,7 +17,8 @@ class TestCalismaKartiAPI(KTATestCase):
 			create_test_operator(emp_email, emp_email.split("@")[0].capitalize())
 
 		# Ensure a clean slate for this specific test case payload across runs
-		frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": "test@kta.com"})
+		for operator in ["test@kta.com", "workflow@kta.com", "qc@kta.com", "scrap@kta.com", "altop@kta.com"]:
+			frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": operator})
 		
 		# Ensure Work Order has source_warehouse (for scrap sync)
 		frappe.db.set_value("Work Order", self.wo_name, "source_warehouse", self.wip_warehouse)
