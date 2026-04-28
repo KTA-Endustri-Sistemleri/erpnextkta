@@ -458,15 +458,21 @@ def _handle_bitis(doc, now, aciklama, qty):
         frappe.throw("İşlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.")
 
     doc.bitis_saati = now
-
+    
     # Optional final note/durus reason
     if aciklama and len(doc.duruslar) > 0:
         doc.duruslar[-1].aciklama = aciklama
 
+    doc.update_durum()
+    doc.save(ignore_permissions=True)
+
     # 4. Submit linked Quality Inspection (if draft)
     _submit_linked_quality_inspection(doc)
 
-    # 5. Auto-submit the card if it is still a Draft
+    # 5. Reload and Auto-submit the card if it is still a Draft
+    # Reload is CRITICAL here because _submit_linked_quality_inspection triggers a hook
+    # that updates the document in the database (quality_inspection link and kalite_kontrol status).
+    doc.reload()
     if doc.docstatus == 0:
         doc.submit()
 
@@ -558,7 +564,7 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
         frappe.throw(_("İptal edilmiş kartta işlem yapılamaz."))
 
     durum = doc.get_durum()
-    if (doc.kalite_kontrol or '').strip() == 'Reddedildi':
+    if (doc.kalite_kontrol or '').strip() == 'Reddedildi' and islem_tipi != "Bitis":
         frappe.throw('Reddedilmiş çalışma kartında işlem yapılamaz.')
 
     from frappe.utils import now_datetime

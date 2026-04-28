@@ -650,5 +650,4 @@ def sync_qi_to_calisma_karti(doc, method=None):
                  ck.db_set("durum", "Hazır", update_modified=True)
 
     # Trigger UI update
-    frappe.db.commit()
     publish_calisma_karti_changed(ck_name, reason=f"qi_sync:{method or 'hook'}")
