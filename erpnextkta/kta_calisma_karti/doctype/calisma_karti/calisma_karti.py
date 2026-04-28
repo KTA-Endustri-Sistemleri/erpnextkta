@@ -217,7 +217,28 @@ class CalismaKarti(Document):
         self.durum = STATU_HARITASI.get(durum_key, "Hazır")
 
     def before_submit(self):
-        if self.durum != "Bitmiş":
+        # Ensure status is fresh before checking
+        self.update_durum()
+
+        # We allow submission if the status is either "Bitmiş" or "Reddedildi".
+        # Fallback: if bitis_saati is set, it's technically finished, so we allow it.
+        # This prevents blocking due to potential stale 'durum' field logic.
+        is_finished = self.durum in ["Bitmiş", "Reddedildi"] or self.bitis_saati
+        
+        if not is_finished:
+            # Diagnostic logging to capture the state of the document at the moment of failure
+            log_data = {
+                "name": self.name,
+                "durum": self.durum,
+                "get_durum": self.get_durum(),
+                "bitis_saati": str(self.bitis_saati),
+                "baslangic_saati": str(self.baslangic_saati),
+                "kalite_kontrol": self.kalite_kontrol,
+                "docstatus": self.docstatus,
+                "aktif_durus": self.aktif_durus_var_mi()
+            }
+            frappe.log_error(title="Calisma Karti Submit Blocked", message=frappe.as_json(log_data))
+            
             frappe.throw(
                 frappe._("Çalışma Kartı henüz bitirilmemiş. Lütfen önce kartı bitirin."),
                 title=frappe._("Gönderim Engellendi")
