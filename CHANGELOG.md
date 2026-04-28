@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v1.9.2 (2026-04-28)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- robust calisma karti submission and QI sync race condition
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.9.1 (2026-04-27)
 
 
