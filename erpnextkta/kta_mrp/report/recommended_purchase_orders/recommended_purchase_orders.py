@@ -1,5 +1,5 @@
 import frappe
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from collections import defaultdict
 import math
 
@@ -56,7 +56,7 @@ def execute(filters=None):
             "paket": paket
         }
 
-        weeks = sorted(weekly_needs.keys(), key=lambda w: (int(w.split("-W")[0]), int(w.split("-W")[1])))
+        weeks = sorted(weekly_needs.keys(), key=week_sort_key)
         remaining = dict(weekly_needs)
         last_week_in_scope = weeks[-1]
 
@@ -68,7 +68,6 @@ def execute(filters=None):
                 i += 1
                 continue
 
-            # MOQ altıysa tamamlamaya çalış
             if qty < moq and w != last_week_in_scope:
                 j = i + 1
                 while qty < moq and j < len(weeks):
@@ -81,7 +80,6 @@ def execute(filters=None):
 
             order_qty = max(moq, math.ceil(qty / paket) * paket)
 
-            # Paketleme tamamlaması
             if order_qty > qty and w != last_week_in_scope:
                 difference = order_qty - qty
                 j = i + 1
@@ -93,7 +91,6 @@ def execute(filters=None):
                     remaining[next_w] = max(0, next_qty - ek)
                     j += 1
 
-            # Zorlama MOQ tamamlama (sonraki haftalarda veri yoksa)
             if qty < moq and order_qty == qty and w != last_week_in_scope:
                 order_qty = moq
 
@@ -106,14 +103,6 @@ def execute(filters=None):
             result_map[(item_code, uom, default_supplier)][order_week] += order_qty
             remaining[w] = 0
             i += 1
-
-        try:
-            parts = week_str.split("-W")
-            year_num = int(parts[0])
-            week_num = int(parts[1])
-            return (year_num, week_num)
-        except:
-            return (9999, 9999)
 
     all_weeks = sorted({week for item in result_map for week in result_map[item]}, key=week_sort_key)
 
@@ -131,48 +120,41 @@ def execute(filters=None):
         {"label": "Satır Toplamı", "fieldname": "row_total", "fieldtype": "Float", "width": 120}
     ]
 
-    # Dip toplam için haftalık toplamları hesapla
     week_totals = {week: 0 for week in all_weeks}
     grand_total = 0
-
     data = []
     for (item, uom, supplier), week_map in result_map.items():
         meta = metadata_map.get((item, uom, supplier), {})
         row = {
-            "hammadde": item,
-            "uom": uom,
-            "supplier": supplier,
+            "hammadde": item, "uom": uom, "supplier": supplier,
             "lead_time_days": meta.get("lead_time_days", 0),
-            "moq": meta.get("moq", 0),
-            "paket": meta.get("paket", 0)
+            "moq": meta.get("moq", 0), "paket": meta.get("paket", 0)
         }
-        
-        # Satır toplamını hesapla
         row_total = 0
         for week in all_weeks:
             week_value = round(week_map.get(week, 0), 2)
             row[week] = week_value
             row_total += week_value
             week_totals[week] += week_value
-        
         row["row_total"] = round(row_total, 2)
         grand_total += row_total
         data.append(row)
 
-    # Dip toplam satırını ekle
-    total_row = {
-        "hammadde": "<b>TOPLAM</b>",
-        "supplier": "",
-        "uom": "",
-        "lead_time_days": "",
-        "moq": "",
-        "paket": ""
-    }
-    
-    for week in all_weeks:
-        total_row[week] = round(week_totals[week], 2)
-    
+    total_row = {"hammadde": "<b>TOPLAM</b>", "supplier": "", "uom": "", "lead_time_days": "", "moq": "", "paket": ""}
+    for week in all_weeks: total_row[week] = round(week_totals[week], 2)
     total_row["row_total"] = round(grand_total, 2)
     data.append(total_row)
 
-    return columns, data
+    report_summary = [
+        {"value": len(data) - 1, "label": "Önerilen PO Sayısı", "indicator": "Blue"},
+        {"value": frappe.format(grand_total, "Float"), "label": "Toplam Önerilen Miktar", "indicator": "Green"}
+    ]
+
+    return columns, data, None, None, report_summary
+
+def week_sort_key(week_str):
+    try:
+        parts = week_str.split("-W")
+        return (int(parts[0]), int(parts[1]))
+    except:
+        return (9999, 9999)
