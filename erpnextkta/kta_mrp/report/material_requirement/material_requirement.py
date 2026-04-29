@@ -2,6 +2,7 @@ import frappe
 from collections import defaultdict
 import re
 from datetime import datetime
+import math
 
 def execute(filters=None):
     if not filters:
@@ -18,7 +19,7 @@ def execute(filters=None):
         from_date = datetime.strptime(from_date, "%Y-%m-%d")
 
     from erpnextkta.kta_mrp.report.capacity_planning_report.capacity_planning_report import execute as capacity_execute
-    capacity_cols, capacity_data = capacity_execute(filters)
+    capacity_cols, capacity_data, *_ = capacity_execute(filters)
 
     week_fields = []
     week_labels = {}
@@ -93,13 +94,24 @@ def execute(filters=None):
     raw_material_items = list({key[0] for key in material_totals.keys()})
     item_info_map = {}
     default_supplier_map = {}
+    item_moq_map = {}
     
     if raw_material_items:
         item_names = frappe.db.get_all("Item", filters={"name": ["in", raw_material_items]}, fields=["name", "item_name"])
         item_info_map = {i.name: i.item_name for i in item_names}
+        
+        # Varsayılan tedarikçi ve MOQ bilgilerini getir
         for item_code in raw_material_items:
+            # Varsayılan tedarikçiyi bul
             default_supplier = frappe.db.get_value("Item Default", {"parent": item_code}, "default_supplier")
-            if default_supplier: default_supplier_map[item_code] = default_supplier
+            if default_supplier:
+                default_supplier_map[item_code] = default_supplier
+                # Bu tedarikçiye ait MOQ bilgisini Item Supplier tablosundan çek
+                moq = frappe.db.get_value("Item Supplier", 
+                    {"parent": item_code, "supplier": default_supplier}, 
+                    "custom_moq")
+                if moq:
+                    item_moq_map[item_code] = float(moq)
 
     remaining_stock_map = {}
     stock_map = {}
@@ -146,30 +158,41 @@ def execute(filters=None):
                     future_po_map[key].append((week_label, qty))
 
         for key in material_totals:
-            current_stock = remaining_stock_map.get(key, 0)
-            for week_label in sorted_week_labels:
-                value = material_totals[key][week_label]
-                if value > 0 and current_stock > 0:
-                    used_from_stock = min(current_stock, value)
-                    current_stock -= used_from_stock
-                    material_totals[key][week_label] = value - used_from_stock
-            remaining_stock_map[key] = current_stock
+            item_code = key[0]
+            moq = item_moq_map.get(item_code, 0)
+            balance = stock_map.get(key, 0)
+            
+            # Haftalık PO teslimatlarını kolay erişim için grupla
+            week_pos = defaultdict(float)
+            for w_label, q in future_po_map.get(key, []):
+                week_pos[w_label] += q
 
-        for key, po_entries in future_po_map.items():
-            for start_week_label, qty in sorted(po_entries, key=lambda x: sorted_week_labels.index(x[0]) if x[0] in sorted_week_labels else float('inf')):
-                remaining = qty
-                started = False
-                for week_label in sorted_week_labels:
-                    if not started:
-                        if week_label != start_week_label: continue
-                        started = True
-                    need = material_totals[key][week_label]
-                    if need > 0:
-                        used = min(need, remaining)
-                        material_totals[key][week_label] -= used
-                        remaining -= used
-                        if remaining <= 0: break
-                if remaining > 0: po_surplus_map[key] += remaining
+            for week_label in sorted_week_labels:
+                demand = material_totals[key][week_label]
+                # Bu haftaki PO teslimatlarını bakiyeye ekle
+                balance += week_pos.get(week_label, 0)
+                
+                if demand > balance:
+                    # İhtiyaç var
+                    shortfall = demand - balance
+                    if moq > 0:
+                        # MOQ (Minimum Paketleme) katına tamamla
+                        order_qty = math.ceil(shortfall / moq) * moq
+                    else:
+                        order_qty = shortfall
+                    
+                    material_totals[key][week_label] = order_qty
+                    balance = (balance + order_qty) - demand
+                else:
+                    # Eldeki stok/PO yeterli
+                    balance -= demand
+                    material_totals[key][week_label] = 0
+            
+            # Eğer tüm haftalar bittikten sonra hala elde fazla (PO artığı) varsa po_surplus'a ekle
+            if balance > 0:
+                # Ancak sadece PO'lardan gelen fazlalığı saymak için başlangıç stokunu düşebiliriz
+                # Şimdilik basitçe kalanı fazla olarak işaretleyelim
+                po_surplus_map[key] = balance
 
     columns = get_base_columns() if not group_only_material else [
         {"label": "Hammadde", "fieldname": "hammadde", "fieldtype": "Link", "options": "Item", "width": 140},
