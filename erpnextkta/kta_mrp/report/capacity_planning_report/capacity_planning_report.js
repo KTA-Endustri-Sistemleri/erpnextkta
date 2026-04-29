@@ -18,6 +18,24 @@ frappe.query_reports["Capacity Planning Report"] = {
 			"reqd": 1
 		},
 		{
+			"fieldname": "dengeleme_yapilsin",
+			"label": __("Kapasite Dengeleme Yapılsın mı?"),
+			"fieldtype": "Check",
+			"default": 1
+		},
+		{
+			"fieldname": "ramp_up_aktif",
+			"label": __("Ramp-up (Önden Üretim) Yapılsın mı?"),
+			"fieldtype": "Check",
+			"default": 0
+		},
+		{
+			"fieldname": "ramp_up_weeks",
+			"label": __("Ramp-up Süresi (Hafta)"),
+			"fieldtype": "Int",
+			"default": 3
+		},
+		{
 			"fieldname": "custom_musteri_grubu",
 			"label": __("Müşteri Grubu"),
 			"fieldtype": "Link",

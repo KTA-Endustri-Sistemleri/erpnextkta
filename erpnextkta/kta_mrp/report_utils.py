@@ -193,8 +193,25 @@ def get_report_filters(report_name):
             }
         ]
 
-    if report_name in ["Capacity Planning Report", "Work Order Planning"]:
         return common_filters["dates"] + [
+            {
+                "fieldname": "dengeleme_yapilsin",
+                "label": "Kapasite Dengeleme Yapılsın mı?",
+                "fieldtype": "Check",
+                "default": 1
+            },
+            {
+                "fieldname": "ramp_up_aktif",
+                "label": "Ramp-up (Önden Üretim) Yapılsın mı?",
+                "fieldtype": "Check",
+                "default": 0
+            },
+            {
+                "fieldname": "ramp_up_weeks",
+                "label": "Ramp-up Süresi (Hafta)",
+                "fieldtype": "Int",
+                "default": 3
+            },
             {
                 "fieldname": "custom_musteri_grubu",
                 "label": "Müşteri Grubu",
