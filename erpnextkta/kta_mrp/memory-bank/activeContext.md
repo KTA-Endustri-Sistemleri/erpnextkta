@@ -1,20 +1,20 @@
-# Active Context: KTA MRP Optimization
+# Aktif Bağlam: KTA MRP Optimizasyonu
 
-## Current Work Focus
-Refining the end-to-end planning chain from capacity to material requirements.
+## Mevcut Odak Noktası
+Kapasite planlamadan malzeme ihtiyaçlarına kadar uçtan uca planlama zincirinin mükemmelleştirilmesi ve "Üretim Komuta Merkezi" üzerinden stratejik takibin sağlanması.
 
-## Recent Changes
-- **Hybrid Balancing**: Implemented FIFO + Criticality logic in Capacity Planning.
-- **Linear Ramp-up**: Added a backward smoothing pass to create a 3-week linear growth curve for spikes.
-- **MOQ & Packing Integration**: Updated Material Requirement to fetch `custom_minimum_order_quantity` and `custom_minimum_paketleme_miktari` from `Item Price` (Buying = 1) and apply hybrid rounding logic.
-- **Modular Filters**: Added `dengeleme_yapilsin`, `ramp_up_aktif`, and `ramp_up_weeks` filters across all related reports.
-- **Bug Fix**: Resolved unpacking error in Material Requirement when calling the updated Capacity Planning report.
+## Son Değişiklikler
+- **Üretim Boru Hattı Analizi (Komuta Merkezi)**: Excel modelleriyle tam uyumlu, haftalık stok ilerleyişini (Stock Evolution) takip eden stratejik rapor geliştirildi.
+- **Dinamik Kapasite Hiyerarşisi**: Kapasite tespiti için "Manuel Tanım > Geçmiş Performans (3 Aylık Ort.) > Sınırsız" hiyerarşisi kuruldu.
+- **Açık İş Emri (WIP) Entegrasyonu**: Devam eden üretimi stok girişlerine dahil eden ve yeni planı buna göre daraltan akıllı mekanizma eklendi.
+- **Sert Kapasite Dengeleme**: Backlog (birikmiş borç) olduğu sürece fabrikayı tam kapasite (7.000 veya tanımlı limit) çalışmaya zorlayan algoritma uygulandı.
+- **Koli Bazlı Yuvarlama**: Tüm talep ve üretim rakamları, müşteriye özel paketleme miktarlarına (MPQ) göre otomatik yukarı yuvarlanıyor.
 
-## Next Steps
-- **Validation**: Monitor the "Order Surplus" (Stock overflow) created by MOQ rounding over multiple weeks.
-- **UI Enhancement**: Consider adding a "Setup Time" penalty if we switch between too many items in a single week.
-- **Optimization**: Profile the Material Requirement report for very large item sets.
+## Gelecek Adımlar
+- **Doğrulama**: MOQ yuvarlamasından kaynaklanan "Stok Fazlası" durumunun uzun vadeli etkilerinin izlenmesi.
+- **Arayüz Geliştirme**: Çok fazla ürün geçişi yapıldığında "Hazırlık Süresi" (Setup Time) maliyetinin kapasiteye yansıtılması.
+- **Verimlilik**: Çok geniş ürün setleri için Malzeme İhtiyaç raporunun hızlandırılması.
 
-## Active Decisions
-- **Ramp-up Target**: Set to 3 weeks by default as the optimal balance for KTA factory operations.
-- **Unfulfilled Demand**: Always carried forward to ensure zero data loss in the planning chain.
+## Aktif Kararlar
+- **Backlog Önceliği**: Tüm gecikmiş siparişler "1. Hafta" (Bugün) kolonunda toplanarak planın gerçek borçla başlaması kararlaştırıldı.
+- **Kanıtlanmış Kapasite**: Eğer ürün kartında kapasite tanımlı değilse, son 3 aylık İş Emri verilerinden hesaplanan ortalama haftalık hızın baz alınması standart hale getirildi.

@@ -1,21 +1,21 @@
-# Progress: KTA MRP Optimization
+# İlerleme: KTA MRP Optimizasyonu
 
-## What Works?
-- [x] Shared Capacity logic (Group-based).
-- [x] Hybrid Balancing (FIFO + Proportional).
-- [x] Backward Smoothing (Ramp-up).
-- [x] Dynamic Ramp-up duration filter.
-- [x] Capacity-synced Work Order suggestions.
-- [x] Material Requirement calculation with Stock/PO subtraction.
-- [x] MOQ (Minimum Packaging) rounding for materials.
+## Neler Çalışıyor?
+- [x] **Üretim Komuta Merkezi**: Stok evrimini (Stock Evolution) gösteren ana strateji raporu.
+- [x] **Dinamik Kapasite**: Tanımlı veya geçmişe dayalı otomatik kapasite tespiti.
+- [x] **Hibrit Dengeleme**: FIFO + Oransal dağılım mantığı.
+- [x] **Geriye Dönük Yumuşatma (Ramp-up)**: Gelecekteki yük patlamalarını önden hazırlama.
+- [x] **Açık İş Emri Entegrasyonu**: WIP verisinin kapasite ve stok hesaplarına dahil edilmesi.
+- [x] **Malzeme İhtiyaçları**: Stok ve PO düşülmüş, MOQ/Koli uyumlu malzeme listesi.
+- [x] **Koli Bazlı Yuvarlama**: Sahadaki koli birimleriyle tam uyumlu üretim rakamları.
 
-## Current Status
-All core optimization requirements have been implemented and verified against user-provided data screenshots. The system produces a "smoothed" production plan that respect logistics and capacity constraints.
+## Mevcut Durum
+Tüm temel optimizasyon gereksinimleri uygulandı ve kullanıcı tarafından paylaşılan Excel modelleriyle doğruluğu teyit edildi. Sistem artık lojistik ve kapasite kısıtlarını göz önünde bulunduran, "yumuşatılmış" ve gerçekçi bir üretim planı üretiyor.
 
-## What's Left?
-- [ ] Multi-supplier support for MOQ (currently uses only default supplier).
-- [ ] Automated "Safety Stock" replenishment trigger in the MR report.
-- [ ] User feedback on the 3-week default ramp-up duration.
+## Eksikler / Yapılacaklar
+- [ ] **Çoklu Tedarikçi Desteği**: MOQ hesaplarında şu an sadece varsayılan tedarikçi baz alınıyor.
+- [ ] **Emniyet Stoğu**: Malzeme raporunda otomatik "Emniyet Stoğu" tetikleyicisi eklenmesi.
+- [ ] **Geri Bildirim**: 3 haftalık varsayılan ramp-up süresinin saha performansı için yeterliliğinin izlenmesi.
 
-## Known Issues
-- Large date ranges in Material Requirement can be slow due to the triple-report call stack (Capacity -> BOM Explosion -> Stock/PO Check).
+## Bilinen Sorunlar
+- **Hız**: Çok geniş tarih aralıklarında Malzeme İhtiyaç raporu, üçlü rapor çağırma yapısı nedeniyle yavaş çalışabiliyor (Kapasite -> BOM Patlatma -> Stok/PO Kontrolü).

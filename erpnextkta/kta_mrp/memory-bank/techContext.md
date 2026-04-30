@@ -1,24 +1,26 @@
-# Technical Context: KTA MRP
+# Teknik Bağlam: KTA MRP
 
-## Technologies
-- **Core**: Frappe Framework (Python 3.x, MariaDB).
-- **Frontend**: Vanilla JS (Frappe Script Reports).
-- **Libraries**: `math` (for rounding), `collections.defaultdict` (for data structures).
+## Teknolojiler
+- **Çekirdek**: Frappe Framework (Python 3.x, MariaDB).
+- **Önyüz**: Vanilla JS (Frappe Script Reports).
+- **Kütüphaneler**: `math` (yuvarlama işlemleri için), `collections.defaultdict` (veri yapıları için).
 
-## Development Setup
-- Custom App: `kta_mrp`.
-- Main Report Files:
-    - `capacity_planning_report.py/js`
-    - `work_order_planning.py/js`
-    - `material_requirement.py/js`
-    - `report_utils.py` (Common utilities and filters).
+## Geliştirme Yapısı
+- **Özel Uygulama**: `kta_mrp`.
+- **Ana Rapor Dosyaları**:
+    - `production_pipeline_analysis.py/js` (Üretim Komuta Merkezi)
+    - `capacity_planning_report.py/js` (Kapasite Planlama)
+    - `work_order_planning.py/js` (İş Emri Planlama)
+    - `material_requirement.py/js` (Malzeme İhtiyacı)
+    - `report_utils.py` (Ortak yardımcı fonksiyonlar ve filtreler).
 
-## Technical Constraints
-- **Weekly Resolution**: All planning is done in ISO weeks (YYYY-Www).
-- **"ÜRÜN" Filter**: Only items with `custom_ara_malzeme_grubu == "ÜRÜN"` are considered in the primary production plan.
-- **Performance**: Material Requirement triggers a full capacity recalculation, so filters should be used to limit date ranges.
+## Teknik Kısıtlar
+- **Haftalık Çözünürlük**: Tüm planlama ISO hafta formatında (YYYY-Www) yapılır.
+- **"ÜRÜN" Filtresi**: Ana üretim planında sadece `custom_ara_malzeme_grubu == "ÜRÜN"` olan kalemler dikkate alınır.
+- **Performans**: Malzeme İhtiyacı raporu, tam bir kapasite yeniden hesaplamasını tetikler, bu nedenle tarih aralıkları filtrelerle sınırlandırılmalıdır.
 
-## Dependencies
-- Relies on `ProductionStartWeekReport` for initial demand data.
-- Relies on `Item Group` custom fields for capacity definitions.
-- Relies on `Item Price` for MOQ and Packing definitions (`custom_minimum_order_quantity` and `custom_minimum_paketleme_miktari`).
+## Bağımlılıklar
+- Başlangıç talep verisi için `ProductionStartWeekReport` raporuna dayanır.
+- Kapasite tanımları için `Item` ve `Item Group` özel alanlarına dayanır.
+- Geçmiş performans verisi için `Work Order` kayıtlarına dayanır.
+- MOQ ve Paketleme tanımları için `Item Price` tablosuna dayanır (`custom_minimum_order_quantity` ve `custom_minimum_paketleme_miktari`).

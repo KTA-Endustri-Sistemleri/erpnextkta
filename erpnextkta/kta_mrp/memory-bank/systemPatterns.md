@@ -1,26 +1,28 @@
-# System Patterns: KTA MRP
+# Sistem Yapıları: KTA MRP
 
-## Architecture
-Built as a modular extension within the `kta_mrp` app in ERPNext. Uses Python for the calculation engine and Frappe's Script Report framework for the UI.
+## Mimari
+ERPNext içindeki `kta_mrp` uygulaması altında modüler bir eklenti olarak tasarlanmıştır. Hesaplama motoru için Python, kullanıcı arayüzü için Frappe'nin "Script Report" altyapısı kullanılır.
 
-## Key Technical Decisions
-- **Shared Filter Registry**: Centralized filters in `report_utils.py` to ensure consistency across Capacity, Work Order, and Material reports.
-- **Backward Pass (Smoothing)**: Implemented a reverse-chronological loop to pull future spikes into previous empty weeks (Ramp-up).
-- **Forward Pass (Allocation)**: Implemented a FIFO-first allocation with proportional distribution for remaining capacity.
-- **Stateful Carry-over**: Uses a dictionary (`item_carry_over`) to track unfulfilled demand precisely across weeks.
+## Temel Teknik Kararlar
+- **Ortak Filtre Kaydı**: Kapasite, İş Emri ve Malzeme raporları arasındaki tutarlılığı sağlamak için filtreler `report_utils.py` içinde merkezileştirilmiştir.
+- **Geriye Dönük Geçiş (Smoothing)**: Gelecekteki yük patlamalarını boş haftalara çekmek için sondan başa doğru çalışan bir döngü uygulanmıştır (Ramp-up).
+- **İleriye Dönük Tahsis (Allocation)**: Kalan kapasite için FIFO (ilk giren ilk çıkar) öncelikli ve oransal dağılım mantığı kurulmuştur.
+- **Durumsal Devir (Carry-over)**: Karşılanamayan talepleri haftalar boyunca hassas bir şekilde izlemek için `item_carry_over` sözlüğü kullanılır.
+- **Stok Evrimi Formülü**: `Önceki Stok + (WIP + Yeni Plan) - Sevkiyat = Mevcut Stok` döngüsü her hafta için kümülatif hesaplanır.
 
-## Design Patterns
-- **Delegation**: `Work Order Planning` and `Material Requirement` reports delegate the core demand calculation to `Capacity Planning`.
-- **Constraint-Based Planning**: Every allocation is wrapped in a capacity check against the `Item Group`'s `custom_weekly_production`.
-- **MOQ & Packing Wrapping**: Material net needs are wrapped in a `max(moq, ceil(shortfall / paket) * paket)` function to respect both minimum order quantities and packaging standards (sourced from Item Price).
+## Tasarım Kalıpları
+- **Delegasyon (Yetkilendirme)**: `İş Emri Planlama` ve `Malzeme İhtiyacı` raporları, temel talep hesaplamasını `Kapasite Planlama` motoruna delege eder.
+- **Kısıt Bazlı Planlama**: Her tahsis işlemi, Ürün Grubu'nun tanımlı veya kanıtlanmış haftalık kapasitesine karşı kontrol edilir.
+- **MOQ ve Paketleme Sarmalayıcı**: Net malzeme ihtiyaçları, `max(moq, ceil(eksik / paket) * paket)` fonksiyonu ile hem minimum sipariş hem de paketleme standartlarına göre sarmalanır.
 
-## Component Relationships
+## Bileşen İlişkileri
 ```mermaid
 graph TD
-    CP[Capacity Planning Report] --> |Provides Balanced Plan| WO[Work Order Planning]
-    CP --> |Provides Balanced Plan| MR[Material Requirement]
-    WO --> |Checks| WOD[Work Order DocType]
-    MR --> |Explodes| BOM[BOM DocType]
-    MR --> |Subtracts| Bin[Bin / Stock]
-    MR --> |Subtracts| PO[Purchase Order]
+    CP[Kapasite Planlama Raporu] --> |Dengelenmiş Plan Sağlar| WO[İş Emri Planlama]
+    CP --> |Dengelenmiş Plan Sağlar| MR[Malzeme İhtiyacı]
+    CP --> |Stok Evrimi Sağlar| PCC[Üretim Komuta Merkezi]
+    WO --> |Kontrol Eder| WOD[İş Emri Belgesi]
+    MR --> |Patlatır| BOM[BOM Belgesi]
+    MR --> |Düşer| Bin[Stok Durumu]
+    MR --> |Düşer| PO[Satınalma Siparişi]
 ```

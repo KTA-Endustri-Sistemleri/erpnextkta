@@ -1,11 +1,12 @@
-# Project Brief: KTA MRP & Capacity Planning Optimization
+# Proje Özeti: KTA MRP ve Kapasite Planlama Optimizasyonu
 
-## Core Requirements
-Modernize the ERPNext KTA capacity planning workflow to move beyond independent product capacity calculations to a shared, group-based model with intelligent load leveling.
+## Temel Gereksinimler
+ERPNext KTA kapasite planlama iş akışını modernize ederek, bağımsız ürün kapasite hesaplamalarından, akıllı yük dengelemeli, ortak ve grup tabanlı bir modele geçiş yapmak.
 
-## Goals
-1.  **Shared Capacity**: Implement a model where items in the same group share a common weekly production limit.
-2.  **Intelligent Balancing**: Use a hybrid FIFO (Backlog first) and Criticality-based (Proportional) distribution strategy.
-3.  **Production Smoothing (Heijunka)**: Eliminate sudden spikes in production through a linear ramp-up algorithm.
-4.  **Operational Accuracy**: Ensure that work order suggestions and material requirements are synchronized with the balanced production plan.
-5.  **Logistics Optimization**: Implement MOQ (Minimum Order Quantity) and packaging size rounding for raw materials.
+## Hedefler
+1.  **Ortak Kapasite**: Aynı gruptaki kalemlerin ortak bir haftalık üretim limitini paylaştığı bir model uygulamak.
+2.  **Akıllı Dengeleme**: Hibrit bir FIFO (Önce Birikmiş İşler) ve Kritiklik tabanlı (Oransal) dağıtım stratejisi kullanmak.
+3.  **Üretim Yumuşatma (Heijunka)**: Doğrusal bir ramp-up (hazırlık) algoritması aracılığıyla üretimdeki ani patlamaları ortadan kaldırmak.
+4.  **Operasyonel Doğruluk**: İş emri önerilerinin ve malzeme ihtiyaçlarının dengelenmiş üretim planıyla senkronize edilmesini sağlamak.
+5.  **Lojistik Optimizasyonu**: Hammaddeler için MOQ (Minimum Sipariş Miktarı) ve paketleme boyutu yuvarlamasını uygulamak.
+6.  **Stratejik İzleme**: Üretim Komuta Merkezi aracılığıyla stok ilerleyişini, gecikmiş siparişleri (backlog) ve gerçek depo durumunu Excel hassasiyetinde takip etmek.
