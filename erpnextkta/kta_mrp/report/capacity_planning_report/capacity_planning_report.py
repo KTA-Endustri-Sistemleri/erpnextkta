@@ -33,14 +33,23 @@ def execute(filters=None):
     today_monday = get_monday_of_current_week()
     from_date = filters.get("from_date")
     if from_date:
-        from_date_obj = datetime.strptime(from_date, "%Y-%m-%d").date()
+        if isinstance(from_date, str):
+            from_date_obj = datetime.strptime(from_date, "%Y-%m-%d").date()
+        else:
+            from_date_obj = from_date
         if from_date_obj < today_monday:
             frappe.throw(frappe._("Geçmiş tarihler için rapor çalıştırılamaz. {0} sonrası seçiniz.").format(today_monday))
     else: from_date_obj = today_monday
     
     min_to_date = from_date_obj + timedelta(days=90)
     to_date = filters.get("to_date")
-    to_date_obj = datetime.strptime(to_date, "%Y-%m-%d").date() if to_date else min_to_date
+    if to_date:
+        if isinstance(to_date, str):
+            to_date_obj = datetime.strptime(to_date, "%Y-%m-%d").date()
+        else:
+            to_date_obj = to_date
+    else:
+        to_date_obj = min_to_date
 
     from erpnextkta.kta_mrp.report.production_start_week.production_start_week import ProductionStartWeekReport
     today = datetime.today().date()

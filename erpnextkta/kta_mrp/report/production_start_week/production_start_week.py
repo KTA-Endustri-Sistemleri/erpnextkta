@@ -142,8 +142,20 @@ class ProductionStartWeekReport:
                     coverage_by_week[label] -= covered
                     stock_used += covered
                     production = demand - covered
+                    
+                    # Müşteriye özel paketleme yuvarlaması
+                    if production > 0:
+                        packing = self.get_customer_packing(item_code, tree_key)
+                        if packing > 1:
+                            import math
+                            rounded_production = math.ceil(production / packing) * packing
+                            surplus = rounded_production - production
+                            # Fazlalığı bir sonraki haftalarda kullanılmak üzere mevcut stoğa ekle
+                            available += surplus 
+                            production = rounded_production
+                            
                     to_produce += production
-                    total += demand
+                    total += demand # Orijinal talebi koruyoruz
                     row[scrub(label)] = production
                 row["stock_covered"] = stock_used
                 row["to_produce"] = to_produce
@@ -179,10 +191,38 @@ class ProductionStartWeekReport:
         ]
 
     def get_initial_stock_balance(self):
-        warehouses = frappe.get_all("Warehouse", filters={"warehouse_type": "Kullanılabilir Stok"}, pluck="name")
+        # Eğer filtrelerde depo seçilmişse onları kullan
+        warehouses = self.filters.get("warehouses")
+        
+        if not warehouses:
+            # Seçim yoksa eski mantıkla 'Kullanılabilir Stok' tipindeki depoları bul
+            warehouses = frappe.get_all("Warehouse", filters={"warehouse_type": "Kullanılabilir Stok"}, pluck="name")
+        
         if not warehouses: return {}
-        stock_data = frappe.db.sql("""SELECT bin.item_code, SUM(bin.actual_qty) as total_qty FROM `tabBin` bin WHERE bin.warehouse IN %s GROUP BY bin.item_code""", [tuple(warehouses)], as_dict=True)
+        
+        # SQL sorgusunu seçili depolara göre çalıştır
+        stock_data = frappe.db.sql("""
+            SELECT 
+                bin.item_code, 
+                SUM(bin.actual_qty) as total_qty 
+            FROM `tabBin` bin 
+            WHERE bin.warehouse IN %s 
+            GROUP BY bin.item_code
+        """, [tuple(warehouses)], as_dict=True)
+        
         return {d.item_code: d.total_qty for d in stock_data}
+
+    def get_customer_packing(self, item_code, customer):
+        if not hasattr(self, "_packing_cache"): self._packing_cache = {}
+        key = (item_code, customer)
+        if key in self._packing_cache: return self._packing_cache[key]
+        
+        packing = frappe.db.get_value("Item Customer", 
+            {"parent": item_code, "customer_name": customer}, 
+            "custom_musteri_paketleme_miktari") or 1
+            
+        self._packing_cache[key] = float(packing)
+        return self._packing_cache[key]
 
     def get_sevk_parametreleri_map(self):
         records = frappe.get_all("KTA Sevk Parametreleri", fields=["customer_name", "customer_address", "production_time", "delivery_time"])

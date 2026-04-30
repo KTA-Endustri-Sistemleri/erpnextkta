@@ -55,6 +55,14 @@ frappe.query_reports["Capacity Planning Report"] = {
 					}
 				};
 			}
+		},
+		{
+			"fieldname": "warehouses",
+			"label": __("Depolar (Bitmiş Ürün Depolarını Seçin)"),
+			"fieldtype": "MultiSelectList",
+			"get_data": function(txt) {
+				return frappe.db.get_link_options("Warehouse", txt);
+			}
 		}
 	],
 
