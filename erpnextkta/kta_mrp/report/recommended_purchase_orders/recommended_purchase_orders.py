@@ -9,7 +9,7 @@ def execute(filters=None):
 
     from erpnextkta.kta_mrp.report.material_requirement import material_requirement
 
-    _, raw_data = material_requirement.execute({
+    _, raw_data, *_ = material_requirement.execute({
         "stage": "Stokları Düş + PO Teslimatlarını Düş",
         "group_by": "Sadece Hammadde",
         "from_date": filters.get("from_date"),

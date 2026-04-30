@@ -6,7 +6,7 @@ Refining the end-to-end planning chain from capacity to material requirements.
 ## Recent Changes
 - **Hybrid Balancing**: Implemented FIFO + Criticality logic in Capacity Planning.
 - **Linear Ramp-up**: Added a backward smoothing pass to create a 3-week linear growth curve for spikes.
-- **MOQ Integration**: Updated Material Requirement to fetch `custom_moq` from the default supplier and round up net needs accordingly.
+- **MOQ & Packing Integration**: Updated Material Requirement to fetch `custom_minimum_order_quantity` and `custom_minimum_paketleme_miktari` from `Item Price` (Buying = 1) and apply hybrid rounding logic.
 - **Modular Filters**: Added `dengeleme_yapilsin`, `ramp_up_aktif`, and `ramp_up_weeks` filters across all related reports.
 - **Bug Fix**: Resolved unpacking error in Material Requirement when calling the updated Capacity Planning report.
 

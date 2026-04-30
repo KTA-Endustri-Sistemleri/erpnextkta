@@ -21,4 +21,4 @@
 ## Dependencies
 - Relies on `ProductionStartWeekReport` for initial demand data.
 - Relies on `Item Group` custom fields for capacity definitions.
-- Relies on `Item Supplier` child table for MOQ definitions.
+- Relies on `Item Price` for MOQ and Packing definitions (`custom_minimum_order_quantity` and `custom_minimum_paketleme_miktari`).

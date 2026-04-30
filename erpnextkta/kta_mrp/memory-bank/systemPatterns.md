@@ -12,7 +12,7 @@ Built as a modular extension within the `kta_mrp` app in ERPNext. Uses Python fo
 ## Design Patterns
 - **Delegation**: `Work Order Planning` and `Material Requirement` reports delegate the core demand calculation to `Capacity Planning`.
 - **Constraint-Based Planning**: Every allocation is wrapped in a capacity check against the `Item Group`'s `custom_weekly_production`.
-- **MOQ Wrapping**: Material net needs are wrapped in a `ceil(shortfall / moq) * moq` function to respect packaging standards.
+- **MOQ & Packing Wrapping**: Material net needs are wrapped in a `max(moq, ceil(shortfall / paket) * paket)` function to respect both minimum order quantities and packaging standards (sourced from Item Price).
 
 ## Component Relationships
 ```mermaid

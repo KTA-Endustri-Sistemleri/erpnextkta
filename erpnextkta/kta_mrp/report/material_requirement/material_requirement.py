@@ -100,18 +100,24 @@ def execute(filters=None):
         item_names = frappe.db.get_all("Item", filters={"name": ["in", raw_material_items]}, fields=["name", "item_name"])
         item_info_map = {i.name: i.item_name for i in item_names}
         
-        # Varsayılan tedarikçi ve MOQ bilgilerini getir
+        # Varsayılan tedarikçi ve MOQ/Paketleme bilgilerini Item Price üzerinden getir
         for item_code in raw_material_items:
-            # Varsayılan tedarikçiyi bul
             default_supplier = frappe.db.get_value("Item Default", {"parent": item_code}, "default_supplier")
             if default_supplier:
                 default_supplier_map[item_code] = default_supplier
-                # Bu tedarikçiye ait MOQ bilgisini Item Supplier tablosundan çek
-                moq = frappe.db.get_value("Item Supplier", 
-                    {"parent": item_code, "supplier": default_supplier}, 
-                    "custom_moq")
-                if moq:
-                    item_moq_map[item_code] = float(moq)
+                
+                # Item Price üzerinden lojistik verileri çek (Buying = 1)
+                item_price = frappe.get_value("Item Price", {
+                    "item_code": item_code,
+                    "supplier": default_supplier,
+                    "buying": 1
+                }, ["custom_minimum_order_quantity", "custom_minimum_paketleme_miktari"], as_dict=True)
+                
+                if item_price:
+                    item_moq_map[item_code] = {
+                        "moq": float(item_price.custom_minimum_order_quantity or 0),
+                        "paket": float(item_price.custom_minimum_paketleme_miktari or 1)
+                    }
 
     remaining_stock_map = {}
     stock_map = {}
@@ -159,7 +165,9 @@ def execute(filters=None):
 
         for key in material_totals:
             item_code = key[0]
-            moq = item_moq_map.get(item_code, 0)
+            logistic_data = item_moq_map.get(item_code, {"moq": 0, "paket": 1})
+            moq = logistic_data["moq"]
+            paket = logistic_data["paket"]
             balance = stock_map.get(key, 0)
             
             # Haftalık PO teslimatlarını kolay erişim için grupla
@@ -175,11 +183,9 @@ def execute(filters=None):
                 if demand > balance:
                     # İhtiyaç var
                     shortfall = demand - balance
-                    if moq > 0:
-                        # MOQ (Minimum Paketleme) katına tamamla
-                        order_qty = math.ceil(shortfall / moq) * moq
-                    else:
-                        order_qty = shortfall
+                    
+                    # MOQ ve Paketleme katına tamamla (Recommended PO mantığı ile aynı)
+                    order_qty = max(moq, math.ceil(shortfall / paket) * paket)
                     
                     material_totals[key][week_label] = order_qty
                     balance = (balance + order_qty) - demand
