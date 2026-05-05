@@ -30,8 +30,27 @@ frappe.query_reports["MRP Analysis"] = {
 			fieldname: "periyot",
 			label: __("Periyot"),
 			fieldtype: "Select",
-			options: ["Yıllık", "3 Aylık", "6 Aylık", "Süresiz"],
+			options: ["Yıllık", "3 Aylık", "6 Aylık", "Süresiz", "Özel"],
 			default: "Yıllık",
+			on_change: function () {
+				let report = frappe.query_report;
+				let periyot = report.get_filter_value("periyot");
+				let is_custom = periyot === "Özel";
+				report.get_filter("from_date").toggle(is_custom);
+				report.get_filter("to_date").toggle(is_custom);
+			},
+		},
+		{
+			fieldname: "from_date",
+			label: __("Başlangıç Tarihi"),
+			fieldtype: "Date",
+			hidden: 1,
+		},
+		{
+			fieldname: "to_date",
+			label: __("Bitiş Tarihi"),
+			fieldtype: "Date",
+			hidden: 1,
 		},
 		{
 			fieldname: "ara_malzeme_grubu",

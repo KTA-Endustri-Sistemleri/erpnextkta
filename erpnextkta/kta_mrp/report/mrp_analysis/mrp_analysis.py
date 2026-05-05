@@ -9,17 +9,23 @@ def execute(filters=None):
 		filters = {}
 
 	current_date = getdate(today())
-	from_date = str(current_date)
 
-	# Periyot filtresine göre to_date belirle
+	# Periyot filtresine göre tarih aralığını belirle
 	periyot = filters.get("periyot", "Yıllık")
-	if periyot == "3 Aylık":
+	if periyot == "Özel":
+		from_date = str(getdate(filters.get("from_date")) if filters.get("from_date") else current_date)
+		to_date = str(getdate(filters.get("to_date")) if filters.get("to_date") else date(current_date.year, 12, 31))
+	elif periyot == "3 Aylık":
+		from_date = str(current_date)
 		to_date = str(add_months(current_date, 3))
 	elif periyot == "6 Aylık":
+		from_date = str(current_date)
 		to_date = str(add_months(current_date, 6))
 	elif periyot == "Süresiz":
+		from_date = str(current_date)
 		to_date = "2099-12-31"
 	else:  # Yıllık (varsayılan)
+		from_date = str(current_date)
 		to_date = str(date(current_date.year, 12, 31))
 
 	# Filtre değerlerini al
