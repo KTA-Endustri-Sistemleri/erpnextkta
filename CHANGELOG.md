@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v1.10.0 (2026-05-05)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **mrp_analysis**: add custom date range filter option
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.9.2 (2026-04-28)
 
 
