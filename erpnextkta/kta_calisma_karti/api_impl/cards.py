@@ -586,7 +586,7 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
         frappe.throw(_("İptal edilmiş kartta işlem yapılamaz."))
 
     durum = doc.get_durum()
-    if (doc.kalite_kontrol or '').strip() == 'Reddedildi' and islem_tipi != "Bitis":
+    if (doc.kalite_kontrol or '').strip() == 'Reddedildi':
         frappe.throw('Reddedilmiş çalışma kartında işlem yapılamaz.')
 
     from frappe.utils import now_datetime
