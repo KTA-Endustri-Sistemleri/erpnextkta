@@ -30,7 +30,8 @@ app_license = "mit"
 # app_include_js = "/assets/erpnextkta/js/erpnextkta.js"
 app_include_js = [
                   "/assets/erpnextkta/js/material_transfer_patch.js",
-                  "/assets/erpnextkta/js/kta_report_utils.js"
+                  "/assets/erpnextkta/js/kta_report_utils.js",
+                  "/assets/erpnextkta/js/kta_report_overrides.js"
 ]
 
 # include js, css files in header of web template
