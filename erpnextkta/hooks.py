@@ -9,7 +9,7 @@ app_license = "mit"
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["frappe", "erpnext", "kta_system_utils"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
