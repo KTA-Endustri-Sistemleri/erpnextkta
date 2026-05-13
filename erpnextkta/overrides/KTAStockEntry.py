@@ -1,6 +1,6 @@
 import frappe
 from frappe.model.docstatus import DocStatus
-from erpnextkta.kta_stock.batch_manager import split_manufacturing_batches
+from erpnextkta.kta_stock.batch_manager import BatchSplitManager
 from erpnext.stock.doctype.stock_entry.stock_entry import StockEntry
 
 
@@ -14,7 +14,7 @@ class KTAStockEntry(StockEntry):
             # 3. Sonsuz döngü koruması (Flag)
             if not self.get("__splitting_batches"):
                 self.set("__splitting_batches", True)
-                split_manufacturing_batches(self)
+                BatchSplitManager.split_manufacturing_batches(self)
 
     def update_stock_ledger(self, allow_negative_stock=False, via_landed_cost_voucher=False):
         """
