@@ -230,6 +230,49 @@ class LabelPrinter:
         })
         etiket.insert(ignore_permissions=True)
 
+    @staticmethod
+    def clear_empty_labels():
+        """Deletes labels for items/batches that are no longer in stock."""
+        label_doctype = frappe.qb.DocType("KTA Depo Etiketleri")
+        item_code_field = frappe.qb.Field("item_code")
+        batch_field = frappe.qb.Field("batch")
+
+        results = (
+            frappe.qb.from_(label_doctype)
+            .select(item_code_field, batch_field)
+            .groupby(item_code_field, batch_field)
+        ).run(as_dict=True)
+
+        for result in results:
+            bins = BatchSplitManager.get_bins_of_item(result.item_code)
+            sabe_parents = BatchSplitManager.get_sabe_parents_of_bins_for_batch(bins, result.batch)
+            
+            if not sabe_parents:
+                labels_to_delete = (
+                    frappe.qb.from_(label_doctype)
+                    .select(frappe.qb.Field("name"))
+                    .where((item_code_field == result.item_code) & (batch_field == result.batch))
+                ).run(pluck=True)
+                
+                if labels_to_delete:
+                    frappe.db.delete("KTA Depo Etiketleri", filters={"name": ["in", labels_to_delete]})
+
+        return frappe.utils.nowdate()
+
+    @staticmethod
+    def get_label_item_batch(sut):
+        """Fetches item_code and batch for a given SUT barcode."""
+        items = frappe.get_all(
+            "KTA Depo Etiketleri",
+            filters={"sut_barcode": sut, "do_not_split": 0},
+            fields=["item_code", "batch"]
+        )
+
+        if len(items) != 1:
+            return None
+            
+        return items[0]
+
 
 @frappe.whitelist()
 def print_kta_pr_labels(gr_number=None, label=None, q_ref=None):

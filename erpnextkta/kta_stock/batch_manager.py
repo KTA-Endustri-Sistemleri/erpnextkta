@@ -23,6 +23,56 @@ class BatchSplitManager:
         return base_batches[0] if base_batches else None
 
     @staticmethod
+    def get_bins_of_item(item_code, empty=False):
+        """Returns warehouse list for a given item where actual_qty is > 0 (or == 0 if empty=True)."""
+        filters = {"item_code": item_code}
+        if empty:
+            filters["actual_qty"] = 0
+        else:
+            filters["actual_qty"] = [">", 0]
+
+        return frappe.get_all(
+            "Bin",
+            filters=filters,
+            pluck="warehouse"
+        )
+
+    @staticmethod
+    def get_sabe_parents_of_bins_for_batch(bins, batch_no):
+        """Returns parent Serial and Batch Bundle names for given warehouses and batch."""
+        if not bins:
+            return []
+            
+        return frappe.get_all(
+            "Serial and Batch Entry",
+            filters={
+                "warehouse": ["in", bins],
+                "batch_no": batch_no,
+                "parenttype": "Serial and Batch Bundle",
+                "parentfield": "entries",
+                "docstatus": 1
+            },
+            pluck="parent"
+        )
+
+    @staticmethod
+    def get_warehouse_quantity_for_sabe_parents(sabe_parents):
+        """Returns warehouse-wise quantity totals for given Serial and Batch Bundle parents."""
+        if not sabe_parents:
+            return []
+            
+        return frappe.get_all(
+            "Stock Ledger Entry",
+            filters={
+                "serial_and_batch_bundle": ["in", sabe_parents],
+                "docstatus": 1,
+                "is_cancelled": 0
+            },
+            fields=["warehouse", "sum(actual_qty) as balance_qty"],
+            group_by="warehouse"
+        )
+
+    @staticmethod
     def get_base_batch_for_work_order(work_order, item_code=None):
         return BatchSplitManager.get_base_batch_from_work_order(work_order, item_code)
 

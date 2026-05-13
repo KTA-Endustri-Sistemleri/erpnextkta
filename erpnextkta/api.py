@@ -102,23 +102,6 @@ def get_customer_income_account(customer, company):
         frappe.log_error(f"Error fetching customer income account: {e}")
         return None
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     if not row:
         return
@@ -139,107 +122,38 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
 
 @frappe.whitelist()
 def find_bins_of_sut(sut, mobil):
-    label = get_label_item_batch(sut)
-    sabe_parents = get_sabe_parents_of_bins_for_batch(get_bins_of_item(label.item_code), label.batch)
-    sle_entries = get_warehouse_quantity_for_sabe_parents(sabe_parents)
+    label = LabelPrinter.get_label_item_batch(sut)
+    if not label:
+        frappe.throw(f"SUT barkodu için etiket bulunamadı: {sut}")
 
-    if len(sle_entries) == 0:
+    sabe_parents = BatchSplitManager.get_sabe_parents_of_bins_for_batch(
+        BatchSplitManager.get_bins_of_item(label.item_code), label.batch
+    )
+    sle_entries = BatchSplitManager.get_warehouse_quantity_for_sabe_parents(sabe_parents)
+
+    if not sle_entries:
         frappe.throw(f"No Stock Ledger Entries found for SUT: {sut}")
 
     for sle_entry in sle_entries:
-        child = frappe.new_doc(
-            doctype=DOCTYPE_KTA_MOBIL_DEPO_KALEMI,
-            parent=mobil,
-            parentfield="mobile_items",
-            parenttype=DOCTYPE_KTA_MOBIL_DEPO,
-            sut_barcode=sut,
-            item_code=label.item_code,
-            batch=label.batch,
-            source_warehouse=sle_entry.warehouse,
-            qty=sle_entry.balance_qty
-        )
+        child = frappe.new_doc(DOCTYPE_KTA_MOBIL_DEPO_KALEMI)
+        child.update({
+            "parent": mobil,
+            "parentfield": "mobile_items",
+            "parenttype": DOCTYPE_KTA_MOBIL_DEPO,
+            "sut_barcode": sut,
+            "item_code": label.item_code,
+            "batch": label.batch,
+            "source_warehouse": sle_entry.warehouse,
+            "qty": sle_entry.balance_qty
+        })
         child.insert()
 
 
-def get_label_item_batch(sut):
-    items = frappe.get_all(
-        doctype=DOCTYPE_KTA_DEPO_ETIKETLERI,
-        filters={FIELD_SUT_BARCODE: sut, FIELD_DO_NOT_SPLIT: 0},
-        fields=[FIELD_ITEM_CODE, FIELD_BATCH]
-    )
-
-    number_of_items = len(items)
-    if number_of_items > 1:
-        return None
-    elif number_of_items == 0:
-        return None
-    return items[0]
-
-
-def get_bins_of_item(item, empty=None):
-    query_filter = {FIELD_ITEM_CODE: item}
-    if empty:
-        query_filter[FIELD_ACTUAL_QTY] = 0
-    else:
-        query_filter[FIELD_ACTUAL_QTY] = [">", 0]
-
-    return frappe.get_all(
-        doctype=DOCTYPE_BIN,
-        filters=query_filter,
-        fields=[FIELD_WAREHOUSE],
-        pluck=FIELD_WAREHOUSE
-    )
-
-
-def get_sabe_parents_of_bins_for_batch(bins, batch):
-    return frappe.get_all(
-        doctype=DOCTYPE_SERIAL_AND_BATCH_ENTRY,
-        filters={
-            FIELD_WAREHOUSE: ["in", bins],
-            FIELD_BATCH_NO: batch,
-            FIELD_PARENTTYPE: DOCTYPE_SERIAL_AND_BATCH_BUNDLE,
-            FIELD_PARENTFIELD: VALUE_ENTRIES,
-            FIELD_DOCSTATUS: 1
-        },
-        fields=[FIELD_PARENT],
-        pluck=FIELD_PARENT
-    )
-
-
-def get_warehouse_quantity_for_sabe_parents(sabe_parents):
-    return frappe.get_all(
-        doctype=DOCTYPE_STOCK_LEDGER_ENTRY,
-        filters={
-            "serial_and_batch_bundle": ["in", sabe_parents],
-            FIELD_DOCSTATUS: 1,
-            "is_cancelled": 0
-        },
-        fields=[FIELD_WAREHOUSE, f"sum(actual_qty) as {FIELD_BALANCE_QTY}"]
-    )
 
 
 @frappe.whitelist()
 def clear_warehouse_labels():
-    label_doctype = frappe.qb.DocType(DOCTYPE_KTA_DEPO_ETIKETLERI)
-    item_code = frappe.qb.Field(FIELD_ITEM_CODE)
-    batch = frappe.qb.Field(FIELD_BATCH)
-
-    results = (
-        frappe.qb.from_(label_doctype)
-        .select(item_code, batch)
-        .groupby(item_code, batch)
-    ).run(as_dict=True)
-
-    for result in results:
-        if len(get_sabe_parents_of_bins_for_batch(get_bins_of_item(result.item_code), result.batch)) == 0:
-            labels_to_delete = (
-                frappe.qb.from_(label_doctype)
-                .select(FIELD_NAME)
-                .where((item_code == result.item_code) & (batch == result.batch))
-            ).run()
-            frappe.db.delete(DOCTYPE_KTA_DEPO_ETIKETLERI, filters={FIELD_NAME: labels_to_delete})
-
-    return frappe.utils.nowdate()
+    return LabelPrinter.clear_empty_labels()
 
 
 @frappe.whitelist()
