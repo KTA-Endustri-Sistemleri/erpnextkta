@@ -2,8 +2,9 @@
 import { onMounted, computed, ref, watch } from "vue";
 import QcToggle from "../components/QcToggle.vue";
 import IdcSection from "../components/IdcSection.vue";
+import KrimpSection from "../components/KrimpSection.vue";
 import BarkodSection from "../components/BarkodSection.vue";
-import { idcOlcumFields, barkodKayitFields } from "../composables/prompts";
+import { idcOlcumFields, krimpOlcumFields, barkodKayitFields } from "../composables/prompts";
 
 function openQualityInspection(name: string) {
   frappe.set_route("Form", "Quality Inspection", name);
@@ -24,6 +25,11 @@ const props = defineProps<{
   onAddIdc: (payload: any) => Promise<void>;
   onUpdateIdc: (payload: any) => Promise<void>;
   onDeleteIdc: (rowname: string) => Promise<void>;
+
+  // Krimp CRUD
+  onAddKrimp: (payload: any) => Promise<void>;
+  onUpdateKrimp: (payload: any) => Promise<void>;
+  onDeleteKrimp: (rowname: string) => Promise<void>;
 
   // Barkod CRUD
   onAddBarkod: (payload: any) => Promise<void>;
@@ -77,6 +83,39 @@ function deleteIdc(row: any) {
   frappe.confirm("Bu IDC ölçüm satırı silinecek. Emin misiniz?", async () => {
     await props.onDeleteIdc(row.name);
     frappe.show_alert({ message: "IDC ölçümü silindi", indicator: "green" });
+  });
+}
+
+function addKrimp() {
+  frappe.prompt(
+    krimpOlcumFields(),
+    async (v: any) => {
+      await props.onAddKrimp(v);
+      frappe.show_alert({ message: "Krimp ölçümü eklendi", indicator: "green" });
+    },
+    "Krimp Ölçümü Ekle",
+    "Kaydet"
+  );
+}
+
+function editKrimp(row: any) {
+  if (!row?.name) return frappe.msgprint("Krimp satır kimliği bulunamadı.");
+  frappe.prompt(
+    krimpOlcumFields(row),
+    async (v: any) => {
+      await props.onUpdateKrimp({ rowname: row.name, payload: v });
+      frappe.show_alert({ message: "Krimp ölçümü güncellendi", indicator: "green" });
+    },
+    "Krimp Ölçümü Düzenle",
+    "Kaydet"
+  );
+}
+
+function deleteKrimp(row: any) {
+  if (!row?.name) return frappe.msgprint("Krimp satır kimliği bulunamadı.");
+  frappe.confirm("Bu krimp ölçüm satırı silinecek. Emin misiniz?", async () => {
+    await props.onDeleteKrimp(row.name);
+    frappe.show_alert({ message: "Krimp ölçümü silindi", indicator: "green" });
   });
 }
 
@@ -148,6 +187,15 @@ onMounted(() => {});
       :onAdd="addIdc"
       :onEdit="editIdc"
       :onDelete="deleteIdc"
+    />
+
+    <KrimpSection
+      :rows="props.doc.krimp_olcumleri || []"
+      :canEditQC="props.canEditQC"
+      :canEditData="props.canEditData"
+      :onAdd="addKrimp"
+      :onEdit="editKrimp"
+      :onDelete="deleteKrimp"
     />
 
     <BarkodSection

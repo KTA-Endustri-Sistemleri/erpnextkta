@@ -185,3 +185,114 @@ export function altOperasyonFields(parentOperationLabel: string, calismaKartiNam
         },
     ];
 }
+
+export function krimpOlcumFields(defaults: any = {}) {
+    return [
+        {
+            fieldtype: "Section Break",
+            label: "Kablo ve Kontak Bilgileri"
+        },
+        {
+            fieldtype: "Data",
+            label: "Kablo No",
+            fieldname: "kablo_no",
+            default: defaults.kablo_no || "",
+        },
+        {
+            fieldtype: "Data",
+            label: "Kontak No",
+            fieldname: "kontak_no",
+            default: defaults.kontak_no || "",
+        },
+        {
+            fieldtype: "Data",
+            label: "Kablo Kesiti",
+            fieldname: "kablo_kesiti",
+            default: defaults.kablo_kesiti || "",
+        },
+        {
+            fieldtype: "Section Break",
+            label: "Makine ve Kalıp"
+        },
+        {
+            fieldtype: "Data",
+            label: "Kalıp No",
+            fieldname: "kalip_no",
+            default: defaults.kalip_no || "",
+        },
+        {
+            fieldtype: "Data",
+            label: "Makine / Pres No",
+            fieldname: "makine_pres_no",
+            default: defaults.makine_pres_no || "",
+        },
+        {
+            fieldtype: "Section Break",
+            label: "Ölçümler"
+        },
+        {
+            fieldtype: "Float",
+            label: "Hedef Kablo Boyu (mm)",
+            fieldname: "hedef_kablo_boyu",
+            default: defaults.hedef_kablo_boyu ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Ölçülen Kablo Boyu (mm)",
+            fieldname: "olculen_kablo_boyu",
+            default: defaults.olculen_kablo_boyu ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Hedef İletken Krimp Yük. (mm)",
+            fieldname: "hedef_iletken_krimp_yuksekliği",
+            default: defaults.hedef_iletken_krimp_yuksekliği ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Ölçülen İletken Krimp Yük. (mm)",
+            fieldname: "olculen_iletken_krimp_yuksekliği",
+            default: defaults.olculen_iletken_krimp_yuksekliği ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "İzokrimp Yüksekliği (mm)",
+            fieldname: "izokrimp_yuksekligi",
+            default: defaults.izokrimp_yuksekligi ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Sıyırma Boyu (mm)",
+            fieldname: "siyirma_boyu",
+            default: defaults.siyirma_boyu ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Çekme Kuvveti (N)",
+            fieldname: "cekme_kuvveti_n",
+            default: defaults.cekme_kuvveti_n ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Çapak Boyu (mm)",
+            fieldname: "capak_boyu",
+            default: defaults.capak_boyu ?? 0,
+        },
+        {
+            fieldtype: "Section Break",
+            label: "Görsel Kontroller"
+        },
+        {
+            fieldtype: "Check",
+            label: "Radüs Mevcut",
+            fieldname: "radus_mevcut",
+            default: defaults.radus_mevcut ?? 0,
+        },
+        {
+            fieldtype: "Check",
+            label: "Tel Kesme Mevcut",
+            fieldname: "tel_kesme_mevcut",
+            default: defaults.tel_kesme_mevcut ?? 0,
+        },
+    ];
+}
