@@ -314,6 +314,51 @@ class BatchSplitManager:
             BatchSplitManager._update_bundle_safely(row, allocations)
 
     @staticmethod
+    def split_purchase_receipt_batches(row):
+        """
+        Purchase Receipt Item satırının batch'ini böler.
+        Bundle'ı günceller ve allocation listesini döner.
+        Etiket oluşturma sorumluluğu çağırana aittir.
+        """
+        if not row.get("serial_and_batch_bundle"):
+            return []
+
+        if row.doctype != "Purchase Receipt Item":
+            return []
+
+        batch_number = frappe.db.get_value(
+            "Serial and Batch Entry",
+            {"parent": row.serial_and_batch_bundle, "is_outward": 0},
+            "batch_no"
+        )
+
+        if not batch_number:
+            batch_number = frappe.db.get_value(
+                "Serial and Batch Entry",
+                {"parent": row.serial_and_batch_bundle, "is_outward": 1},
+                "batch_no"
+            )
+
+        if not batch_number:
+            batch_number = frappe.db.get_value("Batch", {
+                "reference_name": row.parent,
+                "item": row.item_code
+            }, "name")
+
+        if not batch_number:
+            frappe.log_error(f"Batch bulunamadı: Satır {row.idx}, Ürün {row.item_code}", "KTA Split Error")
+            return []
+
+        purchase_receipt = frappe.get_cached_doc("Purchase Receipt", row.parent)
+        allocations = BatchSplitManager._prepare_batch_allocations(row, purchase_receipt, batch_number)
+
+        if not allocations:
+            return []
+
+        BatchSplitManager._update_bundle_safely(row, allocations)
+        return allocations
+
+    @staticmethod
     def resplit_submitted_manufacturing_batches(stock_entry):
         doc = frappe.get_doc("Stock Entry", stock_entry)
         if doc.purpose != "Manufacture":

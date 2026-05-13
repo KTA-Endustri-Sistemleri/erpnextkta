@@ -17,6 +17,7 @@ from erpnextkta.kta_sales.doctype.kta_sales_order_update_comparison.kta_sales_or
 
 # Refactored Imports
 from erpnextkta.kta_stock.label_manager import (
+    LabelPrinter,
     print_kta_pr_labels,
     print_split_kta_pr_labels,
     print_kta_wo_labels,
@@ -33,33 +34,15 @@ DOCTYPE_PARTY_ACCOUNT = "Party Account"
 DOCTYPE_CUSTOMER = "Customer"
 DOCTYPE_ADDRESS = "Address"
 DOCTYPE_KTA_DEPO_ETIKETLERI = "KTA Depo Etiketleri"
-DOCTYPE_KTA_DEPO_ETIKETLERI_BOLME = "KTA Depo Etiketleri Bolme"
-DOCTYPE_STOCK_ENTRY = "Stock Entry"
 DOCTYPE_BOM = "BOM"
 DOCTYPE_ITEM = "Item"
 DOCTYPE_ITEM_CUSTOMER_DETAIL = "Item Customer Detail"
-DOCTYPE_WORK_ORDER = "Work Order"
-DOCTYPE_STOCK_ENTRY_DETAIL = "Stock Entry Detail"
 DOCTYPE_SERIAL_AND_BATCH_BUNDLE = "Serial and Batch Bundle"
 DOCTYPE_SERIAL_AND_BATCH_ENTRY = "Serial and Batch Entry"
-DOCTYPE_KTA_IS_EMRI_ETIKETLERI = "KTA Is Emri Etiketleri"
-DOCTYPE_KTA_ZEBRA_TEMPLATES = "KTA Zebra Templates"
-DOCTYPE_KTA_USER_ZEBRA_PRINTERS = "KTA User Zebra Printers"
-DOCTYPE_KTA_ZEBRA_PRINTERS = "KTA Zebra Printers"
 DOCTYPE_BIN = "Bin"
 DOCTYPE_STOCK_LEDGER_ENTRY = "Stock Ledger Entry"
 DOCTYPE_KTA_MOBIL_DEPO = "KTA Mobil Depo"
 DOCTYPE_KTA_MOBIL_DEPO_KALEMI = "KTA Mobil Depo Kalemi"
-DOCTYPE_KTA_SALES_ORDER_UPDATE = "KTA Sales Order Update"
-DOCTYPE_KTA_SALES_ORDER_UPDATE_ENTRY = "KTA Sales Order Update Entry"
-DOCTYPE_KTA_SALES_ORDER_UPDATE_COMPARISON = "KTA Sales Order Update Comparison"
-DOCTYPE_KTA_SALES_ORDER_UPDATE_CHANGE = "KTA Sales Order Update Change"
-DOCTYPE_KTA_SO_SYNC_LOG = "KTA SO Sync Log"
-DOCTYPE_DELIVERY_NOTE = "Delivery Note"
-DOCTYPE_DELIVERY_NOTE_ITEM = "Delivery Note Item"
-DOCTYPE_SALES_ORDER = "Sales Order"
-DOCTYPE_SALES_ORDER_ITEM = "Sales Order Item"
-DOCTYPE_SALES_INVOICE_ITEM = "Sales Invoice Item"
 DOCTYPE_CALISMA_KARTI = "Calisma Karti"
 DOCTYPE_CALISMA_KARTI_HURDA = "Calisma Karti Hurda"
 DOCTYPE_UOM_CONVERSION_DETAIL = "UOM Conversion Detail"
@@ -70,59 +53,32 @@ FIELD_PARENT = "parent"
 FIELD_PARENTTYPE = "parenttype"
 FIELD_COMPANY = "company"
 FIELD_DO_NOT_SPLIT = "do_not_split"
-FIELD_GR_NUMBER = "gr_number"
 FIELD_NAME = "name"
-FIELD_QUALITY_REF = "quality_ref"
 FIELD_ITEM_CODE = "item_code"
 FIELD_ITEM_NAME = "item_name"
-FIELD_ITEM_GROUP = "item_group"
 FIELD_QTY = "qty"
 FIELD_UOM = "uom"
-FIELD_SUPPLIER_DELIVERY_NOTE = "supplier_delivery_note"
 FIELD_SUT_BARCODE = "sut_barcode"
-FIELD_GR_POSTING_DATE = "gr_posting_date"
-FIELD_IDX = "idx"
 FIELD_BATCH = "batch"
-FIELD_STOCK_ENTRY_TYPE = "stock_entry_type"
-FIELD_WORK_ORDER = "work_order"
-FIELD_BOM_NO = "bom_no"
-FIELD_CUSTOM_MUSTERI_INDEKSI_NO = "custom_musteri_indeksi_no"
-FIELD_CUSTOM_MUSTERI_PAKETLEME_MIKTARI = "custom_musteri_paketleme_miktari"
-FIELD_PRODUCTION_ITEM = "production_item"
 FIELD_DESCRIPTION = "description"
 FIELD_STOCK_UOM = "stock_uom"
 FIELD_PARENTFIELD = "parentfield"
-FIELD_IS_FINISHED_ITEM = "is_finished_item"
 FIELD_DOCSTATUS = "docstatus"
-FIELD_T_WAREHOUSE = "t_warehouse"
-FIELD_TO_WAREHOUSE = "to_warehouse"
-FIELD_POSTING_DATE = "posting_date"
-FIELD_IS_OUTWARD = "is_outward"
 FIELD_WAREHOUSE = "warehouse"
 FIELD_BATCH_NO = "batch_no"
 FIELD_ACTUAL_QTY = "actual_qty"
 FIELD_BALANCE_QTY = "balance_qty"
 FIELD_PLANT_NO_CUSTOMER = "plant_no_customer"
 FIELD_PART_NO_CUSTOMER = "part_no_customer"
-FIELD_DELIVERY_NOTE_NO = "delivery_note_no"
-FIELD_DELIVERY_NOTE_DATE = "delivery_note_date"
 FIELD_REF_CODE = "ref_code"
 FIELD_CUSTOMER_NAME = "customer_name"
-FIELD_CUSTOM_IRSALIYE_NO = "custom_irsaliye_no"
-FIELD_LR_DATE = "lr_date"
-FIELD_IS_RETURN = "is_return"
 FIELD_S_WAREHOUSE = "s_warehouse"
 FIELD_DEPO = "depo"
 FIELD_HURDA_NEDENI = "hurda_nedeni"
 
 # Global value constants
-VALUE_MANUFACTURE = "Manufacture"
-VALUE_CUSTOMER_ITEMS = "customer_items"
 VALUE_ENTRIES = "entries"
 VALUE_TABLE_EVALUATION = "table_evaluation"
-
-# Global parent field constants
-PARENT_FIELD_STOCK_ENTRY_DETAIL = "items"
 
 
 @frappe.whitelist()
@@ -167,111 +123,18 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
     if not row:
         return
 
-    # Eğer row bir string (name) olarak geldiyse dokümanı yükle
     if isinstance(row, str):
         row = frappe.get_doc("Purchase Receipt Item", row)
 
-    if not row.get("serial_and_batch_bundle"):
-        return
-
-    # Sadece Purchase Receipt Item satırlarında çalış
-    if row.doctype != "Purchase Receipt Item":
-        return
-
-    # 1. Mevcut Batch Numarasını Tespit Et
-    # Normal girişlerde is_outward=0, iadelerde (Return) is_outward=1 olur.
-    row_batch_number = frappe.db.get_value(
-        "Serial and Batch Entry",
-        {"parent": row.serial_and_batch_bundle, "is_outward": 0},
-        "batch_no"
-    )
-
-    if not row_batch_number:
-        row_batch_number = frappe.db.get_value(
-            "Serial and Batch Entry",
-            {"parent": row.serial_and_batch_bundle, "is_outward": 1},
-            "batch_no"
-        )
-
-    if not row_batch_number:
-        # Fallback: Batch tablosundan PR referansıyla bul
-        row_batch_number = frappe.db.get_value("Batch", {
-            "reference_name": row.parent,
-            "item": row.item_code
-        }, "name")
-
-    if not row_batch_number:
-        frappe.log_error(f"Batch bulunamadı: Satır {row.idx}, Ürün {row.item_code}", "KTA Split Error")
-        return
-
-    # 2. Ana PR dokümanını al (Allocation hazırlığı için gerekli)
-    purchase_receipt = frappe.get_cached_doc("Purchase Receipt", row.parent)
-
-    # 3. Parçalama Planını Hazırla (Örn: 100 adedi 25-25-25-25 böl)
-    # _prepare_batch_allocations fonksiyonunun mevcut olduğunu varsayıyoruz
-    batch_allocations = _prepare_batch_allocations(row, purchase_receipt, row_batch_number)
-
-    if not batch_allocations:
-        return
-
-    # 4. Bundle'ı Veritabanı Seviyesinde Güvenle Güncelle
-    _update_bundle_safely(row, batch_allocations)
-
-    # 5. Paket/Etiket Kayıtlarını Oluştur (Zebra vb.)
-    for allocation in batch_allocations:
-        # custom_create_packages fonksiyonunun mevcut olduğunu varsayıyoruz
-        custom_create_packages(
+    allocations = BatchSplitManager.split_purchase_receipt_batches(row)
+    for allocation in allocations:
+        LabelPrinter.create_depo_label(
             row=row,
             batch_no=allocation["batch_no"],
             qty=allocation["qty"],
             sut_code=allocation.get("sut_code"),
             q_ref=q_ref,
         )
-
-
-
-
-
-def custom_create_packages(row, batch_no, qty, sut_code, q_ref):
-    etiket_item_group = frappe.db.get_value(DOCTYPE_ITEM, row.item_code, FIELD_ITEM_GROUP)
-    purchase_receipt = frappe.get_doc("Purchase Receipt", row.parent)
-
-    etiket = frappe.get_doc(
-        dict(
-            doctype=DOCTYPE_KTA_DEPO_ETIKETLERI,
-            gr_number=row.parent,
-            supplier_delivery_note=purchase_receipt.get(FIELD_SUPPLIER_DELIVERY_NOTE),
-            qty=qty,
-            uom=row.stock_uom,
-            batch=batch_no,
-            gr_posting_date=purchase_receipt.get(FIELD_POSTING_DATE),
-            item_code=row.item_code,
-            sut_barcode=sut_code,
-            item_name=row.item_name,
-            item_group=etiket_item_group,
-            quality_ref=q_ref,
-            do_not_split=row.custom_do_not_split
-        )
-    )
-    etiket.insert(ignore_permissions=True)
-
-
-
-# These are now merged into _prepare_batch_allocations and _create_split_batch_record
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @frappe.whitelist()

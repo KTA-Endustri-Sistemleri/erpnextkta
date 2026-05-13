@@ -207,6 +207,29 @@ class LabelPrinter:
 
         data.delete()
 
+    @staticmethod
+    def create_depo_label(row, batch_no, qty, sut_code, q_ref):
+        """Purchase Receipt Item satırı için KTA Depo Etiketleri kaydı oluşturur."""
+        purchase_receipt = frappe.get_doc("Purchase Receipt", row.parent)
+        etiket_item_group = frappe.db.get_value("Item", row.item_code, "item_group")
+
+        etiket = frappe.get_doc({
+            "doctype": "KTA Depo Etiketleri",
+            "gr_number": row.parent,
+            "supplier_delivery_note": purchase_receipt.get("supplier_delivery_note"),
+            "qty": qty,
+            "uom": row.stock_uom,
+            "batch": batch_no,
+            "gr_posting_date": purchase_receipt.get("posting_date"),
+            "item_code": row.item_code,
+            "sut_barcode": sut_code,
+            "item_name": row.item_name,
+            "item_group": etiket_item_group,
+            "quality_ref": q_ref,
+            "do_not_split": row.custom_do_not_split,
+        })
+        etiket.insert(ignore_permissions=True)
+
 
 @frappe.whitelist()
 def print_kta_pr_labels(gr_number=None, label=None, q_ref=None):
