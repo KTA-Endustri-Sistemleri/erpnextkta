@@ -488,3 +488,34 @@ def check_packaging_quantity_mismatch(stock_entry):
 
     return {"mismatch": False}
 
+
+@frappe.whitelist()
+def find_bins_of_sut(sut, mobil):
+    from erpnextkta.kta_stock.label_manager import LabelPrinter
+
+    label = LabelPrinter.get_label_item_batch(sut)
+    if not label:
+        frappe.throw(frappe._("SUT barkodu için etiket bulunamadı: {0}").format(sut))
+
+    sabe_parents = BatchSplitManager.get_sabe_parents_of_bins_for_batch(
+        BatchSplitManager.get_bins_of_item(label.item_code), label.batch
+    )
+    sle_entries = BatchSplitManager.get_warehouse_quantity_for_sabe_parents(sabe_parents)
+
+    if not sle_entries:
+        frappe.throw(frappe._("No Stock Ledger Entries found for SUT: {0}").format(sut))
+
+    for sle_entry in sle_entries:
+        child = frappe.new_doc("KTA Mobil Depo Kalemi")
+        child.update({
+            "parent": mobil,
+            "parentfield": "mobile_items",
+            "parenttype": "KTA Mobil Depo",
+            "sut_barcode": sut,
+            "item_code": label.item_code,
+            "batch": label.batch,
+            "source_warehouse": sle_entry.warehouse,
+            "qty": sle_entry.balance_qty
+        })
+        child.insert()
+

@@ -404,7 +404,6 @@ fixtures = [
 doctype_js = {
     "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",
     "Stock Reconciliation": "public/js/stock_reconciliation.js",
-    "Stock Entry": "public/js/stock_entry_get_items_from_calisma_karti.js",
     "Purchase Receipt": "public/js/purchase_receipt.js"
 }
 

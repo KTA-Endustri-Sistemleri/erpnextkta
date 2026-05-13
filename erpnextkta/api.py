@@ -102,58 +102,8 @@ def get_customer_income_account(customer, company):
         frappe.log_error(f"Error fetching customer income account: {e}")
         return None
 
-def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
-    if not row:
-        return
-
-    if isinstance(row, str):
-        row = frappe.get_doc("Purchase Receipt Item", row)
-
-    allocations = BatchSplitManager.split_purchase_receipt_batches(row)
-    for allocation in allocations:
-        LabelPrinter.create_depo_label(
-            row=row,
-            batch_no=allocation["batch_no"],
-            qty=allocation["qty"],
-            sut_code=allocation.get("sut_code"),
-            q_ref=q_ref,
-        )
 
 
-@frappe.whitelist()
-def find_bins_of_sut(sut, mobil):
-    label = LabelPrinter.get_label_item_batch(sut)
-    if not label:
-        frappe.throw(f"SUT barkodu için etiket bulunamadı: {sut}")
-
-    sabe_parents = BatchSplitManager.get_sabe_parents_of_bins_for_batch(
-        BatchSplitManager.get_bins_of_item(label.item_code), label.batch
-    )
-    sle_entries = BatchSplitManager.get_warehouse_quantity_for_sabe_parents(sabe_parents)
-
-    if not sle_entries:
-        frappe.throw(f"No Stock Ledger Entries found for SUT: {sut}")
-
-    for sle_entry in sle_entries:
-        child = frappe.new_doc(DOCTYPE_KTA_MOBIL_DEPO_KALEMI)
-        child.update({
-            "parent": mobil,
-            "parentfield": "mobile_items",
-            "parenttype": DOCTYPE_KTA_MOBIL_DEPO,
-            "sut_barcode": sut,
-            "item_code": label.item_code,
-            "batch": label.batch,
-            "source_warehouse": sle_entry.warehouse,
-            "qty": sle_entry.balance_qty
-        })
-        child.insert()
-
-
-
-
-@frappe.whitelist()
-def clear_warehouse_labels():
-    return LabelPrinter.clear_empty_labels()
 
 
 @frappe.whitelist()
@@ -357,78 +307,6 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
         frappe.throw(f"Error evaluating supply on sales orders: {str(e)}")
 
 
-@frappe.whitelist()
-def get_items_from_calisma_karti(source_name: str, target_doc=None):
-    """
-    Stock Entry > Get Items From > Calisma Karti
-    'Calisma Karti' içindeki 'Calisma Karti Hurda' satırlarını,
-    Stock Entry 'items' formatında döndürür.
-    """
-    if not source_name:
-        frappe.throw("Çalışma Kartı seçilmedi.")
-
-    doc = frappe.get_doc(DOCTYPE_CALISMA_KARTI, source_name)
-    parent_src_wh = getattr(doc, FIELD_S_WAREHOUSE, None) or getattr(doc, FIELD_WAREHOUSE, None) or None
-
-    items = []
-    for row in doc.get_all_children():
-        if row.doctype != DOCTYPE_CALISMA_KARTI_HURDA:
-            continue
-
-        # Field names may vary across deployments; use safe access with fallbacks
-        item_code = getattr(row, "parca_no", None) or getattr(row, FIELD_ITEM_CODE, None)
-        qty = getattr(row, "miktar", None) or getattr(row, FIELD_QTY, None)
-        uom = getattr(row, "birim", None) or getattr(row, FIELD_UOM, None)
-        row_src_wh = getattr(row, FIELD_DEPO, None)
-        s_wh = row_src_wh or parent_src_wh
-
-        if not item_code or not qty:
-            continue
-
-        item = frappe.db.get_value(
-            DOCTYPE_ITEM, item_code, [FIELD_ITEM_NAME, FIELD_STOCK_UOM, FIELD_DESCRIPTION], as_dict=True
-        )
-        if not item:
-            frappe.throw(f"Item bulunamadı: {item_code}")
-
-        stock_uom = item.stock_uom
-        uom_final = uom or stock_uom
-
-        # UOM dönüşüm faktörü
-        conv = 1.0
-        if uom and uom != stock_uom:
-            conv_row = frappe.db.get_value(
-                DOCTYPE_UOM_CONVERSION_DETAIL,
-                {FIELD_PARENT: item_code, "uom": uom},
-                "conversion_factor",
-            )
-            conv = float(conv_row) if conv_row else 1.0
-
-        # Açıklama + hurda nedeni
-        desc_bits = []
-        if item.description:
-            desc_bits.append(item.description)
-        hurda_nedeni_val = getattr(row, FIELD_HURDA_NEDENI, None)
-        if hurda_nedeni_val:
-            desc_bits.append(f"Hurda Nedeni: {hurda_nedeni_val}")
-        description = " | ".join(desc_bits) if desc_bits else item.item_name
-
-        items.append({
-            FIELD_ITEM_CODE: item_code,
-            FIELD_ITEM_NAME: item.item_name,
-            FIELD_DESCRIPTION: description,
-            "uom": uom_final,
-            FIELD_STOCK_UOM: stock_uom,
-            "conversion_factor": conv,
-            FIELD_QTY: qty,
-            FIELD_S_WAREHOUSE: s_wh,
-            "cost_center": hurda_nedeni_val
-        })
-
-    if not items:
-        frappe.throw("Seçilen Çalışma Kartında aktarılabilir hurda satırı yok.")
-
-    return items
 
 @frappe.whitelist()
 def compare_sales_order_update_documents(current_sales_order_update_name):

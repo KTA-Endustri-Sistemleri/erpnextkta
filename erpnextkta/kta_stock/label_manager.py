@@ -301,3 +301,26 @@ def print_kta_wo_labels_of_stock_entry(stock_entry):
 def resplit_and_print_kta_wo_labels(stock_entry):
     BatchSplitManager.resplit_submitted_manufacturing_batches(stock_entry)
     print_kta_wo_labels_of_stock_entry(stock_entry)
+
+
+@frappe.whitelist()
+def clear_warehouse_labels():
+    return LabelPrinter.clear_empty_labels()
+
+
+def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
+    if not row:
+        return
+
+    if isinstance(row, str):
+        row = frappe.get_doc("Purchase Receipt Item", row)
+
+    allocations = BatchSplitManager.split_purchase_receipt_batches(row)
+    for allocation in allocations:
+        LabelPrinter.create_depo_label(
+            row=row,
+            batch_no=allocation["batch_no"],
+            qty=allocation["qty"],
+            sut_code=allocation.get("sut_code"),
+            q_ref=q_ref,
+        )

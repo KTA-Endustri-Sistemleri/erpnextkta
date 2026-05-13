@@ -6,8 +6,10 @@ from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 from erpnextkta.kta_calisma_karti.api_impl.cards import _submit_linked_quality_inspection
 from datetime import datetime, time
 
+from erpnextkta.kta_stock.label_manager import clear_warehouse_labels
+
 def weekly():
-    api.clear_warehouse_labels()
+    clear_warehouse_labels()
 
 def auto_close_timed_out_cards():
     """

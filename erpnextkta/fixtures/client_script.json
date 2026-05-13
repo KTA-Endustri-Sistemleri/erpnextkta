@@ -29,7 +29,7 @@
   "modified": "2025-07-15 18:11:25.711846",
   "module": "erpnextkta",
   "name": "KTA Mobil Depo Yonetimi",
-  "script": "frappe.ui.form.on('KTA Mobil Depo', {\n\trefresh(frm) {\n        frappe.call({\n            method: \"erpnextkta.api.find_bins_of_sut\",\n            args:{\n                \"sut\": frm.doc.sut_barcode\n            }\n        });\n\t}\n});",
+  "script": "frappe.ui.form.on('KTA Mobil Depo', {\n\trefresh(frm) {\n        frappe.call({\n            method: \"erpnextkta.kta_stock.batch_manager.find_bins_of_sut\",\n            args:{\n                \"sut\": frm.doc.sut_barcode\n            }\n        });\n\t}\n});",
   "view": "Form"
  },
  {
@@ -161,7 +161,7 @@
   "modified": "2025-07-16 10:19:22.411776",
   "module": "erpnextkta",
   "name": "KTA Mobil Depo Uygulamalar\u0131",
-  "script": "frappe.ui.form.on('KTA Mobil Depo', {\n\tsut_ara: function(frm){\n        frappe.call({\n            method: \"erpnextkta.api.find_bins_of_sut\",\n            args:{\n                \"sut\": frm.doc.sut_barcode,\n                \"mobil\": frm.doc.name\n            },\n            callback: function(response) {\n            // handle response\n                frm.refresh;\n            }\n        });\n\t}\n});",
+  "script": "frappe.ui.form.on('KTA Mobil Depo', {\n\tsut_ara: function(frm){\n        frappe.call({\n            method: \"erpnextkta.kta_stock.batch_manager.find_bins_of_sut\",\n            args:{\n                \"sut\": frm.doc.sut_barcode,\n                \"mobil\": frm.doc.name\n            },\n            callback: function(response) {\n            // handle response\n                frm.refresh;\n            }\n        });\n\t}\n});",
   "view": "Form"
  },
  {

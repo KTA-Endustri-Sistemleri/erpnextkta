@@ -2,8 +2,7 @@ import frappe
 from frappe.model.docstatus import DocStatus
 
 from frappe.utils import add_days, getdate
-import erpnextkta.api
-from erpnextkta.kta_stock.label_manager import print_kta_pr_labels
+from erpnextkta.kta_stock.label_manager import print_kta_pr_labels, custom_split_kta_batches
 from erpnext.controllers.stock_controller import make_quality_inspections
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
 from erpnext.stock.get_item_details import get_item_details
@@ -448,6 +447,6 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
         for row_name in row_names:
             row_doc = frappe.get_doc("Purchase Receipt Item", row_name)
-            erpnextkta.api.custom_split_kta_batches(row=row_doc)
+            custom_split_kta_batches(row=row_doc)
 
         self.flags.kta_rows_to_split = None

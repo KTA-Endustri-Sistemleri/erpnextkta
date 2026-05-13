@@ -3,8 +3,7 @@ from frappe.model.docstatus import DocStatus
 from frappe.utils import flt
 
 from erpnext.stock.doctype.quality_inspection.quality_inspection import QualityInspection
-from erpnextkta.api import custom_split_kta_batches
-from erpnextkta.kta_stock.label_manager import print_kta_pr_labels
+from erpnextkta.kta_stock.label_manager import print_kta_pr_labels, custom_split_kta_batches
 
 
 class KTAQualityInspection(QualityInspection):
