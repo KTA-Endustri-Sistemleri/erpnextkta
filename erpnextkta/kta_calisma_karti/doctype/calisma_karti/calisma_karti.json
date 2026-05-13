@@ -19,6 +19,7 @@
         "durum",
         "olcumler_section",
         "idc_olcumleri",
+        "krimp_olcumleri",
         "column_break_olcum",
         "barkod_kayitlari",
         "zaman_section",
@@ -206,6 +207,13 @@
             "fieldtype": "Table",
             "label": "IDC Ölçümleri",
             "options": "Calisma Karti IDC Olcumleri"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "krimp_olcumleri",
+            "fieldtype": "Table",
+            "label": "Krimp Ölçümleri",
+            "options": "Calisma Karti Krimp Olcumleri"
         },
         {
             "fieldname": "column_break_olcum",
