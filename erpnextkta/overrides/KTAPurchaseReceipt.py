@@ -3,6 +3,7 @@ from frappe.model.docstatus import DocStatus
 
 from frappe.utils import add_days, getdate
 import erpnextkta.api
+from erpnextkta.kta_stock.label_manager import print_kta_pr_labels
 from erpnext.controllers.stock_controller import make_quality_inspections
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
 from erpnext.stock.get_item_details import get_item_details
@@ -388,7 +389,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
     def print_zebra(self):
         try:
-            erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
+            print_kta_pr_labels(gr_number=self.name)
         except Exception as e:
             frappe.log_error(f"Zebra Print Error (Ignored): {str(e)}", "KTAPurchaseReceipt Print Error")
             # User said: "o hata gelsin önemli değil" (Let that error come, it's not important)
