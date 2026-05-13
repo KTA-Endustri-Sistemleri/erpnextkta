@@ -180,15 +180,6 @@ onMounted(() => {});
     </div>
 
     <!-- IdcSection & BarkodSection automatically match since they exist within the flow -->
-    <IdcSection
-      :rows="props.doc.idc_olcumleri || []"
-      :canEditQC="props.canEditQC"
-      :canEditData="props.canEditData"
-      :onAdd="addIdc"
-      :onEdit="editIdc"
-      :onDelete="deleteIdc"
-    />
-
     <KrimpSection
       :rows="props.doc.krimp_olcumleri || []"
       :canEditQC="props.canEditQC"
@@ -196,6 +187,15 @@ onMounted(() => {});
       :onAdd="addKrimp"
       :onEdit="editKrimp"
       :onDelete="deleteKrimp"
+    />
+
+    <IdcSection
+      :rows="props.doc.idc_olcumleri || []"
+      :canEditQC="props.canEditQC"
+      :canEditData="props.canEditData"
+      :onAdd="addIdc"
+      :onEdit="editIdc"
+      :onDelete="deleteIdc"
     />
 
     <BarkodSection
