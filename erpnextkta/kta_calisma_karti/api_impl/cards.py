@@ -326,6 +326,7 @@ def get_calisma_karti_detail(name: str):
     hurdalar = first_child_table(doc, ["hurdalar", "hurda", "calisma_karti_hurda"])
     duruslar = first_child_table(doc, ["duruslar", "durus", "operasyon_duruslari"])
     idc_olcumleri = first_child_table(doc, ["idc_olcumleri", "idc_olcumleri", "calisma_karti_idc_olcumleri"])
+    krimp_olcumleri = first_child_table(doc, ["krimp_olcumleri", "krimp_olcumleri", "calisma_karti_krimp_olcumleri"])
     barkod_kayitlari = first_child_table(doc, ["barkod_kayitlari", "barkod_kayitlari", "calisma_karti_barkod_kayitlari"])
     alt_operasyon_kayitlari = first_child_table(doc, ["alt_operasyon_kayitlari", "alt_operasyon", "calisma_karti_alt_operasyon_kayitlari"])
 
@@ -346,6 +347,7 @@ def get_calisma_karti_detail(name: str):
         "hurdalar": hurdalar,
         "duruslar": duruslar,
         "idc_olcumleri": idc_olcumleri,
+        "krimp_olcumleri": krimp_olcumleri,
         "barkod_kayitlari": barkod_kayitlari,
         "alt_operasyon_kayitlari": alt_operasyon_kayitlari,
         "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),

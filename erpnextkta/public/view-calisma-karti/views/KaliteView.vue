@@ -86,9 +86,50 @@ function deleteIdc(row: any) {
   });
 }
 
+function setupKrimpBookLogic(dialog: any) {
+  const kesit_fld = dialog.get_field("kablo_kesiti");
+  const kablo_fld = dialog.get_field("kablo_no");
+  const kontak_fld = dialog.get_field("kontak_no");
+
+  const updateDetails = () => {
+    const kesit = dialog.get_value("kablo_kesiti");
+    const kontak = dialog.get_value("kontak_no");
+
+    if (kesit && kontak) {
+      frappe.call({
+        method: "erpnextkta.kta_calisma_karti.api.get_krimp_book_details",
+        args: { kablo_no: dialog.get_value("kablo_no") || "", kontak_no: kontak, selected_kesit: kesit },
+        callback: (r: any) => {
+          if (r.message && Object.keys(r.message).length > 0) {
+            const data = r.message;
+            // Note: we don't overwrite kablo_kesiti if it's already set
+            dialog.set_value("kalip_no", data.kalip_no);
+            dialog.set_value("hedef_iletken_krimp_yuksekliği", data.hedef_iletken_krimp_yuksekliği);
+            dialog.set_value("cekme_kuvveti_n", data.cekme_kuvveti_n);
+            dialog.set_value("izokrimp_yuksekligi", data.izokrimp_yuksekligi);
+
+            frappe.show_alert({ message: "Krimp Book değerleri yüklendi", indicator: "blue" });
+          }
+        }
+      });
+    }
+  };
+
+  if (kesit_fld) {
+    kesit_fld.df.onchange = () => {
+      // Clear dependent fields when kesit changes
+      dialog.set_value("kablo_no", "");
+      dialog.set_value("kontak_no", "");
+      updateDetails();
+    };
+  }
+  if (kablo_fld) kablo_fld.df.onchange = updateDetails;
+  if (kontak_fld) kontak_fld.df.onchange = updateDetails;
+}
+
 function addKrimp() {
-  frappe.prompt(
-    krimpOlcumFields(),
+  const dialog = frappe.prompt(
+    krimpOlcumFields({ calisma_karti_name: props.doc.name }),
     async (v: any) => {
       await props.onAddKrimp(v);
       frappe.show_alert({ message: "Krimp ölçümü eklendi", indicator: "green" });
@@ -96,12 +137,45 @@ function addKrimp() {
     "Krimp Ölçümü Ekle",
     "Kaydet"
   );
+
+  // Set dynamic filters
+  dialog.fields_dict.kablo_no.get_query = () => ({
+    query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
+    filters: { 
+      calisma_karti: props.doc.name,
+      kablo_kesiti: dialog.get_value("kablo_kesiti"),
+      type: "kablo" 
+    }
+  });
+  
+  dialog.fields_dict.kontak_no.get_query = () => ({
+    query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
+    filters: { 
+      calisma_karti: props.doc.name,
+      kablo_kesiti: dialog.get_value("kablo_kesiti"),
+      type: "kontak" 
+    }
+  });
+
+  const fetchKesits = () => {
+    frappe.call({
+      method: "erpnextkta.kta_calisma_karti.api.get_unique_kesit_list",
+      callback: (r: any) => {
+        if (r.message) {
+          dialog.set_df_property("kablo_kesiti", "options", ["", ...r.message]);
+        }
+      }
+    });
+  };
+
+  fetchKesits();
+  setupKrimpBookLogic(dialog);
 }
 
 function editKrimp(row: any) {
   if (!row?.name) return frappe.msgprint("Krimp satır kimliği bulunamadı.");
-  frappe.prompt(
-    krimpOlcumFields(row),
+  const dialog = frappe.prompt(
+    krimpOlcumFields({ ...row, calisma_karti_name: props.doc.name }),
     async (v: any) => {
       await props.onUpdateKrimp({ rowname: row.name, payload: v });
       frappe.show_alert({ message: "Krimp ölçümü güncellendi", indicator: "green" });
@@ -109,6 +183,42 @@ function editKrimp(row: any) {
     "Krimp Ölçümü Düzenle",
     "Kaydet"
   );
+
+  // Set dynamic filters
+  dialog.fields_dict.kablo_no.get_query = () => ({
+    query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
+    filters: { 
+      calisma_karti: props.doc.name,
+      kablo_kesiti: dialog.get_value("kablo_kesiti"),
+      type: "kablo" 
+    }
+  });
+  
+  dialog.fields_dict.kontak_no.get_query = () => ({
+    query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
+    filters: { 
+      calisma_karti: props.doc.name,
+      kablo_kesiti: dialog.get_value("kablo_kesiti"),
+      type: "kontak" 
+    }
+  });
+
+  const fetchKesits = () => {
+    frappe.call({
+      method: "erpnextkta.kta_calisma_karti.api.get_unique_kesit_list",
+      callback: (r: any) => {
+        if (r.message) {
+          dialog.set_df_property("kablo_kesiti", "options", ["", ...r.message]);
+          // In edit mode, ensure the current value is selected
+          const currentVal = row.kablo_kesiti;
+          if (currentVal) dialog.set_value("kablo_kesiti", currentVal);
+        }
+      }
+    });
+  };
+
+  fetchKesits();
+  setupKrimpBookLogic(dialog);
 }
 
 function deleteKrimp(row: any) {

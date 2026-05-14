@@ -44,6 +44,9 @@ from .api_impl.krimp import (
     add_krimp_olcumu,
     update_krimp_olcumu,
     delete_krimp_olcumu,
+    search_krimp_items,
+    get_krimp_book_details,
+    get_unique_kesit_list,
 )
 
 # Alt Operasyon
@@ -96,4 +99,7 @@ __all__ = [
     "add_krimp_olcumu",
     "update_krimp_olcumu",
     "delete_krimp_olcumu",
+    "search_krimp_items",
+    "get_krimp_book_details",
+    "get_unique_kesit_list",
 ]

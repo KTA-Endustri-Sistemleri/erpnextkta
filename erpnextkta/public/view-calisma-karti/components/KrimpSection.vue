@@ -44,22 +44,26 @@ function actions(r: any) {
           </div>
           <div class="ck-krimp-box">
              <span>Krimp Yük.</span>
-             <b>{{ r.olculen_iletken_krimp_yuksekli\u011fi }}</b> <small>/ {{ r.hedef_iletken_krimp_yuksekli\u011fi }}</small>
+             <b>{{ r.olculen_iletken_krimp_yuksekliği }}</b> <small>/ {{ r.hedef_iletken_krimp_yuksekliği }}</small>
           </div>
           <div class="ck-krimp-box">
-             <span>\u00c7ekme</span>
+             <span>Çekme</span>
              <b>{{ r.cekme_kuvveti_n }}</b> <small>N</small>
           </div>
           <div class="ck-krimp-box">
-             <span>\u0130zokrimp</span>
+             <span>İzokrimp</span>
              <b>{{ r.izokrimp_yuksekligi }}</b>
           </div>
         </div>
 
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <div v-if="r.radus_mevcut" class="ck-badge ck-badge--success">Rad\u00fcs ✓</div>
+            <div v-if="r.radus_mevcut" class="ck-badge ck-badge--success">Radüs ✓</div>
+            <div v-else class="ck-badge ck-badge--danger">Radüs ✕</div>
+
             <div v-if="r.tel_kesme_mevcut" class="ck-badge ck-badge--success">Tel Kesme ✓</div>
-            <div class="ck-badge ck-badge--info">Kal\u0131p: {{ r.kalip_no || "-" }}</div>
+            <div v-else class="ck-badge ck-badge--danger">Tel Kesme ✕</div>
+
+            <div class="ck-badge ck-badge--info">Kalıp: {{ r.kalip_no || "-" }}</div>
             <div class="ck-badge ck-badge--info">Makine: {{ r.makine_pres_no || "-" }}</div>
         </div>
 
@@ -74,7 +78,7 @@ function actions(r: any) {
 
         <div v-if="props.canEditData" style="display:flex; justify-content:flex-end;">
           <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            DETAY \u25be
+            DETAY ▾
           </button>
         </div>
       </div>
@@ -118,6 +122,10 @@ function actions(r: any) {
 .ck-badge--success {
     background: var(--ck-success-bg);
     color: var(--ck-success);
+}
+.ck-badge--danger {
+    background: #ffe6e6;
+    color: #cc0000;
 }
 .ck-badge--info {
     background: var(--ck-info-bg);
