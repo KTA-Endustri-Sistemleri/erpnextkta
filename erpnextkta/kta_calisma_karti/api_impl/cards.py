@@ -333,6 +333,21 @@ def get_calisma_karti_detail(name: str):
     # Enrich alt_operasyon rows with title and sequence from the master doctype
     _attach_alt_operasyon_titles(alt_operasyon_kayitlari)
 
+    operator_name = frappe.db.get_value("Employee", doc.operator, "employee_name") if doc.operator else None
+    
+    qi_details = None
+    if doc.quality_inspection:
+        qi = frappe.get_all("Quality Inspection", 
+                            filters={"name": doc.quality_inspection},
+                            fields=["name", "owner", "status", "report_date", "docstatus"],
+                            limit=1)
+        if qi:
+            qi_details = qi[0]
+            qi_details["owner_name"] = frappe.db.get_value("User", qi_details["owner"], "full_name") or qi_details["owner"]
+
+    op_meta = frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, 
+                                 ["miktar_zorunlu_mu", "has_krimp", "has_idc", "has_barkod"], as_dict=1) or {}
+
     return {
         "name": doc.name,
         "custom_work_order": doc.custom_work_order,
@@ -341,6 +356,7 @@ def get_calisma_karti_detail(name: str):
         "urun_kodu": doc.urun_kodu,
         "is_istasyonu": doc.is_istasyonu,
         "operator": doc.operator,
+        "operator_name": operator_name,
         "durum": doc.durum,
         "baslangic_saati": doc.baslangic_saati,
         "bitis_saati": doc.bitis_saati,
@@ -353,7 +369,11 @@ def get_calisma_karti_detail(name: str):
         "tamamlanan_miktar": float(doc.tamamlanan_miktar or 0),
         "kalite_kontrol": doc.kalite_kontrol,
         "quality_inspection": doc.quality_inspection or None,
-        "miktar_zorunlu_mu": frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, "miktar_zorunlu_mu"),
+        "qi_details": qi_details,
+        "miktar_zorunlu_mu": bool(op_meta.get("miktar_zorunlu_mu")),
+        "has_krimp": bool(op_meta.get("has_krimp")),
+        "has_idc": bool(op_meta.get("has_idc")),
+        "has_barkod": bool(op_meta.get("has_barkod")),
         "creation": doc.creation,
         "docstatus": doc.docstatus,
         "max_kart_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430,

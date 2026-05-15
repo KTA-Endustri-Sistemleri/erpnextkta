@@ -196,7 +196,7 @@ export function krimpOlcumFields(defaults: any = {}) {
             fieldtype: "Select",
             label: "Kablo Kesiti (Rehberden)",
             fieldname: "kablo_kesiti",
-            options: [""],
+            options: defaults.kablo_kesiti ? ["", defaults.kablo_kesiti] : [""],
             default: defaults.kablo_kesiti || "",
             reqd: 1
         },

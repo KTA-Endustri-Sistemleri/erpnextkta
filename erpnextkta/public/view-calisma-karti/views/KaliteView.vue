@@ -90,6 +90,9 @@ function setupKrimpBookLogic(dialog: any) {
   const kesit_fld = dialog.get_field("kablo_kesiti");
   const kablo_fld = dialog.get_field("kablo_no");
   const kontak_fld = dialog.get_field("kontak_no");
+  
+  // Track last known kesit to avoid clearing on programmatic sets
+  dialog.last_kesit = dialog.get_value("kablo_kesiti");
 
   const updateDetails = () => {
     const kesit = dialog.get_value("kablo_kesiti");
@@ -117,7 +120,16 @@ function setupKrimpBookLogic(dialog: any) {
 
   if (kesit_fld) {
     kesit_fld.df.onchange = () => {
-      // Clear dependent fields when kesit changes
+      const current_kesit = dialog.get_value("kablo_kesiti");
+
+      // If the dialog is currently loading initial data (edit mode), 
+      // or the value hasn't actually changed, do not clear dependent fields.
+      if (dialog.is_loading || dialog.last_kesit === current_kesit) return;
+
+      // Update last known kesit
+      dialog.last_kesit = current_kesit;
+
+      // Clear dependent fields when kesit changes manually
       dialog.set_value("kablo_no", "");
       dialog.set_value("kontak_no", "");
       updateDetails();
@@ -157,6 +169,8 @@ function addKrimp() {
     }
   });
 
+  dialog.is_loading = true;
+
   const fetchKesits = () => {
     frappe.call({
       method: "erpnextkta.kta_calisma_karti.api.get_unique_kesit_list",
@@ -164,6 +178,7 @@ function addKrimp() {
         if (r.message) {
           dialog.set_df_property("kablo_kesiti", "options", ["", ...r.message]);
         }
+        dialog.is_loading = false;
       }
     });
   };
@@ -203,6 +218,8 @@ function editKrimp(row: any) {
     }
   });
 
+  dialog.is_loading = true;
+
   const fetchKesits = () => {
     frappe.call({
       method: "erpnextkta.kta_calisma_karti.api.get_unique_kesit_list",
@@ -213,6 +230,7 @@ function editKrimp(row: any) {
           const currentVal = row.kablo_kesiti;
           if (currentVal) dialog.set_value("kablo_kesiti", currentVal);
         }
+        dialog.is_loading = false;
       }
     });
   };
@@ -227,6 +245,224 @@ function deleteKrimp(row: any) {
     await props.onDeleteKrimp(row.name);
     frappe.show_alert({ message: "Krimp ölçümü silindi", indicator: "green" });
   });
+}
+
+function cloneKrimp(row: any) {
+  // Copy structural data, zero out measured values
+  const cloneDefaults = {
+    calisma_karti_name: props.doc.name,
+    kablo_kesiti: row.kablo_kesiti || "",
+    kablo_no: row.kablo_no || "",
+    kontak_no: row.kontak_no || "",
+    kalip_no: row.kalip_no || "",
+    makine_pres_no: row.makine_pres_no || "",
+    hedef_kablo_boyu: row.hedef_kablo_boyu ?? 0,
+    hedef_iletken_krimp_yuksekliği: row.hedef_iletken_krimp_yuksekliği ?? 0,
+    cekme_kuvveti_n: row.cekme_kuvveti_n ?? 0,
+    izokrimp_yuksekligi: row.izokrimp_yuksekligi ?? 0,
+    radus_mevcut: row.radus_mevcut ?? 0,
+    tel_kesme_mevcut: row.tel_kesme_mevcut ?? 0,
+    // Measured values are intentionally left at 0
+    olculen_kablo_boyu: 0,
+    olculen_iletken_krimp_yuksekliği: 0,
+    siyirma_boyu: 0,
+    capak_boyu: 0,
+  };
+
+  const dialog = frappe.prompt(
+    krimpOlcumFields(cloneDefaults),
+    async (v: any) => {
+      await props.onAddKrimp(v);
+      frappe.show_alert({ message: "Krimp ölçümü kopyalandı ve eklendi", indicator: "green" });
+    },
+    "Krimp Ölçümü Kopyala",
+    "Kaydet"
+  );
+
+  dialog.fields_dict.kablo_no.get_query = () => ({
+    query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
+    filters: { calisma_karti: props.doc.name, kablo_kesiti: dialog.get_value("kablo_kesiti"), type: "kablo" }
+  });
+  dialog.fields_dict.kontak_no.get_query = () => ({
+    query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
+    filters: { calisma_karti: props.doc.name, kablo_kesiti: dialog.get_value("kablo_kesiti"), type: "kontak" }
+  });
+
+  dialog.is_loading = true;
+  frappe.call({
+    method: "erpnextkta.kta_calisma_karti.api.get_unique_kesit_list",
+    callback: (r: any) => {
+      if (r.message) {
+        dialog.set_df_property("kablo_kesiti", "options", ["", ...r.message]);
+        if (cloneDefaults.kablo_kesiti) dialog.set_value("kablo_kesiti", cloneDefaults.kablo_kesiti);
+      }
+      dialog.is_loading = false;
+    }
+  });
+  setupKrimpBookLogic(dialog);
+}
+
+function printKrimpProtocol() {
+  const rows: any[] = props.doc.krimp_olcumleri || [];
+  if (rows.length === 0) return frappe.msgprint("Yazdırılacak krimp ölçümü yok.");
+
+  const doc = props.doc;
+  const today = frappe.datetime.get_today();
+
+  const sapmaTxt = (olculen: number, hedef: number) => {
+    if (!hedef) return "-";
+    const d = (olculen - hedef).toFixed(3);
+    return d === "0.000" ? "✔ OK" : `${Number(d) > 0 ? "+" : ""}${d} mm`;
+  };
+
+  const sapmaClass = (olculen: number, hedef: number) => {
+    if (!hedef) return "";
+    const d = olculen - hedef;
+    if (Math.abs(d) < 0.001) return "ok";
+    return d < 0 ? "low" : "high";
+  };
+
+  const rows_html = rows.map((r: any, i: number) => `
+    <tr class="row-${i % 2 === 0 ? 'even' : 'odd'}">
+      <td>${i + 1}</td>
+      <td>${r.kablo_no || "-"}</td>
+      <td>${r.kontak_no || "-"}</td>
+      <td>${r.kablo_kesiti || "-"}</td>
+      <td>${r.makine_pres_no || "-"}</td>
+      <td>${r.kalip_no || "-"}</td>
+      <td>${r.hedef_kablo_boyu ?? "-"}</td>
+      <td>${r.olculen_kablo_boyu ?? "-"}</td>
+      <td class="${sapmaClass(r.olculen_kablo_boyu, r.hedef_kablo_boyu)}">${sapmaTxt(r.olculen_kablo_boyu, r.hedef_kablo_boyu)}</td>
+      <td>${r.hedef_iletken_krimp_yuksekliği ?? "-"}</td>
+      <td>${r.olculen_iletken_krimp_yuksekliği ?? "-"}</td>
+      <td class="${sapmaClass(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği)}">${sapmaTxt(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği)}</td>
+      <td>${r.siyirma_boyu ?? "-"} mm</td>
+      <td>${r.capak_boyu ?? "-"} mm</td>
+      <td>${r.cekme_kuvveti_n ?? "-"} N</td>
+      <td class="${r.radus_mevcut ? 'ok' : 'low'}">${r.radus_mevcut ? "✔" : "✘"}</td>
+      <td class="${r.tel_kesme_mevcut ? 'ok' : 'low'}">${r.tel_kesme_mevcut ? "✔" : "✘"}</td>
+      <td>${r.operator || "-"}</td>
+    </tr>
+  `).join("");
+
+  const html = `
+  <!DOCTYPE html>
+  <html lang="tr">
+  <head>
+    <meta charset="UTF-8">
+    <title>Krimp Protokol Belgesi - ${doc.name}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; font-size: 11px; color: #111; padding: 20px; }
+      h1 { font-size: 16px; margin-bottom: 4px; }
+      h2 { font-size: 13px; font-weight: normal; margin-bottom: 16px; color: #555; }
+      .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #111; padding-bottom: 12px; }
+      .header-left h1 { font-size: 18px; }
+      .header-right { text-align: right; font-size: 11px; color: #444; }
+      .header-right b { display: block; font-size: 13px; color: #111; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+      th { background: #222; color: #fff; padding: 5px 4px; text-align: center; font-size: 9px; white-space: nowrap; }
+      td { padding: 4px; text-align: center; border: 1px solid #ddd; font-size: 9px; }
+      .row-even { background: #f9f9f9; }
+      .ok { color: #166534; font-weight: bold; }
+      .low { color: #991b1b; font-weight: bold; }
+      .high { color: #1e40af; font-weight: bold; }
+      .signatures { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; margin-top: 40px; }
+      .sig-box { border-top: 1px solid #333; padding-top: 8px; }
+      .sig-box .title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+      .sig-box .space { height: 50px; }
+      .sig-box .name-line { border-bottom: 1px solid #aaa; margin-top: 4px; height: 20px; }
+      .footer { margin-top: 20px; font-size: 9px; color: #888; text-align: center; }
+      @media print {
+        body { padding: 10px; }
+        button { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-left">
+        <h1>KTA Endüstri Sistemleri</h1>
+        <h2>Krimp Ölçüm Protokol Belgesi</h2>
+      </div>
+      <div class="header-right">
+        <b>${doc.name}</b>
+        İş Emri: ${doc.custom_work_order || "-"}<br>
+        Ürün: ${doc.urun_kodu || "-"}<br>
+        Kalite Belgesi: ${doc.quality_inspection || "-"}<br>
+        Tarih: ${today}
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Kablo No</th>
+          <th>Kontak No</th>
+          <th>Kesit</th>
+          <th>Makine</th>
+          <th>Kalıp</th>
+          <th>Hdf. Kablo Boyu</th>
+          <th>Ölc. Kablo Boyu</th>
+          <th>Sapma</th>
+          <th>Hdf. Krimp Yük.</th>
+          <th>Ölc. Krimp Yük.</th>
+          <th>Sapma</th>
+          <th>Sıyırma</th>
+          <th>Çapak</th>
+          <th>Çekme</th>
+          <th>Radüs</th>
+          <th>Tel Kesme</th>
+          <th>Operatör</th>
+        </tr>
+      </thead>
+      <tbody>${rows_html}</tbody>
+    </table>
+
+    <div class="signatures">
+      <div class="sig-box">
+        <div class="title">Hazırlayan Operatör</div>
+        <div class="space"></div>
+        <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
+          ${doc.operator_name || doc.operator || "-"}
+        </div>
+        <div class="name-line"></div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+      </div>
+      <div class="sig-box">
+        <div class="title">Kalite Sorumlusu</div>
+        <div class="space"></div>
+        <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
+          ${doc.qi_details?.owner_name || "-"}
+        </div>
+        <div class="name-line"></div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+      </div>
+      <div class="sig-box">
+        <div class="title">Onaylayan</div>
+        <div class="space"></div>
+        <div class="name-line"></div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">Ad Soyad / İmza / Tarih</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Bu belge KTA Endüstri Sistemleri kalite takip sistemi tarafından otomatik oluşturulmuştur. • ${today}
+    </div>
+
+    <script>
+      window.onload = () => window.print();
+    <\/script>
+  </body>
+  </html>
+  `;
+
+  const w = window.open("", "_blank", "width=1100,height=700");
+  if (w) {
+    w.document.write(html);
+    w.document.close();
+  }
 }
 
 function addBarkod() {
@@ -291,30 +527,36 @@ onMounted(() => {});
 
     <!-- IdcSection & BarkodSection automatically match since they exist within the flow -->
     <KrimpSection
+      v-if="props.doc.has_krimp"
+      :doc="props.doc"
       :rows="props.doc.krimp_olcumleri || []"
       :canEditQC="props.canEditQC"
       :canEditData="props.canEditData"
       :onAdd="addKrimp"
       :onEdit="editKrimp"
       :onDelete="deleteKrimp"
+      :onClone="cloneKrimp"
+      :onPrint="printKrimpProtocol"
     />
 
     <IdcSection
+      v-if="props.doc.has_idc"
       :rows="props.doc.idc_olcumleri || []"
       :canEditQC="props.canEditQC"
       :canEditData="props.canEditData"
       :onAdd="addIdc"
-      :onEdit="editIdc"
-      :onDelete="deleteIdc"
+      :onUpdate="props.onUpdateIdc"
+      :onDelete="props.onDeleteIdc"
     />
 
     <BarkodSection
+      v-if="props.doc.has_barkod"
       :rows="props.doc.barkod_kayitlari || []"
       :canEditQC="props.canEditQC"
       :canEditData="props.canEditData"
       :onAdd="addBarkod"
-      :onEdit="editBarkod"
-      :onDelete="deleteBarkod"
+      :onUpdate="props.onUpdateBarkod"
+      :onDelete="props.onDeleteBarkod"
     />
 
   </div>

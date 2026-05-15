@@ -14,7 +14,11 @@
         "plant_floor",
         "miktar_zorunlu_mu",
         "erpnext_operations",
-        "allowed_material_groups"
+        "allowed_material_groups",
+        "form_gorunurluk_section",
+        "has_krimp",
+        "has_idc",
+        "has_barkod"
     ],
     "fields": [
         {
@@ -72,6 +76,29 @@
             "fieldtype": "Table",
             "label": "Allowed Material Groups",
             "options": "KTA Operation Allowed Material Groups"
+        },
+        {
+            "fieldname": "form_gorunurluk_section",
+            "fieldtype": "Section Break",
+            "label": "Form Görünürlükleri"
+        },
+        {
+            "default": "0",
+            "fieldname": "has_krimp",
+            "fieldtype": "Check",
+            "label": "Krimp Formu Aktif"
+        },
+        {
+            "default": "0",
+            "fieldname": "has_idc",
+            "fieldtype": "Check",
+            "label": "IDC Formu Aktif"
+        },
+        {
+            "default": "0",
+            "fieldname": "has_barkod",
+            "fieldtype": "Check",
+            "label": "Barkod Kaydı Aktif"
         }
     ],
     "grid_page_length": 50,
