@@ -51,6 +51,7 @@
     ],
     "grid_page_length": 50,
     "links": [],
+    "is_submittable": 1,
     "modified": "2026-02-26 00:00:00.000000",
     "modified_by": "Administrator",
     "module": "kta_calisma_karti",
@@ -59,6 +60,8 @@
     "owner": "Administrator",
     "permissions": [
         {
+            "amend": 1,
+            "cancel": 1,
             "create": 1,
             "delete": 1,
             "email": 1,
@@ -68,6 +71,7 @@
             "report": 1,
             "role": "System Manager",
             "share": 1,
+            "submit": 1,
             "write": 1
         },
         {

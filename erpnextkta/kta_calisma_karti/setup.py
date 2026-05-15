@@ -62,9 +62,11 @@ def setup_permissions():
         # Alt Operasyonlar
         {"parent": "KTA Calisma Karti Alt Operasyonlari", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         {"parent": "KTA Calisma Karti Alt Operasyonlari", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        {"parent": "KTA Calisma Karti Alt Operasyonlari", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
         # Operasyonlar
         {"parent": "KTA Calisma Karti Operasyonlari", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         {"parent": "KTA Calisma Karti Operasyonlari", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        {"parent": "KTA Calisma Karti Operasyonlari", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
         # Stock Entry Type
         {"parent": "Stock Entry Type", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         {"parent": "Stock Entry Type", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
@@ -86,28 +88,35 @@ def setup_permissions():
         # Quality Inspection
         {"parent": "Quality Inspection", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         {"parent": "Quality Inspection", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
-        # Quality Inspection
+        # UOM
         {"parent": "UOM", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         {"parent": "UOM", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         # KTA Calisma Karti Settings
         {"parent": "KTA Calisma Karti Settings", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
-        {"parent": "KTA Calisma Karti Settings", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0}
+        {"parent": "KTA Calisma Karti Settings", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
+        {"parent": "KTA Calisma Karti Settings", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 0, "cancel": 0, "amend": 0}
     ]
 
-    extra_roles = ['Manufacturing User', 'Manufacturing Manager', 'System Manager']
-    for role in roles + extra_roles:
-        # Clear existing to ensure clean state
-        frappe.db.delete("Custom DocPerm", {"role": role, "parent": ["in", [p["parent"] for p in permissions_data]]})
-        
+    # KTA'ya özel olan ve tüm rollerini yönetmek istediğimiz DocType'lar
+    kta_parents = ["Calisma Karti", "KTA Calisma Karti Operasyonlari", "KTA Calisma Karti Alt Operasyonlari", "KTA Calisma Karti Settings"]
+
     for p in permissions_data:
-        p_copy = p.copy()
-        if "permlevel" not in p_copy:
-            p_copy["permlevel"] = 0
+        # Sadece şu durumlarda izinleri yönetiyoruz:
+        # 1. Rol bizim özel KTA rolümüz ise (Her DocType'da yönetebiliriz)
+        # 2. DocType bizim KTA DocType'ımız ise (Her rolü yönetebiliriz, örn: System Manager)
+        if p["role"] in roles or p["parent"] in kta_parents:
+            # Önce temizle (duplicate oluşmaması için)
+            frappe.db.delete("Custom DocPerm", {"role": p["role"], "parent": p["parent"]})
             
-        p_copy.update({
-            "doctype": "Custom DocPerm"
-        })
-        frappe.get_doc(p_copy).insert(ignore_permissions=True)
+            # Yeni izni ekle
+            p_copy = p.copy()
+            if "permlevel" not in p_copy:
+                p_copy["permlevel"] = 0
+                
+            p_copy.update({
+                "doctype": "Custom DocPerm"
+            })
+            frappe.get_doc(p_copy).insert(ignore_permissions=True)
     
     frappe.db.commit()
 

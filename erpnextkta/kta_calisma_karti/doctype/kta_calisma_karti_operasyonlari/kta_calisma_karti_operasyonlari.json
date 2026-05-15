@@ -78,12 +78,15 @@
     "links": [],
     "modified": "2025-08-11 15:31:14.837383",
     "modified_by": "Administrator",
+    "is_submittable": 1,
     "module": "kta_calisma_karti",
     "name": "KTA Calisma Karti Operasyonlari",
     "naming_rule": "Set by user",
     "owner": "Administrator",
     "permissions": [
         {
+            "amend": 1,
+            "cancel": 1,
             "create": 1,
             "delete": 1,
             "email": 1,
