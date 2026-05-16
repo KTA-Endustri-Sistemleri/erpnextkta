@@ -202,3 +202,124 @@ class TestCalismaKartiAPI(KTATestCase):
 		ck_doc = frappe.get_doc("Calisma Karti", docname)
 		self.assertEqual(len(ck_doc.alt_operasyon_kayitlari), 1)
 		self.assertEqual(ck_doc.alt_operasyon_kayitlari[0].alt_operasyon, master_alt_op)
+
+	def test_rejected_card_allows_new_card_creation(self):
+		"""Reddedilmiş kart taslak olarak kalsa bile, aynı iş için yeni kart açılabilmeli."""
+		payload = {
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test@kta.com",
+		}
+
+		# 1. İlk kart oluştur
+		doc1 = create_calisma_karti(**payload)
+		docname1 = doc1.get("name")
+
+		# 2. Kartı doğrudan reddedilmiş olarak işaretle (Faz 3 öncesi senaryoyu simüle et)
+		frappe.db.set_value("Calisma Karti", docname1, "kalite_kontrol", "Reddedildi")
+		frappe.db.set_value("Calisma Karti", docname1, "durum", "Reddedildi")
+		frappe.db.commit()
+
+		# Kart hâlâ taslak + bitis_saati yok -> orijinal bug senaryosu
+		ck = frappe.db.get_value(
+			"Calisma Karti", docname1,
+			["docstatus", "bitis_saati", "kalite_kontrol"], as_dict=True
+		)
+		self.assertEqual(ck.docstatus, 0)
+		self.assertIsNone(ck.bitis_saati)
+		self.assertEqual(ck.kalite_kontrol, "Reddedildi")
+
+		# 3. Aynı payload ile yeni kart oluştur — FARKLI kart dönmeli
+		doc2 = create_calisma_karti(**payload)
+		docname2 = doc2.get("name")
+
+		self.assertNotEqual(
+			docname1, docname2,
+			"Reddedilmiş kart mevcutken yeni kart oluşturulabilmeli"
+		)
+
+	def test_reject_flow_qi_is_submitted(self):
+		"""Red kararında Quality Inspection'ın hemen submit edildiğini doğrular (orphan önleme)."""
+		# QC Template kur
+		template_name = "TEST-REJECT-QC-TEMPLATE"
+		if not frappe.db.exists("Quality Inspection Template", template_name):
+			frappe.get_doc({
+				"doctype": "Quality Inspection Template",
+				"quality_inspection_template_name": template_name,
+				"item_quality_inspection_parameter": [
+					{"specification": "Görsel Kontrol", "numeric": 0, "value": "OK"}
+				]
+			}).insert(ignore_permissions=True)
+
+		# Kart oluştur
+		from erpnextkta.tests.test_utils import create_test_operator
+		create_test_operator("reject_qi@kta.com", "Reject QI Test")
+		frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": "reject_qi@kta.com"})
+		frappe.db.commit()
+
+		doc = create_calisma_karti(
+			is_karti=self.jc_name, operasyon=self.kta_op,
+			is_istasyonu=self.ws_name, operator="reject_qi@kta.com"
+		)
+		docname = doc.get("name")
+
+		readings = [{"specification": "Görsel Kontrol", "numeric": 0,
+					 "reading_value": "NOK", "status": "Rejected"}]
+
+		# Red kararı ver
+		res = submit_kta_quality_inspection(docname, template_name, readings, intent="reject")
+		qi_name = res["quality_inspection"]
+
+		# QI hemen submit edilmiş olmalı (docstatus=1)
+		qi_docstatus = frappe.db.get_value("Quality Inspection", qi_name, "docstatus")
+		self.assertEqual(qi_docstatus, 1, "Red kararında QI hemen submit edilmeli (orphan kalmamalı)")
+
+		# Kart QC durumu doğru
+		ck = frappe.db.get_value(
+			"Calisma Karti", docname, ["kalite_kontrol", "durum"], as_dict=True
+		)
+		self.assertEqual(ck.kalite_kontrol, "Reddedildi")
+		self.assertEqual(ck.durum, "Reddedildi")
+
+	def test_reject_flow_card_is_auto_submitted(self):
+		"""Red kararında kartın otomatik olarak submit edildiğini doğrular (Faz 3)."""
+		template_name = "TEST-AUTOSUB-QC-TEMPLATE"
+		if not frappe.db.exists("Quality Inspection Template", template_name):
+			frappe.get_doc({
+				"doctype": "Quality Inspection Template",
+				"quality_inspection_template_name": template_name,
+				"item_quality_inspection_parameter": [
+					{"specification": "Boyut Kontrolü", "numeric": 0, "value": "OK"}
+				]
+			}).insert(ignore_permissions=True)
+
+		from erpnextkta.tests.test_utils import create_test_operator
+		create_test_operator("autosub@kta.com", "Autosub Test")
+		frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": "autosub@kta.com"})
+		frappe.db.commit()
+
+		# Kart oluştur ve başlat
+		doc = create_calisma_karti(
+			is_karti=self.jc_name, operasyon=self.kta_op,
+			is_istasyonu=self.ws_name, operator="autosub@kta.com"
+		)
+		docname = doc.get("name")
+		islem_yap(docname, "Baslat")
+
+		readings = [{"specification": "Boyut Kontrolü", "numeric": 0,
+					 "reading_value": "NOK", "status": "Rejected"}]
+
+		# Red kararı ver
+		submit_kta_quality_inspection(docname, template_name, readings, intent="reject")
+
+		# Kart otomatik submit edilmiş olmalı
+		ck = frappe.get_doc("Calisma Karti", docname)
+		self.assertEqual(ck.docstatus, 1, "Red kararında kart otomatik submit edilmeli")
+		self.assertIsNotNone(ck.bitis_saati, "bitis_saati red anında set edilmeli")
+		self.assertEqual(ck.kalite_kontrol, "Reddedildi")
+		self.assertEqual(ck.durum, "Reddedildi")
+
+		# Submit sonrası tüm islem_yap çağrıları bloklanmalı
+		with self.assertRaises(Exception):
+			islem_yap(docname, "Durus", durus_nedeni="Diğer")

@@ -1,8 +1,5 @@
-frappe.query_reports["Capacity Planning Report"] = {
-	onload: function (report) {
-	},
-
-	filters: [
+frappe.query_reports["Production Pipeline Analysis"] = {
+	"filters": [
 		{
 			"fieldname": "from_date",
 			"label": __("Başlangıç Tarihi"),
@@ -27,7 +24,7 @@ frappe.query_reports["Capacity Planning Report"] = {
 			"fieldname": "ramp_up_aktif",
 			"label": __("Ramp-up (Önden Üretim) Yapılsın mı?"),
 			"fieldtype": "Check",
-			"default": 0
+			"default": 1
 		},
 		{
 			"fieldname": "ramp_up_weeks",
@@ -36,25 +33,16 @@ frappe.query_reports["Capacity Planning Report"] = {
 			"default": 3
 		},
 		{
-			"fieldname": "custom_musteri_grubu",
-			"label": __("Müşteri Grubu"),
+			"fieldname": "customer",
+			"label": __("Müşteri"),
 			"fieldtype": "Link",
-			"options": "KTA Customer Group"
+			"options": "Customer"
 		},
 		{
 			"fieldname": "item_group",
 			"label": __("Ürün Grubu"),
 			"fieldtype": "Link",
-			"options": "Item Group",
-			"get_query": function() {
-				const musteri_grubu = frappe.query_report.get_filter_value('custom_musteri_grubu');
-				return {
-					query: "erpnextkta.kta_mrp.report_utils.get_item_group_query",
-					filters: {
-						"custom_musteri_grubu": musteri_grubu
-					}
-				};
-			}
+			"options": "Item Group"
 		},
 		{
 			"fieldname": "warehouses",
@@ -65,11 +53,21 @@ frappe.query_reports["Capacity Planning Report"] = {
 			}
 		}
 	],
-
-	formatter: function(value, row, column, data, default_formatter) {
-		if (window.kta && kta.report_utils && kta.report_utils.std_formatter) {
-			return kta.report_utils.std_formatter(value, row, column, data, default_formatter);
-		}
-		return default_formatter(value, row, column, data);
-	}
+    "formatter": function(value, row, column, data, default_formatter) {
+        value = default_formatter(value, row, column, data);
+        
+        if (column.fieldname == "stage" && row && row.stage) {
+            if (row.stage.includes("1.")) {
+                value = `<span style="color: #e74c3c; font-weight: bold;">${value}</span>`;
+            } else if (row.stage.includes("2.")) {
+                value = `<span style="color: #3498db; font-weight: bold;">${value}</span>`;
+            } else if (row.stage.includes("3.")) {
+                value = `<span style="color: #f39c12; font-weight: bold;">${value}</span>`;
+            } else if (row.stage.includes("4.")) {
+                value = `<span style="color: #27ae60; font-weight: bold;">${value}</span>`;
+            }
+        }
+        
+        return value;
+    }
 };

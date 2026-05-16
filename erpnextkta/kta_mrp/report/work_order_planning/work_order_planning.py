@@ -3,181 +3,90 @@ from datetime import datetime
 from collections import defaultdict
 from erpnextkta.kta_mrp.report.capacity_planning_report.capacity_planning_report import execute as get_capacity_plan
 
-
 def execute(filters=None):
-    if not filters:
-        filters = {}
-
+    if not filters: filters = {}
     today = datetime.today().date()
-
-    # Önce filtresiz kapasite planı verisi alalım
-    filters_without_item_group = {k: v for k, v in filters.items() if k != "item_group"}
-    _, capacity_data = get_capacity_plan(filters_without_item_group)
     
-    # Açık iş emirleri - ürün grubu filtresi uygula
-    work_order_filters = {"status": ("not in", ["Cancelled", "Completed"])}
-    if filters.get("item_group"):
-        # Önce o ürün grubundaki ürünleri bul
-        items_in_group = frappe.get_all(
-            "Item",
-            filters={"item_group": filters["item_group"]},
-            fields=["name"]
-        )
-        item_names = [item.name for item in items_in_group]
-        if item_names:
-            work_order_filters["production_item"] = ("in", item_names)
-        else:
-            work_order_filters["production_item"] = "non_existent_item"  # Hiç sonuç dönmesin
+    _, capacity_data, *_ = get_capacity_plan(filters)
     
-    work_orders = frappe.get_all(
-        "Work Order",
-        filters=work_order_filters,
-        fields=["production_item", "planned_start_date", "qty", "produced_qty"]
-    )
+    wo_filters = {"status": ("not in", ["Cancelled", "Completed"])}
+    item_filters = {"custom_ara_malzeme_grubu": "ÜRÜN"}
+    if filters.get("item_group"): item_filters["item_group"] = filters["item_group"]
+    if filters.get("custom_musteri_grubu"): item_filters["custom_musteri_grubu"] = filters["custom_musteri_grubu"]
 
-    # Tüm item_code'ları topla
-    item_codes = {row.get("item_code") for row in capacity_data if row.get("item_code")}
-    item_codes.update({wo.get("production_item") for wo in work_orders if wo.get("production_item")})
+    if item_filters:
+        items = frappe.get_all("Item", filters=item_filters, pluck="name")
+        wo_filters["production_item"] = ("in", items) if items else "non_existent"
+    
+    work_orders = frappe.get_all("Work Order", filters=wo_filters, fields=["production_item", "planned_start_date", "qty", "produced_qty"])
+    item_codes = {r.get("item_code") for r in capacity_data if r.get("item_code")}
+    item_codes.update({wo.production_item for wo in work_orders})
+    
+    item_group_map = {i.name: i.item_group for i in frappe.get_all("Item", filters={"name": ("in", list(item_codes))}, fields=["name", "item_group"])} if item_codes else {}
 
-    # item_code -> item_group eşlemesi
-    item_group_map = {}
-    if item_codes:
-        item_group_data = frappe.get_all(
-            "Item",
-            filters={"name": ("in", list(item_codes))},
-            fields=["name", "item_group"]
-        )
-        item_group_map = {item.name: item.item_group for item in item_group_data}
-
-    # Planlanan üretim haritası
     planned_map = defaultdict(dict)
     for row in capacity_data:
         item = row.get("item_code")
-        if not item:
-            continue
-        
-        # Ürün grubu filtresi varsa burada uygula
-        item_group = item_group_map.get(item)
-        if filters.get("item_group") and filters["item_group"] != item_group:
-            continue
-            
-        # Tüm hafta sütunlarını kontrol et
-        for key, val in row.items():
-            if "_w" in key:
-                planned_map[item][key] = val or 0
+        if not item: continue
+        for k, v in row.items():
+            if "_w" in k: planned_map[item][k] = v or 0
 
-    # Açık iş emirleri gruplanıyor
-    past_remaining_by_item = defaultdict(int)
-    future_remaining_by_item_week = defaultdict(lambda: defaultdict(int))
-
+    past_rem = defaultdict(int)
+    future_rem = defaultdict(lambda: defaultdict(int))
     for wo in work_orders:
-        item = wo.get("production_item")
-        remaining = (wo.get("qty") or 0) - (wo.get("produced_qty") or 0)
-        if not item or remaining <= 0:
-            continue
-
-        start_date = wo.get("planned_start_date")
-        if isinstance(start_date, str):
-            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-        elif isinstance(start_date, datetime):
-            start_date = start_date.date()
-
-        if not start_date:
-            continue
-
-        if start_date < today:
-            past_remaining_by_item[item] += remaining
+        rem = (wo.qty or 0) - (wo.produced_qty or 0)
+        if rem <= 0 or not wo.planned_start_date: continue
+        sd = getdate(wo.planned_start_date)
+        if sd < today: past_rem[wo.production_item] += rem
         else:
-            iso_year, iso_week, _ = start_date.isocalendar()
-            week_key = f"{iso_year}_w{iso_week:02d}"
-            future_remaining_by_item_week[item][week_key] += remaining
+            iso_year, iso_week, _ = sd.isocalendar()
+            future_rem[wo.production_item][f"{iso_year}_w{iso_week:02d}"] += rem
 
-    # Rapor satırlarını oluştur
-    result = []
-    all_items = set(planned_map.keys()) | set(future_remaining_by_item_week.keys()) | set(past_remaining_by_item.keys())
+    data = []
+    all_items = set(planned_map.keys()) | set(future_rem.keys()) | set(past_rem.keys())
+    week_agg = defaultdict(lambda: {"p": 0, "o": 0, "r": 0})
 
     for item in all_items:
-        item_group = item_group_map.get(item)
+        ig = item_group_map.get(item)
+        p_rem = past_rem.get(item, 0)
+        all_w = set(planned_map[item].keys()) | set(future_rem[item].keys())
+        for k in sorted(all_w):
+            if "_w" not in k: continue
+            p_qty, f_open = planned_map[item].get(k, 0), future_rem[item].get(k, 0)
+            if p_qty == 0 and f_open == 0: continue
+            
+            o_qty = f_open
+            if p_rem > 0:
+                use = min(max(p_qty - o_qty, 0), p_rem)
+                o_qty += use
+                p_rem -= use
+            
+            r_qty = max(p_qty - o_qty, 0)
+            fmt_w = k.replace("_w", "-W").upper()
+            data.append({"item_group": ig, "item_code": item, "week": fmt_w, "planned_qty": p_qty, "open_workorder_qty": o_qty, "required_workorder_qty": r_qty})
+            week_agg[fmt_w]["p"] += p_qty
+            week_agg[fmt_w]["o"] += o_qty
+            week_agg[fmt_w]["r"] += r_qty
 
-        past_remaining = past_remaining_by_item.get(item, 0)
-        all_weeks = set(planned_map[item].keys()) | set(future_remaining_by_item_week[item].keys())
+    sorted_w = sorted(week_agg.keys())
+    chart = {
+        "data": {"labels": sorted_w, "datasets": [
+            {"name": "Planlanan", "values": [week_agg[w]["p"] for w in sorted_w]},
+            {"name": "Açık İş Emri", "values": [week_agg[w]["o"] for w in sorted_w]},
+            {"name": "Yeni İhtiyaç", "values": [week_agg[w]["r"] for w in sorted_w]}
+        ]},
+        "type": "bar", "colors": ["#27ae60", "#3498db", "#e74c3c"]
+    }
+    
+    total_req = sum(w["r"] for w in week_agg.values())
+    summary = [{"value": total_req, "label": "Toplam Yeni İş Emri İhtiyacı", "indicator": "Red"}, {"value": len(data), "label": "Planlama Satırı", "indicator": "Blue"}]
 
-        for key in sorted(all_weeks):
-            if "_w" not in key:
-                continue
-            try:
-                year, week_number = key.split("_w")
-                if not week_number.isdigit():
-                    continue
-            except Exception:
-                continue
-
-            planned_qty = planned_map[item].get(key, 0)
-            future_open = future_remaining_by_item_week[item].get(key, 0)
-
-            # Sadece anlamlı verileri göster
-            if planned_qty == 0 and future_open == 0:
-                continue
-
-            formatted_week = f"{year}-W{int(week_number):02d}"
-            open_qty = future_open
-
-            if past_remaining > 0:
-                needed = max(planned_qty - open_qty, 0)
-                use_from_past = min(needed, past_remaining)
-                open_qty += use_from_past
-                past_remaining -= use_from_past
-
-            required_qty = max(planned_qty - open_qty, 0)
-
-            result.append({
-                "item_group": item_group,
-                "item_code": item,
-                "week": formatted_week,
-                "planned_qty": planned_qty,
-                "open_workorder_qty": open_qty,
-                "required_workorder_qty": required_qty
-            })
-
-    return get_columns(), result
-
+    return get_columns(), data, None, chart, summary
 
 def get_columns():
-    return [
-        {"label": "Ürün Grubu", "fieldname": "item_group", "fieldtype": "Data", "width": 140},
-        {"label": "Ürün", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 180},
-        {"label": "Hafta", "fieldname": "week", "fieldtype": "Data", "width": 100},
-        {"label": "Planlanan Üretim", "fieldname": "planned_qty", "fieldtype": "Int", "width": 180},
-        {"label": "Açık İş Emri Miktarı", "fieldname": "open_workorder_qty", "fieldtype": "Int", "width": 180},
-        {"label": "Yeni İş Emri İhtiyacı", "fieldname": "required_workorder_qty", "fieldtype": "Int", "width": 180}
-    ]
+    return [{"label": "Ürün Grubu", "fieldname": "item_group", "fieldtype": "Data", "width": 140}, {"label": "Ürün", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 180}, {"label": "Hafta", "fieldname": "week", "fieldtype": "Data", "width": 100}, {"label": "Planlanan Üretim", "fieldname": "planned_qty", "fieldtype": "Int", "width": 180}, {"label": "Açık İş Emri Miktarı", "fieldname": "open_workorder_qty", "fieldtype": "Int", "width": 180}, {"label": "Yeni İş Emri İhtiyacı", "fieldname": "required_workorder_qty", "fieldtype": "Int", "width": 180}]
 
-
-@frappe.whitelist()
-def get_available_item_groups(filters=None):
-    if isinstance(filters, str):
-        filters = frappe.parse_json(filters)
-
-    # Önce kapasite planından item_group'ları al
-    _, capacity_data = get_capacity_plan(filters or {})
-    item_codes = {row.get("item_code") for row in capacity_data if row.get("item_code")}
-    
-    # Açık iş emirlerinden de item_code'ları al
-    work_orders = frappe.get_all(
-        "Work Order",
-        filters={"status": ("not in", ["Cancelled", "Completed"])},
-        fields=["production_item"]
-    )
-    item_codes.update({wo.get("production_item") for wo in work_orders if wo.get("production_item")})
-    
-    # Tüm item_group'ları getir
-    if item_codes:
-        item_groups = frappe.get_all(
-            "Item",
-            filters={"name": ("in", list(item_codes))},
-            fields=["item_group"],
-            distinct=True
-        )
-        return sorted([ig.item_group for ig in item_groups if ig.item_group])
-    
-    return []
+def getdate(d):
+    if isinstance(d, str): return datetime.strptime(d, "%Y-%m-%d").date()
+    if isinstance(d, datetime): return d.date()
+    return d

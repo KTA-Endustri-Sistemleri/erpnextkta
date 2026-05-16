@@ -138,6 +138,14 @@ frappe.ui.form.on('Calisma Karti', {
     if (!frm.doc.custom_work_order) { frappe.msgprint(__('İş Emri zorunludur')); frappe.validated = false; return; }
     if (!frm.doc.is_karti) { frappe.msgprint(__('İş Kartı zorunludur')); frappe.validated = false; return; }
     if (!frm.doc.operasyon) { frappe.msgprint(__('Operasyon zorunludur')); frappe.validated = false; return; }
+  },
+
+  krimp_olcumleri_add: function(frm, cdt, cdn) {
+    let row = frappe.get_doc(cdt, cdn);
+    if (frm.doc.operator) {
+      frappe.model.set_value(cdt, cdn, 'operator', frm.doc.operator);
+    }
+    frappe.model.set_value(cdt, cdn, 'olcum_tarihi', frappe.datetime.now_datetime());
   }
 });
 

@@ -49,6 +49,7 @@ const {
   loading, doc, load, checkActiveCardData, callIslem,
   updateQC, addHurda, updateHurda, deleteHurda,
   addIdcOlcumu, updateIdcOlcumu, deleteIdcOlcumu,
+  addKrimpOlcumu, updateKrimpOlcumu, deleteKrimpOlcumu,
   addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi,
   addAltOperasyon, updateAltOperasyon, deleteAltOperasyon,
   getQcTemplates, getTemplateDetails, submitStandardQC,
@@ -382,6 +383,9 @@ watch(
             :onAddIdc="addIdcOlcumu"
             :onUpdateIdc="updateIdcOlcumu"
             :onDeleteIdc="deleteIdcOlcumu"
+            :onAddKrimp="addKrimpOlcumu"
+            :onUpdateKrimp="updateKrimpOlcumu"
+            :onDeleteKrimp="deleteKrimpOlcumu"
             :onAddBarkod="addBarkodKaydi"
             :onUpdateBarkod="updateBarkodKaydi"
             :onDeleteBarkod="deleteBarkodKaydi"

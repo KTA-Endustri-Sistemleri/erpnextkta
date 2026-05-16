@@ -79,6 +79,18 @@ def update_kalite_kontrol(name: str, kalite_kontrol: str):
     # If QC moved away from rejected, recompute status from time fields.
     if val == "Reddedildi":
         doc.db_set("durum", "Reddedildi", update_modified=True)
+        
+        # FAZ 3: Also finalize the card (submit it) when manually rejected without a QI
+        # Note: if quality_inspection is linked, this path is already blocked above (line 71-72)
+        try:
+            doc_fresh = frappe.get_doc("Calisma Karti", name, for_update=True)
+            from erpnextkta.kta_calisma_karti.api_impl._helpers import finalize_rejected_card
+            finalize_rejected_card(doc_fresh)
+        except Exception:
+            frappe.log_error(
+                frappe.get_traceback(),
+                f"[kta] Rejected card finalization failed (update_kalite_kontrol) for {name}"
+            )
     else:
         if (doc.durum or "").strip() == "Reddedildi":
             # Recompute via DocType logic (get_durum uses kalite_kontrol too)
@@ -562,8 +574,30 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
         qa.append("readings", row)
 
     qa.insert(ignore_permissions=True)
-    # QI stays as Draft (docstatus=0) until the Calisma Karti is finished.
-    # It will be submitted automatically in _handle_bitis (cards.py).
+    
+    # REJECT PATH: Submit QI immediately — it will never be "finished" via _handle_bitis.
+    # APPROVE PATH: QI stays draft until the card is finished (_handle_bitis submits it).
+    if is_reject:
+        try:
+            qi_owner = frappe.session.user
+            original_user = frappe.session.user
+            frappe.set_user(qi_owner)
+            qa.submit()
+        finally:
+            frappe.set_user(original_user)
+            
+        # FAZ 3: Auto-submit the card itself on rejection
+        # Reload to get the latest state (db_set calls above changed the DB)
+        try:
+            ck.reload()
+            from erpnextkta.kta_calisma_karti.api_impl._helpers import finalize_rejected_card
+            finalize_rejected_card(ck, now=frappe.utils.now_datetime())
+        except Exception:
+            # Log but don't block — QI is already submitted, rejection is recorded
+            frappe.log_error(
+                frappe.get_traceback(),
+                f"[kta] Rejected card finalization failed for {ck_name}"
+            )
 
     # Determine temporary kalite_kontrol status for Calisma Karti:
     #   intent=reject  → "Reddedildi"

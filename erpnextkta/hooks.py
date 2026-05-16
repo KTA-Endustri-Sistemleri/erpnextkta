@@ -29,7 +29,9 @@ app_license = "mit"
 # app_include_css = "/assets/erpnextkta/css/erpnextkta.css"
 # app_include_js = "/assets/erpnextkta/js/erpnextkta.js"
 app_include_js = [
-                  "assets/erpnextkta/js/material_transfer_patch.js"
+                  "/assets/erpnextkta/js/material_transfer_patch.js",
+                  "/assets/erpnextkta/js/kta_report_utils.js",
+                  "/assets/erpnextkta/js/kta_report_overrides.js"
 ]
 
 # include js, css files in header of web template
@@ -44,7 +46,7 @@ app_include_js = [
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
 # include js in page
-# page_js = {"page" : "public/js/file.js"}
+page_js = {"query-report" : "public/js/kta_report_utils.js"}
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
