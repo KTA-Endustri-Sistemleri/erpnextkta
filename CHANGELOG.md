@@ -3,6 +3,233 @@
 
 
 
+## 🚀 v1.11.0 (2026-05-16)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- set submittable permissions for alt operation doctypes.
+      
+      
+    
+      
+      
+        
+- **ci**: add tzdata to fix ZoneInfoNotFoundError in CI
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- remove obsolete shift calculation and bulk fix utility scripts
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- create memory bank for MRP optimization
+      
+      
+    
+      
+      
+        
+- update memory bank and translate to Turkish
+      
+      
+    
+      
+      
+        
+- update memory bank documentation for Krimp Measurement module, QC rejection workflow, and operation permissions
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- add Krimp Ölçümleri table to Calisma Karti with auto-populated operator and measurement date fields.
+      
+      
+    
+      
+      
+        
+- implement krimp measurement CRUD operations with backend API and frontend component integration
+      
+      
+    
+      
+      
+        
+- implement krimp measurement validation and search functionality with cross-section normalization
+      
+      
+    
+      
+      
+        
+- enhance Krimp section with MeasureGauge component, clone functionality, printing, and extended operation visibility settings
+      
+      
+    
+      
+      
+        
+- modularize and modernize erpnextkta reports
+      
+      
+    
+      
+      
+        
+- **capacity**: implement shared group capacity, hybrid balancing and linear ramp-up
+      
+      
+    
+      
+      
+        
+- **reports**: synchronize balancing and ramp-up filters across planning reports
+      
+      
+    
+      
+      
+        
+- **mr**: implement MOQ rounding and fix capacity integration
+      
+      
+    
+      
+      
+        
+- **mr**: sync MOQ and Packing logic with Item Price data source
+      
+      
+    
+      
+      
+        
+- implement Production Command Center with Stock Evolution and WIP integration
+      
+      
+    
+      
+      
+        
+- **qc**: implement automated card finalization on rejection
+      
+      
+    
+      
+      
+        
+- implement modular report overrides for BOM Stock Report
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- reorder IdcSection component to follow KrimpSection in KaliteView
+      
+      
+    
+      
+      
+        
+- optimize capacity fetching and planning logic across reports
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- feat/crimp-measurements-form-for-calisma karti
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.10.0 (2026-05-05)
 
 
