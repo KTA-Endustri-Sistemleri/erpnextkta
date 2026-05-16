@@ -1,6 +1,28 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-04-24 (Race Condition & Frontend Testing)
+> Son güncelleme: 2026-05-16 (Krimp Ölçüm Modülü & QC Reddetme Düzeltmesi)
+
+### Krimp Ölçüm Modülü (2026-05-13 – 2026-05-15 — Tamamlandı)
+- [x] **`Calisma Karti Krimp Olcumleri` DocType**: Kablo kesiti, kontak, makine (Asset), ölçülen değer (mm), Krimp Book referansı (min/maks tolerans), operatör ve tarih alanlarıyla yeni child table oluşturuldu.
+- [x] **Otomatik Alan Doldurma**: Tablo açılışında operatör (`operator`) ve ölçüm tarihi (`measurement_date`) otomatik atanıyor.
+- [x] **Backend CRUD API (`krimp.py`)**: `get_krimp_olcumleri`, `save_krimp_olcumu`, `delete_krimp_olcumu` fonksiyonları yazıldı.
+- [x] **Krimp Arama API**: `search_krimp_items` — WO BOM'u + seçili kablo kesitine göre kablo/kontak filtresi. `get_unique_kesit_list` — Krimp Book'tan benzersiz kesit listesi.
+- [x] **Kesit Normalizasyonu**: `normalize_kesit()` ve `extract_kesit_from_item()` — `1,5mm`, `1.5mm²`, `18 AWG` formatlarını eşleştiren regex zinciri.
+- [x] **`KrimpSection.vue`**: Kesit → Kablo → Kontak → Makine adımlarıyla cascade seçim, klonlama ve Krimp Protokolü baskı butonu.
+- [x] **`MeasureGauge.vue`**: ±10 mm segment bazlı görsel tolerans göstergesi (Kısa/OK/Uzun). Sınır aşımında "LIMIT AŞILDI" uyarısı.
+- [x] **`KaliteView.vue` Entegrasyonu**: Krimp bölümü eklendi; operasyon görünürlük ayarları krimp operasyonlarını ayrıştıracak şekilde genişletildi.
+
+### QC Reddetme Yaşam Döngüsü Düzeltmesi (2026-05-11 — Tamamlandı)
+- [x] **Sorun**: `submit_kta_quality_inspection(..., is_reject=True)` çağrıldığında QI belgesi taslak kalıyor, Çalışma Kartı `docstatus=0` (taslak) olarak açık bırakılıyordu.
+- [x] **`finalize_rejected_card(doc)` yardımcısı (`_helpers.py`)**: Açık duruşları kapatır, `bitis_saati` atar, `update_durum()` çağırır ve idempotent biçimde submit eder (`docstatus != 0` ise erken çıkar).
+- [x] **`qc.py` güncellemesi**: Red kararında QI belgesi anında `submit()` ediliyor. Ardından `finalize_rejected_card` ile kart da gönderiliyor. Her iki adım try/except ile korunuyor.
+- [x] **`create.py` güncellemesi**: `before_submit` hook'unda `durum == "Reddedildi"` artık izin veriliyor.
+- [x] **`tests/test_api.py`**: Otomatik reddetme akışları ve güvence testleri eklendi (121 satır yeni test).
+
+### Alt Operasyon Submit İzinleri (2026-05-15 — Tamamlandı)
+- [x] `kta_calisma_karti_alt_operasyonlari` ve `kta_calisma_karti_operasyonlari` DocType JSON'larında eksik Submit rol izinleri eklendi.
+- [x] `setup.py` ilgili rol satırları dinamik olarak yönetilecek şekilde güncellendi.
+
 
 ### Frontend Güvenliği ve Yarış Durumu (Race Condition) Korumaları (2026-04-24 - Tamamlandı)
 - [x] **Atomic Guard Clauses**: `fetchWorkOrderByBarcode`, `fetchJobCardByBarcode` ve `submitWorkCard` fonksiyonlarına `loading.value` kontrolü eklenerek eşzamanlı API çağrıları engellendi.

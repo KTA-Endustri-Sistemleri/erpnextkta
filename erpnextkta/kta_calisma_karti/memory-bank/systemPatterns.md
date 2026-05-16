@@ -120,6 +120,7 @@ Calisma Karti (Ana DocType)
   ├── hurdalar              → Calisma Karti Hurda
   ├── duruslar              → Operasyon Duruslari
   ├── idc_olcumleri         → Calisma Karti IDC Olcumleri
+  ├── krimp_olcumleri       → Calisma Karti Krimp Olcumleri  ← YENİ
   ├── barkod_kayitlari      → Calisma Karti Barkod Kayitlari
   └── alt_operasyon_kayitlari → Calisma Karti Alt Operasyon Kayitlari
 
@@ -317,3 +318,17 @@ Frontend mantığının karmaşıklığını ve yarış durumlarını yönetmek 
 - **Tools**: Vitest + `flushPromises` + `vi.useFakeTimers`.
 - **Race Condition Testing**: API mock'ları içerisine suni gecikmeler eklenerek, loading state aktifken gelen ikincil olayların (handleEnter) reddedildiği `App.race.test.js` ile doğrulanır.
 - **Synchronization**: `vi.runAllTimersAsync()` ve `flushPromises()` ikilisi ile asenkron Vue reaktivitesi ve Vitest zamanlayıcıları senkronize edilir.
+
+### 35. Krimp Ölçüm Cascade Seçim Deseni
+Kablo-kontak krimp ölçümlerinde adım adım daralan bağımlı seçim deseni:
+- **Adımlar**: Kesit Seç → Kablo Seç (o kesite ait BOM kalıpları) → Kontak Seç (aynı kesit, kontak grubu) → Makine Seç (Asset).
+- **Backend Normalize**: `normalize_kesit()` + `extract_kesit_from_item()` ile item adı içinde gömülü kesit bilgisi (virgüllü, AWG, birimli) parse edilir. Edge case için regex zinciri kullanılır.
+- **Tolerans Kaynağı**: `KTA Krimp Book` tablosundan kablo + kontak + kesit üçlüsüne göre min/maks değerler çekilir.
+- **MeasureGauge**: Her satır için ±10 mm segment göstergesi; `measured` ve `target` prop'larına göre Kısa/OK/Uzun durumunu anlık gösterir. ±10 mm sınırı aşılınca "LIMIT AŞILDI" uyarısı.
+
+### 36. İdempotent Reddetme Finalizasyonu (`finalize_rejected_card`)
+QC red kararında Çalışma Kartı'nın güvenli ve tutarlı biçimde kapatılmasını sağlayan yardımcı fonksiyon deseni:
+- **İdempotency**: `doc.docstatus != 0` ise hiçbir şey yapmadan dönüyor; çift tetiklemede güvenli.
+- **Akış**: Açık duruş var mı kontrol et → `bitis_saati` ata → `update_durum()` çağır → `save(ignore_permissions=True)` → `reload()` → `submit()`.
+- **İki Tetikleme Noktası**: QI oluşturma yolunda (`submit_kta_quality_inspection`) ve manuel durum güncelleme yolunda (`update_kalite_kontrol`).
+- **Güvenli Zincir**: QI `submit()` başarılıysa kart finalizasyonundaki hata işlemi engellemez (try/except + `frappe.log_error`).

@@ -1,13 +1,16 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-04-24 (Frontend Race Condition & Testing)
+> Son güncelleme: 2026-05-16 (Krimp Ölçüm Modülü & QC Reddetme Düzeltmesi)
 
-Frontend tarafında mükerrer kayıt oluşumunu (Enter-spam, double-click) engelleyen atomik korumalar ve bu durumu 113 farklı senaryoda doğrulayan Vitest test süiti tamamlandı. Backend tarafında ise bitmemiş kartların submit edilmesi engellendi.
+Bu dönemde iki bağımsız çalışma tamamlandı: Çalışma Kartı'na Krimp Ölçüm modülü eklendi ve QC reddetme sırasında kart durumunun tutarsız kalması sorunu giderildi.
 
+- [x] **Krimp Ölçüm Modülü**: `Calisma Karti Krimp Olcumleri` DocType, backend CRUD API, `KrimpSection.vue` bileşeni ve `MeasureGauge.vue` tolerans göstergesi tamamlandı (2026-05-13 – 2026-05-15).
+- [x] **QC Reddetme Yaşam Döngüsü Düzeltmesi**: Red kararında QI belgesi anında submit ediliyor, `finalize_rejected_card()` ile Çalışma Kartı da otomatik gönderiliyor (2026-05-11).
+- [x] **Alt Operasyon Submit İzinleri**: `kta_calisma_karti_alt_operasyonlari` ve `kta_calisma_karti_operasyonlari` DocType'larında eksik Submit rolleri `setup.py` ile düzeltildi (2026-05-15).
 - [x] **Frontend Race Condition Guards**: `App.vue` üzerinde `loading` tabanlı atomik kilitler ve `withLoading` geciktirme mekanizması (2026-04-24).
 - [x] **Robust Frontend Testing**: Vitest ile spamming ve asenkron yarış durumlarını kapsayan 113 testin başarıyla geçmesi (2026-04-24).
 - [x] **Backend Submission Validation**: Bitiş saati olmayan kartların onaylanmasının engellenmesi (2026-04-24).
-- [x] **Manufacturing Permissions**: Üretim rollerinin dashboard ve rapor yetkilerinin düzenlenmesi (2026-04-24).
+- [ ] **Krimp Protokolü Baskı Şablonu**: Print format henüz tasarlanmadı (Planlanıyor).
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
 
