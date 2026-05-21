@@ -100,13 +100,20 @@ def setup_permissions():
     # KTA'ya özel olan ve tüm rollerini yönetmek istediğimiz DocType'lar
     kta_parents = ["Calisma Karti", "KTA Calisma Karti Operasyonlari", "KTA Calisma Karti Alt Operasyonlari", "KTA Calisma Karti Settings"]
 
+    cleared_pairs = set()
+
     for p in permissions_data:
         # Sadece şu durumlarda izinleri yönetiyoruz:
         # 1. Rol bizim özel KTA rolümüz ise (Her DocType'da yönetebiliriz)
         # 2. DocType bizim KTA DocType'ımız ise (Her rolü yönetebiliriz, örn: System Manager)
         if p["role"] in roles or p["parent"] in kta_parents:
-            # Önce temizle (duplicate oluşmaması için)
-            frappe.db.delete("Custom DocPerm", {"role": p["role"], "parent": p["parent"]})
+            pair_key = (p["role"], p["parent"])
+
+            # Önce temizle (duplicate oluşmaması için) ama her role/parent ikilisi için SADECE BİR KERE!
+            # Aksi halde permlevel 3 eklenirken, az önce eklenen permlevel 0 silinir!
+            if pair_key not in cleared_pairs:
+                frappe.db.delete("Custom DocPerm", {"role": p["role"], "parent": p["parent"]})
+                cleared_pairs.add(pair_key)
             
             # Yeni izni ekle
             p_copy = p.copy()
