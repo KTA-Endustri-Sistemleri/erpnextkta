@@ -1,6 +1,6 @@
 [project]
 name = "erpnextkta"
-version = "1.9.1"
+version = "1.12.0"
 authors = [
     { name = "Framras AS", email = "bilgi@framras.com.tr" }
 ]
@@ -10,6 +10,7 @@ readme = "README.md"
 dependencies = [
     # "frappe~=15.0.0" # Installed and managed by bench.
     "setuptools",
+    "tzdata",  # zoneinfo modülü için timezone veritabanı (sistem tzdata paketi yoksa gerekli)
 ]
 
 [build-system]

@@ -1,26 +1,15 @@
 import frappe
-from frappe.utils import today, getdate, add_months
+from frappe.utils import today, getdate
 from collections import defaultdict
-from datetime import date
+from erpnextkta.kta_mrp.report_utils import get_period_dates
 
 
 def execute(filters=None):
 	if not filters:
 		filters = {}
 
-	current_date = getdate(today())
-	from_date = str(current_date)
-
-	# Periyot filtresine göre to_date belirle
-	periyot = filters.get("periyot", "Yıllık")
-	if periyot == "3 Aylık":
-		to_date = str(add_months(current_date, 3))
-	elif periyot == "6 Aylık":
-		to_date = str(add_months(current_date, 6))
-	elif periyot == "Süresiz":
-		to_date = "2099-12-31"
-	else:  # Yıllık (varsayılan)
-		to_date = str(date(current_date.year, 12, 31))
+	# Periyot filtresine göre tarihleri belirle
+	from_date, to_date = get_period_dates(filters.get("periyot", "Yıllık"), filters)
 
 	# Filtre değerlerini al
 	filter_ara_malzeme_grubu = filters.get("ara_malzeme_grubu", "")
@@ -80,33 +69,27 @@ def execute(filters=None):
 			as_dict=True,
 		)
 		stock_item_codes = {d.item_code for d in stock_items}
-		# Sadece hammadde (BOM'da kullanılan) olmayan kalemleri değil,
-		# tüm stoktaki kalemleri ekle — filtreler aşağıda uygulanacak
 		for item_code in stock_item_codes:
 			if item_code not in material_cg_totals:
 				raw_materials.append(item_code)
-				# defaultdict olduğu için otomatik oluşturulur; material_all_totals'a da ekle
 				material_all_totals[item_code] = 0
 
-	# Hammadde item bilgilerini toplu al
+	# Verileri toplu al
 	item_info_map = {}
+	default_supplier_map = {}
+	price_map = {}
+	currency_map = {}
+	stock_map = {}
+	stock_value_map = {}
+
 	if raw_materials:
 		items = frappe.db.get_all(
 			"Item",
 			filters={"name": ["in", raw_materials]},
-			fields=[
-				"name",
-				"item_name",
-				"item_group",
-				"custom_ara_malzeme_grubu",
-				"custom_musteri_grubu",
-			],
+			fields=["name", "item_name", "item_group", "custom_ara_malzeme_grubu", "custom_musteri_grubu"],
 		)
 		item_info_map = {i.name: i for i in items}
 
-	# Varsayılan tedarikçi bilgilerini toplu al
-	default_supplier_map = {}
-	if raw_materials:
 		supplier_data = frappe.db.get_all(
 			"Item Default",
 			filters={"parent": ["in", raw_materials]},
@@ -116,10 +99,6 @@ def execute(filters=None):
 			if s.default_supplier:
 				default_supplier_map[s.parent] = s.default_supplier
 
-	# Son alış fiyatı ve para birimini al
-	price_map = {}
-	currency_map = {}
-	if raw_materials:
 		price_data = frappe.db.sql(
 			"""
 			SELECT ip.item_code, ip.price_list_rate, ip.currency
@@ -139,10 +118,6 @@ def execute(filters=None):
 			price_map[p.item_code] = p.price_list_rate
 			currency_map[p.item_code] = p.currency
 
-	# Stok ve stok değeri bilgilerini al (Kullanılabilir Stok depolarından)
-	stock_map = {}
-	stock_value_map = {}
-	if raw_materials:
 		stock_data = frappe.db.sql(
 			"""
 			SELECT bin.item_code, SUM(bin.actual_qty) as total_qty, SUM(bin.stock_value) as total_value
@@ -159,138 +134,55 @@ def execute(filters=None):
 			stock_map[d.item_code] = d.total_qty or 0
 			stock_value_map[d.item_code] = d.total_value or 0
 
-	# Kolon tanımlamaları
+	# Kolonlar
 	columns = [
-		{
-			"label": "Hammadde Kodu",
-			"fieldname": "hammadde_kodu",
-			"fieldtype": "Link",
-			"options": "Item",
-			"width": 130,
-		},
-		{
-			"label": "Grup",
-			"fieldname": "grup",
-			"fieldtype": "Data",
-			"width": 140,
-		},
-		{
-			"label": "Hammadde Adı",
-			"fieldname": "hammadde_adi",
-			"fieldtype": "Data",
-			"width": 200,
-		},
-		{
-			"label": "Varsayılan Tedarikçi",
-			"fieldname": "varsayilan_tedarikci",
-			"fieldtype": "Link",
-			"options": "Supplier",
-			"width": 180,
-		},
-		{
-			"label": "Fiyat",
-			"fieldname": "fiyat",
-			"fieldtype": "Float",
-			"width": 100,
-		},
-		{
-			"label": "Para Birimi",
-			"fieldname": "para_birimi",
-			"fieldtype": "Data",
-			"width": 80,
-		},
-		{
-			"label": "Depo Stok",
-			"fieldname": "depo_stok",
-			"fieldtype": "Float",
-			"width": 100,
-		},
-		{
-			"label": "Bakiye Değeri",
-			"fieldname": "bakiye_degeri",
-			"fieldtype": "Float",
-			"width": 120,
-		},
-		{
-			"label": "Müşteri Grubu Dağılımı",
-			"fieldname": "musteri_grubu_dagilimi",
-			"fieldtype": "Data",
-			"width": 220,
-		},
-		{
-			"label": "Ara Malzeme Grubu",
-			"fieldname": "ara_malzeme_grubu",
-			"fieldtype": "Data",
-			"width": 140,
-		},
+		{"label": "Hammadde Kodu", "fieldname": "hammadde_kodu", "fieldtype": "Link", "options": "Item", "width": 130},
+		{"label": "Grup", "fieldname": "grup", "fieldtype": "Data", "width": 140},
+		{"label": "Hammadde Adı", "fieldname": "hammadde_adi", "fieldtype": "Data", "width": 200},
+		{"label": "Varsayılan Tedarikçi", "fieldname": "varsayilan_tedarikci", "fieldtype": "Link", "options": "Supplier", "width": 180},
+		{"label": "Fiyat", "fieldname": "fiyat", "fieldtype": "Float", "width": 100},
+		{"label": "Para Birimi", "fieldname": "para_birimi", "fieldtype": "Data", "width": 80},
+		{"label": "Depo Stok", "fieldname": "depo_stok", "fieldtype": "Float", "width": 100},
+		{"label": "Bakiye Değeri", "fieldname": "bakiye_degeri", "fieldtype": "Float", "width": 120},
+		{"label": "Müşteri Grubu Dağılımı", "fieldname": "musteri_grubu_dagilimi", "fieldtype": "Data", "width": 220},
+		{"label": "Ara Malzeme Grubu", "fieldname": "ara_malzeme_grubu", "fieldtype": "Data", "width": 140},
 	]
 
-	# Dinamik müşteri grubu sütunları
 	cg_fieldnames = {}
 	for cg in cg_names:
 		fieldname = frappe.scrub(cg)
 		cg_fieldnames[cg] = fieldname
-		columns.append(
-			{
-				"label": cg,
-				"fieldname": fieldname,
-				"fieldtype": "Float",
-				"width": 100,
-			}
-		)
+		columns.append({"label": cg, "fieldname": fieldname, "fieldtype": "Float", "width": 100})
 
 	columns += [
-		{
-			"label": "Genel Toplam",
-			"fieldname": "genel_toplam",
-			"fieldtype": "Float",
-			"width": 120,
-		},
-		{
-			"label": "Müşteri Grubu",
-			"fieldname": "musteri_grubu",
-			"fieldtype": "Data",
-			"width": 120,
-		},
-		{
-			"label": "Toplam Tüketim (Kapasite)",
-			"fieldname": "toplam_tuketim",
-			"fieldtype": "Float",
-			"width": 160,
-		},
-		{
-			"label": "Fark Oran",
-			"fieldname": "fark_oran",
-			"fieldtype": "Percent",
-			"width": 100,
-		},
+		{"label": "Genel Toplam", "fieldname": "genel_toplam", "fieldtype": "Float", "width": 120},
+		{"label": "Müşteri Grubu", "fieldname": "musteri_grubu", "fieldtype": "Data", "width": 120},
+		{"label": "Toplam Tüketim (Kapasite)", "fieldname": "toplam_tuketim", "fieldtype": "Float", "width": 160},
+		{"label": "Fark Oran", "fieldname": "fark_oran", "fieldtype": "Percent", "width": 100},
 	]
 
-	# Veri satırlarını oluştur
+	# Veriler
 	data = []
 	column_totals = defaultdict(float)
+	summary_shortage_count = 0
+	summary_total_value = 0
 
 	for hammadde in sorted(raw_materials):
 		item_info = item_info_map.get(hammadde)
 		cg_data = material_cg_totals[hammadde]
 
-		# --- Filtre kontrolleri ---
-		# Ara Malzeme Grubu filtresi
 		ara_malzeme = item_info.custom_ara_malzeme_grubu if item_info else ""
 		if filter_ara_malzeme_grubu and ara_malzeme != filter_ara_malzeme_grubu:
 			continue
 
-		# Hammadde Grubu (Item Group) filtresi
 		item_group = item_info.item_group if item_info else ""
 		if filter_item_group and item_group != filter_item_group:
 			continue
 
-		# Varsayılan Tedarikçi filtresi
 		supplier = default_supplier_map.get(hammadde, "")
 		if filter_varsayilan_tedarikci and supplier != filter_varsayilan_tedarikci:
 			continue
 
-		# Müşteri grubu sütun değerleri hesapla
 		genel_toplam = 0
 		cg_values = {}
 		for cg in cg_names:
@@ -301,13 +193,10 @@ def execute(filters=None):
 
 		toplam_tuketim = round(material_all_totals.get(hammadde, 0), 2)
 
-		# Müşteri Grubu filtresi (seçilen gruplarda tüketimi olan hammaddeler)
 		if filter_musteri_grubu:
-			has_consumption = any(cg_data.get(cg, 0) > 0 for cg in filter_musteri_grubu)
-			if not has_consumption:
+			if not any(cg_data.get(cg, 0) > 0 for cg in filter_musteri_grubu):
 				continue
 
-		# Sıfır tüketimi göster filtresi
 		if not filter_sifir_tuketimi_goster and genel_toplam == 0:
 			continue
 
@@ -323,7 +212,6 @@ def execute(filters=None):
 			"ara_malzeme_grubu": ara_malzeme,
 		}
 
-		# Müşteri grubu sütun değerlerini row'a ekle
 		for cg in cg_names:
 			fieldname = cg_fieldnames[cg]
 			row[fieldname] = cg_values[fieldname]
@@ -332,105 +220,41 @@ def execute(filters=None):
 		row["genel_toplam"] = round(genel_toplam, 2)
 		column_totals["genel_toplam"] += genel_toplam
 
-		# Müşteri grubu yoğunluk dağılımı string'i
 		if genel_toplam > 0:
-			dist_parts = []
-			for cg in cg_names:
-				val = cg_data.get(cg, 0)
-				if val > 0:
-					pct = (val / genel_toplam) * 100
-					dist_parts.append(f"{cg}%{pct:,.2f}")
-			row["musteri_grubu_dagilimi"] = "-".join(dist_parts) if dist_parts else ""
+			dist_parts = [f"{cg}%{(cg_data.get(cg,0)/genel_toplam)*100:,.1f}" for cg in cg_names if cg_data.get(cg,0) > 0]
+			row["musteri_grubu_dagilimi"] = "-".join(dist_parts)
 		else:
 			row["musteri_grubu_dagilimi"] = ""
 
-		# Müşteri grubu (Item master'dan)
-		musteri_grubu = item_info.custom_musteri_grubu if item_info else ""
-		row["musteri_grubu"] = musteri_grubu if musteri_grubu else "-"
-
-		# Toplam tüketim
+		row["musteri_grubu"] = item_info.custom_musteri_grubu if item_info and item_info.custom_musteri_grubu else "-"
 		row["toplam_tuketim"] = toplam_tuketim
 		column_totals["toplam_tuketim"] += toplam_tuketim
-
-		# Fark oranı: (Toplam Tüketim - Genel Toplam) / Genel Toplam
-		if genel_toplam > 0:
-			row["fark_oran"] = round(
-				((toplam_tuketim - genel_toplam) / genel_toplam) * 100, 6
-			)
-		else:
-			row["fark_oran"] = 0
+		row["fark_oran"] = round(((toplam_tuketim - genel_toplam) / genel_toplam * 100), 6) if genel_toplam > 0 else 0
 
 		data.append(row)
+		
+		# Özet bilgileri için
+		if row["depo_stok"] < row["genel_toplam"]:
+			summary_shortage_count += 1
+		summary_total_value += row["bakiye_degeri"]
 
-	# Bakiye değerine göre azalan sırala
 	data.sort(key=lambda x: x.get("bakiye_degeri", 0), reverse=True)
 
 	# Toplam satırı
-	total_row = {
-		"hammadde_kodu": "<b>TOPLAM</b>",
-		"grup": "",
-		"hammadde_adi": "",
-		"varsayilan_tedarikci": "",
-		"fiyat": "",
-		"para_birimi": "",
-		"depo_stok": "",
-		"bakiye_degeri": "",
-		"musteri_grubu_dagilimi": "",
-		"ara_malzeme_grubu": "",
-		"musteri_grubu": "",
-	}
-
+	total_row = {"hammadde_kodu": "<b>TOPLAM</b>"}
 	for cg in cg_names:
-		fieldname = cg_fieldnames[cg]
-		total_row[fieldname] = round(column_totals[fieldname], 2)
-
+		fn = cg_fieldnames[cg]
+		total_row[fn] = round(column_totals[fn], 2)
 	total_row["genel_toplam"] = round(column_totals["genel_toplam"], 2)
 	total_row["toplam_tuketim"] = round(column_totals["toplam_tuketim"], 2)
-
-	if column_totals["genel_toplam"] > 0:
-		total_row["fark_oran"] = round(
-			(
-				(column_totals["toplam_tuketim"] - column_totals["genel_toplam"])
-				/ column_totals["genel_toplam"]
-			)
-			* 100,
-			6,
-		)
-	else:
-		total_row["fark_oran"] = 0
-
+	total_row["fark_oran"] = round(((column_totals["toplam_tuketim"] - column_totals["genel_toplam"]) / column_totals["genel_toplam"] * 100), 6) if column_totals["genel_toplam"] > 0 else 0
 	data.append(total_row)
 
-	return columns, data
+	# Summary Cards
+	report_summary = [
+		{"value": len(data) - 1, "label": "Toplam Kalem", "indicator": "Blue"},
+		{"value": summary_shortage_count, "label": "Eksik Kalem", "indicator": "Red"},
+		{"value": frappe.format(summary_total_value, "Currency"), "label": "Toplam Stok Değeri", "indicator": "Green"}
+	]
 
-
-@frappe.whitelist()
-def get_ara_malzeme_gruplari():
-	"""Ara Malzeme Grubu filtresi için mevcut değerleri döndür."""
-	result = frappe.db.sql(
-		"""
-		SELECT DISTINCT custom_ara_malzeme_grubu
-		FROM `tabItem`
-		WHERE custom_ara_malzeme_grubu IS NOT NULL
-		AND custom_ara_malzeme_grubu != ''
-		ORDER BY custom_ara_malzeme_grubu
-	""",
-		as_list=True,
-	)
-	return [r[0] for r in result]
-
-
-@frappe.whitelist()
-def get_item_groups():
-	"""Hammadde Grubu filtresi için mevcut item group değerlerini döndür."""
-	result = frappe.db.sql(
-		"""
-		SELECT DISTINCT item_group
-		FROM `tabItem`
-		WHERE item_group IS NOT NULL
-		AND item_group != ''
-		ORDER BY item_group
-	""",
-		as_list=True,
-	)
-	return [r[0] for r in result]
+	return columns, data, None, None, report_summary

@@ -3,6 +3,408 @@
 
 
 
+## 🚀 v1.12.0 (2026-05-22)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: permissions duplicate problem solved
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: added removed custom fields
+      
+      
+    
+      
+      
+        
+- auto-populate work order and production details from Job Card in calisma_karti doctype
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- pin payments app to version-15 branch in CI tests
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_calisma_karti**: add Enjeksiyon Ölçümleri to kta_calisma_karti module including new doctypes, API implementations, and UI components
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- remove all custom fields from Calisma Karti doctype configuration
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- feat(kta_calisma_karti):injection-process-form-for-calisma-karti
+      
+    
+
+  
+
+
+---
+
+
+## 🚀 v1.11.0 (2026-05-16)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- set submittable permissions for alt operation doctypes.
+      
+      
+    
+      
+      
+        
+- **ci**: add tzdata to fix ZoneInfoNotFoundError in CI
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- remove obsolete shift calculation and bulk fix utility scripts
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- create memory bank for MRP optimization
+      
+      
+    
+      
+      
+        
+- update memory bank and translate to Turkish
+      
+      
+    
+      
+      
+        
+- update memory bank documentation for Krimp Measurement module, QC rejection workflow, and operation permissions
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- add Krimp Ölçümleri table to Calisma Karti with auto-populated operator and measurement date fields.
+      
+      
+    
+      
+      
+        
+- implement krimp measurement CRUD operations with backend API and frontend component integration
+      
+      
+    
+      
+      
+        
+- implement krimp measurement validation and search functionality with cross-section normalization
+      
+      
+    
+      
+      
+        
+- enhance Krimp section with MeasureGauge component, clone functionality, printing, and extended operation visibility settings
+      
+      
+    
+      
+      
+        
+- modularize and modernize erpnextkta reports
+      
+      
+    
+      
+      
+        
+- **capacity**: implement shared group capacity, hybrid balancing and linear ramp-up
+      
+      
+    
+      
+      
+        
+- **reports**: synchronize balancing and ramp-up filters across planning reports
+      
+      
+    
+      
+      
+        
+- **mr**: implement MOQ rounding and fix capacity integration
+      
+      
+    
+      
+      
+        
+- **mr**: sync MOQ and Packing logic with Item Price data source
+      
+      
+    
+      
+      
+        
+- implement Production Command Center with Stock Evolution and WIP integration
+      
+      
+    
+      
+      
+        
+- **qc**: implement automated card finalization on rejection
+      
+      
+    
+      
+      
+        
+- implement modular report overrides for BOM Stock Report
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- reorder IdcSection component to follow KrimpSection in KaliteView
+      
+      
+    
+      
+      
+        
+- optimize capacity fetching and planning logic across reports
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- feat/crimp-measurements-form-for-calisma karti
+      
+    
+
+  
+
+
+---
+
+
+## 🚀 v1.10.0 (2026-05-05)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **mrp_analysis**: add custom date range filter option
+      
+      
+    
+
+  
+
+
+---
+
+
+## 🚀 v1.9.2 (2026-04-28)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- robust calisma karti submission and QI sync race condition
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.9.1 (2026-04-27)
 
 

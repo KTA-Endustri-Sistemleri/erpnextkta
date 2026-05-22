@@ -1,5 +1,6 @@
 import frappe
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from collections import defaultdict
 from frappe.utils import cstr
 
 def scrub(txt):
@@ -9,301 +10,231 @@ def hex_blend(color1, color2, ratio):
     def hex_to_rgb(hex_color):
         hex_color = hex_color.lstrip('#')
         return tuple(int(hex_color[i:i+2], 16)for i in (0, 2, 4))
-
     def rgb_to_hex(rgb):
         return '#{:02x}{:02x}{:02x}'.format(*rgb)
-
     rgb1= hex_to_rgb(color1)
     rgb2= hex_to_rgb(color2)
-
     blended = tuple(int((1 - ratio) * c1 + ratio * c2) for c1, c2 in zip(rgb1, rgb2))
     return rgb_to_hex(blended)
 
 def get_monday_of_current_week():
     today = datetime.today()
-    start = today - timedelta(days=today.weekday())  # Pazartesi
-    return start.date()
+    return (today - timedelta(days=today.weekday())).date()
 
 def iso_week_start(week_str):
     try:
-        week_parts = week_str.lower().replace("w", "").split("_")
-        if len(week_parts) == 2:
-            year, week_number = int(week_parts[0]), int(week_parts[1])
-            from datetime import date
-            return date.fromisocalendar(year, week_number, 1)
-    except:
-        return None
+        parts = week_str.lower().replace("w", "").split("_")
+        if len(parts) == 2:
+            return date.fromisocalendar(int(parts[0]), int(parts[1]), 1)
+    except: return None
 
 def execute(filters=None):
-    if not filters:
-        filters = {}
-
+    if not filters: filters = {}
     today_monday = get_monday_of_current_week()
-
     from_date = filters.get("from_date")
     if from_date:
-        from_date_obj = datetime.strptime(from_date, "%Y-%m-%d").date()
+        if isinstance(from_date, str):
+            from_date_obj = datetime.strptime(from_date, "%Y-%m-%d").date()
+        else:
+            from_date_obj = from_date
         if from_date_obj < today_monday:
-            frappe.throw(frappe._(
-                "⛔ Geçmiş tarihler için rapor çalıştırılamaz. Lütfen bu haftaya ({0}) veya daha ileri bir tarihe ait bir başlangıç tarihi seçiniz."
-            ).format(today_monday.strftime("%d.%m.%Y")))
-    else:
-        from_date_obj = today_monday
-        filters["from_date"] = today_monday.strftime("%Y-%m-%d")
-
+            frappe.throw(frappe._("Geçmiş tarihler için rapor çalıştırılamaz. {0} sonrası seçiniz.").format(today_monday))
+    else: from_date_obj = today_monday
+    
     min_to_date = from_date_obj + timedelta(days=90)
-
     to_date = filters.get("to_date")
     if to_date:
-        to_date_obj = datetime.strptime(to_date, "%Y-%m-%d").date()
-        if to_date_obj < min_to_date:
-            frappe.throw(frappe._(
-                "⛔ Bitiş tarihi, başlangıç tarihinden itibaren en az 3 ay (90 gün) ileri olmalıdır.\n\n"
-                "Başlangıç: {0} → En erken bitiş: {1}"
-            ).format(
-                from_date_obj.strftime("%d.%m.%Y"),
-                min_to_date.strftime("%d.%m.%Y")
-            ))
+        if isinstance(to_date, str):
+            to_date_obj = datetime.strptime(to_date, "%Y-%m-%d").date()
+        else:
+            to_date_obj = to_date
     else:
         to_date_obj = min_to_date
-        filters["to_date"] = min_to_date.strftime("%Y-%m-%d")
-
-    columns = get_columns()
-    data = []
 
     from erpnextkta.kta_mrp.report.production_start_week.production_start_week import ProductionStartWeekReport
-
     today = datetime.today().date()
-    psw_filters = {
-        "from_date": (today - timedelta(days=270)).strftime("%Y-%m-%d"),
-        "to_date": filters["to_date"],
-        "group_by_item_only": 1
-    }
-    
-    # Item group filtresi varsa ekle
-    if filters.get("item_group"):
-        psw_filters["item_group"] = filters["item_group"]
+    psw_filters = {"from_date": (today - timedelta(days=270)).strftime("%Y-%m-%d"), "to_date": to_date_obj.strftime("%Y-%m-%d"), "group_by_item_only": 1}
+    if filters.get("item_group"): psw_filters["item_group"] = filters["item_group"]
 
     psw_report = ProductionStartWeekReport(psw_filters)
-    columns_psw, data_psw, *_rest = psw_report.run()
+    columns_psw, data_psw, *_ = psw_report.run()
 
-    item_capacity = {}
-    item_groups = {}
+    # 1. Başlangıç verilerini hazırla
+    item_filters = {"custom_ara_malzeme_grubu": "ÜRÜN"}
+    if filters.get("item_group"): item_filters["item_group"] = filters["item_group"]
+    if filters.get("custom_musteri_grubu"): item_filters["custom_musteri_grubu"] = filters["custom_musteri_grubu"]
     
-    # Item bilgilerini al - eğer item_group filtresi varsa onu da uygula
-    item_filters = {}
-    if filters.get("item_group"):
-        item_filters["item_group"] = filters["item_group"]
+    item_meta = frappe.get_all("Item", filters=item_filters, fields=["name", "custom_weekly_production", "item_group"])
+    item_groups = {i.name: i.item_group or "Diğer" for i in item_meta}
     
-    items = frappe.get_all("Item", filters=item_filters, fields=["name", "custom_weekly_production", "item_group"])
-    for item in items:
-        try:
-            item_capacity[item.name] = int(float(item.custom_weekly_production or 0))
-        except ValueError:
-            item_capacity[item.name] = 0
-        item_groups[item.name] = item.item_group or ""
+    # Grup bazlı kapasiteyi belirle
+    group_capacity = {}
+    for i in item_meta:
+        group = i.item_group or "Diğer"
+        cap = int(float(i.custom_weekly_production or 0))
+        if group not in group_capacity or cap > group_capacity[group]:
+            group_capacity[group] = cap
 
-    week_fields = [
-        (col["label"], col["fieldname"])
-        for col in columns_psw
-        if col.get("fieldtype") in ("Int", "Float") and col["fieldname"] not in ("total", "unit")
-    ]
-
-    valid_weeks = [(l, f) for l, f in week_fields if iso_week_start(f) and iso_week_start(f) >= from_date_obj]
-    week_list = [label for label, _ in valid_weeks]
-    week_fieldnames = [fieldname for _, fieldname in valid_weeks]
-
-    cumulative_demand = {}
-    past_totals = {}
+    week_fields = [c["fieldname"] for c in columns_psw if c.get("fieldtype") == "Int" and c["fieldname"] not in ("total", "stock_covered", "to_produce")]
+    valid_weeks = [f for f in week_fields if iso_week_start(f) and iso_week_start(f) >= from_date_obj]
+    
+    # 2. Talepleri topla
+    item_week_demand = defaultdict(lambda: defaultdict(int))
+    item_backlog = defaultdict(int) # Ürün bazlı geçmiş yük
 
     for row in data_psw:
         item = row.get("item_code")
-        if not item:
-            continue
+        if not item or item not in item_groups: continue
+        
+        for field in week_fields:
+            qty = int(row.get(field, 0) or 0)
+            ws = iso_week_start(field)
+            if ws:
+                if ws >= from_date_obj:
+                    item_week_demand[item][field] += qty
+                else:
+                    item_backlog[item] += qty
 
-        # Item capacity'de yoksa atla (item_group filtresi zaten uygulanmış olacak)
-        if item not in item_capacity:
-            continue
-
-        if item not in cumulative_demand:
-            cumulative_demand[item] = {f: 0 for f in week_fieldnames}
-            past_totals[item] = 0
-
-        for _, fieldname in week_fields:
-            qty = int(row.get(fieldname, 0) or 0)
-            week_start = iso_week_start(fieldname)
-            if week_start:
-                if week_start >= from_date_obj:
-                    if fieldname in cumulative_demand[item]:
-                        cumulative_demand[item][fieldname] += qty
-                elif week_start < from_date_obj:
-                    past_totals[item] += qty
-
-    planning = {}
-
-    for item, week_qty in cumulative_demand.items():
-        capacity = item_capacity.get(item, 0)
-        dist = {label: 0 for label in week_list}
-        carry = 0
-
-        # 1. Önce orijinal talepleri dist'e yerleştir
-        for i, label in enumerate(week_list):
-            fieldname = week_fieldnames[i]
-            dist[label] = week_qty.get(fieldname, 0)
-
-        # 2. Geriye doğru kapasite kontrolü ve dağıtım (to_date'ten başlayarak)
-        for i in reversed(range(len(week_list))):
-            label = week_list[i]
-            current_demand = dist[label]
+    # 2.5 Ramp-up (Geriye Dönük Dengeleme / Önden Üretim)
+    if filters.get("ramp_up_aktif"):
+        ramp_weeks = int(filters.get("ramp_up_weeks") or 3)
+        if ramp_weeks < 1: ramp_weeks = 1
+        
+        for w in reversed(range(1, len(valid_weeks))):
+            curr_w = valid_weeks[w]
+            prev_w = valid_weeks[w-1]
             
-            if capacity > 0 and current_demand > capacity:
-                # Kapasite fazlası miktarı hesapla
-                excess = current_demand - capacity
-                dist[label] = capacity
+            for group, cap in group_capacity.items():
+                if cap <= 0: continue
+                items = [it for it, gr in item_groups.items() if gr == group]
+                curr_load = sum(item_week_demand[it][curr_w] for it in items)
+                prev_load = sum(item_week_demand[it][prev_w] for it in items)
                 
-                # Fazla miktarı bir önceki haftaya aktar
-                if i > 0:  # İlk hafta değilse
-                    prev_label = week_list[i - 1]
-                    dist[prev_label] += excess
-                else:  # İlk haftaysa carry'ye ekle
-                    carry += excess
+                # Gelecek hafta yoğunluğu ile bu hafta arasındaki farkı dengele (Kullanıcı Tanımlı Ramp-up)
+                max_step = cap / ramp_weeks # Haftalık artış hızı
+                
+                if curr_load > prev_load + max_step:
+                    # Aradaki farkı kapatmak için önden üretim miktarını hesapla
+                    # Sadece bir önceki haftanın kapasitesini (%90) aşmayacak kadar çek
+                    move_qty = min(curr_load - (prev_load + max_step), (cap * 0.9) - prev_load)
+                    
+                    if move_qty > 10:
+                        for it in items:
+                            if curr_load > 0:
+                                share = round(move_qty * (item_week_demand[it][curr_w] / curr_load))
+                                item_week_demand[it][curr_w] -= share
+                                item_week_demand[it][prev_w] += share
 
-        # 3. Kapasite fazlası için akıllı dağıtım fonksiyonu
-        def smart_distribute(amount_to_distribute, current_dist, capacity, weeks_to_distribute):
-            if amount_to_distribute <= 0:
-                return
+    # 3. Dengeleme Algoritması (Item-Based Forward Planning)
+    dengeleme_aktif = filters.get("dengeleme_yapilsin", 0)
+    item_final_plan = defaultdict(lambda: defaultdict(int))
+    
+    # Her ürün için devreden miktar (Backlog ile başlar)
+    item_carry_over = item_backlog.copy()
+
+    for week in valid_weeks:
+        # Önce grupları grupla (Haftalık kapasite kısıtını uygulamak için)
+        processed_groups = set()
+        for it, group in item_groups.items():
+            if group in processed_groups: continue
+            processed_groups.add(group)
             
-            remaining = amount_to_distribute
+            cap = group_capacity.get(group, 0)
+            items_in_group = [i for i, g in item_groups.items() if g == group]
             
-            # Önce kapasitenin altında kalan haftalarda boşlukları doldur
-            if capacity > 0:
-                for week in weeks_to_distribute:
-                    if remaining <= 0:
-                        break
-                    current_amount = current_dist.get(week, 0)
-                    if current_amount < capacity:
-                        gap = capacity - current_amount
-                        fill_amount = min(gap, remaining)
-                        current_dist[week] += fill_amount
-                        remaining -= fill_amount
+            # Bu gruptaki tüm kalemlerin bu haftaki TOPLAM yükü (Kalan backlog + Bu hafta yeni talep)
+            item_total_loads = {}
+            total_group_load = 0
+            for i in items_in_group:
+                load = item_carry_over[i] + item_week_demand[i].get(week, 0)
+                item_total_loads[i] = load
+                total_group_load += load
+
+            if dengeleme_aktif:
+                # --- AKILLI DENGELEME (FIFO + KRİTİKLİK) ---
+                remaining_cap = cap
+                
+                # A. ÖNCE BACKLOG (GEÇMİŞ YÜK) BİTİRİLECEK
+                total_item_backlogs = {i: item_carry_over[i] for i in items_in_group if item_carry_over[i] > 0}
+                sum_backlog = sum(total_item_backlogs.values())
+                
+                if sum_backlog > 0 and remaining_cap > 0:
+                    backlog_to_produce = min(sum_backlog, remaining_cap)
+                    for i in items_in_group:
+                        if i in total_item_backlogs:
+                            # Backlog dağıtımı (Kritiklik eklenmiş: Çok biriken daha çok pay alır)
+                            share = round(backlog_to_produce * (total_item_backlogs[i] / sum_backlog))
+                            item_final_plan[i][week] += share
+                            item_carry_over[i] -= share
+                            remaining_cap -= share
+                    
+                # B. KALAN KAPASİTE VARSA CARİ HAFTA TALEBİNE GEÇİLECEK
+                total_item_current_demands = {i: item_week_demand[i].get(week, 0) for i in items_in_group if item_week_demand[i].get(week, 0) > 0}
+                sum_current = sum(total_item_current_demands.values())
+                
+                if sum_current > 0 and remaining_cap > 0:
+                    current_to_produce = min(sum_current, remaining_cap)
+                    for i in items_in_group:
+                        if i in total_item_current_demands:
+                            share = round(current_to_produce * (total_item_current_demands[i] / sum_current))
+                            item_final_plan[i][week] += share
+                            # Üretilemeyen cari talep bir sonraki haftaya devrolur
+                            remaining_current = total_item_current_demands[i] - share
+                            item_carry_over[i] += remaining_current
+                            remaining_cap -= share
+                else:
+                    # Kalan tüm cari talepler devrolur
+                    for i in items_in_group:
+                        item_carry_over[i] += item_week_demand[i].get(week, 0)
+
+            else:
+                # Dengeleme kapalıysa backlog'u sadece ilk haftaya ekle ve kapasiteyi aşsa da yaz
+                for i in items_in_group:
+                    val = item_carry_over[i] + item_week_demand[i].get(week, 0)
+                    if week != valid_weeks[0]:
+                        val = item_week_demand[i].get(week, 0)
+                    item_final_plan[i][week] = val
+
+    # 4. Verileri tablo formatına dönüştür
+    data = []
+    week_totals = {f: 0 for f in valid_weeks}
+    for it in sorted(item_groups.keys()):
+        group = item_groups[it]
+        cap = group_capacity.get(group, 0)
+        row = {"item_group": group, "item_code": it, "weekly_capacity": cap, "_style": {}}
+        row_total = 0
+        for f in valid_weeks:
+            val = item_final_plan[it].get(f, 0)
+            row[f] = val if val > 0 else None
+            row_total += val
+            week_totals[f] += val
             
-            # Hala fazla miktar varsa eşit dağıt
-            if remaining > 0:
-                portion = remaining // len(weeks_to_distribute)
-                rem = remaining % len(weeks_to_distribute)
-                for i, week in enumerate(weeks_to_distribute):
-                    current_dist[week] += portion + (1 if i < rem else 0)
-
-        # İlk haftada kalan fazlayı ilk 8 haftaya akıllı dağıt
-        first_8 = week_list[:8]
-        if carry > 0:
-            smart_distribute(carry, dist, capacity, first_8)
-
-        # 4. Geçmiş talepleri de ilk 8 haftaya akıllı dağıt
-        past_total = past_totals.get(item, 0)
-        if past_total > 0:
-            smart_distribute(past_total, dist, capacity, first_8)
-
-        planning[item] = (dist, capacity, item_groups.get(item, ""))
-
-    for item, (dist, capacity, item_group) in planning.items():
-        row = {
-            "item_group": item_group,
-            "item_code": item,
-            "weekly_capacity": capacity,
-            "_style":{},
-        }
-        total = 0
-        for label in week_list:
-            fieldname = scrub(label)
-            value = dist[label]
-            row[scrub(label)] = value if value else None
-            total += value or 0
-
-            color = get_cell_color(value, capacity)
-            if color:
-                row["_style"][fieldname] = f"background-color: {color}; color: white"
-
-        row["total"] = total
+            # Renklendirme
+            color = get_cell_color(val, cap)
+            if color: row["_style"][f] = f"background-color: {color}; color: white"
+            
+        row["total"] = row_total
         data.append(row)
 
-    summary_row = {
-        "item_group": "TOPLAM",
-        "item_code": None,
-        "weekly_capacity": None,
-        "total": 0
+    total_row = {"item_group": "<b>TOPLAM</b>", "item_code": None, "weekly_capacity": None}
+    for f in valid_weeks: total_row[f] = week_totals[f]
+    total_row["total"] = sum(week_totals.values())
+    if data: data.append(total_row)
+
+    chart = {
+        "data": {"labels": [f.replace("_", "-W") for f in valid_weeks], "datasets": [{"name": "Planlanan", "values": [week_totals[f] for f in valid_weeks]}]},
+        "type": "line", "colors": ["#27ae60"]
     }
-    for label in week_list:
-        summary_row[scrub(label)] = sum(row.get(scrub(label), 0) or 0 for row in data)
-    summary_row["total"] = sum(summary_row[scrub(label)] or 0 for label in week_list)
-    data.append(summary_row)
+    summary = [{"value": total_row["total"], "label": "Toplam Planlanan", "indicator": "Green"}, {"value": len(data)-1, "label": "Ürün Sayısı", "indicator": "Blue"}]
 
-    dynamic_columns = [
-        {"label": label, "fieldname": scrub(label), "fieldtype": "Int", "width": 100}
-        for label in week_list
-    ]
-
-    total_column = {
-        "label": "Toplam", "fieldname": "total", "fieldtype": "Int", "width": 100
-    }
-
-    return get_columns() + dynamic_columns + [total_column], data
+    cols = get_columns() + [{"label": f.replace("_", "-W").upper(), "fieldname": f, "fieldtype": "Int", "width": 100} for f in valid_weeks] + [{"label": "Toplam", "fieldname": "total", "fieldtype": "Int", "width": 100}]
+    return cols, data, None, chart, summary
 
 def get_columns():
-    return [
-        {
-            "label": frappe._("Ürün Grubu"),
-            "fieldname": "item_group",
-            "fieldtype": "Data",
-            "width": 140
-        },
-        {
-            "label": frappe._("Ürün"),
-            "fieldname": "item_code",
-            "fieldtype": "Link",
-            "options": "Item",
-            "width": 180
-        },
-        {
-            "label": frappe._("Haftalık Kapasite"),
-            "fieldname": "weekly_capacity",
-            "fieldtype": "Int",
-            "width": 150
-        }
-    ]
+    return [{"label": "Ürün Grubu", "fieldname": "item_group", "fieldtype": "Data", "width": 140}, {"label": "Ürün", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 180}, {"label": "Haftalık Kapasite", "fieldname": "weekly_capacity", "fieldtype": "Int", "width": 150}]
 
-@frappe.whitelist()
-def get_item_groups():
-    from erpnextkta.kta_mrp.report.production_start_week.production_start_week import ProductionStartWeekReport
-    psw_filters = {
-        "from_date": f"{datetime.today().year}-01-01",
-        "to_date": datetime.today().strftime("%Y-%m-%d"),
-        "group_by_item_only": 1
-    }
-    psw_report = ProductionStartWeekReport(psw_filters)
-    columns_psw, data_psw, *_rest = psw_report.run()
-
-    item_codes = {row["item_code"] for row in data_psw if row.get("item_code")}
-    if not item_codes:
-        return []
-
-    res = frappe.get_all("Item", filters={"name": ["in", list(item_codes)]}, fields=["item_group"])
-    return sorted({r.item_group for r in res if r.item_group})
-
-def get_cell_color(value, weekly_capacity):
-    if weekly_capacity == 0 or value is None:
-        return None
-
-    try:
-        value = int(value)
-        capacity = int(weekly_capacity)
-    except (ValueError, TypeError):
-        return None
-
-    if value > capacity:
-        return "#4B4B4B"  # Koyu gri (kapasiteyi aştıysa)
-    elif value > 0:
-        ratio = min(value / capacity, 1.0)
-        return hex_blend("#90EE90", "#006400", ratio)  # Açık yeşilden koyuya geç
-    else:
-        return None
+def get_cell_color(value, cap):
+    if not cap or not value: return None
+    if value > cap: return "#4B4B4B"
+    ratio = min(value / cap, 1.0)
+    return hex_blend("#90EE90", "#006400", ratio)

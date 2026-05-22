@@ -1,0 +1,270 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-20 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "kontrol_periyodu",
+  "hammadde_no",
+  "column_break_kriter",
+  "goz_kontrol",
+  "cekme_kuvveti_olculen",
+  "section_break_param",
+  "hammadde_kazan_isisi",
+  "ara_hortum_isisi",
+  "kafa_meme_isisi",
+  "soguk_su_isisi",
+  "column_break_param_2",
+  "motor_devir",
+  "hammadde_enjeksiyon_zamani",
+  "sogutma_zamani",
+  "section_break_hata",
+  "hata_kodu",
+  "hata_miktari",
+  "column_break_auto",
+  "olcum_tarihi",
+  "operator",
+  "hedef_hammadde_kazan_isisi_merkez",
+  "hedef_hammadde_kazan_isisi_tolerans",
+  "hedef_ara_hortum_isisi_merkez",
+  "hedef_ara_hortum_isisi_tolerans",
+  "hedef_kafa_meme_isisi_merkez",
+  "hedef_kafa_meme_isisi_tolerans",
+  "hedef_soguk_su_isisi_min",
+  "hedef_soguk_su_isisi_maks",
+  "hedef_motor_devir_min",
+  "hedef_motor_devir_maks",
+  "hedef_enjeksiyon_zamani_min",
+  "hedef_enjeksiyon_zamani_maks",
+  "hedef_sogutma_zamani_min",
+  "hedef_sogutma_zamani_maks",
+  "hedef_cekme_kuvveti_min"
+ ],
+ "fields": [
+  {
+   "allow_on_submit": 1,
+   "fieldname": "kontrol_periyodu",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Kontrol Periyodu",
+   "options": "Ba\u015flang\u0131\u00e7\nAra\nBiti\u015f"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "hammadde_no",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Hammadde No",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_kriter",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "goz_kontrol",
+   "fieldtype": "Check",
+   "label": "G\u00f6z Kontrol"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "cekme_kuvveti_olculen",
+   "fieldtype": "Float",
+   "label": "\u00c7ekme Kuvveti (N)"
+  },
+  {
+   "fieldname": "section_break_param",
+   "fieldtype": "Section Break",
+   "label": "Proses Parametreleri"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "hammadde_kazan_isisi",
+   "fieldtype": "Float",
+   "label": "Hammadde Kazan Is\u0131s\u0131 (\u00b0C)"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "ara_hortum_isisi",
+   "fieldtype": "Float",
+   "label": "Ara Hortum Is\u0131s\u0131 (\u00b0C)"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "kafa_meme_isisi",
+   "fieldtype": "Float",
+   "label": "Kafa (Meme) Is\u0131s\u0131 (\u00b0C)"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "soguk_su_isisi",
+   "fieldtype": "Float",
+   "label": "So\u011fuk Su Is\u0131s\u0131 (\u00b0C)"
+  },
+  {
+   "fieldname": "column_break_param_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "motor_devir",
+   "fieldtype": "Float",
+   "label": "Motor Devir"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "hammadde_enjeksiyon_zamani",
+   "fieldtype": "Float",
+   "label": "Hammadde Enjeksiyon Zaman\u0131 (sn)"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "sogutma_zamani",
+   "fieldtype": "Float",
+   "label": "So\u011futma Zaman\u0131 (sn)"
+  },
+  {
+   "fieldname": "section_break_hata",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Hata Analizi"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "hata_kodu",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Hata Kodu"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "hata_miktari",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hata Miktar\u0131"
+  },
+  {
+   "fieldname": "column_break_auto",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "now",
+   "fieldname": "olcum_tarihi",
+   "fieldtype": "Datetime",
+   "label": "\u00d6l\u00e7\u00fcm Tarihi"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "operator",
+   "fieldtype": "Link",
+   "label": "Operat\u00f6r",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "hedef_hammadde_kazan_isisi_merkez",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Hammadde Kazan Is\u0131s\u0131 (Merkez)"
+  },
+  {
+   "fieldname": "hedef_hammadde_kazan_isisi_tolerans",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Hammadde Kazan Is\u0131s\u0131 (Tolerans)"
+  },
+  {
+   "fieldname": "hedef_ara_hortum_isisi_merkez",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Ara Hortum Is\u0131s\u0131 (Merkez)"
+  },
+  {
+   "fieldname": "hedef_ara_hortum_isisi_tolerans",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Ara Hortum Is\u0131s\u0131 (Tolerans)"
+  },
+  {
+   "fieldname": "hedef_kafa_meme_isisi_merkez",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Kafa Meme Is\u0131s\u0131 (Merkez)"
+  },
+  {
+   "fieldname": "hedef_kafa_meme_isisi_tolerans",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Kafa Meme Is\u0131s\u0131 (Tolerans)"
+  },
+  {
+   "fieldname": "hedef_soguk_su_isisi_min",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef So\u011fuk Su Is\u0131s\u0131 (Min)"
+  },
+  {
+   "fieldname": "hedef_soguk_su_isisi_maks",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef So\u011fuk Su Is\u0131s\u0131 (Maks)"
+  },
+  {
+   "fieldname": "hedef_motor_devir_min",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Motor Devir (Min)"
+  },
+  {
+   "fieldname": "hedef_motor_devir_maks",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Motor Devir (Maks)"
+  },
+  {
+   "fieldname": "hedef_enjeksiyon_zamani_min",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Enjeksiyon Zaman\u0131 (Min)"
+  },
+  {
+   "fieldname": "hedef_enjeksiyon_zamani_maks",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef Enjeksiyon Zaman\u0131 (Maks)"
+  },
+  {
+   "fieldname": "hedef_sogutma_zamani_min",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef So\u011futma Zaman\u0131 (Min)"
+  },
+  {
+   "fieldname": "hedef_sogutma_zamani_maks",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef So\u011futma Zaman\u0131 (Maks)"
+  },
+  {
+   "fieldname": "hedef_cekme_kuvveti_min",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hedef \u00c7ekme Kuvveti (Min)"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "modified": "2026-05-20 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "Calisma Karti Enjeksiyon Olcumleri",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

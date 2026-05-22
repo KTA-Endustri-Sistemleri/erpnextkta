@@ -27,7 +27,8 @@ def create_calisma_karti(**kwargs):
                 "operasyon": data.get("operasyon"),
                 "operator": operator,
                 "docstatus": ["<", 2],        # Not cancelled
-                "bitis_saati": ["is", "not set"] # Not finished
+                "bitis_saati": ["is", "not set"], # Not finished
+                "kalite_kontrol": ["!=", "Reddedildi"],
             },
             "name"
         )

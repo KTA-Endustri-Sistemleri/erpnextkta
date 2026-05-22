@@ -203,3 +203,45 @@ def is_work_order_within_tolerance(wo_name: str) -> bool:
     diff_hours = time_diff_in_hours(now_datetime(), posting_datetime)
     
     return diff_hours <= tolerance_hours
+
+def finalize_rejected_card(doc, now=None) -> None:
+    """Set bitis_saati and submit a rejected Calisma Karti.
+
+    Called when a QC rejection decision is finalized.
+    Skips the alt_operasyon check (which only applies to normal finish flow).
+    Safe to call even if the card is already submitted (idempotent guard).
+
+    Args:
+        doc: Freshly loaded Calisma Karti document (for_update recommended).
+        now: Datetime to use as bitis_saati. Defaults to now_datetime().
+    """
+    from frappe.utils import now_datetime, get_datetime
+
+    if doc.docstatus != 0:
+        # Already submitted or cancelled — nothing to do
+        return
+
+    if not now:
+        now = now_datetime()
+
+    # 1. Close active downtime if any (prevents open downtime on submitted doc)
+    if doc.aktif_durus_var_mi():
+        last_row = doc.duruslar[-1]
+        last_row.durus_bitis = now
+        start_dt = get_datetime(last_row.durus_baslangic)
+        end_dt   = get_datetime(last_row.durus_bitis)
+        last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+
+    # 2. Set bitis_saati to rejection timestamp (enables time calculations)
+    doc.bitis_saati = now
+
+    # 3. Recalculate durations and status
+    doc.update_durum()
+
+    # 4. Save (still draft at this point)
+    doc.save(ignore_permissions=True)
+
+    # 5. Submit — before_submit allows durum == "Reddedildi"
+    doc.reload()
+    if doc.docstatus == 0:
+        doc.submit()

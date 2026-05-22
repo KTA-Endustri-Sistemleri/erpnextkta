@@ -39,6 +39,25 @@ from .api_impl.qc import (
     submit_kta_quality_inspection,
 )
 
+# Krimp
+from .api_impl.krimp import (
+    add_krimp_olcumu,
+    update_krimp_olcumu,
+    delete_krimp_olcumu,
+    search_krimp_items,
+    get_krimp_book_details,
+    get_unique_kesit_list,
+)
+
+# Enjeksiyon
+from .api_impl.enjeksiyon import (
+    add_enjeksiyon_olcumu,
+    update_enjeksiyon_olcumu,
+    delete_enjeksiyon_olcumu,
+    get_enjeksiyon_tolerans,
+    search_enjeksiyon_allowed_items,
+)
+
 # Alt Operasyon
 from .api_impl.alt_operasyon import (
     add_alt_operasyon_kaydi,
@@ -83,6 +102,20 @@ __all__ = [
     # Create + barcode helpers
     "create_calisma_karti",
     "get_operations_for_job_card",
-    "get_job_card_by_barcode",
     "get_work_order_by_barcode",
+
+    # Krimp
+    "add_krimp_olcumu",
+    "update_krimp_olcumu",
+    "delete_krimp_olcumu",
+    "search_krimp_items",
+    "get_krimp_book_details",
+    "get_unique_kesit_list",
+    
+    # Enjeksiyon
+    "add_enjeksiyon_olcumu",
+    "update_enjeksiyon_olcumu",
+    "delete_enjeksiyon_olcumu",
+    "get_enjeksiyon_tolerans",
+    "search_enjeksiyon_allowed_items",
 ]

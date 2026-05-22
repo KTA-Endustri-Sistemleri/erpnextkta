@@ -137,6 +137,18 @@ class CalismaKarti(Document):
     def on_update_after_submit(self):
         self.on_update()
 
+    def before_validate(self):
+        if not self.custom_work_order and self.is_karti:
+            self.custom_work_order = frappe.db.get_value("Job Card", self.is_karti, "work_order")
+        if self.is_karti:
+            if not self.urun_kodu or not self.uretilecek_miktar:
+                jc_data = frappe.db.get_value("Job Card", self.is_karti, ["production_item", "for_quantity"], as_dict=True)
+                if jc_data:
+                    if not self.urun_kodu:
+                        self.urun_kodu = jc_data.production_item
+                    if not self.uretilecek_miktar:
+                        self.uretilecek_miktar = jc_data.for_quantity
+
     def autoname(self):
         """
         İsim formatı: <OPR>-<WO_last5>-<Operasyon>-<01..>

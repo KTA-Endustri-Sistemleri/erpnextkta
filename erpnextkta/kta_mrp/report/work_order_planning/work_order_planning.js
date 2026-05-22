@@ -1,40 +1,67 @@
 frappe.query_reports["Work Order Planning"] = {
-    "filters": [
-        {
-            fieldname: "from_date",
-            label: __("Başlangıç Tarihi"),
-            fieldtype: "Date",
-            reqd: 1,
-            default: frappe.datetime.get_today()
-        },
-        {
-            fieldname: "to_date",
-            label: __("Bitiş Tarihi"),
-            fieldtype: "Date",
-            reqd: 1,
-            default: frappe.datetime.add_months(frappe.datetime.get_today(), 3)
-        },
-        {
-            fieldname: "item_group",
-            label: __("Ürün Grubu"),
-            fieldtype: "Select",
-            options: []
-        }
-    ],
+	onload: function (report) {
+	},
 
-    onload: function (report) {
-        frappe.call({
-            method: "erpnextkta.kta_mrp.report.work_order_planning.work_order_planning.get_available_item_groups",
-            args: {
-                filters: frappe.query_report.get_filter_values()
-            },
-            callback: function (r) {
-                const field = report.get_filter('item_group');
-                const groups = (r.message || []);
-                groups.unshift("");  // "Tümü" seçeneği
-                field.df.options = groups;
-                field.refresh();
-            }
-        });
-    }
+	filters: [
+		{
+			"fieldname": "from_date",
+			"label": __("Başlangıç Tarihi"),
+			"fieldtype": "Date",
+			"default": frappe.datetime.get_today(),
+			"reqd": 1
+		},
+		{
+			"fieldname": "to_date",
+			"label": __("Bitiş Tarihi"),
+			"fieldtype": "Date",
+			"default": frappe.datetime.add_months(frappe.datetime.get_today(), 3),
+			"reqd": 1
+		},
+		{
+			"fieldname": "dengeleme_yapilsin",
+			"label": __("Kapasite Dengeleme Yapılsın mı?"),
+			"fieldtype": "Check",
+			"default": 1
+		},
+		{
+			"fieldname": "ramp_up_aktif",
+			"label": __("Ramp-up (Önden Üretim) Yapılsın mı?"),
+			"fieldtype": "Check",
+			"default": 0
+		},
+		{
+			"fieldname": "ramp_up_weeks",
+			"label": __("Ramp-up Süresi (Hafta)"),
+			"fieldtype": "Int",
+			"default": 3
+		},
+		{
+			"fieldname": "custom_musteri_grubu",
+			"label": __("Müşteri Grubu"),
+			"fieldtype": "Link",
+			"options": "KTA Customer Group"
+		},
+		{
+			"fieldname": "item_group",
+			"label": __("Ürün Grubu"),
+			"fieldtype": "Link",
+			"options": "Item Group",
+			"get_query": function() {
+				const musteri_grubu = frappe.query_report.get_filter_value('custom_musteri_grubu');
+				return {
+					query: "erpnextkta.kta_mrp.report_utils.get_item_group_query",
+					filters: {
+						"custom_musteri_grubu": musteri_grubu
+					}
+				};
+			}
+		}
+	],
+
+	formatter: function(value, row, column, data, default_formatter) {
+		if (window.kta && kta.report_utils && kta.report_utils.std_formatter) {
+			return kta.report_utils.std_formatter(value, row, column, data, default_formatter);
+		}
+		return default_formatter(value, row, column, data);
+	}
 };

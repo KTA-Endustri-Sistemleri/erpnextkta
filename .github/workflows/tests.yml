@@ -48,7 +48,9 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get update
-          apt-get install -y sudo curl git build-essential pkg-config libmysqlclient-dev python3-dev python3-pip python3-setuptools python3-venv cron
+          apt-get install -y sudo curl git build-essential pkg-config libmysqlclient-dev python3-dev python3-pip python3-setuptools python3-venv cron tzdata
+          ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+          dpkg-reconfigure --frontend noninteractive tzdata
           curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
           apt-get install -y nodejs
           npm install -g yarn
@@ -124,7 +126,7 @@ jobs:
         env:
           CI: 'Yes'
         run: |
-          sudo -H -u frappe bench get-app payments
+          sudo -H -u frappe bench get-app payments --branch version-15
           sudo -H -u frappe bench get-app hrms --branch version-15
           sudo -H -u frappe bench get-app erpnext https://github.com/frappe/erpnext --branch version-15
           sudo -H -u frappe bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15
@@ -133,6 +135,7 @@ jobs:
           sudo -H -u frappe bench get-app erpnextkta $GITHUB_WORKSPACE
           sudo -H -u frappe bench setup requirements --dev
           sudo -H -u frappe ./env/bin/pip install --force-reinstall 'setuptools<81'
+          sudo -H -u frappe ./env/bin/pip install tzdata
           sudo -H -u frappe bench set-config -g db_host mariadb
           sudo -H -u frappe bench set-config -g redis_cache redis://redis-cache:6379
           sudo -H -u frappe bench set-config -g redis_queue redis://redis-queue:6379
