@@ -3,6 +3,123 @@
 
 
 
+## 🚀 v1.12.0 (2026-05-22)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: permissions duplicate problem solved
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: added removed custom fields
+      
+      
+    
+      
+      
+        
+- auto-populate work order and production details from Job Card in calisma_karti doctype
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- pin payments app to version-15 branch in CI tests
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_calisma_karti**: add Enjeksiyon Ölçümleri to kta_calisma_karti module including new doctypes, API implementations, and UI components
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- remove all custom fields from Calisma Karti doctype configuration
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Unknown
+
+    
+      
+      
+- feat(kta_calisma_karti):injection-process-form-for-calisma-karti
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.11.0 (2026-05-16)
 
 
