@@ -3,8 +3,9 @@ import { onMounted, computed, ref, watch } from "vue";
 import QcToggle from "../components/QcToggle.vue";
 import IdcSection from "../components/IdcSection.vue";
 import KrimpSection from "../components/KrimpSection.vue";
+import EnjeksiyonSection from "../components/EnjeksiyonSection.vue";
 import BarkodSection from "../components/BarkodSection.vue";
-import { idcOlcumFields, krimpOlcumFields, barkodKayitFields } from "../composables/prompts";
+import { idcOlcumFields, krimpOlcumFields, barkodKayitFields, enjeksiyonOlcumFields } from "../composables/prompts";
 
 function openQualityInspection(name: string) {
   frappe.set_route("Form", "Quality Inspection", name);
@@ -30,6 +31,11 @@ const props = defineProps<{
   onAddKrimp: (payload: any) => Promise<void>;
   onUpdateKrimp: (payload: any) => Promise<void>;
   onDeleteKrimp: (rowname: string) => Promise<void>;
+
+  // Enjeksiyon CRUD
+  onAddEnjeksiyon: (payload: any) => Promise<void>;
+  onUpdateEnjeksiyon: (payload: any) => Promise<void>;
+  onDeleteEnjeksiyon: (rowname: string) => Promise<void>;
 
   // Barkod CRUD
   onAddBarkod: (payload: any) => Promise<void>;
@@ -465,6 +471,295 @@ function printKrimpProtocol() {
   }
 }
 
+function setupEnjeksiyonToleransLogic(dialog: any) {
+  const hammadde_fld = dialog.get_field("hammadde_no");
+  dialog.enjeksiyon_tolerans = {}; // store fetched limits
+
+  const updateDetails = () => {
+    const hammadde = dialog.get_value("hammadde_no");
+    if (hammadde) {
+      frappe.call({
+        method: "erpnextkta.kta_calisma_karti.api.get_enjeksiyon_tolerans",
+        args: { hammadde_no: hammadde },
+        callback: (r: any) => {
+          if (r.message && Object.keys(r.message).length > 0) {
+            dialog.enjeksiyon_tolerans = r.message;
+            const t = r.message;
+            
+            // Set descriptions to show targets
+            const desc = (val: number, tol?: number) => val ? `İstenen: ${val} ${tol ? `±${tol}` : ''}` : '';
+            const descRange = (min: number, max: number) => min || max ? `İstenen: ${min} - ${max}` : '';
+            const descMin = (min: number) => min ? `Minimum: ${min}` : '';
+
+            dialog.set_df_property("hammadde_kazan_isisi", "description", desc(t.hammadde_kazan_isisi_merkez, t.hammadde_kazan_isisi_tolerans));
+            dialog.set_df_property("ara_hortum_isisi", "description", desc(t.ara_hortum_isisi_merkez, t.ara_hortum_isisi_tolerans));
+            dialog.set_df_property("kafa_meme_isisi", "description", desc(t.kafa_meme_isisi_merkez, t.kafa_meme_isisi_tolerans));
+            dialog.set_df_property("soguk_su_isisi", "description", descRange(t.soguk_su_isisi_min, t.soguk_su_isisi_maks));
+            dialog.set_df_property("motor_devir", "description", descRange(t.motor_devir_min, t.motor_devir_maks));
+            dialog.set_df_property("hammadde_enjeksiyon_zamani", "description", descRange(t.enjeksiyon_zamani_min, t.enjeksiyon_zamani_maks));
+            dialog.set_df_property("sogutma_zamani", "description", descRange(t.sogutma_zamani_min, t.sogutma_zamani_maks));
+            dialog.set_df_property("cekme_kuvveti_olculen", "description", descMin(t.cekme_kuvveti_min));
+
+            frappe.show_alert({ message: "Tolerans değerleri yüklendi", indicator: "blue" });
+          } else {
+             dialog.enjeksiyon_tolerans = {};
+             // clear descriptions
+             ["hammadde_kazan_isisi", "ara_hortum_isisi", "kafa_meme_isisi", "soguk_su_isisi", "motor_devir", "hammadde_enjeksiyon_zamani", "sogutma_zamani", "cekme_kuvveti_olculen"].forEach(f => {
+               dialog.set_df_property(f, "description", "");
+             });
+          }
+        }
+      });
+    }
+  };
+
+  if (hammadde_fld) {
+    hammadde_fld.df.onchange = updateDetails;
+  }
+}
+
+function addEnjeksiyon() {
+  const dialog = frappe.prompt(
+    enjeksiyonOlcumFields({ calisma_karti_name: props.doc.name }),
+    async (v: any) => {
+      const payload = { ...v };
+      if (dialog.enjeksiyon_tolerans) {
+         Object.keys(dialog.enjeksiyon_tolerans).forEach(k => {
+             payload[`hedef_${k}`] = dialog.enjeksiyon_tolerans[k];
+         });
+      }
+      await props.onAddEnjeksiyon(payload);
+      frappe.show_alert({ message: "Enjeksiyon ölçümü eklendi", indicator: "green" });
+    },
+    "Enjeksiyon Ölçümü Ekle",
+    "Kaydet"
+  );
+  setupEnjeksiyonToleransLogic(dialog);
+}
+
+function editEnjeksiyon(row: any) {
+  if (!row?.name) return frappe.msgprint("Enjeksiyon satır kimliği bulunamadı.");
+  const dialog = frappe.prompt(
+    enjeksiyonOlcumFields({ ...row, calisma_karti_name: props.doc.name }),
+    async (v: any) => {
+      const payloadObj = { ...v };
+      if (dialog.enjeksiyon_tolerans) {
+         Object.keys(dialog.enjeksiyon_tolerans).forEach(k => {
+             payloadObj[`hedef_${k}`] = dialog.enjeksiyon_tolerans[k];
+         });
+      }
+      await props.onUpdateEnjeksiyon({ rowname: row.name, payload: payloadObj });
+      frappe.show_alert({ message: "Enjeksiyon ölçümü güncellendi", indicator: "green" });
+    },
+    "Enjeksiyon Ölçümü Düzenle",
+    "Kaydet"
+  );
+  setupEnjeksiyonToleransLogic(dialog);
+  if (row.hammadde_no) {
+      setTimeout(() => dialog.get_field("hammadde_no").df.onchange(), 100);
+  }
+}
+
+function deleteEnjeksiyon(row: any) {
+  if (!row?.name) return frappe.msgprint("Enjeksiyon satır kimliği bulunamadı.");
+  frappe.confirm("Bu enjeksiyon ölçüm satırı silinecek. Emin misiniz?", async () => {
+    await props.onDeleteEnjeksiyon(row.name);
+    frappe.show_alert({ message: "Enjeksiyon ölçümü silindi", indicator: "green" });
+  });
+}
+
+function cloneEnjeksiyon(row: any) {
+  const cloneDefaults = {
+    ...row,
+    calisma_karti_name: props.doc.name,
+  };
+
+  const dialog = frappe.prompt(
+    enjeksiyonOlcumFields(cloneDefaults),
+    async (v: any) => {
+      const payload = { ...v };
+      if (dialog.enjeksiyon_tolerans) {
+         Object.keys(dialog.enjeksiyon_tolerans).forEach(k => {
+             payload[`hedef_${k}`] = dialog.enjeksiyon_tolerans[k];
+         });
+      }
+      await props.onAddEnjeksiyon(payload);
+      frappe.show_alert({ message: "Enjeksiyon ölçümü kopyalandı ve eklendi", indicator: "green" });
+    },
+    "Enjeksiyon Ölçümü Kopyala",
+    "Kaydet"
+  );
+  setupEnjeksiyonToleransLogic(dialog);
+  if (row.hammadde_no) {
+      setTimeout(() => dialog.get_field("hammadde_no").df.onchange(), 100);
+  }
+}
+
+function printEnjeksiyonProtocol() {
+  const rows: any[] = props.doc.enjeksiyon_olcumleri || [];
+  if (rows.length === 0) return frappe.msgprint("Yazdırılacak enjeksiyon ölçümü yok.");
+
+  const doc = props.doc;
+  const today = frappe.datetime.get_today();
+
+  const sapmaClass = (val: number, merkez: number, tolerans: number) => {
+      if (!val || !merkez) return "";
+      const diff = Math.abs(val - merkez);
+      return diff <= tolerans ? "ok" : "low";
+  };
+  
+  const minMaxClass = (val: number, min: number, max: number) => {
+      if (!val || (!min && !max)) return "";
+      if (min && val < min) return "low";
+      if (max && val > max) return "low";
+      return "ok";
+  };
+  
+  const formatMerkez = (val: number, merkez: number, tol: number) => {
+      if (!val) return "-";
+      return merkez ? `${val} <br><span style="font-size:8px;color:#666;">(${merkez}±${tol})</span>` : val;
+  };
+  
+  const formatMinMax = (val: number, min: number, max: number) => {
+      if (!val) return "-";
+      if (min && max) return `${val} <br><span style="font-size:8px;color:#666;">(${min}-${max})</span>`;
+      if (min) return `${val} <br><span style="font-size:8px;color:#666;">(>${min})</span>`;
+      if (max) return `${val} <br><span style="font-size:8px;color:#666;">(<${max})</span>`;
+      return val;
+  };
+
+  const rows_html = rows.map((r: any, i: number) => `
+    <tr class="row-${i % 2 === 0 ? 'even' : 'odd'}">
+      <td>${i + 1}</td>
+      <td>${r.kontrol_periyodu || "-"}</td>
+      <td>${r.hammadde_no || "-"}</td>
+      <td class="${sapmaClass(r.hammadde_kazan_isisi, r.hedef_hammadde_kazan_isisi_merkez, r.hedef_hammadde_kazan_isisi_tolerans)}">${formatMerkez(r.hammadde_kazan_isisi, r.hedef_hammadde_kazan_isisi_merkez, r.hedef_hammadde_kazan_isisi_tolerans)}</td>
+      <td class="${sapmaClass(r.ara_hortum_isisi, r.hedef_ara_hortum_isisi_merkez, r.hedef_ara_hortum_isisi_tolerans)}">${formatMerkez(r.ara_hortum_isisi, r.hedef_ara_hortum_isisi_merkez, r.hedef_ara_hortum_isisi_tolerans)}</td>
+      <td class="${sapmaClass(r.kafa_meme_isisi, r.hedef_kafa_meme_isisi_merkez, r.hedef_kafa_meme_isisi_tolerans)}">${formatMerkez(r.kafa_meme_isisi, r.hedef_kafa_meme_isisi_merkez, r.hedef_kafa_meme_isisi_tolerans)}</td>
+      <td class="${minMaxClass(r.soguk_su_isisi, r.hedef_soguk_su_isisi_min, r.hedef_soguk_su_isisi_maks)}">${formatMinMax(r.soguk_su_isisi, r.hedef_soguk_su_isisi_min, r.hedef_soguk_su_isisi_maks)}</td>
+      <td class="${minMaxClass(r.motor_devir, r.hedef_motor_devir_min, r.hedef_motor_devir_maks)}">${formatMinMax(r.motor_devir, r.hedef_motor_devir_min, r.hedef_motor_devir_maks)}</td>
+      <td class="${minMaxClass(r.hammadde_enjeksiyon_zamani, r.hedef_enjeksiyon_zamani_min, r.hedef_enjeksiyon_zamani_maks)}">${formatMinMax(r.hammadde_enjeksiyon_zamani, r.hedef_enjeksiyon_zamani_min, r.hedef_enjeksiyon_zamani_maks)}</td>
+      <td class="${minMaxClass(r.sogutma_zamani, r.hedef_sogutma_zamani_min, r.hedef_sogutma_zamani_maks)}">${formatMinMax(r.sogutma_zamani, r.hedef_sogutma_zamani_min, r.hedef_sogutma_zamani_maks)}</td>
+      <td class="${minMaxClass(r.cekme_kuvveti_olculen, r.hedef_cekme_kuvveti_min, 0)}">${formatMinMax(r.cekme_kuvveti_olculen, r.hedef_cekme_kuvveti_min, 0)}</td>
+      <td class="${r.goz_kontrol ? 'ok' : 'low'}">${r.goz_kontrol ? "✔" : "✘"}</td>
+      <td>${r.operator || "-"}</td>
+    </tr>
+  `).join("");
+
+  const html = `
+  <!DOCTYPE html>
+  <html lang="tr">
+  <head>
+    <meta charset="UTF-8">
+    <title>Enjeksiyon Protokol Belgesi - ${doc.name}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; font-size: 11px; color: #111; padding: 20px; }
+      h1 { font-size: 16px; margin-bottom: 4px; }
+      h2 { font-size: 13px; font-weight: normal; margin-bottom: 16px; color: #555; }
+      .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #111; padding-bottom: 12px; }
+      .header-left h1 { font-size: 18px; }
+      .header-right { text-align: right; font-size: 11px; color: #444; }
+      .header-right b { display: block; font-size: 13px; color: #111; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+      th { background: #222; color: #fff; padding: 5px 4px; text-align: center; font-size: 9px; white-space: nowrap; }
+      td { padding: 4px; text-align: center; border: 1px solid #ddd; font-size: 9px; }
+      .row-even { background: #f9f9f9; }
+      .ok { color: #166534; font-weight: bold; }
+      .low { color: #991b1b; font-weight: bold; }
+      .signatures { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; margin-top: 40px; }
+      .sig-box { border-top: 1px solid #333; padding-top: 8px; }
+      .sig-box .title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+      .sig-box .space { height: 50px; }
+      .sig-box .name-line { border-bottom: 1px solid #aaa; margin-top: 4px; height: 20px; }
+      .footer { margin-top: 20px; font-size: 9px; color: #888; text-align: center; }
+      @media print {
+        body { padding: 10px; }
+        button { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-left">
+        <h1>KTA Endüstri Sistemleri</h1>
+        <h2>Enjeksiyon Ölçüm Protokol Belgesi</h2>
+      </div>
+      <div class="header-right">
+        <b>${doc.name}</b>
+        İş Emri: ${doc.custom_work_order || "-"}<br>
+        Ürün: ${doc.urun_kodu || "-"}<br>
+        Kalite Belgesi: ${doc.quality_inspection || "-"}<br>
+        Tarih: ${today}
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Periyot</th>
+          <th>Hammadde</th>
+          <th>Kazan Isısı</th>
+          <th>Hortum Isısı</th>
+          <th>Meme Isısı</th>
+          <th>Soğuk Su</th>
+          <th>Devir</th>
+          <th>Enj. Zamanı</th>
+          <th>Soğ. Zamanı</th>
+          <th>Çekme (N)</th>
+          <th>Göz Knt.</th>
+          <th>Operatör</th>
+        </tr>
+      </thead>
+      <tbody>${rows_html}</tbody>
+    </table>
+
+    <div class="signatures">
+      <div class="sig-box">
+        <div class="title">Hazırlayan Operatör</div>
+        <div class="space"></div>
+        <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
+          ${doc.operator_name || doc.operator || "-"}
+        </div>
+        <div class="name-line"></div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+      </div>
+      <div class="sig-box">
+        <div class="title">Kalite Sorumlusu</div>
+        <div class="space"></div>
+        <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
+          ${doc.qi_details?.owner_name || "-"}
+        </div>
+        <div class="name-line"></div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+      </div>
+      <div class="sig-box">
+        <div class="title">Onaylayan</div>
+        <div class="space"></div>
+        <div class="name-line"></div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">Ad Soyad / İmza / Tarih</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Bu belge KTA Endüstri Sistemleri kalite takip sistemi tarafından otomatik oluşturulmuştur. • ${today}
+    </div>
+
+    <script>
+      window.onload = () => window.print();
+    <\/script>
+  </body>
+  </html>
+  `;
+
+  const w = window.open("", "_blank", "width=1100,height=700");
+  if (w) {
+    w.document.write(html);
+    w.document.close();
+  }
+}
+
 function addBarkod() {
   frappe.prompt(
     barkodKayitFields(),
@@ -547,6 +842,19 @@ onMounted(() => {});
       :onAdd="addIdc"
       :onUpdate="props.onUpdateIdc"
       :onDelete="props.onDeleteIdc"
+    />
+
+    <EnjeksiyonSection
+      v-if="props.doc.has_enjeksiyon"
+      :doc="props.doc"
+      :rows="props.doc.enjeksiyon_olcumleri || []"
+      :canEditQC="props.canEditQC"
+      :canEditData="props.canEditData"
+      :onAdd="addEnjeksiyon"
+      :onEdit="editEnjeksiyon"
+      :onDelete="deleteEnjeksiyon"
+      :onClone="cloneEnjeksiyon"
+      :onPrint="printEnjeksiyonProtocol"
     />
 
     <BarkodSection

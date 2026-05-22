@@ -6,22 +6,51 @@
     "doctype": "DocType",
     "engine": "InnoDB",
     "field_order": [
-        "istasyon_section",
-        "is_istasyonu",
+        "genel_tab",
+        "durum_ve_operator_bilgisi_section",
+        "durum",
         "column_break_omdn",
         "operator",
-        "operasyon_section",
-        "operasyon",
-        "is_karti",
+        "is_emri_ve_is_karti_bilgisi_section",
+        "custom_work_order",
         "column_break_uqsm",
+        "is_karti",
+        "urun_ve_miktar_section",
+        "urun_kodu",
+        "column_break_urun",
+        "uretilecek_miktar",
+        "tamamlanan_miktar",
+        "operasyon_bilgisi_tab",
+        "is_istasyonu_bilgisi_section",
+        "is_istasyonu",
+        "operasyon_bilgisi_section",
+        "operasyon",
+        "alt_operasyonlar_section",
+        "alt_operasyon_kayitlari",
+        "kalite_tab",
+        "kalite_durum_ve_belge_bilgisi_section",
         "kalite_kontrol",
+        "column_break_kalite",
         "quality_inspection",
-        "durum",
-        "olcumler_section",
-        "idc_olcumleri",
+        "ozel_belgeler_section",
+        "test_masasi_dogrulama_kaydi",
+        "amended_from",
+        "column_break_ozel",
+        "olcumler_tab",
+        "kablo_ve_kontak_olcum_bilgileri_section",
         "krimp_olcumleri",
-        "column_break_olcum",
+        "idc_ve_soket_olcum_bilgileri_section",
+        "idc_olcumleri",
+        "enjeksiyon_olcum_bilgileri_section",
+        "enjeksiyon_olcumleri",
+        "barkod_kayitlari_section",
         "barkod_kayitlari",
+        "hurdalar_tab",
+        "hurda_bilgisi_section",
+        "hurdalar",
+        "hurda_belgesi_bilgileri_section",
+        "scrap_stock_entry",
+        "zaman_tab",
         "zaman_section",
         "baslangic_saati",
         "bitis_saati",
@@ -30,26 +59,28 @@
         "toplam_durus",
         "net_calisma_suresi",
         "operasyon_duruslari_section",
-        "column_break_sqky",
-        "hurdalar",
-        "duruslar",
-        "ozel_belgeler_section",
-        "test_masasi_dogrulama_kaydi",
-        "amended_from"
+        "duruslar"
     ],
     "fields": [
         {
-            "fieldname": "istasyon_section",
-            "fieldtype": "Section Break",
-            "label": "İstasyon"
+            "fieldname": "genel_tab",
+            "fieldtype": "Tab Break",
+            "label": "Genel"
         },
         {
-            "fieldname": "is_istasyonu",
-            "fieldtype": "Link",
+            "fieldname": "durum_ve_operator_bilgisi_section",
+            "fieldtype": "Section Break",
+            "label": "Durum ve Operatör Bilgisi"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "durum",
+            "fieldtype": "Select",
             "in_list_view": 1,
-            "label": "İş İstasyonu",
-            "options": "Workstation",
-            "reqd": 1
+            "in_standard_filter": 1,
+            "label": "Durum",
+            "options": "Hazır\nÇalışıyor\nDuruşta\nBitmiş\nReddedildi",
+            "permlevel": 3
         },
         {
             "fieldname": "column_break_omdn",
@@ -64,9 +95,83 @@
             "options": "Employee"
         },
         {
-            "fieldname": "operasyon_section",
+            "fieldname": "is_emri_ve_is_karti_bilgisi_section",
             "fieldtype": "Section Break",
-            "label": "Operasyon"
+            "label": "İş Emri ve İş Kartı Bilgisi"
+        },
+        {
+            "fieldname": "custom_work_order",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "in_standard_filter": 1,
+            "label": "İş Emri",
+            "options": "Work Order",
+            "reqd": 1
+        },
+        {
+            "fieldname": "column_break_uqsm",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "is_karti",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "İş Kartı",
+            "options": "Job Card",
+            "reqd": 1
+        },
+        {
+            "fieldname": "urun_ve_miktar_section",
+            "fieldtype": "Section Break",
+            "label": "Ürün ve Miktar"
+        },
+        {
+            "fieldname": "urun_kodu",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Urun Kodu",
+            "read_only": 1
+        },
+        {
+            "fieldname": "column_break_urun",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "uretilecek_miktar",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "Uretilecek Miktar",
+            "read_only": 1
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "tamamlanan_miktar",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "Tamamlanan Miktar"
+        },
+        {
+            "fieldname": "operasyon_bilgisi_tab",
+            "fieldtype": "Tab Break",
+            "label": "Operasyon Bilgisi"
+        },
+        {
+            "fieldname": "is_istasyonu_bilgisi_section",
+            "fieldtype": "Section Break",
+            "label": "İs İstasyonu Bilgisi"
+        },
+        {
+            "fieldname": "is_istasyonu",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "İş İstasyonu",
+            "options": "Workstation",
+            "reqd": 1
+        },
+        {
+            "fieldname": "operasyon_bilgisi_section",
+            "fieldtype": "Section Break",
+            "label": "Operasyon Bilgisi"
         },
         {
             "allow_on_submit": 1,
@@ -78,12 +183,162 @@
             "reqd": 1
         },
         {
-            "fieldname": "is_karti",
-            "fieldtype": "Link",
+            "fieldname": "alt_operasyonlar_section",
+            "fieldtype": "Section Break",
+            "label": "Alt Operasyonlar"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "alt_operasyon_kayitlari",
+            "fieldtype": "Table",
+            "label": "Alt Operasyon Kayitlari",
+            "options": "Calisma Karti Alt Operasyon Kayitlari"
+        },
+        {
+            "fieldname": "kalite_tab",
+            "fieldtype": "Tab Break",
+            "label": "Kalite Kontrol"
+        },
+        {
+            "fieldname": "kalite_durum_ve_belge_bilgisi_section",
+            "fieldtype": "Section Break",
+            "label": "Kalite Durum ve Belge Bilgisi"
+        },
+        {
+            "allow_on_submit": 1,
+            "default": "Onay Bekliyor",
+            "fieldname": "kalite_kontrol",
+            "fieldtype": "Select",
             "in_list_view": 1,
-            "label": "İş Karti",
-            "options": "Job Card",
-            "reqd": 1
+            "in_standard_filter": 1,
+            "label": "Kalite Kontrol",
+            "options": "Onay Bekliyor\nOnaylandı\nReddedildi",
+            "permlevel": 1
+        },
+        {
+            "fieldname": "column_break_kalite",
+            "fieldtype": "Column Break"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "quality_inspection",
+            "fieldtype": "Link",
+            "label": "Kalite Muayene Belgesi",
+            "options": "Quality Inspection",
+            "permlevel": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "ozel_belgeler_section",
+            "fieldtype": "Section Break",
+            "label": "Özel Belgeler"
+        },
+        {
+            "fieldname": "test_masasi_dogrulama_kaydi",
+            "fieldtype": "Link",
+            "label": "Test Masası Doğrulama Kaydı",
+            "options": "Test Masasi Dogrulama Kaydi"
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "no_copy": 1,
+            "options": "Calisma Karti",
+            "print_hide": 1,
+            "read_only": 1
+        },
+        {
+            "fieldname": "column_break_ozel",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "olcumler_tab",
+            "fieldtype": "Tab Break",
+            "label": "Ölçümler"
+        },
+        {
+            "fieldname": "kablo_ve_kontak_olcum_bilgileri_section",
+            "fieldtype": "Section Break",
+            "label": "Kablo ve Kontak Ölçüm Bilgileri"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "krimp_olcumleri",
+            "fieldtype": "Table",
+            "label": "Krimp Ölçümleri",
+            "options": "Calisma Karti Krimp Olcumleri"
+        },
+        {
+            "fieldname": "idc_ve_soket_olcum_bilgileri_section",
+            "fieldtype": "Section Break",
+            "label": "IDC ve Soket Ölçüm Bilgileri"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "idc_olcumleri",
+            "fieldtype": "Table",
+            "label": "IDC Ölçümleri",
+            "options": "Calisma Karti IDC Olcumleri"
+        },
+        {
+            "fieldname": "enjeksiyon_olcum_bilgileri_section",
+            "fieldtype": "Section Break",
+            "label": "Enjeksiyon Ölçüm Bilgileri"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "enjeksiyon_olcumleri",
+            "fieldtype": "Table",
+            "label": "Enjeksiyon Ölçümleri",
+            "options": "Calisma Karti Enjeksiyon Olcumleri"
+        },
+        {
+            "fieldname": "barkod_kayitlari_section",
+            "fieldtype": "Section Break",
+            "label": "Barkod Kayıtları"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "barkod_kayitlari",
+            "fieldtype": "Table",
+            "label": "Barkod Kayıtları",
+            "options": "Calisma Karti Barkod Kayitlari"
+        },
+        {
+            "fieldname": "hurdalar_tab",
+            "fieldtype": "Tab Break",
+            "label": "Hurdalar"
+        },
+        {
+            "fieldname": "hurda_bilgisi_section",
+            "fieldtype": "Section Break",
+            "label": "Hurda Bilgisi"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "hurdalar",
+            "fieldtype": "Table",
+            "label": "Hurdalar",
+            "options": "Calisma Karti Hurda"
+        },
+        {
+            "fieldname": "hurda_belgesi_bilgileri_section",
+            "fieldtype": "Section Break",
+            "label": "Hurda Belgesi Bilgileri"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "scrap_stock_entry",
+            "fieldtype": "Link",
+            "label": "Hurda Stok Belgesi",
+            "options": "Stock Entry",
+            "read_only": 1
+        },
+        {
+            "fieldname": "zaman_tab",
+            "fieldtype": "Tab Break",
+            "label": "Süreler ve Duruşlar"
         },
         {
             "fieldname": "zaman_section",
@@ -141,110 +396,6 @@
             "fieldtype": "Table",
             "label": "Duruşlar",
             "options": "Operasyon Duruslari"
-        },
-        {
-            "fieldname": "column_break_sqky",
-            "fieldtype": "Column Break",
-            "options": "Calisma Karti Hurda"
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "hurdalar",
-            "fieldtype": "Table",
-            "label": "Hurdalar",
-            "options": "Calisma Karti Hurda"
-        },
-        {
-            "fieldname": "column_break_uqsm",
-            "fieldtype": "Column Break"
-        },
-        {
-            "allow_on_submit": 1,
-            "default": "Onay Bekliyor",
-            "fieldname": "kalite_kontrol",
-            "fieldtype": "Select",
-            "in_list_view": 1,
-            "in_standard_filter": 1,
-            "label": "Kalite Kontrol",
-            "options": "Onay Bekliyor\nOnaylandı\nReddedildi",
-            "permlevel": 1
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "quality_inspection",
-            "fieldtype": "Link",
-            "label": "Kalite Muayene Belgesi",
-            "options": "Quality Inspection",
-            "permlevel": 1,
-            "unique": 1
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "scrap_stock_entry",
-            "fieldtype": "Link",
-            "label": "Hurda Stok Belgesi",
-            "options": "Stock Entry",
-            "read_only": 1
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "durum",
-            "fieldtype": "Select",
-            "in_list_view": 1,
-            "in_standard_filter": 1,
-            "label": "Durum",
-            "options": "Hazır\nÇalışıyor\nDuruşta\nBitmiş\nReddedildi",
-            "permlevel": 3
-        },
-        {
-            "fieldname": "olcumler_section",
-            "fieldtype": "Section Break",
-            "label": "Ölçümler"
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "idc_olcumleri",
-            "fieldtype": "Table",
-            "label": "IDC Ölçümleri",
-            "options": "Calisma Karti IDC Olcumleri"
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "krimp_olcumleri",
-            "fieldtype": "Table",
-            "label": "Krimp Ölçümleri",
-            "options": "Calisma Karti Krimp Olcumleri"
-        },
-        {
-            "fieldname": "column_break_olcum",
-            "fieldtype": "Column Break"
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "barkod_kayitlari",
-            "fieldtype": "Table",
-            "label": "Barkod Kayıtları",
-            "options": "Calisma Karti Barkod Kayitlari"
-        },
-        {
-            "fieldname": "test_masasi_dogrulama_kaydi",
-            "fieldtype": "Link",
-            "label": "Test Masası Doğrulama Kaydı",
-            "options": "Test Masasi Dogrulama Kaydi"
-        },
-        {
-            "fieldname": "ozel_belgeler_section",
-            "fieldtype": "Section Break",
-            "label": "Özel Belgeler"
-        },
-        {
-            "fieldname": "amended_from",
-            "fieldtype": "Link",
-            "label": "Amended From",
-            "no_copy": 1,
-            "options": "Calisma Karti",
-            "print_hide": 1,
-            "read_only": 1
         }
     ],
     "grid_page_length": 50,
