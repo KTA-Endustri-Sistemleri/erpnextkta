@@ -32,7 +32,7 @@ def create_kta_roles():
 
 def setup_permissions():
     """Reset permissions to the exact state provided by the user in the image."""
-    roles = ['KTA Çalışma Kartı Kullanıcısı', 'KTA Çalışma Kartı Yöneticisi']
+    roles = ['KTA Çalışma Kartı Kullanıcısı', 'KTA Çalışma Kartı Yöneticisi', 'KTA Kalite Kullanıcısı']
     
     # Accurate transcription from the provided image
     permissions_data = [
@@ -94,7 +94,34 @@ def setup_permissions():
         # KTA Calisma Karti Settings
         {"parent": "KTA Calisma Karti Settings", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         {"parent": "KTA Calisma Karti Settings", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
-        {"parent": "KTA Calisma Karti Settings", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 0, "cancel": 0, "amend": 0}
+        {"parent": "KTA Calisma Karti Settings", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 0, "cancel": 0, "amend": 0},
+        # Child Tables - Ölçüm ve Kayıt Tabloları
+        {"parent": "Calisma Karti Krimp Olcumleri", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Krimp Olcumleri", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti IDC Olcumleri", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti IDC Olcumleri", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti Enjeksiyon Olcumleri", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Enjeksiyon Olcumleri", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti Barkod Kayitlari", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Barkod Kayitlari", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti Hurda", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Hurda", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Operasyon Duruslari", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Operasyon Duruslari", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        # Test Masası Doğrulama Kaydı (linked form - Kalite sekmesi)
+        {"parent": "Test Masasi Dogrulama Kaydi", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Test Masasi Dogrulama Kaydi", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Test Masasi Dogrulama Kaydi", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        # KTA Kalite Kullanıcısı - Child Table erişimleri
+        {"parent": "Calisma Karti Krimp Olcumleri", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti IDC Olcumleri", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Enjeksiyon Olcumleri", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Barkod Kayitlari", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Hurda", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0},
+        {"parent": "Operasyon Duruslari", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0},
+        {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0},
     ]
 
     # KTA'ya özel olan ve tüm rollerini yönetmek istediğimiz DocType'lar
