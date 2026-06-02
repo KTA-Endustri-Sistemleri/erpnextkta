@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import today, getdate
+from frappe.utils import today, getdate, cint
 from collections import defaultdict
 from erpnextkta.kta_mrp.report_utils import get_period_dates
 
@@ -16,7 +16,7 @@ def execute(filters=None):
 	filter_musteri_grubu = filters.get("musteri_grubu") or []
 	filter_item_group = filters.get("item_group", "")
 	filter_varsayilan_tedarikci = filters.get("varsayilan_tedarikci", "")
-	filter_sifir_tuketimi_goster = filters.get("sifir_tuketimi_goster", 0)
+	filter_sifir_tuketimi_goster = cint(filters.get("sifir_tuketimi_goster", 0))
 
 	# Material Requirement raporunu "Bitmiş Ürün + Hammadde" modunda çalıştır
 	from erpnextkta.kta_mrp.report.material_requirement.material_requirement import (
@@ -30,7 +30,7 @@ def execute(filters=None):
 		"group_by": "Bitmiş Ürün + Hammadde",
 	}
 
-	mr_columns, mr_data = mr_execute(mr_filters)
+	mr_columns, mr_data, *_ = mr_execute(mr_filters)
 
 	# KTA Customer Group listesini al
 	customer_groups = frappe.db.get_all(
@@ -194,7 +194,9 @@ def execute(filters=None):
 		toplam_tuketim = round(material_all_totals.get(hammadde, 0), 2)
 
 		if filter_musteri_grubu:
-			if not any(cg_data.get(cg, 0) > 0 for cg in filter_musteri_grubu):
+			has_consumption = any(cg_data.get(cg, 0) > 0 for cg in filter_musteri_grubu)
+			matches_item_cg = item_info and item_info.custom_musteri_grubu in filter_musteri_grubu
+			if not (has_consumption or (filter_sifir_tuketimi_goster and matches_item_cg)):
 				continue
 
 		if not filter_sifir_tuketimi_goster and genel_toplam == 0:
