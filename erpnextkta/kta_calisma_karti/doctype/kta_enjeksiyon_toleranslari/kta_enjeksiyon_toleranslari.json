@@ -1,0 +1,191 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:hammadde_no",
+ "creation": "2026-05-21 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "hammadde_no",
+  "section_isi",
+  "hammadde_kazan_isisi_merkez",
+  "hammadde_kazan_isisi_tolerans",
+  "column_1",
+  "ara_hortum_isisi_merkez",
+  "ara_hortum_isisi_tolerans",
+  "column_2",
+  "kafa_meme_isisi_merkez",
+  "kafa_meme_isisi_tolerans",
+  "section_diger",
+  "soguk_su_isisi_min",
+  "soguk_su_isisi_maks",
+  "motor_devir_min",
+  "motor_devir_maks",
+  "column_3",
+  "enjeksiyon_zamani_min",
+  "enjeksiyon_zamani_maks",
+  "sogutma_zamani_min",
+  "sogutma_zamani_maks",
+  "section_kuvvet",
+  "cekme_kuvveti_min"
+ ],
+ "fields": [
+  {
+   "fieldname": "hammadde_no",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Hammadde No",
+   "options": "Item",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "section_isi",
+   "fieldtype": "Section Break",
+   "label": "Isı Parametreleri (°C)"
+  },
+  {
+   "fieldname": "hammadde_kazan_isisi_merkez",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Hammadde Kazan Isısı (Merkez)"
+  },
+  {
+   "fieldname": "hammadde_kazan_isisi_tolerans",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Hammadde Kazan Isısı (Tolerans ±)"
+  },
+  {
+   "fieldname": "column_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ara_hortum_isisi_merkez",
+   "fieldtype": "Float",
+   "label": "Ara Hortum Isısı (Merkez)"
+  },
+  {
+   "fieldname": "ara_hortum_isisi_tolerans",
+   "fieldtype": "Float",
+   "label": "Ara Hortum Isısı (Tolerans ±)"
+  },
+  {
+   "fieldname": "column_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "kafa_meme_isisi_merkez",
+   "fieldtype": "Float",
+   "label": "Kafa Meme Isısı (Merkez)"
+  },
+  {
+   "fieldname": "kafa_meme_isisi_tolerans",
+   "fieldtype": "Float",
+   "label": "Kafa Meme Isısı (Tolerans ±)"
+  },
+  {
+   "fieldname": "section_diger",
+   "fieldtype": "Section Break",
+   "label": "Diğer Aralık Parametreleri"
+  },
+  {
+   "fieldname": "soguk_su_isisi_min",
+   "fieldtype": "Float",
+   "label": "Soğuk Su Isısı (Min °C)"
+  },
+  {
+   "fieldname": "soguk_su_isisi_maks",
+   "fieldtype": "Float",
+   "label": "Soğuk Su Isısı (Maks °C)"
+  },
+  {
+   "fieldname": "motor_devir_min",
+   "fieldtype": "Float",
+   "label": "Motor Devir (Min)"
+  },
+  {
+   "fieldname": "motor_devir_maks",
+   "fieldtype": "Float",
+   "label": "Motor Devir (Maks)"
+  },
+  {
+   "fieldname": "column_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "enjeksiyon_zamani_min",
+   "fieldtype": "Float",
+   "label": "Enjeksiyon Zamanı (Min sn)"
+  },
+  {
+   "fieldname": "enjeksiyon_zamani_maks",
+   "fieldtype": "Float",
+   "label": "Enjeksiyon Zamanı (Maks sn)"
+  },
+  {
+   "fieldname": "sogutma_zamani_min",
+   "fieldtype": "Float",
+   "label": "Soğutma Zamanı (Min sn)"
+  },
+  {
+   "fieldname": "sogutma_zamani_maks",
+   "fieldtype": "Float",
+   "label": "Soğutma Zamanı (Maks sn)"
+  },
+  {
+   "fieldname": "section_kuvvet",
+   "fieldtype": "Section Break",
+   "label": "Mekanik Eşikler"
+  },
+  {
+   "fieldname": "cekme_kuvveti_min",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Çekme Kuvveti (Min N)"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-21 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "KTA Enjeksiyon Toleranslari",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "KTA \u00c7al\u0131\u015fma Kart\u0131 Y\u00f6neticisi",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "KTA \u00c7al\u0131\u015fma Kart\u0131 Kullan\u0131c\u0131s\u0131"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -126,7 +126,7 @@ jobs:
         env:
           CI: 'Yes'
         run: |
-          sudo -H -u frappe bench get-app payments
+          sudo -H -u frappe bench get-app payments --branch version-15
           sudo -H -u frappe bench get-app hrms --branch version-15
           sudo -H -u frappe bench get-app erpnext https://github.com/frappe/erpnext --branch version-15
           sudo -H -u frappe bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15

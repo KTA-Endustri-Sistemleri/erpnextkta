@@ -311,3 +311,87 @@ export function krimpOlcumFields(defaults: any = {}) {
         },
     ];
 }
+
+export function enjeksiyonOlcumFields(defaults: any = {}) {
+    return [
+        {
+            fieldtype: "Select",
+            label: "Kontrol Periyodu",
+            fieldname: "kontrol_periyodu",
+            options: "Başlangıç\nAra\nBitiş",
+            reqd: 1,
+            default: defaults.kontrol_periyodu || "Başlangıç",
+        },
+        {
+            fieldtype: "Link",
+            label: "Hammadde No",
+            fieldname: "hammadde_no",
+            options: "Item",
+            reqd: 1,
+            default: defaults.hammadde_no || "",
+            get_query: () => ({
+                query: "erpnextkta.kta_calisma_karti.api.search_enjeksiyon_allowed_items",
+                filters: { calisma_karti: defaults.calisma_karti_name }
+            })
+        },
+        {
+            fieldtype: "Column Break"
+        },
+        {
+            fieldtype: "Check",
+            label: "Göz Kontrol",
+            fieldname: "goz_kontrol",
+            default: defaults.goz_kontrol ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Çekme Kuvveti (N)",
+            fieldname: "cekme_kuvveti_olculen",
+            default: defaults.cekme_kuvveti_olculen ?? 0,
+        },
+        { fieldtype: "Section Break", label: "Proses Parametreleri" },
+        {
+            fieldtype: "Float",
+            label: "Hammadde Kazan Isısı (°C)",
+            fieldname: "hammadde_kazan_isisi",
+            default: defaults.hammadde_kazan_isisi ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Ara Hortum Isısı (°C)",
+            fieldname: "ara_hortum_isisi",
+            default: defaults.ara_hortum_isisi ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Kafa (Meme) Isısı (°C)",
+            fieldname: "kafa_meme_isisi",
+            default: defaults.kafa_meme_isisi ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Soğuk Su Isısı (°C)",
+            fieldname: "soguk_su_isisi",
+            default: defaults.soguk_su_isisi ?? 0,
+        },
+        { fieldtype: "Column Break" },
+        {
+            fieldtype: "Float",
+            label: "Motor Devir",
+            fieldname: "motor_devir",
+            default: defaults.motor_devir ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Hammadde Enjeksiyon Zamanı (sn)",
+            fieldname: "hammadde_enjeksiyon_zamani",
+            default: defaults.hammadde_enjeksiyon_zamani ?? 0,
+        },
+        {
+            fieldtype: "Float",
+            label: "Soğutma Zamanı (sn)",
+            fieldname: "sogutma_zamani",
+            default: defaults.sogutma_zamani ?? 0,
+        }
+    ];
+}

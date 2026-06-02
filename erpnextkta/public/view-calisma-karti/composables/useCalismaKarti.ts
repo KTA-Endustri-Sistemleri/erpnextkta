@@ -270,6 +270,33 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         );
     }
 
+    async function addEnjeksiyonOlcumu(payload: any) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.add_enjeksiyon_olcumu", {
+                name: docname.value,
+                payload,
+            })
+        );
+    }
+
+    async function updateEnjeksiyonOlcumu(payload: any) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.update_enjeksiyon_olcumu", {
+                name: docname.value,
+                ...payload,
+            })
+        );
+    }
+
+    async function deleteEnjeksiyonOlcumu(rowname: string) {
+        return refreshAfter(() =>
+            frappe.call("erpnextkta.kta_calisma_karti.api.delete_enjeksiyon_olcumu", {
+                name: docname.value,
+                rowname,
+            })
+        );
+    }
+
     async function addBarkodKaydi(payload: any) {
         return refreshAfter(() =>
             frappe.call("erpnextkta.kta_calisma_karti.api.add_barkod_kaydi", {
@@ -360,6 +387,9 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         addKrimpOlcumu,
         updateKrimpOlcumu,
         deleteKrimpOlcumu,
+        addEnjeksiyonOlcumu,
+        updateEnjeksiyonOlcumu,
+        deleteEnjeksiyonOlcumu,
         addBarkodKaydi,
         updateBarkodKaydi,
         deleteBarkodKaydi,

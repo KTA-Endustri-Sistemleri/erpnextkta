@@ -49,6 +49,15 @@ from .api_impl.krimp import (
     get_unique_kesit_list,
 )
 
+# Enjeksiyon
+from .api_impl.enjeksiyon import (
+    add_enjeksiyon_olcumu,
+    update_enjeksiyon_olcumu,
+    delete_enjeksiyon_olcumu,
+    get_enjeksiyon_tolerans,
+    search_enjeksiyon_allowed_items,
+)
+
 # Alt Operasyon
 from .api_impl.alt_operasyon import (
     add_alt_operasyon_kaydi,
@@ -102,4 +111,11 @@ __all__ = [
     "search_krimp_items",
     "get_krimp_book_details",
     "get_unique_kesit_list",
+    
+    # Enjeksiyon
+    "add_enjeksiyon_olcumu",
+    "update_enjeksiyon_olcumu",
+    "delete_enjeksiyon_olcumu",
+    "get_enjeksiyon_tolerans",
+    "search_enjeksiyon_allowed_items",
 ]

@@ -50,6 +50,7 @@ const {
   updateQC, addHurda, updateHurda, deleteHurda,
   addIdcOlcumu, updateIdcOlcumu, deleteIdcOlcumu,
   addKrimpOlcumu, updateKrimpOlcumu, deleteKrimpOlcumu,
+  addEnjeksiyonOlcumu, updateEnjeksiyonOlcumu, deleteEnjeksiyonOlcumu,
   addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi,
   addAltOperasyon, updateAltOperasyon, deleteAltOperasyon,
   getQcTemplates, getTemplateDetails, submitStandardQC,
@@ -386,6 +387,9 @@ watch(
             :onAddKrimp="addKrimpOlcumu"
             :onUpdateKrimp="updateKrimpOlcumu"
             :onDeleteKrimp="deleteKrimpOlcumu"
+            :onAddEnjeksiyon="addEnjeksiyonOlcumu"
+            :onUpdateEnjeksiyon="updateEnjeksiyonOlcumu"
+            :onDeleteEnjeksiyon="deleteEnjeksiyonOlcumu"
             :onAddBarkod="addBarkodKaydi"
             :onUpdateBarkod="updateBarkodKaydi"
             :onDeleteBarkod="deleteBarkodKaydi"

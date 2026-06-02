@@ -18,7 +18,8 @@
         "form_gorunurluk_section",
         "has_krimp",
         "has_idc",
-        "has_barkod"
+        "has_barkod",
+        "has_enjeksiyon"
     ],
     "fields": [
         {
@@ -99,6 +100,12 @@
             "fieldname": "has_barkod",
             "fieldtype": "Check",
             "label": "Barkod Kaydı Aktif"
+        },
+        {
+            "default": "0",
+            "fieldname": "has_enjeksiyon",
+            "fieldtype": "Check",
+            "label": "Enjeksiyon Formu Aktif"
         }
     ],
     "grid_page_length": 50,
