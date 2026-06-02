@@ -18,19 +18,44 @@ class LabelPrinter:
             query_filter["quality_ref"] = q_ref
 
         zebra_printer = ZebraPrinterManager.get_printer_for_user()
-        if not zebra_printer: return
-
+        if not zebra_printer:
+            # Printer bulunamadıysa log oluştur
+            labels_to_log = frappe.get_all("KTA Depo Etiketleri", filters=query_filter, fields=["name"])
+            for lbl in labels_to_log:
+                ZebraPrinterManager.create_print_log(
+                    label_doctype="KTA Depo Etiketleri",
+                    label_name=lbl.name,
+                    printer=None,
+                    status="Failed",
+                    zpl=None,
+                    error="Kullanıcı için varsayılan yazıcı bulunamadı"
+                )
+            return
         for data in frappe.get_all(
                 doctype="KTA Depo Etiketleri",
                 filters=query_filter,
-                fields={
-                    "item_code", "item_name", "item_group", "qty", "uom",
+                fields=[
+                    "name", "item_code", "item_name", "item_group", "qty", "uom",
                     "supplier_delivery_note", "sut_barcode", "gr_posting_date", "quality_ref"
-                }
+                ]
         ):
             data.qty = ZebraPrinterManager.format_qty(data.qty)
             formatted_data = ZebraPrinterManager.format_data("KTA Depo Etiketleri", data)
-            zebra_printer.send(formatted_data)
+            zebra_printer.send(formatted_data, label_doctype="KTA Depo Etiketleri", label_name=data.name)
+            
+            # Increment print count and set last printed metadata
+            curr_count = frappe.db.get_value("KTA Depo Etiketleri", data.name, "print_count") or 0
+            frappe.db.set_value(
+                "KTA Depo Etiketleri",
+                data.name,
+                {
+                    "print_count": curr_count + 1,
+                    "last_printed_at": frappe.utils.now(),
+                    "last_printed_by": frappe.session.user or "Administrator"
+                },
+                update_modified=False
+            )
+        frappe.db.commit()
 
     @staticmethod
     def print_split_pr_labels(label=None):
@@ -50,7 +75,7 @@ class LabelPrinter:
             doctype="KTA Depo Etiketleri",
             filters=query_filter,
             fieldname=[
-                "item_code", "item_name", "item_group", "qty", "uom",
+                "name", "item_code", "item_name", "item_group", "qty", "uom",
                 "supplier_delivery_note", "batch", "sut_barcode", "gr_posting_date", "quality_ref"
             ],
             as_dict=True
@@ -58,7 +83,16 @@ class LabelPrinter:
         if not label_data: return
 
         zebra_printer = ZebraPrinterManager.get_printer_for_user()
-        if not zebra_printer: return
+        if not zebra_printer:
+            ZebraPrinterManager.create_print_log(
+                label_doctype="KTA Depo Etiketleri",
+                label_name=label,
+                printer=None,
+                status="Failed",
+                zpl=None,
+                error="Kullanıcı için varsayılan yazıcı bulunamadı"
+            )
+            return
 
         base_batch = label_data.batch[:7] if label_data.batch and len(label_data.batch) > 7 else label_data.batch
         for split in splits:
@@ -66,7 +100,21 @@ class LabelPrinter:
             label_data.batch = base_batch
             label_data.sut_barcode = f"{base_batch}{split.idx:04d}"
             formatted_data = ZebraPrinterManager.format_data("KTA Depo Etiketleri", label_data)
-            zebra_printer.send(formatted_data)
+            zebra_printer.send(formatted_data, label_doctype="KTA Depo Etiketleri", label_name=label_data.name)
+
+        # Increment print count and set last printed metadata
+        curr_count = frappe.db.get_value("KTA Depo Etiketleri", label, "print_count") or 0
+        frappe.db.set_value(
+            "KTA Depo Etiketleri",
+            label,
+            {
+                "print_count": curr_count + 1,
+                "last_printed_at": frappe.utils.now(),
+                "last_printed_by": frappe.session.user or "Administrator"
+            },
+            update_modified=False
+        )
+        frappe.db.commit()
 
     @staticmethod
     def get_details_of_wo_for_label(work_order):
@@ -162,7 +210,16 @@ class LabelPrinter:
         })
 
         zebra_printer = ZebraPrinterManager.get_printer_for_user()
-        if not zebra_printer: return
+        if not zebra_printer:
+            ZebraPrinterManager.create_print_log(
+                label_doctype="Stock Entry",
+                label_name=stock_entry,
+                printer=None,
+                status="Failed",
+                zpl=None,
+                error="Kullanıcı için varsayılan yazıcı bulunamadı"
+            )
+            return
 
         batch_entries = []
         if stock_entry_detail_doc.get("serial_and_batch_bundle"):
@@ -186,7 +243,7 @@ class LabelPrinter:
                 data.batch_no = base_batch_no
                 data.sut_no = entry.get("batch_no")
                 formatted_data = ZebraPrinterManager.format_data("KTA Is Emri Etiketleri", data)
-                zebra_printer.send(formatted_data)
+                zebra_printer.send(formatted_data, label_doctype="Stock Entry", label_name=stock_entry)
         else:
             musteri_paketleme_miktari = work_order_details.get("musteri_paketleme_miktari")
             num_packs = frappe.cint(stock_entry_detail_doc.qty // musteri_paketleme_miktari)
@@ -197,13 +254,13 @@ class LabelPrinter:
                     data.qty = ZebraPrinterManager.format_qty(musteri_paketleme_miktari)
                     data.sut_no = f"{batch_no}{pack:04d}"
                     formatted_data = ZebraPrinterManager.format_data("KTA Is Emri Etiketleri", data)
-                    zebra_printer.send(formatted_data)
+                    zebra_printer.send(formatted_data, label_doctype="Stock Entry", label_name=stock_entry)
 
             if remainder_qty > 0:
                 data.qty = ZebraPrinterManager.format_qty(remainder_qty)
                 data.sut_no = f"{batch_no}{num_packs + 1:04d}"
                 formatted_data = ZebraPrinterManager.format_data("KTA Is Emri Etiketleri", data)
-                zebra_printer.send(formatted_data)
+                zebra_printer.send(formatted_data, label_doctype="Stock Entry", label_name=stock_entry)
 
         data.delete()
 
@@ -293,12 +350,52 @@ class LabelPrinter:
 # ---------------------------------------------------------------------------
 
 @frappe.whitelist()
+def check_queue_health():
+    """
+    Background queue health check:
+    - Kuyrukta biriken iş sayısı belirli bir eşiği (örn: 10) aşarsa veya active worker yoksa uyarı göster.
+    """
+    try:
+        import frappe.utils.background_jobs as bj
+        from rq import Queue, Worker
+        conn = bj.get_redis_conn()
+        q = Queue('short', connection=conn)
+        
+        workers = Worker.all(connection=conn)
+        short_workers = [w for w in workers if "short" in w.queue_names()]
+        
+        if not short_workers:
+            frappe.msgprint(
+                "<strong>UYARI:</strong> Arka plan kuyruk yöneticisi (worker) aktif değil! "
+                "Etiket basım işleri sıraya alınacak ancak yazıcıya gönderilmeyecektir. "
+                "Lütfen sistem yöneticinizle iletişime geçin.",
+                indicator="red",
+                alert=True
+            )
+            return False
+            
+        if q.count >= 10:
+            frappe.msgprint(
+                f"<strong>UYARI:</strong> Yazıcı kuyruğu yoğun! Sıradaki iş sayısı: {q.count}. "
+                "Etiketlerin basılması gecikebilir.",
+                indicator="orange",
+                alert=True
+            )
+            
+    except Exception as e:
+        frappe.log_error(f"Queue Health Check Error: {e}", "Queue Monitor")
+        
+    return True
+
+@frappe.whitelist()
 def print_kta_pr_labels(gr_number=None, label=None, q_ref=None):
     """Manuel tetikleme için (form butonu). GR bazlı basım — sadece arayüzden çağrılmalı."""
+    check_queue_health()
     LabelPrinter.print_pr_labels(gr_number, label, q_ref)
 
 @frappe.whitelist()
 def print_split_kta_pr_labels(label=None):
+    check_queue_health()
     LabelPrinter.print_split_pr_labels(label)
 
 @frappe.whitelist()
@@ -320,6 +417,18 @@ def print_kta_wo_labels_of_stock_entry(stock_entry):
 def resplit_and_print_kta_wo_labels(stock_entry):
     BatchSplitManager.resplit_submitted_manufacturing_batches(stock_entry)
     print_kta_wo_labels_of_stock_entry(stock_entry)
+
+@frappe.whitelist()
+def reprint_depo_label(label_name):
+    """Tek bir KTA Depo Etiketleri kaydını yeniden kuyruğa alır."""
+    frappe.enqueue(
+        "erpnextkta.kta_stock.label_manager._print_pr_labels_by_names",
+        label_names=[label_name],
+        user=frappe.session.user,
+        queue="short",
+        timeout=60,
+        now=frappe.flags.in_test,
+    )
 
 @frappe.whitelist()
 def clear_warehouse_labels():
@@ -345,6 +454,16 @@ def _print_pr_labels_by_names(label_names, user=None):
 
     zebra_printer = ZebraPrinterManager.get_printer_for_user(user=user or frappe.session.user)
     if not zebra_printer:
+        for name in label_names:
+            ZebraPrinterManager.create_print_log(
+                label_doctype="KTA Depo Etiketleri",
+                label_name=name,
+                printer=None,
+                status="Failed",
+                zpl=None,
+                error=f"Kullanıcı için varsayılan yazıcı bulunamadı: {user or frappe.session.user}",
+                user=user or frappe.session.user
+            )
         return
 
     zpl_batch = []
@@ -371,6 +490,19 @@ def _print_pr_labels_by_names(label_names, user=None):
             label_doctype="KTA Depo Etiketleri",
             label_names=lbl_names
         )
+        for name in lbl_names:
+            curr_count = frappe.db.get_value("KTA Depo Etiketleri", name, "print_count") or 0
+            frappe.db.set_value(
+                "KTA Depo Etiketleri",
+                name,
+                {
+                    "print_count": curr_count + 1,
+                    "last_printed_at": frappe.utils.now(),
+                    "last_printed_by": user or frappe.session.user or "Administrator"
+                },
+                update_modified=False
+            )
+        frappe.db.commit()
 
 
 # ---------------------------------------------------------------------------
@@ -387,6 +519,7 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1", submitting_user=None):
     - Aynı satır için duplicate tetikleme idempotency ile engellenir
     - Yazıcı hatası submit işlemini engellemez (async)
     """
+    check_queue_health()
     if not row:
         return
 

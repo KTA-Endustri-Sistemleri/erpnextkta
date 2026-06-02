@@ -128,7 +128,7 @@
   "modified": "2025-07-09 08:54:44.602618",
   "module": "erpnextkta",
   "name": "KTA Depo Etiketi Bas",
-  "script": "frappe.ui.form.on('KTA Depo Etiketleri', {\n// refresh(frm) {\n    print_label_to_zebra_kta: function(frm){\n        frappe.call({\n                    method: \"erpnextkta.kta_stock.label_manager.print_kta_pr_labels\",\n                    args:{\n                        \"label\": frm.doc.name\n                    },\n                    callback: function(r){\n                        frm.set_value(\"custom_print_status\", r.message);\n                    }\n                });\n    },\n    print_split_labels_to_zebra_kta: function(frm){\n        frappe.call({\n                    method: \"erpnextkta.kta_stock.label_manager.print_split_kta_pr_labels\",\n                    args:{\n                        \"label\": frm.doc.name\n                    },\n                    callback: function(r){\n                        frm.set_value(\"custom_print_status\", r.message);\n                    }\n                });\n    }\n});\n",
+  "script": "frappe.ui.form.on('KTA Depo Etiketleri', {\n// refresh(frm) {\n    print_label_to_zebra_kta: function(frm){\n        frappe.call({\n                    method: \"erpnextkta.kta_stock.label_manager.print_kta_pr_labels\",\n                    args:{\n                        \"label\": frm.doc.name\n                    },\n                    callback: function(r){\n                        frm.set_value(\"custom_print_status\", r.message);\n                        frm.reload_doc();\n                    }\n                });\n    },\n    print_split_labels_to_zebra_kta: function(frm){\n        frappe.call({\n                    method: \"erpnextkta.kta_stock.label_manager.print_split_kta_pr_labels\",\n                    args:{\n                        \"label\": frm.doc.name\n                    },\n                    callback: function(r){\n                        frm.set_value(\"custom_print_status\", r.message);\n                        frm.reload_doc();\n                    }\n                });\n    }\n});\n",
   "view": "Form"
  },
  {
@@ -146,7 +146,7 @@
   "docstatus": 0,
   "doctype": "Client Script",
   "dt": "Stock Entry",
-  "enabled": 0,
+  "enabled": 1,
   "modified": "2025-07-15 19:07:25.437961",
   "module": "erpnextkta",
   "name": "KTA Hareketten \u00dcr\u00fcn Tan\u0131t\u0131m Etiketi Bas",
