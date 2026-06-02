@@ -209,8 +209,21 @@ class LabelPrinter:
 
     @staticmethod
     def create_depo_label(row, batch_no, qty, sut_code, q_ref):
-        """Purchase Receipt Item satırı için KTA Depo Etiketleri kaydı oluşturur."""
-        purchase_receipt = frappe.get_doc("Purchase Receipt", row.parent)
+        """
+        Purchase Receipt Item satırı için KTA Depo Etiketleri kaydı oluşturur.
+        sut_barcode benzersizdir; aynı barkod için kayıt zaten varsa duplicate oluşturmaz.
+        Oluşturulan (veya mevcut) kaydın name'ini döner.
+        """
+        # Idempotency: Aynı sut_barcode için tekrar kayıt oluşturma
+        existing = frappe.db.get_value(
+            "KTA Depo Etiketleri",
+            {"gr_number": row.parent, "sut_barcode": sut_code},
+            "name"
+        )
+        if existing:
+            return existing
+
+        purchase_receipt = frappe.get_cached_doc("Purchase Receipt", row.parent)
         etiket_item_group = frappe.db.get_value("Item", row.item_code, "item_group")
 
         etiket = frappe.get_doc({
@@ -229,6 +242,7 @@ class LabelPrinter:
             "do_not_split": row.custom_do_not_split,
         })
         etiket.insert(ignore_permissions=True)
+        return etiket.name
 
     @staticmethod
     def clear_empty_labels():
@@ -274,8 +288,13 @@ class LabelPrinter:
         return items[0]
 
 
+# ---------------------------------------------------------------------------
+# Whitelist API — Manuel / Client Script kullanımı
+# ---------------------------------------------------------------------------
+
 @frappe.whitelist()
 def print_kta_pr_labels(gr_number=None, label=None, q_ref=None):
+    """Manuel tetikleme için (form butonu). GR bazlı basım — sadece arayüzden çağrılmalı."""
     LabelPrinter.print_pr_labels(gr_number, label, q_ref)
 
 @frappe.whitelist()
@@ -302,13 +321,72 @@ def resplit_and_print_kta_wo_labels(stock_entry):
     BatchSplitManager.resplit_submitted_manufacturing_batches(stock_entry)
     print_kta_wo_labels_of_stock_entry(stock_entry)
 
-
 @frappe.whitelist()
 def clear_warehouse_labels():
     return LabelPrinter.clear_empty_labels()
 
 
-def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
+# ---------------------------------------------------------------------------
+# Queue Worker Hedefi — Doğrudan çağrılmaz, frappe.enqueue ile çalışır
+# ---------------------------------------------------------------------------
+
+def _print_pr_labels_by_names(label_names, user=None):
+    """
+    Belirli KTA Depo Etiketleri isimlerini (name listesi) yazıcıya gönderir.
+    frappe.enqueue tarafından arka planda çağrılır.
+    'user': etiket basımını kimin yazıcısına göndereceğimizi belirler.
+    """
+    if not label_names:
+        return
+
+    if isinstance(label_names, str):
+        import json
+        label_names = json.loads(label_names)
+
+    zebra_printer = ZebraPrinterManager.get_printer_for_user(user=user or frappe.session.user)
+    if not zebra_printer:
+        return
+
+    zpl_batch = []
+    lbl_names = []
+    
+    for data in frappe.get_all(
+        doctype="KTA Depo Etiketleri",
+        filters={"name": ["in", label_names]},
+        fields=[
+            "name", "item_code", "item_name", "item_group", "qty", "uom",
+            "supplier_delivery_note", "sut_barcode", "gr_posting_date",
+            "quality_ref", "do_not_split"
+        ],
+        order_by="creation asc"
+    ):
+        data.qty = ZebraPrinterManager.format_qty(data.qty)
+        formatted_data = ZebraPrinterManager.format_data("KTA Depo Etiketleri", data)
+        zpl_batch.append(formatted_data)
+        lbl_names.append(data.name)
+
+    if zpl_batch:
+        zebra_printer.send_batch(
+            data_list=zpl_batch,
+            label_doctype="KTA Depo Etiketleri",
+            label_names=lbl_names
+        )
+
+
+# ---------------------------------------------------------------------------
+# Batch Split + Queue Enqueue — on_submit flow'undan çağrılır
+# ---------------------------------------------------------------------------
+
+def custom_split_kta_batches(row=None, q_ref="ATLA 5/1", submitting_user=None):
+    """
+    Purchase Receipt Item satırını böler, KTA Depo Etiketleri kayıtlarını oluşturur
+    ve sadece o satıra ait etiketleri yazıcı kuyruğuna alır.
+
+    Önceki GR-bazlı toplu basım yerine satır-bazlı kuyruklama yapılır:
+    - Her satır kendi işini kuyruğa alır
+    - Aynı satır için duplicate tetikleme idempotency ile engellenir
+    - Yazıcı hatası submit işlemini engellemez (async)
+    """
     if not row:
         return
 
@@ -316,11 +394,31 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1"):
         row = frappe.get_doc("Purchase Receipt Item", row)
 
     allocations = BatchSplitManager.split_purchase_receipt_batches(row)
+    if not allocations:
+        return
+
+    created_label_names = []
     for allocation in allocations:
-        LabelPrinter.create_depo_label(
+        label_name = LabelPrinter.create_depo_label(
             row=row,
             batch_no=allocation["batch_no"],
             qty=allocation["qty"],
             sut_code=allocation.get("sut_code"),
             q_ref=q_ref,
         )
+        if label_name:
+            created_label_names.append(label_name)
+
+    if not created_label_names:
+        return
+
+    # Satıra özgü etiketleri kuyruğa al — GR'daki diğer satırları etkilemez
+    frappe.enqueue(
+        "erpnextkta.kta_stock.label_manager._print_pr_labels_by_names",
+        label_names=created_label_names,
+        user=submitting_user or frappe.session.user,
+        queue="short",
+        timeout=120,
+        retry=3,
+        now=frappe.flags.in_test,  # Test modunda senkron çalış
+    )

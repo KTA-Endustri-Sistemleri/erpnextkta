@@ -219,6 +219,8 @@ scheduler_events = {
         "15 0,16 * * *": ["erpnextkta.tasks.auto_close_timed_out_cards"],
         # Her gece saat 04:00'da oluşturulmuş ama başlatılmamış kartların temizliği
         "0 4 * * *": ["erpnextkta.tasks.delete_old_unstarted_cards"],
+        # Her 30 dakikada bir başarısız olan etiket basımlarını yeniden dener
+        "*/30 * * * *": ["erpnextkta.kta_stock.tasks.retry_failed_print_jobs"],
     },
     "weekly": [
         "erpnextkta.tasks.weekly"
