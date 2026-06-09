@@ -92,6 +92,23 @@ function deleteIdc(row: any) {
   });
 }
 
+function cloneIdc(row: any) {
+  // Pre-fill with the existing row's values so the user can copy & adjust
+  frappe.prompt(
+    idcOlcumFields(props.doc.name, row),
+    async (v: any) => {
+      await props.onAddIdc({
+        item_code: v.item_code,
+        yukseklik_mm: v.yukseklik_mm,
+        cekme_n: v.cekme_n,
+      });
+      frappe.show_alert({ message: "IDC ölçümü kopyalandı ve eklendi", indicator: "green" });
+    },
+    "IDC Ölçümü Kopyala",
+    "Kaydet"
+  );
+}
+
 function setupKrimpBookLogic(dialog: any) {
   const kesit_fld = dialog.get_field("kablo_kesiti");
   const kablo_fld = dialog.get_field("kablo_no");
@@ -842,6 +859,7 @@ onMounted(() => {});
       :onAdd="addIdc"
       :onEdit="editIdc"
       :onDelete="deleteIdc"
+      :onClone="cloneIdc"
     />
 
     <EnjeksiyonSection
