@@ -840,8 +840,8 @@ onMounted(() => {});
       :canEditQC="props.canEditQC"
       :canEditData="props.canEditData"
       :onAdd="addIdc"
-      :onUpdate="props.onUpdateIdc"
-      :onDelete="props.onDeleteIdc"
+      :onEdit="editIdc"
+      :onDelete="deleteIdc"
     />
 
     <EnjeksiyonSection
