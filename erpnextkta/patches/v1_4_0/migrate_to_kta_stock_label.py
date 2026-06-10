@@ -25,6 +25,7 @@ def execute():
             new_label.flags.ignore_permissions = True
             new_label.flags.ignore_mandatory = True
             new_label.flags.ignore_validate = True
+            new_label.flags.ignore_links = True
             new_label.insert()
             
             # Migrate child table KTA Depo Etiketleri Bolme
@@ -42,9 +43,9 @@ def execute():
     # Rename Zebra Templates
     if frappe.db.exists("DocType", "KTA Zebra Templates"):
         if frappe.db.exists("KTA Zebra Templates", "KTA Depo Etiketleri"):
-            frappe.rename_doc("KTA Zebra Templates", "KTA Depo Etiketleri", "Depo Giriş Etiketi", ignore_permissions=True)
+            frappe.rename_doc("KTA Zebra Templates", "KTA Depo Etiketleri", "Depo Giriş Etiketi", force=True)
         if frappe.db.exists("KTA Zebra Templates", "KTA Is Emri Etiketleri"):
-            frappe.rename_doc("KTA Zebra Templates", "KTA Is Emri Etiketleri", "İş Emri Etiketi", ignore_permissions=True)
+            frappe.rename_doc("KTA Zebra Templates", "KTA Is Emri Etiketleri", "İş Emri Etiketi", force=True)
 
     # Update old Print Logs to new DocType
     if frappe.db.exists("DocType", "KTA Print Log"):

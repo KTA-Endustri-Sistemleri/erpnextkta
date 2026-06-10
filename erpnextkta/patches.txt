@@ -11,4 +11,4 @@ erpnextkta.patches.v1_2_0.fix_calisma_karti_net_durations
 erpnextkta.patches.v1_2_0.fix_net_duration_logic_final
 erpnextkta.patches.v1_2_1.add_custom_calisma_karti_to_qi
 erpnextkta.patches.v1_3_0.create_default_downtime_reasons
-erpnextkta.patches.v1_4_0.migrate_to_kta_stock_labelerpnextkta.patches.v1_0.migrate_to_kta_stock_label
+erpnextkta.patches.v1_4_0.migrate_to_kta_stock_label
