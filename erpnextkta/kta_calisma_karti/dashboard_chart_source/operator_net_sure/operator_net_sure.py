@@ -32,8 +32,8 @@ def get_data(**kwargs):
 
     # Build SQL with optional filters
     conditions = [
-        "DATE(ck.creation) >= %(start)s",
-        "DATE(ck.creation) <= %(end)s",
+        "DATE(ck.baslangic_saati) >= %(start)s",
+        "DATE(ck.baslangic_saati) <= %(end)s",
         "ck.docstatus != 2",
         "ck.net_calisma_suresi IS NOT NULL",
         "ck.net_calisma_suresi != ''",
