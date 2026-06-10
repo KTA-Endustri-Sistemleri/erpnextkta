@@ -33,7 +33,7 @@ from erpnextkta.kta_stock.batch_manager import (
 DOCTYPE_PARTY_ACCOUNT = "Party Account"
 DOCTYPE_CUSTOMER = "Customer"
 DOCTYPE_ADDRESS = "Address"
-DOCTYPE_KTA_DEPO_ETIKETLERI = "KTA Depo Etiketleri"
+DOCTYPE_KTA_DEPO_ETIKETLERI = "KTA Stock Label"
 DOCTYPE_BOM = "BOM"
 DOCTYPE_ITEM = "Item"
 DOCTYPE_ITEM_CUSTOMER_DETAIL = "Item Customer Detail"
