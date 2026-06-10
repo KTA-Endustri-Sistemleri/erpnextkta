@@ -381,6 +381,8 @@ fixtures = [
                     "Asset Maintenance Log-custom_ariza_aciklamasi",
                     "Asset Maintenance Log-custom_event_id",
                     "Asset Maintenance Task-custom_event_id",
+                    "Stock Entry Type-custom_etiket_basilabilir",
+                    "Stock Entry Type-custom_etiket_sablonu",
                 ],
             ]
         ],

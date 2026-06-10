@@ -4,12 +4,16 @@ from erpnextkta.kta_stock.batch_manager import BatchSplitManager
 
 class LabelPrinter:
     @staticmethod
-    def print_pr_labels(gr_number=None, label=None, q_ref=None):
+    def print_pr_labels(gr_number=None, label=None, q_ref=None, label_type=None):
         if not gr_number and not label and not q_ref:
             frappe.msgprint("Either `gr_number`, `label` or 'q_ref' must be provided.")
             return
 
-        query_filter = {"do_not_split": 0, "label_type": "Depo Giriş Etiketi"}
+        query_filter = {"do_not_split": 0}
+        if label_type:
+            query_filter["label_type"] = label_type
+        else:
+            query_filter["label_type"] = "Depo Giriş Etiketi"
         if gr_number:
             query_filter["reference_name"] = gr_number
         elif label:
@@ -548,3 +552,54 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1", submitting_user=None):
         retry=3,
         now=frappe.flags.in_test,
     )
+
+@frappe.whitelist()
+def print_stock_entry_labels(stock_entry):
+    doc = frappe.get_doc("Stock Entry", stock_entry)
+    
+    if not doc.stock_entry_type:
+        frappe.throw("Bu belge için bir Stok Girişi Tipi seçilmemiş.")
+        
+    se_type_doc = frappe.get_doc("Stock Entry Type", doc.stock_entry_type)
+    
+    if not se_type_doc.get("custom_etiket_basilabilir"):
+        frappe.throw(f"{doc.stock_entry_type} işlemleri için etiket basımı aktif değildir.")
+        
+    template = se_type_doc.get("custom_etiket_sablonu")
+    
+    if doc.purpose == "Manufacture":
+        print_kta_wo_labels_of_stock_entry(stock_entry)
+    else:
+        if not template:
+            frappe.throw(f"{doc.stock_entry_type} için varsayılan etiket şablonu seçilmemiş.")
+            
+        labels_created = False
+        for row in doc.items:
+            # Sadece hedef deposu olan (giren) kalemler için veya hepsi için basılabilir.
+            # Şimdilik tüm satırlar için basıyoruz.
+            existing = frappe.db.get_value(
+                "KTA Stock Label",
+                {"reference_name": doc.name, "batch": row.batch_no, "item_code": row.item_code, "label_type": template},
+                "name"
+            )
+            if not existing:
+                etiket_item_group = frappe.db.get_value("Item", row.item_code, "item_group")
+                frappe.get_doc({
+                    "doctype": "KTA Stock Label",
+                    "label_type": template,
+                    "reference_doctype": "Stock Entry",
+                    "reference_name": doc.name,
+                    "qty": row.qty,
+                    "uom": row.uom,
+                    "batch": row.batch_no,
+                    "gr_posting_date": doc.posting_date,
+                    "item_code": row.item_code,
+                    "sut_barcode": row.barcode or row.batch_no, # Fallback
+                    "item_name": frappe.db.get_value("Item", row.item_code, "item_name") or row.item_code,
+                    "item_group": etiket_item_group,
+                }).insert(ignore_permissions=True)
+            labels_created = True
+            
+        if labels_created:
+            frappe.db.commit()
+            LabelPrinter.print_pr_labels(gr_number=doc.name, label_type=template)
