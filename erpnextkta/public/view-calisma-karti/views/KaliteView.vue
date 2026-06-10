@@ -92,6 +92,151 @@ function deleteIdc(row: any) {
   });
 }
 
+function cloneIdc(row: any) {
+  // Pre-fill with the existing row's values so the user can copy & adjust
+  frappe.prompt(
+    idcOlcumFields(props.doc.name, row),
+    async (v: any) => {
+      await props.onAddIdc({
+        item_code: v.item_code,
+        yukseklik_mm: v.yukseklik_mm,
+        cekme_n: v.cekme_n,
+      });
+      frappe.show_alert({ message: "IDC ölçümü kopyalandı ve eklendi", indicator: "green" });
+    },
+    "IDC Ölçümü Kopyala",
+    "Kaydet"
+  );
+}
+
+function printIdcProtocol() {
+  const rows: any[] = props.doc.idc_olcumleri || [];
+  if (rows.length === 0) return frappe.msgprint("Yazdırılacak IDC ölçümü yok.");
+
+  const doc = props.doc;
+  const today = frappe.datetime.get_today();
+
+  const fmt = (val: string) => {
+    if (!val) return "-";
+    try { const d = new Date(val); return isNaN(d.getTime()) ? val : d.toLocaleString("tr-TR"); } catch { return val; }
+  };
+
+  const rows_html = rows.map((r: any, i: number) => `
+    <tr class="row-${i % 2 === 0 ? 'even' : 'odd'}">
+      <td>${i + 1}</td>
+      <td>${r.item_code || "-"}</td>
+      <td>${r.yukseklik_mm ?? "-"} mm</td>
+      <td>${r.cekme_n ?? "-"} N</td>
+      <td>${fmt(r.olcum_tarihi)}</td>
+      <td>${r.olcumu_giren || "-"}</td>
+    </tr>
+  `).join("");
+
+  const html = `
+  <!DOCTYPE html>
+  <html lang="tr">
+  <head>
+    <meta charset="UTF-8">
+    <title>IDC Protokol Belgesi - ${doc.name}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; font-size: 11px; color: #111; padding: 20px; }
+      h1 { font-size: 16px; margin-bottom: 4px; }
+      h2 { font-size: 13px; font-weight: normal; margin-bottom: 16px; color: #555; }
+      .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #111; padding-bottom: 12px; }
+      .header-left h1 { font-size: 18px; }
+      .header-right { text-align: right; font-size: 11px; color: #444; }
+      .header-right b { display: block; font-size: 13px; color: #111; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+      th { background: #222; color: #fff; padding: 5px 4px; text-align: center; font-size: 10px; white-space: nowrap; }
+      td { padding: 5px 4px; text-align: center; border: 1px solid #ddd; font-size: 10px; }
+      .row-even { background: #f9f9f9; }
+      .signatures { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; margin-top: 40px; }
+      .sig-box { border-top: 1px solid #333; padding-top: 8px; }
+      .sig-box .title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+      .sig-box .space { height: 50px; }
+      .sig-box .name-line { border-bottom: 1px solid #aaa; margin-top: 4px; height: 20px; }
+      .footer { margin-top: 20px; font-size: 9px; color: #888; text-align: center; }
+      @media print {
+        body { padding: 10px; }
+        button { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-left">
+        <h1>KTA Endüstri Sistemleri</h1>
+        <h2>IDC Ölçüm Protokol Belgesi</h2>
+      </div>
+      <div class="header-right">
+        <b>${doc.name}</b>
+        İş Emri: ${doc.custom_work_order || "-"}<br>
+        Ürün: ${doc.urun_kodu || "-"}<br>
+        Kalite Belgesi: ${doc.quality_inspection || "-"}<br>
+        Tarih: ${today}
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item Code</th>
+          <th>Yükseklik</th>
+          <th>Çekme</th>
+          <th>Ölçüm Tarihi</th>
+          <th>Giren</th>
+        </tr>
+      </thead>
+      <tbody>${rows_html}</tbody>
+    </table>
+
+    <div class="signatures">
+      <div class="sig-box">
+        <div class="title">Hazırlayan Operatör</div>
+        <div class="space"></div>
+        <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
+          ${doc.operator_name || doc.operator || "-"}
+        </div>
+        <div class="name-line"></div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+      </div>
+      <div class="sig-box">
+        <div class="title">Kalite Sorumlusu</div>
+        <div class="space"></div>
+        <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
+          ${doc.qi_details?.owner_name || "-"}
+        </div>
+        <div class="name-line"></div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+      </div>
+      <div class="sig-box">
+        <div class="title">Onaylayan</div>
+        <div class="space"></div>
+        <div class="name-line"></div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">Ad Soyad / İmza / Tarih</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Bu belge KTA Endüstri Sistemleri kalite takip sistemi tarafından otomatik oluşturulmuştur. • ${today}
+    </div>
+
+    <script>
+      window.onload = () => window.print();
+    <\/script>
+  </body>
+  </html>
+  `;
+
+  const w = window.open("", "_blank", "width=900,height=600");
+  if (w) {
+    w.document.write(html);
+    w.document.close();
+  }
+}
+
 function setupKrimpBookLogic(dialog: any) {
   const kesit_fld = dialog.get_field("kablo_kesiti");
   const kablo_fld = dialog.get_field("kablo_no");
@@ -840,8 +985,10 @@ onMounted(() => {});
       :canEditQC="props.canEditQC"
       :canEditData="props.canEditData"
       :onAdd="addIdc"
-      :onUpdate="props.onUpdateIdc"
-      :onDelete="props.onDeleteIdc"
+      :onEdit="editIdc"
+      :onDelete="deleteIdc"
+      :onClone="cloneIdc"
+      :onPrint="printIdcProtocol"
     />
 
     <EnjeksiyonSection

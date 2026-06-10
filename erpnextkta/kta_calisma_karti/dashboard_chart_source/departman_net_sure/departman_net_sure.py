@@ -47,8 +47,8 @@ def get_data(**kwargs):
         start_date = add_days(end_date, -days + 1)
 
     conditions = [
-        "DATE(ck.creation) >= %(start)s",
-        "DATE(ck.creation) <= %(end)s",
+        "DATE(ck.baslangic_saati) >= %(start)s",
+        "DATE(ck.baslangic_saati) <= %(end)s",
         "ck.docstatus != 2",
         "ck.operator IS NOT NULL",
         "ck.net_calisma_suresi IS NOT NULL",

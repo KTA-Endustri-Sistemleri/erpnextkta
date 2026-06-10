@@ -6,8 +6,10 @@ from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 from erpnextkta.kta_calisma_karti.api_impl.cards import _submit_linked_quality_inspection
 from datetime import datetime, time
 
+from erpnextkta.kta_stock.label_manager import clear_warehouse_labels
+
 def weekly():
-    api.clear_warehouse_labels()
+    clear_warehouse_labels()
 
 def auto_close_timed_out_cards():
     """
@@ -117,7 +119,7 @@ def delete_old_unstarted_cards():
     hiç başlatılmamış ("Hazır" durumunda bekleyen) çalışma kartlarını veritabanından tamamen siler.
     """
     now = now_datetime()
-    bir_gun_once = add_to_date(now, days=-1)
+    hedef_zaman = get_datetime(datetime.combine(now.date(), time.min))
 
     kartlar = frappe.get_all(
         "Calisma Karti",
@@ -125,7 +127,7 @@ def delete_old_unstarted_cards():
             "baslangic_saati": ["is", "not set"],
             "bitis_saati": ["is", "not set"],
             "docstatus": ["!=", 2],  # draft (0) ve submitted (1) dahil
-            "creation": ["<", bir_gun_once]
+            "creation": ["<", hedef_zaman]
         },
         fields=["name"]
     )

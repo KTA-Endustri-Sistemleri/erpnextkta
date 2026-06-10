@@ -2,7 +2,7 @@ import frappe
 from frappe.model.docstatus import DocStatus
 
 from frappe.utils import add_days, getdate
-import erpnextkta.api
+from erpnextkta.kta_stock.label_manager import custom_split_kta_batches
 from erpnext.controllers.stock_controller import make_quality_inspections
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
 from erpnext.stock.get_item_details import get_item_details
@@ -338,7 +338,6 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         try:
             if self.docstatus == DocStatus.submitted() and self.is_return == 0:
                 self.verify_batch()
-                self.set_serial_and_batch_bundle()
 
                 qi_items = []
                 rows_to_split_now = []
@@ -365,15 +364,14 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                     else:
                         rows_to_split_now.append(item.name)
 
+                # Bundle'ları tek seferde hazırla (split için SLE gerekliydi)
                 self.set_serial_and_batch_bundle()
 
-                if rows_to_split_now:
-                    self.flags.kta_rows_to_split = rows_to_split_now
-                else:
-                    self.flags.kta_rows_to_split = None
+                self.flags.kta_rows_to_split = rows_to_split_now if rows_to_split_now else None
+                self.flags.kta_submitting_user = frappe.session.user
 
                 super().on_submit()
-                self.print_zebra()
+                # Etiket basımı artık satır bazlı kuyrukta — print_zebra kaldırıldı
                 make_quality_inspections(self.doctype, self.name, qi_items)
             else:
                 super().on_submit()
@@ -385,16 +383,8 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         finally:
             if hasattr(self, "flags"):
                 self.flags.kta_rows_to_split = None
+                self.flags.kta_submitting_user = None
 
-    def print_zebra(self):
-        try:
-            erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
-        except Exception as e:
-            frappe.log_error(f"Zebra Print Error (Ignored): {str(e)}", "KTAPurchaseReceipt Print Error")
-            # User said: "o hata gelsin önemli değil" (Let that error come, it's not important)
-            # However, if we raise, it rolls back submit. 
-            # So we catch it, log it, and maybe show a non-blocking message.
-            frappe.msgprint(f"Zebra Printer Error (Non-blocking): {str(e)}", alert=True)
 
     def _ensure_base_batch(self, row, item_doc):
         if not item_doc.get("has_batch_no"):
@@ -445,8 +435,11 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         if not row_names:
             return
 
+        submitting_user = getattr(self.flags, "kta_submitting_user", None) or frappe.session.user
+
         for row_name in row_names:
             row_doc = frappe.get_doc("Purchase Receipt Item", row_name)
-            erpnextkta.api.custom_split_kta_batches(row=row_doc)
+            # Her satır için ayrı split + ayrı print job kuyruğa alınır
+            custom_split_kta_batches(row=row_doc, submitting_user=submitting_user)
 
         self.flags.kta_rows_to_split = None

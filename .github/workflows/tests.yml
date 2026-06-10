@@ -132,6 +132,7 @@ jobs:
           sudo -H -u frappe bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15
           sudo -H -u frappe bench get-app https://github.com/Framras/trtcmb.git --branch version-15
           sudo -H -u frappe bench get-app https://github.com/Framras/trebelge.git --branch version-15
+          sudo -H -u frappe bench get-app https://${{ secrets.KTA_SYSTEM_UTILS_PAT }}@github.com/KTA-Endustri-Sistemleri/kta_system_utils.git --branch version-15
           sudo -H -u frappe bench get-app erpnextkta $GITHUB_WORKSPACE
           sudo -H -u frappe bench setup requirements --dev
           sudo -H -u frappe ./env/bin/pip install --force-reinstall 'setuptools<81'
@@ -149,6 +150,7 @@ jobs:
           sudo -H -u frappe bench --site test_site install-app trtaxoffices
           sudo -H -u frappe bench --site test_site install-app trtcmb
           sudo -H -u frappe bench --site test_site install-app trebelge
+          sudo -H -u frappe bench --site test_site install-app kta_system_utils
           sudo -H -u frappe bench --site test_site install-app erpnextkta
           sudo -H -u frappe bench --site test_site set-config allow_tests true
           sudo -H -u frappe bench build
