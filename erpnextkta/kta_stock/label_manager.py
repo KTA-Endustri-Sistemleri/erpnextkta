@@ -40,11 +40,14 @@ class LabelPrinter:
                 filters=query_filter,
                 fields=[
                     "name", "item_code", "item_name", "item_group", "qty", "uom",
-                    "supplier_delivery_note", "sut_barcode", "gr_posting_date", "quality_ref", "batch", "reference_name"
+                    "supplier_delivery_note", "sut_barcode", "gr_posting_date", "quality_ref", "batch", "reference_name", "label_type",
+                    "source_warehouse", "target_warehouse"
                 ]
         ):
             # Compatibility map for old ZPL templates
             data.gr_number = data.reference_name
+            data.gr_source_warehouse = data.source_warehouse
+            data.to_warehouse = data.target_warehouse
             data.qty = ZebraPrinterManager.format_qty(data.qty)
             formatted_data = ZebraPrinterManager.format_data(data.label_type or "Depo Giriş Etiketi", data)
             zebra_printer.send(formatted_data, label_doctype="KTA Stock Label", label_name=data.name)
@@ -81,7 +84,8 @@ class LabelPrinter:
             filters=query_filter,
             fieldname=[
                 "name", "item_code", "item_name", "item_group", "qty", "uom",
-                "supplier_delivery_note", "batch", "sut_barcode", "gr_posting_date", "quality_ref", "reference_name"
+                "supplier_delivery_note", "batch", "sut_barcode", "gr_posting_date", "quality_ref", "reference_name", "label_type",
+                "source_warehouse", "target_warehouse"
             ],
             as_dict=True
         )
@@ -100,6 +104,8 @@ class LabelPrinter:
             return
 
         label_data.gr_number = label_data.reference_name
+        label_data.gr_source_warehouse = label_data.source_warehouse
+        label_data.to_warehouse = label_data.target_warehouse
         base_batch = label_data.batch[:7] if label_data.batch and len(label_data.batch) > 7 else label_data.batch
         for split in splits:
             label_data.qty = ZebraPrinterManager.format_qty(split.qty)
@@ -155,7 +161,8 @@ class LabelPrinter:
         }
 
     @staticmethod
-    def print_wo_label(work_order_details, stock_entry):
+    def print_wo_label(work_order_details, stock_entry, template=None):
+        label_template = template or "İş Emri Etiketi"
         stock_entry_detail = frappe.get_all(
             doctype="Stock Entry Detail",
             filters={
@@ -234,7 +241,7 @@ class LabelPrinter:
                     "reference_doctype": "Stock Entry",
                     "reference_name": stock_entry,
                     "sut_barcode": sut_code,
-                    "label_type": "İş Emri Etiketi"
+                    "label_type": label_template
                 },
                 "name"
             )
@@ -243,7 +250,7 @@ class LabelPrinter:
             else:
                 data = frappe.get_doc({
                     'doctype': "KTA Stock Label",
-                    'label_type': "İş Emri Etiketi",
+                    'label_type': label_template,
                     'reference_doctype': "Stock Entry",
                     'reference_name': stock_entry,
                     'item_code': work_order_details.get("production_item"),
@@ -275,7 +282,7 @@ class LabelPrinter:
             data.print_date = frappe.utils.nowdate()
             data.qty = ZebraPrinterManager.format_qty(data.qty)
 
-            formatted_data = ZebraPrinterManager.format_data(data.label_type or "İş Emri Etiketi", data)
+            formatted_data = ZebraPrinterManager.format_data(data.label_type or label_template, data)
             zebra_printer.send(formatted_data, label_doctype="KTA Stock Label", label_name=data.name)
 
         if batch_entries:
@@ -425,9 +432,9 @@ def print_kta_wo_labels(work_order):
         LabelPrinter.print_wo_label(details, stock_entry.name)
 
 @frappe.whitelist()
-def print_kta_wo_labels_of_stock_entry(stock_entry):
+def print_kta_wo_labels_of_stock_entry(stock_entry, template=None):
     stock_entry_doc = frappe.get_doc("Stock Entry", stock_entry)
-    LabelPrinter.print_wo_label(LabelPrinter.get_details_of_wo_for_label(stock_entry_doc.work_order), stock_entry)
+    LabelPrinter.print_wo_label(LabelPrinter.get_details_of_wo_for_label(stock_entry_doc.work_order), stock_entry, template)
 
 @frappe.whitelist()
 def resplit_and_print_kta_wo_labels(stock_entry):
@@ -481,11 +488,14 @@ def _print_pr_labels_by_names(label_names, user=None):
         fields=[
             "name", "item_code", "item_name", "item_group", "qty", "uom",
             "supplier_delivery_note", "sut_barcode", "gr_posting_date",
-            "quality_ref", "do_not_split", "reference_name", "batch", "label_type"
+            "quality_ref", "do_not_split", "reference_name", "batch", "label_type",
+            "source_warehouse", "target_warehouse"
         ],
         order_by="creation asc"
     ):
         data.gr_number = data.reference_name
+        data.gr_source_warehouse = data.source_warehouse
+        data.to_warehouse = data.target_warehouse
         data.qty = ZebraPrinterManager.format_qty(data.qty)
         
         # Use the new label_type as template name (Depo Giriş Etiketi or İş Emri Etiketi)
@@ -571,33 +581,77 @@ def print_stock_entry_labels(stock_entry):
         frappe.throw(f"{doc.stock_entry_type} için varsayılan etiket şablonu seçilmemiş.")
     
     if doc.purpose == "Manufacture":
-        print_kta_wo_labels_of_stock_entry(stock_entry)
+        print_kta_wo_labels_of_stock_entry(stock_entry, template)
     else:
         labels_created = False
         for row in doc.items:
-            # Sadece hedef deposu olan (giren) kalemler için veya hepsi için basılabilir.
-            # Şimdilik tüm satırlar için basıyoruz.
-            existing = frappe.db.get_value(
-                "KTA Stock Label",
-                {"reference_name": doc.name, "batch": row.batch_no, "item_code": row.item_code, "label_type": template},
-                "name"
+            # Sadece hedef deposu olan (giren) kalemler için basılır.
+            # Çıkış yapılan (t_warehouse boş olan) kalemler atlanır.
+            if not row.t_warehouse:
+                continue
+
+            s_row = next((r for r in doc.items if r.s_warehouse and not r.t_warehouse), None)
+            s_wh = s_row.s_warehouse if s_row else None
+            s_batch = s_row.batch_no if s_row else None
+            s_barcode = s_row.barcode if s_row else None
+
+            target_batch = row.batch_no or s_batch
+            
+            musteri_paketleme_miktari = frappe.db.get_value(
+                "Item Customer Detail",
+                {"parent": row.item_code, "parenttype": "Item", "parentfield": "customer_items"},
+                "max(custom_musteri_paketleme_miktari)"
             )
-            if not existing:
-                etiket_item_group = frappe.db.get_value("Item", row.item_code, "item_group")
-                frappe.get_doc({
-                    "doctype": "KTA Stock Label",
-                    "label_type": template,
-                    "reference_doctype": "Stock Entry",
-                    "reference_name": doc.name,
-                    "qty": row.qty,
-                    "uom": row.uom,
-                    "batch": row.batch_no,
-                    "gr_posting_date": doc.posting_date,
-                    "item_code": row.item_code,
-                    "sut_barcode": row.barcode or row.batch_no, # Fallback
-                    "item_name": frappe.db.get_value("Item", row.item_code, "item_name") or row.item_code,
-                    "item_group": etiket_item_group,
-                }).insert(ignore_permissions=True)
+            etiket_item_group = frappe.db.get_value("Item", row.item_code, "item_group")
+
+            def save_label(pack_qty, sut_code):
+                existing_label = frappe.db.get_value(
+                    "KTA Stock Label",
+                    {"reference_name": doc.name, "sut_barcode": sut_code, "label_type": template},
+                    "name"
+                )
+                if not existing_label:
+                    frappe.get_doc({
+                        "doctype": "KTA Stock Label",
+                        "label_type": template,
+                        "reference_doctype": "Stock Entry",
+                        "reference_name": doc.name,
+                        "qty": pack_qty,
+                        "uom": row.uom,
+                        "batch": target_batch,
+                        "gr_posting_date": doc.posting_date,
+                        "item_code": row.item_code,
+                        "sut_barcode": sut_code,
+                        "item_name": frappe.db.get_value("Item", row.item_code, "item_name") or row.item_code,
+                        "item_group": etiket_item_group,
+                        "source_warehouse": s_wh,
+                        "target_warehouse": row.t_warehouse
+                    }).insert(ignore_permissions=True)
+                else:
+                    frappe.db.set_value("KTA Stock Label", existing_label, {
+                        "source_warehouse": s_wh,
+                        "target_warehouse": row.t_warehouse,
+                        "batch": target_batch,
+                        "sut_barcode": sut_code,
+                        "qty": pack_qty
+                    })
+
+            if musteri_paketleme_miktari and row.qty > 0:
+                num_packs = frappe.cint(row.qty // musteri_paketleme_miktari)
+                remainder_qty = row.qty % musteri_paketleme_miktari
+                
+                pack_idx = 1
+                if num_packs >= 1:
+                    for _ in range(num_packs):
+                        save_label(musteri_paketleme_miktari, f"{target_batch}{pack_idx:04d}")
+                        pack_idx += 1
+                        
+                if remainder_qty > 0:
+                    save_label(remainder_qty, f"{target_batch}{pack_idx:04d}")
+            else:
+                target_barcode = row.barcode or s_barcode or target_batch
+                save_label(row.qty, target_barcode)
+
             labels_created = True
             
         if labels_created:

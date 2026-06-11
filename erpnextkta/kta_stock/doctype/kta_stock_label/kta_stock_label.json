@@ -45,7 +45,7 @@
    "fieldname": "label_type",
    "fieldtype": "Select",
    "label": "Label Type",
-   "options": "Depo Giri\u015f Etiketi\n\u0130\u015f Emri Etiketi",
+   "options": "Depo Giri\u015f Etiketi\n\u0130\u015f Emri Etiketi\nRepack Etiketi",
    "in_list_view": 1,
    "reqd": 1
   },
