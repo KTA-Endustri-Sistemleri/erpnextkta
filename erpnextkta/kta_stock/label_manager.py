@@ -432,7 +432,7 @@ def print_kta_wo_labels_of_stock_entry(stock_entry):
 @frappe.whitelist()
 def resplit_and_print_kta_wo_labels(stock_entry):
     BatchSplitManager.resplit_submitted_manufacturing_batches(stock_entry)
-    print_kta_wo_labels_of_stock_entry(stock_entry)
+    print_stock_entry_labels(stock_entry)
 
 @frappe.whitelist()
 def reprint_depo_label(label_name):
@@ -567,12 +567,12 @@ def print_stock_entry_labels(stock_entry):
         
     template = se_type_doc.get("custom_etiket_sablonu")
     
+    if not template:
+        frappe.throw(f"{doc.stock_entry_type} için varsayılan etiket şablonu seçilmemiş.")
+    
     if doc.purpose == "Manufacture":
         print_kta_wo_labels_of_stock_entry(stock_entry)
     else:
-        if not template:
-            frappe.throw(f"{doc.stock_entry_type} için varsayılan etiket şablonu seçilmemiş.")
-            
         labels_created = False
         for row in doc.items:
             # Sadece hedef deposu olan (giren) kalemler için veya hepsi için basılabilir.
