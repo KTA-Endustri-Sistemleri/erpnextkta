@@ -76,4 +76,15 @@ Sistem, kaydedilen tüm krimp ölçümlerini ve test masası doğrulama sonuçla
 - Müşteri şikayetlerinde üretilen partinin kalite verilerine ulaşılması,
 - Operatör bazlı ölçüm hassasiyeti analizleri için kullanılır.
 
+---
+
+## 🔍 6. Giriş Kalite Kontrol (GKK) ve Karantina Süreci
+
+Dışarıdan (tedarikçilerden) gelen hammaddelerin kalite onayı almadan üretime veya satışa çıkışını engelleyen entegre karantina sistemidir.
+
+### Temel İşleyiş:
+- **Anında Etiketleme:** Mal Kabul (Purchase Receipt) onaylandığı an ürünler otomatik olarak kutu içi miktarlarına bölünür (`PARTI-0001`, `PARTI-0002` vb.) ve **Zebra SUT etiketleri** yazdırılır. Depo personeli ürünleri etiketleyip rafa kaldırır.
+- **Otomatik GKK Belgesi:** Etiketlenen ürünler için sistem arka planda otomatik olarak "Taslak" statüsünde bir Kalite Kontrol belgesi (Quality Inspection) oluşturur.
+- **Transfer Kısıtı (Sıfır Tolerans):** Kalite teknisyeni bu belgeyi inceleyip **"Accepted (Kabul)"** durumuna çekene kadar, bu partilerin hiçbir şekilde depodan çıkışına (Stock Entry, Delivery Note vb.) izin verilmez. Sistem `frappe.throw` ile kesin bir güvenlik duvarı oluşturur.
+
 </main>

@@ -345,6 +345,10 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 for item in self.items:
                     doc = frappe.get_doc('Item', item.get("item_code"))
                     self._ensure_base_batch(item, doc)
+                    
+                    # Her halükarda bölme ve etiketleme işlemi PR anında yapılacak
+                    rows_to_split_now.append(item.name)
+                    
                     if doc.get("inspection_required_before_purchase"):
                         meta = frappe.get_meta('Item')
                         if meta.has_field('custom_atlama_sayisi'):
@@ -354,15 +358,11 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                                 doc.db_set('custom_atlama_sirasi', atlama_sirasi + 1, commit=True)
                                 if atlama_sirasi % atlama_sayisi == 0 or atlama_sayisi > atlama_sirasi:
                                     qi_items.append(item)
-                                else:
-                                    rows_to_split_now.append(item.name)
                             else:
                                 doc.db_set('custom_atlama_sirasi', 2, commit=True)
                                 qi_items.append(item)
                         else:
                             qi_items.append(item)
-                    else:
-                        rows_to_split_now.append(item.name)
 
                 # Bundle'ları tek seferde hazırla (split için SLE gerekliydi)
                 self.set_serial_and_batch_bundle()

@@ -171,7 +171,11 @@ doc_events = {
     "Stock Entry": {
         "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
         "on_update": "erpnextkta.kta_calisma_karti.api_impl.hurda.sync_stock_entry_to_calisma_karti",
-        "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash"
+        "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash",
+        "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer"
+    },
+    "Delivery Note": {
+        "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer"
     },
     "Calisma Karti": {
         # Hurda sync is now handled in the controller's on_update directly
@@ -338,6 +342,12 @@ fixtures = [
         "doctype": "Role Profile",
         "filters": [
             ["name", "like", "KTA%"]
+        ]
+    },
+    {
+        "doctype": "Workflow",
+        "filters": [
+            ["name", "in", ["KTA Mal Giris Sureci"]]
         ]
     },
     {
