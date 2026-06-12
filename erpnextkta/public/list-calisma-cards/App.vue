@@ -224,6 +224,37 @@ function qcKeyFromText(qc) {
 const availableCustomerGroups = ref([]);
 const customerGroupCounts = ref({});
 
+// Görünüm Modu Yönetimi (list | grid | kanban)
+const viewMode = ref(localStorage.getItem('ck_view_mode') || 'list');
+const isDesktop = ref(window.innerWidth >= 1024);
+
+const handleResize = () => {
+  isDesktop.value = window.innerWidth >= 1024;
+  if (!isDesktop.value && viewMode.value === 'kanban') {
+    viewMode.value = 'list';
+  }
+};
+
+watch(viewMode, (newVal) => {
+  localStorage.setItem('ck_view_mode', newVal);
+});
+
+// Kanban Sütunları
+const kanbanColumns = computed(() => {
+  const cols = {
+    ready: { label: "Hazır", items: [] },
+    running: { label: "Çalışıyor", items: [] },
+    paused: { label: "Duruşta", items: [] },
+    finished: { label: "Bitmiş", items: [] },
+    rejected: { label: "Reddedildi", items: [] }
+  };
+  for (const r of rows.value || []) {
+    const key = statusKeyFromDurumText(r?.durum);
+    if (cols[key]) cols[key].items.push(r);
+  }
+  return cols;
+});
+
 watch([rows, customerGroupFilter], ([newRows, filter]) => {
   if (filter !== "all" && availableCustomerGroups.value.length > 0) {
     // Keep previously calculated groups and counts visible so user can switch away
@@ -278,12 +309,16 @@ function setCustomerGroupFilter(v) {
 }
 
 onMounted(async () => {
+  window.addEventListener("resize", handleResize);
+  handleResize();
+  
   await loadSettings();
   load();
   bindListRealtime();
 });
 
 onUnmounted(() => {
+  window.removeEventListener("resize", handleResize);
   unbindListRealtime();
 });
 </script>
@@ -294,6 +329,19 @@ onUnmounted(() => {
     <div class="ck-header">
       <div class="ck-header-row">
         <div class="ck-title">Çalışma Kartları</div>
+        
+        <div class="ck-view-toggles" v-if="!loading && !errorMsg">
+          <button class="ck-view-btn" :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'" title="Liste Görünümü">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          </button>
+          <button class="ck-view-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'" title="Grid Görünümü">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </button>
+          <button v-if="isDesktop" class="ck-view-btn" :class="{ active: viewMode === 'kanban' }" @click="viewMode = 'kanban'" title="Kanban Görünümü">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+          </button>
+        </div>
+
         <Transition name="ck-slide-down">
           <div v-if="pendingUpdate && !loading" class="ck-pending-badge">
             <span class="ck-dot"></span>
@@ -335,13 +383,31 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div v-else class="ck-list" key="list">
-          <CkCard
-            v-for="r in rows"
-            :key="r.name"
-            :row="r"
-            @click="openDetail(r.name)"
-          />
+        <div v-else class="ck-views" key="views">
+          
+          <!-- LİSTE GÖRÜNÜMÜ -->
+          <div v-if="viewMode === 'list'" class="ck-list">
+            <CkCard v-for="r in rows" :key="r.name" :row="r" @click="openDetail(r.name)" />
+          </div>
+
+          <!-- GRİD (GALERİ) GÖRÜNÜMÜ -->
+          <div v-else-if="viewMode === 'grid'" class="ck-grid">
+            <CkCard v-for="r in rows" :key="r.name" :row="r" @click="openDetail(r.name)" />
+          </div>
+
+          <!-- KANBAN (PANO) GÖRÜNÜMÜ -->
+          <div v-else-if="viewMode === 'kanban'" class="ck-kanban">
+            <div v-for="(col, key) in kanbanColumns" :key="key" class="ck-kanban-col" v-show="col.items.length > 0">
+              <div class="ck-kanban-header">
+                <span class="ck-kanban-title">{{ col.label }}</span>
+                <span class="ck-kanban-count">{{ col.items.length }}</span>
+              </div>
+              <div class="ck-kanban-items">
+                <CkCard v-for="r in col.items" :key="r.name" :row="r" @click="openDetail(r.name)" />
+              </div>
+            </div>
+          </div>
+
         </div>
       </Transition>
 
@@ -389,6 +455,7 @@ onUnmounted(() => {
   justify-content:space-between;
   gap:10px;
   margin-bottom:10px;
+  flex-wrap: wrap; /* Mobil cihazlarda butonların taşmasını önler */
 }
 
 .ck-title{
@@ -426,6 +493,103 @@ onUnmounted(() => {
 .ck-empty-title{ font-weight:900; margin-bottom:4px; }
 
 .ck-list{ display:grid; gap:12px; }
+
+/* Views & Toggles */
+.ck-view-toggles {
+  display: flex;
+  background: var(--ck-glass-bg);
+  border: 1px solid var(--ck-glass-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-left: auto;
+  margin-right: 10px;
+}
+.ck-view-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  color: inherit;
+  opacity: 0.5;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.ck-view-btn:hover {
+  background: rgba(0,0,0,0.05);
+  opacity: 0.8;
+}
+.ck-view-btn.active {
+  background: rgba(17, 24, 39, 0.1);
+  opacity: 1;
+}
+[data-theme="dark"] .ck-view-btn:hover {
+  background: rgba(255,255,255,0.05);
+}
+[data-theme="dark"] .ck-view-btn.active {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Grid View */
+.ck-grid {
+  display: grid;
+  /* Mobilde %100 genişlik kullan, masaüstünde 260px'e kadar küçülebilmesini sağla */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+}
+
+/* Kanban View */
+.ck-kanban {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  align-items: flex-start;
+  min-height: 60vh;
+  /* Mobilde pürüzsüz yatay kaydırma (scroll snapping) */
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.ck-kanban-col {
+  /* Normal ekrana sığması için 240px'e kadar daralabilir, ama 320px'i geçemez */
+  flex: 1 0 240px; 
+  max-width: 320px;
+  background: var(--ck-glass-bg);
+  border: 1px solid var(--ck-glass-border);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 80vh;
+  scroll-snap-align: start;
+}
+.ck-kanban-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ck-glass-border-soft);
+  font-weight: 800;
+  font-size: 14px;
+}
+.ck-kanban-count {
+  background: rgba(0,0,0,0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+[data-theme="dark"] .ck-kanban-count {
+  background: rgba(255,255,255,0.1);
+}
+.ck-kanban-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
 
 /* Pending Update Badge */
 .ck-pending-badge {
