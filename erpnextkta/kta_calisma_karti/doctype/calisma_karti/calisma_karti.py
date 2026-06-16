@@ -159,12 +159,15 @@ class CalismaKarti(Document):
         if not wo_name and (self.get("is_karti") or "").strip():
             wo_name = frappe.db.get_value("Job Card", self.is_karti, "work_order") or ""
 
-        # 2) WO son 5 hane (öncelik: rakamlar)
-        digits = re.sub(r"\D", "", wo_name or "")
-        if digits:
-            wo_tail = digits[-5:]
+        # 2) İş Emri formatı: "MFG-WO-2026-02172" => "2026-02172"
+        if wo_name:
+            wo_tail = wo_name.split("WO-")[-1].strip()
+            # Güvenlik için sadece harf, rakam ve tireye izin ver
+            wo_tail = re.sub(r"[^\w\-]", "", wo_tail)
+            if not wo_tail:
+                wo_tail = "WO"
         else:
-            wo_tail = (wo_name or "WO")[-5:] or "WO"
+            wo_tail = "WO"
 
         # 3) Operasyon: boşluk ve '-' temizle
         op_raw = self.get("operasyon") or ""
