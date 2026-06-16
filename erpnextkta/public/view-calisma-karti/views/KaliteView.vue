@@ -242,8 +242,9 @@ function setupKrimpBookLogic(dialog: any) {
   const kablo_fld = dialog.get_field("kablo_no");
   const kontak_fld = dialog.get_field("kontak_no");
   
-  // Track last known kesit to avoid clearing on programmatic sets
   dialog.last_kesit = dialog.get_value("kablo_kesiti");
+  dialog.last_kablo = dialog.get_value("kablo_no");
+  dialog.last_kontak = dialog.get_value("kontak_no");
 
   const updateDetails = () => {
     const kesit = dialog.get_value("kablo_kesiti");
@@ -259,7 +260,7 @@ function setupKrimpBookLogic(dialog: any) {
             // Note: we don't overwrite kablo_kesiti if it's already set
             dialog.set_value("kalip_no", data.kalip_no);
             dialog.set_value("hedef_iletken_krimp_yuksekliği", data.hedef_iletken_krimp_yuksekliği);
-            dialog.set_value("cekme_kuvveti_n", data.cekme_kuvveti_n);
+            dialog.set_value("hedef_cekme_kuvveti_n", data.hedef_cekme_kuvveti_n);
             dialog.set_value("izokrimp_yuksekligi", data.izokrimp_yuksekligi);
 
             frappe.show_alert({ message: "Krimp Book değerleri yüklendi", indicator: "blue" });
@@ -272,12 +273,7 @@ function setupKrimpBookLogic(dialog: any) {
   if (kesit_fld) {
     kesit_fld.df.onchange = () => {
       const current_kesit = dialog.get_value("kablo_kesiti");
-
-      // If the dialog is currently loading initial data (edit mode), 
-      // or the value hasn't actually changed, do not clear dependent fields.
-      if (dialog.is_loading || dialog.last_kesit === current_kesit) return;
-
-      // Update last known kesit
+      if (dialog.last_kesit === current_kesit) return;
       dialog.last_kesit = current_kesit;
 
       // Clear dependent fields when kesit changes manually
@@ -286,8 +282,22 @@ function setupKrimpBookLogic(dialog: any) {
       updateDetails();
     };
   }
-  if (kablo_fld) kablo_fld.df.onchange = updateDetails;
-  if (kontak_fld) kontak_fld.df.onchange = updateDetails;
+  if (kablo_fld) {
+    kablo_fld.df.onchange = () => {
+      const current = dialog.get_value("kablo_no");
+      if (dialog.last_kablo === current) return;
+      dialog.last_kablo = current;
+      updateDetails();
+    };
+  }
+  if (kontak_fld) {
+    kontak_fld.df.onchange = () => {
+      const current = dialog.get_value("kontak_no");
+      if (dialog.last_kontak === current) return;
+      dialog.last_kontak = current;
+      updateDetails();
+    };
+  }
 }
 
 function addKrimp() {
@@ -409,7 +419,8 @@ function cloneKrimp(row: any) {
     makine_pres_no: row.makine_pres_no || "",
     hedef_kablo_boyu: row.hedef_kablo_boyu ?? 0,
     hedef_iletken_krimp_yuksekliği: row.hedef_iletken_krimp_yuksekliği ?? 0,
-    cekme_kuvveti_n: row.cekme_kuvveti_n ?? 0,
+    hedef_cekme_kuvveti_n: row.hedef_cekme_kuvveti_n ?? 0,
+    olculen_cekme_kuvveti_n: row.olculen_cekme_kuvveti_n ?? 0,
     izokrimp_yuksekligi: row.izokrimp_yuksekligi ?? 0,
     radus_mevcut: row.radus_mevcut ?? 0,
     tel_kesme_mevcut: row.tel_kesme_mevcut ?? 0,
@@ -489,7 +500,7 @@ function printKrimpProtocol() {
       <td class="${sapmaClass(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği)}">${sapmaTxt(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği)}</td>
       <td>${r.siyirma_boyu ?? "-"} mm</td>
       <td>${r.capak_boyu ?? "-"} mm</td>
-      <td>${r.cekme_kuvveti_n ?? "-"} N</td>
+      <td>${r.olculen_cekme_kuvveti_n ?? "-"} N (Hedef: ${r.hedef_cekme_kuvveti_n ?? "-"})</td>
       <td class="${r.radus_mevcut ? 'ok' : 'low'}">${r.radus_mevcut ? "✔" : "✘"}</td>
       <td class="${r.tel_kesme_mevcut ? 'ok' : 'low'}">${r.tel_kesme_mevcut ? "✔" : "✘"}</td>
       <td>${r.operator || "-"}</td>

@@ -275,6 +275,7 @@ export function krimpOlcumFields(defaults: any = {}) {
             label: "Hedef İletken Krimp Yük. (mm)",
             fieldname: "hedef_iletken_krimp_yuksekliği",
             default: defaults.hedef_iletken_krimp_yuksekliği ?? 0,
+            read_only: 1,
         },
         {
             fieldtype: "Float",
@@ -296,9 +297,16 @@ export function krimpOlcumFields(defaults: any = {}) {
         },
         {
             fieldtype: "Float",
-            label: "Çekme Kuvveti (N)",
-            fieldname: "cekme_kuvveti_n",
-            default: defaults.cekme_kuvveti_n ?? 0,
+            label: "Hedef Çekme Kuvveti (N)",
+            fieldname: "hedef_cekme_kuvveti_n",
+            default: defaults.hedef_cekme_kuvveti_n ?? 0,
+            read_only: 1,
+        },
+        {
+            fieldtype: "Float",
+            label: "Ölçülen Çekme Kuvveti (N)",
+            fieldname: "olculen_cekme_kuvveti_n",
+            default: defaults.olculen_cekme_kuvveti_n ?? 0,
         },
         {
             fieldtype: "Float",
