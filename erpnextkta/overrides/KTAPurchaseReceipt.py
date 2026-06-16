@@ -372,7 +372,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
                 super().on_submit()
                 # Etiket basımı artık satır bazlı kuyrukta — print_zebra kaldırıldı
-                make_quality_inspections(self.doctype, self.name, qi_items)
+                make_quality_inspections(self.company, self.doctype, self.name, qi_items)
             else:
                 super().on_submit()
         except Exception as e:
