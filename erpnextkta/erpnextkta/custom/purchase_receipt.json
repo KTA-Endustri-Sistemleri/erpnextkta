@@ -1549,7 +1549,7 @@
             "idx": 0,
             "is_child_table": 0,
             "link_doctype": "KTA Stock Label",
-            "link_fieldname": "gr_number",
+            "link_fieldname": "reference_name",
             "modified": "2025-06-11 19:47:49.687034",
             "modified_by": "Administrator",
             "name": "kta_pr_stock_label",

@@ -54,3 +54,11 @@ def execute():
             SET label_doctype = 'KTA Stock Label'
             WHERE label_doctype IN ('KTA Depo Etiketleri', 'KTA Is Emri Etiketleri')
         """)
+
+    # Fix existing DocType Link to prevent DuplicateEntryError during sync_customizations
+    frappe.db.sql("""
+        UPDATE `tabDocType Link`
+        SET link_fieldname = 'reference_name'
+        WHERE name = 'kta_pr_stock_label' AND link_fieldname = 'gr_number'
+    """)
+

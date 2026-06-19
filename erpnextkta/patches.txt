@@ -14,3 +14,4 @@ erpnextkta.patches.v1_2_1.add_custom_calisma_karti_to_qi
 erpnextkta.patches.v1_3_0.create_default_downtime_reasons
 erpnextkta.patches.v1_4_0.migrate_to_kta_stock_label
 erpnextkta.patches.v1_4_0.prune_mal_giris_workflow
+erpnextkta.patches.v1_4_1.fix_pr_stock_label_link
