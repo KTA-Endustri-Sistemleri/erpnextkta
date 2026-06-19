@@ -345,12 +345,6 @@ fixtures = [
         ]
     },
     {
-        "doctype": "Workflow",
-        "filters": [
-            ["name", "in", ["KTA Mal Giris Sureci"]]
-        ]
-    },
-    {
         "doctype": "Custom Field",
         "filters": [
             [
