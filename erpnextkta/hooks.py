@@ -223,6 +223,8 @@ scheduler_events = {
         "15 0,16 * * *": ["erpnextkta.tasks.auto_close_timed_out_cards"],
         # Her gece saat 04:00'da oluşturulmuş ama başlatılmamış kartların temizliği
         "0 4 * * *": ["erpnextkta.tasks.delete_old_unstarted_cards"],
+        # Her Pazar gece 01:30'da sadece draft kartları submit et
+        "30 1 * * 0": ["erpnextkta.tasks.submit_draft_calisma_kartlari"],
     },
     "weekly": [
         "erpnextkta.tasks.weekly"

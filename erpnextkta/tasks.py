@@ -11,6 +11,32 @@ from erpnextkta.kta_stock.label_manager import clear_warehouse_labels
 def weekly():
     clear_warehouse_labels()
 
+def submit_draft_calisma_kartlari():
+    """
+    Haftalık olarak çalışıp, 'Draft' durumunda (docstatus=0) kalmış ve 
+    kapatılmış (bitis_saati dolu) Çalışma Kartlarını otomatik olarak submit eder.
+    """
+    frappe.logger().info("submit_draft_calisma_kartlari started")
+    
+    kartlar = frappe.get_all(
+        "Calisma Karti",
+        filters={
+            "docstatus": 0,
+            "bitis_saati": ["is", "set"]
+        },
+        fields=["name"]
+    )
+
+    for k in kartlar:
+        try:
+            doc = frappe.get_doc("Calisma Karti", k.name)
+            doc.submit()
+            frappe.db.commit()
+            publish_calisma_karti_changed(doc.name, reason="scheduler:weekly_submit")
+        except Exception as e:
+            frappe.db.rollback()
+            frappe.log_error(title=f"submit_draft_calisma_kartlari hatası: {k.name}", message=frappe.get_traceback())
+
 def auto_close_timed_out_cards():
     """
     Vardiya sonlarında çalışarak açık kalan kartları akıllıca kapatır:
