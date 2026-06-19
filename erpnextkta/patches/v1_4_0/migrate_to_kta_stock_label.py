@@ -40,12 +40,12 @@ def execute():
             if splits:
                 new_label.save()
 
-    # Rename Zebra Templates
+    # Rename Zebra Templates using SQL to bypass missing module ImportErrors
     if frappe.db.exists("DocType", "KTA Zebra Templates"):
         if frappe.db.exists("KTA Zebra Templates", "KTA Depo Etiketleri"):
-            frappe.rename_doc("KTA Zebra Templates", "KTA Depo Etiketleri", "Depo Giriş Etiketi", force=True)
+            frappe.db.sql("""UPDATE `tabKTA Zebra Templates` SET name = 'Depo Giriş Etiketi' WHERE name = 'KTA Depo Etiketleri'""")
         if frappe.db.exists("KTA Zebra Templates", "KTA Is Emri Etiketleri"):
-            frappe.rename_doc("KTA Zebra Templates", "KTA Is Emri Etiketleri", "İş Emri Etiketi", force=True)
+            frappe.db.sql("""UPDATE `tabKTA Zebra Templates` SET name = 'İş Emri Etiketi' WHERE name = 'KTA Is Emri Etiketleri'""")
 
     # Update old Print Logs to new DocType
     if frappe.db.exists("DocType", "KTA Print Log"):
