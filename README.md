@@ -16,6 +16,7 @@ Bu bölüm, ERPNextKTA uygulamasını kullanacak <strong>son kullanıcılar</str
 ### 📖 Kullanım Kılavuzları
 - 🚀 [KTA Çalışma Kartı Kullanım Kılavuzu](docs/kta_calisma_karti_kilavuzu.html)
 - 📏 [KTA Kalite Yönetimi Kılavuzu](docs/kta_kalite_kilavuzu.html)
+- 📦 [KTA Stok ve Lojistik Kılavuzu](docs/kta_stok_lojistik_kilavuzu.html)
 
 ## 🎯 ERPNextKTA Nedir?
 
@@ -38,6 +39,8 @@ ERPNextKTA, standart ERPNext işleyişine ek olarak aşağıdaki alanlarda kapsa
 - Gelişmiş negatif stok kuralları  
 - Üretimden otomatik giriş/çıkış hareketleri  
 - Üretim planlama için veri hazırlığı  
+- **Akıllı Parti Bölme (Smart Batch Splitting):** Mal Kabul (Purchase Receipt) anında `custom_split_qty` değerine göre veya Repack/Manufacture işlemlerinde `musteri_paketleme_miktari` değerine göre stokların anında alt partilere bölünmesi ve otomatik ZPL etiketlerinin yazdırılması.
+- **Transfer Güvenlik Duvarı (Karantina):** Kalite onayı (GKK) almamış partilerin `Stock Entry` ve `Delivery Note` gibi işlemlerle depodan çıkışını kesin olarak engelleyen entegre kısıtlama mekanizması.
 
 ### 📱 QR Scanner Entegrasyonu  
 - Masaüstü + Mobil tarama desteği  
@@ -68,6 +71,15 @@ ERPNextKTA, standart ERPNext işleyişine ek olarak aşağıdaki alanlarda kapsa
 
 Bu bölüm, projeye katkıda bulunacak veya geliştirme ortamında çalışacak geliştiricilere yöneliktir.  
 Tüm semantic-release, CI/CD, versiyonlama, commit standartları ve proje teknik detayları burada yer alır.
+
+---
+
+## 🧱 Mimari Kurgular (Architecture)
+
+### 1. Akıllı Parti Bölme ve GKK Transfer Kısıtı
+ERPNextKTA, depo giriş süreçlerinde (Purchase Receipt) standart ERPNext işleyişini "Hook" mimarisiyle baştan yazar:
+- **Anında Bölme & Etiketleme:** `KTAPurchaseReceipt.py`, belge onaylandığı (Submit) saniye (stok defteri yazılmadan milisaniyeler önce) ürünleri kutu içi miktarlarına göre böler. Bu sayede **Zebra SUT etiketleri anında basılır** ve geriye dönük stok yeniden değerleme (Repost SLE) külfeti tamamen ortadan kalkar.
+- **Sıfır Tolerans Güvenlik Duvarı:** `quality_inspection_validator.py` dosyası, `Stock Entry` ve `Delivery Note` işlemlerinin `before_submit` olayına (hook) takılıdır. Çıkışı yapılmak istenen her partinin (Batch) kökenini sorgular. Eğer köken belge bir Purchase Receipt ise ve buna bağlı bir Kalite Kontrol belgesi (QI) "Accepted" değilse, anında `frappe.throw` fırlatarak ürünün fiziksel hareketini durdurur.
 
 ---
 

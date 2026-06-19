@@ -19,7 +19,8 @@
   "column_break_2",
   "izokrimp_yuksekligi",
   "siyirma_boyu",
-  "cekme_kuvveti_n",
+  "hedef_cekme_kuvveti_n",
+  "olculen_cekme_kuvveti_n",
   "capak_boyu",
   "column_break_3",
   "radus_mevcut",
@@ -108,9 +109,15 @@
   },
   {
    "allow_on_submit": 1,
-   "fieldname": "cekme_kuvveti_n",
+   "fieldname": "hedef_cekme_kuvveti_n",
    "fieldtype": "Float",
-   "label": "\u00c7ekme Kuvveti (N)"
+   "label": "Hedef \u00c7ekme Kuvveti (N)"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "olculen_cekme_kuvveti_n",
+   "fieldtype": "Float",
+   "label": "\u00d6l\u00e7\u00fclen \u00c7ekme Kuvveti (N)"
   },
   {
    "allow_on_submit": 1,

@@ -17,8 +17,21 @@ export function hurdaNedeniLinkField(defaultValue = "") {
     };
 }
 
+function applyDecimalInputMode(fields: any[]) {
+    fields.forEach(f => {
+        if (["Float", "Currency", "Percent"].includes(f.fieldtype)) {
+            f.on_make = (field: any) => {
+                if (field.$input) {
+                    field.$input.attr("inputmode", "decimal");
+                }
+            };
+        }
+    });
+    return fields;
+}
+
 export function hurdaFields(defaults: any = {}) {
-    return [
+    return applyDecimalInputMode([
         {
             fieldtype: "Link",
             label: "Parça Numarası",
@@ -56,7 +69,7 @@ export function hurdaFields(defaults: any = {}) {
             options: "Warehouse",
             default: defaults.depo || "",
         },
-    ];
+    ]);
 }
 
 // Hurda için: sadece ilgili operasyonun BOM item'larını göster
@@ -78,7 +91,7 @@ export function hurdaParcaNoField(calismaKartiName: string, defaultValue?: strin
 }
 
 export function durusFields() {
-    return [
+    return applyDecimalInputMode([
         {
             fieldtype: "Link",
             label: "Duruş Nedeni",
@@ -88,13 +101,13 @@ export function durusFields() {
             get_query: () => ({ filters: { is_system: 0 } })
         },
         { fieldtype: "Small Text", label: "Açıklama", fieldname: "aciklama" }
-    ];
+    ]);
 }
 
 
 
 export function idcOlcumFields(docname: string, defaults: any = {}) {
-    return [
+    return applyDecimalInputMode([
         {
             fieldtype: "Link",
             label: "Item Code",
@@ -121,11 +134,11 @@ export function idcOlcumFields(docname: string, defaults: any = {}) {
             reqd: 0,
             default: defaults.cekme_n ?? 0,
         },
-    ];
+    ]);
 }
 
 export function barkodKayitFields(defaults: any = {}) {
-    return [
+    return applyDecimalInputMode([
         {
             fieldtype: "Data",
             label: "Barkod",
@@ -133,11 +146,11 @@ export function barkodKayitFields(defaults: any = {}) {
             reqd: 1,
             default: defaults.barcode || "",
         },
-    ];
+    ]);
 }
 
 export function altOperasyonFields(parentOperationLabel: string, calismaKartiName: string, defaults: any = {}, getAltOpValue?: () => string, altOpOptions: any[] = []) {
-    return [
+    return applyDecimalInputMode([
         {
             fieldtype: "Select",
             label: "Alt İşlem",
@@ -183,11 +196,11 @@ export function altOperasyonFields(parentOperationLabel: string, calismaKartiNam
             reqd: 0,
             default: defaults.note || "",
         },
-    ];
+    ]);
 }
 
 export function krimpOlcumFields(defaults: any = {}) {
-    return [
+    return applyDecimalInputMode([
         {
             fieldtype: "Section Break",
             label: "Kablo ve Kontak Bilgileri"
@@ -262,6 +275,7 @@ export function krimpOlcumFields(defaults: any = {}) {
             label: "Hedef İletken Krimp Yük. (mm)",
             fieldname: "hedef_iletken_krimp_yuksekliği",
             default: defaults.hedef_iletken_krimp_yuksekliği ?? 0,
+            read_only: 1,
         },
         {
             fieldtype: "Float",
@@ -283,9 +297,16 @@ export function krimpOlcumFields(defaults: any = {}) {
         },
         {
             fieldtype: "Float",
-            label: "Çekme Kuvveti (N)",
-            fieldname: "cekme_kuvveti_n",
-            default: defaults.cekme_kuvveti_n ?? 0,
+            label: "Hedef Çekme Kuvveti (N)",
+            fieldname: "hedef_cekme_kuvveti_n",
+            default: defaults.hedef_cekme_kuvveti_n ?? 0,
+            read_only: 1,
+        },
+        {
+            fieldtype: "Float",
+            label: "Ölçülen Çekme Kuvveti (N)",
+            fieldname: "olculen_cekme_kuvveti_n",
+            default: defaults.olculen_cekme_kuvveti_n ?? 0,
         },
         {
             fieldtype: "Float",
@@ -309,11 +330,11 @@ export function krimpOlcumFields(defaults: any = {}) {
             fieldname: "tel_kesme_mevcut",
             default: defaults.tel_kesme_mevcut ?? 0,
         },
-    ];
+    ]);
 }
 
 export function enjeksiyonOlcumFields(defaults: any = {}) {
-    return [
+    return applyDecimalInputMode([
         {
             fieldtype: "Select",
             label: "Kontrol Periyodu",
@@ -393,5 +414,5 @@ export function enjeksiyonOlcumFields(defaults: any = {}) {
             fieldname: "sogutma_zamani",
             default: defaults.sogutma_zamani ?? 0,
         }
-    ];
+    ]);
 }

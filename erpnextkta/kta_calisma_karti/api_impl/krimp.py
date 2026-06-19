@@ -29,7 +29,8 @@ def add_krimp_olcumu(name: str, payload: str | dict):
         "olculen_iletken_krimp_yuksekliği": float(payload.get("olculen_iletken_krimp_yuksekliği") or 0),
         "izokrimp_yuksekligi": float(payload.get("izokrimp_yuksekligi") or 0),
         "siyirma_boyu": float(payload.get("siyirma_boyu") or 0),
-        "cekme_kuvveti_n": float(payload.get("cekme_kuvveti_n") or 0),
+        "hedef_cekme_kuvveti_n": float(payload.get("hedef_cekme_kuvveti_n") or 0),
+        "olculen_cekme_kuvveti_n": float(payload.get("olculen_cekme_kuvveti_n") or 0),
         "capak_boyu": float(payload.get("capak_boyu") or 0),
         "radus_mevcut": 1 if payload.get("radus_mevcut") else 0,
         "tel_kesme_mevcut": 1 if payload.get("tel_kesme_mevcut") else 0,
@@ -68,7 +69,8 @@ def update_krimp_olcumu(name: str, rowname: str, payload: str | dict):
     target.olculen_iletken_krimp_yuksekliği = float(payload.get("olculen_iletken_krimp_yuksekliği") or 0)
     target.izokrimp_yuksekligi = float(payload.get("izokrimp_yuksekligi") or 0)
     target.siyirma_boyu = float(payload.get("siyirma_boyu") or 0)
-    target.cekme_kuvveti_n = float(payload.get("cekme_kuvveti_n") or 0)
+    target.hedef_cekme_kuvveti_n = float(payload.get("hedef_cekme_kuvveti_n") or 0)
+    target.olculen_cekme_kuvveti_n = float(payload.get("olculen_cekme_kuvveti_n") or 0)
     target.capak_boyu = float(payload.get("capak_boyu") or 0)
     target.radus_mevcut = 1 if payload.get("radus_mevcut") else 0
     target.tel_kesme_mevcut = 1 if payload.get("tel_kesme_mevcut") else 0
@@ -296,7 +298,7 @@ def get_krimp_book_details(kablo_no=None, kontak_no=None, selected_kesit=None):
         "kablo_kesiti": book_entry.kesit,
         "kalip_no": book_entry.kalip,
         "hedef_iletken_krimp_yuksekliği": to_f(book_entry.krimp_yuksekligi),
-        "cekme_kuvveti_n": to_f(book_entry.cekme_kuvveti),
+        "hedef_cekme_kuvveti_n": to_f(book_entry.cekme_kuvveti),
         "izokrimp_yuksekligi": to_f(book_entry.izokrimp_yuksekligi)
     }
 

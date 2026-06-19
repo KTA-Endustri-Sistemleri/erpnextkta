@@ -171,7 +171,11 @@ doc_events = {
     "Stock Entry": {
         "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
         "on_update": "erpnextkta.kta_calisma_karti.api_impl.hurda.sync_stock_entry_to_calisma_karti",
-        "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash"
+        "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash",
+        "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer"
+    },
+    "Delivery Note": {
+        "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer"
     },
     "Calisma Karti": {
         # Hurda sync is now handled in the controller's on_update directly
@@ -219,6 +223,8 @@ scheduler_events = {
         "15 0,16 * * *": ["erpnextkta.tasks.auto_close_timed_out_cards"],
         # Her gece saat 04:00'da oluşturulmuş ama başlatılmamış kartların temizliği
         "0 4 * * *": ["erpnextkta.tasks.delete_old_unstarted_cards"],
+        # Her Pazar gece 01:30'da sadece draft kartları submit et
+        "30 1 * * 0": ["erpnextkta.tasks.submit_draft_calisma_kartlari"],
     },
     "weekly": [
         "erpnextkta.tasks.weekly"
@@ -381,6 +387,8 @@ fixtures = [
                     "Asset Maintenance Log-custom_ariza_aciklamasi",
                     "Asset Maintenance Log-custom_event_id",
                     "Asset Maintenance Task-custom_event_id",
+                    "Stock Entry Type-custom_etiket_basilabilir",
+                    "Stock Entry Type-custom_etiket_sablonu",
                 ],
             ]
         ],
