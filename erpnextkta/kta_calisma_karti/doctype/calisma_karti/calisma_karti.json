@@ -470,7 +470,7 @@
             "permlevel": 3,
             "read": 1,
             "write": 1,
-            "role": "Manufacturing User",
+            "role": "Manufacturing User"
         },
         {
             "permlevel": 3,
