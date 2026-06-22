@@ -26,21 +26,33 @@ def validate_batch_qi_on_transfer(doc, method=None):
             if not batch or batch.reference_doctype != "Purchase Receipt":
                 continue
                 
-            # Check if this PR generated a QI for this item
-            pending_qi = frappe.db.get_value(
-                "Quality Inspection", 
-                {
-                    "reference_type": "Purchase Receipt",
-                    "reference_name": batch.reference_name,
-                    "item_code": item.item_code,
-                    "status": ["!=", "Accepted"],
-                    "docstatus": ["<", 2]
-                },
-                "name"
-            )
-            
-            if pending_qi:
-                frappe.throw(
-                    f"<b>HATA:</b> {batch_no} numaralı parti henüz Kalite Kontrol (GKK) onayı almadığı için transfer edilemez! <br>"
-                    f"Lütfen önce <b>{pending_qi}</b> numaralı Kalite Kontrol belgesini onaylayın."
+            # Check if item requires quality inspection
+            req_qi = frappe.db.get_value("Item", item.item_code, "inspection_required_before_purchase")
+            if req_qi:
+                qi_docs = frappe.db.get_all(
+                    "Quality Inspection",
+                    filters={
+                        "reference_type": "Purchase Receipt",
+                        "reference_name": batch.reference_name,
+                        "item_code": item.item_code,
+                        "docstatus": ["<", 2]
+                    },
+                    fields=["name", "status", "docstatus"]
                 )
+
+                if not qi_docs:
+                    atlama_sayisi = frappe.db.get_value("Item", item.item_code, "custom_atlama_sayisi") or 0
+                    if atlama_sayisi > 0:
+                        continue
+                    frappe.throw(
+                        f"<b>HATA:</b> {batch_no} numaralı parti için henüz bir Kalite Kontrol (GKK) belgesi oluşturulmamıştır! <br>"
+                        f"Lütfen önce <b>{batch.reference_name}</b> irsaliyesi üzerinden Kalite Kontrol belgesi oluşturup onaylayın."
+                    )
+                else:
+                    qi_doc = qi_docs[0]
+                    if qi_doc.status != "Accepted" or qi_doc.docstatus != 1:
+                        frappe.throw(
+                            f"<b>HATA:</b> {batch_no} numaralı parti henüz Kalite Kontrol (GKK) onayı almadığı için transfer edilemez! <br>"
+                            f"Lütfen önce <b>{qi_doc.name}</b> numaralı Kalite Kontrol belgesini onaylayın."
+                        )
+

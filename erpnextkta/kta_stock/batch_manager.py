@@ -370,24 +370,26 @@ class BatchSplitManager:
         Bundle'ı günceller ve allocation listesini döner.
         Etiket oluşturma sorumluluğu çağırana aittir.
         """
-        if not row.get("serial_and_batch_bundle"):
-            return []
-
         if row.doctype != "Purchase Receipt Item":
             return []
 
-        batch_number = frappe.db.get_value(
-            "Serial and Batch Entry",
-            {"parent": row.serial_and_batch_bundle, "is_outward": 0},
-            "batch_no"
-        )
-
-        if not batch_number:
+        batch_number = None
+        if row.get("serial_and_batch_bundle"):
             batch_number = frappe.db.get_value(
                 "Serial and Batch Entry",
-                {"parent": row.serial_and_batch_bundle, "is_outward": 1},
+                {"parent": row.serial_and_batch_bundle, "is_outward": 0},
                 "batch_no"
             )
+
+            if not batch_number:
+                batch_number = frappe.db.get_value(
+                    "Serial and Batch Entry",
+                    {"parent": row.serial_and_batch_bundle, "is_outward": 1},
+                    "batch_no"
+                )
+
+        if not batch_number:
+            batch_number = row.get("batch_no")
 
         if not batch_number:
             batch_number = frappe.db.get_value("Batch", {

@@ -386,7 +386,7 @@ def check_queue_health():
         q = Queue('short', connection=conn)
         
         workers = Worker.all(connection=conn)
-        short_workers = [w for w in workers if "short" in w.queue_names()]
+        short_workers = [w for w in workers if any("short" in q for q in w.queue_names())]
         
         if not short_workers:
             frappe.msgprint(
@@ -457,7 +457,7 @@ def clear_warehouse_labels():
     return LabelPrinter.clear_empty_labels()
 
 
-def _print_pr_labels_by_names(label_names, user=None):
+def _print_pr_labels_by_names(label_names, user=None, **kwargs):
     if not label_names:
         return
 
@@ -534,6 +534,31 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1", submitting_user=None):
     if isinstance(row, str):
         row = frappe.get_doc("Purchase Receipt Item", row)
 
+    # Eğer satırda gerçek bir Kalite Kontrol belgesi tanımlıysa onu kullan, yoksa "ATLA 5/1" varsayılanına düş
+    if row.get("quality_inspection"):
+        q_ref = row.quality_inspection
+    else:
+        # Fallback: Check if a Quality Inspection document already exists in the database
+        qi_filters = {
+            "reference_type": "Purchase Receipt",
+            "reference_name": row.parent,
+            "docstatus": ["<", 2]
+        }
+        if row.name:
+            qi_filters["child_row_reference"] = row.name
+        else:
+            qi_filters["item_code"] = row.item_code
+
+        qi_name = frappe.db.get_value("Quality Inspection", qi_filters, "name")
+        if not qi_name and "child_row_reference" in qi_filters:
+            qi_filters.pop("child_row_reference")
+            qi_filters["item_code"] = row.item_code
+            qi_name = frappe.db.get_value("Quality Inspection", qi_filters, "name")
+
+        if qi_name:
+            q_ref = qi_name
+
+
     allocations = BatchSplitManager.split_purchase_receipt_batches(row)
     if not allocations:
         return
@@ -559,7 +584,6 @@ def custom_split_kta_batches(row=None, q_ref="ATLA 5/1", submitting_user=None):
         user=submitting_user or frappe.session.user,
         queue="short",
         timeout=120,
-        retry=3,
         now=frappe.flags.in_test,
     )
 

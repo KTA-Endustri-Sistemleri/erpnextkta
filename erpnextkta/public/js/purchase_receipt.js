@@ -32,5 +32,32 @@ frappe.ui.form.on("Purchase Receipt", {
             frm.posting_date = frm.doc.posting_date;
         }
         // currency() tetiklemesini YAPMA.
+    },
+
+    refresh: function (frm) {
+        // Sadece onaylı (submitted) belgeler için etiket butonu göster
+        if (frm.doc.docstatus === 1) {
+            frm.add_custom_button(__("Etiketleri Yeniden Bas"), function () {
+                frappe.confirm(
+                    __("Bu irsaliyeye ait tüm etiketleri tekrar yazıcıya göndermek istiyor musunuz?"),
+                    function () {
+                        frappe.call({
+                            method: "erpnextkta.kta_stock.label_manager.print_kta_pr_labels",
+                            args: { gr_number: frm.doc.name },
+                            freeze: true,
+                            freeze_message: __("Etiketler yazıcıya gönderiliyor..."),
+                            callback: function (r) {
+                                if (!r.exc) {
+                                    frappe.show_alert({
+                                        message: __("Etiketler yazıcıya gönderildi."),
+                                        indicator: "green"
+                                    }, 5);
+                                }
+                            }
+                        });
+                    }
+                );
+            }, __("KTA"));
+        }
     }
 });
