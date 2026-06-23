@@ -11,6 +11,10 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
         self.po_req_setting = frappe.db.get_single_value("Buying Settings", "po_required")
         frappe.db.set_single_value("Buying Settings", "po_required", "No")
 
+        # Temporarily enable making quality inspection after purchase/delivery in Stock Settings
+        self.allow_qi_after_delivery = frappe.db.get_single_value("Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery")
+        frappe.db.set_single_value("Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery", 1)
+
         # Link _Test Company KTA to all global fiscal years so that it passes Fiscal Year validations
         for fy_name in frappe.get_all("Fiscal Year", pluck="name"):
             fy = frappe.get_doc("Fiscal Year", fy_name)
@@ -58,6 +62,8 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
     def tearDown(self):
         if hasattr(self, "po_req_setting") and self.po_req_setting is not None:
             frappe.db.set_single_value("Buying Settings", "po_required", self.po_req_setting)
+        if hasattr(self, "allow_qi_after_delivery") and self.allow_qi_after_delivery is not None:
+            frappe.db.set_single_value("Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery", self.allow_qi_after_delivery)
         super().tearDown()
 
     def create_test_purchase_receipt(self, qty=5):
