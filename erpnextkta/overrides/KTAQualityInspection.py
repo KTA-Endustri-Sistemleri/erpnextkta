@@ -7,16 +7,40 @@ from erpnextkta.kta_stock.label_manager import print_kta_pr_labels, custom_split
 
 
 class KTAQualityInspection(QualityInspection):
+    def on_update(self):
+        super().on_update()
+        self.update_reference_status()
+
     def on_submit(self):
         try:
             super().on_submit()
             if self.custom_set_item_default_qi_template == 1:
                 self.set_default_qi_template()
+            self.update_reference_status()
         except Exception as e:
             import traceback
             full_trace = traceback.format_exc()
             frappe.log_error(f"Quality Inspection Submit Error {str(e)}\n{full_trace}", "Quality Inspection Submit Error")
             frappe.throw(f"Quality Inspection Submit Error {str(e)}")
+
+    def on_cancel(self):
+        super().on_cancel()
+        self.update_reference_status()
+
+    def on_trash(self):
+        super().on_trash()
+        self.flags.qi_being_deleted = True
+        self.update_reference_status()
+
+    def update_reference_status(self):
+        if self.reference_type == "Purchase Receipt" and self.reference_name:
+            try:
+                pr = frappe.get_doc("Purchase Receipt", self.reference_name)
+                if self.flags.qi_being_deleted:
+                    pr.flags.qi_being_deleted = self.name
+                pr.set_status(update=True)
+            except Exception as e:
+                frappe.log_error(f"Error updating reference PR status: {e}", "KTA QI Status Update Error")
 
     def set_default_qi_template(self):
         """Set the default quality inspection template for an item

@@ -452,3 +452,22 @@ class KTAPurchaseReceipt(PurchaseReceipt):
     def update_stock_ledger(self, allow_negative_stock=False, via_landed_cost_voucher=False):
         # Base PurchaseReceipt.update_stock_ledger does not accept via_landed_cost_voucher, swallow it
         super().update_stock_ledger(allow_negative_stock=allow_negative_stock)
+
+    def set_status(self, update=False, status=None, update_modified=True):
+        super().set_status(update=update, status=status, update_modified=update_modified)
+
+        if self.docstatus == 1 and self.status not in ["Cancelled", "Closed"]:
+            # Check if there are any draft Quality Inspections
+            qi_filters = {
+                "reference_type": "Purchase Receipt",
+                "reference_name": self.name,
+                "docstatus": 0
+            }
+            if getattr(self.flags, "qi_being_deleted", None):
+                qi_filters["name"] = ["!=", self.flags.qi_being_deleted]
+
+            has_draft_qi = frappe.db.exists("Quality Inspection", qi_filters)
+            if has_draft_qi:
+                self.status = "GKK Bekliyor"
+                if update:
+                    self.db_set("status", self.status, update_modified=update_modified)

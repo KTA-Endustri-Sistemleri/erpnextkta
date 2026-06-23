@@ -404,6 +404,7 @@ fixtures = [
                     "Asset Maintenance Task-maintenance_status-options",
                     "Asset Maintenance Log-maintenance_status-options",
                     "Asset Maintenance Task-maintenance_type-options",
+                    "Purchase Receipt-status-options",
                 ],
             ]
         ],
@@ -413,6 +414,9 @@ doctype_js = {
     "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",
     "Stock Reconciliation": "public/js/stock_reconciliation.js",
     "Purchase Receipt": "public/js/purchase_receipt.js"
+}
+doctype_list_js = {
+    "Purchase Receipt": "public/js/purchase_receipt_list.js"
 }
 
 extend_boot_session = "erpnextkta.boot.boot_session"
