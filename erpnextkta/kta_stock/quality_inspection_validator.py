@@ -51,6 +51,12 @@ def validate_batch_qi_on_transfer(doc, method=None):
                 else:
                     qi_doc = qi_docs[0]
                     if qi_doc.status != "Accepted" or qi_doc.docstatus != 1:
+                        # Allow transfer to rejected warehouse only if the QI is submitted and rejected
+                        if qi_doc.docstatus == 1 and qi_doc.status == "Rejected":
+                            target_wh = item.get("t_warehouse") or item.get("target_warehouse") or item.get("to_warehouse")
+                            if target_wh and frappe.db.get_value("Warehouse", target_wh, "is_rejected_warehouse"):
+                                continue
+
                         frappe.throw(
                             f"<b>HATA:</b> {batch_no} numaralı parti henüz Kalite Kontrol (GKK) onayı almadığı için transfer edilemez! <br>"
                             f"Lütfen önce <b>{qi_doc.name}</b> numaralı Kalite Kontrol belgesini onaylayın."
