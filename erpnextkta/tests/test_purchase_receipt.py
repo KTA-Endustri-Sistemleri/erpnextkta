@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from erpnextkta.tests.test_utils import KTATestCase
+from erpnextkta.tests.test_utils import KTATestCase, clear_item_stock_and_batches, setup_test_fiscal_years
 
 class TestKTAPurchaseReceiptGKK(KTATestCase):
     def setUp(self):
@@ -16,27 +16,11 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
         frappe.db.set_single_value("Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery", 1)
 
         # Link _Test Company KTA to all global fiscal years so that it passes Fiscal Year validations
-        for fy_name in frappe.get_all("Fiscal Year", pluck="name"):
-            fy = frappe.get_doc("Fiscal Year", fy_name)
-            if not any(c.company == self.company for c in fy.companies):
-                fy.append("companies", {"company": self.company})
-                fy.save(ignore_permissions=True)
-        
-        # Clear fiscal year cache to apply changes
-        frappe.cache().hdel("fiscal_years", self.company)
+        setup_test_fiscal_years(self.company)
 
         # Reset item and custom fields to prevent test pollution
         # Clean up existing test records to avoid database pollution and incorrect FIFO batch selection
-        frappe.db.delete("Stock Ledger Entry", {"item_code": self.item})
-        frappe.db.delete("Quality Inspection", {"item_code": self.item})
-        frappe.db.delete("KTA Stock Label", {"item_code": self.item})
-        
-        bundles = frappe.get_all("Serial and Batch Bundle", filters={"item_code": self.item}, pluck="name")
-        if bundles:
-            frappe.db.delete("Serial and Batch Entry", {"parent": ["in", bundles]})
-            frappe.db.delete("Serial and Batch Bundle", {"name": ["in", bundles]})
-            
-        frappe.db.delete("Batch", {"item": self.item})
+        clear_item_stock_and_batches(self.item)
 
         frappe.db.set_value("Item", self.item, {
             "inspection_required_before_purchase": 1,

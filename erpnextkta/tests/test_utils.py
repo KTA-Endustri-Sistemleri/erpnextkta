@@ -524,3 +524,28 @@ def _ensure_standard_roots():
 			except Exception:
 				pass
 	frappe.db.commit()
+
+
+def clear_item_stock_and_batches(item_code):
+	"""Clean up stock ledgers, quality inspections, batch bundles, and labels to prevent test pollution."""
+	frappe.db.delete("Stock Ledger Entry", {"item_code": item_code})
+	frappe.db.delete("Quality Inspection", {"item_code": item_code})
+	frappe.db.delete("KTA Stock Label", {"item_code": item_code})
+
+	bundles = frappe.get_all("Serial and Batch Bundle", filters={"item_code": item_code}, pluck="name")
+	if bundles:
+		frappe.db.delete("Serial and Batch Entry", {"parent": ["in", bundles]})
+		frappe.db.delete("Serial and Batch Bundle", {"name": ["in", bundles]})
+
+	frappe.db.delete("Batch", {"item": item_code})
+
+
+def setup_test_fiscal_years(company):
+	"""Link test company to all fiscal years and clear cache to pass Fiscal Year validations."""
+	for fy_name in frappe.get_all("Fiscal Year", pluck="name"):
+		fy = frappe.get_doc("Fiscal Year", fy_name)
+		if not any(c.company == company for c in fy.companies):
+			fy.append("companies", {"company": company})
+			fy.save(ignore_permissions=True)
+
+	frappe.cache().hdel("fiscal_years", company)
