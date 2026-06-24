@@ -16,4 +16,5 @@ erpnextkta.patches.v1_4_0.migrate_to_kta_stock_label
 erpnextkta.patches.v1_4_0.prune_mal_giris_workflow
 erpnextkta.patches.v1_4_1.fix_pr_stock_label_link
 erpnextkta.patches.v1_4_1.fix_stuck_gkk_purchase_receipts
+erpnextkta.patches.v1_4_1.fix_cancelled_calisma_kartlari_durum
 

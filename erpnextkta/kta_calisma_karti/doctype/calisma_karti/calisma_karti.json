@@ -83,7 +83,7 @@
             "in_list_view": 1,
             "in_standard_filter": 1,
             "label": "Durum",
-            "options": "Haz\u0131r\n\u00c7al\u0131\u015f\u0131yor\nDuru\u015fta\nBitmi\u015f\nReddedildi",
+            "options": "Haz\u0131r\n\u00c7al\u0131\u015f\u0131yor\nDuru\u015fta\nBitmi\u015f\nReddedildi\n\u0130ptal Edildi",
             "permlevel": 3
         },
         {
@@ -548,6 +548,10 @@
         {
             "color": "Red",
             "title": "Reddedildi"
+        },
+        {
+            "color": "Gray",
+            "title": "\u0130ptal Edildi"
         }
     ],
     "track_changes": 1,

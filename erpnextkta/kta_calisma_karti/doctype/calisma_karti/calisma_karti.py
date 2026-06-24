@@ -14,6 +14,7 @@ STATU_HARITASI = {
     "calisiyor": "Çalışıyor",
     "durusta": "Duruşta",
     "bitmis": "Bitmiş",
+    "iptal_edildi": "İptal Edildi",
 }
 
 def get_kta_settings():
@@ -136,6 +137,10 @@ class CalismaKarti(Document):
 
     def on_update_after_submit(self):
         self.on_update()
+
+    def on_cancel(self):
+        self.db_set("durum", "İptal Edildi", update_modified=True)
+        publish_calisma_karti_changed(self.name, reason="doc:on_cancel")
 
     def before_validate(self):
         if not self.custom_work_order and self.is_karti:
@@ -352,6 +357,8 @@ class CalismaKarti(Document):
         return last_row.durus_baslangic and not last_row.durus_bitis
 
     def get_durum(self):
+        if self.docstatus == 2:
+            return 'iptal_edildi'
         # If QC rejected, lock the card status.
         if (self.kalite_kontrol or '').strip() == 'Reddedildi':
             return 'reddedildi'

@@ -150,6 +150,7 @@ const statusFilters = [
   { key: "paused", label: "Duruşta" },
   { key: "finished", label: "Bitmiş" },
   { key: "rejected", label: "Reddedildi" },
+  { key: "cancelled", label: "İptal Edildi" },
 ];
 
 const qcFilters = [

@@ -56,7 +56,8 @@ async function load(opts = {}) {
       "running": "Çalışıyor",
       "paused": "Duruşta",
       "finished": "Bitmiş",
-      "rejected": "Reddedildi"
+      "rejected": "Reddedildi",
+      "cancelled": "İptal Edildi"
     };
 
     const qcMap = {
@@ -195,6 +196,7 @@ function openDetail(name) {
 
 function statusKeyFromDurumText(durum) {
   const v = (durum || "").toLowerCase();
+  if (v.includes("iptal")) return "cancelled";
   if (v.includes("redd")) return "rejected";
   if (v.includes("bit")) return "finished";
   if (v.includes("duru")) return "paused";
@@ -246,7 +248,8 @@ const kanbanColumns = computed(() => {
     running: { label: "Çalışıyor", items: [] },
     paused: { label: "Duruşta", items: [] },
     finished: { label: "Bitmiş", items: [] },
-    rejected: { label: "Reddedildi", items: [] }
+    rejected: { label: "Reddedildi", items: [] },
+    cancelled: { label: "İptal Edildi", items: [] }
   };
   for (const r of rows.value || []) {
     const key = statusKeyFromDurumText(r?.durum);
@@ -283,7 +286,7 @@ watch([rows, customerGroupFilter], ([newRows, filter]) => {
 
 // Computed counts for filters
 const statusCounts = computed(() => {
-  const c = { all: rows.value.length, ready: 0, running: 0, paused: 0, finished: 0, rejected: 0 };
+  const c = { all: rows.value.length, ready: 0, running: 0, paused: 0, finished: 0, rejected: 0, cancelled: 0 };
   for (const r of rows.value || []) {
     c[statusKeyFromDurumText(r?.durum)]++;
   }
