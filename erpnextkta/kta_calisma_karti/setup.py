@@ -4,6 +4,27 @@ def setup():
     setup_scrap_stock_entry_type()
     create_kta_roles()
     setup_permissions()
+    cleanup_duplicate_custom_fields()
+
+def cleanup_duplicate_custom_fields():
+    """Remove duplicate Custom Field records for fields already defined in custom DocTypes JSON."""
+    import json
+    import os
+
+    # Read fieldnames from Calisma Karti JSON
+    setup_dir = os.path.dirname(__file__)
+    json_path = os.path.join(setup_dir, "doctype", "calisma_karti", "calisma_karti.json")
+    if os.path.exists(json_path):
+        with open(json_path, "r", encoding="utf-8") as f:
+            meta = json.load(f)
+            json_fields = [field.get("fieldname") for field in meta.get("fields", []) if field.get("fieldname")]
+        
+        # Delete custom fields from DB that overlap with JSON fields
+        for fieldname in json_fields:
+            if frappe.db.exists("Custom Field", {"dt": "Calisma Karti", "fieldname": fieldname}):
+                frappe.db.delete("Custom Field", {"dt": "Calisma Karti", "fieldname": fieldname})
+        frappe.db.commit()
+
 
 def setup_scrap_stock_entry_type():
     """Create 'Scrap for Manufacturing' Stock Entry Type if it doesn't exist."""
