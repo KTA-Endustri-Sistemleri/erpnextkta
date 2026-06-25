@@ -18,6 +18,7 @@ KTA Endüstri Sistemleri operatörlerinin ERPNext'in karmaşık formlarına girm
 - Rol bazlı güvenlik (System Manager / KTA Kalite Kullanıcısı / Manufacturing User)
 - ERPNext Quality Inspection (MAT-QA) entegrasyon API'ları
 - Socket.IO realtime events
+- **Kullanıcı Paneli & Raporlama**: `User` DocType dashboard override entegrasyonu ve günlük 5 saat altı çalışan operatörlerin amirlere bildirilmesi (Scheduler)
 
 ### Frontend (Vue 3 SPA)
 Bu bileşenler `erpnextkta/public/` dizini altında bulunur:

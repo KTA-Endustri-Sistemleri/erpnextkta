@@ -71,15 +71,21 @@ docs> **Not:** `hammadde`, `uom`, `note` opsiyonel. `adet` default `0`.
 | `kta_calisma_karti:list_changed` | her create/update/qc sonrası | list SPA |
 | `kta_calisma_karti:doc_changed:{name}` | aynı, docname ile | view SPA |
 
-## Dahili Hooklar (Internal Hooks)
+## Dahili Hooklar & Zamanlanmış Görevler (Internal Hooks & Scheduled Tasks)
 
-Bu fonksiyonlar `hooks.py` veya DocType controller üzerinden otomatik tetiklenir:
+Bu fonksiyonlar `hooks.py`, DocType controller veya Frappe Scheduler üzerinden otomatik tetiklenir:
 
-| Fonksiyon | Tetikleyici | Açıklama |
+| Fonksiyon | Tetikleyici / Zamanlayıcı | Açıklama |
 |-----------|------------|----------|
 | `sync_stock_entry_to_calisma_karti` | `Stock Entry` (on_update) | SE'den yapılan manuel değişiklikleri CK'ya senkronize eder. |
 | `sync_calisma_karti_hurdalar_to_se` | `Calisma Karti` (on_update / after_submit) | CK tablosundaki değişiklikleri SE'ye senkronize eder. |
 | `on_stock_entry_trash` | `Stock Entry` (on_trash) | SE silindiğinde CK üzerindeki linki temizler. |
+| `get_dashboard_data` | `override_doctype_dashboards` (User) | User dashboard yapısına `Calisma Karti`'ni bağlar. |
+| `get_open_count` | Whitelisted API (User dashboard) | Kullanıcıya bağlı Employee'ler üzerinden açık Çalışma Kartı sayısı ve isim listesini döner. |
+| `auto_close_timed_out_cards` | Cron (`15 0,16 * * *`) | Vardiya sonlarında açık kalan kartları (duruşta ise duruş başlangıcında, çalışıyorsa vardiya sonu saatinde) kapatır. |
+| `delete_old_unstarted_cards` | Cron (`0 4 * * *`) | +24 saattir `Hazır` statüsünde kalmış ve hiç başlatılmamış kartları `frappe.delete_doc` ile siler. |
+| `submit_draft_calisma_kartlari` | Cron (`30 1 * * 0`) | Pazar günü açık/taslak kalan ve bitirilmiş olan kartları otomatik submit eder. |
+| `send_daily_calisma_karti_error_report` | Cron (`30 8 * * *`) | Ayarlar aktif ise dün 5 saatin altında net çalışma süresine sahip operatörleri amirlere e-posta ile raporlar. |
 
 ## Sabitler (_helpers.py)
 

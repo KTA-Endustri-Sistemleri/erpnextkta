@@ -332,3 +332,20 @@ QC red kararında Çalışma Kartı'nın güvenli ve tutarlı biçimde kapatılm
 - **Akış**: Açık duruş var mı kontrol et → `bitis_saati` ata → `update_durum()` çağır → `save(ignore_permissions=True)` → `reload()` → `submit()`.
 - **İki Tetikleme Noktası**: QI oluşturma yolunda (`submit_kta_quality_inspection`) ve manuel durum güncelleme yolunda (`update_kalite_kontrol`).
 - **Güvenli Zincir**: QI `submit()` başarılıysa kart finalizasyonundaki hata işlemi engellemez (try/except + `frappe.log_error`).
+
+### 37. Koşullu Açıklama Zorunluluğu Validasyon Örüntüsü (Conditional Mandatory Field)
+Duruş nedeni "Diger" seçildiğinde açıklama alanını zorunlu kılan iki katmanlı doğrulama mimarisidir:
+- **Frontend (UI Prompt)**: JS katmanında (`calisma_karti.js` / SPA dialog helper) duruş nedeni "Diger" seçildiğinde `aciklama` alanının metadata özelliği dinamik olarak `reqd: 1` yapılır.
+- **Backend (Validate Hook)**: Model katmanında (`calisma_karti.py` -> `validate`) duruş tablosu taranır. Eğer nedeni "Diger" olan ve açıklaması boş bırakılmış satır varsa `frappe.throw()` ile işlem durdurulur ve hata fırlatılır.
+
+### 38. User Dashboard Hook Override Deseni
+Standart Frappe dashboard verilerini ezerek kullanıcı bazlı Employee ilişkilerini takip etmeyi sağlayan örüntü:
+- **Dashboard Hook**: `hooks.py` üzerindeki `override_doctype_dashboards` listesine `User` doctype için custom dashboard fonksiyonu (`erpnextkta.overrides.user_dashboard.get_dashboard_data`) kaydedilir.
+- **Count & List Manipulation**: Whitelisted `get_open_count` fonksiyonu üzerinden kullanıcının `Employee` ID'leri bulunur. Bu çalışanlara bağlı tüm `Calisma Karti` belgeleri listelenerek dashboard altındaki "Activity" bölümüne internal link olarak inject edilir.
+
+### 39. Zamanlanmış Hata/Fark Raporu (Scheduled Performance Gap Reporter)
+Operatörlerin günlük hedeflerini denetleyen ve farkları bildiren zamanlanmış raporlama deseni:
+- **Zamanlayıcı (Cron)**: Her sabah `30 8 * * *` saatinde tetiklenir.
+- **Ayarlar Bağlantısı**: `KTA Calisma Karti Settings` üzerinden `hata_raporu_aktif` ve alıcı amirlerin e-postalarını tutan `hata_raporu_alicilari` alanlarını dinamik kontrol eder.
+- **Hesaplama & Gruplama**: Bir önceki güne ait tüm Çalışma Kartları operatör bazında gruplanır. Toplam günlük net süresi 5 saatin altında kalan operatörlerin kart detayları listelenip HTML şablonuyla amirlere mail gönderilir.
+
