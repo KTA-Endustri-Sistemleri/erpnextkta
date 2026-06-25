@@ -35,7 +35,7 @@ ERPNext’in standart üretim akışlarını gerçek atölye senaryolarına uyar
 
   <div class="folder-tree__item folder">
     <span class="folder-tree__icon">📁</span>
-    <span class="folder-tree__label">manufacturing_ext/</span>
+    <span class="folder-tree__label">kta_calisma_karti/</span>
   </div>
 
   <div class="folder-tree__children">
@@ -48,22 +48,26 @@ ERPNext’in standart üretim akışlarını gerçek atölye senaryolarına uyar
     <div class="folder-tree__children">
       <div class="folder-tree__item folder">
         <span class="folder-tree__icon">📁</span>
-        <span class="folder-tree__label">kta_calisma_karti/</span>
+        <span class="folder-tree__label">calisma_karti/</span>
       </div>
       <div class="folder-tree__item folder">
         <span class="folder-tree__icon">📁</span>
         <span class="folder-tree__label">kta_calisma_karti_operasyonlari/</span>
       </div>
+      <div class="folder-tree__item folder">
+        <span class="folder-tree__icon">📁</span>
+        <span class="folder-tree__label">kta_calisma_karti_settings/</span>
+      </div>
     </div>
 
     <div class="folder-tree__item file">
       <span class="folder-tree__icon">📄</span>
-      <span class="folder-tree__label">job_card_hooks.py</span>
+      <span class="folder-tree__label">api.py (Dış Facade)</span>
     </div>
 
-    <div class="folder-tree__item file">
-      <span class="folder-tree__icon">📄</span>
-      <span class="folder-tree__label">workflow_logic/</span>
+    <div class="folder-tree__item folder">
+      <span class="folder-tree__icon">📁</span>
+      <span class="folder-tree__label">api_impl/</span>
     </div>
 
   </div>

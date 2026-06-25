@@ -47,6 +47,7 @@ Kartı oluşturduktan sonra içine girip, üst kısımdaki **"Başlat"** butonun
     - **Plansız Duruşlar**: Makine arızası, malzeme bekleme, kalite onayı bekleme vb. (OEE kayıpları).
     - **Planlı Duruşlar**: Mola, yemek, eğitim veya planlı bakım süreçleri.
     - **Sistem Duruşları**: Arka plan görevleri veya otomatik kurallar tarafından eklenen, operatöre gizli duruşlar.
+    - **"Diğer" Nedeni Kontrolü**: Duruş nedeni olarak *"Diğer"* seçilirse, duruşun nedenini açıklayan bir metin (en az bir kelime) girmek zorunludur. Aksi takdirde hem arayüzde (kırmızı uyarı) hem de sunucu tarafında kaydetme işlemi engellenir.
 3. Kartın durumu **"Duruşta"** olarak güncellenir. Bu süre boyunca çalışılan net süre sayacı ilerlemez.
 4. İşe tekrar dönüldüğünde **"Devam Et" (Başlat)** butonuna basarak kaldığınız yerden süre saymaya devam edebilirsiniz.
 
@@ -120,12 +121,14 @@ Kartı açık unutmanız durumunda sistem vardiya sonlarında (**16:00** ve **00
 
 ---
 
-## 📊 8. İzleme ve Dashboard
+## 📊 8. İzleme, Dashboard ve Raporlama
 
-Yöneticiler ve kalite sorumluları, **Çalışma Kartı Dashboard** ekranı üzerinden:
-- Günlük durum dağılımını (Çalışan, Duruşta, Bitmiş kart sayıları),
-- Operatör net çalışma sürelerini,
-- Kalite kontrol ve hurda dağılımlarını anlık olarak takip edebilirler.
+Yöneticiler, amirler ve kalite sorumluları sistem üzerinden şu araçlarla gerçek zamanlı izleme yapabilir:
+
+- **Çalışma Kartı Dashboard:** Günlük durum dağılımını (Çalışan, Duruşta, Bitmiş kart sayıları), operatör net çalışma sürelerini, kalite kontrol ve hurda dağılımlarını anlık gösterir.
+- **Kullanıcı Paneli (User Dashboard) Entegrasyonu:** Her kullanıcının kendi profil sayfasında, kullanıcının bağlı olduğu `Employee` kaydı üzerinden açık ve tamamlanmış Çalışma Kartlarının adedi ve linkleri otomatik olarak listelenir.
+- **Düşük Net Süre Grafiği (Operator Performance Chart):** Son N günde toplam net çalışma süresi en az olan operatörleri ve net sürelerini bar grafik olarak karşılaştırır.
+- **Günlük Performans ve Hata Raporlama (E-posta):** Günlük net çalışma süresi 5 saatin altında kalan operatörler ve bu operatörlerin o günkü kart detayları, her sabah saat `08:30`'da KTA Settings'te tanımlanmış amir e-postalarına HTML raporu olarak otomatik gönderilir.
 
 ---
 

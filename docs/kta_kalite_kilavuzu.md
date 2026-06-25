@@ -31,14 +31,15 @@ Krimp operasyonlarında kullanılan terminal, kablo ve kalıp (`Amboss`) eşleş
 
 ---
 
-## 📏 2. Krimp Yükseklik Parametreleri
+## 📏 2. Krimp Yükseklik Parametreleri ve Ölçüm Doğrulama
 
 Krimp Book'taki "Ansiklopedi" verisinin, sahada uygulanan "Onaylı Parametre" katmanına dönüştürülmüş halidir.
 
-### Temel İşleyiş:
-- **Dinamik Kısıt:** Bir terminal seçildiğinde, `KTA Quality Settings` altındaki tanımlı `Item Group` (Örn: 150-Terminals) filtreleri devreye girerek hatalı parça seçimi engellenir.
-- **Veri Koparma (Decoupling):** Onaylı bir parametre oluşturulduğunda, veriler Krimp Book'tan kopyalanır ve dondurulur. Böylece ana kütüphane değişse bile üretimdeki "Onaylı Formül" sabit kalır.
-- **Ölçüm Doğrulama:** Bu parametreler, üretimdeki `IDC Ölçüleri` ve standart kalite muayeneleri için temel referans noktası (Master Data) oluşturur.
+### Temel İşleyiş ve Cascade Seçim Aşamaları:
+1. **Dinamik Kısıt ve Cascade Seçim**: Operatör veri girişi yaparken *Kesit Seçimi* -> *Kablo Seçimi* (kesite ait BOM kalıpları) -> *Kontak Seçimi* -> *Makine Seçimi (Asset)* şeklinde adım adım daralan bağımlı bir seçim akışı (Cascade Selection) izler. Bu sayede hatalı eşleşmeler daha giriş aşamasında elenir.
+2. **Otomatik Tolerans Algılama**: Seçilen üçlüye (Kablo + Kontak + Kesit) göre `KTA Krimp Book` veritabanından minimum/maksimum tolerans limitleri otomatik olarak çekilir.
+3. **Canlı Gösterge (MeasureGauge)**: Arayüzde ölçüm değerleri girildiğinde ±10 mm segment göstergesi canlı olarak çalışır. Girilen değer hedefe göre *Kısa*, *Uzun* veya *OK* olarak anlık işaretlenir. Limitlerin aşılması durumunda ekran "LIMIT AŞILDI" uyarısı verir.
+4. **Veri Koparma (Decoupling)**: Onaylı bir parametre oluşturulduğunda, veriler Krimp Book'tan kopyalanır ve dondurulur. Böylece ana kütüphane değişse bile üretimdeki "Onaylı Formül" sabit kalır.
 
 ---
 
