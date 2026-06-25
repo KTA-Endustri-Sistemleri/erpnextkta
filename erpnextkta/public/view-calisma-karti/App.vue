@@ -176,12 +176,32 @@ async function onBaslatDevam() {
 }
 
 function onDurus() {
-  frappe.prompt(
+  const dialog = frappe.prompt(
     durusFields(),
-    async (v: any) => callIslem("Durus", v.durus_nedeni, v.aciklama),
+    async (v: any) => {
+      if (v.durus_nedeni === "Diger" && !v.aciklama) {
+        frappe.msgprint(__("Duruş nedeni 'Diger' olduğunda açıklama girmek zorunludur."));
+        return;
+      }
+      callIslem("Durus", v.durus_nedeni, v.aciklama);
+    },
     "Duruş Bilgisi",
     "Duruş Başlat"
   );
+
+  if (dialog) {
+    const field = dialog.get_field("durus_nedeni");
+    if (field) {
+      field.df.on_change = () => {
+        const val = dialog.get_value("durus_nedeni");
+        if (val === "Diger") {
+          dialog.set_df_property("aciklama", "reqd", 1);
+        } else {
+          dialog.set_df_property("aciklama", "reqd", 0);
+        }
+      };
+    }
+  }
 }
 
 function onBitir() {

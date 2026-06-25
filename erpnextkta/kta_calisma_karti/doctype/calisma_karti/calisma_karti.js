@@ -169,21 +169,53 @@ function addBaslatButton(frm, isDurusDevami = false, customText = null) {
 
 function addDurusButton(frm) {
   frm.add_custom_button(__('Duruş'), () => {
-    frappe.prompt([
-      { fieldtype: 'Link', label: __('Duruş Nedeni'), fieldname: 'durus_nedeni', reqd: 1,
-        options: 'KTA Durus Sebebi',
-        get_query: () => ({ filters: { is_system: 0 } })
-      },
-      { fieldtype: 'Small Text', label: __('Açıklama'), fieldname: 'aciklama' }
-    ], (values) => {
-      callIslemYap(frm, "Durus", values.durus_nedeni, values.aciklama, () => {
-        frappe.msgprint({
-          title: __("Duruş Kaydedildi"),
-          message: __("Duruş başlatıldı: {0}", [values.durus_nedeni]),
-          indicator: "orange"
+    const dialog = new frappe.ui.Dialog({
+      title: __('Duruş Başlat'),
+      fields: [
+        {
+          fieldtype: 'Link',
+          label: __('Duruş Nedeni'),
+          fieldname: 'durus_nedeni',
+          reqd: 1,
+          options: 'KTA Durus Sebebi',
+          get_query: () => ({ filters: { is_system: 0 } }),
+          on_change: function() {
+            const val = dialog.get_value('durus_nedeni');
+            if (val === 'Diger') {
+              dialog.set_df_property('aciklama', 'reqd', 1);
+            } else {
+              dialog.set_df_property('aciklama', 'reqd', 0);
+            }
+          }
+        },
+        {
+          fieldtype: 'Small Text',
+          label: __('Açıklama'),
+          fieldname: 'aciklama'
+        }
+      ],
+      primary_action_label: __('Duruş Başlat'),
+      primary_action: function(values) {
+        if (values.durus_nedeni === 'Diger' && !values.aciklama) {
+          frappe.msgprint({
+            title: __('Hata'),
+            message: __('Duruş nedeni "Diger" olduğunda açıklama girmek zorunludur.'),
+            indicator: 'red'
+          });
+          return;
+        }
+        
+        callIslemYap(frm, "Durus", values.durus_nedeni, values.aciklama, () => {
+          dialog.hide();
+          frappe.msgprint({
+            title: __("Duruş Kaydedildi"),
+            message: __("Duruş başlatıldı: {0}", [values.durus_nedeni]),
+            indicator: "orange"
+          });
         });
-      });
-    }, __('Duruş Bilgisi'), __('Duruş Başlat'));
+      }
+    });
+    dialog.show();
   }, __("İşlemler")).addClass('btn-warning');
 }
 

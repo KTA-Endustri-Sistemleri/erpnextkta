@@ -198,6 +198,15 @@ class CalismaKarti(Document):
         self.name = make_autoname(f"{prefix}-.##")
 
     def validate(self):
+        # 1. Duruş nedeni 'Diger' olan kayıtlarda açıklama zorunluluğunu denetle
+        if self.duruslar:
+            for row in self.duruslar:
+                if row.durus_nedeni == "Diger" and not (row.aciklama or "").strip():
+                    frappe.throw(
+                        frappe._("Duruş nedeni olarak 'Diger' seçildiğinde açıklama girmek zorunludur. Lütfen {0}. sıradaki duruş kaydının açıklamasını doldurunuz.").format(row.idx),
+                        title=frappe._("Açıklama Zorunlu")
+                    )
+
         self.update_durum()
         if not self.kalite_kontrol:
             self.kalite_kontrol = "Onay Bekliyor"
