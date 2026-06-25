@@ -332,7 +332,7 @@ class TestCalismaKartiAPI(KTATestCase):
 		
 		# Test calling get_open_count
 		from erpnextkta.overrides.user_dashboard import get_open_count
-		res = get_open_count("User", "test@kta.com")
+		res = get_open_count("User", "Administrator")
 		self.assertIn("count", res)
 		self.assertIn("internal_links_found", res["count"])
 		
