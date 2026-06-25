@@ -312,3 +312,34 @@ class TestCalismaKartiAPI(KTATestCase):
 		# Submit sonrası tüm islem_yap çağrıları bloklanmalı
 		with self.assertRaises(Exception):
 			islem_yap(docname, "Durus", durus_nedeni="Diğer")
+
+	def test_user_dashboard_override(self):
+		"""User dashboard override'ının Calisma Karti'nı Activity grubuna eklediğini doğrular."""
+		meta = frappe.get_meta("User")
+		data = meta.get_dashboard_data()
+		
+		# Activity grubunu bul
+		activity_group = None
+		for group in data.transactions:
+			if group.get("label") == "Activity":
+				activity_group = group
+				break
+		
+		self.assertIsNotNone(activity_group, "Activity group should exist in User dashboard data")
+		self.assertIn("Calisma Karti", activity_group.get("items", []), "Calisma Karti should be in Activity group items")
+		self.assertEqual(data.get("method"), "erpnextkta.overrides.user_dashboard.get_open_count")
+		self.assertEqual(data.get("internal_links", {}).get("Calisma Karti"), "name")
+		
+		# Test calling get_open_count
+		from erpnextkta.overrides.user_dashboard import get_open_count
+		res = get_open_count("User", "test@kta.com")
+		self.assertIn("count", res)
+		self.assertIn("internal_links_found", res["count"])
+		
+		# Verify Calisma Karti is in the response list
+		ck_link = None
+		for il in res["count"]["internal_links_found"]:
+			if il["doctype"] == "Calisma Karti":
+				ck_link = il
+				break
+		self.assertIsNotNone(ck_link, "Calisma Karti should be returned in get_open_count internal links")

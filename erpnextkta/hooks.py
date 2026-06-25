@@ -225,6 +225,8 @@ scheduler_events = {
         "0 4 * * *": ["erpnextkta.tasks.delete_old_unstarted_cards"],
         # Her Pazar gece 01:30'da sadece draft kartları submit et
         "30 1 * * 0": ["erpnextkta.tasks.submit_draft_calisma_kartlari"],
+        # Her sabah 08:30'da amirlere günlük hatalı kart raporu gönder
+        "30 8 * * *": ["erpnextkta.tasks.send_daily_calisma_karti_error_report"],
     },
     "weekly": [
         "erpnextkta.tasks.weekly"
@@ -259,7 +261,8 @@ override_whitelisted_methods = {
 # along with any modifications made in other Frappe apps
 override_doctype_dashboards = {
     "Work Order": "erpnextkta.overrides.work_order_dashboard.get_dashboard_data",
-    "Job Card": "erpnextkta.overrides.job_card_dashboard.get_dashboard_data"
+    "Job Card": "erpnextkta.overrides.job_card_dashboard.get_dashboard_data",
+    "User": "erpnextkta.overrides.user_dashboard.get_dashboard_data"
 }
 
 # exempt linked doctypes from being automatically cancelled
