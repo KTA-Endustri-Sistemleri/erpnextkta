@@ -3,7 +3,7 @@
  "chart_name": "Tum Operatorler Net Sure",
  "chart_type": "Custom",
  "creation": "2026-06-26 15:30:00",
- "custom_options": "{\"colors\": [\"#e74c3c\"]}",
+ "custom_options": "{\"colors\": [\"#3498db\", \"#e74c3c\"], \"barOptions\": {\"stacked\": 1}}",
  "docstatus": 0,
  "doctype": "Dashboard Chart",
  "document_type": "",
