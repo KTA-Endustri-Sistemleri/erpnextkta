@@ -20,7 +20,7 @@ def get_data(**kwargs):
 
     date_range   = filters.get("date_range")
     is_istasyonu = filters.get("is_istasyonu") or None
-    top_n        = int(filters.get("top_n", 15))
+
 
     if date_range and len(date_range) == 2:
         start_date = getdate(date_range[0])
@@ -80,8 +80,8 @@ def get_data(**kwargs):
     if not totals:
         return {"labels": [], "datasets": [{"name": _("Net Dakika"), "values": []}]}
 
-    # Sort by total minutes ASCENDING (least minutes first), take top N
-    sorted_ops = sorted(totals.items(), key=lambda x: x[1], reverse=False)[:top_n]
+    # Sort by total minutes DESCENDING (highest minutes first)
+    sorted_ops = sorted(totals.items(), key=lambda x: x[1], reverse=True)
     labels = [labels_map[op] for op, _ in sorted_ops]
     values = [round(mins, 1) for _, mins in sorted_ops]
 

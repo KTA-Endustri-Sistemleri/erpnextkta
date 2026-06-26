@@ -1,0 +1,11 @@
+/* Make Frappe Charts yMarkers visible, red and dashed */
+.frappe-chart .y-marker-line {
+    stroke: #ff0000 !important;
+    stroke-width: 1.5px !important;
+    stroke-dasharray: 5, 5 !important;
+}
+
+.frappe-chart .y-marker-text {
+    fill: #ff0000 !important;
+    font-weight: bold !important;
+}

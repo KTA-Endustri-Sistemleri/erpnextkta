@@ -24,6 +24,10 @@
    "width": "Full"
   },
   {
+   "chart": "Tum Operatorler Net Sure",
+   "width": "Full"
+  },
+  {
    "chart": "Operasyon Bazi Miktar",
    "width": "Full"
   },
@@ -47,7 +51,7 @@
  "idx": 0,
  "is_default": 0,
  "is_standard": 1,
- "modified": "2026-03-06 15:12:17.718700",
+ "modified": "2026-06-26 17:25:00.000000",
  "modified_by": "Administrator",
  "module": "kta_calisma_karti",
  "name": "Calisma Karti",
