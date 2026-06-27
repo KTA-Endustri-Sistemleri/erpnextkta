@@ -14,6 +14,7 @@ STATU_HARITASI = {
     "calisiyor": "Çalışıyor",
     "durusta": "Duruşta",
     "bitmis": "Bitmiş",
+    "iptal_edildi": "İptal Edildi",
 }
 
 def get_kta_settings():
@@ -137,6 +138,10 @@ class CalismaKarti(Document):
     def on_update_after_submit(self):
         self.on_update()
 
+    def on_cancel(self):
+        self.db_set("durum", "İptal Edildi", update_modified=True)
+        publish_calisma_karti_changed(self.name, reason="doc:on_cancel")
+
     def before_validate(self):
         if not self.custom_work_order and self.is_karti:
             self.custom_work_order = frappe.db.get_value("Job Card", self.is_karti, "work_order")
@@ -159,12 +164,15 @@ class CalismaKarti(Document):
         if not wo_name and (self.get("is_karti") or "").strip():
             wo_name = frappe.db.get_value("Job Card", self.is_karti, "work_order") or ""
 
-        # 2) WO son 5 hane (öncelik: rakamlar)
-        digits = re.sub(r"\D", "", wo_name or "")
-        if digits:
-            wo_tail = digits[-5:]
+        # 2) İş Emri formatı: "MFG-WO-2026-02172" => "2026-02172"
+        if wo_name:
+            wo_tail = wo_name.split("WO-")[-1].strip()
+            # Güvenlik için sadece harf, rakam ve tireye izin ver
+            wo_tail = re.sub(r"[^\w\-]", "", wo_tail)
+            if not wo_tail:
+                wo_tail = "WO"
         else:
-            wo_tail = (wo_name or "WO")[-5:] or "WO"
+            wo_tail = "WO"
 
         # 3) Operasyon: boşluk ve '-' temizle
         op_raw = self.get("operasyon") or ""
@@ -190,6 +198,15 @@ class CalismaKarti(Document):
         self.name = make_autoname(f"{prefix}-.##")
 
     def validate(self):
+        # 1. Duruş nedeni 'Diger' olan kayıtlarda açıklama zorunluluğunu denetle
+        if self.duruslar:
+            for row in self.duruslar:
+                if row.durus_nedeni == "Diger" and not (row.aciklama or "").strip():
+                    frappe.throw(
+                        frappe._("Duruş nedeni olarak 'Diger' seçildiğinde açıklama girmek zorunludur. Lütfen {0}. sıradaki duruş kaydının açıklamasını doldurunuz.").format(row.idx),
+                        title=frappe._("Açıklama Zorunlu")
+                    )
+
         self.update_durum()
         if not self.kalite_kontrol:
             self.kalite_kontrol = "Onay Bekliyor"
@@ -349,6 +366,8 @@ class CalismaKarti(Document):
         return last_row.durus_baslangic and not last_row.durus_bitis
 
     def get_durum(self):
+        if self.docstatus == 2:
+            return 'iptal_edildi'
         # If QC rejected, lock the card status.
         if (self.kalite_kontrol or '').strip() == 'Reddedildi':
             return 'reddedildi'

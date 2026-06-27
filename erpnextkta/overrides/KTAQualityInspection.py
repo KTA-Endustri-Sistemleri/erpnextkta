@@ -3,81 +3,44 @@ from frappe.model.docstatus import DocStatus
 from frappe.utils import flt
 
 from erpnext.stock.doctype.quality_inspection.quality_inspection import QualityInspection
-from erpnextkta.api import custom_split_kta_batches
-from erpnextkta.api import print_kta_pr_labels
+from erpnextkta.kta_stock.label_manager import print_kta_pr_labels, custom_split_kta_batches
 
 
 class KTAQualityInspection(QualityInspection):
+    def on_update(self):
+        super().on_update()
+        self.update_reference_status()
+
     def on_submit(self):
         try:
             super().on_submit()
-            if self.docstatus == DocStatus.submitted() and self.reference_type == "Purchase Receipt" and self.status == "Accepted":
-                doc = frappe.get_doc('Purchase Receipt Item', self.child_row_reference)
-                custom_split_kta_batches(row=doc, q_ref=self.name)
-
-                # QI akışında batch split, SLE oluşturulduktan SONRA gerçekleşiyor.
-                # _update_bundle_safely bundle entry'lerini günceller ama mevcut SLE'yi değiştirmez.
-                # Repost Item Valuation, SLE'lerin yeni bundle verileriyle yeniden hesaplanmasını sağlar.
-                self._repost_sle_after_qi_split(doc)
-
-                try:
-                    self.print_zebra()
-                except Exception as print_err:
-                    frappe.log_error(f"Zebra Print Error (QI): {str(print_err)}", "QI Zebra Print Error")
-                    frappe.msgprint(f"Zebra yazdırma hatası (göz ardı edildi): {str(print_err)}", alert=True)
             if self.custom_set_item_default_qi_template == 1:
                 self.set_default_qi_template()
+            self.update_reference_status()
         except Exception as e:
             import traceback
             full_trace = traceback.format_exc()
             frappe.log_error(f"Quality Inspection Submit Error {str(e)}\n{full_trace}", "Quality Inspection Submit Error")
             frappe.throw(f"Quality Inspection Submit Error {str(e)}")
 
-    def _repost_sle_after_qi_split(self, pr_item_doc):
-        """
-        QI onayı sonrası bundle split yapıldığında SLE'leri yeniden hesaplar.
+    def on_cancel(self):
+        super().on_cancel()
+        self.update_reference_status()
 
-        Neden gerekli:
-        Bundle, SLE oluşturulduktan sonra (QI onayı sırasında) değiştirilir.
-        Bu nedenle giriş SLE'si orijinal bundle'a (ana batch) dayanır, ancak
-        tüketim SLE'leri artık var olmayan ana batch entry'lerini arar.
-        Repost, tüm SLE'lerin yeni child batch entry'leriyle tutarlı olmasını sağlar.
-        """
-        try:
-            pr_name = pr_item_doc.parent
-            pr = frappe.db.get_value(
-                "Purchase Receipt",
-                pr_name,
-                ["posting_date", "posting_time", "company"],
-                as_dict=True,
-            )
-            if not pr:
-                return
+    def on_trash(self):
+        super().on_trash()
+        self.flags.qi_being_deleted = True
+        self.update_reference_status()
 
-            repost_doc = frappe.get_doc({
-                "doctype": "Repost Item Valuation",
-                "based_on": "Transaction",
-                "voucher_type": "Purchase Receipt",
-                "voucher_no": pr_name,
-                "posting_date": pr.posting_date,
-                "posting_time": pr.posting_time or "00:00:00",
-                "company": pr.company,
-                "allow_negative_stock": 1,
-            })
-            repost_doc.flags.ignore_permissions = True
-            repost_doc.insert()
-            repost_doc.submit()
-
-        except Exception as e:
-            # Repost hatası split'i geri almamalı; log'la ve devam et
-            frappe.log_error(
-                f"QI Split Sonrası Repost Hatası: PR={pr_item_doc.parent}, "
-                f"Item={pr_item_doc.item_code}, Hata={str(e)}",
-                "KTA QI Repost Error",
-            )
-
-    def print_zebra(self):
-        print_kta_pr_labels(q_ref=self.name)
+    def update_reference_status(self):
+        if self.reference_type == "Purchase Receipt" and self.reference_name:
+            try:
+                pr = frappe.get_doc("Purchase Receipt", self.reference_name)
+                if self.flags.qi_being_deleted:
+                    pr.flags.qi_being_deleted = self.name
+                pr.set_status(update=True)
+            except Exception as e:
+                frappe.log_error(f"Error updating reference PR status: {e}", "KTA QI Status Update Error")
 
     def set_default_qi_template(self):
         """Set the default quality inspection template for an item

@@ -77,7 +77,7 @@
    "columns": 0,
    "creation": "2025-07-11 16:05:55.754437",
    "default": null,
-   "depends_on": "eval:doc.stock_entry_type == 'Manufacture' || doc.status == 'Submitted';",
+   "depends_on": "",
    "description": null,
    "docstatus": 0,
    "dt": "Stock Entry",

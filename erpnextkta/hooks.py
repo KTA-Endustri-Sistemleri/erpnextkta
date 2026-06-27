@@ -9,7 +9,7 @@ app_license = "mit"
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["frappe", "erpnext", "kta_system_utils"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -171,7 +171,11 @@ doc_events = {
     "Stock Entry": {
         "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
         "on_update": "erpnextkta.kta_calisma_karti.api_impl.hurda.sync_stock_entry_to_calisma_karti",
-        "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash"
+        "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash",
+        "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer"
+    },
+    "Delivery Note": {
+        "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer"
     },
     "Calisma Karti": {
         # Hurda sync is now handled in the controller's on_update directly
@@ -219,6 +223,10 @@ scheduler_events = {
         "15 0,16 * * *": ["erpnextkta.tasks.auto_close_timed_out_cards"],
         # Her gece saat 04:00'da oluşturulmuş ama başlatılmamış kartların temizliği
         "0 4 * * *": ["erpnextkta.tasks.delete_old_unstarted_cards"],
+        # Her Pazar gece 01:30'da sadece draft kartları submit et
+        "30 1 * * 0": ["erpnextkta.tasks.submit_draft_calisma_kartlari"],
+        # Her sabah 08:30'da amirlere günlük hatalı kart raporu gönder
+        "30 8 * * *": ["erpnextkta.tasks.send_daily_calisma_karti_error_report"],
     },
     "weekly": [
         "erpnextkta.tasks.weekly"
@@ -251,9 +259,11 @@ override_whitelisted_methods = {
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
-# override_doctype_dashboards = {
-# 	"Task": "erpnextkta.task.get_dashboard_data"
-# }
+override_doctype_dashboards = {
+    "Work Order": "erpnextkta.overrides.work_order_dashboard.get_dashboard_data",
+    "Job Card": "erpnextkta.overrides.job_card_dashboard.get_dashboard_data",
+    "User": "erpnextkta.overrides.user_dashboard.get_dashboard_data"
+}
 
 # exempt linked doctypes from being automatically cancelled
 #
@@ -381,6 +391,8 @@ fixtures = [
                     "Asset Maintenance Log-custom_ariza_aciklamasi",
                     "Asset Maintenance Log-custom_event_id",
                     "Asset Maintenance Task-custom_event_id",
+                    "Stock Entry Type-custom_etiket_basilabilir",
+                    "Stock Entry Type-custom_etiket_sablonu",
                 ],
             ]
         ],
@@ -396,6 +408,7 @@ fixtures = [
                     "Asset Maintenance Task-maintenance_status-options",
                     "Asset Maintenance Log-maintenance_status-options",
                     "Asset Maintenance Task-maintenance_type-options",
+                    "Purchase Receipt-status-options",
                 ],
             ]
         ],
@@ -404,8 +417,10 @@ fixtures = [
 doctype_js = {
     "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",
     "Stock Reconciliation": "public/js/stock_reconciliation.js",
-    "Stock Entry": "public/js/stock_entry_get_items_from_calisma_karti.js",
     "Purchase Receipt": "public/js/purchase_receipt.js"
+}
+doctype_list_js = {
+    "Purchase Receipt": "public/js/purchase_receipt_list.js"
 }
 
 extend_boot_session = "erpnextkta.boot.boot_session"

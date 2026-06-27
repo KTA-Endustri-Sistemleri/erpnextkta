@@ -2,7 +2,7 @@ import frappe
 from frappe.model.docstatus import DocStatus
 
 from frappe.utils import add_days, getdate
-import erpnextkta.api
+from erpnextkta.kta_stock.label_manager import custom_split_kta_batches
 from erpnext.controllers.stock_controller import make_quality_inspections
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import PurchaseReceipt
 from erpnext.stock.get_item_details import get_item_details
@@ -317,10 +317,10 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                     split_qty = item.custom_split_qty
                     if not split_qty or split_qty <= 0:
                         errors.append(
-                            f"Row {item.idx}: custom_split_qty must be a positive number. Please set a valid value for custom_split_qty."
+                            f"<b>Satır {item.idx} ({item.item_code})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır."
                         )
         if errors:
-            frappe.throw("\n".join(errors))
+            frappe.throw("<br>".join(errors), title="Eksik Kutu İçi Adedi Bilgisi")
 
     def before_insert(self):
         for item in self.items:
@@ -338,7 +338,6 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         try:
             if self.docstatus == DocStatus.submitted() and self.is_return == 0:
                 self.verify_batch()
-                self.set_serial_and_batch_bundle()
 
                 qi_items = []
                 rows_to_split_now = []
@@ -346,6 +345,10 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 for item in self.items:
                     doc = frappe.get_doc('Item', item.get("item_code"))
                     self._ensure_base_batch(item, doc)
+                    
+                    # Her halükarda bölme ve etiketleme işlemi PR anında yapılacak
+                    rows_to_split_now.append(item.name)
+                    
                     if doc.get("inspection_required_before_purchase"):
                         meta = frappe.get_meta('Item')
                         if meta.has_field('custom_atlama_sayisi'):
@@ -353,48 +356,65 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                             atlama_sirasi = doc.get("custom_atlama_sirasi")
                             if atlama_sayisi > 0:
                                 doc.db_set('custom_atlama_sirasi', atlama_sirasi + 1, commit=True)
-                                if atlama_sirasi % atlama_sayisi == 0 or atlama_sayisi > atlama_sirasi:
+                                if atlama_sirasi % atlama_sayisi == 0:
                                     qi_items.append(item)
-                                else:
-                                    rows_to_split_now.append(item.name)
                             else:
                                 doc.db_set('custom_atlama_sirasi', 2, commit=True)
                                 qi_items.append(item)
                         else:
                             qi_items.append(item)
-                    else:
-                        rows_to_split_now.append(item.name)
 
+                # Bundle'ları tek seferde hazırla (split için SLE gerekliydi)
                 self.set_serial_and_batch_bundle()
 
-                if rows_to_split_now:
-                    self.flags.kta_rows_to_split = rows_to_split_now
-                else:
-                    self.flags.kta_rows_to_split = None
+                submitting_user = frappe.session.user
 
                 super().on_submit()
-                self.print_zebra()
-                make_quality_inspections(self.doctype, self.name, qi_items)
+
+                # Önce Kalite Kontrollerini oluştur ki satırlardaki quality_inspection alanları dolsun
+                make_quality_inspections(self.company, self.doctype, self.name, qi_items)
+
+                # Stok kaydı tamamlandıktan sonra batch split ve etiket basımını başlat
+                from erpnextkta.kta_stock.label_manager import custom_split_kta_batches
+                for row_name in rows_to_split_now:
+                    try:
+                        # Database'den güncel satırı çekiyoruz, böylece quality_inspection alanı dolu gelecek
+                        row_doc = frappe.get_doc("Purchase Receipt Item", row_name)
+                        custom_split_kta_batches(row=row_doc, submitting_user=submitting_user)
+                    except Exception as split_err:
+                        import traceback
+                        frappe.log_error(
+                            f"Split/Print error for row {row_name}: {traceback.format_exc()}",
+                            "KTA Split Error"
+                        )
             else:
                 super().on_submit()
+        except frappe.exceptions.ValidationError:
+            raise
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()
             frappe.log_error(f"Purchase Receipt Submit Error {str(e)}\n{error_trace}", "Purchase Receipt Submit Error")
-            frappe.throw(f"Purchase Receipt Submit Error {str(e)}\n{error_trace}")
+            frappe.throw("Beklenmeyen bir hata oluştu, işlem yapılamadı. Hata detayları sistem loglarına kaydedildi.")
         finally:
+            # flags cleanup (artık kullanılmıyor ama güvenlik için bırakıldı)
             if hasattr(self, "flags"):
                 self.flags.kta_rows_to_split = None
+                self.flags.kta_submitting_user = None
 
-    def print_zebra(self):
-        try:
-            erpnextkta.api.print_kta_pr_labels(gr_number=self.name)
-        except Exception as e:
-            frappe.log_error(f"Zebra Print Error (Ignored): {str(e)}", "KTAPurchaseReceipt Print Error")
-            # User said: "o hata gelsin önemli değil" (Let that error come, it's not important)
-            # However, if we raise, it rolls back submit. 
-            # So we catch it, log it, and maybe show a non-blocking message.
-            frappe.msgprint(f"Zebra Printer Error (Non-blocking): {str(e)}", alert=True)
+    def on_cancel(self):
+        super().on_cancel()
+        for item in self.items:
+            doc = frappe.get_doc('Item', item.item_code)
+            if doc.get("inspection_required_before_purchase"):
+                meta = frappe.get_meta('Item')
+                if meta.has_field('custom_atlama_sayisi'):
+                    atlama_sayisi = doc.get("custom_atlama_sayisi")
+                    atlama_sirasi = doc.get("custom_atlama_sirasi")
+                    if atlama_sayisi and atlama_sayisi > 0 and atlama_sirasi and atlama_sirasi > 0:
+                        doc.db_set('custom_atlama_sirasi', atlama_sirasi - 1, commit=True)
+
+
 
     def _ensure_base_batch(self, row, item_doc):
         if not item_doc.get("has_batch_no"):
@@ -430,23 +450,24 @@ class KTAPurchaseReceipt(PurchaseReceipt):
         row.db_set(updates, commit=False)
 
     def update_stock_ledger(self, allow_negative_stock=False, via_landed_cost_voucher=False):
-        if (
-            getattr(self.flags, "kta_rows_to_split", None)
-            and self.docstatus == DocStatus.submitted()
-            and not self.is_return
-        ):
-            self._run_pending_batch_splits()
-
         # Base PurchaseReceipt.update_stock_ledger does not accept via_landed_cost_voucher, swallow it
         super().update_stock_ledger(allow_negative_stock=allow_negative_stock)
 
-    def _run_pending_batch_splits(self):
-        row_names = getattr(self.flags, "kta_rows_to_split", None)
-        if not row_names:
-            return
+    def set_status(self, update=False, status=None, update_modified=True):
+        super().set_status(update=update, status=status, update_modified=update_modified)
 
-        for row_name in row_names:
-            row_doc = frappe.get_doc("Purchase Receipt Item", row_name)
-            erpnextkta.api.custom_split_kta_batches(row=row_doc)
+        if self.docstatus == 1 and self.status not in ["Cancelled", "Closed"]:
+            # Check if there are any draft Quality Inspections
+            qi_filters = {
+                "reference_type": "Purchase Receipt",
+                "reference_name": self.name,
+                "docstatus": 0
+            }
+            if getattr(self.flags, "qi_being_deleted", None):
+                qi_filters["name"] = ["!=", self.flags.qi_being_deleted]
 
-        self.flags.kta_rows_to_split = None
+            has_draft_qi = frappe.db.exists("Quality Inspection", qi_filters)
+            if has_draft_qi:
+                self.status = "GKK Bekliyor"
+                if update:
+                    self.db_set("status", self.status, update_modified=update_modified)

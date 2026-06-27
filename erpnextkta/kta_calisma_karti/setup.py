@@ -4,6 +4,27 @@ def setup():
     setup_scrap_stock_entry_type()
     create_kta_roles()
     setup_permissions()
+    cleanup_duplicate_custom_fields()
+
+def cleanup_duplicate_custom_fields():
+    """Remove duplicate Custom Field records for fields already defined in custom DocTypes JSON."""
+    import json
+    import os
+
+    # Read fieldnames from Calisma Karti JSON
+    setup_dir = os.path.dirname(__file__)
+    json_path = os.path.join(setup_dir, "doctype", "calisma_karti", "calisma_karti.json")
+    if os.path.exists(json_path):
+        with open(json_path, "r", encoding="utf-8") as f:
+            meta = json.load(f)
+            json_fields = [field.get("fieldname") for field in meta.get("fields", []) if field.get("fieldname")]
+        
+        # Delete custom fields from DB that overlap with JSON fields
+        for fieldname in json_fields:
+            if frappe.db.exists("Custom Field", {"dt": "Calisma Karti", "fieldname": fieldname}):
+                frappe.db.delete("Custom Field", {"dt": "Calisma Karti", "fieldname": fieldname})
+        frappe.db.commit()
+
 
 def setup_scrap_stock_entry_type():
     """Create 'Scrap for Manufacturing' Stock Entry Type if it doesn't exist."""
@@ -32,7 +53,7 @@ def create_kta_roles():
 
 def setup_permissions():
     """Reset permissions to the exact state provided by the user in the image."""
-    roles = ['KTA Çalışma Kartı Kullanıcısı', 'KTA Çalışma Kartı Yöneticisi']
+    roles = ['KTA Çalışma Kartı Kullanıcısı', 'KTA Çalışma Kartı Yöneticisi', 'KTA Kalite Kullanıcısı']
     
     # Accurate transcription from the provided image
     permissions_data = [
@@ -94,7 +115,34 @@ def setup_permissions():
         # KTA Calisma Karti Settings
         {"parent": "KTA Calisma Karti Settings", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
         {"parent": "KTA Calisma Karti Settings", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
-        {"parent": "KTA Calisma Karti Settings", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 0, "cancel": 0, "amend": 0}
+        {"parent": "KTA Calisma Karti Settings", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 0, "cancel": 0, "amend": 0},
+        # Child Tables - Ölçüm ve Kayıt Tabloları
+        {"parent": "Calisma Karti Krimp Olcumleri", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Krimp Olcumleri", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti IDC Olcumleri", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti IDC Olcumleri", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti Enjeksiyon Olcumleri", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Enjeksiyon Olcumleri", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti Barkod Kayitlari", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Barkod Kayitlari", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti Hurda", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Hurda", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Operasyon Duruslari", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Operasyon Duruslari", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        # Test Masası Doğrulama Kaydı (linked form - Kalite sekmesi)
+        {"parent": "Test Masasi Dogrulama Kaydi", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Test Masasi Dogrulama Kaydi", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "Test Masasi Dogrulama Kaydi", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        # KTA Kalite Kullanıcısı - Child Table erişimleri
+        {"parent": "Calisma Karti Krimp Olcumleri", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti IDC Olcumleri", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Enjeksiyon Olcumleri", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Barkod Kayitlari", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0},
+        {"parent": "Calisma Karti Hurda", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0},
+        {"parent": "Operasyon Duruslari", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0},
+        {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0},
     ]
 
     # KTA'ya özel olan ve tüm rollerini yönetmek istediğimiz DocType'lar

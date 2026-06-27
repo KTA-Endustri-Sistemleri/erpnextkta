@@ -1,9 +1,13 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-05-16 (Krimp Ölçüm Modülü & QC Reddetme Düzeltmesi)
+> Son güncelleme: 2026-06-25 (Hata Raporlama, Dashboard Grafik, Validasyonlar)
 
-Bu dönemde iki bağımsız çalışma tamamlandı: Çalışma Kartı'na Krimp Ölçüm modülü eklendi ve QC reddetme sırasında kart durumunun tutarsız kalması sorunu giderildi.
+Bu dönemde yapılan geliştirmeler: Günlük Hata Raporu altyapısı, User Dashboard override entegrasyonu, "Operator Düşük Net Süre" dashboard grafiği ve duruş başlatma sürecinde "Diger" nedeni için açıklama zorunluluğu validasyonları eklendi.
 
+- [x] **Günlük Hata Raporu**: Hedef çalışma süresinin altında kalan (5 saat altı) operatörleri tespit edip amirlere günlük e-posta raporu gönderen cron job eklendi (2026-06-25).
+- [x] **User Dashboard Override**: `User` doctype dashboard'u genişletilerek kullanıcının Employee kartı ile ilişkili Çalışma Kartları listesi ve open count sayımı eklendi (2026-06-25).
+- [x] **Operator Düşük Net Süre Grafiği**: Son N günde en az net çalışma süresine sahip operatörlerin net sürelerini dakika bazında görselleştiren custom dashboard chart bileşeni eklendi (2026-06-25).
+- [x] **Duruş "Diğer" Validasyonu**: Duruş nedeni "Diger" seçildiğinde açıklama girmeyi hem form/SPA arayüzünde hem de backend `validate` aşamasında zorunlu kılan mekanizma eklendi (2026-06-25).
 - [x] **Krimp Ölçüm Modülü**: `Calisma Karti Krimp Olcumleri` DocType, backend CRUD API, `KrimpSection.vue` bileşeni ve `MeasureGauge.vue` tolerans göstergesi tamamlandı (2026-05-13 – 2026-05-15).
 - [x] **QC Reddetme Yaşam Döngüsü Düzeltmesi**: Red kararında QI belgesi anında submit ediliyor, `finalize_rejected_card()` ile Çalışma Kartı da otomatik gönderiliyor (2026-05-11).
 - [x] **Alt Operasyon Submit İzinleri**: `kta_calisma_karti_alt_operasyonlari` ve `kta_calisma_karti_operasyonlari` DocType'larında eksik Submit rolleri `setup.py` ile düzeltildi (2026-05-15).
@@ -14,7 +18,14 @@ Bu dönemde iki bağımsız çalışma tamamlandı: Çalışma Kartı'na Krimp �
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
 - [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
 
-## Son Değişiklikler (2026-04-24) — Frontend Güvenliği ve Vitest Suite
+## Son Değişiklikler (2026-06-25) — Raporlama, Dashboard ve Validasyon Güncellemeleri
+Kullanıcı deneyimini, yönetimsel takibi ve veri kalitesini artırmak amacıyla yapılan son eklemeler:
+*   **Daily Operator Error Report**: Günlük hedef çalışma süresini (7 saat 10 dk) dolduramayan ve 5 saatin altında kalan operatörlerin listesini amirlere otomatik olarak e-posta ile raporlayan zamanlanmış bir cron görevi (`tasks.py` -> `send_daily_calisma_karti_error_report`) eklendi.
+*   **User Dashboard Override**: `User` DocType dashboard'u `hooks.py` üzerindeki `override_doctype_dashboards` ile ezildi. Kullanıcı profili içinde, kullanıcının `Employee` kartı ile eşleşen tüm aktif/açık `Calisma Karti` kayıtlarının sayısı ve listesi "Aktivite" kartı olarak eklendi (`overrides/user_dashboard.py`).
+*   **Operator Düşük Net Süre Grafiği**: Belirlenen gün aralığında net çalışma süresi en düşük olan operatörleri ve bunların toplam sürelerini dakika bazında listeleyen yeni bir Dashboard Grafiği (`operator_dusuk_net_sure`) eklendi.
+*   **Duruş "Diğer" Validasyonu**: Duruş nedeni "Diger" olarak seçildiğinde, kullanıcının bir açıklama metni girmesi frontend (dialog prompt) ve backend (`calisma_karti.py` -> `validate` hook'u) katmanlarında zorunlu kılındı.
+
+## Önceki Geliştirmeler (2026-04-24) — Frontend Güvenliği ve Vitest Suite
 Kullanıcıların "ardışık Enter" veya "hızlı tıklama" hatalarından kaynaklı mükerrer kart oluşturma riskini %100 engellemek için:
 *   **Atomic Guards**: `submitWorkCard`, `fetchWorkOrderByBarcode` ve `fetchJobCardByBarcode` fonksiyonlarına senkron `loading` kontrolleri eklendi.
 *   **withLoading (minMs=900)**: Asenkron işlemlerin en az 900ms sürmesi garanti edilerek UI'ın kararsız kalması (flickering) ve mükerrer tetiklemeler engellendi.

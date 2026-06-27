@@ -8,11 +8,17 @@ const props = defineProps<{
   onAdd: () => void;
   onEdit: (row: any) => void;
   onDelete: (row: any) => void;
+  onClone: (row: any) => void;
+  onPrint: () => void;
 }>();
 
 function actions(r: any) {
-  openActionSheet("IDC İşlemleri", ["Düzenle", "Sil"], (a) => {
+  const items = props.canEditData
+    ? ["Düzenle", "Kopyala", "Sil"]
+    : ["Kopyala"];
+  openActionSheet("IDC İşlemleri", items, (a) => {
     if (a === "Düzenle") props.onEdit(r);
+    if (a === "Kopyala") props.onClone(r);
     if (a === "Sil") props.onDelete(r);
   });
 }
@@ -21,9 +27,19 @@ function actions(r: any) {
 <template>
   <div class="ck-qc-header">
     <b>IDC Ölçümleri</b>
-    <button v-if="props.canEditData" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
-      + Ekle
-    </button>
+    <div style="display:flex; gap:6px;">
+      <button
+        v-if="(props.rows||[]).length > 0"
+        class="ck-btn"
+        style="padding: 8px 10px; font-size: 12px;"
+        @click="props.onPrint"
+      >
+        🖨️ Protokol
+      </button>
+      <button v-if="props.canEditData" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
+        + Ekle
+      </button>
+    </div>
   </div>
 
   <div v-if="(props.rows||[]).length===0" class="ck-muted" style="margin-top: 14px;padding: 0px 6px;">
@@ -58,7 +74,7 @@ function actions(r: any) {
 
         <div v-if="props.canEditData" style="display:flex; justify-content:flex-end;">
           <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            DETAY ▾
+            İŞLEMLER ▾
           </button>
         </div>
       </div>

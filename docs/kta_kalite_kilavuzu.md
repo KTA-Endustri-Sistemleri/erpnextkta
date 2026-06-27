@@ -31,14 +31,15 @@ Krimp operasyonlarında kullanılan terminal, kablo ve kalıp (`Amboss`) eşleş
 
 ---
 
-## 📏 2. Krimp Yükseklik Parametreleri
+## 📏 2. Krimp Yükseklik Parametreleri ve Ölçüm Doğrulama
 
 Krimp Book'taki "Ansiklopedi" verisinin, sahada uygulanan "Onaylı Parametre" katmanına dönüştürülmüş halidir.
 
-### Temel İşleyiş:
-- **Dinamik Kısıt:** Bir terminal seçildiğinde, `KTA Quality Settings` altındaki tanımlı `Item Group` (Örn: 150-Terminals) filtreleri devreye girerek hatalı parça seçimi engellenir.
-- **Veri Koparma (Decoupling):** Onaylı bir parametre oluşturulduğunda, veriler Krimp Book'tan kopyalanır ve dondurulur. Böylece ana kütüphane değişse bile üretimdeki "Onaylı Formül" sabit kalır.
-- **Ölçüm Doğrulama:** Bu parametreler, üretimdeki `IDC Ölçüleri` ve standart kalite muayeneleri için temel referans noktası (Master Data) oluşturur.
+### Temel İşleyiş ve Cascade Seçim Aşamaları:
+1. **Dinamik Kısıt ve Cascade Seçim**: Operatör veri girişi yaparken *Kesit Seçimi* -> *Kablo Seçimi* (kesite ait BOM kalıpları) -> *Kontak Seçimi* -> *Makine Seçimi (Asset)* şeklinde adım adım daralan bağımlı bir seçim akışı (Cascade Selection) izler. Bu sayede hatalı eşleşmeler daha giriş aşamasında elenir.
+2. **Otomatik Tolerans Algılama**: Seçilen üçlüye (Kablo + Kontak + Kesit) göre `KTA Krimp Book` veritabanından minimum/maksimum tolerans limitleri otomatik olarak çekilir.
+3. **Canlı Gösterge (MeasureGauge)**: Arayüzde ölçüm değerleri girildiğinde ±10 mm segment göstergesi canlı olarak çalışır. Girilen değer hedefe göre *Kısa*, *Uzun* veya *OK* olarak anlık işaretlenir. Limitlerin aşılması durumunda ekran "LIMIT AŞILDI" uyarısı verir.
+4. **Veri Koparma (Decoupling)**: Onaylı bir parametre oluşturulduğunda, veriler Krimp Book'tan kopyalanır ve dondurulur. Böylece ana kütüphane değişse bile üretimdeki "Onaylı Formül" sabit kalır.
 
 ---
 
@@ -75,5 +76,16 @@ Sistem, kaydedilen tüm krimp ölçümlerini ve test masası doğrulama sonuçla
 - **DÇF (Düzeltici Önleyici Faaliyet)** gerektiren durumların tespiti,
 - Müşteri şikayetlerinde üretilen partinin kalite verilerine ulaşılması,
 - Operatör bazlı ölçüm hassasiyeti analizleri için kullanılır.
+
+---
+
+## 🔍 6. Giriş Kalite Kontrol (GKK) ve Karantina Süreci
+
+Dışarıdan (tedarikçilerden) gelen hammaddelerin kalite onayı almadan üretime veya satışa çıkışını engelleyen entegre karantina sistemidir.
+
+### Temel İşleyiş:
+- **Anında Etiketleme:** Mal Kabul (Purchase Receipt) onaylandığı an ürünler otomatik olarak kutu içi miktarlarına bölünür (`PARTI-0001`, `PARTI-0002` vb.) ve **Zebra SUT etiketleri** yazdırılır. Depo personeli ürünleri etiketleyip rafa kaldırır.
+- **Otomatik GKK Belgesi:** Etiketlenen ürünler için sistem arka planda otomatik olarak "Taslak" statüsünde bir Kalite Kontrol belgesi (Quality Inspection) oluşturur.
+- **Transfer Kısıtı (Sıfır Tolerans):** Kalite teknisyeni bu belgeyi inceleyip **"Accepted (Kabul)"** durumuna çekene kadar, bu partilerin hiçbir şekilde depodan çıkışına (Stock Entry, Delivery Note vb.) izin verilmez. Sistem `frappe.throw` ile kesin bir güvenlik duvarı oluşturur.
 
 </main>

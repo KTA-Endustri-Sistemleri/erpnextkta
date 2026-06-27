@@ -59,7 +59,11 @@
         "toplam_durus",
         "net_calisma_suresi",
         "operasyon_duruslari_section",
-        "duruslar"
+        "duruslar",
+        "custom_section_break_trjke",
+        "custom_etiket_ve_barkod_bilgileri",
+        "custom_column_break_2jmrx",
+        "custom_column_break_86d3x"
     ],
     "fields": [
         {
@@ -70,7 +74,7 @@
         {
             "fieldname": "durum_ve_operator_bilgisi_section",
             "fieldtype": "Section Break",
-            "label": "Durum ve Operatör Bilgisi"
+            "label": "Durum ve Operat\u00f6r Bilgisi"
         },
         {
             "allow_on_submit": 1,
@@ -79,7 +83,7 @@
             "in_list_view": 1,
             "in_standard_filter": 1,
             "label": "Durum",
-            "options": "Hazır\nÇalışıyor\nDuruşta\nBitmiş\nReddedildi",
+            "options": "Haz\u0131r\n\u00c7al\u0131\u015f\u0131yor\nDuru\u015fta\nBitmi\u015f\nReddedildi\n\u0130ptal Edildi",
             "permlevel": 3
         },
         {
@@ -91,20 +95,20 @@
             "fieldtype": "Link",
             "in_list_view": 1,
             "in_standard_filter": 1,
-            "label": "Operatör",
+            "label": "Operat\u00f6r",
             "options": "Employee"
         },
         {
             "fieldname": "is_emri_ve_is_karti_bilgisi_section",
             "fieldtype": "Section Break",
-            "label": "İş Emri ve İş Kartı Bilgisi"
+            "label": "\u0130\u015f Emri ve \u0130\u015f Kart\u0131 Bilgisi"
         },
         {
             "fieldname": "custom_work_order",
             "fieldtype": "Link",
             "in_list_view": 1,
             "in_standard_filter": 1,
-            "label": "İş Emri",
+            "label": "\u0130\u015f Emri",
             "options": "Work Order",
             "reqd": 1
         },
@@ -115,15 +119,14 @@
         {
             "fieldname": "is_karti",
             "fieldtype": "Link",
-            "in_list_view": 1,
-            "label": "İş Kartı",
+            "label": "\u0130\u015f Kart\u0131",
             "options": "Job Card",
             "reqd": 1
         },
         {
             "fieldname": "urun_ve_miktar_section",
             "fieldtype": "Section Break",
-            "label": "Ürün ve Miktar"
+            "label": "\u00dcr\u00fcn ve Miktar"
         },
         {
             "fieldname": "urun_kodu",
@@ -147,7 +150,7 @@
             "allow_on_submit": 1,
             "fieldname": "tamamlanan_miktar",
             "fieldtype": "Float",
-            "in_list_view": 1,
+            "hidden": 1,
             "label": "Tamamlanan Miktar"
         },
         {
@@ -158,13 +161,12 @@
         {
             "fieldname": "is_istasyonu_bilgisi_section",
             "fieldtype": "Section Break",
-            "label": "İs İstasyonu Bilgisi"
+            "label": "\u0130s \u0130stasyonu Bilgisi"
         },
         {
             "fieldname": "is_istasyonu",
             "fieldtype": "Link",
-            "in_list_view": 1,
-            "label": "İş İstasyonu",
+            "label": "\u0130\u015f \u0130stasyonu",
             "options": "Workstation",
             "reqd": 1
         },
@@ -209,10 +211,9 @@
             "default": "Onay Bekliyor",
             "fieldname": "kalite_kontrol",
             "fieldtype": "Select",
-            "in_list_view": 1,
             "in_standard_filter": 1,
             "label": "Kalite Kontrol",
-            "options": "Onay Bekliyor\nOnaylandı\nReddedildi",
+            "options": "Onay Bekliyor\nOnayland\u0131\nReddedildi",
             "permlevel": 1
         },
         {
@@ -231,12 +232,12 @@
         {
             "fieldname": "ozel_belgeler_section",
             "fieldtype": "Section Break",
-            "label": "Özel Belgeler"
+            "label": "\u00d6zel Belgeler"
         },
         {
             "fieldname": "test_masasi_dogrulama_kaydi",
             "fieldtype": "Link",
-            "label": "Test Masası Doğrulama Kaydı",
+            "label": "Test Masas\u0131 Do\u011frulama Kayd\u0131",
             "options": "Test Masasi Dogrulama Kaydi"
         },
         {
@@ -255,54 +256,54 @@
         {
             "fieldname": "olcumler_tab",
             "fieldtype": "Tab Break",
-            "label": "Ölçümler"
+            "label": "\u00d6l\u00e7\u00fcmler"
         },
         {
             "fieldname": "kablo_ve_kontak_olcum_bilgileri_section",
             "fieldtype": "Section Break",
-            "label": "Kablo ve Kontak Ölçüm Bilgileri"
+            "label": "Kablo ve Kontak \u00d6l\u00e7\u00fcm Bilgileri"
         },
         {
             "allow_on_submit": 1,
             "fieldname": "krimp_olcumleri",
             "fieldtype": "Table",
-            "label": "Krimp Ölçümleri",
+            "label": "Krimp \u00d6l\u00e7\u00fcmleri",
             "options": "Calisma Karti Krimp Olcumleri"
         },
         {
             "fieldname": "idc_ve_soket_olcum_bilgileri_section",
             "fieldtype": "Section Break",
-            "label": "IDC ve Soket Ölçüm Bilgileri"
+            "label": "IDC ve Soket \u00d6l\u00e7\u00fcm Bilgileri"
         },
         {
             "allow_on_submit": 1,
             "fieldname": "idc_olcumleri",
             "fieldtype": "Table",
-            "label": "IDC Ölçümleri",
+            "label": "IDC \u00d6l\u00e7\u00fcmleri",
             "options": "Calisma Karti IDC Olcumleri"
         },
         {
             "fieldname": "enjeksiyon_olcum_bilgileri_section",
             "fieldtype": "Section Break",
-            "label": "Enjeksiyon Ölçüm Bilgileri"
+            "label": "Enjeksiyon \u00d6l\u00e7\u00fcm Bilgileri"
         },
         {
             "allow_on_submit": 1,
             "fieldname": "enjeksiyon_olcumleri",
             "fieldtype": "Table",
-            "label": "Enjeksiyon Ölçümleri",
+            "label": "Enjeksiyon \u00d6l\u00e7\u00fcmleri",
             "options": "Calisma Karti Enjeksiyon Olcumleri"
         },
         {
             "fieldname": "barkod_kayitlari_section",
             "fieldtype": "Section Break",
-            "label": "Barkod Kayıtları"
+            "label": "Barkod Kay\u0131tlar\u0131"
         },
         {
             "allow_on_submit": 1,
             "fieldname": "barkod_kayitlari",
             "fieldtype": "Table",
-            "label": "Barkod Kayıtları",
+            "label": "Barkod Kay\u0131tlar\u0131",
             "options": "Calisma Karti Barkod Kayitlari"
         },
         {
@@ -338,7 +339,7 @@
         {
             "fieldname": "zaman_tab",
             "fieldtype": "Tab Break",
-            "label": "Süreler ve Duruşlar"
+            "label": "S\u00fcreler ve Duru\u015flar"
         },
         {
             "fieldname": "zaman_section",
@@ -349,14 +350,14 @@
             "allow_on_submit": 1,
             "fieldname": "baslangic_saati",
             "fieldtype": "Datetime",
-            "label": "Başlangıç Saati",
+            "label": "Ba\u015flang\u0131\u00e7 Saati",
             "permlevel": 3
         },
         {
             "allow_on_submit": 1,
             "fieldname": "bitis_saati",
             "fieldtype": "Datetime",
-            "label": "Bitiş Saati",
+            "label": "Biti\u015f Saati",
             "permlevel": 3
         },
         {
@@ -367,42 +368,59 @@
             "allow_on_submit": 1,
             "fieldname": "toplam_sure",
             "fieldtype": "Data",
-            "in_list_view": 1,
-            "label": "Toplam Süre (ss:dk:sn)",
+            "label": "Toplam S\u00fcre (ss:dk:sn)",
             "permlevel": 3
         },
         {
             "allow_on_submit": 1,
             "fieldname": "toplam_durus",
             "fieldtype": "Data",
-            "label": "Toplam Duruş Süresi (ss:dk:sn)",
+            "label": "Toplam Duru\u015f S\u00fcresi (ss:dk:sn)",
             "permlevel": 3
         },
         {
             "allow_on_submit": 1,
             "fieldname": "net_calisma_suresi",
             "fieldtype": "Data",
-            "label": "Net Çalışma Süresi (ss:dk:sn)",
+            "in_list_view": 1,
+            "label": "Net \u00c7al\u0131\u015fma S\u00fcresi (ss:dk:sn)",
             "permlevel": 3
         },
         {
             "fieldname": "operasyon_duruslari_section",
             "fieldtype": "Section Break",
-            "label": "Operasyon Duruşları"
+            "label": "Operasyon Duru\u015flar\u0131"
         },
         {
             "allow_on_submit": 1,
             "fieldname": "duruslar",
             "fieldtype": "Table",
-            "label": "Duruşlar",
+            "label": "Duru\u015flar",
             "options": "Operasyon Duruslari"
+        },
+        {
+            "fieldname": "custom_section_break_trjke",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "custom_etiket_ve_barkod_bilgileri",
+            "fieldtype": "Section Break",
+            "label": "Etiket ve Barkod Bilgileri"
+        },
+        {
+            "fieldname": "custom_column_break_2jmrx",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "custom_column_break_86d3x",
+            "fieldtype": "Column Break"
         }
     ],
     "grid_page_length": 50,
     "index_web_pages_for_search": 1,
     "is_submittable": 1,
     "links": [],
-    "modified": "2025-09-12 10:54:18.528767",
+    "modified": "2026-06-19 21:06:37.175570",
     "modified_by": "Administrator",
     "module": "kta_calisma_karti",
     "name": "Calisma Karti",
@@ -418,15 +436,15 @@
             "print": 1,
             "read": 1,
             "report": 1,
-            "role": "KTA Çalışma Kartı Kullanıcısı",
+            "role": "KTA \u00c7al\u0131\u015fma Kart\u0131 Kullan\u0131c\u0131s\u0131",
             "share": 1,
             "submit": 1,
             "write": 1
         },
         {
+            "permlevel": 3,
             "read": 1,
-            "role": "KTA Çalışma Kartı Kullanıcısı",
-            "permlevel": 3
+            "role": "KTA Çalışma Kartı Kullanıcısı"
         },
         {
             "cancel": 1,
@@ -437,28 +455,28 @@
             "print": 1,
             "read": 1,
             "report": 1,
-            "role": "KTA Çalışma Kartı Yöneticisi",
+            "role": "KTA \u00c7al\u0131\u015fma Kart\u0131 Y\u00f6neticisi",
             "share": 1,
             "submit": 1,
             "write": 1
         },
         {
+            "permlevel": 3,
             "read": 1,
             "write": 0,
-            "role": "KTA Çalışma Kartı Yöneticisi",
-            "permlevel": 3
+            "role": "KTA Çalışma Kartı Yöneticisi"
         },
         {
+            "permlevel": 3,
             "read": 1,
             "write": 1,
-            "role": "Manufacturing User",
-            "permlevel": 3
+            "role": "Manufacturing User"
         },
         {
+            "permlevel": 3,
             "read": 1,
-            "write": 1,
             "role": "Manufacturing Manager",
-            "permlevel": 3
+            "write": 1
         },
         {
             "cancel": 1,
@@ -475,10 +493,10 @@
             "write": 1
         },
         {
+            "permlevel": 3,
             "read": 1,
-            "write": 1,
             "role": "System Manager",
-            "permlevel": 3
+            "write": 1
         },
         {
             "create": 1,
@@ -513,23 +531,27 @@
     "states": [
         {
             "color": "Gray",
-            "title": "Hazır"
+            "title": "Haz\u0131r"
         },
         {
             "color": "Green",
-            "title": "Çalışıyor"
+            "title": "\u00c7al\u0131\u015f\u0131yor"
         },
         {
             "color": "Orange",
-            "title": "Duruşta"
+            "title": "Duru\u015fta"
         },
         {
             "color": "Blue",
-            "title": "Bitmiş"
+            "title": "Bitmi\u015f"
         },
         {
             "color": "Red",
             "title": "Reddedildi"
+        },
+        {
+            "color": "Gray",
+            "title": "\u0130ptal Edildi"
         }
     ],
     "track_changes": 1,

@@ -2,6 +2,13 @@
  {
   "docstatus": 0,
   "doctype": "KTA Olcu Metodu",
+  "kta_olcu_metodu": "Avo",
+  "modified": "2026-06-05 12:25:07.762222",
+  "name": "Avo"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "KTA Olcu Metodu",
   "kta_olcu_metodu": "Teknik Resim",
   "modified": "2025-11-18 14:56:17.429516",
   "name": "Teknik Resim"

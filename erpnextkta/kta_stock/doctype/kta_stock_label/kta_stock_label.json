@@ -1,0 +1,271 @@
+{
+ "actions": [],
+ "creation": "2025-01-20 07:56:55.151439",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_tzcg",
+  "print_label_to_zebra_kta",
+  "section_break_nhrt",
+  "supplier_delivery_note",
+  "column_break_jdyk",
+  "gr_posting_date",
+  "do_not_split",
+  "section_break_auoj",
+  "item_name",
+  "custom_section_break_bx7af",
+  "item_group",
+  "batch",
+  "column_break_gyqj",
+  "item_code",
+  "section_break_aoac",
+  "qty",
+  "column_break_guft",
+  "uom",
+  "section_break_vyki",
+  "sut_barcode",
+  "column_break_oxmr",
+  "quality_ref",
+  "section_break_wbgs",
+  "table_gydm",
+  "column_break_amdo",
+  "print_split_labels_to_zebra_kta",
+  "section_break_iquo",
+  "column_break_kcus",
+  "custom_print_status",
+  "section_break_print_metrics",
+  "print_count",
+  "column_break_print_metrics",
+  "last_printed_at",
+  "last_printed_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "label_type",
+   "fieldtype": "Select",
+   "label": "Label Type",
+   "options": "Depo Giri\u015f Etiketi\n\u0130\u015f Emri Etiketi\nRepack Etiketi",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Name",
+   "options": "reference_doctype",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section_break_item",
+   "fieldtype": "Section Break",
+   "label": "Item Details"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Item Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "label": "Item Group",
+   "options": "Item Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "label": "Qty",
+   "in_list_view": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "options": "UOM",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section_break_tracking",
+   "fieldtype": "Section Break",
+   "label": "Tracking"
+  },
+  {
+   "fieldname": "batch",
+   "fieldtype": "Link",
+   "label": "Batch",
+   "options": "Batch"
+  },
+  {
+   "fieldname": "sut_barcode",
+   "fieldtype": "Data",
+   "label": "SUT Barcode",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "material_index",
+   "fieldtype": "Data",
+   "label": "Material Index"
+  },
+  {
+   "fieldname": "section_break_ops",
+   "fieldtype": "Section Break",
+   "label": "Operations"
+  },
+  {
+   "fieldname": "quality_ref",
+   "fieldtype": "Data",
+   "label": "Quality Ref"
+  },
+  {
+   "fieldname": "supplier_delivery_note",
+   "fieldtype": "Data",
+   "label": "Supplier Delivery Note"
+  },
+  {
+   "fieldname": "gr_posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "source_warehouse",
+   "fieldtype": "Link",
+   "label": "Source Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "target_warehouse",
+   "fieldtype": "Link",
+   "label": "Target Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "section_break_print",
+   "fieldtype": "Section Break",
+   "label": "Print Info"
+  },
+  {
+   "fieldname": "print_count",
+   "fieldtype": "Int",
+   "label": "Print Count",
+   "default": "0"
+  },
+  {
+   "fieldname": "last_printed_at",
+   "fieldtype": "Datetime",
+   "label": "Last Printed At"
+  },
+  {
+   "fieldname": "last_printed_by",
+   "fieldtype": "Link",
+   "label": "Last Printed By",
+   "options": "User"
+  },
+  {
+   "fieldname": "do_not_split",
+   "fieldtype": "Check",
+   "label": "Do Not Split",
+   "default": "0"
+  },
+  {
+   "fieldname": "section_break_splits",
+   "fieldtype": "Section Break",
+   "label": "Splits"
+  },
+  {
+   "fieldname": "splits",
+   "fieldtype": "Table",
+   "label": "Splits",
+   "options": "KTA Stock Label Split"
+  }
+ ],
+ "grid_page_length": 50,
+ "links": [],
+ "modified": "2025-07-15 18:25:45.643149",
+ "modified_by": "Administrator",
+ "module": "kta_stock",
+ "name": "KTA Stock Label",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Quality Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "KTA Kalite Kullan\u0131c\u0131s\u0131",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "autoname": "autoincrement"
+}

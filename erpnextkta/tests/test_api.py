@@ -123,8 +123,7 @@ class TestCalismaKartiAPI(KTATestCase):
 
 	def test_scrap_synchronization_via_api(self):
 		"""Hurda ekleme ve silme işlemlerinin Stok Girişi ile senkronize olduğunu doğrular."""
-		import erpnextkta.kta_calisma_karti.api_impl.hurda as hurda_module
-		import erpnextkta.kta_calisma_karti.api_impl._helpers as helpers_module
+		from unittest.mock import patch
 
 		doc = create_calisma_karti(is_karti=self.jc_name, operasyon=self.kta_op, is_istasyonu=self.ws_name, operator="scrap@kta.com")
 		docname = doc.get("name")
@@ -135,17 +134,12 @@ class TestCalismaKartiAPI(KTATestCase):
 		# Update Settings so that future calls (if they read from DB) see this
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "hurda_ust_masraf_merkezi", any_group_cc)
 
-		# MONKEYPATCH: Use a valid group parent CC from the environment
-		orig_hurda_cc = hurda_module.HURDA_PARENT_COST_CENTER
-		hurda_module.HURDA_PARENT_COST_CENTER = any_group_cc
-		helpers_module.HURDA_PARENT_COST_CENTER = any_group_cc
+		# Use mock.patch context managers to safely monkeypatch values and restore them automatically
+		with patch("erpnextkta.kta_calisma_karti.api_impl.hurda.HURDA_PARENT_COST_CENTER", any_group_cc), \
+		     patch("erpnextkta.kta_calisma_karti.api_impl._helpers.HURDA_PARENT_COST_CENTER", any_group_cc), \
+		     patch("erpnextkta.kta_calisma_karti.api_impl.hurda._assert_hurda_item_allowed_for_operation", lambda doc, item: True):
 
-		# MONKEYPATCH: Disable BOM based item validation for this test
-		orig_validate_item = hurda_module._assert_hurda_item_allowed_for_operation
-		hurda_module._assert_hurda_item_allowed_for_operation = lambda doc, item: True
-
-		try:
-			# Hurda Nedeni (Cost Center) kur - MUST be a child of our monkeypatched parent
+			# Hurda Nedeni (Cost Center) kur - MUST be a child of our mocked parent
 			cc_name = "TEST-SCRAP-CC"
 			if not frappe.db.exists("Cost Center", f"{cc_name} - TKTA"):
 				cc_doc = frappe.get_doc({
@@ -175,11 +169,6 @@ class TestCalismaKartiAPI(KTATestCase):
 			delete_hurda(docname, rowname)
 			
 			self.assertFalse(frappe.db.exists("Stock Entry", se_name))
-		finally:
-			# Restore monkeypatched values
-			hurda_module.HURDA_PARENT_COST_CENTER = orig_hurda_cc
-			helpers_module.HURDA_PARENT_COST_CENTER = orig_hurda_cc
-			hurda_module._assert_hurda_item_allowed_for_operation = orig_validate_item
 
 	def test_alt_operasyon_crud_via_api(self):
 		"""Alt operasyon kayıtlarının API üzerinden eklenip silinebildiğini doğrular."""
@@ -323,3 +312,34 @@ class TestCalismaKartiAPI(KTATestCase):
 		# Submit sonrası tüm islem_yap çağrıları bloklanmalı
 		with self.assertRaises(Exception):
 			islem_yap(docname, "Durus", durus_nedeni="Diğer")
+
+	def test_user_dashboard_override(self):
+		"""User dashboard override'ının Calisma Karti'nı Activity grubuna eklediğini doğrular."""
+		meta = frappe.get_meta("User")
+		data = meta.get_dashboard_data()
+		
+		# Activity grubunu bul
+		activity_group = None
+		for group in data.transactions:
+			if group.get("label") == "Activity":
+				activity_group = group
+				break
+		
+		self.assertIsNotNone(activity_group, "Activity group should exist in User dashboard data")
+		self.assertIn("Calisma Karti", activity_group.get("items", []), "Calisma Karti should be in Activity group items")
+		self.assertEqual(data.get("method"), "erpnextkta.overrides.user_dashboard.get_open_count")
+		self.assertEqual(data.get("internal_links", {}).get("Calisma Karti"), "name")
+		
+		# Test calling get_open_count
+		from erpnextkta.overrides.user_dashboard import get_open_count
+		res = get_open_count("User", "Administrator")
+		self.assertIn("count", res)
+		self.assertIn("internal_links_found", res["count"])
+		
+		# Verify Calisma Karti is in the response list
+		ck_link = None
+		for il in res["count"]["internal_links_found"]:
+			if il["doctype"] == "Calisma Karti":
+				ck_link = il
+				break
+		self.assertIsNotNone(ck_link, "Calisma Karti should be returned in get_open_count internal links")

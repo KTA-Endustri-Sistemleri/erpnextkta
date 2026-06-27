@@ -37,6 +37,11 @@ Krimp operasyonlarında veri doğruluğunu sağlamak için "Ansiklopedi vs. Uygu
 - **Katman 2: KTA Krimp Yukseklik Parametreleri (Onaylı Uygulama):** Belirli bir kablo grubu ve fiziksel kalıp (`Amboss Takımı`) seti için onaylanmış süreç standardı. `Krimp Book`'tan veri koparılıp burada "Submit" edilerek dondurulur.
 - **İlişki Mantığı:** Gelecekte `Krimp Book`'taki metin (Data) bazlı kalıp isimleri, `KTA Amboss Takimlari` asset kayıtlarına `Link` ile bağlanarak tam bir izlenebilirlik sağlanacaktır.
 
+### 5. Çapraz Modül Tolerans Doğrulama Deseni (Cross-Module Tolerance Validation)
+`kta_calisma_karti` üzerinde krimp ölçüm değerleri girildiğinde, doğru limitleri doğrulamak için `kta_quality` altındaki kütüphane verileri kullanılır:
+- **Tetikleyici**: `Calisma Karti` krimp ölçümleri kaydedilirken veya validate edilirken.
+- **Akış**: `Calisma Karti` bileşeni, `kta_quality` modülünün `KTA Krimp Book` veritabanı tablosuna (kesit, kablo tipi, kontak no baz alınarak) sorgu atar. Bulunan min/maks limit değerlerini kendi UI segment göstergesinde ve backend validation adımında kullanarak ölçülen değerin standartlara uygunluğunu denetler.
+
 ## Veri İlişkileri
 - **Ebeveyn:** `TestMasasiDogrulamaKaydi`
 - **Çocuk Tablolar:**

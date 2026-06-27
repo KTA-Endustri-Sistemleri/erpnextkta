@@ -35,7 +35,7 @@ ERPNext’in standart üretim akışlarını gerçek atölye senaryolarına uyar
 
   <div class="folder-tree__item folder">
     <span class="folder-tree__icon">📁</span>
-    <span class="folder-tree__label">manufacturing_ext/</span>
+    <span class="folder-tree__label">kta_calisma_karti/</span>
   </div>
 
   <div class="folder-tree__children">
@@ -48,22 +48,26 @@ ERPNext’in standart üretim akışlarını gerçek atölye senaryolarına uyar
     <div class="folder-tree__children">
       <div class="folder-tree__item folder">
         <span class="folder-tree__icon">📁</span>
-        <span class="folder-tree__label">kta_calisma_karti/</span>
+        <span class="folder-tree__label">calisma_karti/</span>
       </div>
       <div class="folder-tree__item folder">
         <span class="folder-tree__icon">📁</span>
         <span class="folder-tree__label">kta_calisma_karti_operasyonlari/</span>
       </div>
+      <div class="folder-tree__item folder">
+        <span class="folder-tree__icon">📁</span>
+        <span class="folder-tree__label">kta_calisma_karti_settings/</span>
+      </div>
     </div>
 
     <div class="folder-tree__item file">
       <span class="folder-tree__icon">📄</span>
-      <span class="folder-tree__label">job_card_hooks.py</span>
+      <span class="folder-tree__label">api.py (Dış Facade)</span>
     </div>
 
-    <div class="folder-tree__item file">
-      <span class="folder-tree__icon">📄</span>
-      <span class="folder-tree__label">workflow_logic/</span>
+    <div class="folder-tree__item folder">
+      <span class="folder-tree__icon">📁</span>
+      <span class="folder-tree__label">api_impl/</span>
     </div>
 
   </div>
@@ -74,20 +78,26 @@ ERPNext’in standart üretim akışlarını gerçek atölye senaryolarına uyar
 
 <section class="module-card" markdown="1">
 
-## 📦 Negative Stock Control
+## 📦 KTA Stock & Logistics
 
-KTA’nın üretim modeli için gerekli olan özel “negatif stok izinleri” ve validasyon sistemi.
+KTA’nın depo, etiketleme ve lojistik modeli için geliştirilmiş kritik kısıtlama ve otomasyon modülüdür.
 
-**Özellikler:**
+**Öne çıkan özellikler:**
 
-- Negatif stok girişlerine kontrollü izin
-- Çeşitli stok hareketleri için özel validasyonlar
-- ERPNext’in varsayılan stok kurallarını genişletme
+- [KTA Stok ve Lojistik Kılavuzu](kta_stok_lojistik_kilavuzu.html) (Depo süreçleri, Etiketleme ve Karantina detayları) 📦
+- **Akıllı Parti Bölme (Smart Batch Splitting):** Mal kabul ve depo içi işlemlerde (Repack/Manufacture) ürünleri paket miktarlarına göre anında böler ve Zebra yazıcılardan otomatik SUT etiketleri basar.
+- **GKK Transfer Kısıtı (Güvenlik Duvarı):** Kalite onayı almamış (GKK Bekleyen) partilerin `Stock Entry` ve `Delivery Note` ile transferini kesin bir dille engeller.
+- **Negatif Stok Kontrolü:** KTA'nın üretim modeline uygun olarak negatif stok girişlerine kontrollü izin verir ve standart ERPNext stok kurallarını genişletir.
 
 **Dosya yapısı (örnek):**
 
-- `negative_stock_control/`
-  - `allow_negative_stock_validation.py`
+- `kta_stock/`
+  - `label_manager.py` (Etiketleme Motoru)
+  - `batch_manager.py` (Parti Bölme Lojiği)
+  - `quality_inspection_validator.py` (GKK Güvenlik Duvarı)
+- `overrides/`
+  - `KTAPurchaseReceipt.py`
+  - `KTAStockEntry.py`
 
 </section>
 

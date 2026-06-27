@@ -1,12 +1,13 @@
 # Aktif Bağlam: kta_quality
 
-## Mevcut Odak (2026-04-19)
-Şu anki odak noktamız, `kta_quality` modülünün `kta_calisma_karti` ile olan entegrasyonunu güçlendirmek ve bugün tamamlanan **"Duruş Standardizasyonu"** projesinin (Arıza, Board Kurma, Kalite Kontrol vb.) kalite darboğaz analizleri üzerindeki etkisini izlemek ve raporlamaktır.
+## Mevcut Odak (2026-06-25)
+Şu anki odak noktamız, `kta_quality` modülündeki teknik kütüphane verilerinin (`KTA Krimp Book`) ve test masası kontrollerinin, `kta_calisma_karti` modülüyle olan entegrasyonunu kusursuzlaştırmaktır. Son dönemde tamamlanan Krimp ölçüm cascade seçim yapısı ve tolerans kontrolleri ile test masası doğrulama kayıtlarının ilişkileri stabilize edilmiştir.
 
 ## Son Değişiklikler
-- `TestMasasiDogrulamaKaydi` DocType'ının işlevsel hale getirilmesi.
-- `SABIT_KRITERLER` (17 maddelik liste) ve `BAGLANTI_NOKTASI_SATIRLAR` listelerinin Python kontrolcü seviyesinde otomatik doldurulmasının sağlanması.
-- `before_insert`, `validate`, `on_update` ve `after_insert` hook'larının `Calisma Karti` ile veri senkronizasyonu için yapılandırılması.
+- `TestMasasiDogrulamaKaydi` DocType'ı ve `Calisma Karti` entegrasyonunun kararlı hale getirilmesi.
+- `KTA Krimp Book` üzerindeki 1540+ teknik referans verisine dayalı krimp yükseklik tolerans doğrulamalarının `kta_calisma_karti` üzerinden çağrılması.
+- KTA Ayarlarından (`KTA Quality Settings`) `Item Group` bazlı terminal kısıtlama mantığının devreye alınması.
+- `Administrator` kullanıcısı üzerinden koşan test suite kararlılık güncellemeleri.
 
 ## Aktif Kararlar
 - **Krimp Mimarisi:** `KTA Krimp Book`'un bir "Referans Ansiklopedisi" olarak kalmasına, `KTA Krimp Yukseklik Parametreleri`'nin ise bu kitaptan beslenen birer "Onaylı Uygulama" katmanı olmasına karar verildi.
@@ -15,7 +16,8 @@
 - **Dil Seçimi:** Tüm sistem dökümantasyonu Türkçe olarak sürdürülüyor.
 
 ## Sonraki Adımlar
-- [ ] `systemPatterns.md` dosyasının teknik detaylarla (hook'lar ve veri akışı) doldurulması.
-- [ ] `techContext.md` dosyasının DocType ilişkileri ile oluşturulması.
-- [ ] `progress.md` dosyasının mevcut durum özetiyle hazırlanması.
-- [ ] Tüm dokümanların genel bir tur rehberi (Walkthrough) ile sunulması.
+- [/] **Krimp Protokolü Baskı Şablonu:** Krimp doğrulama protokolü için gerekli print template şablonunun tasarlanması (Tasarım/Bekleme aşamasında).
+- [ ] **Dijital Test Masası Entegrasyonu:** Test masasından gelen dijital test verilerinin `Calisma Karti` ile otomatik eşleştirilmesi.
+- [ ] **Krimp Otomasyonu:** Parametreler sayfasında terminal seçildiğinde Book'tan otomatik veri çekme mantığının kurulması.
+- [ ] Sabit kriterlerin veritabanından dinamik yönetilmesine yönelik mimari refaktör çalışması.
+

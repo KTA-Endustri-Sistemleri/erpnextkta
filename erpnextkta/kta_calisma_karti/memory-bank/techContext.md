@@ -94,6 +94,8 @@ Public (Frontend): erpnextkta/public/
 "Employee"              # operator eşleştirme
 "Workstation"           # is_istasyonu
 "Item"                  # item_group ve customer_group kontrolleri
+"User"                  # Kullanıcı paneli override ve mail alıcısı/operatör eşleşmeleri için
+
 ```
 
 ## Teknik Kısıtlar

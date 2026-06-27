@@ -13,6 +13,7 @@ Aşağıdaki kritik uç noktalar artık `bench run-tests` ile otomatik olarak do
 - [x] `test_create_calisma_karti_double_click_protection`: Mükerrer kayıt koruması.
 - [x] `test_manual_submission_without_bitis_fails`: Bitmemiş kart submission engeli.
 - [x] `test_amend_flow`: İptal edilen kartı düzeltme (amend) akışı.
+- [x] `test_user_dashboard_override`: Kullanıcı profili panelinde (User Dashboard) open count ve internal link listesi verilerinin doğrulanması.
 
 ---
 
@@ -60,3 +61,15 @@ Aşağıdaki senaryolar `npm run test` (Vitest) ile otomatik olarak doğrulanmak
 - [ ] **Ölçüm Giriş ve Limit Testi:** Sayısal parametrelerde girilen değerler Low/High limit dışındaysa durum otomatik "Rejected" (Reddedildi) olarak değişiyor mu?
 - [ ] **Belge Linkleme Testi:** Kayıt sonrası Çalışma Kartı üzerinde "Bağlı Kalite Belgesi" linki beliriyor mu ve tıklandığında doğru MAT-QA formuna yönlendiriyor mu?
 - [ ] **Durum Senkronizasyon Testi:** Kalite muayenesi "Accepted" (Kabul) ise Çalışma Kartı Quality Control durumu "Onaylandı", "Rejected" ise "Reddedildi" olarak güncelleniyor mu?
+
+## ⏸️ 11. Duruş "Diğer" Nedeni Açıklama Validasyonu
+- [ ] **Frontend Prompt Testi**: Kart detay ekranında duruş başlat butonuna basılıp duruş sebebi olarak "Diger" seçildiğinde açıklama alanının kırmızı asteriks işaretiyle (`*`) zorunlu hale geldiği ve boş geçilmek istendiğinde hata mesajı vererek kaydı durdurduğu.
+- [ ] **Backend Controller Testi**: API üzerinden duruş nedeni "Diger" olup açıklaması (`aciklama`) boş olan bir duruş satırı gönderildiğinde, backend `validate` hook'unun hata fırlatarak (frappe.throw) kaydı veritabanına işlemediği.
+
+## 👤 12. User Dashboard Entegrasyonu
+- [ ] **Kullanıcı Paneli Sayımı Testi**: Herhangi bir kullanıcı ile giriş yapılıp kendi User profili açıldığında, dashboard alanında "Aktivite" kartı altında "Çalışma Kartı" seçeneğinin belirdiği ve kullanıcının bağlı olduğu Employee kartı üzerinden open count sayısının (Açık ve biten toplam kart adedi) doğru yansıdığı.
+
+## 📊 13. Günlük Performans/Hata Raporu ve Grafikler
+- [ ] **Cron Job Gönderim Testi**: `bench execute erpnextkta.tasks.send_daily_calisma_karti_error_report` komutu çalıştırıldığında dünkü net çalışma süresi 5 saatin altında kalan operatörlerin listesini içeren HTML e-postasının başarıyla oluşturulup KTA Settings'te tanımlı alıcılara gönderildiği.
+- [ ] **Dashboard Chart Hesaplama Testi**: "Operator Düşük Net Süre" grafiğinde, belirtilen gün filtresine göre operatörlerin çalışma dakikalarının doğru hesaplanıp en az çalışanların en üstte/grafikte listelendiği.
+

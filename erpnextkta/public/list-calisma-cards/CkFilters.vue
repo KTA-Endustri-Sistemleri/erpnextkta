@@ -38,56 +38,69 @@
       </div>
     </div>
 
-    <div class="ck-filters">
-      <button 
-        v-for="f in statusFilters" 
-        :key="f.key"
-        class="ck-filter" 
-        :class="{ active: statusFilter === f.key }" 
-        @click="$emit('update:statusFilter', f.key)"
-      >
-        {{ f.label }} <span class="ck-filter-count">{{ statusCounts[f.key] }}</span>
+    <div class="ck-filters-toggle-row">
+      <button class="ck-filters-toggle-btn" @click="isFiltersOpen = !isFiltersOpen">
+        Filtreler
+        <div class="ck-active-labels" v-if="activeFilterLabels.length > 0">
+          <span v-for="l in activeFilterLabels" :key="l" class="ck-filter-label-badge">{{ l }}</span>
+        </div>
+        <svg v-if="!isFiltersOpen" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
       </button>
     </div>
 
-    <div class="ck-filters ck-filters--sub">
-      <button 
-        v-for="f in qcFilters" 
-        :key="f.key"
-        class="ck-filter ck-filter--qc" 
-        :class="{ active: qcFilter === f.key }" 
-        @click="$emit('update:qcFilter', f.key)"
-      >
-        {{ f.label }} <span class="ck-filter-count">{{ qcCounts[f.key] }}</span>
-      </button>
-    </div>
+    <div v-show="isFiltersOpen" class="ck-filters-wrapper">
+      <div class="ck-filters">
+        <button 
+          v-for="f in statusFilters" 
+          :key="f.key"
+          class="ck-filter" 
+          :class="{ active: statusFilter === f.key }" 
+          @click="$emit('update:statusFilter', f.key)"
+        >
+          {{ f.label }} <span class="ck-filter-count">{{ statusCounts[f.key] }}</span>
+        </button>
+      </div>
 
-    <!-- Customer Group Filters -->
-    <div class="ck-filters ck-filters--sub" v-if="availableCustomerGroups.length">
-      <button
-        class="ck-filter ck-filter--qc"
-        :class="{ active: customerGroupFilter === 'all' }"
-        @click="$emit('update:customerGroupFilter', 'all')"
-      >
-        Customer Tümü <span class="ck-filter-count">{{ customerGroupCounts.all }}</span>
-      </button>
+      <div class="ck-filters ck-filters--sub">
+        <button 
+          v-for="f in qcFilters" 
+          :key="f.key"
+          class="ck-filter ck-filter--qc" 
+          :class="{ active: qcFilter === f.key }" 
+          @click="$emit('update:qcFilter', f.key)"
+        >
+          {{ f.label }} <span class="ck-filter-count">{{ qcCounts[f.key] }}</span>
+        </button>
+      </div>
 
-      <button
-        v-for="g in availableCustomerGroups"
-        :key="g"
-        class="ck-filter ck-filter--qc"
-        :class="{ active: customerGroupFilter === g }"
-        @click="$emit('update:customerGroupFilter', g)"
-        :title="g"
-      >
-        {{ g }} <span class="ck-filter-count">{{ customerGroupCounts[g] || 0 }}</span>
-      </button>
+      <!-- Customer Group Filters -->
+      <div class="ck-filters ck-filters--sub" v-if="availableCustomerGroups.length">
+        <button
+          class="ck-filter ck-filter--qc"
+          :class="{ active: customerGroupFilter === 'all' }"
+          @click="$emit('update:customerGroupFilter', 'all')"
+        >
+          Customer Tümü <span class="ck-filter-count">{{ customerGroupCounts.all }}</span>
+        </button>
+
+        <button
+          v-for="g in availableCustomerGroups"
+          :key="g"
+          class="ck-filter ck-filter--qc"
+          :class="{ active: customerGroupFilter === g }"
+          @click="$emit('update:customerGroupFilter', g)"
+          :title="g"
+        >
+          {{ g }} <span class="ck-filter-count">{{ customerGroupCounts[g] || 0 }}</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps({
   q: String,
@@ -108,6 +121,10 @@ const emit = defineEmits([
   "update:qcFilter", 
   "update:customerGroupFilter"
 ]);
+
+const isFiltersOpen = ref(false);
+
+// (Removed activeFilterCount, replaced with activeFilterLabels below)
 
 const sortCategories = [
   { key: "modified", label: "Güncellenme" },
@@ -133,6 +150,7 @@ const statusFilters = [
   { key: "paused", label: "Duruşta" },
   { key: "finished", label: "Bitmiş" },
   { key: "rejected", label: "Reddedildi" },
+  { key: "cancelled", label: "İptal Edildi" },
 ];
 
 const qcFilters = [
@@ -141,10 +159,77 @@ const qcFilters = [
   { key: "approved", label: "Onaylandı" },
   { key: "rejected", label: "Reddedildi" },
 ];
+
+const activeFilterLabels = computed(() => {
+  const labels = [];
+  
+  if (props.statusFilter && props.statusFilter !== "all") {
+    const f = statusFilters.find(x => x.key === props.statusFilter);
+    if (f) labels.push(f.label);
+  }
+  
+  if (props.qcFilter && props.qcFilter !== "all") {
+    const f = qcFilters.find(x => x.key === props.qcFilter);
+    if (f) labels.push(f.label);
+  }
+  
+  if (props.customerGroupFilter && props.customerGroupFilter !== "all") {
+    labels.push(props.customerGroupFilter);
+  }
+  
+  return labels;
+});
 </script>
 
 <style scoped>
 .ck-filters-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.ck-filters-toggle-row {
+  margin-top: 10px;
+  display: flex;
+}
+
+.ck-filters-toggle-btn {
+  background: var(--ck-glass-bg);
+  border: 1px solid var(--ck-glass-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-color);
+  width: 100%;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px var(--ck-glass-shadow);
+  transition: background 0.2s;
+}
+.ck-filters-toggle-btn:hover {
+  background: var(--ck-glass-border-soft);
+}
+.ck-active-labels {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.ck-filter-label-badge {
+  background: var(--ck-info, #3b82f6);
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.ck-filters-wrapper {
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
 }
@@ -248,6 +333,8 @@ const qcFilters = [
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: var(--scrollbar-thumb-color) solid 1px;
 }
 .ck-filters::-webkit-scrollbar { display: none; }
 
@@ -274,6 +361,8 @@ const qcFilters = [
   gap: 6px;
   transition: all 0.15s ease;
   color: var(--text-color);
+  width: 100%;
+  justify-content: space-between;
 }
 .ck-filter:active { transform: scale(.96); box-shadow: 0 1px 2px var(--ck-glass-shadow); }
 

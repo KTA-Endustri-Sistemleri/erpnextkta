@@ -77,6 +77,8 @@ function actions(r: any) {
              <MeasureGauge
                :measured="r.olculen_kablo_boyu"
                :target="r.hedef_kablo_boyu"
+               :tolerance="3"
+               :segment-step="1"
                unit="mm"
              />
           </div>
@@ -85,12 +87,27 @@ function actions(r: any) {
              <MeasureGauge
                :measured="r.olculen_iletken_krimp_yuksekliği"
                :target="r.hedef_iletken_krimp_yuksekliği"
+               :tolerance="0.05"
+               :segment-step="0.01"
+               text-low="düşük"
+               text-high="yüksek"
                unit="mm"
              />
           </div>
           <div class="ck-krimp-box">
              <span>Çekme</span>
-             <b>{{ r.cekme_kuvveti_n }}</b> <small>N</small>
+             <div v-if="r.olculen_cekme_kuvveti_n > 0" class="ck-pull-force">
+                <span
+                  class="ck-pull-val"
+                  :class="r.olculen_cekme_kuvveti_n >= r.hedef_cekme_kuvveti_n ? 'ck-pull--ok' : 'ck-pull--fail'"
+                >
+                  {{ r.olculen_cekme_kuvveti_n }}<small>N</small>
+                </span>
+                <span v-if="r.hedef_cekme_kuvveti_n > 0" class="ck-pull-target">
+                  Hedef: {{ r.hedef_cekme_kuvveti_n }}N
+                </span>
+             </div>
+             <div v-else class="ck-pull-na">—</div>
           </div>
           <div class="ck-krimp-box">
              <span>İzokrimp</span>
@@ -110,8 +127,8 @@ function actions(r: any) {
             <div :class="['ck-status-box', r.radus_mevcut ? 'ck-status--success' : 'ck-status--danger']">
                 Radüs {{ r.radus_mevcut ? '✓' : '✕' }}
             </div>
-            <div :class="['ck-status-box', r.tel_kesme_mevcut ? 'ck-status--success' : 'ck-status--danger']">
-                Tel Kesme {{ r.tel_kesme_mevcut ? '✓' : '✕' }}
+            <div :class="['ck-status-box', !r.tel_kesme_mevcut ? 'ck-status--success' : 'ck-status--danger']">
+                Tel Kesme {{ !r.tel_kesme_mevcut ? 'Yok ✓' : 'Var ✕' }}
             </div>
         </div>
 
@@ -220,5 +237,36 @@ function actions(r: any) {
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 6px;
+}
+.ck-pull-force {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 4px;
+}
+.ck-pull-val {
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1;
+}
+.ck-pull-val small {
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.7;
+}
+.ck-pull--ok {
+    color: var(--ck-success, #1a7a1a);
+}
+.ck-pull--fail {
+    color: #cc0000;
+}
+.ck-pull-target {
+    font-size: 10px;
+    opacity: 0.5;
+}
+.ck-pull-na {
+    font-size: 13px;
+    opacity: 0.4;
+    padding: 4px 0;
 }
 </style>

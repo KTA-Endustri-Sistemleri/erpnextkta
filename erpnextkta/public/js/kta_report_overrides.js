@@ -60,6 +60,64 @@ kta.report_overrides = {
         // 3. Filtre alanını yeniden oluştur
         const render_fn = report.make_filter_area || report.make_filters || report.setup_filters;
         if (render_fn) render_fn.call(report);
+    },
+
+    "BOM Search": function(report) {
+        if (!report) return;
+
+        let config = frappe.query_reports["BOM Search"];
+        if (config && config.filters) {
+            // Find existing filters
+            let item_filters = config.filters.filter(f => f.fieldname && f.fieldname.startsWith("item"));
+            let sub_assembly_filter = config.filters.find(f => f.fieldname === "search_sub_assemblies");
+            let only_default_filter = config.filters.find(f => f.fieldname === "only_default_boms");
+
+            if (!only_default_filter) {
+                only_default_filter = {
+                    fieldname: "only_default_boms",
+                    label: __("Only Default BOMs"),
+                    fieldtype: "Check",
+                    default: 0,
+                    description: __("Sadece varsayılan reçeteleri (BOM) arar.")
+                };
+            }
+
+            // Reconstruct filters: Checkboxes on the first row, Items on the second row
+            let new_filters = [];
+            if (sub_assembly_filter) new_filters.push(sub_assembly_filter);
+            new_filters.push(only_default_filter);
+            new_filters.push(...item_filters);
+
+            config.filters = new_filters;
+            report.report_settings.filters = config.filters;
+            report.filters = config.filters;
+        }
+
+        // 2. Filtre alanını yeniden oluştur
+        const render_fn = report.make_filter_area || report.make_filters || report.setup_filters;
+        if (render_fn) {
+            render_fn.call(report);
+            
+            // Adjust layout styles to display filters in two distinct rows
+            if (report.page && report.page.page_form) {
+                let $page_form = $(report.page.page_form);
+                $page_form.css({
+                    "height": "auto",
+                    "overflow": "visible",
+                    "display": "flex",
+                    "flex-wrap": "wrap"
+                });
+                
+                // Clear any existing break to prevent duplicate spacer elements on multiple renders
+                $page_form.find('.kta-layout-break').remove();
+                
+                // Insert a full-width block element before the first item filter to force subsequent filters onto a new row
+                let $item1 = $page_form.find('[data-fieldname="item1"]');
+                if ($item1.length) {
+                    $('<div class="kta-layout-break" style="width: 100%; height: 0; flex-basis: 100%;"></div>').insertBefore($item1);
+                }
+            }
+        }
     }
 };
 
@@ -69,8 +127,6 @@ $(document).on("page-change", function() {
         let report_name = frappe.get_route()[1];
         
         if (kta.report_overrides[report_name]) {
-            console.log(`[KTA Override] ${report_name} için özelleştirmeler yükleniyor...`);
-            
             let check_interval = setInterval(() => {
                 let report = frappe.query_report;
                 if (report && report.report_name === report_name && report.filters && report.filters.length > 0) {

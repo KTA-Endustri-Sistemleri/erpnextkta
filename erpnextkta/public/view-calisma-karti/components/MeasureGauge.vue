@@ -5,13 +5,18 @@ const props = defineProps<{
   measured: number | null | undefined;
   target: number | null | undefined;
   unit?: string;
+  tolerance?: number;
+  segmentStep?: number;
+  textLow?: string;
+  textHigh?: string;
 }>();
 
-const TOTAL_SEGMENTS = 10; // her yarıda 10 segment, 1 kutu = 1 mm
+const TOTAL_SEGMENTS = 10; // her yarıda 10 segment
 
 const hasData = computed(
   () =>
     props.measured != null &&
+    props.measured > 0 &&
     props.target != null &&
     props.target > 0
 );
@@ -24,38 +29,42 @@ const diff_mm = computed(() => {
   );
 });
 
-const isLow  = computed(() => diff_mm.value < -0.001);
-const isHigh = computed(() => diff_mm.value >  0.001);
+const safeTolerance = computed(() => props.tolerance || 0);
+const safeStep = computed(() => props.segmentStep || 1);
+
+const isLow  = computed(() => diff_mm.value < -safeTolerance.value - 0.001);
+const isHigh = computed(() => diff_mm.value >  safeTolerance.value + 0.001);
 const isOk   = computed(() => !isLow.value && !isHigh.value);
 
-// Kaç kutu dolacak: 1 mm = 1 kutu, maksimum 10
+// Kaç kutu dolacak: 1 kutu = segmentStep değeri, maksimum 10
 const filledCount = computed(() =>
-  Math.min(Math.round(Math.abs(diff_mm.value)), TOTAL_SEGMENTS)
+  Math.min(Math.round(Math.abs(diff_mm.value) / safeStep.value), TOTAL_SEGMENTS)
 );
 
-// ±10 mm sınırı aşıldı mı?
-const isOverLimit = computed(() => Math.abs(diff_mm.value) > TOTAL_SEGMENTS);
+// Sınır aşıldı mı? (TOTAL_SEGMENTS * segmentStep)
+const limitMax = computed(() => Number((TOTAL_SEGMENTS * safeStep.value).toFixed(3)));
+const isOverLimit = computed(() => Math.abs(diff_mm.value) > limitMax.value);
 
-type SegmentState = "left-red" | "left-green" | "left-empty" | "right-green" | "right-empty";
+type SegmentState = "left-red" | "left-green" | "left-empty" | "right-green" | "right-red" | "right-empty";
 
 const leftSegments = computed<SegmentState[]>(() => {
   return Array.from({ length: TOTAL_SEGMENTS }, (_, i) => {
-    if (isLow.value) {
-      // Sadece eksik (low) durumunda sol taraf dolmaya başlar (merkeze yakın kısımdan)
-      return i >= TOTAL_SEGMENTS - filledCount.value ? "left-red" : "left-empty";
+    if (diff_mm.value < 0) {
+      if (i >= TOTAL_SEGMENTS - filledCount.value) {
+        return isOk.value ? "left-green" : "left-red";
+      }
     }
-    // OK veya High (fazla) durumunda sol taraf boş (sadece kenarlık) kalır
     return "left-empty";
   });
 });
 
 const rightSegments = computed<SegmentState[]>(() => {
   return Array.from({ length: TOTAL_SEGMENTS }, (_, i) => {
-    if (isHigh.value) {
-      // Sadece fazla (high) durumunda sağ taraf dolmaya başlar (merkezden sağa doğru)
-      return i < filledCount.value ? "right-green" : "right-empty";
+    if (diff_mm.value > 0) {
+      if (i < filledCount.value) {
+        return isOk.value ? "right-green" : "right-red";
+      }
     }
-    // OK veya Low (eksik) durumunda sağ taraf boş kalır
     return "right-empty";
   });
 });
@@ -79,6 +88,7 @@ const rightSegments = computed<SegmentState[]>(() => {
       </span>
       <span class="mg-target-label">
         Hedef: {{ target }}<small v-if="unit"> {{ unit }}</small>
+        <span v-if="tolerance"> ±{{ tolerance }}</span>
       </span>
     </div>
 
@@ -120,13 +130,13 @@ const rightSegments = computed<SegmentState[]>(() => {
     <!-- Alt satır: fark -->
     <div class="mg-diff" :class="{ 'mg-diff--low': isLow, 'mg-diff--high': isHigh, 'mg-diff--ok': isOk }">
       <template v-if="isOk">✓ Hedef karşılandı</template>
-      <template v-else-if="isLow">▼ {{ Math.abs(diff_mm) }} {{ unit }} kısa</template>
-      <template v-else>▲ {{ diff_mm }} {{ unit }} uzun</template>
+      <template v-else-if="isLow">▼ {{ Math.abs(diff_mm) }} {{ unit }} {{ textLow || 'kısa' }}</template>
+      <template v-else>▲ {{ diff_mm }} {{ unit }} {{ textHigh || 'uzun' }}</template>
     </div>
 
-    <!-- ±10 mm sınır uyarısı -->
+    <!-- ± sınır uyarısı -->
     <div v-if="isOverLimit" class="mg-warning">
-      ⚠ Fark ±10 mm sınırını aştı!
+      ⚠ Grafik sınırı (±{{ limitMax }}) aşıldı!
     </div>
   </div>
 </template>
@@ -166,7 +176,7 @@ const rightSegments = computed<SegmentState[]>(() => {
 }
 
 .mg-label--low  { color: #cc2200; }
-.mg-label--high { color: #1a7a1a; }
+.mg-label--high { color: #cc2200; }
 .mg-label--ok   { color: #1a7a1a; }
 
 .mg-target-label {
@@ -201,19 +211,23 @@ const rightSegments = computed<SegmentState[]>(() => {
   transition: background 0.2s, border-color 0.2s;
 }
 
-/* Dolu kırmızı (düşük - sol taraf) */
-.mg-seg.left-red {
+/* Dolu kırmızı (düşük - sol taraf / fazla - sağ taraf) */
+.mg-seg.left-red,
+.mg-seg.right-red {
   background: #cc2200;
   border: 1px solid #cc2200;
 }
+
 /* Boş kenarlık (sapma olmayan taraflar) */
 .mg-seg.right-empty,
 .mg-seg.left-empty {
   background: transparent;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color, rgba(128, 128, 128, 0.3));
 }
-/* Dolu yeşil (aşım – sağ taraf) */
-.mg-seg.right-green {
+
+/* Dolu yeşil (tolerans içi - sol veya sağ) */
+.mg-seg.right-green,
+.mg-seg.left-green {
   background: #22a022;
   border: 1px solid #22a022;
 }
@@ -228,7 +242,7 @@ const rightSegments = computed<SegmentState[]>(() => {
   flex-shrink: 0;
 }
 .mg-pin--low  { background: #ffe6e0; color: #cc2200; }
-.mg-pin--high { background: #e0f5e0; color: #1a7a1a; }
+.mg-pin--high { background: #ffe6e0; color: #cc2200; }
 .mg-pin--ok   { background: #e0f5e0; color: #1a7a1a; }
 
 /* --- Alt fark etiketi --- */
@@ -239,7 +253,7 @@ const rightSegments = computed<SegmentState[]>(() => {
   opacity: 0.85;
 }
 .mg-diff--low  { color: #cc2200; }
-.mg-diff--high { color: #1a7a1a; }
+.mg-diff--high { color: #cc2200; }
 .mg-diff--ok   { color: #1a7a1a; }
 
 /* --- ±10 mm uyarı bandı --- */

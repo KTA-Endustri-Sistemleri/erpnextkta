@@ -1,6 +1,13 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-05-16 (Krimp Ölçüm Modülü & QC Reddetme Düzeltmesi)
+> Son güncelleme: 2026-06-25 (Hata Raporlama, Dashboard Grafik, Validasyonlar)
+
+### Raporlama, Dashboard ve Validasyon Geliştirmeleri (2026-06-25 — Tamamlandı)
+- [x] **Günlük Hata Bildirim Raporu**: `hata_raporu_aktif` ve `hata_raporu_alicilari` KTA Ayarlarından okunarak dün 5 saatin altında kalan operatörlerin detaylı listesini amirlere e-posta olarak gönderen `send_daily_calisma_karti_error_report` zamanlanmış görevi eklendi.
+- [x] **Kullanıcı Paneli (User Dashboard) Override**: `User` DocType dashboard verisi override edilerek kullanıcının Employee kartı ile ilişkili `Calisma Karti` dökümanları "Activity" (Aktivite) grubuna eklendi ve "Open Count" sorgusuna dahil edildi.
+- [x] **Düşük Net Süre Dashboard Grafiği**: Son N günde en az net çalışma süresine sahip operatörlerin net dakikalarını toplayan `operator_dusuk_net_sure` dashboard grafiği eklendi.
+- [x] **Diger Duruş Nedeni Validasyonu**: Duruş başlatılırken veya kart kaydedilirken duruş nedeni "Diger" olduğunda açıklama (`aciklama`) alanının doldurulması hem frontend hem backend validasyonlarıyla zorunlu kılındı.
+- [x] **Testlerin Güncellenmesi**: Testlerde `test@kta.com` yerine `Administrator` kullanıcısı kullanılarak kararlılık artırıldı ve `test_api.py` içerisine user dashboard open count testi eklendi.
 
 ### Krimp Ölçüm Modülü (2026-05-13 – 2026-05-15 — Tamamlandı)
 - [x] **`Calisma Karti Krimp Olcumleri` DocType**: Kablo kesiti, kontak, makine (Asset), ölçülen değer (mm), Krimp Book referansı (min/maks tolerans), operatör ve tarih alanlarıyla yeni child table oluşturuldu.

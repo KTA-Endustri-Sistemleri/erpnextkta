@@ -15,6 +15,9 @@
         "auto_pause_durus_nedeni",
         "timeout_durus_nedeni",
         "mukerrer_kalite_kontrolu_yap",
+        "hata_raporu_section",
+        "hata_raporu_aktif",
+        "hata_raporu_alicilari",
         "sb_stok",
         "hurda_gider_hesabi",
         "admin_roles"
@@ -94,6 +97,23 @@
             "fieldtype": "Check",
             "label": "M\u00fckerrer Kalite Kontrol\u00fc Yap",
             "description": "Ayn\u0131 Kalite Muayene Belgesinin birden fazla \u00e7al\u0131\u015fma kart\u0131na ba\u011flanmas\u0131n\u0131 engeller."
+        },
+        {
+            "fieldname": "hata_raporu_section",
+            "fieldtype": "Section Break",
+            "label": "G\u00fcnl\u00fck Hata Raporu Ayarlar\u0131"
+        },
+        {
+            "default": "1",
+            "fieldname": "hata_raporu_aktif",
+            "fieldtype": "Check",
+            "label": "G\u00fcnl\u00fck Hata Raporu G\u00f6nderilsin mi?"
+        },
+        {
+            "fieldname": "hata_raporu_alicilari",
+            "fieldtype": "Small Text",
+            "label": "Rapor Al\u0131c\u0131 E-postalar\u0131",
+            "description": "Virg\u00fclle ayr\u0131lm\u0131\u015f e-posta adresleri giriniz."
         },
         {
             "fieldname": "sb_stok",

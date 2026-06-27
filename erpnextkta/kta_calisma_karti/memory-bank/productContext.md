@@ -25,8 +25,14 @@ KTA operatörleri:
     - **Plansız**: Üretim sırasındaki beklenmedik duruşlar (Arıza, Malzeme Bekleme vb.).
     - **Planlı**: Mola, Eğitim veya Planlı Bakım süreçleri.
     - **Sistem**: API veya arka plan görevleri tarafından üretilen duruşlar (Otomatik Duraklatma, Zaman Aşımı).
-- **Standart Manuel Nedenler**: Arıza, Bakım, Mola, Kalite Kontrol, Malzeme Bekleme, Diğer, Kalıp Bağlama / Makine Ayarı, Board Kurma Hazırlık, Malzeme Taşıma, Depo / Hammadde Yerleştirme.
+- **Standart Manuel Nedenler**: Arıza, Bakım, Mola, Kalite Kontrol, Malzeme Bekleme, Diğer (Diger), Kalıp Bağlama / Makine Ayarı, Board Kurma Hazırlık, Malzeme Taşıma, Depo / Hammadde Yerleştirme.
+    - *Diğer Validasyonu*: Kullanıcı duruş sebebi olarak "Diger" seçtiğinde, duruşun nedenini açıklayan bir metin girmek frontend (dialog) ve backend (validate hook) düzeyinde **zorunludur**.
 - **Otomatik Duruşlar**: Başka kart başlatıldığında veya vardiya sonu zaman aşımında sistem tarafından otomatik olarak eklenir.
+
+## Operasyonel Raporlama ve Dashboard Takibi
+- **Operatör Hata / Düşük Süre Raporu**: Günlük net çalışma hedefi (7 saat 10 dakika) altında çalışan ve özellikle 5 saatin altında kalan operatörlerin listesi, amirlerine her sabah otomatik olarak detaylı bir HTML e-posta raporu şeklinde iletilir.
+- **Kullanıcı Paneli (User Dashboard) Takibi**: Her sistem kullanıcısının kendi profil panelinde (User Dashboard), kendisiyle ilişkili Employee üzerinden atanmış olan açık ve tamamlanmış Çalışma Kartı listesi ve sayısı dinamik olarak gösterilir.
+- **Düşük Net Süre Grafiği (Operator Performance)**: Yönetici panellerinde, son günlerde en düşük performans gösteren (hedef net sürenin gerisinde kalan) operatörleri ve net sürelerini dakika bazında karşılaştıran custom bar chart'lar kullanılır.
 
 ## Kullanıcı Grupları
 
