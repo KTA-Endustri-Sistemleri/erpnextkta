@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.0.0 (2026-06-27)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **kta_stock**: migrate Zebra logic to kta_system_utils and unify Stock Labels 
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v1.12.0 (2026-05-22)
 
 
