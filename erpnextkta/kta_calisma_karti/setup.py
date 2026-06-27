@@ -68,6 +68,11 @@ def setup_permissions():
         {"parent": "Calisma Karti", "role": "Manufacturing Manager", "read": 1, "write": 1, "permlevel": 3},
         {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1, "permlevel": 0},
         {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "permlevel": 3},
+        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "permlevel": 2},
+        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "permlevel": 2},
+        {"parent": "Calisma Karti", "role": "Manufacturing User", "read": 1, "write": 1, "permlevel": 2},
+        {"parent": "Calisma Karti", "role": "Manufacturing Manager", "read": 1, "write": 1, "permlevel": 2},
+        {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "permlevel": 2},
         # Stock Entry
         {"parent": "Stock Entry", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0, "submit": 0, "cancel": 0, "amend": 0, "if_owner": 1},
         {"parent": "Stock Entry", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},

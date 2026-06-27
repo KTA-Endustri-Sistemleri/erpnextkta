@@ -110,6 +110,8 @@
             "in_standard_filter": 1,
             "label": "\u0130\u015f Emri",
             "options": "Work Order",
+            "allow_on_submit": 1,
+            "permlevel": 2,
             "reqd": 1
         },
         {
@@ -121,6 +123,8 @@
             "fieldtype": "Link",
             "label": "\u0130\u015f Kart\u0131",
             "options": "Job Card",
+            "allow_on_submit": 1,
+            "permlevel": 2,
             "reqd": 1
         },
         {
