@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+const __ = (...args) => window.__(...args);
 import CkSkeleton from "./CkSkeleton.vue";
 import CkCard from "./CkCard.vue";
 import CkFilters from "./CkFilters.vue";
@@ -102,7 +103,7 @@ async function load(opts = {}) {
       customerGroupFilter.value = "all";
     }
   } catch (e) {
-    errorMsg.value = e?.message || "Liste alınamadı.";
+    errorMsg.value = e?.message || __("Liste alınamadı.");
   } finally {
     lastRefreshTime.value = Date.now();
     pendingUpdate.value = false;
@@ -334,13 +335,13 @@ onUnmounted(() => {
         <div class="ck-title">{{ __("Çalışma Kartları") }}</div>
         
         <div class="ck-view-toggles" v-if="!loading && !errorMsg">
-          <button class="ck-view-btn" :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'" title="Liste Görünümü">
+          <button class="ck-view-btn" :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'" :title="__('Liste Görünümü')">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
           </button>
-          <button class="ck-view-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'" title="Grid Görünümü">
+          <button class="ck-view-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'" :title="__('Grid Görünümü')">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
           </button>
-          <button v-if="isDesktop" class="ck-view-btn" :class="{ active: viewMode === 'kanban' }" @click="viewMode = 'kanban'" title="Kanban Görünümü">
+          <button v-if="isDesktop" class="ck-view-btn" :class="{ active: viewMode === 'kanban' }" @click="viewMode = 'kanban'" :title="__('Kanban Görünümü')">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
           </button>
         </div>

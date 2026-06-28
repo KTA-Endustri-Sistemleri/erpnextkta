@@ -11,14 +11,16 @@ const props = defineProps<{
   onDelete: (row: any) => void;
 }>();
 
-function actions(r: any) {
-  const opts = ["Kopyala"];
-  if (props.canEditData) opts.push("Düzenle", "Sil");
+const __ = (...args: any[]) => window.__(...args);
 
-  openActionSheet("Barkod İşlemleri", opts, (a) => {
-    if (a === "Kopyala") copyToClipboard(r.barcode);
-    if (a === "Düzenle") props.onEdit(r);
-    if (a === "Sil") props.onDelete(r);
+function actions(r: any) {
+  const opts = [__("Kopyala")];
+  if (props.canEditData) opts.push(__("Düzenle"), __("Sil"));
+
+  openActionSheet(__("Barkod İşlemleri"), opts, (a) => {
+    if (a === __("Kopyala")) copyToClipboard(r.barcode);
+    if (a === __("Düzenle")) props.onEdit(r);
+    if (a === __("Sil")) props.onDelete(r);
   });
 }
 </script>
@@ -32,7 +34,7 @@ function actions(r: any) {
   </div>
 
   <div v-if="(props.rows||[]).length===0" class="ck-muted" style="margin-top: 14px;padding: 0px 6px;">
-    Barkod kaydı yok.
+    {{ __('Barkod kaydı yok.') }}
   </div>
 
   <div v-else class="ck-mini-list" style="margin-top:8px;">
@@ -55,13 +57,13 @@ function actions(r: any) {
           class="ck-muted"
           style="border: 1px dashed var(--btn-default-hover-bg);border-radius: 8px;padding: 8px 10px;"
         >
-          <div v-if="r.olcum_tarihi">Tarih: {{ fmtDt(r.olcum_tarihi) }}</div>
-          <div v-if="r.olcumu_giren">Giren: {{ r.olcumu_giren }}</div>
+          <div v-if="r.olcum_tarihi">{{ __('Tarih') }}: {{ fmtDt(r.olcum_tarihi) }}</div>
+          <div v-if="r.olcumu_giren">{{ __('Giren') }}: {{ r.olcumu_giren }}</div>
         </div>
 
         <div style="display:flex; justify-content:flex-end;">
           <button v-if="props.canEditData" class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            DETAY ▾
+            {{ __('İŞLEMLER ▾') }}
           </button>
         </div>
       </div>

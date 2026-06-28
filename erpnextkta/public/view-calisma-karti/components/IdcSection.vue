@@ -12,14 +12,16 @@ const props = defineProps<{
   onPrint: () => void;
 }>();
 
+const __ = (...args: any[]) => window.__(...args);
+
 function actions(r: any) {
   const items = props.canEditData
-    ? ["Düzenle", "Kopyala", "Sil"]
-    : ["Kopyala"];
-  openActionSheet("IDC İşlemleri", items, (a) => {
-    if (a === "Düzenle") props.onEdit(r);
-    if (a === "Kopyala") props.onClone(r);
-    if (a === "Sil") props.onDelete(r);
+    ? [__("Düzenle"), __("Kopyala"), __("Sil")]
+    : [__("Kopyala")];
+  openActionSheet(__("IDC İşlemleri"), items, (a) => {
+    if (a === __("Düzenle")) props.onEdit(r);
+    if (a === __("Kopyala")) props.onClone(r);
+    if (a === __("Sil")) props.onDelete(r);
   });
 }
 </script>
@@ -68,8 +70,8 @@ function actions(r: any) {
           class="ck-muted"
           style="border:1px dashed rgba(0,0,0,.12); border-radius:12px; padding:8px 10px;"
         >
-          <div v-if="r.olcum_tarihi">Tarih: {{ fmtDt(r.olcum_tarihi) }}</div>
-          <div v-if="r.olcumu_giren">Giren: {{ r.olcumu_giren }}</div>
+          <div v-if="r.olcum_tarihi">{{ __('Tarih') }}: {{ fmtDt(r.olcum_tarihi) }}</div>
+          <div v-if="r.olcumu_giren">{{ __('Giren') }}: {{ r.olcumu_giren }}</div>
         </div>
 
         <div v-if="props.canEditData" style="display:flex; justify-content:flex-end;">

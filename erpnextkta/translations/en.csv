@@ -665,3 +665,12 @@ Manuel Kablo Kesme ve Terminal Basma,Manual Cable Cutting and Terminal Pressing
 Ön Hazırlık,Pre Assembly
 IDC ve Soket,IDC and Socket
 Form Verme ve Test,Shaping and Testing
+Krimp İşlemleri,Crimping Operations
+IDC İşlemleri,IDC Operations
+Enjeksiyon İşlemleri,Injection Operations
+Barkod İşlemleri,Barcode Operations
+Liste Görünümü,List View
+Grid Görünümü,Grid View
+Kanban Görünümü,Kanban View
+Liste alınamadı.,Failed to fetch list.
+Barkod kaydı yok.,No barcode records.
