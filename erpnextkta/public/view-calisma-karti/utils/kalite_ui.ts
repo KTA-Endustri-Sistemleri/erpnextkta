@@ -1,5 +1,5 @@
 // utils/kalite_ui.ts
-declare const __: any;
+const __ = (...args: any[]) => (window as any).__(...args);
 
 export function fmtDt(val?: string) {
     if (!val) return "";

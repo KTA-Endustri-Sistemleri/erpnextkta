@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 
-declare const __: any;
+const __ = (...args: any[]) => (window as any).__(...args);
 
 const props = defineProps<{
   show: boolean;

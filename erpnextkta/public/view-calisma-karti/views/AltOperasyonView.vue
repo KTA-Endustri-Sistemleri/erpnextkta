@@ -2,7 +2,7 @@
 import { computed, ref, onMounted } from "vue";
 import { altOperasyonFields } from "../composables/prompts";
 
-declare const __: any;
+const __ = (...args: any[]) => (window as any).__(...args);
 
 const props = defineProps<{
   doc: any;

@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import CkHurdaModal from "../components/CkHurdaModal.vue";
 
-declare const __: any;
+const __ = (...args: any[]) => (window as any).__(...args);
 
 const props = defineProps<{
   doc: any;

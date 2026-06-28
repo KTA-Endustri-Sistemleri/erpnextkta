@@ -1,5 +1,5 @@
 <script setup lang="ts">
-declare const __: any;
+const __ = (...args: any[]) => (window as any).__(...args);
 const props = defineProps<{
   qcLabel: string;
   qcOptions: string[];

@@ -100,6 +100,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
+const __ = (...args) => window.__(...args);
 
 const props = defineProps({
   q: String,

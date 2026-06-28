@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
-declare const __: any;
+const __ = (...args: any[]) => (window as any).__(...args);
 
 import { useCalismaKarti } from "./composables/useCalismaKarti";
 import { useCalismaKartiUi } from "./composables/useCalismaKartiUi";

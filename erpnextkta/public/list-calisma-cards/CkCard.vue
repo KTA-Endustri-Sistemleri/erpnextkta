@@ -43,6 +43,7 @@
 
 <script setup>
 import { computed } from "vue";
+const __ = (...args) => window.__(...args);
 
 const props = defineProps({
   row: {

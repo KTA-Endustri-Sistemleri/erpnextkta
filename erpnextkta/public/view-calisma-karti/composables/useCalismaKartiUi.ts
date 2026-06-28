@@ -1,5 +1,5 @@
 import { computed, ref, watch } from "vue";
-declare const __: any;
+const __ = (...args: any[]) => (window as any).__(...args);
 
 export type CKState = "ready" | "running" | "paused" | "finished" | "rejected" | "cancelled";
 

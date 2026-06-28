@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watch } from "vue";
 
-declare const __: any;
+const __ = (...args: any[]) => (window as any).__(...args);
 import QcToggle from "../components/QcToggle.vue";
 import IdcSection from "../components/IdcSection.vue";
 import KrimpSection from "../components/KrimpSection.vue";
