@@ -1,5 +1,5 @@
 import frappe
-from frappe import scrub
+from frappe import _, scrub
 from frappe.utils import getdate, add_days, add_to_date
 from datetime import date, timedelta
 from dateutil.relativedelta import MO, relativedelta
@@ -34,7 +34,7 @@ class SatisAnalizi:
 
         if self.missing_rates:
             missing_text = "\n".join([f"{fc} → {tc}" for fc, tc in self.missing_rates])
-            frappe.msgprint(f"Aşağıdaki döviz dönüşümleri için kur bilgisi bulunamadı:\n{missing_text}")
+            frappe.msgprint(_("Aşağıdaki döviz dönüşümleri için kur bilgisi bulunamadı:\n{0}").format(missing_text))
 
         chart = self.get_chart()
         summary = self.get_summary()

@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from frappe.model.docstatus import DocStatus
 
 from frappe.utils import add_days, getdate
@@ -86,12 +87,10 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             deviation_pct = abs(item.rate - src_rate) / src_rate * 100
             if deviation_pct > MAX_RATE_DEVIATION_PCT:
                 frappe.throw(
-                    f"Satır {item.idx} — <b>{item.item_code}</b>: "
-                    f"Rate değeri <b>{item.rate:.5f} {self.currency}</b> kabul edilemez. "
-                    f"Kaynak belgeden beklenen: <b>{src_rate:.5f} {self.currency}</b> "
-                    f"(Sapma: %{deviation_pct:.1f}, izin verilen: %{MAX_RATE_DEVIATION_PCT:.0f}). "
-                    f"Fiyatı düzeltin veya önce satın alma siparişini güncelleyin.",
-                    title="Geçersiz Fiyat",
+                    _("Satır {0} — <b>{1}</b>: Rate değeri <b>{2} {3}</b> kabul edilemez. Kaynak belgeden beklenen: <b>{4} {5}</b> (Sapma: %{6}, izin verilen: %{7}). Fiyatı düzeltin veya önce satın alma siparişini güncelleyin.").format(
+                        item.idx, item.item_code, f"{item.rate:.5f}", self.currency, f"{src_rate:.5f}", self.currency, f"{deviation_pct:.1f}", f"{MAX_RATE_DEVIATION_PCT:.0f}"
+                    ),
+                    title=_("Geçersiz Fiyat"),
                 )
 
     def _get_exchange_rate(self, from_currency, to_currency, date, for_selling, for_buying):
@@ -317,10 +316,10 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                     split_qty = item.custom_split_qty
                     if not split_qty or split_qty <= 0:
                         errors.append(
-                            f"<b>Satır {item.idx} ({item.item_code})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır."
+                            _("<b>Satır {0} ({1})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır.").format(item.idx, item.item_code)
                         )
         if errors:
-            frappe.throw("<br>".join(errors), title="Eksik Kutu İçi Adedi Bilgisi")
+            frappe.throw("<br>".join(errors), title=_("Eksik Kutu İçi Adedi Bilgisi"))
 
     def before_insert(self):
         for item in self.items:
@@ -395,7 +394,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
             import traceback
             error_trace = traceback.format_exc()
             frappe.log_error(f"Purchase Receipt Submit Error {str(e)}\n{error_trace}", "Purchase Receipt Submit Error")
-            frappe.throw("Beklenmeyen bir hata oluştu, işlem yapılamadı. Hata detayları sistem loglarına kaydedildi.")
+            frappe.throw(_("Beklenmeyen bir hata oluştu, işlem yapılamadı. Hata detayları sistem loglarına kaydedildi."))
         finally:
             # flags cleanup (artık kullanılmıyor ama güvenlik için bırakıldı)
             if hasattr(self, "flags"):

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watch } from "vue";
+
+declare const __: any;
 import QcToggle from "../components/QcToggle.vue";
 import IdcSection from "../components/IdcSection.vue";
 import KrimpSection from "../components/KrimpSection.vue";
@@ -59,15 +61,15 @@ function addIdc() {
         yukseklik_mm: v.yukseklik_mm,
         cekme_n: v.cekme_n,
       });
-      frappe.show_alert({ message: "IDC ölçümü eklendi", indicator: "green" });
+      frappe.show_alert({ message: __("IDC ölçümü eklendi"), indicator: "green" });
     },
-    "IDC Ölçümü Ekle",
-    "Kaydet"
+    __("IDC Ölçümü Ekle"),
+    __("Kaydet")
   );
 }
 
 function editIdc(row: any) {
-  if (!row?.name) return frappe.msgprint("IDC satır kimliği (row name) bulunamadı.");
+  if (!row?.name) return frappe.msgprint(__("IDC satır kimliği (row name) bulunamadı."));
   frappe.prompt(
     idcOlcumFields(props.doc.name, row),
     async (v: any) => {
@@ -77,18 +79,18 @@ function editIdc(row: any) {
         yukseklik_mm: v.yukseklik_mm,
         cekme_n: v.cekme_n,
       });
-      frappe.show_alert({ message: "IDC ölçümü güncellendi", indicator: "green" });
+      frappe.show_alert({ message: __("IDC ölçümü güncellendi"), indicator: "green" });
     },
-    "IDC Ölçümü Düzenle",
-    "Kaydet"
+    __("IDC Ölçümü Düzenle"),
+    __("Kaydet")
   );
 }
 
 function deleteIdc(row: any) {
-  if (!row?.name) return frappe.msgprint("IDC satır kimliği (row name) bulunamadı.");
-  frappe.confirm("Bu IDC ölçüm satırı silinecek. Emin misiniz?", async () => {
+  if (!row?.name) return frappe.msgprint(__("IDC satır kimliği (row name) bulunamadı."));
+  frappe.confirm(__("Bu IDC ölçüm satırı silinecek. Emin misiniz?"), async () => {
     await props.onDeleteIdc(row.name);
-    frappe.show_alert({ message: "IDC ölçümü silindi", indicator: "green" });
+    frappe.show_alert({ message: __("IDC ölçümü silindi"), indicator: "green" });
   });
 }
 
@@ -102,16 +104,16 @@ function cloneIdc(row: any) {
         yukseklik_mm: v.yukseklik_mm,
         cekme_n: v.cekme_n,
       });
-      frappe.show_alert({ message: "IDC ölçümü kopyalandı ve eklendi", indicator: "green" });
+      frappe.show_alert({ message: __("IDC ölçümü kopyalandı ve eklendi"), indicator: "green" });
     },
-    "IDC Ölçümü Kopyala",
-    "Kaydet"
+    __("IDC Ölçümü Kopyala"),
+    __("Kaydet")
   );
 }
 
 function printIdcProtocol() {
   const rows: any[] = props.doc.idc_olcumleri || [];
-  if (rows.length === 0) return frappe.msgprint("Yazdırılacak IDC ölçümü yok.");
+  if (rows.length === 0) return frappe.msgprint(__("Yazdırılacak IDC ölçümü yok."));
 
   const doc = props.doc;
   const today = frappe.datetime.get_today();
@@ -182,11 +184,11 @@ function printIdcProtocol() {
       <thead>
         <tr>
           <th>#</th>
-          <th>Item Code</th>
-          <th>Yükseklik</th>
-          <th>Çekme</th>
-          <th>Ölçüm Tarihi</th>
-          <th>Giren</th>
+          <th>{{ __('Item Code') }}</th>
+          <th>{{ __('Yükseklik') }}</th>
+          <th>{{ __('Çekme') }}</th>
+          <th>{{ __('Ölçüm Tarihi') }}</th>
+          <th>{{ __('Giren') }}</th>
         </tr>
       </thead>
       <tbody>${rows_html}</tbody>
@@ -194,7 +196,7 @@ function printIdcProtocol() {
 
     <div class="signatures">
       <div class="sig-box">
-        <div class="title">Hazırlayan Operatör</div>
+        <div class="title">{{ __("Hazırlayan Operatör") }}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.operator_name || doc.operator || "-"}
@@ -203,7 +205,7 @@ function printIdcProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">Kalite Sorumlusu</div>
+        <div class="title">{{ __("Kalite Sorumlusu") }}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.qi_details?.owner_name || "-"}
@@ -212,10 +214,10 @@ function printIdcProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">Onaylayan</div>
+        <div class="title">{{ __("Onaylayan") }}</div>
         <div class="space"></div>
         <div class="name-line"></div>
-        <div style="margin-top:4px;font-size:9px;color:#555;">Ad Soyad / İmza / Tarih</div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">{{ __("Ad Soyad / İmza / Tarih") }}</div>
       </div>
     </div>
 
@@ -263,7 +265,7 @@ function setupKrimpBookLogic(dialog: any) {
             dialog.set_value("hedef_cekme_kuvveti_n", data.hedef_cekme_kuvveti_n);
             dialog.set_value("izokrimp_yuksekligi", data.izokrimp_yuksekligi);
 
-            frappe.show_alert({ message: "Krimp Book değerleri yüklendi", indicator: "blue" });
+            frappe.show_alert({ message: __("Krimp Book değerleri yüklendi"), indicator: "blue" });
           }
         }
       });
@@ -305,10 +307,10 @@ function addKrimp() {
     krimpOlcumFields({ calisma_karti_name: props.doc.name }),
     async (v: any) => {
       await props.onAddKrimp(v);
-      frappe.show_alert({ message: "Krimp ölçümü eklendi", indicator: "green" });
+      frappe.show_alert({ message: __("Krimp ölçümü eklendi"), indicator: "green" });
     },
-    "Krimp Ölçümü Ekle",
-    "Kaydet"
+    __("Krimp Ölçümü Ekle"),
+    __("Kaydet")
   );
 
   // Set dynamic filters
@@ -349,15 +351,15 @@ function addKrimp() {
 }
 
 function editKrimp(row: any) {
-  if (!row?.name) return frappe.msgprint("Krimp satır kimliği bulunamadı.");
+  if (!row?.name) return frappe.msgprint(__("Krimp satır kimliği bulunamadı."));
   const dialog = frappe.prompt(
     krimpOlcumFields({ ...row, calisma_karti_name: props.doc.name }),
     async (v: any) => {
       await props.onUpdateKrimp({ rowname: row.name, payload: v });
-      frappe.show_alert({ message: "Krimp ölçümü güncellendi", indicator: "green" });
+      frappe.show_alert({ message: __("Krimp ölçümü güncellendi"), indicator: "green" });
     },
-    "Krimp Ölçümü Düzenle",
-    "Kaydet"
+    __("Krimp Ölçümü Düzenle"),
+    __("Kaydet")
   );
 
   // Set dynamic filters
@@ -401,10 +403,10 @@ function editKrimp(row: any) {
 }
 
 function deleteKrimp(row: any) {
-  if (!row?.name) return frappe.msgprint("Krimp satır kimliği bulunamadı.");
-  frappe.confirm("Bu krimp ölçüm satırı silinecek. Emin misiniz?", async () => {
+  if (!row?.name) return frappe.msgprint(__("Krimp satır kimliği bulunamadı."));
+  frappe.confirm(__("Bu krimp ölçüm satırı silinecek. Emin misiniz?"), async () => {
     await props.onDeleteKrimp(row.name);
-    frappe.show_alert({ message: "Krimp ölçümü silindi", indicator: "green" });
+    frappe.show_alert({ message: __("Krimp ölçümü silindi"), indicator: "green" });
   });
 }
 
@@ -435,10 +437,10 @@ function cloneKrimp(row: any) {
     krimpOlcumFields(cloneDefaults),
     async (v: any) => {
       await props.onAddKrimp(v);
-      frappe.show_alert({ message: "Krimp ölçümü kopyalandı ve eklendi", indicator: "green" });
+      frappe.show_alert({ message: __("Krimp ölçümü kopyalandı ve eklendi"), indicator: "green" });
     },
-    "Krimp Ölçümü Kopyala",
-    "Kaydet"
+    __("Krimp Ölçümü Kopyala"),
+    __("Kaydet")
   );
 
   dialog.fields_dict.kablo_no.get_query = () => ({
@@ -466,7 +468,7 @@ function cloneKrimp(row: any) {
 
 function printKrimpProtocol() {
   const rows: any[] = props.doc.krimp_olcumleri || [];
-  if (rows.length === 0) return frappe.msgprint("Yazdırılacak krimp ölçümü yok.");
+  if (rows.length === 0) return frappe.msgprint(__("Yazdırılacak krimp ölçümü yok."));
 
   const doc = props.doc;
   const today = frappe.datetime.get_today();
@@ -560,23 +562,23 @@ function printKrimpProtocol() {
       <thead>
         <tr>
           <th>#</th>
-          <th>Kablo No</th>
-          <th>Kontak No</th>
-          <th>Kesit</th>
-          <th>Makine</th>
-          <th>Kalıp</th>
-          <th>Hdf. Kablo Boyu</th>
-          <th>Ölc. Kablo Boyu</th>
-          <th>Sapma</th>
-          <th>Hdf. Krimp Yük.</th>
-          <th>Ölc. Krimp Yük.</th>
-          <th>Sapma</th>
-          <th>Sıyırma</th>
-          <th>Çapak</th>
-          <th>Çekme</th>
-          <th>Radüs</th>
-          <th>Tel Kesme</th>
-          <th>Operatör</th>
+          <th>{{ __('Kablo No') }}</th>
+          <th>{{ __('Kontak No') }}</th>
+          <th>{{ __('Kesit') }}</th>
+          <th>{{ __('Makine') }}</th>
+          <th>{{ __('Kalıp') }}</th>
+          <th>{{ __('Hdf. Kablo Boyu') }}</th>
+          <th>{{ __('Ölc. Kablo Boyu') }}</th>
+          <th>{{ __('Sapma') }}</th>
+          <th>{{ __('Hdf. Krimp Yük.') }}</th>
+          <th>{{ __('Ölc. Krimp Yük.') }}</th>
+          <th>{{ __('Sapma') }}</th>
+          <th>{{ __('Sıyırma') }}</th>
+          <th>{{ __('Çapak') }}</th>
+          <th>{{ __('Çekme') }}</th>
+          <th>{{ __('Radüs') }}</th>
+          <th>{{ __('Tel Kesme') }}</th>
+          <th>{{ __('Operatör') }}</th>
         </tr>
       </thead>
       <tbody>${rows_html}</tbody>
@@ -584,7 +586,7 @@ function printKrimpProtocol() {
 
     <div class="signatures">
       <div class="sig-box">
-        <div class="title">Hazırlayan Operatör</div>
+        <div class="title">{{ __("Hazırlayan Operatör") }}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.operator_name || doc.operator || "-"}
@@ -593,7 +595,7 @@ function printKrimpProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">Kalite Sorumlusu</div>
+        <div class="title">{{ __("Kalite Sorumlusu") }}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.qi_details?.owner_name || "-"}
@@ -602,10 +604,10 @@ function printKrimpProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">Onaylayan</div>
+        <div class="title">{{ __("Onaylayan") }}</div>
         <div class="space"></div>
         <div class="name-line"></div>
-        <div style="margin-top:4px;font-size:9px;color:#555;">Ad Soyad / İmza / Tarih</div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">{{ __("Ad Soyad / İmza / Tarih") }}</div>
       </div>
     </div>
 
@@ -656,7 +658,7 @@ function setupEnjeksiyonToleransLogic(dialog: any) {
             dialog.set_df_property("sogutma_zamani", "description", descRange(t.sogutma_zamani_min, t.sogutma_zamani_maks));
             dialog.set_df_property("cekme_kuvveti_olculen", "description", descMin(t.cekme_kuvveti_min));
 
-            frappe.show_alert({ message: "Tolerans değerleri yüklendi", indicator: "blue" });
+            frappe.show_alert({ message: __("Tolerans değerleri yüklendi"), indicator: "blue" });
           } else {
              dialog.enjeksiyon_tolerans = {};
              // clear descriptions
@@ -685,16 +687,16 @@ function addEnjeksiyon() {
          });
       }
       await props.onAddEnjeksiyon(payload);
-      frappe.show_alert({ message: "Enjeksiyon ölçümü eklendi", indicator: "green" });
+      frappe.show_alert({ message: __("Enjeksiyon ölçümü eklendi"), indicator: "green" });
     },
-    "Enjeksiyon Ölçümü Ekle",
-    "Kaydet"
+    __("Enjeksiyon Ölçümü Ekle"),
+    __("Kaydet")
   );
   setupEnjeksiyonToleransLogic(dialog);
 }
 
 function editEnjeksiyon(row: any) {
-  if (!row?.name) return frappe.msgprint("Enjeksiyon satır kimliği bulunamadı.");
+  if (!row?.name) return frappe.msgprint(__("Enjeksiyon satır kimliği bulunamadı."));
   const dialog = frappe.prompt(
     enjeksiyonOlcumFields({ ...row, calisma_karti_name: props.doc.name }),
     async (v: any) => {
@@ -705,10 +707,10 @@ function editEnjeksiyon(row: any) {
          });
       }
       await props.onUpdateEnjeksiyon({ rowname: row.name, payload: payloadObj });
-      frappe.show_alert({ message: "Enjeksiyon ölçümü güncellendi", indicator: "green" });
+      frappe.show_alert({ message: __("Enjeksiyon ölçümü güncellendi"), indicator: "green" });
     },
-    "Enjeksiyon Ölçümü Düzenle",
-    "Kaydet"
+    __("Enjeksiyon Ölçümü Düzenle"),
+    __("Kaydet")
   );
   setupEnjeksiyonToleransLogic(dialog);
   if (row.hammadde_no) {
@@ -717,10 +719,10 @@ function editEnjeksiyon(row: any) {
 }
 
 function deleteEnjeksiyon(row: any) {
-  if (!row?.name) return frappe.msgprint("Enjeksiyon satır kimliği bulunamadı.");
-  frappe.confirm("Bu enjeksiyon ölçüm satırı silinecek. Emin misiniz?", async () => {
+  if (!row?.name) return frappe.msgprint(__("Enjeksiyon satır kimliği bulunamadı."));
+  frappe.confirm(__("Bu enjeksiyon ölçüm satırı silinecek. Emin misiniz?"), async () => {
     await props.onDeleteEnjeksiyon(row.name);
-    frappe.show_alert({ message: "Enjeksiyon ölçümü silindi", indicator: "green" });
+    frappe.show_alert({ message: __("Enjeksiyon ölçümü silindi"), indicator: "green" });
   });
 }
 
@@ -740,10 +742,10 @@ function cloneEnjeksiyon(row: any) {
          });
       }
       await props.onAddEnjeksiyon(payload);
-      frappe.show_alert({ message: "Enjeksiyon ölçümü kopyalandı ve eklendi", indicator: "green" });
+      frappe.show_alert({ message: __("Enjeksiyon ölçümü kopyalandı ve eklendi"), indicator: "green" });
     },
-    "Enjeksiyon Ölçümü Kopyala",
-    "Kaydet"
+    __("Enjeksiyon Ölçümü Kopyala"),
+    __("Kaydet")
   );
   setupEnjeksiyonToleransLogic(dialog);
   if (row.hammadde_no) {
@@ -753,7 +755,7 @@ function cloneEnjeksiyon(row: any) {
 
 function printEnjeksiyonProtocol() {
   const rows: any[] = props.doc.enjeksiyon_olcumleri || [];
-  if (rows.length === 0) return frappe.msgprint("Yazdırılacak enjeksiyon ölçümü yok.");
+  if (rows.length === 0) return frappe.msgprint(__("Yazdırılacak enjeksiyon ölçümü yok."));
 
   const doc = props.doc;
   const today = frappe.datetime.get_today();
@@ -854,18 +856,18 @@ function printEnjeksiyonProtocol() {
       <thead>
         <tr>
           <th>#</th>
-          <th>Periyot</th>
-          <th>Hammadde</th>
-          <th>Kazan Isısı</th>
-          <th>Hortum Isısı</th>
-          <th>Meme Isısı</th>
-          <th>Soğuk Su</th>
-          <th>Devir</th>
-          <th>Enj. Zamanı</th>
-          <th>Soğ. Zamanı</th>
-          <th>Çekme (N)</th>
-          <th>Göz Knt.</th>
-          <th>Operatör</th>
+          <th>{{ __('Periyot') }}</th>
+          <th>{{ __('Hammadde') }}</th>
+          <th>{{ __('Kazan Isısı') }}</th>
+          <th>{{ __('Hortum Isısı') }}</th>
+          <th>{{ __('Meme Isısı') }}</th>
+          <th>{{ __('Soğuk Su') }}</th>
+          <th>{{ __('Devir') }}</th>
+          <th>{{ __('Enj. Zamanı') }}</th>
+          <th>{{ __('Soğ. Zamanı') }}</th>
+          <th>{{ __('Çekme (N)') }}</th>
+          <th>{{ __('Göz Knt.') }}</th>
+          <th>{{ __('Operatör') }}</th>
         </tr>
       </thead>
       <tbody>${rows_html}</tbody>
@@ -873,7 +875,7 @@ function printEnjeksiyonProtocol() {
 
     <div class="signatures">
       <div class="sig-box">
-        <div class="title">Hazırlayan Operatör</div>
+        <div class="title">{{ __("Hazırlayan Operatör") }}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.operator_name || doc.operator || "-"}
@@ -882,7 +884,7 @@ function printEnjeksiyonProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">Kalite Sorumlusu</div>
+        <div class="title">{{ __("Kalite Sorumlusu") }}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.qi_details?.owner_name || "-"}
@@ -891,10 +893,10 @@ function printEnjeksiyonProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">Onaylayan</div>
+        <div class="title">{{ __("Onaylayan") }}</div>
         <div class="space"></div>
         <div class="name-line"></div>
-        <div style="margin-top:4px;font-size:9px;color:#555;">Ad Soyad / İmza / Tarih</div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">{{ __("Ad Soyad / İmza / Tarih") }}</div>
       </div>
     </div>
 
@@ -921,31 +923,31 @@ function addBarkod() {
     barkodKayitFields(),
     async (v: any) => {
       await props.onAddBarkod({ barcode: v.barcode });
-      frappe.show_alert({ message: "Barkod kaydı eklendi", indicator: "green" });
+      frappe.show_alert({ message: __("Barkod kaydı eklendi"), indicator: "green" });
     },
     "Barkod Kaydı Ekle",
-    "Kaydet"
+    __("Kaydet")
   );
 }
 
 function editBarkod(row: any) {
-  if (!row?.name) return frappe.msgprint("Barkod satır kimliği (row name) bulunamadı.");
+  if (!row?.name) return frappe.msgprint(__("Barkod satır kimliği (row name) bulunamadı."));
   frappe.prompt(
     barkodKayitFields(row),
     async (v: any) => {
       await props.onUpdateBarkod({ rowname: row.name, barcode: v.barcode });
-      frappe.show_alert({ message: "Barkod kaydı güncellendi", indicator: "green" });
+      frappe.show_alert({ message: __("Barkod kaydı güncellendi"), indicator: "green" });
     },
     "Barkod Kaydı Düzenle",
-    "Kaydet"
+    __("Kaydet")
   );
 }
 
 function deleteBarkod(row: any) {
-  if (!row?.name) return frappe.msgprint("Barkod satır kimliği (row name) bulunamadı.");
-  frappe.confirm("Bu barkod satırı silinecek. Emin misiniz?", async () => {
+  if (!row?.name) return frappe.msgprint(__("Barkod satır kimliği (row name) bulunamadı."));
+  frappe.confirm(__("Bu barkod satırı silinecek. Emin misiniz?"), async () => {
     await props.onDeleteBarkod(row.name);
-    frappe.show_alert({ message: "Barkod kaydı silindi", indicator: "green" });
+    frappe.show_alert({ message: __("Barkod kaydı silindi"), indicator: "green" });
   });
 }
 
@@ -965,14 +967,14 @@ onMounted(() => {});
 
     <div v-if="props.doc.quality_inspection" :class="['ck-qi-link', qiThemeClass]">
       <div class="ck-mini-content">
-        <span class="ck-qi-link__label">Kalite Belgesi</span>
+        <span class="ck-qi-link__label">{{ __("Kalite Belgesi") }}</span>
         <b class="ck-mini-title">{{ props.doc.quality_inspection }}</b>
       </div>
       <button
         class="ck-btn ck-btn-small"
         @click="openQualityInspection(props.doc.quality_inspection)"
       >
-        Görüntüle ↗
+        {{ __("Görüntüle ↗") }}
       </button>
     </div>
 

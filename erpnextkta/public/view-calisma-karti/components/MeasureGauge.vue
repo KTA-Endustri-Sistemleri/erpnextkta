@@ -87,7 +87,7 @@ const rightSegments = computed<SegmentState[]>(() => {
         {{ measured }}<small v-if="unit"> {{ unit }}</small>
       </span>
       <span class="mg-target-label">
-        Hedef: {{ target }}<small v-if="unit"> {{ unit }}</small>
+        {{ __('Hedef:') }} {{ target }}<small v-if="unit"> {{ unit }}</small>
         <span v-if="tolerance"> ±{{ tolerance }}</span>
       </span>
     </div>
@@ -129,14 +129,14 @@ const rightSegments = computed<SegmentState[]>(() => {
 
     <!-- Alt satır: fark -->
     <div class="mg-diff" :class="{ 'mg-diff--low': isLow, 'mg-diff--high': isHigh, 'mg-diff--ok': isOk }">
-      <template v-if="isOk">✓ Hedef karşılandı</template>
-      <template v-else-if="isLow">▼ {{ Math.abs(diff_mm) }} {{ unit }} {{ textLow || 'kısa' }}</template>
-      <template v-else>▲ {{ diff_mm }} {{ unit }} {{ textHigh || 'uzun' }}</template>
+      <template v-if="isOk">✓ {{ __('Hedef karşılandı') }}</template>
+      <template v-else-if="isLow">▼ {{ Math.abs(diff_mm) }} {{ unit }} {{ textLow ? __(textLow) : __('kısa') }}</template>
+      <template v-else>▲ {{ diff_mm }} {{ unit }} {{ textHigh ? __(textHigh) : __('uzun') }}</template>
     </div>
 
     <!-- ± sınır uyarısı -->
     <div v-if="isOverLimit" class="mg-warning">
-      ⚠ Grafik sınırı (±{{ limitMax }}) aşıldı!
+      ⚠ {{ __('Grafik sınırı') }} (±{{ limitMax }}) {{ __('aşıldı') }}!
     </div>
   </div>
 </template>

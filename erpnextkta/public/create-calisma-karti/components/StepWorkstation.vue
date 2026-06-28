@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+const __ = (...args) => window.__(...args);
 
 const props = defineProps({
   jobCard: {
@@ -38,18 +39,17 @@ function useJobCardWorkstation() {
 <template>
   <section class="step-ws">
     <div class="step-ws__header">
-      <h2 class="step-ws__title">İş İstasyonu</h2>
+      <h2 class="step-ws__title">{{ __('İş İstasyonu') }}</h2>
       <p class="step-ws__subtitle">
-        Bu Çalışma Kartı'nın üretileceği <strong>iş istasyonunu</strong> belirle.
-        Job Card üzerinde zaten tanımlı bir istasyon varsa otomatik olarak doldurulur.
+        {{ __('Bu Çalışma Kartı\'nın üretileceği iş istasyonunu belirle. Job Card üzerinde zaten tanımlı bir istasyon varsa otomatik olarak doldurulur.') }}
       </p>
 
       <div
         v-if="hasJobCardWorkstation"
         class="step-ws__badge"
       >
-        <span class="label">Önerilen:</span>
-        <span class="value">{{ jobCard.workstation }}</span>
+        <span class="label">{{ __('Önerilen') }}:</span>
+        <span class="value">{{ __(jobCard.workstation) }}</span>
       </div>
     </div>
 
@@ -58,8 +58,8 @@ function useJobCardWorkstation() {
       v-if="hasJobCardWorkstation && !workstation"
       class="step-ws__info"
     >
-      Job Card üzerinde tanımlı istasyon <strong>{{ jobCard.workstation }}</strong>.
-      İstersen aşağıdaki buton ile bu değeri kullanabilirsin.
+      {{ __('Job Card üzerinde tanımlı istasyon') }} <strong>{{ __(jobCard.workstation) }}</strong>.
+      {{ __('İstersen aşağıdaki buton ile bu değeri kullanabilirsin.') }}
     </div>
 
     <!-- Input alanı -->
@@ -70,7 +70,7 @@ function useJobCardWorkstation() {
           class="step-ws__input"
           :class="{ 'step-ws__input--highlight': autoFilled }"
           :value="workstation || ''"
-          placeholder="Örn: IST-01"
+          :placeholder="__('Örn: IST-01')"
           @input="onInput"
         />
         <div v-if="autoFilled" class="step-ws__success-dot"></div>
@@ -82,12 +82,12 @@ function useJobCardWorkstation() {
         class="step-ws__btn-apply"
         @click="useJobCardWorkstation"
       >
-        Job Card istasyonunu kullan
+        {{ __('Job Card istasyonunu kullan') }}
       </button>
     </div>
 
     <p class="step-ws__help">
-      Bu alan <code>İş İstasyonu</code> alanına yazılacak. Zorunlu bir alandır.
+      {{ __('Bu alan') }} <code>{{ __('İş İstasyonu') }}</code> {{ __('alanına yazılacak. Zorunlu bir alandır.') }}
     </p>
   </section>
 </template>

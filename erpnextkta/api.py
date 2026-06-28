@@ -115,7 +115,7 @@ def process_supply_on(supply_on):
     supply_on_balances = get_balances_from_supply_on(supply_on)
 
     if not supply_on_balances:
-        frappe.throw(f"No supply on balances found for supply on: {supply_on}")
+        frappe.throw(_("Tedarik için bakiye bulunamadı: {0}").format(supply_on))
         return None
 
     for balance in supply_on_balances:
@@ -244,7 +244,7 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
         supply_on_doc = frappe.get_doc(DOCTYPE_KTA_SUPPLY_ON_HEAD, supply_on_head_name)
         
         if not supply_on_doc.get(VALUE_TABLE_EVALUATION):
-            frappe.throw("No evaluation data found in the supply on head document")
+            frappe.throw(_("Tedarik başlık belgesinde değerlendirme verisi bulunamadı"))
             return []
         
         results = []
@@ -304,7 +304,7 @@ def evaluate_supply_on_sales_orders(supply_on_head_name):
 
     except Exception as e:
         frappe.log_error(f"Error in evaluate_supply_on_sales_orders: {str(e)}")
-        frappe.throw(f"Error evaluating supply on sales orders: {str(e)}")
+        frappe.throw(_("Satış siparişlerinde tedarik değerlendirilirken hata oluştu: {0}").format(str(e)))
 
 
 

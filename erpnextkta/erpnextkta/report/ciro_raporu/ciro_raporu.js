@@ -2,7 +2,7 @@ frappe.query_reports["İrsaliye Bazlı Satış Özeti"] = {
     filters: [
         {
             fieldname: "customer",
-            label: "Müşteri",
+            label: __("Müşteri"),
             fieldtype: "Link",
             options: "Customer"
         }

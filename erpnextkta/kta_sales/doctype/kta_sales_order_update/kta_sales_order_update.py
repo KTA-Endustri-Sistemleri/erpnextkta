@@ -68,7 +68,7 @@ class KTASalesOrderUpdate(Document):
 
     def _generate_weekly_name(self) -> str:
         if not self.sales_order_update_date:
-            frappe.throw(_("Sales Order Update tarihi seçilmeden belge oluşturulamaz."))
+            frappe.throw(_("Satış Siparişi Güncelleme tarihi seçilmeden belge oluşturulamaz."))
 
         doc_date = getdate(self.sales_order_update_date)
         iso_week = doc_date.isocalendar()[1]
@@ -100,10 +100,10 @@ class KTASalesOrderUpdate(Document):
 def get_sales_order_update_doc(sales_order_update_name: str):
     """Fetch a Sales Order Update document, raising a user-level error if not found."""
     if not sales_order_update_name:
-        frappe.throw(_("Sales Order Update referansı belirtilmedi."))
+        frappe.throw(_("Satış Siparişi Güncelleme referansı belirtilmedi."))
 
     if not frappe.db.exists("KTA Sales Order Update", sales_order_update_name):
-        frappe.throw(_("Sales Order Update kaydı bulunamadı: {0}").format(sales_order_update_name))
+        frappe.throw(_("Satış Siparişi Güncelleme kaydı bulunamadı: {0}").format(sales_order_update_name))
 
     return frappe.get_doc("KTA Sales Order Update", sales_order_update_name)
 

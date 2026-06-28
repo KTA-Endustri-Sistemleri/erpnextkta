@@ -26,7 +26,7 @@ function actions(r: any) {
 
 <template>
   <div class="ck-qc-header">
-    <b>IDC Ölçümleri</b>
+    <b>{{ __('IDC Ölçümleri') }}</b>
     <div style="display:flex; gap:6px;">
       <button
         v-if="(props.rows||[]).length > 0"
@@ -34,10 +34,10 @@ function actions(r: any) {
         style="padding: 8px 10px; font-size: 12px;"
         @click="props.onPrint"
       >
-        🖨️ Protokol
+        {{ __('🖨️ Protokol') }}
       </button>
       <button v-if="props.canEditData" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
-        + Ekle
+        {{ __('+ Ekle') }}
       </button>
     </div>
   </div>
@@ -74,7 +74,7 @@ function actions(r: any) {
 
         <div v-if="props.canEditData" style="display:flex; justify-content:flex-end;">
           <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            İŞLEMLER ▾
+            {{ __('İŞLEMLER') }} ▾
           </button>
         </div>
       </div>

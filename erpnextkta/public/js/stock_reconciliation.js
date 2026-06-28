@@ -2,7 +2,7 @@
 
 frappe.ui.form.on("Stock Reconciliation", {
   // We override only the `get_items` event used by the core refresh handler.
-  // Core refresh does: frm.add_custom_button("Fetch Items from Warehouse", () => frm.events.get_items(frm))
+  // Core refresh does: frm.add_custom_button(__("Depodan Ürünleri Getir"), () => frm.events.get_items(frm))
   // Since events are merged, this definition will replace the core one if our app is loaded after erpnext.
   get_items: function (frm) {
     let fields = [
@@ -21,13 +21,13 @@ frappe.ui.form.on("Stock Reconciliation", {
         },
       },
       {
-        label: "Item Code",
+        label: __("Ürün Kodu"),
         fieldname: "item_code",
         fieldtype: "Link",
         options: "Item",
       },
       {
-        label: __("Ignore Empty Stock"),
+        label: __("Boş Stokları Yoksay"),
         fieldname: "ignore_empty_stock",
         fieldtype: "Check",
       },
@@ -66,8 +66,8 @@ frappe.ui.form.on("Stock Reconciliation", {
           },
         });
       },
-      __("Get Items"),
-      __("Update")
+      __("Ürünleri Getir"),
+      __("Güncelle")
     );
   },
   refresh(frm) {
@@ -88,7 +88,7 @@ frappe.ui.form.on("Stock Reconciliation", {
             }),
           },
           {
-            label: __("Ignore Empty Stock"),
+            label: __("Boş Stokları Yoksay"),
             fieldname: "ignore_empty_stock",
             fieldtype: "Check",
           },

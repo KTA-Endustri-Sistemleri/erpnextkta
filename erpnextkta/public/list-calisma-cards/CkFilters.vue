@@ -7,7 +7,7 @@
         @input="$emit('update:q', $event.target.value)"
         class="ck-search-input"
         type="text"
-        placeholder="Ara: iş emri, kart, operasyon..."
+        :placeholder="__('Ara: iş emri, kart, operasyon...')"
         inputmode="search"
       />
       <button v-if="q" class="ck-clear" @click="$emit('update:q', '')">✕</button>
@@ -80,8 +80,7 @@
           class="ck-filter ck-filter--qc"
           :class="{ active: customerGroupFilter === 'all' }"
           @click="$emit('update:customerGroupFilter', 'all')"
-        >
-          Customer Tümü <span class="ck-filter-count">{{ customerGroupCounts.all }}</span>
+        >{{ __("Tüm Müşteriler") }}<span class="ck-filter-count">{{ customerGroupCounts.all }}</span>
         </button>
 
         <button
@@ -127,9 +126,9 @@ const isFiltersOpen = ref(false);
 // (Removed activeFilterCount, replaced with activeFilterLabels below)
 
 const sortCategories = [
-  { key: "modified", label: "Güncellenme" },
-  { key: "creation", label: "Oluşturulma" },
-  { key: "name", label: "İsim" }
+  { key: "modified", label: __("Güncellenme") },
+  { key: "creation", label: __("Oluşturulma") },
+  { key: "name", label: __("İsim") }
 ];
 
 const currentSortKey = computed(() => (props.sortKey || "modified_desc").split('_')[0]);
@@ -144,20 +143,20 @@ function handleSort(key) {
 }
 
 const statusFilters = [
-  { key: "all", label: "Tümü" },
-  { key: "ready", label: "Hazır" },
-  { key: "running", label: "Çalışıyor" },
-  { key: "paused", label: "Duruşta" },
-  { key: "finished", label: "Bitmiş" },
-  { key: "rejected", label: "Reddedildi" },
-  { key: "cancelled", label: "İptal Edildi" },
+  { key: "all", label: __("Tümü") },
+  { key: "ready", label: __("Hazır") },
+  { key: "running", label: __("Çalışıyor") },
+  { key: "paused", label: __("Duruşta") },
+  { key: "finished", label: __("Bitmiş") },
+  { key: "rejected", label: __("Reddedildi") },
+  { key: "cancelled", label: __("İptal Edildi") },
 ];
 
 const qcFilters = [
-  { key: "all", label: "QC Tümü" },
-  { key: "waiting", label: "Onay Bekliyor" },
-  { key: "approved", label: "Onaylandı" },
-  { key: "rejected", label: "Reddedildi" },
+  { key: "all", label: __("Tüm Kalite Kontroller") },
+  { key: "waiting", label: __("Onay Bekliyor") },
+  { key: "approved", label: __("Onaylandı") },
+  { key: "rejected", label: __("Reddedildi") },
 ];
 
 const activeFilterLabels = computed(() => {

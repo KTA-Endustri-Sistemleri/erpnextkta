@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+const __ = (...args) => window.__(...args);
 
 const props = defineProps({
   barcode: {
@@ -55,10 +56,9 @@ function onKeydown(event) {
 <template>
   <section class="step-wo">
     <div>
-      <h2 class="step-wo__title">İş Emri Barkodu</h2>
+      <h2 class="step-wo__title">{{ __('İş Emri Barkodu') }}</h2>
       <p class="step-wo__subtitle">
-        Barkod okuyucu ile <strong>İş Emri barkodunu</strong> okut.
-        Okuyucu genelde Enter ile bittiği için ek işlem yapman gerekmez.
+        {{ __('Barkod okuyucu ile') }} <strong>{{ __('İş Emri barkodunu') }}</strong> {{ __('okut. Okuyucu genelde Enter ile bittiği için ek işlem yapman gerekmez.') }}
       </p>
     </div>
 
@@ -70,7 +70,7 @@ function onKeydown(event) {
         class="step-wo__input"
         :readonly="loading"
         :value="barcode"
-        placeholder="Barkodu okutun..."
+        :placeholder="__('Barkodu okutun...')"
         @input="onInput"
         @keydown="onKeydown"
       />
@@ -81,7 +81,7 @@ function onKeydown(event) {
 
     <!-- Loading sırasında mini açıklama -->
     <div v-if="loading" class="step-wo__loading-text">
-      İş Emri doğrulanıyor...
+      {{ __('İş Emri doğrulanıyor...') }}
     </div>
   </section>
 </template>

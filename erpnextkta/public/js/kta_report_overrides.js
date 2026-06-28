@@ -26,7 +26,7 @@ kta.report_overrides = {
                 // Checkbox filtresini ekle
                 config.filters.splice(bom_idx + 1, 0, {
                     fieldname: "only_default_boms",
-                    label: __("Only Default BOMs"),
+                    label: __("Sadece Varsayılan Reçeteler (BOM)"),
                     fieldtype: "Check",
                     default: 0,
                     description: __("Sadece ürün kartında varsayılan olarak tanımlanmış aktif reçeteleri listeler."),
@@ -75,7 +75,7 @@ kta.report_overrides = {
             if (!only_default_filter) {
                 only_default_filter = {
                     fieldname: "only_default_boms",
-                    label: __("Only Default BOMs"),
+                    label: __("Sadece Varsayılan Reçeteler (BOM)"),
                     fieldtype: "Check",
                     default: 0,
                     description: __("Sadece varsayılan reçeteleri (BOM) arar.")

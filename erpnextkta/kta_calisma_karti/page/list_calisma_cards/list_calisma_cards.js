@@ -3,7 +3,7 @@
 frappe.pages["list-calisma-cards"].on_page_load = async function (wrapper) {
   const page = frappe.ui.make_app_page({
     parent: wrapper,
-    title: "Çalışma Kartlarım",
+    title: __("Çalışma Kartlarım"),
     single_column: true
   });
 

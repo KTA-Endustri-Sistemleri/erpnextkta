@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
+declare const __: any;
+
 import { useCalismaKarti } from "./composables/useCalismaKarti";
 import { useCalismaKartiUi } from "./composables/useCalismaKartiUi";
 import { durusFields } from "./composables/prompts";
@@ -139,7 +141,7 @@ async function onBaslatDevam() {
         return m;
       });
       const msg =
-        `<b>${check.card_name}</b> kartınızda eksik veri var:<br>` +
+        `<b>${check.card_name}</b> {{ __('kartınızda eksik veri var:') }}<br>` +
         `<ul>${missingLabels.map((l: string) => `<li>${l}</li>`).join("")}</ul>` +
         `Lütfen önce o kartı tamamlayın.`;
 
@@ -155,7 +157,7 @@ async function onBaslatDevam() {
         // Soft mode: warn but allow continue
         const proceed = await new Promise<boolean>((resolve) => {
           frappe.confirm(
-            msg + `<br><br><b>Yine de devam etmek istiyor musunuz?</b>`,
+            msg + `<br><br><b>{{ __('Yine de devam etmek istiyor musunuz?') }}</b>`,
             () => resolve(true),
             () => resolve(false)
           );
@@ -170,23 +172,26 @@ async function onBaslatDevam() {
 
   const confirmText =
     state.value === "paused"
-      ? "Duruş sonlandırılıp işleme devam edilecek."
-      : "İşlem başlatılacak.";
+      ? __("Duruş sonlandırılıp işleme devam edilecek.")
+      : __("İşlem başlatılacak.");
   frappe.confirm(confirmText, async () => callIslem("Baslat"));
 }
 
-function onDurus() {
+async function onDurus() {
+  const reasons = await frappe.db.get_list("KTA Durus Sebebi", { filters: { is_system: 0 }, fields: ["name"], limit: 100 });
+  const reasonOptions = reasons.map((r: any) => r.name).join("\n");
+
   const dialog = frappe.prompt(
-    durusFields(),
+    durusFields(reasonOptions),
     async (v: any) => {
-      if (v.durus_nedeni === "Diger" && !v.aciklama) {
-        frappe.msgprint(__("Duruş nedeni 'Diger' olduğunda açıklama girmek zorunludur."));
+      if ((v.durus_nedeni === "Diğer" || v.durus_nedeni === "Diger") && !v.aciklama) {
+        frappe.msgprint(__("Duruş nedeni 'Diğer' olduğunda açıklama girmek zorunludur."));
         return;
       }
       callIslem("Durus", v.durus_nedeni, v.aciklama);
     },
-    "Duruş Bilgisi",
-    "Duruş Başlat"
+    __("Duruş Bilgisi"),
+    __("Duruş Başlat")
   );
 
   if (dialog) {
@@ -194,7 +199,7 @@ function onDurus() {
     if (field) {
       field.df.on_change = () => {
         const val = dialog.get_value("durus_nedeni");
-        if (val === "Diger") {
+        if (val === "Diğer" || val === "Diger") {
           dialog.set_df_property("aciklama", "reqd", 1);
         } else {
           dialog.set_df_property("aciklama", "reqd", 0);
@@ -205,14 +210,14 @@ function onDurus() {
 }
 
 function onBitir() {
-  frappe.confirm("İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?", async () =>
+  frappe.confirm(__("İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?"), async () =>
     callIslem("Bitis", null, null, 0)
   );
 }
 
 async function setQC(nextValue: string) {
   if (!canEditQC.value) {
-    frappe.msgprint("QC güncelleme yetkiniz yok.");
+    frappe.msgprint(__("QC güncelleme yetkiniz yok."));
     return;
   }
 
@@ -255,7 +260,7 @@ async function setQC(nextValue: string) {
     if (next === "Reddedildi") {
       const confirmed = await new Promise<boolean>((resolve) => {
         frappe.confirm(
-          "Kalite kontrol belgesi olmadan reddetmek istediğinizden emin misiniz?",
+          __("Kalite kontrol belgesi olmadan reddetmek istediğinizden emin misiniz?"),
           () => resolve(true),
           () => resolve(false)
         );
@@ -280,7 +285,7 @@ async function setQC(nextValue: string) {
   try {
     await updateQC(next);
     const indicator = next === "Reddedildi" ? "red" : "green";
-    frappe.show_alert({ message: "Kalite durumu güncellendi", indicator });
+    frappe.show_alert({ message: __("Kalite durumu güncellendi"), indicator });
     tab.value = "kalite";
   } catch (e) {
     qcFormValue.value = (qcLabel.value || "Onay Bekliyor").trim();
@@ -295,7 +300,7 @@ async function handleStandardQcSubmit(payload: any) {
         await submitStandardQC({ ...payload, intent: qcIntent.value });
         const ok = qcIntent.value === "approve";
         frappe.show_alert({
-            message: ok ? "Kalite belgesi oluşturuldu ve onayandı" : "Kalite belgesi oluşturuldu ve reddedildi",
+            message: ok ? __("Kalite belgesi oluşturuldu ve onaylandı") : __("Kalite belgesi oluşturuldu ve reddedildi"),
             indicator: ok ? "green" : "red",
         });
     } catch (e) {
@@ -333,13 +338,11 @@ watch(
 
     <Transition name="ck-slide-down">
       <div v-if="pendingUpdate && !loading" class="ck-pending-floating">
-        <span class="ck-dot"></span>
-        Bekleyen güncellemeler var...
-      </div>
+        <span class="ck-dot"></span>{{ __("Bekleyen güncellemeler var...") }}</div>
     </Transition>
 
-    <div v-if="loading" class="ck-muted">Yükleniyor...</div>
-    <div v-else-if="!doc" class="ck-empty">Kayıt bulunamadı.</div>
+    <div v-if="loading" class="ck-muted">{{ __("Yükleniyor...") }}</div>
+    <div v-else-if="!doc" class="ck-empty">{{ __("Kayıt bulunamadı.") }}</div>
 
     <template v-else>
       <CkChips
@@ -362,7 +365,7 @@ watch(
 
       <!-- Timeout Banner Uyarısı -->
       <div v-if="showTimeoutWarning" class="ck-timeout-alert text-center margin-bottom">
-        <b>⚠️ Dikkat:</b> Bu kart <b>{{ doc.kart_uyari_suresi_dk || 400 }} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.
+        <span v-html="__('<b>⚠️ Dikkat:</b> Bu kart <b>{0} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.', [doc.kart_uyari_suresi_dk || 400])"></span>
       </div>
 
       <CkTabs :modelValue="tab" :onChange="(t) => (tab = t)" />

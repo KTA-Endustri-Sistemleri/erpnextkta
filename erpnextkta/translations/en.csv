@@ -1,0 +1,667 @@
+<b>Satır {0} ({1})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır.,<strong>WARNING:</strong> Printer queue busy! Number of jobs in queue: {0}. Printing of labels may be delayed.
+<strong>UYARI:</strong> Yazıcı kuyruğu yoğun! Sıradaki iş sayısı: {0}. Etiketlerin basılması gecikebilir.,Name Surname / Signature / Date
+Ad Soyad / İmza / Tarih,Name Surname / Signature / Date
+Alan zorunludur: {0},Field is required: {0}
+Alt tablo alanı bulunamadı: {0},Child tablespace not found: {0}
+Alt İşlem,Sub-Operation
+Alt İşlem Düzenle,Edit Subprocess
+Alt İşlem Ekle,Add Subprocess
+Alt İşlem eklendi,Subprocess added
+Alt İşlem güncellendi,Subprocess updated
+Alt İşlem silindi,Subprocess deleted
+Alış Faturası,Purchase Invoice
+Ana belge içinde '{0}' alt tablo alanı bulunamadı.,Subtablespace '{0}' could not be found within the main document.
+Aramana uygun çalışma kartı bulunamadı.,No work cards were found matching your search.
+Arkaplan görevi sıraya alındı. Tamamlandığında bildirim alacaksınız.,The background task is queued. You will receive notification when it is completed.
+Arıza Açıklaması,Fault Description
+Arıza Bildir,Report a Fault
+Arıza Bildirildi,Fault Reported
+Arıza Bildirimi,Fault Notification
+Arıza Nedeni,Malfunction Cause
+Arıza bildirimi oluşturulamadı.,Failed to create error report.
+Arıza bildirimi oluşturuluyor...,Error notification is being generated...
+Arıza yaşanan makineyi seçin (ör: M 1),Select the machine with the fault (ex: M 1)
+Arızanın detaylarını yazın — bakım ekibine bu bilgi iletilecek.,Write down the details of the fault — this information will be forwarded to the maintenance team.
+Ayarlar Eksik,Settings Missing
+Açıklama,Explanation
+Açıklama (Opsiyonel),Description (Optional)
+Açıklama Zorunlu,Description Required
+Açıklama yok,No description
+Aşama,Stage
+Aşağıdaki döviz dönüşümleri için kur bilgisi bulunamadı:\n{0},No exchange rate information was found for the following currency conversions:\n{0}
+Bakım,Maintenance
+Bakım Talimatı,Maintenance Instruction
+Bakım talimatı bulunamadı.,No maintenance instructions found.
+Barkod boş olamaz.,Barcode cannot be empty.
+Barkod kaydı eklendi,Barcode record added
+Barkod kaydı güncellendi,Barcode record updated
+Barkod kaydı silindi,Barcode record deleted
+Barkod satır kimliği (row name) bulunamadı.,Barcode row name could not be found.
+Barkod satırı bulunamadı (rowname: {0}).,Barcode row not found (rowname: {0}).
+Bağlı Stok Belgesi,Bonded Stock Certificate
+Başarılı,Successful
+Başlamamış bir işlemde duruş yapılamaz.,A process that has not started cannot be stopped.
+Başlamamış işlem bitirilemez.,A process that has not started cannot be finished.
+Başlangıç Tarihi,Start Date
+Başlangıç Tarihi Bitiş Tarihinden sonra olamaz,Start Date cannot be later than End Date
+Başlat,Start
+"Beklenmeyen bir hata oluştu, işlem yapılamadı. Hata detayları sistem loglarına kaydedildi.","An unexpected error occurred, the operation could not be performed. Error details were recorded in the system logs."
+Bekleyen güncellemeler var...,There are pending updates...
+Belge Yaratılış Tarihi,Document Creation Date
+Bildir,Report
+Bilgiler,Information
+Bilinmeyen change_type: {0},Unknown change_type: {0}
+Bilinmiyor,Unknown
+Birim,Unit
+Birim ve Depo bilgileri İş Emri üzerinden otomatik atanacaktır.,Unit and Warehouse information will be automatically assigned via the Work Order.
+Bitir,Finish
+Bitiş Tarihi,End Date
+Bitmiş,Finished
+Bitmiş bir işlemde duruş yapılamaz.,A stop cannot be made in a finished transaction.
+Boş Stokları Yoksay,Ignore Empty Stocks
+Bu IDC kodu Work Order BOM içinde yok. Başka bir ürüne ait IDC eklenemez.,This IDC code is not present in the Work Order BOM. IDC for another product cannot be added.
+Bu IDC ölçüm satırı silinecek. Emin misiniz?,This IDC measurement row will be deleted. Are you sure?
+Bu barkod satırı silinecek. Emin misiniz?,This barcode line will be deleted. Are you sure?
+Bu barkoda ait bir İş Emri bulunamadı: {0},No Work Order was found for this barcode: {0}
+Bu belge için bir Stok Girişi Tipi seçilmemiş.,An Inventory Entry Type has not been selected for this document.
+Bu depo grubunda stoğu olan ürün bulunamadı,No products in stock were found in this warehouse group
+Bu durumdaki bir İş Emri için kart açılamaz: {0},A card cannot be opened for a Work Order with this status: {0}
+Bu enjeksiyon ölçüm satırı silinecek. Emin misiniz?,This injection measurement line will be deleted. Are you sure?
+Bu etiket henüz yazıcıya gönderilmemiş.,This label has not been sent to the printer yet.
+Bu etiketi tekrar yazıcıya göndermek istediğinize emin misiniz?,Are you sure you want to send this label to the printer again?
+Bu hurda satırı silinecek. Emin misiniz?,This scrap row will be deleted. Are you sure?
+Bu irsaliyeye ait tüm etiketleri tekrar yazıcıya göndermek istiyor musunuz?,Do you want to send all labels for this delivery note to the printer again?
+Bu işlem satırı silinecek. Emin misiniz?,This transaction line will be deleted. Are you sure?
+Bu işlem zaten durdurulmuş.,This process has already been stopped.
+Bu kart henüz bitirilmemiş. Gönderim (Submit) yapabilmek için önce işlemi bitirmelisiniz.,"This card is not finished yet. Before you can send, you must complete the process."
+Bu kart zaten bitmiş.,This card is already finished.
+Bu karta bağlı bir kalite belgesi ({0}) bulunmaktadır. Durum değişikliği sadece ilgili belge üzerinden yapılabilir.,There is a quality certificate ({0}) attached to this card. Status changes can only be made through the relevant document.
+Bu krimp ölçüm satırı silinecek. Emin misiniz?,This crimp measurement line will be deleted. Are you sure?
+Bu kullanıcı için Employee kaydı bulunamadı. Employee.user_id / company_email / personal_email eşleşmeli: {0},No Employee records found for this user. Employee.user_id / company_email / personal_email must match: {0}
+Bu operasyon kombinasyonu zaten tanımlı: {0} / {1} / {2} (Kayıt: {3}),This combination of operations is already defined: {0} / {1} / {2} (Register: {3})
+Bu Çalışma Kartı'na ait zaten bir kalite belgesi ({0}) bulunmaktadır. Yeni bir tane oluşturulamaz.,There is already a quality certificate ({0}) for this Work Card. A new one cannot be created.
+Bu çalışma kartı için yetkiniz yok.,You are not authorized for this work card.
+Bu çalışma kartını düzenleme yetkiniz yok.,You are not authorized to edit this work card.
+Bu çalışma kartını görüntüleme yetkiniz yok.,You are not authorized to view this work card.
+Bu İş Emri için okuma yetkiniz yok.,You do not have read permission for this Work Order.
+Bu İş Kartı için okuma yetkiniz yok.,You do not have reading authority for this Job Card.
+Bu İşlem için yetkiniz yok.,You are not authorized for this Transaction.
+Bu şablonda parametre tanımlanmamış.,No parameters are defined in this template.
+Calisma Karti Tag Ekleme Hatası,Work Card Tag Adding Error
+Daha fazla yükle,Load more
+Depo Grubu,Warehouse Group
+Depo Grubu zorunludur,Warehouse Group is mandatory
+Depo Grubundan Toplu Reco Oluştur,Create Bulk Reco from Repository Group
+Depodan Ürünleri Getir,Fetch Items from Warehouse
+Depolar (Bitmiş Ürün Depolarını Seçin),Warehouses (Select Finished Product Warehouses)
+Depolar arası zıt yön,Opposite direction between warehouses
+Devam Et,Continue
+Devam ediyor,In progress
+Değer Türü,Value Type
+Dosyadan Yükle (Data Import),Load from File (Data Import)
+Duruş,On Hold
+Duruş Başlat,Hold
+Duruş Bilgisi,On Hold Information
+Duruş Kaydedildi,Posture Saved
+Duruş Nedeni,On Hold Reason
+Duruş Süresi (dk),Downtime (min)
+Duruş kaydı yok.,There is no record of the stop.
+"Duruş nedeni ""Diger"" olduğunda açıklama girmek zorunludur.","When the reason for the stoppage is ""Other"", it is mandatory to enter an explanation."
+Duruş nedeni 'Diger' olduğunda açıklama girmek zorunludur.,"When the reason for the stoppage is 'Other', it is mandatory to enter a description."
+Duruş nedeni olarak 'Diger' seçildiğinde açıklama girmek zorunludur. Lütfen {0}. sıradaki duruş kaydının açıklamasını doldurunuz.,"When 'Other' is selected as the reason for the suspension, it is mandatory to enter a description. Please {0}. Fill in the description of the next stop record."
+Duruş sonlandırılıp işleme devam edilecek.,The stop will be terminated and the process will continue.
+Duruşa geçmek için Duruş Nedeni belirtilmelidir.,"To take a stop, the Reason for the Stop must be specified."
+Duruşta,On Hold
+Dönem Aralığı,Term Range
+Düzenle,Edit
+Ekle,Add
+Eksik Kutu İçi Adedi Bilgisi,Missing Box Quantity Information
+Eksik Parametre,Missing Parameter
+Eksik Süre (dk) [(Gün x {0}) - Net],Missing Time (min) [(Day x {0}) - Net]
+Eksik Zorunlu Alan,Missing Required Field
+Employee eşleşmesi bulunamadı. Lütfen Employee kayıtlarında user_id / company_email / personal_email alanlarını kontrol edin. User: {0},No matches found for Employee. Please check the user_id / company_email / personal_email fields in the Employee records. User: {0}
+En az bir parametre eklemelisiniz.,You must add at least one parameter.
+Enjeksiyon satır kimliği bulunamadı.,Injection row ID not found.
+Enjeksiyon Ölçümü Düzenle,Add Injection Measurement
+Enjeksiyon Ölçümü Ekle,Add Injection Measurement
+Enjeksiyon Ölçümü Kopyala,Copy Injection Measurement
+Enjeksiyon ölçüm satırı bulunamadı (rowname: {0}).,Injection measurement row not found (rowname: {0}).
+Enjeksiyon ölçümü eklendi,Injection measurement added
+Enjeksiyon ölçümü güncellendi,Injection measurement updated
+Enjeksiyon ölçümü kopyalandı ve eklendi,Injection measurement copied and added
+Enjeksiyon ölçümü silindi,Injection measurement deleted
+Etiket,Ticket
+Etiket (label) sağlanmalıdır.,Label must be provided.
+Etiket kuyruğa alındı. Kısa süre içinde yazıcıdan çıkacaktır.,The tag is queued. It will come out of the printer in a short time.
+Etiketler yazıcıya gönderildi.,The labels were sent to the printer.
+Etiketler yazıcıya gönderiliyor...,Labels are sent to the printer...
+Etiketleri Yeniden Bas,Reprint Labels
+"Fatura tutarı ({0}) teslimat değerinden ({1}) büyük. Miktar güncellenmedi, Sipariş Kapatılacak.","The invoice amount ({0}) is greater than the delivery value ({1}). Quantity not updated, Order Will Be Closed."
+Faturalandırılacak,Will be billed
+Filtre Değeri,Filter Value
+Filtreler yüklenirken bir hata oluştu.,An error occurred while loading filters.
+GKK Bekliyor,GKK Pending
+Gerekli parametreler eksik: ürün ve template,Required parameters missing: product and template
+Geri,Back
+Geçersiz Fiyat,Invalid Price
+Geçersiz işlem tipi.,Invalid transaction type.
+Geçersiz kalite kontrol durumu.,Invalid quality control status.
+Geçersiz tarih: {0},Invalid date: {0}
+Geçersiz yıl,Invalid year
+Geçersiz İş Emri,Invalid Work Order
+Geçersiz İş Emri Durumu,Invalid Work Order Status
+Geçersiz İş Kartı,Invalid Job Card
+Geçmiş tarihler için rapor çalıştırılamaz. {0} sonrası seçiniz.,Reports cannot be run for past dates. Select after {0}.
+Gruplama Şekli,Grouping Type
+Gönderim Engellendi,Submission Blocked
+Görsel Kontroller,Visual Controls
+Gösterilecek Operatör Sayısı,Number of Operators to Show
+Göz Kontrol,Eye Check
+Güncelle,Update
+Güncelleme hatası: {0},Update error: {0}
+Güncellenen SO,Updated SO
+Güncellenme,Updated
+Günlük Bakım Onayı,Daily Maintenance Approval
+Günlük bakım kaydı oluşturuldu ve onaylandı.,Daily maintenance record created and approved.
+Günlük bakımı talimata göre kontrol ettim ve sorun bulunmamıştır.,I checked the daily maintenance according to the instructions and no problems were found.
+Hata,Mistake
+Hatalar,Errors
+Hazır,Ready
+Hazırlayan Operatör,Prepared by Operator
+Hedef Döviz,Target Currency
+Henüz arıza bildirimi yapılmamış.,No malfunction has been reported yet.
+Henüz bakım kaydı yok.,There are no maintenance records yet.
+Hurda Düzenle,Edit Scrap
+Hurda Ekle,Add Scrap
+Hurda Nedeni,Reason for Scrap
+Hurda Nedeni geçersiz. Lütfen listeden seçin.,Scrap Reason is invalid. Please select from the list.
+Hurda eklendi,Scrap added
+Hurda güncellendi,Scrap updated
+Hurda kaydı yok.,There is no scrap record.
+Hurda satır kimliği (row name) bulunamadı.,Scrap row id (row name) could not be found.
+Hurda satırı bulunamadı (rowname: {0}).,Scrap row not found (rowname: {0}).
+Hurda silindi,Scrap deleted
+IDC satır kimliği (row name) bulunamadı.,IDC row name not found.
+IDC Ölçümü Düzenle,Edit IDC Measurement
+IDC Ölçümü Ekle,Add IDC Measurement
+IDC Ölçümü Kopyala,Copy IDC Measurement
+IDC ölçüm satırı bulunamadı (rowname: {0}).,IDC measurement row not found (rowname: {0}).
+IDC ölçümü eklendi,IDC measurement added
+IDC ölçümü güncellendi,IDC measurement updated
+IDC ölçümü kopyalandı ve eklendi,IDC measurement copied and added
+IDC ölçümü silindi,IDC measurement deleted
+KTA,KTA
+KTA Sevk Parametreleri'nde eşleşmeyen müşteri/adres kayıtları (ilk 10):<br><br>{0},Non-matching customer/address records in KTA Shipment Parameters (top 10):<br><br>{0}
+Kablo ve Kontak Bilgileri,Cable and Contact Information
+Kalite,Quality
+Kalite Kontrol Gönderim Hatası {0},Quality Control Submission Error {0}
+Kalite Muayene Formu,Quality Inspection Form
+Kalite Ret Formu,Quality Rejection Form
+Kalite Sorumlusu,Quality Officer
+Kalite belgesi oluşturuldu ve onaylandı,Quality certificate created and approved
+Kalite belgesi oluşturuldu ve reddedildi,Quality certificate created and rejected
+Kalite durumu güncellendi,Quality status updated
+Kalite kontrol belgesi olmadan reddetmek istediğinizden emin misiniz?,Are you sure you want to reject without quality control certificate?
+Kalite Şablonu,Quality Template
+Kalıp No,Mold No.
+Kapalı,Closed
+Kapasite Dengeleme Yapılsın mı?,Perform Capacity Balancing?
+Kapatılan SO,Closed SO
+Kart Sayısı,Number of Cards
+Karşılaştırma için önceki Satış Siparişi Güncelleme kaydı bulunamadı (bu ilk kayıt).,No previous Sales Order Update record was found for comparison (this is the first record).
+Karşılaştırma senkronizasyonu kuyruğa alındı.,Benchmark sync queued.
+Karşılaştırma tamamlandı.,Comparison complete.
+Karşılaştırma yapılıyor...,Comparison is being made...
+Kaydediliyor...,Recording...
+Kaydet,Save
+Kaydet ve Onayla,Save and Submit
+Kaydet ve Reddet,Save and Reject
+Kayıt bulunamadı.,No record found.
+Kayıt yok,No record
+Kayıt yok.,No record.
+Kontrol Periyodu,Control Period
+Kopyalama başarısız.,Copy failed.
+Kopyalandı,Copied
+Krimp Book değerleri yüklendi,Krimp Book values ​​loaded
+Krimp satır kimliği bulunamadı.,Crimp row ID not found.
+Krimp Ölçümü Düzenle,Edit Crimp Measurement
+Krimp Ölçümü Ekle,Add Crimp Measurement
+Krimp Ölçümü Kopyala,Copy Crimp Measurement
+Krimp ölçüm satırı bulunamadı (rowname: {0}).,Crimp measurement line not found (rowname: {0}).
+Krimp ölçümü eklendi,Crimp measurement added
+Krimp ölçümü güncellendi,Crimp measurement updated
+Krimp ölçümü kopyalandı ve eklendi,Crimp measurement copied and added
+Krimp ölçümü silindi,Crimp measurement deleted
+Kritik hata: {0},Critical error: {0}
+Kısayollar,Shortcuts
+Kısmen Faturalandırıldı,Partially Billed
+Log kaydını açmak için tıklayın.,Click to open the log record.
+Lütfen KTA Çalışma Kartı Ayarları panelinden 'Hurda Gider Hesabı' bilgisini tanımlayın.,Please define the 'Scrap Expense Account' information from the KTA Work Card Settings panel.
+Lütfen bakım kontrolünü onaylayın.,Please confirm the maintenance check.
+Lütfen bir hurda nedeni seçin.,Please select a scrap reason.
+Lütfen bir parça seçin.,Please select a piece.
+Lütfen bir şablon seçin.,Please select a template.
+Lütfen geçerli bir miktar girin.,Please enter a valid amount.
+Lütfen makine seçin.,Please select machine.
+MOQ Uyarısı,MOQ Notice
+Makine Arıza Bildirimi,Machine Fault Notification
+Makine Günlük Bakım,Machine Daily Maintenance
+Makine No,Machine No.
+Makine numarasını yazarak seçin (ör: M 1),Select by typing the machine number (ex: M 1)
+Makine ve Kalıp,Machine and Mold
+Makine:,Machine:
+Miktar,Amount
+Miktar:,Amount:
+Motor Devir,Engine Speed
+Mükerrer Kayıt,Duplicate Registration
+Mükerrer Kayıt Engeli,Duplicate Registration Prevention
+Müşteri,Customer
+Müşteri Grubu,Customer Group
+Müşteri Grubu seçildiğinde Üretim Sahası (Plant Floor) zorunludur.,Plant Floor is mandatory when Customer Group is selected.
+Neden:,From where:
+Net Dakika,Net Minutes
+"Net Süre: {0}', [frm.doc.net_calisma_suresi]), 'cyan","Net Duration: {0}', [frm.doc.net_work_duration]), 'cyan"
+Net Çalışma (dk),Net Work (min)
+Not Açıklama,Note Description
+Notlar (İsteğe Bağlı),Notes (Optional)
+Numune Sayısı,Number of Samples
+Oluştur,Create
+Oluşturulan SO,Created SO
+Oluşturulma,Creation
+Onay,Approval
+Onay Bekliyor,Pending Approval
+Onayla ve Kaydet,Approve and Save
+Onaylandı,Approved
+Onaylayan,Approved by
+Onaylıyorum,I approve
+Operasyon,Operation
+Operasyon zorunludur,Operation is mandatory
+Operatör,Operator
+Ortalama ({0}),Average ({0})
+Parametreler,Parameters
+Parametreler yükleniyor...,Loading parameters...
+Parça Numarası,Part Number
+Parça Numarası (Item) boş olamaz.,Part Number (Item) cannot be empty.
+Periyot,Period
+Proses Parametreleri,Process Parameters
+QC güncelleme yetkiniz yok.,You do not have QC update authority.
+Radüs Mevcut,Radius Available
+Ramp-up (Önden Üretim) Yapılsın mı?,Should Ramp-up be done?
+Ramp-up Süresi (Hafta),Ramp-up Time (Weeks)
+Reddedildi,Rejected
+Reddedilmiş çalışma kartında işlem yapılamaz.,Transactions cannot be made on a rejected work card.
+SUT barkodu için etiket bulunamadı: {0},No label found for SUT barcode: {0}
+SUT için Stok Defteri Kaydı bulunamadı: {0},No Stock Ledger Record found for SUT: {0}
+Sadece Hazır durumundaki işlemler başlatılabilir.,Only processes in the Ready state can be started.
+Sadece Teslim Edilmemişler,Just Not Delivered
+Sadece Varsayılan Reçeteler (BOM),Only Default BOMs
+Sadece durdurulmuş bir işlem devam ettirilebilir.,Only a stopped process can be resumed.
+Sadece varsayılan reçeteleri (BOM) arar.,It only searches for default prescriptions (BOM).
+Sadece ürün kartında varsayılan olarak tanımlanmış aktif reçeteleri listeler.,It only lists active recipes defined by default in the product card.
+Satınalma Siparişi (Satınalma Siparişi) {0} için ERPNext'te Satış Siparişi bulunamadı. Manuel oluşturulmalı.,No Sales Order found in ERPNext for Purchase Order (Purchase Order) {0}. It must be created manually.
+"Satınalma Siparişi (Satınalma Siparişi) {0}, Ürün {1} için yeni Satış Siparişi manuel oluşturulmalı.","Purchase Order (Purchase Order) {0}, new Sales Order for Product {1} must be created manually."
+"Satınalma Siparişi (Satınalma Siparişi) {0}, Ürün {1} için yeni teslimat satırı eklenmelidir. Manuel işlem gerekli.","New delivery line should be added for Purchase Order (Purchase Order) {0}, Product {1}. Manual operation required."
+"Satır {0} — <b>{1}</b>: Rate değeri <b>{2} {3}</b> kabul edilemez. Kaynak belgeden beklenen: <b>{4} {5}</b> (Sapma: %{6}, izin verilen: %{7}). Fiyatı düzeltin veya önce satın alma siparişini güncelleyin.","Row {0} — <b>{1}</b>: Rate value <b>{2} {3}</b> is unacceptable. Expected from source document: <b>{4} {5}</b> (Deviation: {6}%, allowed: {7}%). Correct the price or update the purchase order first."
+Satır {0}: {1} için Taraf Tipi ve Taraf zorunludur,Side Type and Side are required for Row {0}: {1}
+Satış Siparişi Güncelleme Listesi,Sales Order Update List
+Satış Siparişi Güncelleme kaydı bulunamadı: {0},No Sales Order Update record found: {0}
+Satış Siparişi Güncelleme referansı belirtilmedi.,No Sales Order Update reference specified.
+Satış Siparişi Güncelleme seçilmedi.,Sales Order Update is not selected.
+Satış Siparişi Güncelleme tarihi seçilmeden belge oluşturulamaz.,A document cannot be created without selecting the Sales Order Update date.
+Satış Siparişi Güncelleme İşlemleri,Sales Order Update Transactions
+Satış Siparişi içinde eşleşen ürün bulunamadı.,No matching products were found in the Sales Order.
+Satış Siparişi senkronizasyonu kuyruğa alındı.,Sales Order sync is queued.
+Satış Siparişinde hiç ürün yok.,There are no products in the Sales Order.
+Satış Siparişleri güncelleniyor...,Sales Orders are being updated...
+Satış Siparişlerini Senkronize Et,Sync Sales Orders
+Satış siparişlerinde tedarik değerlendirilirken hata oluştu: {0},Error evaluating supply on sales orders: {0}
+Sayım listeleri arka planda oluşturuluyor. İşlem tamamlandığında bildirim alacaksınız.,Count lists are created in the background. You will receive a notification when the process is completed.
+Sayım listeleri oluşturuluyor...,Census lists are being created...
+Senkronizasyon Sonucu,Synchronization Result
+Senkronizasyon Tamamlandı,Synchronization Completed
+Senkronizasyon kuyruğa alındı,Sync queued
+Seç,Select
+"Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector veya 110-Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)","The selected IDC code is not appropriate. (item_group=120-IDC Connector or 110-Connector, custom_ara_malzeme_grubu=RAW MATERIAL)"
+Seçilen depo bir grup olmalıdır,The selected repository must be a group
+Seçilen hammadde ({0}) iş emri BOM'unda bu aşama için izin verilmiyor.,The selected raw material ({0}) is not allowed for this stage in the work order BOM.
+Seçilen varlığın Makine No alanı dolu değil.,The Machine ID field of the selected entity is not filled.
+Seçilen İş Emri bulunamadı: {0},Selected Work Order not found: {0}
+Seçilen İş Kartı bulunamadı: {0},Selected Job Card not found: {0}
+"Seçilen İş Kartı, seçtiğiniz İş Emri\'ne ait değil. Lütfen doğru kartı seçin.",The selected Job Card does not belong to the Work Order you selected. Please choose the correct card.
+Sil,Delete
+Silinen Satır (SO iptal edildi ve silindi),Deleted Row (SO canceled and deleted)
+Silme Engeli,Deletion Block
+Sistem kaydı olan '{0}' silinemez.,The system record '{0}' cannot be deleted.
+Sistemde {0} numarasına sahip bir makine/varlık bulunamadı.,No machine/entity with number {0} was found in the system.
+Stok Girişi için birden fazla Giriş Türü İşlem bulundu: {0},More than one Entry Type Transaction found for Stock Entry: {0}
+Stok Uzlaştırma Panosu,Stock Reconciliation Dashboard
+Süre:,Duration:
+Sıfır Tüketimi Göster,Show Zero Consumption
+Sınıflandırma,Classification
+Tamamlanan Miktar,Quantity Completed
+Tamamlanan miktar negatif olamaz.,The completed amount cannot be negative.
+Tamamlanan miktar sayısal olmalıdır.,The amount completed must be numerical.
+Tamamlandı,Completed
+Tarih Aralığı,Date Range
+Tarih:,History:
+Taslak,Draft
+Tedarik başlık belgesinde değerlendirme verisi bulunamadı,No evaluation data found in the procurement header document
+Tedarik için bakiye bulunamadı: {0},No balance found for supply: {0}
+Tek belge sonuca hakim,One document dominates the outcome
+Tek depoda toplandı,Collected in one warehouse
+Teslim edilen qty: {0},Delivered qty: {0}
+Teslimat miktarına çekildi,Drawn to delivery quantity
+Tolerans değerleri yüklendi,Tolerance values ​​loaded
+"Toplam Duruş: {0}', [frm.doc.toplam_durus]), 'orange","Total Posture: {0}', [frm.doc.total_duration]), 'orange"
+Toplu Oluştur,Create Bulk
+Toplu Stok Uzlaştırması Tamamlandı,Bulk Stock Reconciliation Completed
+Tüm Kalite Kontroller,All Quality Controls
+Tüm Müşteriler,All Customers
+"Tüm itemlar silindi, SO iptal edildi","All items deleted, SO canceled"
+Tümü,All
+Tümünü Ekle,Add All
+Uyarı,Warning
+Varsayılan Tedarikçi,Default Supplier
+Varsayılan kalite kontrol planı başarıyla güncellendi,Default quality control plan updated successfully
+Varsayılan plan güncellenirken hata oluştu: {0},Error updating default plan: {0}
+Vazgeç,Cancel
+Work Order üzerinde BOM bulunamadı (bom_no boş).,BOM was not found on the Work Order (bom_no is empty).
+XLS dosyası bulunamadı: {0},XLS file not found: {0}
+Yalnızca Ürün Bazlı Grupla,Only with Product Based Groups
+Yazdırılacak IDC ölçümü yok.,There are no IDC measurements to print.
+Yazdırılacak enjeksiyon ölçümü yok.,There are no injection measurements to print.
+Yazdırılacak krimp ölçümü yok.,There are no crimp measurements to print.
+Yazıcıya gönderiliyor...,Sending to printer...
+Yeni Satır,New Line
+Yeniden Bas,Reprint
+Yukarıdan parametre ekleyin.,Add parameters from above.
+Yükleniyor...,Loading...
+"gr_number, label veya q_ref sağlanmalıdır.","Gr_number, label or q_ref must be provided."
+için bir değer girmelisiniz.,You must enter a value for .
+{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.,{0} '{1}' has already been used by another Work Card ({2}).
+{0} için varsayılan etiket şablonu seçilmemiş.,The default label template for {0} is not selected.
+{0} işlemleri için etiket basımı aktif değildir.,Label printing is not active for {0} transactions.
+{0} makinesi için sistemde 'Asset Maintenance' (Varlık Bakımı) kaydı bulunamadı. Lütfen önce bakım ekibini atayın.,No 'Asset Maintenance' record was found in the system for machine {0}. Please assign the maintenance team first.
+{0}. satır için depo bulunamadı,{0}. No repository found for row
+Çalışma Kartları,Work Cards
+Çalışma Kartlarım,My Work Cards
+Çalışma Kartı,Work Card
+Çalışma Kartı bir İş Kartı (Job Card) ile bağlantılı değil.,The Work Card is not linked to a Job Card.
+Çalışma Kartı henüz bitirilmemiş. Lütfen önce kartı bitirin.,Work Card has not been finished yet. Please finish the card first.
+Çalışma Kartı üzerinde Work Order bulunamadı.,No Work Order was found on the Work Card.
+"Çalışma Kartı, Makine No, Arıza Nedeni ve Açıklama alanları zorunludur.","Work Card, Machine Number, Fault Reason and Description fields are mandatory."
+Çalışma kartı bulunamadı.,Work card not found.
+Çalışıyor,In Process
+Ölçümler,Measurements
+Önce bir İş Emri seçin.,First select a Work Order.
+Önceki Verilerle Karşılaştır,Compare with Previous Data
+Özel Belgeler,Private Documents
+Ürün,Product
+Ürün Grubu,Product Group
+Ürün Kodu,Product Code
+Ürün Kodu boş olamaz.,Product Code cannot be empty.
+Ürün Kodu zorunludur,Product Code is required
+Ürün için müşteri paketleme miktarı bulunamadı: {0},Customer packaging quantity could not be found for the product: {0}
+Ürün {0} için Minimum Sipariş Miktarı {1}. Satır miktarı {2}.,Minimum Order Quantity for Product {0} is {1}. Row quantity {2}.
+Ürün:,Product:
+Ürünleri Getir,Get Items
+İade,Return
+İade Düzenlendi,Refund Issued
+İptal Edildi,Canceled
+İptal edilmiş kartta işlem yapılamaz.,Transactions cannot be made on a canceled card.
+İsim,Name
+İstasyon,Station
+İzin verilmiyor,Not permitted
+İş Emri,Work Order
+İş Emri Bulunamadı,Work Order Not Found
+İş Emri Kapalı,Work Order Closed
+İş Emri onaylanmamış (docstatus != 1).,Work Order not approved (docstatus != 1).
+İş Emri tamamlanmış ve tolerans süresi dolmuş.,The Work Order has been completed and the tolerance period has expired.
+İş Emri zorunludur,Work Order is required
+İş Kartı,Job Card
+İş Kartı Bulunamadı,Job Card Not Found
+İş Kartı boş olamaz.,Job Card cannot be blank.
+İş Kartı zorunludur,Job Card is required
+İş emrinde bu aşama için izin verilen malzeme grubunda hammadde bulunamadı.,No raw materials were found in the material group allowed for this stage in the work order.
+İş İstasyonu,Workstation
+İş İstasyonu zorunludur,Workstation is required
+İş İstasyonu zorunludur (Job Card veya wizard tarafından sağlanmalı).,Workstation is mandatory (must be provided by Work Card or wizard).
+İşlem Başarılı,Transaction Successful
+İşlem Kuyruğa Alındı,Transaction Queued
+İşlem Tamamlandı,Transaction Completed
+İşlem başarıyla bitirildi.,The process has been completed successfully.
+İşlem başlatılacak.,The process will be started.
+İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?,The process will be completed. Are you sure you want to continue?
+İşlem sırasında bir hata oluştu.,An error occurred during the operation.
+İşlem tamamlandı. Şimdi kartı gönderebilirsiniz (Submit).,The process is completed. Now you can send the card (Submit).
+İşlem yapılıyor...,Processing is in progress...
+İşleme alındı,Processed
+İşlemi bitmiş veya reddedilmiş karta müdahale edemezsiniz.,You cannot intervene in a card whose transaction has been completed or rejected.
+İşlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.,"In order for the operation to be completed, there must be at least one sub-operation record."
+İŞLEMLER,Transactions
+Şablon Seçiniz...,Please select a template...
+Şirket zorunludur,Company is mandatory
+Hurda,Scrap
+Duruş Geçmişi,Downtimes
+Hammadde No,Raw Material No
+Ölçülen İletken Krimp Yük. (mm),Measured Conductor Crimp Height (mm)
+Barkod,Barcode
+Hedef Çekme Kuvveti (N),Target Pull Force (N)
+Makine / Pres No,Machine / Press No
+Soğutma Zamanı (sn),Cooling Time (sec)
+Hedef Kablo Boyu (mm),Target Cable Length (mm)
+Çapak Boyu (mm),Burr Length (mm)
+Kablo Kesiti (Rehberden),Cable Cross-Section (From Guide)
+Hammadde Enjeksiyon Zamanı (sn),Raw Material Injection Time (sec)
+Kalite Belgesi,Quality Document
+Krimp Ölçümleri,Crimp Measurements
+Ara Hortum Isısı (°C),Intermediate Hose Temp (°C)
+Sıyırma Boyu (mm),Strip Length (mm)
+Hammadde Kazan Isısı (°C),Raw Material Boiler Temp (°C)
+Hammadde (Opsiyonel),Raw Material (Optional)
+Ölçülen Kablo Boyu (mm),Measured Cable Length (mm)
+Hedef İletken Krimp Yük. (mm),Target Conductor Crimp Height (mm)
+Sonuç,Result
+KONTAK:,TERMINAL:
+Depo,Warehouse
+Soğuk Su Isısı (°C),Cold Water Temp (°C)
+Kalite Kontrol,Quality Control
+Görüntüle ↗,View ↗
+Çekme Kuvveti (N),Pull Force (N)
+İşleniyor...,Processing...
+Ölçülen Çekme Kuvveti (N),Measured Pull Force (N)
+Tel Kesme Mevcut,Wire Cut Available
+MAKİNE:,MACHINE:
+Çekme (N),Pull (N)
+Kablo No,Cable No
+Parça ara veya kod gir...,Search part or enter code...
+Değer,Value
+KABLO:,CABLE:
+Ek bilgi...,Additional info...
+Yükseklik (mm),Height (mm)
+Kontak No,Terminal No
+KESİT:,CROSS-SECTION:
+İzokrimp Yüksekliği (mm),Isocrimp Height (mm)
+Adet,Quantity
+KALIP:,MOLD:
+Kafa (Meme) Isısı (°C),Head (Nozzle) Temp (°C)
+Kopyala, Copy
+Hedef karşılandı,Target met
+kısa,Short
+uzun,Long
+Grafik sınırı,Graph limit
+aşıldı,Exceeded
+kartınızda eksik veri var:,There is missing data in your card:
+Hedef:,Target:
+Hdf. Krimp Yük.,Tgt. Crimp Height
+Kalıp,Mold
+Radüs,Radius
+Kazan Isısı,Boiler Temp
+Sıyırma Boyu,Strip Length
+Soğ. Zamanı,Cool Time
+Ölc. Krimp Yük.,Meas. Crimp Height
+Sapma,Deviation
+Çapak Boyu,Burr Length
+İzokrimp,Isocrimp
+PERİYOT:,PERIOD:
+Ölc. Kablo Boyu,Meas. Cable Length
+Krimp Yük.,Crimp Height
+Soğutma Zamanı,Cooling Time
+Hortum Isısı,Hose Temp
+Barkod Kayıtları,Barcode Records
+Soğuk Su,Cold Water
+Çapak,Burr
+IDC Ölçümleri,IDC Measurements
+Hdf. Kablo Boyu,Tgt. Cable Length
+Kesit,Cross-Section
+Kafa (Meme) Isısı,Head (Nozzle) Temp
+Kablo Boyu,Cable Length
+Meme Isısı,Nozzle Temp
+Göz Knt.,Vis. Insp.
+Enjeksiyon Zamanı,Injection Time
+Sıyırma,Strip
+Item Code,Item Code
+Ölçüm Tarihi,Measurement Date
+Ara Hortum Isısı,Intermediate Hose Temp
+Makine,Machine
+Çekme Kuvveti,Pull Force
+Yine de devam etmek istiyor musunuz?,Do you want to continue anyway?
+Giren,Entered By
+Devir,Speed
+Hammadde Kazan Isısı,Raw Material Boiler Temp
+Yükseklik,Height
+Enjeksiyon Ölçümleri,Injection Measurements
+Tel Kesme,Wire Cut
+HAMMADDE:,RAW MATERIAL:
+Hammadde,Raw Material
+Çekme,Pull
+Enj. Zamanı,Inj. Time
+Soğuk Su Isısı,Cold Water Temp
+🖨️ Protokol,🖨️ Protocol
++ Ekle,+ Add
+Yok,No
+Var,Yes
+Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.,Automatically paused by the system because another card was started.
+Zaman Aşımı,Timeout
+Kalıp Bağlama / Makine Ayarı,Mold Attachment / Machine Setting
+Board Kurma Hazırlık,Board Setup Preparation
+Malzeme Taşıma,Material Transport
+Depo / Hammadde Yerleştirme,Warehouse / Raw Material Placement
+Arıza,Malfunction
+Mola,Break
+Malzeme Bekleme,Waiting for Material
+Diğer,Other
+Toplam Duruş,Total Hold Time
+Anahtar Alt Montajı (Düğme Kapak Birleştirme),Switch Sub-Assembly (Button Cover Joining)
+Bund,Bund
+Direnç Bükme,Resistance Bending
+Doppel,Doppel
+Elektriksel Test (Pushback),Electrical Test (Pushback)
+Enjeksiyon,Injection
+Etiketleme,Labeling
+Form Verme,Forming
+Hortum Boylandırma (Kesme),Hose Cutting
+Hortum Montajı,Hose Assembly
+IDC Basma,IDC Pressing
+Isıl Fonksiyon Testi (Fırınlama),Thermal Function Test (Oven)
+Kablo Kesme,Cable Cutting
+Kablo Kısaltma,Cable Shortening
+Kapak Takma (Terminal Kapağı),Cover Fitting (Terminal Cover)
+Kontak Basma,Contact Crimping
+Lehim,Soldering
+Makaron Isıtma,Heat Shrink Heating
+Manto Sıyırma,Jacket Stripping
+Otomatik Çift Taraflı Kontak Basma,Automatic Double-Sided Contact Crimping
+Otomatik Çift Taraflı Kontak Basma + Inkjet,Automatic Double-Sided Contact Crimping + Inkjet
+Otomatik Küt Kablo Kesme,Automatic Blunt Cable Cutting
+Otomatik Tek Taraflı Kontak Basma,Automatic Single-Sided Contact Crimping
+Paketleme,Packaging
+Perçinleme,Riveting
+Plaka Basma,Plate Pressing
+Pres,Press
+Pushback (Elektriksel Test),Pushback (Electrical Test)
+Seal Takma,Seal Fitting
+Silikon Uygulama,Silicone Application
+Soket Basma,Socket Pressing
+Soket Lubrikasyonu (Yağlama),Socket Lubrication
+Soket Takma,Socket Fitting
+Son Kontrol,Final Inspection
+Son Kontrol ve Paketleme,Final Inspection and Packaging
+Tel Sıkma,Wire Tightening
+Test,Test
+Torklama,Torquing
+Tülle Takma,Grommet Fitting
+Work Order barkodu,Work Order barcode
+Seçilecek İş Kartı,Job Card to select
+Varsayılan veya manuel istasyon,Default or manual workstation
+Operasyon seçimi,Operation selection
+Operatör (Employee) seçimi,Operator (Employee) selection
+İş Kartı barkodu / adı,Job Card barcode / name
+İleri,Next
+Gönderiliyor...,Submitting...
+Çalışma Kartını Oluştur,Create Work Card
+Çalışma Kartı zaten mevcut,Work Card already exists
+Çalışma Kartı oluşturuldu,Work Card created
+Bu işlem için aktif bir kartınız zaten bulunuyor.,You already have an active card for this operation.
+Yeni Çalışma Kartı başarıyla kaydedildi.,New Work Card saved successfully.
+Doküman,Document
+Çalışma Kartına Git,Go to Work Card
+Yeni Çalışma Kartı Başlat,Start New Work Card
+İş Emri ile,With Work Order
+İş Kartı ile,With Job Card
+İş Emri Barkodu,Work Order Barcode
+Barkod okuyucu ile,"Using the barcode reader,"
+İş Emri barkodunu,the Work Order barcode
+okut. Okuyucu genelde Enter ile bittiği için ek işlem yapman gerekmez.,scan it. The reader usually ends with Enter so no extra action is needed.
+Barkodu okutun...,Scan barcode...
+İş Emri doğrulanıyor...,Verifying Work Order...
+Seçilen İş Emri\'ne bağlı,"Linked to the selected Work Order,"
+lardan birini seç.,select one.
+iş kartı bulundu,job cards found
+Bu İş Emri\'ne bağlı herhangi bir İş Kartı bulunamadı.,No Job Card found for this Work Order.
+Seçili,Selected
+İş Kartı Barkodu,Job Card Barcode
+İş Kartı barkodunu,the Job Card barcode
+okut veya Job Card numarasını gir. Okuyucu genelde Enter ile bittiği için ek işlem yapman gerekmez.,scan it or enter the Job Card number. The reader usually ends with Enter.
+İş Kartı barkodunu okutun veya JC-00045 girin...,Scan Job Card barcode or enter JC-00045...
+İş Kartı doğrulanıyor...,Verifying Job Card...
+Seçili İş Kartı Bilgisi,Selected Job Card Info
+KTA Çalışma Kartı Operasyonları,KTA Work Card Operations
+listesinden bir operasyon seç.,select an operation from the list.
+operasyon bulundu,operations found
+Bu İş Kartı için tanımlı herhangi bir operasyon bulunamadı.,No operation found for this Job Card.
+Bu Çalışma Kartı ile ilişkilendirilecek,Select the
+operatörü (Employee),operator (Employee)
+seç. Sadece,to associate with this Work Card. Only
+aktif,active
+ve,and
+User bağlı,User-linked
+çalışanlar listelenir.,employees are listed.
+çalışan,employees
+İsim / e-posta ile ara...,Search by name / email...
+Uygun çalışan bulunamadı. Employee kayıtlarını kontrol edin.,No eligible employees found. Please check Employee records.
+Filtreye uygun çalışan bulunamadı. Arama kriterini değiştirin.,No employees match the filter. Please change the search criteria.
+Seçili Operatör,Selected Operator
+Departman,Department
+Bu Çalışma Kartı\'nın üretileceği,Specify the
+iş istasyonunu,workstation
+belirle. Job Card üzerinde zaten tanımlı bir istasyon varsa otomatik olarak doldurulur.,"where this Work Card will be produced. If a workstation is already set on the Job Card, it will be filled automatically."
+Önerilen,Recommended
+Job Card üzerinde tanımlı istasyon,The workstation defined on the Job Card is
+İstersen aşağıdaki buton ile bu değeri kullanabilirsin.,You can use the button below to apply this value.
+Örn: IST-01,E.g.: IST-01
+Job Card istasyonunu kullan,Use Job Card workstation
+Bu alan,This field will be written to the
+alanına yazılacak. Zorunlu bir alandır.,field. It is a required field.
+Seçilen İş Emri'ne bağlı İş Kartlarından birini seç.,Select one of the Job Cards linked to the selected Work Order.
+KTA Çalışma Kartı Operasyonları listesinden bir operasyon seç.,Select an operation from the KTA Work Card Operations list.
+Bu Çalışma Kartı'nın üretileceği iş istasyonunu belirle. Job Card üzerinde zaten tanımlı bir istasyon varsa otomatik olarak doldurulur.,"Determine the workstation where this Work Card will be produced. If a workstation is already defined on the Job Card, it will be automatically filled."
+30-0900 Bosch Montaj istasyonu,30-0900 Bosch Assembly Station
+40-0900 Form Verme+Test istasyonu,40-0900 Shaping+Testing Station
+10-0000 OTM Kablo Kesme istasyonu,10-0000 OTM Cable Cutting Station
+30-0800 Enjeksiyon istasyonu,30-0800 Injection Station
+Kablo Kesme ve Terminal Basma,Cable Cutting and Terminal Pressing
+Manuel Kablo Kesme ve Terminal Basma,Manual Cable Cutting and Terminal Pressing
+Ön Hazırlık,Pre Assembly
+IDC ve Soket,IDC and Socket
+Form Verme ve Test,Shaping and Testing

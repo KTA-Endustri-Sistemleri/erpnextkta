@@ -24,7 +24,7 @@ const isVisible = computed(() => {
       class="ck-btn ck-btn--success ck-btn--wide"
       @click="props.onBaslatDevam"
     >
-      Başlat
+      {{ __("Başlat") }}
     </button>
 
     <button
@@ -32,7 +32,7 @@ const isVisible = computed(() => {
       class="ck-btn ck-btn--success ck-btn--wide"
       @click="props.onBaslatDevam"
     >
-      Devam Et
+      {{ __("Devam Et") }}
     </button>
 
     <button
@@ -40,7 +40,7 @@ const isVisible = computed(() => {
       class="ck-btn ck-btn--warning ck-btn--wide"
       @click="props.onDurus"
     >
-      Duruş
+      {{ __("Duruş") }}
     </button>
 
     <button
@@ -49,7 +49,7 @@ const isVisible = computed(() => {
       class="ck-btn ck-btn--danger ck-btn--wide"
       @click="props.onBitir"
     >
-      Bitir
+      {{ __("Bitir") }}
     </button>
   </div>
 </template>

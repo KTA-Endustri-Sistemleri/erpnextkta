@@ -17,22 +17,22 @@ frappe.listview_settings["Purchase Receipt"] = {
 
         // Standart erpnext göstergeleri (purchase_receipt_list.js)
         if (cint(doc.is_return) == 1 && doc.status == "Return") {
-            return [__("Return"), "gray", "is_return,=,1"];
+            return [__("İade"), "gray", "is_return,=,1"];
         } else if (doc.status === "Closed") {
-            return [__("Closed"), "green", "status,=,Closed"];
+            return [__("Kapalı"), "green", "status,=,Closed"];
         } else if (flt(doc.per_returned, 2) === 100) {
-            return [__("Return Issued"), "grey", "per_returned,=,100|docstatus,=,1"];
+            return [__("İade Düzenlendi"), "grey", "per_returned,=,100|docstatus,=,1"];
         } else if (flt(doc.grand_total || doc.base_grand_total) !== 0 && flt(doc.per_billed, 2) == 0) {
-            return [__("To Bill"), "orange", "per_billed,<,100|docstatus,=,1"];
+            return [__("Faturalandırılacak"), "orange", "per_billed,<,100|docstatus,=,1"];
         } else if (flt(doc.per_billed, 2) > 0 && flt(doc.per_billed, 2) < 100) {
-            return [__("Partly Billed"), "yellow", "per_billed,<,100|docstatus,=,1"];
+            return [__("Kısmen Faturalandırıldı"), "yellow", "per_billed,<,100|docstatus,=,1"];
         } else if (flt(doc.grand_total) === 0 || flt(doc.per_billed, 2) >= 100) {
-            return [__("Completed"), "green", "per_billed,>=,100|docstatus,=,1"];
+            return [__("Tamamlandı"), "green", "per_billed,>=,100|docstatus,=,1"];
         }
     },
 
     onload: function (listview) {
-        listview.page.add_action_item(__("Purchase Invoice"), () => {
+        listview.page.add_action_item(__("Alış Faturası"), () => {
             erpnext.bulk_transaction_processing.create(listview, "Purchase Receipt", "Purchase Invoice");
         });
     },

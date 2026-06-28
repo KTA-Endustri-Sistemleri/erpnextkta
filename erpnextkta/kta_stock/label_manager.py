@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from kta_system_utils.kta_zebra_utils.printer_manager import ZebraPrinterManager
 from erpnextkta.kta_stock.batch_manager import BatchSplitManager
 
@@ -6,7 +7,7 @@ class LabelPrinter:
     @staticmethod
     def print_pr_labels(gr_number=None, label=None, q_ref=None, label_type=None):
         if not gr_number and not label and not q_ref:
-            frappe.msgprint("Either `gr_number`, `label` or 'q_ref' must be provided.")
+            frappe.msgprint(_("gr_number, label veya q_ref sağlanmalıdır."))
             return
 
         query_filter = {"do_not_split": 0}
@@ -68,7 +69,7 @@ class LabelPrinter:
     @staticmethod
     def print_split_pr_labels(label=None):
         if not label:
-            frappe.msgprint("`label` must be provided.")
+            frappe.msgprint(_("Etiket (label) sağlanmalıdır."))
             return
 
         split_query_filter = {"parent": label}
@@ -148,7 +149,7 @@ class LabelPrinter:
         )
 
         if not musteri_paketleme_miktari:
-            frappe.throw(f"No custom_musteri_paketleme_miktari found for Item: {work_order_doc.production_item}")
+            frappe.throw(_("Ürün için müşteri paketleme miktarı bulunamadı: {0}").format(work_order_doc.production_item))
             return None
 
         return {
@@ -179,7 +180,7 @@ class LabelPrinter:
         )
 
         if len(stock_entry_detail) > 1:
-            frappe.throw(f"More than one Inward Type of Transaction found for Stock Entry: {stock_entry}")
+            frappe.throw(_("Stok Girişi için birden fazla Giriş Türü İşlem bulundu: {0}").format(stock_entry))
             return
         if not stock_entry_detail: return
 
@@ -390,9 +391,9 @@ def check_queue_health():
         
         if not short_workers:
             frappe.msgprint(
-                "<strong>UYARI:</strong> Arka plan kuyruk yöneticisi (worker) aktif değil! "
-                "Etiket basım işleri sıraya alınacak ancak yazıcıya gönderilmeyecektir. "
-                "Lütfen sistem yöneticinizle iletişime geçin.",
+                _("<strong>UYARI:</strong> Arka plan kuyruk yöneticisi (worker) aktif değil! "
+                  "Etiket basım işleri sıraya alınacak ancak yazıcıya gönderilmeyecektir. "
+                  "Lütfen sistem yöneticinizle iletişime geçin."),
                 indicator="red",
                 alert=True
             )
@@ -400,8 +401,7 @@ def check_queue_health():
             
         if q.count >= 10:
             frappe.msgprint(
-                f"<strong>UYARI:</strong> Yazıcı kuyruğu yoğun! Sıradaki iş sayısı: {q.count}. "
-                "Etiketlerin basılması gecikebilir.",
+                _("<strong>UYARI:</strong> Yazıcı kuyruğu yoğun! Sıradaki iş sayısı: {0}. Etiketlerin basılması gecikebilir.").format(q.count),
                 indicator="orange",
                 alert=True
             )
@@ -592,17 +592,17 @@ def print_stock_entry_labels(stock_entry):
     doc = frappe.get_doc("Stock Entry", stock_entry)
     
     if not doc.stock_entry_type:
-        frappe.throw("Bu belge için bir Stok Girişi Tipi seçilmemiş.")
+        frappe.throw(_("Bu belge için bir Stok Girişi Tipi seçilmemiş."))
         
     se_type_doc = frappe.get_doc("Stock Entry Type", doc.stock_entry_type)
     
     if not se_type_doc.get("custom_etiket_basilabilir"):
-        frappe.throw(f"{doc.stock_entry_type} işlemleri için etiket basımı aktif değildir.")
+        frappe.throw(_("{0} işlemleri için etiket basımı aktif değildir.").format(doc.stock_entry_type))
         
     template = se_type_doc.get("custom_etiket_sablonu")
     
     if not template:
-        frappe.throw(f"{doc.stock_entry_type} için varsayılan etiket şablonu seçilmemiş.")
+        frappe.throw(_("{0} için varsayılan etiket şablonu seçilmemiş.").format(doc.stock_entry_type))
     
     if doc.purpose == "Manufacture":
         print_kta_wo_labels_of_stock_entry(stock_entry, template)

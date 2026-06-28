@@ -7,12 +7,12 @@ const props = defineProps<{
 }>();
 
 const tabs: Array<{ key: TabKey; label: string }> = [
-  { key: "info", label: "Bilgiler" },
-  { key: "alt_operasyon", label: "Alt İşlem" },
-  { key: "hurda", label: "Hurda" },
-  { key: "durus", label: "Duruş" },
-  { key: "kalite", label: "Kalite" },
-  { key: "bakim", label: "Bakım" },
+  { key: "info", label: __("Bilgiler") },
+  { key: "alt_operasyon", label: __("Alt İşlem") },
+  { key: "hurda", label: __("Hurda") },
+  { key: "durus", label: __("Duruş Geçmişi") },
+  { key: "kalite", label: __("Kalite") },
+  { key: "bakim", label: __("Bakım") },
 ];
 </script>
 

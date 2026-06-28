@@ -25,9 +25,9 @@ function actions(r: any) {
 
 <template>
   <div class="ck-qc-header">
-    <b>Barkod Kayıtları</b>
+    <b>{{ __('Barkod Kayıtları') }}</b>
     <button v-if="props.canEditData" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
-      + Ekle
+      {{ __('+ Ekle') }}
     </button>
   </div>
 

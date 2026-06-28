@@ -244,12 +244,12 @@ watch(viewMode, (newVal) => {
 // Kanban Sütunları
 const kanbanColumns = computed(() => {
   const cols = {
-    ready: { label: "Hazır", items: [] },
-    running: { label: "Çalışıyor", items: [] },
-    paused: { label: "Duruşta", items: [] },
-    finished: { label: "Bitmiş", items: [] },
-    rejected: { label: "Reddedildi", items: [] },
-    cancelled: { label: "İptal Edildi", items: [] }
+    ready: { label: __("Hazır"), items: [] },
+    running: { label: __("Çalışıyor"), items: [] },
+    paused: { label: __("Duruşta"), items: [] },
+    finished: { label: __("Bitmiş"), items: [] },
+    rejected: { label: __("Reddedildi"), items: [] },
+    cancelled: { label: __("İptal Edildi"), items: [] }
   };
   for (const r of rows.value || []) {
     const key = statusKeyFromDurumText(r?.durum);
@@ -331,7 +331,7 @@ onUnmounted(() => {
     <!-- Sticky Header -->
     <div class="ck-header">
       <div class="ck-header-row">
-        <div class="ck-title">Çalışma Kartları</div>
+        <div class="ck-title">{{ __("Çalışma Kartları") }}</div>
         
         <div class="ck-view-toggles" v-if="!loading && !errorMsg">
           <button class="ck-view-btn" :class="{ active: viewMode === 'list' }" @click="viewMode = 'list'" title="Liste Görünümü">
@@ -347,9 +347,7 @@ onUnmounted(() => {
 
         <Transition name="ck-slide-down">
           <div v-if="pendingUpdate && !loading" class="ck-pending-badge">
-            <span class="ck-dot"></span>
-            Bekleyen güncellemeler var...
-          </div>
+            <span class="ck-dot"></span>{{ __("Bekleyen güncellemeler var...") }}</div>
         </Transition>
       </div>
 
@@ -380,10 +378,8 @@ onUnmounted(() => {
         </div>
 
         <div v-else-if="rows.length === 0" class="ck-empty" key="empty">
-          <div class="ck-empty-title">Kayıt yok</div>
-          <div class="ck-muted">
-            Aramana uygun çalışma kartı bulunamadı.
-          </div>
+          <div class="ck-empty-title">{{ __("Kayıt yok") }}</div>
+          <div class="ck-muted">{{ __("Aramana uygun çalışma kartı bulunamadı.") }}</div>
         </div>
 
         <div v-else class="ck-views" key="views">
@@ -419,9 +415,7 @@ onUnmounted(() => {
           v-if="hasMore"
           class="ck-btn"
           @click="loadMore"
-        >
-          Daha fazla yükle
-        </button>
+        >{{ __("Daha fazla yükle") }}</button>
 
         <div v-else class="ck-muted" style="text-align:center; padding:10px 0;">
           Hepsi bu kadar.
@@ -431,8 +425,7 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped>
-/* Layout */
+<style scoped>/* Layout */
 .ck-page{
   padding:0;
   background: var(--subtle-fg);
@@ -649,8 +642,7 @@ onUnmounted(() => {
 .w75{ width:75%; }
 .w60{ width:60%; }
 .w50{ width:50%; }
-.w40{ width:40%; }
-</style>
+.w40{ width:40%; }</style>
 
 <style>
 /* Global Glassmorphism Variables for List App */

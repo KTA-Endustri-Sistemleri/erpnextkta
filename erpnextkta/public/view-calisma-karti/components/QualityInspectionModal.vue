@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 
+declare const __: any;
+
 const props = defineProps<{
   show: boolean;
   templates: any[];
@@ -110,14 +112,14 @@ function onReadingChange(index: number) {
 }
 
 async function handleSubmit() {
-  if (!selectedTemplate.value) return frappe.msgprint("Lütfen bir şablon seçin.");
+  if (!selectedTemplate.value) return frappe.msgprint(__("Lütfen bir şablon seçin."));
   if (readings.value.length === 0)
-    return frappe.msgprint("En az bir parametre eklemelisiniz.");
+    return frappe.msgprint(__("En az bir parametre eklemelisiniz."));
 
   for (const r of readings.value) {
     const val = r.numeric ? r.reading_1 : r.reading_value;
     if (r.numeric && (val === "" || val === null || val === undefined)) {
-      return frappe.msgprint(`${r.specification} için bir değer girmelisiniz.`);
+      return frappe.msgprint(r.specification + " " + __("için bir değer girmelisiniz."));
     }
   }
 
@@ -140,7 +142,7 @@ async function handleSubmit() {
     <div v-if="props.show" class="ck-modal-overlay">
       <div class="ck-modal">
         <div class="ck-modal-header" :style="props.intent === 'reject' ? 'border-bottom-color: var(--ck-danger)' : ''">
-          <b>{{ props.intent === 'reject' ? 'Kalite Ret Formu' : 'Kalite Muayene Formu' }}</b>
+          <b>{{ props.intent === 'reject' ? __("Kalite Ret Formu") : __("Kalite Muayene Formu") }}</b>
           <button class="ck-modal-close" @click="props.onClose">&times;</button>
         </div>
 
@@ -148,36 +150,34 @@ async function handleSubmit() {
           <!-- Ürün & Sample Size -->
           <div class="ck-form-row">
             <div class="ck-form-group" style="flex:1">
-              <label>Ürün: <b>{{ props.itemCode }}</b></label>
+              <label>{{ __("Ürün:") }} <b>{{ props.itemCode }}</b></label>
             </div>
             <div class="ck-form-group" style="width:100px">
-              <label>Numune Sayısı</label>
+              <label>{{ __("Numune Sayısı") }}</label>
               <input type="number" v-model.number="sampleSize" min="1" class="ck-input" style="text-align:center" />
             </div>
           </div>
 
           <div class="ck-form-group">
-            <label>Kalite Şablonu</label>
+            <label>{{ __("Kalite Şablonu") }}</label>
             <select v-model="selectedTemplate" class="ck-select">
-              <option value="">Şablon Seçiniz...</option>
+              <option value="">{{ __("Şablon Seçiniz...") }}</option>
               <option v-for="t in props.templates" :key="t.name" :value="t.name">
                 {{ t.quality_inspection_template_name || t.name }}
               </option>
             </select>
           </div>
 
-          <div v-if="loadingDetails" class="ck-muted text-center" style="padding: 20px;">
-            Parametreler yükleniyor...
-          </div>
+          <div v-if="loadingDetails" class="ck-muted text-center" style="padding: 20px;">{{ __("Parametreler yükleniyor...") }}</div>
 
           <template v-else-if="parameters.length > 0">
             <!-- Parametre havuzu (henüz eklenmeyenler) -->
             <div v-if="availableParams.length > 0" class="ck-param-pool">
               <div class="ck-pool-header">
-                <span class="ck-pool-title">Parametreler</span>
+                <span class="ck-pool-title">{{ __("Parametreler") }}</span>
                 <button class="ck-add-all-btn" type="button" @click="addAll">
-                  + Tümünü Ekle
-                </button>
+          + {{ __("Tümünü Ekle") }}
+        </button>
               </div>
               <div class="ck-param-chips">
                 <button
@@ -219,7 +219,7 @@ async function handleSubmit() {
                     type="number"
                     v-model="r.reading_1"
                     class="ck-input"
-                    placeholder="Değer"
+                    :placeholder="__('Değer')"
                     @input="onReadingChange(i)"
                   />
                   <input
@@ -227,7 +227,7 @@ async function handleSubmit() {
                     type="text"
                     v-model="r.reading_value"
                     class="ck-input"
-                    placeholder="Sonuç"
+                    :placeholder="__('Sonuç')"
                   />
 
                   <div class="ck-status-btns">
@@ -248,17 +248,17 @@ async function handleSubmit() {
 
             <!-- Hiç eklenmemiş -->
             <div v-else class="ck-empty" style="padding: 16px 0;">
-              Yukarıdan parametre ekleyin.
-            </div>
+        {{ __("Yukarıdan parametre ekleyin.") }}
+      </div>
           </template>
 
           <div v-else-if="selectedTemplate" class="ck-empty">
-            Bu şablonda parametre tanımlanmamış.
-          </div>
+        {{ __("Bu şablonda parametre tanımlanmamış.") }}
+      </div>
         </div>
 
         <div class="ck-modal-footer">
-          <button class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">Vazgeç</button>
+          <button class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">{{ __("Vazgeç") }}</button>
           <button
             class="ck-btn"
             :class="props.intent === 'reject' ? 'ck-btn--danger' : 'ck-btn--success'"
@@ -266,7 +266,7 @@ async function handleSubmit() {
             @click="handleSubmit"
             :disabled="submitting || !selectedTemplate || readings.length === 0"
           >
-            {{ submitting ? 'Kaydediliyor...' : (props.intent === 'reject' ? 'Kaydet ve Reddet' : 'Kaydet ve Onayla') }}
+            {{ submitting ? __("Kaydediliyor...") : (props.intent === 'reject' ? __("Kaydet ve Reddet") : __("Kaydet ve Onayla")) }}
           </button>
         </div>
       </div>

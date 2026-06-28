@@ -77,7 +77,7 @@ def get_child_table_fieldname(parent_doc, child_doctype: str) -> str:
     for df in meta.fields:
         if df.fieldtype == "Table" and df.options == child_doctype:
             return df.fieldname
-    frappe.throw(_("Parent doctype içinde '{0}' child table alanı bulunamadı.").format(child_doctype))
+    frappe.throw(_("Ana belge içinde '{0}' alt tablo alanı bulunamadı.").format(child_doctype))
 
 def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = None) -> list[str]:
     ck = frappe.db.get_value("Calisma Karti", calisma_karti_name, ["custom_work_order", "operasyon"], as_dict=True)

@@ -116,11 +116,11 @@ function openMaintenanceDialog() {
       html += '</div>';
 
       const dialog = new window.frappe.ui.Dialog({
-        title: 'Günlük Bakım Onayı',
+        title: __('Günlük Bakım Onayı'),
         fields: [
-          { fieldtype: 'Link', fieldname: 'makine', label: 'Makine No', options: 'Asset', reqd: 1 },
+          { fieldtype: 'Link', fieldname: 'makine', label: __('Makine No'), options: 'Asset', reqd: 1 },
           { fieldtype: 'HTML', fieldname: 'instruction_html', options: html },
-          { fieldtype: 'Check', fieldname: 'onay', label: 'Onaylıyorum', reqd: 1 },
+          { fieldtype: 'Check', fieldname: 'onay', label: __('Onaylıyorum'), reqd: 1 },
           { fieldtype: 'Small Text', fieldname: 'notlar', label: 'Notlar' }
         ],
         primary_action_label: 'Kaydet',
@@ -161,11 +161,11 @@ function openMaintenanceDialog() {
 
 function openArizaDialog() {
   const dialog = new window.frappe.ui.Dialog({
-    title: 'Arıza Bildirimi',
+    title: __('Arıza Bildirimi'),
     fields: [
-      { fieldtype: 'Autocomplete', fieldname: 'makine_no', label: 'Makine No', reqd: 1, options: makineNoOptions.value.join('\n') },
-      { fieldtype: 'Link', fieldname: 'ariza_nedeni', label: 'Arıza Nedeni', options: 'Ariza Nedeni', reqd: 1 },
-      { fieldtype: 'Small Text', fieldname: 'aciklama', label: 'Açıklama', reqd: 1 }
+      { fieldtype: 'Autocomplete', fieldname: 'makine_no', label: __('Makine No'), reqd: 1, options: makineNoOptions.value.join('\n') },
+      { fieldtype: 'Link', fieldname: 'ariza_nedeni', label: __('Arıza Nedeni'), options: 'Ariza Nedeni', reqd: 1 },
+      { fieldtype: 'Small Text', fieldname: 'aciklama', label: __('Açıklama'), reqd: 1 }
     ],
     primary_action: (values) => {
       window.frappe.call({
@@ -210,25 +210,25 @@ watch(() => props.doc?.name, (newVal) => {
 <template>
   <div class="ck-card">
     <div class="ck-qc-header">
-      <b style="font-size: 15px;">Makine Günlük Bakım</b>
+      <b style="font-size: 15px;">{{ __("Makine Günlük Bakım") }}</b>
       <button class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="openMaintenanceDialog">
-        + Ekle
+        + {{ __("Ekle") }}
       </button>
     </div>
 
-    <div v-if="loading" class="ck-empty-state">Yükleniyor...</div>
-    <div v-else-if="!maintenanceRecords || maintenanceRecords.length === 0" class="ck-empty-state">Henüz bakım kaydı yok.</div>
+    <div v-if="loading" class="ck-empty-state">{{ __("Yükleniyor...") }}</div>
+    <div v-else-if="!maintenanceRecords || maintenanceRecords.length === 0" class="ck-empty-state">{{ __("Henüz bakım kaydı yok.") }}</div>
     <div v-else class="ck-mini-list">
       <div v-for="record in maintenanceRecords" :key="record.name" class="ck-mini-item" @click="openMaintenanceRecord(record.name)">
         <div class="ck-mini-content">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <b class="ck-mini-title">{{ record.name }}</b>
             <span class="ck-status-pill" :class="record.docstatus === 1 ? 'is-success' : 'is-warning'">
-              {{ record.docstatus === 1 ? 'Onaylandı' : 'Taslak' }}
+              {{ record.docstatus === 1 ? __('Onaylandı') : __('Taslak') }}
             </span>
           </div>
-          <div class="ck-muted ck-mini-sub">Makine: <strong style="color:var(--ck-text);">{{ record.makine }}</strong></div>
-          <div class="ck-muted ck-mini-sub">Tarih: {{ record.tarih || '---' }}</div>
+          <div class="ck-muted ck-mini-sub">{{ __("Makine:") }} <strong style="color:var(--ck-text);">{{ record.makine }}</strong></div>
+          <div class="ck-muted ck-mini-sub">{{ __("Tarih:") }} {{ record.tarih || '---' }}</div>
         </div>
       </div>
     </div>
@@ -236,26 +236,26 @@ watch(() => props.doc?.name, (newVal) => {
     <div style="margin-top: 24px;"></div>
     
     <div class="ck-qc-header">
-      <b style="font-size: 15px;">Makine Arıza Bildirimi</b>
+      <b style="font-size: 15px;">{{ __("Makine Arıza Bildirimi") }}</b>
       <button class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg); padding: 8px 10px;" @click="openArizaDialog">
-        + Arıza Bildir
+        + {{ __("Arıza Bildir") }}
       </button>
     </div>
 
-    <div v-if="arizaLoading" class="ck-empty-state">Yükleniyor...</div>
-    <div v-else-if="!arizaRecords || arizaRecords.length === 0" class="ck-empty-state">Henüz arıza bildirimi yapılmamış.</div>
+    <div v-if="arizaLoading" class="ck-empty-state">{{ __("Yükleniyor...") }}</div>
+    <div v-else-if="!arizaRecords || arizaRecords.length === 0" class="ck-empty-state">{{ __("Henüz arıza bildirimi yapılmamış.") }}</div>
     <div v-else class="ck-mini-list">
       <div v-for="record in arizaRecords" :key="record.name" class="ck-mini-item" @click="openArizaRecord(record.name)" style="border-left: 3px solid var(--ck-danger, #ef4444);">
         <div class="ck-mini-content" v-if="record">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <b class="ck-mini-title">{{ record.name }}</b>
             <span class="ck-status-pill is-danger" style="background: rgba(239, 68, 68, 0.12); color: var(--ck-danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">
-              Arıza Bildirimi
+              {{ __("Arıza Bildirimi") }}
             </span>
           </div>
-          <div class="ck-muted ck-mini-sub">Makine: <strong>{{ record.asset_name || '---' }}</strong></div>
-          <div class="ck-muted ck-mini-sub" style="margin-top: 4px; font-style: italic;">"{{ record.custom_ariza_aciklamasi || 'Açıklama yok' }}"</div>
-          <div class="ck-muted ck-mini-sub" style="margin-top: 4px;">Tarih: {{ record.due_date || (record.creation ? record.creation.split(' ')[0] : '---') }}</div>
+          <div class="ck-muted ck-mini-sub">{{ __("Makine:") }} <strong>{{ record.asset_name || '---' }}</strong></div>
+          <div class="ck-muted ck-mini-sub" style="margin-top: 4px; font-style: italic;">"{{ record.custom_ariza_aciklamasi || __('Açıklama yok') }}"</div>
+          <div class="ck-muted ck-mini-sub" style="margin-top: 4px;">{{ __("Tarih:") }} {{ record.due_date || (record.creation ? record.creation.split(' ')[0] : '---') }}</div>
         </div>
       </div>
     </div>

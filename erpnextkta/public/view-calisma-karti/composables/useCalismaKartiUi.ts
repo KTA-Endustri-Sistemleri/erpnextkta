@@ -1,4 +1,5 @@
 import { computed, ref, watch } from "vue";
+declare const __: any;
 
 export type CKState = "ready" | "running" | "paused" | "finished" | "rejected" | "cancelled";
 
@@ -26,12 +27,12 @@ export function useCalismaKartiUi(docRef: any) {
     const durumLabel = computed(
         () =>
         ({
-            ready: "Hazır",
-            running: "Çalışıyor",
-            paused: "Duruşta",
-            finished: "Bitmiş",
-            rejected: "Reddedildi",
-            cancelled: "İptal Edildi",
+            ready: __("Hazır"),
+            running: __("Çalışıyor"),
+            paused: __("Duruşta"),
+            finished: __("Bitmiş"),
+            rejected: __("Reddedildi"),
+            cancelled: __("İptal Edildi"),
         }[state.value] || "-")
     );
 
@@ -48,7 +49,7 @@ export function useCalismaKartiUi(docRef: any) {
     );
 
     const qcValue = computed(() => (docRef.value?.kalite_kontrol || "Onay Bekliyor").trim());
-    const qcLabel = computed(() => qcValue.value);
+    const qcLabel = computed(() => __(qcValue.value));
     const qcApproved = computed(() => qcValue.value === "Onaylandı");
 
     const qcClass = computed(() => {

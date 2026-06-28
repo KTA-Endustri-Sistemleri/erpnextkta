@@ -2,18 +2,18 @@
   <button class="ck-card" @click="$emit('click')">
     <div class="row no-gutters" :class="qcClasses">
       <div class="col-2 p-0 ck-pill" :data-tone="statusTone">
-        <span>{{ statusTone === 'cancelled' ? 'İptal Edildi' : (row.durum || "-") }}</span>
+        <span>{{ statusTone === 'cancelled' ? __('İptal Edildi') : __(row.durum || "-") }}</span>
       </div>
       <div class="col-9 py-2 pl-2">
         <div class="ck-name">{{ row.operator }}</div>
         <div class="ck-kv">
           <div class="ck-kv-item" style="display:flex; align-items:flex-start;">
             <div>
-              <span>Ürün Kodu</span>
+              <span>{{ __("Ürün Kodu") }}</span>
               <b>{{ row.urun_kodu || "-" }}</b>
             </div>
             <div v-if="row.custom_musteri_indeksi_no" style="border-left: 1px solid lightgray;text-align: left;padding-left: 5px;margin-left: 5px;border-top-color: lightgray;border-right-color: lightgray;">
-              <span>Index (Revision)</span>
+              <span>{{ __("Index (Revision)") }}</span>
               <b>
                 {{ row.custom_musteri_indeksi_no }}
               </b>
@@ -21,15 +21,15 @@
           </div>
 
           <div class="ck-kv-item">
-            <span>İş Emri</span>
+            <span>{{ __("İş Emri") }}</span>
             <b>{{ row.custom_work_order || "-" }}</b>
           </div>
           <div class="ck-kv-item">
-            <span>İş Kartı</span>
+            <span>{{ __("İş Kartı") }}</span>
             <b>{{ row.is_karti || "-" }}</b>
           </div>
           <div class="ck-kv-item">
-            <span>Operasyon</span>
+            <span>{{ __("Operasyon") }}</span>
             <b>{{ row.operasyon || "-" }}</b>
           </div>
         </div>
@@ -71,8 +71,7 @@ const statusTone = computed(() => {
 });
 </script>
 
-<style scoped>
-.ck-card {
+<style scoped>.ck-card {
   width: 100%;
   text-align: left;
   background: var(--ck-glass-bg);
@@ -178,5 +177,4 @@ const statusTone = computed(() => {
 /* Quality Control Status Highlights */
 .ck-status-card-qc--running { background: linear-gradient(270deg, var(--ck-success-bg), transparent, transparent); border-radius: 16px; }
 .ck-status-card-qc--rejected { background: linear-gradient(270deg, var(--ck-danger-bg), transparent, transparent); border-radius: 16px; }
-.ck-status-card-qc--pending { background: linear-gradient(270deg, rgba(59, 130, 246, 0.55), transparent, transparent); border-radius: 16px; }
-</style>
+.ck-status-card-qc--pending { background: linear-gradient(270deg, rgba(59, 130, 246, 0.55), transparent, transparent); border-radius: 16px; }</style>

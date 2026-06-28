@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+const __ = (...args) => window.__(...args);
 
 const props = defineProps({
   // Employee listesi:
@@ -59,10 +60,9 @@ function getInitials(emp) {
   <section class="step-user">
     <div class="step-user__header">
       <div>
-        <h2 class="step-user__title">Operatör</h2>
+        <h2 class="step-user__title">{{ __('Operatör') }}</h2>
         <p class="step-user__subtitle">
-          Bu Çalışma Kartı ile ilişkilendirilecek <strong>operatörü (Employee)</strong> seç.
-          Sadece <strong>aktif</strong> ve <strong>User bağlı</strong> çalışanlar listelenir.
+          {{ __('Bu Çalışma Kartı ile ilişkilendirilecek') }} <strong>{{ __('operatörü (Employee)') }}</strong> {{ __('seç. Sadece') }} <strong>{{ __('aktif') }}</strong> {{ __('ve') }} <strong>{{ __('User bağlı') }}</strong> {{ __('çalışanlar listelenir.') }}
         </p>
       </div>
 
@@ -70,7 +70,7 @@ function getInitials(emp) {
         v-if="users.length"
         class="step-user__count"
       >
-        {{ users.length }} çalışan
+        {{ users.length }} {{ __('çalışan') }}
       </div>
     </div>
 
@@ -80,7 +80,7 @@ function getInitials(emp) {
         v-model="searchText"
         type="text"
         class="step-user__search-input"
-        placeholder="İsim / e-posta ile ara..."
+        :placeholder="__('İsim / e-posta ile ara...')"
       />
     </div>
 
@@ -90,10 +90,10 @@ function getInitials(emp) {
       class="step-user__empty"
     >
       <span v-if="users.length === 0">
-        Uygun çalışan bulunamadı. Employee kayıtlarını kontrol edin.
+        {{ __('Uygun çalışan bulunamadı. Employee kayıtlarını kontrol edin.') }}
       </span>
       <span v-else>
-        Filtreye uygun çalışan bulunamadı. Arama kriterini değiştirin.
+        {{ __('Filtreye uygun çalışan bulunamadı. Arama kriterini değiştirin.') }}
       </span>
     </div>
 
@@ -129,7 +129,7 @@ function getInitials(emp) {
         </div>
 
         <div class="step-user__badge">
-          {{ isSelected(emp) ? 'Seçili' : 'Seç' }}
+          {{ isSelected(emp) ? __('Seçili') : __('Seç') }}
         </div>
       </button>
     </div>
@@ -140,7 +140,7 @@ function getInitials(emp) {
       class="step-user__summary"
     >
       <div class="step-user__summary-title">
-        Seçili Operatör:
+        {{ __('Seçili Operatör') }}:
       </div>
       <div class="step-user__summary-body">
         <!-- Seçili employee objesini bulup gösteriyoruz -->
@@ -154,7 +154,7 @@ function getInitials(emp) {
               <span>{{ emp.user_id }}</span>
             </div>
             <div v-if="emp.department" class="step-user__summary-row">
-              <span class="step-user__label">Departman:</span>
+              <span class="step-user__label">{{ __('Departman') }}:</span>
               <span>{{ emp.department }}</span>
             </div>
           </template>

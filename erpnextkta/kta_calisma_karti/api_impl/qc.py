@@ -126,7 +126,7 @@ def _assert_child_table_exists(doc, fieldname: str):
     f = doc.meta.get_field(fieldname)
     if not f or f.fieldtype != "Table":
         frappe.throw(
-            _("Child table alanı bulunamadı: {0}").format(fieldname),
+            _("Alt tablo alanı bulunamadı: {0}").format(fieldname),
             frappe.ValidationError,
         )
 
@@ -202,7 +202,7 @@ def _assert_idc_item_allowed_for_work_order(doc, item_code: str):
     """Validate IDC item belongs to WO BOM and matches required Item constraints."""
     code = (item_code or "").strip()
     if not code:
-        frappe.throw(_("Item Code boş olamaz."), frappe.ValidationError)
+        frappe.throw(_("Ürün Kodu boş olamaz."), frappe.ValidationError)
 
     wo_name = _get_work_order_name_from_calisma_karti(doc)
     bom_no = _get_bom_no_from_work_order(wo_name)
@@ -298,7 +298,7 @@ def add_idc_olcumu(name: str, item_code: str, yukseklik_mm: float = 0, cekme_n: 
     _assert_child_table_exists(doc, IDC_CHILD_FIELDNAME)
 
     if not (item_code or "").strip():
-        frappe.throw(_("Item Code boş olamaz."))
+        frappe.throw(_("Ürün Kodu boş olamaz."))
 
     _assert_idc_item_allowed_for_work_order(doc, item_code)
 
@@ -323,7 +323,7 @@ def update_idc_olcumu(name: str, rowname: str, item_code: str, yukseklik_mm: flo
     _assert_child_table_exists(doc, IDC_CHILD_FIELDNAME)
 
     if not (item_code or "").strip():
-        frappe.throw(_("Item Code boş olamaz."))
+        frappe.throw(_("Ürün Kodu boş olamaz."))
 
     _assert_idc_item_allowed_for_work_order(doc, item_code)
 

@@ -7,10 +7,10 @@ const props = defineProps<{
 
 <template>
   <div class="ck-topbar">
-    <button class="ck-btn ck-btn--ghost" @click="props.onBack">← Geri</button>
+    <button class="ck-btn ck-btn--ghost" @click="props.onBack">← {{ __("Geri") }}</button>
 
     <div class="ck-topbar-title">
-      <div class="ck-title">Çalışma Kartı</div>
+      <div class="ck-title">{{ __("Çalışma Kartı") }}</div>
     </div>
 
     <!-- Optional -->

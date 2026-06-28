@@ -9,6 +9,7 @@ Usage:
 """
 
 import frappe
+from frappe import _
 import xlrd
 import os
 
@@ -21,7 +22,7 @@ def import_instruction():
     xls_file = os.path.join(app_path, "..", "PTR_BT_049_01 GÜNLÜK KORUYUCU BAKIM TALİMATI.xls")
 
     if not os.path.exists(xls_file):
-        frappe.throw(f"XLS file not found at: {xls_file}")
+        frappe.throw(_("XLS dosyası bulunamadı: {0}").format(xls_file))
 
     # Read the XLS file
     wb = xlrd.open_workbook(xls_file, formatting_info=False)

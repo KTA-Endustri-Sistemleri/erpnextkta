@@ -26,13 +26,13 @@ def sync_sales_orders_from_sales_order_update(
     """
     reference_name = sales_order_update_reference or sales_order_update_name
     if not reference_name:
-        frappe.throw(_("Sales Order Update seçilmedi."))
+        frappe.throw(_("Satış Siparişi Güncelleme seçilmedi."))
 
     job, sync_log = enqueue_sales_order_sync(reference_name)
     return {
         "status": "queued",
         "job_id": job.id if job else None,
-        "info": _("Sales Order senkronizasyonu kuyruğa alındı."),
+        "info": _("Satış Siparişi senkronizasyonu kuyruğa alındı."),
     }
 
 
@@ -497,7 +497,7 @@ def process_sales_order_batch(so_identifier, changes):
                 "old_date": None,
                 "new_date": change.new_delivery_date,
                 "change_type": change.change_type,
-                "error_message": _("PO {0}, Item {1} için yeni Sales Order manuel oluşturulmalı.").format(
+                "error_message": _("Satınalma Siparişi (Satınalma Siparişi) {0}, Ürün {1} için yeni Satış Siparişi manuel oluşturulmalı.").format(
                     order_no, change.item
                 ),
             })
@@ -674,7 +674,7 @@ def process_sales_order_batch(so_identifier, changes):
                     "old_date": change.old_delivery_date,
                     "new_date": change.new_delivery_date,
                     "change_type": change.change_type,
-                    "error_message": _("PO {0} için ERPNext'te Sales Order bulunamadı. Manuel oluşturulmalı.").format(
+                    "error_message": _("Satınalma Siparişi (Satınalma Siparişi) {0} için ERPNext'te Satış Siparişi bulunamadı. Manuel oluşturulmalı.").format(
                         order_no
                     ),
                 }
@@ -715,7 +715,7 @@ def update_existing_sales_order_batch(so_name, changes):
                 "action": "Error",
                 "sales_order": so_name,
                 "customer": so.customer if hasattr(so, "customer") else None,
-                "error_message": _("Sales Order'da hiç item yok."),
+                "error_message": _("Satış Siparişinde hiç ürün yok."),
             })
             return {
                 "details": details,
@@ -794,7 +794,7 @@ def update_existing_sales_order_batch(so_name, changes):
                     "change_type": getattr(change, "change_type", None),
                     "new_qty": getattr(change, "new_delivery_quantity", None),
                     "new_date": getattr(change, "new_delivery_date", None),
-                    "error_message": _("Sales Order içinde eşleşen item bulunamadı."),
+                    "error_message": _("Satış Siparişi içinde eşleşen ürün bulunamadı."),
                 })
                 errors += 1
                 continue
@@ -813,7 +813,7 @@ def update_existing_sales_order_batch(so_name, changes):
                     "new_qty": new_pending_qty,
                     "new_date": getattr(change, "new_delivery_date", None),
                     "change_type": _("Yeni Satır"),
-                    "error_message": _("PO {0}, Item {1} için yeni delivery line eklenmelidir. Manuel işlem gerekli.").format(
+                    "error_message": _("Satınalma Siparişi (Satınalma Siparişi) {0}, Ürün {1} için yeni teslimat satırı eklenmelidir. Manuel işlem gerekli.").format(
                         so.po_no, item_code
                     ),
                 })
