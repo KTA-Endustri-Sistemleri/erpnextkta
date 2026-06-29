@@ -135,6 +135,9 @@ class CalismaKarti(Document):
         from erpnextkta.kta_calisma_karti.api_impl.hurda import sync_calisma_karti_hurdalar_to_se
         sync_calisma_karti_hurdalar_to_se(self)
 
+    def before_update_after_submit(self):
+        self.update_durum()
+
     def on_update_after_submit(self):
         self.on_update()
 
@@ -503,3 +506,48 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     # bakım ekibi işi bitirince statüyü "Completed" yapıp submit edecek.
 
     return aml.name
+
+@frappe.whitelist()
+def get_auto_paused_cards(operator):
+    if not operator:
+        return []
+    
+    # Eğer operatörün halihazırda "Çalışıyor" durumunda olan aktif bir kartı varsa,
+    # başka bir işlem için duruşu bitirdiğinde onu yeni kart seçmeye zorlamamalıyız.
+    running_cards_count = frappe.db.count('Calisma Karti', filters={
+        'operator': operator,
+        'docstatus': ['<', 2],
+        'durum': 'Çalışıyor'
+    })
+
+    if running_cards_count > 0:
+        return []
+
+    # `AGENTS.md` kurallarına uygun olarak Raw SQL yerine ORM kullanıyoruz
+    duruslar = frappe.get_all(
+        'Operasyon Duruslari',
+        filters={
+            'durus_bitis': ('is', 'not set'),
+            'durus_nedeni': 'Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.',
+            'parenttype': 'Calisma Karti'
+        },
+        fields=['parent']
+    )
+
+    if not duruslar:
+        return []
+
+    parent_names = [d.parent for d in duruslar]
+
+    cards = frappe.get_all(
+        'Calisma Karti',
+        filters={
+            'name': ('in', parent_names),
+            'operator': operator,
+            'docstatus': ['<', 2],
+            'bitis_saati': ('is', 'not set')
+        },
+        fields=['name', 'operasyon', 'urun_kodu']
+    )
+    
+    return cards

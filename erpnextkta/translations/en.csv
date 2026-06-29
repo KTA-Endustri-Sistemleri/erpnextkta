@@ -674,3 +674,12 @@ Grid Görünümü,Grid View
 Kanban Görünümü,Kanban View
 Liste alınamadı.,Failed to fetch list.
 Barkod kaydı yok.,No barcode records.
+Bekleyen Çalışma Kartınız Var,You Have Pending Work Cards
+Dikkat,Attention
+Sistem tarafından otomatik olarak beklemeye alınmış açık kartlarınız bulunuyor. Lütfen aşağıdan bir kart seçerek mesainize göre ilgili işlemi gerçekleştirin.,You have open cards that were automatically paused by the system. Please select a card below and perform the relevant action according to your shift.
+Lütfen İşlem Yapılacak Kartı Seçiniz,Please Select A Card To Process
+Seçili Karta Devam Et,Continue Selected Card
+Kartı Görüntüle,View Card
+İşlem Başarıyla Devam Ettirildi,Process Successfully Continued
+Başlatılıyor...,Starting...
+"Lütfen bekleyin, ilgili karta yönlendiriliyorsunuz.","Please wait, you are being redirected to the relevant card."

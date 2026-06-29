@@ -663,3 +663,12 @@ Grid Görünümü,Gitteransicht
 Kanban Görünümü,Kanban-Ansicht
 Liste alınamadı.,Liste konnte nicht geladen werden.
 Barkod kaydı yok.,Keine Barcode-Datensätze.
+Bekleyen Çalışma Kartınız Var,Sie haben ausstehende Arbeitskarten
+Dikkat,Achtung
+Sistem tarafından otomatik olarak beklemeye alınmış açık kartlarınız bulunuyor. Lütfen aşağıdan bir kart seçerek mesainize göre ilgili işlemi gerçekleştirin.,"Sie haben offene Karten, die vom System automatisch pausiert wurden. Bitte wählen Sie unten eine Karte aus und führen Sie die entsprechende Aktion gemäß Ihrer Schicht aus."
+Lütfen İşlem Yapılacak Kartı Seçiniz,Bitte wählen Sie eine Karte zur Bearbeitung aus
+Seçili Karta Devam Et,Ausgewählte Karte fortsetzen
+Kartı Görüntüle,Karte anzeigen
+İşlem Başarıyla Devam Ettirildi,Prozess erfolgreich fortgesetzt
+Başlatılıyor...,Starten...
+"Lütfen bekleyin, ilgili karta yönlendiriliyorsunuz.","Bitte warten Sie, Sie werden zur entsprechenden Karte weitergeleitet."

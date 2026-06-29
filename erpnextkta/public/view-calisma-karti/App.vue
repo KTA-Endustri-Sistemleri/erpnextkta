@@ -20,6 +20,7 @@ import KaliteView from "./views/KaliteView.vue";
 import BakimView from "./views/BakimView.vue";
 
 import QualityInspectionModal from "./components/QualityInspectionModal.vue";
+import AutoPausedModal from "./components/AutoPausedModal.vue";
 
 const tab = ref<TabKey>("info");
 
@@ -56,7 +57,7 @@ const {
   addBarkodKaydi, updateBarkodKaydi, deleteBarkodKaydi,
   addAltOperasyon, updateAltOperasyon, deleteAltOperasyon,
   getQcTemplates, getTemplateDetails, submitStandardQC,
-  pendingUpdate
+  pendingUpdate, showAutoPausedModal, autoPausedCards, checkAutoPausedCards, handleAutoPausedAction
 } = useCalismaKarti(docname);
 
 // Reactive now timer for timeout warning (updates every minute)
@@ -210,9 +211,14 @@ async function onDurus() {
 }
 
 function onBitir() {
-  frappe.confirm(__("İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?"), async () =>
-    callIslem("Bitis", null, null, 0)
-  );
+  frappe.confirm(__("İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?"), async () => {
+    try {
+      await callIslem("Bitis", null, null, 0);
+      checkAutoPausedCards();
+    } catch (e) {
+      console.error(e);
+    }
+  });
 }
 
 async function setQC(nextValue: string) {
@@ -435,6 +441,14 @@ watch(
         :onClose="() => showQcModal = false"
         :onFetchDetails="getTemplateDetails"
         :onSubmit="handleStandardQcSubmit"
+    />
+
+    <AutoPausedModal
+        :show="showAutoPausedModal"
+        :cards="autoPausedCards"
+        :operator="doc?.operator"
+        :onAction="handleAutoPausedAction"
+        :onClose="() => showAutoPausedModal = false"
     />
   </div>
 </template>

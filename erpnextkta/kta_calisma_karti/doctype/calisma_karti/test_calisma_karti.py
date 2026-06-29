@@ -317,7 +317,8 @@ class TestCalismaKartiIntegration(KTATestCase):
 		with self.assertRaises(frappe.exceptions.ValidationError) as cm:
 			doc.submit()
 		
-		self.assertIn("Çalışma Kartı henüz bitirilmemiş", str(cm.exception))
+		exc_msg = str(cm.exception)
+		self.assertTrue("Çalışma Kartı henüz bitirilmemiş" in exc_msg or "has not been finished yet" in exc_msg)
 
 	def test_bitis_submits_successfully(self):
 		"""'Bitir' işlemi yapıldığında kartın otomatik olarak başarıyla gönderildiğini doğrular."""
@@ -381,3 +382,46 @@ class TestCalismaKartiIntegration(KTATestCase):
 		self.assertEqual(new_doc.amended_from, doc.name)
 		self.assertEqual(new_doc.docstatus, 0)
 		self.assertTrue(new_doc.name.endswith("-1") or "-1" in new_doc.name) # Genelde .##-1 olur
+
+	def test_get_auto_paused_cards_logic(self):
+		"""get_auto_paused_cards fonksiyonunun aktif kart kontrolüyle doğru çalıştığını doğrular."""
+		from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import get_auto_paused_cards
+		
+		# Clean up any existing cards for this test user
+		frappe.db.delete("Calisma Karti", {"operator": "test_auto@kta.com"})
+		
+		# Create a paused card
+		paused_doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test_auto@kta.com",
+			"baslangic_saati": frappe.utils.add_to_date(None, hours=-2)
+		}).insert(ignore_permissions=True, ignore_links=True)
+		
+		# Add active durus to make it 'Duruşta'
+		paused_doc.append("duruslar", {"durus_baslangic": frappe.utils.add_to_date(None, hours=-1), "durus_nedeni": "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı."})
+		paused_doc.save()
+		paused_doc.update_durum()
+		paused_doc.db_set("durum", "Duruşta")
+		frappe.db.commit()
+		
+		# At this point, there is no active (Çalışıyor) card, so paused_doc should be returned
+		cards = get_auto_paused_cards("test_auto@kta.com")
+		self.assertEqual(len(cards), 1)
+		self.assertEqual(cards[0].name, paused_doc.name)
+		
+		# Now create an active card ('Çalışıyor')
+		active_doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test_auto@kta.com",
+			"baslangic_saati": frappe.utils.now_datetime()
+		}).insert(ignore_permissions=True, ignore_links=True)
+		
+		# Since there is an active card, get_auto_paused_cards should return an empty list to avoid interrupting the user
+		cards_when_active = get_auto_paused_cards("test_auto@kta.com")
+		self.assertEqual(len(cards_when_active), 0)

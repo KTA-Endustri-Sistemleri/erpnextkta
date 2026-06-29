@@ -2,7 +2,6 @@ import json
 import frappe
 from frappe import _
 from frappe.utils import add_days, getdate, now_datetime, get_datetime
-from frappe.utils.data import convert_utc_to_system_timezone
 
 
 @frappe.whitelist()
@@ -103,8 +102,7 @@ def get_data(**kwargs):
                 dates_map[op] = set()
             if row.baslangic_saati:
                 dt_obj = get_datetime(row.baslangic_saati)
-                local_dt = convert_utc_to_system_timezone(dt_obj)
-                dates_map[op].add(local_dt.date())
+                dates_map[op].add(dt_obj.date())
 
     # Filter out operators with <= 0 total minutes to focus on active ones who worked less
     totals = {op: mins for op, mins in totals.items() if mins > 0}
