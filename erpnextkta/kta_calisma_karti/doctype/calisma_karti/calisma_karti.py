@@ -408,13 +408,27 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     """
     from frappe.utils import today
     from frappe import _
-
+    
     if not calisma_karti or not makine_no or not ariza_nedeni or not aciklama:
         frappe.throw(_("Çalışma Kartı, Makine No, Arıza Nedeni ve Açıklama alanları zorunludur."))
 
-    ck_doc = frappe.get_doc("Calisma Karti", calisma_karti)
-    if not ck_doc:
+    doc = frappe.get_doc("Calisma Karti", calisma_karti)
+    if not doc:
         frappe.throw(_("Çalışma kartı bulunamadı."))
+    
+    # Sadece "Çalışıyor" veya "Duruşta" olan kartlarda arıza bildirilebilir
+    if doc.durum not in ["Çalışıyor", "Duruşta"]:
+        frappe.throw(_("Sadece 'Çalışıyor' veya 'Duruşta' olan kartlar için arıza bildirimi yapabilirsiniz."))
+
+    # Zaten açık/bekleyen bir arıza kaydı varsa yenisinin açılmasını engelle
+    open_log = frappe.db.get_value("Asset Maintenance Log", {
+        "custom_calisma_karti_ref": doc.name,
+        "maintenance_status": ["not in", ["Completed", "Cancelled"]],
+        "docstatus": ["<", 2]
+    }, "name")
+    
+    if open_log:
+        frappe.throw(_("Bu çalışma kartına ait zaten devam eden açık bir arıza kaydı ({0}) bulunuyor. Yeni bir kayıt açmadan önce mevcut kaydın tamamlanmasını veya iptal edilmesini beklemelisiniz.").format(open_log))
 
     asset_name = frappe.db.get_value("Asset", {"custom_makine_no": makine_no}, "name")
     if not asset_name:
@@ -504,6 +518,26 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     # Not: aml.submit() yapılmıyor çünkü ERPNext standarta "Completed" veya "Cancelled"
     # durumu olmadan gönderime izin vermez. Bildirim draft olarak kalacak,
     # bakım ekibi işi bitirince statüyü "Completed" yapıp submit edecek.
+
+    # 5. Kart Çalışıyorsa veya Duruştaysa Otomatik Arıza Duruşuna Geçir
+    durum = doc.get_durum()
+    if durum in ("calisiyor", "durusta"):
+        try:
+            from erpnextkta.kta_calisma_karti.api_impl.cards import islem_yap
+            needs_pause = True
+
+            if durum == "durusta":
+                # Eğer aktif duruş sebebi zaten "Arıza" ise yeni bir duruş kaydı açıp süreyi bölmeye gerek yok.
+                if doc.duruslar and not doc.duruslar[-1].durus_bitis and doc.duruslar[-1].durus_nedeni == "Arıza":
+                    needs_pause = False
+                else:
+                    # Başka bir duruştaysa (örn: Mola), o duruşu bitirmek için "DevamEt" tetikliyoruz
+                    islem_yap(calisma_karti, "DevamEt")
+            
+            if needs_pause:
+                islem_yap(calisma_karti, "Durus", durus_nedeni="Arıza", aciklama=aciklama)
+        except Exception as e:
+            frappe.log_error(title="Arıza Otomatik Duruş Hatası", message=frappe.get_traceback())
 
     return aml.name
 

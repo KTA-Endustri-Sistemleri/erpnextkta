@@ -5,6 +5,7 @@ def setup():
     create_kta_roles()
     setup_permissions()
     cleanup_duplicate_custom_fields()
+    setup_system_downtime_reasons()
 
 def cleanup_duplicate_custom_fields():
     """Remove duplicate Custom Field records for fields already defined in custom DocTypes JSON."""
@@ -199,18 +200,25 @@ def setup_system_downtime_reasons():
             "description": "Vardiya sonunda veya uzun süre işlem yapılmadığında sistem tarafından otomatik kapatılan kartlar için kullanılır."
         },
         {
-            "reason": "Kalıp Bağlama / Makine Ayarı",
-            "durus_tipi": "Plansız",
+            "reason": "Makine Hazırlık / Ayar",
+            "durus_tipi": "Ürün Geçişi / Hazırlık",
             "is_system": 0,
             "exclude_from_charts": 0,
             "description": "İş değişimi sırasında kalıp bağlama ve makine ayarları için yapılan duruş."
         },
         {
-            "reason": "Board Kurma Hazırlık",
-            "durus_tipi": "Plansız",
+            "reason": "Test Board Değişimi",
+            "durus_tipi": "Ürün Geçişi / Hazırlık",
             "is_system": 0,
             "exclude_from_charts": 0,
             "description": "Üretime başlamadan önceki board kurma ve hazırlık süreci."
+        },
+        {
+            "reason": "İlk Ürün / Numune Onayı",
+            "durus_tipi": "Ürün Geçişi / Hazırlık",
+            "is_system": 0,
+            "exclude_from_charts": 0,
+            "description": "Seri üretime geçmeden önceki ilk ürün veya numune onay süreci."
         },
         {
             "reason": "Malzeme Taşıma",
@@ -228,13 +236,20 @@ def setup_system_downtime_reasons():
         },
         {
             "reason": "Arıza",
-            "durus_tipi": "Plansız",
-            "is_system": 0,
+            "durus_tipi": "Sistem",
+            "is_system": 1,
             "exclude_from_charts": 0,
             "description": "Makine veya ekipman kaynaklı teknik arızalar."
         },
         {
-            "reason": "Bakım",
+            "reason": "Arıza Sonrası Bekleme",
+            "durus_tipi": "Sistem",
+            "is_system": 1,
+            "exclude_from_charts": 0,
+            "description": "Arıza giderildikten sonra operatörün makine başına geçip üretime başlamasının beklendiği süre."
+        },
+        {
+            "reason": "Planlı Bakım / Kalibrasyon",
             "durus_tipi": "Planlı",
             "is_system": 0,
             "exclude_from_charts": 0,
@@ -252,7 +267,7 @@ def setup_system_downtime_reasons():
             "durus_tipi": "Plansız",
             "is_system": 0,
             "exclude_from_charts": 0,
-            "description": "Kalite kontrol onayı beklerken geçen süre."
+            "description": "Üretim esnasında çıkan bir hata nedeniyle durma."
         },
         {
             "reason": "Malzeme Bekleme",
@@ -278,11 +293,12 @@ def setup_system_downtime_reasons():
             })
             doc.insert(ignore_permissions=True)
         else:
-            # Update existing system records to ensure is_system=1
+            # Update existing system records to ensure correct flags
             frappe.db.set_value("KTA Durus Sebebi", data["reason"], {
-                "is_system": 1,
+                "is_system": data.get("is_system", 0),
                 "durus_tipi": data["durus_tipi"],
-                "exclude_from_charts": data["exclude_from_charts"]
+                "exclude_from_charts": data["exclude_from_charts"],
+                "description": data.get("description", "")
             }, update_modified=False)
 
     # Link these reasons to KTA Calisma Karti Settings automatically

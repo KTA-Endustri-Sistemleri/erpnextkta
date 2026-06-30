@@ -144,20 +144,103 @@ def mark_event_completed(event_name):
 
 
 def on_asset_maintenance_log_update(doc, method=None):
-    """Log Completed → event yeşile döner (hem arıza hem planlı)."""
-    if doc.maintenance_status != "Completed":
-        return
+    """Log güncellendiğinde eventleri ve Çalışma Kartı duruşlarını senkronize eder."""
+        
+    # Arıza kaydı tamamlandığında veya iptal edildiğinde, eğer bir çalışma kartına bağlıysa karttaki 'Arıza' duruşunu kapatıp normal beklemeye al.
+    if doc.custom_calisma_karti_ref:
+        try:
+            if frappe.db.exists("Calisma Karti", doc.custom_calisma_karti_ref):
+                ck = frappe.get_doc("Calisma Karti", doc.custom_calisma_karti_ref)
+                if doc.maintenance_status in ["Completed", "Cancelled"]:
+                    # Eğer son duruş henüz bitmediyse ve sebebi Arıza ise (İlk kapatma anı)
+                    if ck.duruslar and not ck.duruslar[-1].durus_bitis and ck.duruslar[-1].durus_nedeni == "Arıza":
+                        from frappe.utils import now_datetime, get_datetime
+                        now = now_datetime()
+                        
+                        # 1. Mevcut arıza duruşunu bitir ve açıklamasına sonucu yaz (59 dk'lık asıl kayda not düşüyoruz)
+                        last_row = ck.duruslar[-1]
+                        last_row.durus_bitis = now
+                        start_dt = get_datetime(last_row.durus_baslangic)
+                        end_dt = get_datetime(last_row.durus_bitis)
+                        last_row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+                        
+                        sonuc_notu = "Tamamlandı." if doc.maintenance_status == "Completed" else "İptal Edildi."
+                        last_row.aciklama = (last_row.aciklama or "") + f"\n[Bakım Sonucu: {sonuc_notu}]"
+                        
+                        # 2. Yeni "Arıza Sonrası Bekleme" duruşu ekle
+                        ck.append(
+                            "duruslar",
+                            {
+                                "durus_nedeni": "Arıza Sonrası Bekleme",
+                                "durus_baslangic": now,
+                                "aciklama": "Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.",
+                            },
+                        )
+                        
+                        ck.flags.ignore_validate_update_after_submit = True
+                        ck.save(ignore_permissions=True)
+                        
+                        # UI'ı tetikle
+                        from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+                        publish_calisma_karti_changed(ck.name, reason="ariza_giderildi")
+                    
+                    else:
+                        # Eğer Arıza (Esnek modda) operatör tarafından manuel kapatılmışsa veya sonradan statü düzeltiliyorsa
+                        import re
+                        sonuc_notu = "Tamamlandı." if doc.maintenance_status == "Completed" else "İptal Edildi."
+                        changed = False
+                        for row in reversed(ck.duruslar):
+                            if row.durus_nedeni == "Arıza":
+                                if "[Bakım Sonucu:" in (row.aciklama or ""):
+                                    yeni_aciklama = re.sub(r"\[Bakım Sonucu:.*?\]", f"[Bakım Sonucu: {sonuc_notu}]", row.aciklama)
+                                    if row.aciklama != yeni_aciklama:
+                                        row.aciklama = yeni_aciklama
+                                        changed = True
+                                    break
+                                else:
+                                    row.aciklama = (row.aciklama or "") + f"\n[Bakım Sonucu: {sonuc_notu} (Kayıt Sonradan Kapatıldı)]"
+                                    changed = True
+                                    break
+                        if changed:
+                            ck.flags.ignore_validate_update_after_submit = True
+                            ck.save(ignore_permissions=True)
+                
+                elif doc.maintenance_status in ["Arıza Bildirimi", "Fault Notification"]:
+                    # Kullanıcı arızayı kapattıktan sonra "yanlış oldu" deyip tekrar açık duruma döndürürse
+                    if len(ck.duruslar) >= 2:
+                        last_row = ck.duruslar[-1]
+                        prev_row = ck.duruslar[-2]
+                        # Eğer operatör henüz "Devam Et" demediyse (son duruş hala "Arıza Sonrası Bekleme" ve açıksa)
+                        if (not last_row.durus_bitis and last_row.durus_nedeni == "Arıza Sonrası Bekleme" and 
+                            "operatörün üretime devam etmesi bekleniyor" in (last_row.aciklama or "")):
+                            
+                            if prev_row.durus_nedeni == "Arıza":
+                                import re
+                                # Son "Arıza Sonrası Bekleme" kaydını sil
+                                ck.duruslar.pop()
+                                
+                                # Önceki "Arıza" kaydını tekrar aç (Zaman makinesi!)
+                                prev_row.durus_bitis = None
+                                prev_row.durus_suresi = 0
+                                prev_row.aciklama = re.sub(r"\n\[Bakım Sonucu:.*?\]", "", prev_row.aciklama or "")
+                                
+                                ck.flags.ignore_validate_update_after_submit = True
+                                ck.save(ignore_permissions=True)
+                                
+                                from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+                                publish_calisma_karti_changed(ck.name, reason="ariza_geri_alindi")
+        except Exception:
+            frappe.log_error(title="Arıza Kapanışında Duruş Güncelleme Hatası", message=frappe.get_traceback())
 
-    if doc.custom_event_id:
-        mark_event_completed(doc.custom_event_id)
-        return
-
-    if doc.task:
-        task_event = frappe.db.get_value(
-            "Asset Maintenance Task", doc.task, "custom_event_id"
-        )
-        if task_event:
-            mark_event_completed(task_event)
+    if doc.maintenance_status == "Completed":
+        if doc.custom_event_id:
+            mark_event_completed(doc.custom_event_id)
+        elif doc.task:
+            task_event = frappe.db.get_value(
+                "Asset Maintenance Task", doc.task, "custom_event_id"
+            )
+            if task_event:
+                mark_event_completed(task_event)
 
 
 def on_asset_maintenance_update(doc, method=None):

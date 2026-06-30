@@ -672,3 +672,11 @@ Kartı Görüntüle,Karte anzeigen
 İşlem Başarıyla Devam Ettirildi,Prozess erfolgreich fortgesetzt
 Başlatılıyor...,Starten...
 "Lütfen bekleyin, ilgili karta yönlendiriliyorsunuz.","Bitte warten Sie, Sie werden zur entsprechenden Karte weitergeleitet."
+Duruş Nedeni,Stillstandsgrund
+Arıza Sonrası Bekleme,Warten nach Störung
+DURUŞTA (ARIZA),ANGEHALTEN (STÖRUNG)
+"Arıza giderildi, operatör onayı bekleniyor.","Störung behoben, warte auf Bestätigung des Bedieners."
+"Arıza iptal edildi, operatör bekleniyor.","Störung storniert, warte auf Bediener."
+"Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Wartungsteam fertig, warte auf Bediener, um Produktion fortzusetzen."
+"[Bakım Sonucu: Tamamlandı.]","[Wartungsergebnis: Abgeschlossen.]"
+"[Bakım Sonucu: İptal Edildi.]","[Wartungsergebnis: Storniert.]"

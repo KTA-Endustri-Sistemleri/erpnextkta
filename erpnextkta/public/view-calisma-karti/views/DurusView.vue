@@ -10,10 +10,14 @@ const props = defineProps<{ doc: any }>();
     <div v-else class="ck-mini-list">
       <div v-for="(d, i) in props.doc.duruslar" :key="i" class="ck-mini-item">
         <div class="ck-mini-content">
-          <b class="ck-mini-title">{{ d.durus_nedeni || ('Duruş #' + (i+1)) }}</b>
+          <b class="ck-mini-title">{{ __(d.durus_nedeni) || ('Duruş #' + (i+1)) }}</b>
           <div class="ck-muted ck-mini-sub">{{ d.durus_baslangic || "-" }} → {{ d.durus_bitis || __("Devam ediyor") }}</div>
           <div class="ck-muted ck-mini-sub">{{ __("Süre:") }} <strong style="color:var(--ck-text);">{{ formatDuration(d.durus_suresi) }}</strong></div>
-          <div v-if="d.aciklama" class="ck-muted ck-mini-sub">{{ d.aciklama }}</div>
+          <div v-if="d.aciklama" class="ck-muted ck-mini-sub">
+            <template v-for="(line, lineIdx) in (d.aciklama || '').split('\n')" :key="lineIdx">
+              {{ __(line) }}<br v-if="lineIdx < (d.aciklama || '').split('\n').length - 1" />
+            </template>
+          </div>
         </div>
       </div>
     </div>

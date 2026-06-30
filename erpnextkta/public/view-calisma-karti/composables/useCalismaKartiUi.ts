@@ -24,29 +24,34 @@ export function useCalismaKartiUi(docRef: any) {
 
     const state = computed<CKState>(() => computeState(docRef.value));
 
-    const durumLabel = computed(
-        () =>
-        ({
+    const durumLabel = computed(() => {
+        if (state.value === "paused") {
+            const duruslar = docRef.value?.duruslar || [];
+            const lastDurus = duruslar[duruslar.length - 1];
+            if (lastDurus && !lastDurus.durus_bitis && lastDurus.durus_nedeni === "Arıza") {
+                return __("DURUŞTA (ARIZA)");
+            }
+        }
+        return {
             ready: __("Hazır"),
             running: __("Çalışıyor"),
             paused: __("Duruşta"),
             finished: __("Bitmiş"),
             rejected: __("Reddedildi"),
             cancelled: __("İptal Edildi"),
-        }[state.value] || "-")
-    );
+        }[state.value] || "-";
+    });
 
-    const statusClass = computed(
-        () =>
-        ({
+    const statusClass = computed(() => {
+        return {
             ready: "ck-status--ready",
             running: "ck-status--running",
             paused: "ck-status--paused",
             finished: "ck-status--finished",
             rejected: "ck-status--rejected",
             cancelled: "ck-status--cancelled",
-        }[state.value] || "ck-status--ready")
-    );
+        }[state.value] || "ck-status--ready";
+    });
 
     const qcValue = computed(() => (docRef.value?.kalite_kontrol || "Onay Bekliyor").trim());
     const qcLabel = computed(() => __(qcValue.value));

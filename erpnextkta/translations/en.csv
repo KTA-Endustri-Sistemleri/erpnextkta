@@ -683,3 +683,11 @@ Kartı Görüntüle,View Card
 İşlem Başarıyla Devam Ettirildi,Process Successfully Continued
 Başlatılıyor...,Starting...
 "Lütfen bekleyin, ilgili karta yönlendiriliyorsunuz.","Please wait, you are being redirected to the relevant card."
+Duruş Nedeni,Downtime Reason
+Arıza Sonrası Bekleme,Post-Breakdown Wait
+DURUŞTA (ARIZA),ON HOLD (BREAKDOWN)
+"Arıza giderildi, operatör onayı bekleniyor.","Breakdown fixed, waiting for operator confirmation."
+"Arıza iptal edildi, operatör bekleniyor.","Breakdown cancelled, waiting for operator."
+"Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Maintenance team finished, waiting for operator to resume production."
+"[Bakım Sonucu: Tamamlandı.]","[Maintenance Result: Completed.]"
+"[Bakım Sonucu: İptal Edildi.]","[Maintenance Result: Cancelled.]"

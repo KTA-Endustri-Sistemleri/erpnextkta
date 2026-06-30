@@ -206,6 +206,29 @@ def _attach_bom_musteri_indeksi(rows):
         r["custom_musteri_indeksi_no"] = bom_index_map.get(bom)
 
     return rows
+def _attach_aktif_durus_nedeni(rows):
+    """Enrich rows with aktif_durus_nedeni from Operasyon Duruslari if status is paused."""
+    paused_names = [r.get("name") for r in rows if r.get("durum") == "Duruşta"]
+    if not paused_names:
+        return rows
+
+    active_downtimes = frappe.get_all(
+        "Operasyon Duruslari",
+        filters={
+            "parent": ("in", paused_names),
+            "parenttype": "Calisma Karti",
+            "durus_bitis": ("is", "not set")
+        },
+        fields=["parent", "durus_nedeni"]
+    )
+    
+    reasons_by_card = {d["parent"]: d.get("durus_nedeni") for d in active_downtimes}
+    
+    for r in rows:
+        if r.get("name") in reasons_by_card:
+            r["aktif_durus_nedeni"] = reasons_by_card[r.get("name")]
+
+    return rows
 
 @frappe.whitelist()
 def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None, durum=None, search_term=None, qc_filter=None):
@@ -301,6 +324,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
     rows = _attach_customer_groups(rows)
     rows = _attach_operasyon_label(rows)
     rows = _attach_bom_musteri_indeksi(rows)
+    rows = _attach_aktif_durus_nedeni(rows)
     
     if customer_group:
         rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
@@ -430,6 +454,18 @@ def _handle_devam_et(doc, now):
     if doc.duruslar:
         last_row = doc.duruslar[-1]
         if not last_row.durus_bitis:
+            if last_row.durus_nedeni == "Arıza":
+                ariza_modu = frappe.db.get_single_value("KTA Calisma Karti Settings", "ariza_devam_modu")
+                if ariza_modu == "Kat\u0131 (Hard)":
+                    open_log = frappe.db.get_value("Asset Maintenance Log", {
+                        "custom_calisma_karti_ref": doc.name,
+                        "maintenance_status": ["not in", ["Completed", "Cancelled"]],
+                        "custom_ariza_nedeni": ["is", "set"],
+                        "docstatus": ["<", 2]
+                    }, "name")
+                    if open_log:
+                        frappe.throw(_("Bakım ekibi bildirilen arızayı tamamlamadan (kapatmadan) üretime devam edemezsiniz."))
+
             last_row.durus_bitis = now
             from frappe.utils import get_datetime
             start_dt = get_datetime(last_row.durus_baslangic)

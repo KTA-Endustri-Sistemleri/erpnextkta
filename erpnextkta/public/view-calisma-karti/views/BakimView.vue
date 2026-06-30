@@ -58,9 +58,10 @@ async function loadArizaRecords() {
       args: {
         doctype: "Asset Maintenance Log",
         filters: {
-          custom_calisma_karti_ref: props.doc.name
+          custom_calisma_karti_ref: props.doc.name,
+          docstatus: ["in", [0, 1, 2]]
         },
-        fields: ["name", "asset_name", "due_date", "custom_ariza_nedeni", "custom_ariza_aciklamasi", "creation", "maintenance_status"],
+        fields: ["name", "asset_name", "due_date", "custom_ariza_nedeni", "custom_ariza_aciklamasi", "creation", "maintenance_status", "docstatus"],
         order_by: "creation desc",
         limit_page_length: 50
       }
@@ -68,10 +69,7 @@ async function loadArizaRecords() {
     
     // Filter safely in frontend
     const allLogs = response.message || [];
-    arizaRecords.value = allLogs.filter(log => {
-      // Direct string comparison, case sensitive as in DB
-      return log && log.maintenance_status === "Arıza Bildirimi";
-    });
+    arizaRecords.value = allLogs;
   } catch (error) {
     console.error("[BakimView] Error loading ariza records:", error);
   } finally {
@@ -237,7 +235,7 @@ watch(() => props.doc?.name, (newVal) => {
     
     <div class="ck-qc-header">
       <b style="font-size: 15px;">{{ __("Makine Arıza Bildirimi") }}</b>
-      <button class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg); padding: 8px 10px;" @click="openArizaDialog">
+      <button v-if="['Çalışıyor', 'Duruşta'].includes(props.doc?.durum)" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg); padding: 8px 10px;" @click="openArizaDialog">
         + {{ __("Arıza Bildir") }}
       </button>
     </div>
@@ -249,8 +247,14 @@ watch(() => props.doc?.name, (newVal) => {
         <div class="ck-mini-content" v-if="record">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <b class="ck-mini-title">{{ record.name }}</b>
-            <span class="ck-status-pill is-danger" style="background: rgba(239, 68, 68, 0.12); color: var(--ck-danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">
-              {{ __("Arıza Bildirimi") }}
+            <span v-if="record.docstatus === 2" class="ck-status-pill" style="background: rgba(107, 114, 128, 0.12); color: #6b7280; border: 1px solid rgba(107, 114, 128, 0.2);">
+              {{ __("İptal Edildi") }}
+            </span>
+            <span v-else-if="record.maintenance_status === 'Completed'" class="ck-status-pill is-success">
+              {{ __("Tamamlandı") }}
+            </span>
+            <span v-else class="ck-status-pill is-danger" style="background: rgba(239, 68, 68, 0.12); color: var(--ck-danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">
+              {{ record.maintenance_status === "Arıza Bildirimi" ? __("Arıza Bildirimi") : __(record.maintenance_status || "Açık") }}
             </span>
           </div>
           <div class="ck-muted ck-mini-sub">{{ __("Makine:") }} <strong>{{ record.asset_name || '---' }}</strong></div>
