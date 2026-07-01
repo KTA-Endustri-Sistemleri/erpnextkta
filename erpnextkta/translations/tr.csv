@@ -18,3 +18,20 @@ KTA Sales Order Update Comparison,KTA Satış Siparişi Güncelleme Karşılaşt
 KTA Sales Order Update Change,KTA Satış Siparişi Güncelleme Değişikliği
 KTA SO Sync Log,KTA Sipariş Senkronizasyon Logu
 KTA SO Sync Detail,KTA Sipariş Senkronizasyon Detayı
+Kullanıcı için varsayılan yazıcı bulunamadı,Kullanıcı için varsayılan yazıcı bulunamadı
+Kullanıcı için varsayılan yazıcı bulunamadı: {0},Kullanıcı için varsayılan yazıcı bulunamadı: {0}
+Stok Girişi için birden fazla Giriş Türü İşlem bulundu: {0},Stok Girişi için birden fazla Giriş Türü İşlem bulundu: {0}
+Duruş nedeni olarak 'Diger' seçildiğinde açıklama girmek zorunludur. Lütfen {0}. sıradaki duruş kaydının açıklamasını doldurunuz.,Duruş nedeni olarak 'Diger' seçildiğinde açıklama girmek zorunludur. Lütfen {0}. sıradaki duruş kaydının açıklamasını doldurunuz.
+Açıklama Zorunlu,Açıklama Zorunlu
+⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).
+Süre Uyarısı,Süre Uyarısı
+"Çalışma Kartı, Makine No, Arıza Nedeni ve Açıklama alanları zorunludur.","Çalışma Kartı, Makine No, Arıza Nedeni ve Açıklama alanları zorunludur."
+Çalışma kartı bulunamadı.,Çalışma kartı bulunamadı.
+Sadece 'Çalışıyor' veya 'Duruşta' olan kartlar için arıza bildirimi yapabilirsiniz.,Sadece 'Çalışıyor' veya 'Duruşta' olan kartlar için arıza bildirimi yapabilirsiniz.
+Bu çalışma kartına ait zaten devam eden açık bir arıza kaydı ({0}) bulunuyor. Yeni bir kayıt açmadan önce mevcut kaydın tamamlanmasını veya iptal edilmesini beklemelisiniz.,Bu çalışma kartına ait zaten devam eden açık bir arıza kaydı ({0}) bulunuyor. Yeni bir kayıt açmadan önce mevcut kaydın tamamlanmasını veya iptal edilmesini beklemelisiniz.
+Sistemde {0} numarasına sahip bir makine/varlık bulunamadı.,Sistemde {0} numarasına sahip bir makine/varlık bulunamadı.
+{0} makinesi için sistemde 'Asset Maintenance' (Varlık Bakımı) kaydı bulunamadı. Lütfen önce bakım ekibini atayın.,{0} makinesi için sistemde 'Asset Maintenance' (Varlık Bakımı) kaydı bulunamadı. Lütfen önce bakım ekibini atayın.
+"Satır {0} — <b>{1}</b>: Rate değeri <b>{2} {3}</b> kabul edilemez. Kaynak belgeden beklenen: <b>{4} {5}</b> (Sapma: %{6}, izin verilen: %{7}). Fiyatı düzeltin veya önce satın alma siparişini güncelleyin.","Satır {0} — <b>{1}</b>: Rate değeri <b>{2} {3}</b> kabul edilemez. Kaynak belgeden beklenen: <b>{4} {5}</b> (Sapma: %{6}, izin verilen: %{7}). Fiyatı düzeltin veya önce satın alma siparişini güncelleyin."
+Geçersiz Fiyat,Geçersiz Fiyat
+<b>Satır {0} ({1})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır.,<b>Satır {0} ({1})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır.
+Eksik Kutu İçi Adedi Bilgisi,Eksik Kutu İçi Adedi Bilgisi

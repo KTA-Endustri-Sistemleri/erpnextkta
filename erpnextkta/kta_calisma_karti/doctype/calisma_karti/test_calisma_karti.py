@@ -116,7 +116,7 @@ class TestValidate(KTATestCase):
 		# Start at 08:00, warn at 400 mins (14:40), now is 15:00
 		doc = make_mock_calisma_karti(baslangic_saati="2024-01-15 08:00:00")
 		msgs = self._call_validate(doc)
-		self.assertTrue(any("dakikayı aştı!" in m for m in msgs))
+		self.assertTrue(any("dakikayı aştı!" in m or "exceeded" in m for m in msgs))
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +181,7 @@ class TestCalismaKartiIntegration(KTATestCase):
 			"is_karti": self.jc_name,
 			"operasyon": self.kta_op,
 			"is_istasyonu": self.ws_name,
-			"operator": "test@kta.com",
+			"operator": "test_duration@kta.com",
 			"baslangic_saati": start
 		}).insert(ignore_permissions=True, ignore_links=True)
 		
@@ -561,7 +561,7 @@ class TestCalismaKartiIntegration(KTATestCase):
 		):
 			with self.assertRaises(frappe.exceptions.ValidationError) as cm:
 				create_ariza_bildirimi(doc.name, "MAK-01", "Arıza", "Test")
-			self.assertTrue("zaten devam eden açık bir arıza kaydı" in str(cm.exception))
+			self.assertTrue("zaten devam eden" in str(cm.exception) or "open fault record" in str(cm.exception))
 
 	def test_ariza_devam_et_allows_resume_if_log_cancelled(self):
 		"""Arıza Devam Modu 'Katı (Hard)' olsa dahi mevcut kayıt İptal (Cancelled) ise devam edilebildiğini doğrular."""

@@ -691,3 +691,9 @@ DURUŞTA (ARIZA),ON HOLD (BREAKDOWN)
 "Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Maintenance team finished, waiting for operator to resume production."
 "[Bakım Sonucu: Tamamlandı.]","[Maintenance Result: Completed.]"
 "[Bakım Sonucu: İptal Edildi.]","[Maintenance Result: Cancelled.]"
+Kullanıcı için varsayılan yazıcı bulunamadı,Default printer for user not found
+Kullanıcı için varsayılan yazıcı bulunamadı: {0},Default printer for user not found: {0}
+⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ This card has exceeded {0} minutes! Please check the form (finish or pause).
+Süre Uyarısı,Duration Warning
+Sadece 'Çalışıyor' veya 'Duruşta' olan kartlar için arıza bildirimi yapabilirsiniz.,You can only report a fault for cards that are 'Working' or 'Paused'.
+Bu çalışma kartına ait zaten devam eden açık bir arıza kaydı ({0}) bulunuyor. Yeni bir kayıt açmadan önce mevcut kaydın tamamlanmasını veya iptal edilmesini beklemelisiniz.,There is already an open fault record ({0}) for this work card. You must wait for the existing record to be completed or cancelled before opening a new one.

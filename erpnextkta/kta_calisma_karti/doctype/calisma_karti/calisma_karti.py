@@ -203,10 +203,10 @@ class CalismaKarti(Document):
     def validate(self):
         # 1. Duruş nedeni 'Diger' olan kayıtlarda açıklama zorunluluğunu denetle
         if self.duruslar:
-            for row in self.duruslar:
-                if row.durus_nedeni == "Diger" and not (row.aciklama or "").strip():
+            for d in self.duruslar:
+                if d.durus_nedeni == "Diger" and not (d.aciklama or "").strip():
                     frappe.throw(
-                        frappe._("Duruş nedeni olarak 'Diger' seçildiğinde açıklama girmek zorunludur. Lütfen {0}. sıradaki duruş kaydının açıklamasını doldurunuz.").format(row.idx),
+                        frappe._("Duruş nedeni olarak 'Diger' seçildiğinde açıklama girmek zorunludur. Lütfen {0}. sıradaki duruş kaydının açıklamasını doldurunuz.").format(d.idx),
                         title=frappe._("Açıklama Zorunlu")
                     )
 
@@ -226,20 +226,20 @@ class CalismaKarti(Document):
             _, warn_limit = get_kta_settings()
             if gecen_dk > warn_limit:
                 frappe.msgprint(
-                    f"⚠️ Bu kart {warn_limit} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).",
-                    title="Süre Uyarısı",
+                    frappe._("⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).").format(warn_limit),
+                    title=frappe._("Süre Uyarısı"),
                     indicator="orange"
                 )
 
     def hesapla_durus_suresi(self):
         toplam_dk = 0
-        for row in self.duruslar:
-            if row.durus_baslangic and row.durus_bitis:
-                if not row.durus_suresi:
-                    start_dt = get_datetime(row.durus_baslangic)
-                    end_dt = get_datetime(row.durus_bitis)
-                    row.durus_suresi = (end_dt - start_dt).total_seconds() / 60
-                toplam_dk += (row.durus_suresi or 0)
+        for d in self.duruslar:
+            if d.durus_baslangic and d.durus_bitis:
+                if not d.durus_suresi:
+                    start_dt = get_datetime(d.durus_baslangic)
+                    end_dt = get_datetime(d.durus_bitis)
+                    d.durus_suresi = (end_dt - start_dt).total_seconds() / 60
+                toplam_dk += (d.durus_suresi or 0)
         self.toplam_durus = format_sure(toplam_dk * 60)
 
     def update_durum(self):
@@ -320,47 +320,49 @@ class CalismaKarti(Document):
 
 
     def hesapla_toplam_sure(self):
-        if self.baslangic_saati:
-            start_dt = get_datetime(self.baslangic_saati)
-            end_dt = get_datetime(self.bitis_saati) if self.bitis_saati else now_datetime()
-
-            toplam_saniye = (end_dt - start_dt).total_seconds()
-            toplam_durus_dk = sum((r.durus_suresi or 0) for r in self.duruslar)
-            toplam_durus_saniye = toplam_durus_dk * 60
-
-            # Aktif (devam eden) duruş varsa onu da toplam duruşa ekle
-            if self.aktif_durus_var_mi():
-                last_durus = self.duruslar[-1]
-                durus_start = get_datetime(last_durus.durus_baslangic)
-                active_durus_seconds = (end_dt - durus_start).total_seconds()
-                toplam_durus_saniye += active_durus_seconds
-
-            # Vardiya kapasitesi (max_limit) tavan olarak kullanılır.
-            max_limit, _ = get_kta_settings()
-            max_saniye = max_limit * 60
-
-            # Vardiya içindeki diğer kartların net süresiyle birlikte tavan aşılmamalı
-            ws, we = _shift_window(start_dt)
-            other_net = _other_cards_net_seconds_in_shift(
-                operator=self.operator,
-                shift_start=ws,
-                shift_end=we,
-                exclude_name=self.name,
-            )
-            remaining = max(0, max_saniye - other_net)
-
-            # Get raw net seconds (total span minus breaks)
-            raw_net_saniye = max(0, toplam_saniye - toplam_durus_saniye)
-            
-            # Apply shift remaining capacity limit to the NET time, not the total span.
-            # This prevents "net squashing" when breaks are long.
-            net_saniye = min(raw_net_saniye, remaining)
-
-            self.toplam_sure = format_sure(toplam_saniye)
-            self.net_calisma_suresi = format_sure(net_saniye)
-        else:
+        if not self.baslangic_saati:
             self.toplam_sure = "0:00"
             self.net_calisma_suresi = "0:00"
+            return
+
+        start_dt = get_datetime(self.baslangic_saati)
+        end_dt = get_datetime(self.bitis_saati) if self.bitis_saati else now_datetime()
+
+        toplam_saniye = (end_dt - start_dt).total_seconds()
+        toplam_durus_saniye = self._calculate_total_durus_seconds(end_dt)
+
+        max_limit, _ = get_kta_settings()
+        max_saniye = max_limit * 60
+
+        remaining = self._calculate_remaining_shift_capacity(start_dt, max_saniye)
+
+        raw_net_saniye = max(0, toplam_saniye - toplam_durus_saniye)
+        net_saniye = min(raw_net_saniye, remaining)
+
+        self.toplam_sure = format_sure(toplam_saniye)
+        self.net_calisma_suresi = format_sure(net_saniye)
+
+    def _calculate_total_durus_seconds(self, end_dt):
+        toplam_durus_dk = sum((d.durus_suresi or 0) for d in self.duruslar)
+        toplam_durus_saniye = toplam_durus_dk * 60
+
+        if self.aktif_durus_var_mi():
+            last_durus = self.duruslar[-1]
+            durus_start = get_datetime(last_durus.durus_baslangic)
+            active_durus_seconds = (end_dt - durus_start).total_seconds()
+            toplam_durus_saniye += active_durus_seconds
+
+        return toplam_durus_saniye
+
+    def _calculate_remaining_shift_capacity(self, start_dt, max_saniye):
+        ws, we = _shift_window(start_dt)
+        other_net = _other_cards_net_seconds_in_shift(
+            operator=self.operator,
+            shift_start=ws,
+            shift_end=we,
+            exclude_name=self.name,
+        )
+        return max(0, max_saniye - other_net)
 
     def aktif_durus_var_mi(self):
         if not self.duruslar:
@@ -409,20 +411,32 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     from frappe.utils import today
     from frappe import _
     
-    if not calisma_karti or not makine_no or not ariza_nedeni or not aciklama:
+    calisma_karti_name = calisma_karti
+    
+    if not calisma_karti_name or not makine_no or not ariza_nedeni or not aciklama:
         frappe.throw(_("Çalışma Kartı, Makine No, Arıza Nedeni ve Açıklama alanları zorunludur."))
 
-    doc = frappe.get_doc("Calisma Karti", calisma_karti)
+    doc = frappe.get_doc("Calisma Karti", calisma_karti_name)
     if not doc:
         frappe.throw(_("Çalışma kartı bulunamadı."))
     
-    # Sadece "Çalışıyor" veya "Duruşta" olan kartlarda arıza bildirilebilir
     if doc.durum not in ["Çalışıyor", "Duruşta"]:
         frappe.throw(_("Sadece 'Çalışıyor' veya 'Duruşta' olan kartlar için arıza bildirimi yapabilirsiniz."))
 
-    # Zaten açık/bekleyen bir arıza kaydı varsa yenisinin açılmasını engelle
+    _validate_open_ariza_kaydi(doc.name)
+    
+    asset_name, asset_maint = _get_asset_maintenance_for_machine(makine_no)
+    task_id = _create_or_get_maintenance_task(asset_maint, aciklama)
+    aml_name = _create_maintenance_log(asset_maint, task_id, calisma_karti_name, ariza_nedeni, aciklama)
+    _create_calendar_event(aml_name, asset_maint, asset_name, ariza_nedeni, aciklama)
+    _auto_pause_calisma_karti(doc, calisma_karti_name, ariza_nedeni, aciklama)
+
+    return aml_name
+
+def _validate_open_ariza_kaydi(calisma_karti_name):
+    from frappe import _
     open_log = frappe.db.get_value("Asset Maintenance Log", {
-        "custom_calisma_karti_ref": doc.name,
+        "custom_calisma_karti_ref": calisma_karti_name,
         "maintenance_status": ["not in", ["Completed", "Cancelled"]],
         "docstatus": ["<", 2]
     }, "name")
@@ -430,24 +444,22 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     if open_log:
         frappe.throw(_("Bu çalışma kartına ait zaten devam eden açık bir arıza kaydı ({0}) bulunuyor. Yeni bir kayıt açmadan önce mevcut kaydın tamamlanmasını veya iptal edilmesini beklemelisiniz.").format(open_log))
 
+def _get_asset_maintenance_for_machine(makine_no):
+    from frappe import _
     asset_name = frappe.db.get_value("Asset", {"custom_makine_no": makine_no}, "name")
     if not asset_name:
         frappe.throw(_("Sistemde {0} numarasına sahip bir makine/varlık bulunamadı.").format(makine_no))
 
-    asset_doc = frappe.get_doc("Asset", asset_name)
-
-    # 1. Asset Maintenance kaydını bul (varsa)
     asset_maint_name = frappe.db.get_value("Asset Maintenance", {"asset_name": asset_name})
-    
     if not asset_maint_name:
         frappe.throw(_("{0} makinesi için sistemde 'Asset Maintenance' (Varlık Bakımı) kaydı bulunamadı. Lütfen önce bakım ekibini atayın.").format(makine_no))
         
-    asset_maint = frappe.get_doc("Asset Maintenance", asset_maint_name)
+    return asset_name, frappe.get_doc("Asset Maintenance", asset_maint_name)
 
-    # 2. Asset Maintenance Task oluştur (Arıza Bildirimi için bir kerelik görev)
+def _create_or_get_maintenance_task(asset_maint, aciklama):
+    from frappe.utils import today
     task_name = f"Arıza Bildirimi - {frappe.utils.now_datetime().strftime('%Y-%m-%d %H:%M')}"
     
-    # Check if a similar task recently created to prevent duplicates in case of double clicks
     existing_task = frappe.db.get_value("Asset Maintenance Task", {
         "parent": asset_maint.name,
         "maintenance_status": "Arıza Bildirimi",
@@ -455,45 +467,50 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     }, "name")
     
     if existing_task:
-        task_id = existing_task
-    else:
-        # Bir task satırı eklenmek zorunda. Ancak parent.save() dersek 
-        # Asset Maintenance içindeki on_update her satır için tekrar ToDo oluşturmaya çalışıyor
-        # ve "Zaten şu kullanıcının yapılacaklar listesinde" hatası veriyor.
-        # Bu yüzden satırı manuel insert ediyoruz.
-        
-        new_task = frappe.get_doc({
-            "doctype": "Asset Maintenance Task",
-            "parent": asset_maint.name,
-            "parenttype": "Asset Maintenance",
-            "parentfield": "asset_maintenance_tasks",
-            "maintenance_task": task_name,
-            "maintenance_type": "Arıza Bakımı",
-            "maintenance_status": "Arıza Bildirimi",
-            "start_date": today(),
-            "next_due_date": today(),
-            "end_date": frappe.utils.add_days(today(), 1),
-            "periodicity": "Daily",
-            "description": aciklama,
-            "assign_to": asset_maint.maintenance_manager or (frappe.db.get_values("Maintenance Team Member", {"parent": asset_maint.maintenance_team}, "team_member")[0][0] if frappe.db.get_values("Maintenance Team Member", {"parent": asset_maint.maintenance_team}, "team_member") else None)
-        })
-        new_task.insert(ignore_permissions=True)
-        task_id = new_task.name
+        return existing_task
 
-    # 3. Asset Maintenance Log (Arıza Bildirimi) oluştur
+    assign_to = asset_maint.maintenance_manager
+    if not assign_to:
+        members = frappe.db.get_values("Maintenance Team Member", {"parent": asset_maint.maintenance_team}, "team_member")
+        if members:
+            assign_to = members[0][0]
+
+    new_task = frappe.get_doc({
+        "doctype": "Asset Maintenance Task",
+        "parent": asset_maint.name,
+        "parenttype": "Asset Maintenance",
+        "parentfield": "asset_maintenance_tasks",
+        "maintenance_task": task_name,
+        "maintenance_type": "Arıza Bakımı",
+        "maintenance_status": "Arıza Bildirimi",
+        "start_date": today(),
+        "next_due_date": today(),
+        "end_date": frappe.utils.add_days(today(), 1),
+        "periodicity": "Daily",
+        "description": aciklama,
+        "assign_to": assign_to
+    })
+    new_task.insert(ignore_permissions=True)
+    return new_task.name
+
+def _create_maintenance_log(asset_maint, task_id, calisma_karti_name, ariza_nedeni, aciklama):
+    from frappe.utils import today
     aml = frappe.new_doc("Asset Maintenance Log")
     aml.asset_maintenance = asset_maint.name
     aml.task = task_id
     aml.maintenance_status = "Arıza Bildirimi"
-    aml.custom_calisma_karti_ref = calisma_karti
+    aml.custom_calisma_karti_ref = calisma_karti_name
     aml.custom_ariza_nedeni = ariza_nedeni
     aml.custom_ariza_aciklamasi = aciklama
     aml.due_date = today()
     aml.insert(ignore_permissions=True)
+    return aml.name
 
-    # 4. Takvim etkinliği (kırmızı) oluştur ve ekip üyelerini participant olarak ekle
+def _create_calendar_event(aml_name, asset_maint, asset_name, ariza_nedeni, aciklama):
     from erpnextkta.kta_asset_maintenance.events import create_breakdown_event
     try:
+        aml = frappe.get_doc("Asset Maintenance Log", aml_name)
+        asset_doc = frappe.get_doc("Asset", asset_name)
         event_name = create_breakdown_event(
             aml,
             asset_maint.name,
@@ -515,11 +532,7 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
             message=frappe.get_traceback(),
         )
 
-    # Not: aml.submit() yapılmıyor çünkü ERPNext standarta "Completed" veya "Cancelled"
-    # durumu olmadan gönderime izin vermez. Bildirim draft olarak kalacak,
-    # bakım ekibi işi bitirince statüyü "Completed" yapıp submit edecek.
-
-    # 5. Kart Çalışıyorsa veya Duruştaysa Otomatik Arıza Duruşuna Geçir
+def _auto_pause_calisma_karti(doc, calisma_karti_name, ariza_nedeni, aciklama):
     durum = doc.get_durum()
     if durum in ("calisiyor", "durusta"):
         try:
@@ -527,19 +540,15 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
             needs_pause = True
 
             if durum == "durusta":
-                # Eğer aktif duruş sebebi zaten "Arıza" ise yeni bir duruş kaydı açıp süreyi bölmeye gerek yok.
                 if doc.duruslar and not doc.duruslar[-1].durus_bitis and doc.duruslar[-1].durus_nedeni == "Arıza":
                     needs_pause = False
                 else:
-                    # Başka bir duruştaysa (örn: Mola), o duruşu bitirmek için "DevamEt" tetikliyoruz
-                    islem_yap(calisma_karti, "DevamEt")
+                    islem_yap(calisma_karti_name, "DevamEt")
             
             if needs_pause:
-                islem_yap(calisma_karti, "Durus", durus_nedeni="Arıza", aciklama=aciklama)
-        except Exception as e:
+                islem_yap(calisma_karti_name, "Durus", durus_nedeni="Arıza", aciklama=aciklama)
+        except Exception:
             frappe.log_error(title="Arıza Otomatik Duruş Hatası", message=frappe.get_traceback())
-
-    return aml.name
 
 @frappe.whitelist()
 def get_auto_paused_cards(operator):
