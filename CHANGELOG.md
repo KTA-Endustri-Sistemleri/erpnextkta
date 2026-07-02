@@ -3,6 +3,162 @@
 
 
 
+## 🚀 v2.1.0 (2026-07-02)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_stock**: allow do_not_split printing when split_qty is 0
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- add multi-language support by internationalizing user-facing UI strings and adding localization files
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: implement localization for UI components and update translation files
+      
+      
+    
+      
+      
+        
+- **kta_stock**: grant create access on KTA Stock Label for Stock User role
+      
+      
+    
+      
+      
+        
+- **erpnextkta**: add turkish translations for core doctypes
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_calisma_karti**: 🎨 revamp auto-paused modal UI, fix transition logic, and update docs
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti & kta_maintenance**: enhance breakdown lifecycle, rollback logic, and i18n support
+      
+      
+    
+      
+      
+        
+- **kta_stock**: add Aylik Hammadde Stok Analizi and Detayli Stok Hareket Analizi reports
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti & job card**: implement synchronized time logging between Calisma Karti and Job Card with configurable sync modes and historical data patch.
+      
+      
+    
+      
+      
+        
+- **kta_stock**: add database patch to remove Stock Entry custom fields
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **kta_calisma_karti & kta_stock**: overhaul work card ui, breakdown lifecycle, automated labeling, stock reports, job card sync, and crimp flow
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: replace global declaration with explicit translation function wrapper across components
+      
+      
+    
+      
+      
+        
+- align codebase with standards and fix label printing sync issues
+      
+      
+    
+      
+      
+        
+- **kta_calisma_karti**: change qc crimp workflow to terminal-first selection and make cable field optional
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.0.0 (2026-06-27)
 
 
