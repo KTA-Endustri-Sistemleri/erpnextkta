@@ -168,7 +168,7 @@ class BatchSplitManager:
             qty = flt(row.stock_qty or 0)
             split_qty = flt(row.custom_split_qty or 0)
 
-        if not qty or split_qty <= 0:
+        if not qty:
             return []
 
         if not is_manufacturing and row.get("custom_do_not_split"):
@@ -178,6 +178,9 @@ class BatchSplitManager:
                 "sut_code": f"{base_batch_number}{0:04d}",
                 "pack_no": 0,
             }]
+
+        if split_qty <= 0:
+            return []
 
         num_packs = cint(qty // split_qty)
         remainder_qty = qty % split_qty
