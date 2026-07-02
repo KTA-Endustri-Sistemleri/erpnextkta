@@ -868,7 +868,7 @@ function buildBaseAnomalies(rows) {
         type: "CONTRADICTION",
         severity: severityFromScore(score),
         score: clamp(score, 0, 100),
-        title: "Opposite direction across warehouses",
+        title: __("Depolar arası zıt yön"),
         desc: `${it.item_code} shows both + and − diffs across warehouses.`,
         action: { kind: "item", item_code: it.item_code },
       });
@@ -887,7 +887,7 @@ function buildBaseAnomalies(rows) {
         type: "CONCENTRATION",
         severity: severityFromScore(score),
         score: clamp(score, 0, 100),
-        title: "Concentrated in a single warehouse",
+        title: __("Tek depoda toplandı"),
         desc: `${Math.round(st.ratio * 100)}% of movement is from "${st.maxWh}" (${fmt(st.maxDiff)}).`,
         action: { kind: "item", item_code: it.item_code },
       });
@@ -959,7 +959,7 @@ const drawerAnomalies = computed(() => {
         type: "DOC_SPIKE",
         severity: severityFromScore(score),
         score: clamp(score, 0, 100),
-        title: "Single document dominates the result",
+        title: __("Tek belge sonuca hakim"),
         desc: `${ds.maxDoc.name} drives ${Math.round(contributes * 100)}% of item movement (${fmt(ds.maxDoc.diff_qty)}).`,
         action: { kind: "doc", docname: ds.maxDoc.name },
       });

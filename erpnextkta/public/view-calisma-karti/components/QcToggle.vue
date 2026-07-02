@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const __ = (...args: any[]) => (window as any).__(...args);
 const props = defineProps<{
   qcLabel: string;
   qcOptions: string[];
@@ -12,7 +13,7 @@ const props = defineProps<{
 <template>
   <!-- QC header -->
   <div class="ck-row" style="justify-content:space-between; align-items:center;">
-    <span>Kalite Kontrol</span>
+    <span>{{ __("Kalite Kontrol") }}</span>
     <b>{{ props.qcLabel }}</b>
   </div>
 
@@ -32,7 +33,7 @@ const props = defineProps<{
         :disabled="props.qcSaving"
         @click="props.onSetQC(o)"
       >
-        {{ o }}
+        {{ __(o) }}
       </button>
     </div>
 
@@ -40,7 +41,7 @@ const props = defineProps<{
     <Transition name="ck-fade">
       <div v-if="props.qcSaving" class="ck-qc-loader">
         <div class="ck-spinner-mini"></div>
-        <span>İşleniyor...</span>
+        <span>{{ __("İşleniyor...") }}</span>
       </div>
     </Transition>
   </div>

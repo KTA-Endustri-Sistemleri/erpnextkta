@@ -116,7 +116,7 @@ class TestValidate(KTATestCase):
 		# Start at 08:00, warn at 400 mins (14:40), now is 15:00
 		doc = make_mock_calisma_karti(baslangic_saati="2024-01-15 08:00:00")
 		msgs = self._call_validate(doc)
-		self.assertTrue(any("dakikayı aştı!" in m for m in msgs))
+		self.assertTrue(any("dakikayı aştı!" in m or "exceeded" in m for m in msgs))
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +181,7 @@ class TestCalismaKartiIntegration(KTATestCase):
 			"is_karti": self.jc_name,
 			"operasyon": self.kta_op,
 			"is_istasyonu": self.ws_name,
-			"operator": "test@kta.com",
+			"operator": "test_duration@kta.com",
 			"baslangic_saati": start
 		}).insert(ignore_permissions=True, ignore_links=True)
 		
@@ -317,7 +317,8 @@ class TestCalismaKartiIntegration(KTATestCase):
 		with self.assertRaises(frappe.exceptions.ValidationError) as cm:
 			doc.submit()
 		
-		self.assertIn("Çalışma Kartı henüz bitirilmemiş", str(cm.exception))
+		exc_msg = str(cm.exception)
+		self.assertTrue("Çalışma Kartı henüz bitirilmemiş" in exc_msg or "has not been finished yet" in exc_msg)
 
 	def test_bitis_submits_successfully(self):
 		"""'Bitir' işlemi yapıldığında kartın otomatik olarak başarıyla gönderildiğini doğrular."""
@@ -381,3 +382,228 @@ class TestCalismaKartiIntegration(KTATestCase):
 		self.assertEqual(new_doc.amended_from, doc.name)
 		self.assertEqual(new_doc.docstatus, 0)
 		self.assertTrue(new_doc.name.endswith("-1") or "-1" in new_doc.name) # Genelde .##-1 olur
+
+	def test_get_auto_paused_cards_logic(self):
+		"""get_auto_paused_cards fonksiyonunun aktif kart kontrolüyle doğru çalıştığını doğrular."""
+		from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import get_auto_paused_cards
+		
+		# Clean up any existing cards for this test user
+		frappe.db.delete("Calisma Karti", {"operator": "test_auto@kta.com"})
+		
+		# Create a paused card
+		paused_doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test_auto@kta.com",
+			"baslangic_saati": frappe.utils.add_to_date(None, hours=-2)
+		}).insert(ignore_permissions=True, ignore_links=True)
+		
+		# Add active durus to make it 'Duruşta'
+		paused_doc.append("duruslar", {"durus_baslangic": frappe.utils.add_to_date(None, hours=-1), "durus_nedeni": "Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı."})
+		paused_doc.save()
+		paused_doc.update_durum()
+		paused_doc.db_set("durum", "Duruşta")
+		frappe.db.commit()
+		
+		# At this point, there is no active (Çalışıyor) card, so paused_doc should be returned
+		cards = get_auto_paused_cards("test_auto@kta.com")
+		self.assertEqual(len(cards), 1)
+		self.assertEqual(cards[0].name, paused_doc.name)
+		
+		# Now create an active card ('Çalışıyor')
+		active_doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test_auto@kta.com",
+			"baslangic_saati": frappe.utils.now_datetime()
+		}).insert(ignore_permissions=True, ignore_links=True)
+		
+		# Since there is an active card, get_auto_paused_cards should return an empty list to avoid interrupting the user
+		cards_when_active = get_auto_paused_cards("test_auto@kta.com")
+		self.assertEqual(len(cards_when_active), 0)
+
+	def test_ariza_bildirimi_auto_pause(self):
+		"""Arıza bildirimi yapıldığında, eğer kart çalışıyorsa otomatik olarak duraklatıldığını doğrular."""
+		from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import create_ariza_bildirimi
+		
+		# Create an active card
+		doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test@kta.com",
+			"baslangic_saati": frappe.utils.now_datetime()
+		}).insert(ignore_permissions=True, ignore_links=True)
+
+		original_get_doc = frappe.get_doc
+		def get_doc_side_effect(*args, **kwargs):
+			if args and args[0] == "Calisma Karti":
+				mock_ck = unittest.mock.MagicMock()
+				mock_ck.durum = "Çalışıyor"
+				mock_ck.get_durum.return_value = "calisiyor"
+				return mock_ck
+			if args and args[0] == "Asset":
+				mock_asset = unittest.mock.MagicMock()
+				mock_asset.name = "MAK-01"
+				return mock_asset
+			if args and args[0] == "Asset Maintenance":
+				mock_am = unittest.mock.MagicMock()
+				mock_am.name = "AM-001"
+				return mock_am
+			return original_get_doc(*args, **kwargs)
+
+		original_get_value = frappe.db.get_value
+		def get_value_side_effect(doctype, *args, **kwargs):
+			if doctype == "Asset Maintenance Log":
+				return None # No open logs yet
+			if doctype == "Asset Maintenance":
+				return "AM-001"
+			if doctype == "Asset":
+				return "MAK-01"
+			return original_get_value(doctype, *args, **kwargs)
+
+		with (
+			patch("erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.frappe.get_doc", side_effect=get_doc_side_effect),
+			patch("erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.frappe.db.get_value", side_effect=get_value_side_effect),
+			patch("erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.frappe.new_doc") as mock_new_doc,
+			patch("erpnextkta.kta_asset_maintenance.events.create_breakdown_event", return_value="EVENT-1"),
+			patch("erpnextkta.kta_calisma_karti.api_impl.cards.islem_yap") as mock_islem_yap
+		):
+			# Mock the aml creation
+			mock_aml = unittest.mock.MagicMock()
+			mock_aml.name = "AM-001"
+			mock_new_doc.return_value = mock_aml
+			
+			# Call the function
+			create_ariza_bildirimi(doc.name, "MAK-01", "Arıza", "Test Açıklama")
+			
+			# Verify islem_yap was called to pause the card
+			mock_islem_yap.assert_called_with(doc.name, "Durus", durus_nedeni="Arıza", aciklama="Test Açıklama")
+
+	def test_ariza_devam_et_hard_mode(self):
+		"""Arıza Devam Modu 'Katı (Hard)' olduğunda açık arıza kaydı varken devam edilemediğini doğrular."""
+		from erpnextkta.kta_calisma_karti.api_impl.cards import islem_yap
+		
+		# Create a paused card with Arıza
+		doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test@kta.com",
+			"baslangic_saati": frappe.utils.add_to_date(None, hours=-2)
+		}).insert(ignore_permissions=True, ignore_links=True)
+		
+		doc.append("duruslar", {
+			"durus_baslangic": frappe.utils.add_to_date(None, hours=-1),
+			"durus_nedeni": "Arıza"
+		})
+		doc.save()
+		doc.update_durum()
+		doc.db_set("durum", "Duruşta")
+		frappe.db.commit()
+
+		# We need to mock get_single_value to return Katı (Hard), and get_value to return an open log
+		original_get_value = frappe.db.get_value
+		def get_value_side_effect(doctype, *args, **kwargs):
+			if doctype == "Asset Maintenance Log":
+				return "AML-001"
+			return original_get_value(doctype, *args, **kwargs)
+
+		def get_single_value_side_effect(doctype, fieldname, *args, **kwargs):
+			if fieldname == "ariza_devam_modu":
+				return "Kat\u0131 (Hard)"
+			if fieldname == "kart_gecis_modu":
+				return "Esnek (Soft)"
+			return None
+
+		with (
+			patch("erpnextkta.kta_calisma_karti.api_impl.cards.frappe.db.get_single_value", side_effect=get_single_value_side_effect),
+			patch("erpnextkta.kta_calisma_karti.api_impl.cards.frappe.db.get_value", side_effect=get_value_side_effect)
+		):
+			with self.assertRaises(frappe.exceptions.ValidationError) as cm:
+				islem_yap(doc.name, "DevamEt")
+			
+			self.assertTrue("Bakım ekibi bildirilen arızayı tamamlamadan" in str(cm.exception))
+
+	def test_ariza_bildirimi_blocks_duplicate(self):
+		"""Zaten açık bir arıza kaydı varken yeni bir kayıt açılmasının engellendiğini doğrular."""
+		from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import create_ariza_bildirimi
+		
+		doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test@kta.com",
+			"baslangic_saati": frappe.utils.now_datetime()
+		}).insert(ignore_permissions=True, ignore_links=True)
+
+		original_get_doc = frappe.get_doc
+		def get_doc_side_effect(*args, **kwargs):
+			if args and args[0] == "Calisma Karti":
+				mock_ck = unittest.mock.MagicMock()
+				mock_ck.get_durum.return_value = "calisiyor"
+				mock_ck.durum = "Çalışıyor"
+				mock_ck.name = doc.name
+				return mock_ck
+			return original_get_doc(*args, **kwargs)
+
+		with (
+			patch("erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.frappe.get_doc", side_effect=get_doc_side_effect),
+			# Return an open AML record when db.get_value checks for existing open logs
+			patch("erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.frappe.db.get_value", return_value="OPEN-AML-001")
+		):
+			with self.assertRaises(frappe.exceptions.ValidationError) as cm:
+				create_ariza_bildirimi(doc.name, "MAK-01", "Arıza", "Test")
+			self.assertTrue("zaten devam eden" in str(cm.exception) or "open fault record" in str(cm.exception))
+
+	def test_ariza_devam_et_allows_resume_if_log_cancelled(self):
+		"""Arıza Devam Modu 'Katı (Hard)' olsa dahi mevcut kayıt İptal (Cancelled) ise devam edilebildiğini doğrular."""
+		from erpnextkta.kta_calisma_karti.api_impl.cards import islem_yap
+		
+		doc = frappe.get_doc({
+			"doctype": "Calisma Karti",
+			"is_karti": self.jc_name,
+			"operasyon": self.kta_op,
+			"is_istasyonu": self.ws_name,
+			"operator": "test@kta.com",
+			"baslangic_saati": frappe.utils.add_to_date(None, hours=-2)
+		})
+		doc.append("duruslar", {
+			"durus_baslangic": frappe.utils.add_to_date(None, hours=-1),
+			"durus_nedeni": "Arıza"
+		})
+		doc.insert(ignore_permissions=True, ignore_links=True)
+		doc.update_durum()
+		doc.db_set("durum", "Duruşta")
+		frappe.db.commit()
+
+		def get_single_value_side_effect(doctype, fieldname, *args, **kwargs):
+			if fieldname == "ariza_devam_modu":
+				return "Kat\u0131 (Hard)"
+			if fieldname == "kart_gecis_modu":
+				return "Esnek (Soft)"
+			return None
+
+		original_get_value = frappe.db.get_value
+		def get_value_side_effect(doctype, *args, **kwargs):
+			if doctype == "Asset Maintenance Log":
+				return None
+			return original_get_value(doctype, *args, **kwargs)
+
+		with (
+			patch("erpnextkta.kta_calisma_karti.api_impl.cards.frappe.db.get_single_value", side_effect=get_single_value_side_effect),
+			# Return None to simulate that NO open/valid log exists (because it was cancelled/completed)
+			patch("erpnextkta.kta_calisma_karti.api_impl.cards.frappe.db.get_value", side_effect=get_value_side_effect)
+		):
+			# Should NOT throw ValidationError, should complete successfully
+			try:
+				islem_yap(doc.name, "DevamEt")
+			except frappe.exceptions.ValidationError:
+				self.fail("islem_yap threw ValidationError unexpectedly when log was cancelled/None!")

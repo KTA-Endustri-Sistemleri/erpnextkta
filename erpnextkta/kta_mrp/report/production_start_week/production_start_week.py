@@ -35,7 +35,7 @@ class ProductionStartWeekReport:
 
         if self.eşleşmeyen_müşteriler:
             example_list = list(self.eşleşmeyen_müşteriler)[:10]
-            frappe.msgprint(f"KTA Sevk Parametreleri'nde eşleşmeyen müşteri/adres kayıtları (ilk 10):<br><br>" + "<br>".join(example_list))
+            frappe.msgprint(_("KTA Sevk Parametreleri'nde eşleşmeyen müşteri/adres kayıtları (ilk 10):<br><br>{0}").format("<br>".join(example_list)))
 
         chart = self.get_chart()
         summary = self.get_summary()

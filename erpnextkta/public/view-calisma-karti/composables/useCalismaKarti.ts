@@ -1,10 +1,15 @@
 import { computed, ref, onMounted, onUnmounted, watch } from "vue";
 
+const __ = (...args: any[]) => (window as any).__(...args);
+
 export function useCalismaKarti(docname: ReturnType<typeof computed<string | null>>) {
     const loading = ref(false);
     const doc = ref<any | null>(null);
     const lastRefreshTime = ref(0);
     const pendingUpdate = ref(false);
+    const showAutoPausedModal = ref(false);
+    const autoPausedCards = ref<any[]>([]);
+    
     const settings = ref({
         liste_yenileme_araligi_sn: 30,
         detay_yenileme_araligi_sn: 10
@@ -352,6 +357,46 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         );
     }
 
+    async function checkAutoPausedCards() {
+        const operatorName = doc.value?.operator;
+        if (!operatorName) return;
+
+        return frappe.call({
+            method: 'erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.get_auto_paused_cards',
+            args: { operator: operatorName },
+            callback: function(r: any) {
+                const cards = r.message || [];
+                const other_cards = cards.filter((c: any) => c.name !== docname.value);
+                
+                if (other_cards.length > 0) {
+                    autoPausedCards.value = other_cards;
+                    showAutoPausedModal.value = true;
+                }
+            }
+        });
+    }
+
+    async function handleAutoPausedAction(action: 'baslat' | 'git', targetDocname: string) {
+        if (action === 'git') {
+            return;
+        }
+
+        return new Promise<void>((resolve, reject) => {
+            frappe.call({
+                method: 'erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.islem_yap',
+                args: { docname: targetDocname, islem_tipi: 'Baslat' },
+                freeze: false,
+                callback: function(r: any) {
+                    if (r.message && r.message.status === 'success') {
+                        resolve();
+                    } else {
+                        reject(new Error("İşlem Başarısız"));
+                    }
+                }
+            });
+        });
+    }
+
     // When docname changes (route changes), re-bind realtime listener
     watch(
         () => docname.value,
@@ -399,6 +444,10 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         getQcTemplates,
         getTemplateDetails,
         submitStandardQC,
-        pendingUpdate
+        pendingUpdate,
+        showAutoPausedModal,
+        autoPausedCards,
+        checkAutoPausedCards,
+        handleAutoPausedAction
     };
 }

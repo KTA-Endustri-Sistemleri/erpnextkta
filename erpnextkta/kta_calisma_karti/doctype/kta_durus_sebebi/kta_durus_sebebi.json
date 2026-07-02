@@ -36,7 +36,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Duru\u015f Tipi",
-   "options": "Plans\u0131z\nPlanl\u0131\nSistem",
+   "options": "Plans\u0131z\nPlanl\u0131\nSistem\n\u00dcr\u00fcn Ge\u00e7i\u015fi / Haz\u0131rl\u0131k",
    "reqd": 1
   },
   {

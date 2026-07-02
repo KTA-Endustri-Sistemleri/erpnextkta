@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from frappe.model.docstatus import DocStatus
 from frappe.utils import flt
 
@@ -21,7 +22,7 @@ class KTAQualityInspection(QualityInspection):
             import traceback
             full_trace = traceback.format_exc()
             frappe.log_error(f"Quality Inspection Submit Error {str(e)}\n{full_trace}", "Quality Inspection Submit Error")
-            frappe.throw(f"Quality Inspection Submit Error {str(e)}")
+            frappe.throw(_("Kalite Kontrol Gönderim Hatası {0}").format(str(e)))
 
     def on_cancel(self):
         super().on_cancel()
@@ -50,13 +51,13 @@ class KTAQualityInspection(QualityInspection):
             template = self.quality_inspection_template
 
             if not item or not template:
-                frappe.throw("Gerekli parametreler eksik: item ve template")
+                frappe.throw(_("Gerekli parametreler eksik: ürün ve template"))
 
             doc = frappe.get_doc('Item', item)
             doc.db_set('quality_inspection_template', template, commit=True)
 
             frappe.msgprint(
-                "Varsayılan kalite kontrol planı başarıyla güncellendi",
+                _("Varsayılan kalite kontrol planı başarıyla güncellendi"),
                 indicator="green",
                 alert=True
             )
@@ -67,5 +68,5 @@ class KTAQualityInspection(QualityInspection):
                 "set_default_qi_template\n{0}".format(frappe.get_traceback())
             )
             frappe.throw(
-                "Varsayılan plan güncellenirken hata oluştu: {0}".format(str(e))
+                _("Varsayılan plan güncellenirken hata oluştu: {0}").format(str(e))
             )

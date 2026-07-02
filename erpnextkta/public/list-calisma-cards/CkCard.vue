@@ -2,18 +2,30 @@
   <button class="ck-card" @click="$emit('click')">
     <div class="row no-gutters" :class="qcClasses">
       <div class="col-2 p-0 ck-pill" :data-tone="statusTone">
-        <span>{{ statusTone === 'cancelled' ? 'İptal Edildi' : (row.durum || "-") }}</span>
+        <span style="text-align: center; line-height: 1.15; width: max-content;">
+          <template v-if="statusTone === 'cancelled'">{{ __('İptal Edildi') }}</template>
+          <template v-else-if="statusTone === 'paused' || statusTone === 'breakdown'">
+            {{ __('DURUŞTA') }}
+            <template v-if="statusTone === 'breakdown' && row.aktif_durus_nedeni">
+              <br/>
+              <div class="ck-ariza-badge ck-blink-text">
+                ⚠ {{ __(row.aktif_durus_nedeni).toUpperCase() }}
+              </div>
+            </template>
+          </template>
+          <template v-else>{{ __(row.durum || "-").toUpperCase() }}</template>
+        </span>
       </div>
       <div class="col-9 py-2 pl-2">
         <div class="ck-name">{{ row.operator }}</div>
         <div class="ck-kv">
           <div class="ck-kv-item" style="display:flex; align-items:flex-start;">
             <div>
-              <span>Ürün Kodu</span>
+              <span>{{ __("Ürün Kodu") }}</span>
               <b>{{ row.urun_kodu || "-" }}</b>
             </div>
             <div v-if="row.custom_musteri_indeksi_no" style="border-left: 1px solid lightgray;text-align: left;padding-left: 5px;margin-left: 5px;border-top-color: lightgray;border-right-color: lightgray;">
-              <span>Index (Revision)</span>
+              <span>{{ __("Index (Revision)") }}</span>
               <b>
                 {{ row.custom_musteri_indeksi_no }}
               </b>
@@ -21,15 +33,15 @@
           </div>
 
           <div class="ck-kv-item">
-            <span>İş Emri</span>
+            <span>{{ __("İş Emri") }}</span>
             <b>{{ row.custom_work_order || "-" }}</b>
           </div>
           <div class="ck-kv-item">
-            <span>İş Kartı</span>
+            <span>{{ __("İş Kartı") }}</span>
             <b>{{ row.is_karti || "-" }}</b>
           </div>
           <div class="ck-kv-item">
-            <span>Operasyon</span>
+            <span>{{ __("Operasyon") }}</span>
             <b>{{ row.operasyon || "-" }}</b>
           </div>
         </div>
@@ -43,6 +55,7 @@
 
 <script setup>
 import { computed } from "vue";
+const __ = (...args) => window.__(...args);
 
 const props = defineProps({
   row: {
@@ -64,15 +77,17 @@ const statusTone = computed(() => {
   if (Number(props.row.docstatus) === 2 || v.includes("iptal")) return "cancelled";
   if (v.includes("redd")) return "rejected";
   if (v.includes("bit")) return "finished";
-  if (v.includes("duru")) return "paused";
+  if (v.includes("duru") || v.includes("paused")) {
+    if ((props.row.aktif_durus_nedeni || "").toLowerCase().includes("arıza")) return "breakdown";
+    return "paused";
+  }
   if (v.includes("çalı") || v.includes("calis")) return "running";
   if (v.includes("haz")) return "ready";
   return "ready";
 });
 </script>
 
-<style scoped>
-.ck-card {
+<style scoped>.ck-card {
   width: 100%;
   text-align: left;
   background: var(--ck-glass-bg);
@@ -123,7 +138,7 @@ const statusTone = computed(() => {
   );
 }
 
-.ck-pill span {
+.ck-pill > span {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -137,6 +152,7 @@ const statusTone = computed(() => {
 .ck-pill[data-tone="ready"] { background: var(--blue); color: var(--white-overlay-900); }
 .ck-pill[data-tone="running"] { background: var(--yellow-500); color: var(--dark); } /* better contrast for yellow */
 .ck-pill[data-tone="paused"] { background: var(--orange-500); color: var(--white-overlay-900); }
+.ck-pill[data-tone="breakdown"] { background: var(--orange-500); color: var(--white-overlay-900); }
 .ck-pill[data-tone="finished"] { background: var(--green); color: var(--white-overlay-900); }
 .ck-pill[data-tone="rejected"] { background: var(--red); color: var(--white-overlay-900); }
 .ck-pill[data-tone="cancelled"] { background: var(--gray-500); color: var(--white-overlay-900); }
@@ -179,4 +195,25 @@ const statusTone = computed(() => {
 .ck-status-card-qc--running { background: linear-gradient(270deg, var(--ck-success-bg), transparent, transparent); border-radius: 16px; }
 .ck-status-card-qc--rejected { background: linear-gradient(270deg, var(--ck-danger-bg), transparent, transparent); border-radius: 16px; }
 .ck-status-card-qc--pending { background: linear-gradient(270deg, rgba(59, 130, 246, 0.55), transparent, transparent); border-radius: 16px; }
-</style>
+
+.ck-ariza-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  background-color: #ffffff;
+  color: var(--red, #ef4444);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+@keyframes ck-blinker {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 255, 255, 1); }
+}
+.ck-blink-text {
+  animation: ck-blinker 1.2s ease-in-out infinite;
+}</style>

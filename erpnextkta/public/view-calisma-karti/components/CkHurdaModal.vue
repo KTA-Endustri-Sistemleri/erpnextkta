@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 
+const __ = (...args: any[]) => (window as any).__(...args);
+
 const props = defineProps<{
   show: boolean;
   doc: any; // Calisma Karti doc
@@ -51,9 +53,9 @@ function selectItem(item: any) {
 }
 
 async function handleSubmit() {
-  if (!parca_no.value) return frappe.msgprint("Lütfen bir parça seçin.");
-  if (!miktar.value || miktar.value <= 0) return frappe.msgprint("Lütfen geçerli bir miktar girin.");
-  if (!hurda_nedeni.value) return frappe.msgprint("Lütfen bir hurda nedeni seçin.");
+  if (!parca_no.value) return frappe.msgprint(__("Lütfen bir parça seçin."));
+  if (!miktar.value || miktar.value <= 0) return frappe.msgprint(__("Lütfen geçerli bir miktar girin."));
+  if (!hurda_nedeni.value) return frappe.msgprint(__("Lütfen bir hurda nedeni seçin."));
 
   submitting.value = true;
   try {
@@ -106,20 +108,20 @@ watch(() => parca_no.value, (val) => {
     <div v-if="props.show" class="ck-modal-overlay">
       <div class="ck-modal ck-glass-modal">
         <div class="ck-modal-header">
-          <b>{{ props.editData ? 'Hurda Düzenle' : 'Hurda Ekle' }}</b>
+          <b>{{ props.editData ? __("Hurda Düzenle") : __("Hurda Ekle") }}</b>
           <button class="ck-modal-close" @click="props.onClose">&times;</button>
         </div>
 
         <div class="ck-modal-body">
           <!-- Item Search -->
           <div class="ck-form-group">
-            <label>Parça Numarası</label>
+            <label>{{ __("Parça Numarası") }}</label>
             <div class="ck-search-wrapper">
               <input 
                 type="text" 
                 v-model="parca_no" 
                 class="ck-input" 
-                placeholder="Parça ara veya kod gir..."
+                :placeholder="__('Parça ara veya kod gir...')"
                 @focus="showItemResults = true"
               />
               <div v-if="showItemResults && itemResults.length > 0" class="ck-search-results">
@@ -137,12 +139,12 @@ watch(() => parca_no.value, (val) => {
           </div>
 
         <div class="ck-form-group">
-            <label>Miktar</label>
+            <label>{{ __("Miktar") }}</label>
             <input type="number" v-model.number="miktar" class="ck-input" placeholder="0.00" />
         </div>
 
         <div class="ck-form-group">
-            <label>Hurda Nedeni</label>
+            <label>{{ __("Hurda Nedeni") }}</label>
             <div class="ck-pill-list">
                 <button 
                     v-for="opt in nedenOptions" 
@@ -158,26 +160,24 @@ watch(() => parca_no.value, (val) => {
         </div>
 
           <div class="ck-form-group">
-              <label>Açıklama (Opsiyonel)</label>
-              <textarea v-model="aciklama" class="ck-input" rows="2" placeholder="Ek bilgi..."></textarea>
+              <label>{{ __("Açıklama (Opsiyonel)") }}</label>
+              <textarea v-model="aciklama" class="ck-input" rows="2" :placeholder="__('Ek bilgi...')"></textarea>
           </div>
 
           <div class="ck-info-box" v-if="parca_no">
-              <div class="ck-info-text">
-                  Birim ve Depo bilgileri İş Emri üzerinden otomatik atanacaktır.
-              </div>
+              <div class="ck-info-text">{{ __("Birim ve Depo bilgileri İş Emri üzerinden otomatik atanacaktır.") }}</div>
           </div>
         </div>
 
         <div class="ck-modal-footer">
-          <button class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">Vazgeç</button>
+          <button class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">{{ __("Vazgeç") }}</button>
           <button
             class="ck-btn ck-btn--primary"
             style="flex: 2"
             @click="handleSubmit"
             :disabled="submitting || !parca_no || !miktar || !hurda_nedeni"
           >
-            {{ submitting ? 'Kaydediliyor...' : 'Kaydet' }}
+            {{ submitting ? __("Kaydediliyor...") : __("Kaydet") }}
           </button>
         </div>
       </div>

@@ -35,7 +35,7 @@ def compare_sales_order_update_documents(current_sales_order_update_name):
     )
 
     if not previous_head:
-        frappe.msgprint(_("Karşılaştırma için önceki Sales Order Update kaydı bulunamadı (bu ilk kayıt)."))
+        frappe.msgprint(_("Karşılaştırma için önceki Satış Siparişi Güncelleme kaydı bulunamadı (bu ilk kayıt)."))
         return
 
     previous_sales_order_update_name = previous_head[0].name

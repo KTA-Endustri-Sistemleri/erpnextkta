@@ -52,7 +52,7 @@ class KTAPurchaseOrder(ERPNextPurchaseOrder):
             moq = moq_map.get(item_code)
             if moq and qty < moq:
                 warnings.append(
-                    _("Item {0} için Minimum Sipariş Miktarı {1}. Satır miktarı {2}.")
+                    _("Ürün {0} için Minimum Sipariş Miktarı {1}. Satır miktarı {2}.")
                     .format(item_code, moq, qty)
                 )
 

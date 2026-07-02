@@ -3,7 +3,7 @@
 frappe.pages["view-calisma-karti"].on_page_load = async function (wrapper) {
   frappe.ui.make_app_page({
     parent: wrapper,
-    title: "Çalışma Kartı",
+    title: __("Çalışma Kartı"),
     single_column: true
   });
 

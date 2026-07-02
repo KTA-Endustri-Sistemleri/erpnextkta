@@ -3,7 +3,7 @@
 frappe.pages["stock-reco-dashboard"].on_page_load = function (wrapper) {
   frappe.ui.make_app_page({
     parent: wrapper,
-    title: __("Stock Reconciliation Dashboard"),
+    title: __("Stok Uzlaştırma Panosu"),
     single_column: true,
   });
 

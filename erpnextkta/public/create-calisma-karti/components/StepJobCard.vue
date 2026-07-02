@@ -1,4 +1,6 @@
 <script setup>
+const __ = (...args) => window.__(...args);
+
 const props = defineProps({
   jobCards: {
     type: Array,
@@ -31,9 +33,9 @@ function isSelected(name) {
   <section class="step-jobcard">
     <div class="step-jobcard__header">
       <div>
-        <h2 class="step-jobcard__title">İş Kartı</h2>
+        <h2 class="step-jobcard__title">{{ __('İş Kartı') }}</h2>
         <p class="step-jobcard__subtitle">
-          Seçilen İş Emri'ne bağlı <strong>İş Kartı</strong>lardan birini seç.
+          {{ __('Seçilen İş Emri\'ne bağlı İş Kartlarından birini seç.') }}
         </p>
       </div>
 
@@ -41,7 +43,7 @@ function isSelected(name) {
         v-if="jobCards.length"
         class="step-jobcard__count"
       >
-        {{ jobCards.length }} iş kartı bulundu
+        {{ jobCards.length }} {{ __('iş kartı bulundu') }}
       </div>
     </div>
 
@@ -50,7 +52,7 @@ function isSelected(name) {
       v-if="!jobCards.length"
       class="step-jobcard__empty"
     >
-      Bu İş Emri'ne bağlı herhangi bir İş Kartı bulunamadı.
+      {{ __('Bu İş Emri\'ne bağlı herhangi bir İş Kartı bulunamadı.') }}
     </div>
 
     <!-- Kart grid -->
@@ -76,17 +78,17 @@ function isSelected(name) {
               ? 'step-jobcard__badge--selected'
               : 'step-jobcard__badge--default'"
           >
-            {{ isSelected(jc.name) ? 'Seçili' : 'Seç' }}
+            {{ isSelected(jc.name) ? __('Seçili') : __('Seç') }}
           </div>
         </div>
 
         <div class="step-jobcard__card-body">
           <div v-if="jc.operation" class="step-jobcard__row">
-            <span class="step-jobcard__label">Operasyon:</span>
+            <span class="step-jobcard__label">{{ __('Operasyon') }}:</span>
             <span> {{ jc.operation }}</span>
           </div>
           <div v-if="jc.workstation" class="step-jobcard__row">
-            <span class="step-jobcard__label">İş İstasyonu:</span>
+            <span class="step-jobcard__label">{{ __('İş İstasyonu') }}:</span>
             <span> {{ jc.workstation }}</span>
           </div>
         </div>

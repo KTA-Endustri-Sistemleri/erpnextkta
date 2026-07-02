@@ -1,4 +1,6 @@
 // utils/kalite_ui.ts
+const __ = (...args: any[]) => (window as any).__(...args);
+
 export function fmtDt(val?: string) {
     if (!val) return "";
     try {
@@ -14,8 +16,8 @@ export function copyToClipboard(text?: string) {
     const t = (text || "").trim();
     if (!t) return;
     navigator.clipboard?.writeText(t).then(
-        () => frappe.show_alert({ message: "Kopyalandı", indicator: "green" }),
-        () => frappe.msgprint("Kopyalama başarısız.")
+        () => frappe.show_alert({ message: __("Kopyalandı"), indicator: "green" }),
+        () => frappe.msgprint(__("Kopyalama başarısız."))
     );
 }
 
@@ -60,6 +62,6 @@ export function openActionSheet(title: string, options: string[], onPick: (picke
         ],
         (v: any) => onPick(v.action),
         title,
-        "Seç"
+        __("Seç")
     );
 }

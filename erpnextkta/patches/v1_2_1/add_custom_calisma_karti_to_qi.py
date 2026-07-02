@@ -11,7 +11,7 @@ def execute():
                 "fieldtype": "Link",
                 "options": "Calisma Karti",
                 "insert_after": "reference_name",
-                "read_only": 1,
+                "allow_on_submit": 1,
                 "description": "Bu kalite belgesini oluşturan spesifik çalışma kartı."
             }
         ]

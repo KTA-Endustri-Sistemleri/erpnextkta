@@ -14,8 +14,8 @@ def _require_role():
     """Allow only Stock Reconciliation Manager role to access API."""
     user = frappe.session.user
     roles = frappe.get_roles(user) or []
-    if ROLE_REQUIRED not in roles:
-        frappe.throw(_("Not permitted"), frappe.PermissionError)
+    if not frappe.has_permission("Stock Reconciliation", "read"):
+        frappe.throw(_("İzin verilmiyor"), frappe.PermissionError)
 
 
 def _has_column(doctype: str, fieldname: str) -> bool:
@@ -50,7 +50,7 @@ def _parse_date(d: str | None) -> str | None:
     try:
         return str(getdate(d))
     except Exception:
-        frappe.throw(_("Invalid date: {0}").format(d))
+        frappe.throw(_("Geçersiz tarih: {0}").format(d))
 
 
 def _build_date_filter(year: int, from_date: str | None, to_date: str | None) -> tuple[str, dict]:
@@ -68,7 +68,7 @@ def _build_date_filter(year: int, from_date: str | None, to_date: str | None) ->
 
     if fd and td:
         if fd > td:
-            frappe.throw(_("Date From cannot be after Date To"))
+            frappe.throw(_("Başlangıç Tarihi Bitiş Tarihinden sonra olamaz"))
         params.update({"from_date": fd, "to_date": td})
         return "sr.posting_date BETWEEN %(from_date)s AND %(to_date)s", params
 
@@ -114,7 +114,7 @@ def get_dashboard(year: int, from_date: str | None = None, to_date: str | None =
     try:
         year = int(year)
     except Exception:
-        frappe.throw(_("Invalid year"))
+        frappe.throw(_("Geçersiz yıl"))
 
     diff = _diff_expr("sri")
     date_clause, params = _build_date_filter(year, from_date, to_date)
@@ -222,12 +222,12 @@ def get_item_details(item_code: str, year: int, from_date: str | None = None, to
     _require_role()
 
     if not item_code:
-        frappe.throw(_("Item Code is required"))
+        frappe.throw(_("Ürün Kodu zorunludur"))
 
     try:
         year = int(year)
     except Exception:
-        frappe.throw(_("Invalid year"))
+        frappe.throw(_("Geçersiz yıl"))
 
     diff = _diff_expr("sri")
     date_clause, params = _build_date_filter(year, from_date, to_date)

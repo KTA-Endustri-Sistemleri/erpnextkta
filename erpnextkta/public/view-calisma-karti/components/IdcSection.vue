@@ -12,21 +12,23 @@ const props = defineProps<{
   onPrint: () => void;
 }>();
 
+const __ = (...args: any[]) => window.__(...args);
+
 function actions(r: any) {
   const items = props.canEditData
-    ? ["Düzenle", "Kopyala", "Sil"]
-    : ["Kopyala"];
-  openActionSheet("IDC İşlemleri", items, (a) => {
-    if (a === "Düzenle") props.onEdit(r);
-    if (a === "Kopyala") props.onClone(r);
-    if (a === "Sil") props.onDelete(r);
+    ? [__("Düzenle"), __("Kopyala"), __("Sil")]
+    : [__("Kopyala")];
+  openActionSheet(__("IDC İşlemleri"), items, (a) => {
+    if (a === __("Düzenle")) props.onEdit(r);
+    if (a === __("Kopyala")) props.onClone(r);
+    if (a === __("Sil")) props.onDelete(r);
   });
 }
 </script>
 
 <template>
   <div class="ck-qc-header">
-    <b>IDC Ölçümleri</b>
+    <b>{{ __('IDC Ölçümleri') }}</b>
     <div style="display:flex; gap:6px;">
       <button
         v-if="(props.rows||[]).length > 0"
@@ -34,10 +36,10 @@ function actions(r: any) {
         style="padding: 8px 10px; font-size: 12px;"
         @click="props.onPrint"
       >
-        🖨️ Protokol
+        {{ __('🖨️ Protokol') }}
       </button>
       <button v-if="props.canEditData" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
-        + Ekle
+        {{ __('+ Ekle') }}
       </button>
     </div>
   </div>
@@ -68,13 +70,13 @@ function actions(r: any) {
           class="ck-muted"
           style="border:1px dashed rgba(0,0,0,.12); border-radius:12px; padding:8px 10px;"
         >
-          <div v-if="r.olcum_tarihi">Tarih: {{ fmtDt(r.olcum_tarihi) }}</div>
-          <div v-if="r.olcumu_giren">Giren: {{ r.olcumu_giren }}</div>
+          <div v-if="r.olcum_tarihi">{{ __('Tarih') }}: {{ fmtDt(r.olcum_tarihi) }}</div>
+          <div v-if="r.olcumu_giren">{{ __('Giren') }}: {{ r.olcumu_giren }}</div>
         </div>
 
         <div v-if="props.canEditData" style="display:flex; justify-content:flex-end;">
           <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            İŞLEMLER ▾
+            {{ __('İŞLEMLER') }} ▾
           </button>
         </div>
       </div>

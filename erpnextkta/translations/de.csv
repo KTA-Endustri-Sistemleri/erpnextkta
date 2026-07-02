@@ -1,0 +1,688 @@
+<b>Satır {0} ({1})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır.,<b>Zeile {0} ({1})</b>: Bitte geben Sie eine gültige <b>Fachmenge (Anzahl der Kartons)</b> für dieses Produkt ein. Dieser Wert muss größer als 0 sein.
+<strong>UYARI:</strong> Yazıcı kuyruğu yoğun! Sıradaki iş sayısı: {0}. Etiketlerin basılması gecikebilir.,<strong>WARNUNG:</strong> Druckerwarteschlange ausgelastet! Anzahl der Jobs in der Warteschlange: {0}. Der Etikettendruck kann sich verzögern.
+Ad Soyad / İmza / Tarih,Vorname Nachname / Unterschrift / Datum
+Alan zorunludur: {0},Feld ist erforderlich: {0}
+Alt tablo alanı bulunamadı: {0},Untergeordneter Tablespace nicht gefunden: {0}
+Alt İşlem,Unterarbeitsgang
+Alt İşlem Düzenle,Unterprozess bearbeiten
+Alt İşlem Ekle,Unterprozess hinzufügen
+Alt İşlem eklendi,Unterprozess hinzugefügt
+Alt İşlem güncellendi,Unterprozess aktualisiert
+Alt İşlem silindi,Unterprozess gelöscht
+Alış Faturası,Kaufrechnung
+Ana belge içinde '{0}' alt tablo alanı bulunamadı.,Der Untertabellenbereich „{0}“ konnte im Hauptdokument nicht gefunden werden.
+Aramana uygun çalışma kartı bulunamadı.,"Es wurden keine Personalzeiterfassungn gefunden, die Ihrer Suche entsprechen."
+Arkaplan görevi sıraya alındı. Tamamlandığında bildirim alacaksınız.,"Die Hintergrundaufgabe steht in der Warteschlange. Sie erhalten eine Benachrichtigung, wenn der Vorgang abgeschlossen ist."
+Arıza Açıklaması,Fehlerbeschreibung
+Arıza Bildir,Melden Sie einen Fehler
+Arıza Bildirildi,Fehler gemeldet
+Arıza Bildirimi,Fehlerbenachrichtigung
+Arıza Nedeni,Störungsursache
+Arıza bildirimi oluşturulamadı.,Fehlerbericht konnte nicht erstellt werden.
+Arıza bildirimi oluşturuluyor...,Es wird eine Fehlermeldung generiert...
+Arıza yaşanan makineyi seçin (ör: M 1),Wählen Sie die Maschine mit dem Fehler aus (z. B. M 1).
+Arızanın detaylarını yazın — bakım ekibine bu bilgi iletilecek.,Notieren Sie die Einzelheiten des Fehlers – diese Informationen werden an das Wartungsteam weitergeleitet.
+Ayarlar Eksik,Einstellungen fehlen
+Açıklama,Erläuterung
+Açıklama (Opsiyonel),Beschreibung (optional)
+Açıklama Zorunlu,Beschreibung Erforderlich
+Açıklama yok,Keine Beschreibung
+Aşama,Bühne
+Aşağıdaki döviz dönüşümleri için kur bilgisi bulunamadı:\n{0},Für die folgenden Währungsumrechnungen wurden keine Wechselkursinformationen gefunden:\n{0}
+Bakım,Pflege
+Bakım Talimatı,Wartungsanleitung
+Bakım talimatı bulunamadı.,Keine Wartungsanleitung gefunden.
+Barkod boş olamaz.,Der Barcode darf nicht leer sein.
+Barkod kaydı eklendi,Barcode-Datensatz hinzugefügt
+Barkod kaydı güncellendi,Barcode-Datensatz aktualisiert
+Barkod kaydı silindi,Barcode-Datensatz gelöscht
+Barkod satır kimliği (row name) bulunamadı.,Der Name der Barcode-Zeile konnte nicht gefunden werden.
+Barkod satırı bulunamadı (rowname: {0}).,Barcodezeile nicht gefunden (Zeilenname: {0}).
+Bağlı Stok Belgesi,Schuldverschreibungszertifikat
+Başarılı,Erfolgreich
+Başlamamış bir işlemde duruş yapılamaz.,"Ein Prozess, der nicht gestartet wurde, kann nicht gestoppt werden."
+Başlamamış işlem bitirilemez.,"Ein Prozess, der nicht begonnen hat, kann nicht beendet werden."
+Başlangıç Tarihi,Startdatum
+Başlangıç Tarihi Bitiş Tarihinden sonra olamaz,Das Startdatum darf nicht nach dem Enddatum liegen
+Başlat,Starten
+"Beklenmeyen bir hata oluştu, işlem yapılamadı. Hata detayları sistem loglarına kaydedildi.",Ein unerwarteter Fehler ist aufgetreten. Der Vorgang konnte nicht ausgeführt werden. Fehlerdetails wurden in den Systemprotokollen aufgezeichnet.
+Bekleyen güncellemeler var...,Es gibt ausstehende Updates...
+Belge Yaratılış Tarihi,Erstellungsdatum des Dokuments
+Bildir,Bericht
+Bilgiler,Information
+Bilinmeyen change_type: {0},Unbekannt
+Bilinmiyor,Unbekannt
+Birim,Einheit
+Birim ve Depo bilgileri İş Emri üzerinden otomatik atanacaktır.,Einheiten- und Lagerinformationen werden automatisch über den Arbeitsauftrag zugewiesen.
+Bitir,Beenden
+Bitiş Tarihi,Enddatum
+Bitmiş,Fertig
+Bitmiş bir işlemde duruş yapılamaz.,Bei einer abgeschlossenen Transaktion kann kein Stop vorgenommen werden.
+Boş Stokları Yoksay,Ignorieren Sie leere Bestände
+Bu IDC kodu Work Order BOM içinde yok. Başka bir ürüne ait IDC eklenemez.,Dieser IDC-Code ist in der Arbeitsauftragsstückliste nicht vorhanden. IDC für ein anderes Produkt kann nicht hinzugefügt werden.
+Bu IDC ölçüm satırı silinecek. Emin misiniz?,Diese IDC-Messzeile wird gelöscht. Bist du sicher?
+Bu barkod satırı silinecek. Emin misiniz?,Diese Barcodezeile wird gelöscht. Bist du sicher?
+Bu barkoda ait bir İş Emri bulunamadı: {0},Für diesen Barcode wurde kein Arbeitsauftrag gefunden: {0}
+Bu belge için bir Stok Girişi Tipi seçilmemiş.,Für dieses Dokument wurde kein Lagereintragstyp ausgewählt.
+Bu depo grubunda stoğu olan ürün bulunamadı,In dieser Lagergruppe wurden keine vorrätigen Produkte gefunden
+Bu durumdaki bir İş Emri için kart açılamaz: {0},Für einen Arbeitsauftrag mit diesem Status kann keine Karte geöffnet werden: {0}
+Bu enjeksiyon ölçüm satırı silinecek. Emin misiniz?,Diese Injektionsmesszeile wird gelöscht. Bist du sicher?
+Bu etiket henüz yazıcıya gönderilmemiş.,Dieses Etikett wurde noch nicht an den Drucker gesendet.
+Bu etiketi tekrar yazıcıya göndermek istediğinize emin misiniz?,Möchten Sie dieses Etikett wirklich noch einmal an den Drucker senden?
+Bu hurda satırı silinecek. Emin misiniz?,Diese Ausschusszeile wird gelöscht. Bist du sicher?
+Bu irsaliyeye ait tüm etiketleri tekrar yazıcıya göndermek istiyor musunuz?,Möchten Sie alle Etiketten für diesen Lieferschein erneut an den Drucker senden?
+Bu işlem satırı silinecek. Emin misiniz?,Diese Transaktionszeile wird gelöscht. Bist du sicher?
+Bu işlem zaten durdurulmuş.,Dieser Vorgang wurde bereits gestoppt.
+Bu kart henüz bitirilmemiş. Gönderim (Submit) yapabilmek için önce işlemi bitirmelisiniz.,"Diese Karte ist noch nicht fertig. Bevor Sie senden können, müssen Sie den Vorgang abschließen."
+Bu kart zaten bitmiş.,Diese Karte ist bereits fertig.
+Bu karta bağlı bir kalite belgesi ({0}) bulunmaktadır. Durum değişikliği sadece ilgili belge üzerinden yapılabilir.,Dieser Karte ist ein Qualitätszertifikat ({0}) beigefügt. Statusänderungen können nur über das entsprechende Dokument vorgenommen werden.
+Bu krimp ölçüm satırı silinecek. Emin misiniz?,Diese Crimp-Messzeile wird gelöscht. Bist du sicher?
+Bu kullanıcı için Employee kaydı bulunamadı. Employee.user_id / company_email / personal_email eşleşmeli: {0},Für diesen Benutzer wurden keine Mitarbeiterdatensätze gefunden. Employee.user_id / company_email / personal_email muss übereinstimmen: {0}
+Bu operasyon kombinasyonu zaten tanımlı: {0} / {1} / {2} (Kayıt: {3}),Diese Kombination von Operationen ist bereits definiert: {0} / {1} / {2} (Register: {3})
+Bu Çalışma Kartı'na ait zaten bir kalite belgesi ({0}) bulunmaktadır. Yeni bir tane oluşturulamaz.,Für diese Personalzeiterfassung liegt bereits ein Qualitätszertifikat ({0}) vor. Es kann kein neues erstellt werden.
+Bu çalışma kartı için yetkiniz yok.,Sie sind für diese Personalzeiterfassung nicht berechtigt.
+Bu çalışma kartını düzenleme yetkiniz yok.,"Sie sind nicht berechtigt, diese Personalzeiterfassung zu bearbeiten."
+Bu çalışma kartını görüntüleme yetkiniz yok.,"Sie sind nicht berechtigt, diese Personalzeiterfassung anzuzeigen."
+Bu İş Emri için okuma yetkiniz yok.,Sie haben keine Leseberechtigung für diesen Arbeitsauftrag.
+Bu İş Kartı için okuma yetkiniz yok.,Sie haben keine Leseberechtigung für diese Jobkarte.
+Bu İşlem için yetkiniz yok.,Sie sind für diese Transaktion nicht berechtigt.
+Bu şablonda parametre tanımlanmamış.,In dieser Vorlage sind keine Parameter definiert.
+Calisma Karti Tag Ekleme Hatası,Fehler beim Hinzufügen des Personalzeiterfassungn-Tags
+Daha fazla yükle,Mehr laden
+Depo Grubu,Lagergruppe
+Depo Grubu zorunludur,Die Lagergruppe ist obligatorisch
+Depo Grubundan Toplu Reco Oluştur,Erstellen Sie eine Massenreco aus der Repository-Gruppe
+Depodan Ürünleri Getir,Artikel aus Lagerhaus abrufen
+Depolar (Bitmiş Ürün Depolarını Seçin),Lager (ausgewählte Lager für Fertigprodukte)
+Depolar arası zıt yön,Entgegengesetzte Richtung zwischen Lagerhäusern
+Devam Et,Weitermachen
+Devam ediyor,Im Gange
+Değer Türü,Werttyp
+Dosyadan Yükle (Data Import),Aus Datei laden (Datenimport)
+Duruş,In Wartestellung
+Duruş Başlat,Starthaltung
+Duruş Bilgisi,Haltungsinformationen
+Duruş Kaydedildi,Haltung gespeichert
+Duruş Nedeni,Grund für die Unterbrechung
+Duruş Süresi (dk),Ausfallzeit (min.)
+Duruş kaydı yok.,Es gibt keine Aufzeichnungen über den Stopp.
+"Duruş nedeni ""Diger"" olduğunda açıklama girmek zorunludur.","Wenn der Grund für die Unterbrechung „Sonstiges“ ist, ist die Eingabe einer Begründung obligatorisch."
+Duruş nedeni 'Diger' olduğunda açıklama girmek zorunludur.,"Wenn der Grund für die Unterbrechung „Sonstiges“ lautet, muss unbedingt eine Beschreibung eingegeben werden."
+Duruş nedeni olarak 'Diger' seçildiğinde açıklama girmek zorunludur. Lütfen {0}. sıradaki duruş kaydının açıklamasını doldurunuz.,"Wenn „Sonstiges“ als Grund für die Sperrung ausgewählt wird, muss unbedingt eine Beschreibung eingegeben werden. Bitte {0}. Geben Sie die Beschreibung des nächsten Stoppdatensatzes ein."
+Duruş sonlandırılıp işleme devam edilecek.,Der Stopp wird beendet und der Prozess wird fortgesetzt.
+Duruşa geçmek için Duruş Nedeni belirtilmelidir.,"Um einen Stopp vorzunehmen, muss der Grund für den Stopp angegeben werden."
+Duruşta,In Wartestellung
+Dönem Aralığı,Begriffsbereich
+Düzenle,Bearbeiten
+Ekle,Hinzufügen
+Eksik Kutu İçi Adedi Bilgisi,Fehlende Informationen zur Kartonmenge
+Eksik Parametre,Fehlender Parameter
+Eksik Süre (dk) [(Gün x {0}) - Net],Fehlende Zeit (Min.) [(Tag x {0}) – Netto]
+Eksik Zorunlu Alan,Fehlendes Pflichtfeld
+Employee eşleşmesi bulunamadı. Lütfen Employee kayıtlarında user_id / company_email / personal_email alanlarını kontrol edin. User: {0},Für „Mitarbeiter“ wurden keine Treffer gefunden. Bitte überprüfen Sie die Felder „user_id“ / „company_email“ / „personal_email“ in den Mitarbeiterdatensätzen. Benutzer: {0}
+En az bir parametre eklemelisiniz.,Sie müssen mindestens einen Parameter hinzufügen.
+Enjeksiyon satır kimliği bulunamadı.,Injektionszeilen-ID nicht gefunden.
+Enjeksiyon Ölçümü Düzenle,Einspritzmessung bearbeiten
+Enjeksiyon Ölçümü Ekle,Injektionsmessung hinzufügen
+Enjeksiyon Ölçümü Kopyala,Injektionsmessung kopieren
+Enjeksiyon ölçüm satırı bulunamadı (rowname: {0}).,Injektionsmesszeile nicht gefunden (Zeilenname: {0}).
+Enjeksiyon ölçümü eklendi,Einspritzmessung hinzugefügt
+Enjeksiyon ölçümü güncellendi,Einspritzmessung aktualisiert
+Enjeksiyon ölçümü kopyalandı ve eklendi,Einspritzmessung kopiert und hinzugefügt
+Enjeksiyon ölçümü silindi,Einspritzmessung gelöscht
+Etiket,Ticket
+Etiket (label) sağlanmalıdır.,Etikett muss vorhanden sein.
+Etiket kuyruğa alındı. Kısa süre içinde yazıcıdan çıkacaktır.,Das Tag befindet sich in der Warteschlange. Es wird in kurzer Zeit aus dem Drucker ausgegeben.
+Etiketler yazıcıya gönderildi.,Die Etiketten wurden an den Drucker gesendet.
+Etiketler yazıcıya gönderiliyor...,Etiketten werden an den Drucker gesendet...
+Etiketleri Yeniden Bas,Etiketten erneut drucken
+"Fatura tutarı ({0}) teslimat değerinden ({1}) büyük. Miktar güncellenmedi, Sipariş Kapatılacak.","Der Rechnungsbetrag ({0}) ist größer als der Lieferwert ({1}). Menge nicht aktualisiert, Bestellung wird geschlossen."
+Faturalandırılacak,Wird in Rechnung gestellt
+Filtre Değeri,Filterwert
+Filtreler yüklenirken bir hata oluştu.,Beim Laden der Filter ist ein Fehler aufgetreten.
+GKK Bekliyor,GKK Ausstehend
+Gerekli parametreler eksik: ürün ve template,Erforderliche Parameter fehlen: Produkt und Vorlage
+Geri,Zurück
+Geçersiz Fiyat,Ungültiger Preis
+Geçersiz işlem tipi.,Ungültiger Transaktionstyp.
+Geçersiz kalite kontrol durumu.,Ungültiger Qualitätskontrollstatus.
+Geçersiz tarih: {0},Ungültiges Datum: {0}
+Geçersiz yıl,Ungültiges Jahr
+Geçersiz İş Emri,Ungültiger Arbeitsauftrag
+Geçersiz İş Emri Durumu,Ungültiger Arbeitsauftragsstatus
+Geçersiz İş Kartı,Ungültige Jobkarte
+Geçmiş tarihler için rapor çalıştırılamaz. {0} sonrası seçiniz.,Berichte können nicht für vergangene Daten ausgeführt werden. Wählen Sie nach {0} aus.
+Gruplama Şekli,Gruppierungstyp
+Gönderim Engellendi,Übermittlung blockiert
+Görsel Kontroller,Visuelle Kontrollen
+Gösterilecek Operatör Sayısı,Anzahl der anzuzeigenden Operatoren
+Göz Kontrol,Augenkontrolle
+Güncelle,Aktualisieren
+Güncelleme hatası: {0},Aktualisierungsfehler: {0}
+Güncellenen SO,SO aktualisiert
+Güncellenme,Aktualisiert
+Günlük Bakım Onayı,Tägliche Wartungsgenehmigung
+Günlük bakım kaydı oluşturuldu ve onaylandı.,Tägliches Wartungsprotokoll erstellt und genehmigt.
+Günlük bakımı talimata göre kontrol ettim ve sorun bulunmamıştır.,Ich habe die tägliche Wartung gemäß den Anweisungen überprüft und es wurden keine Probleme festgestellt.
+Hata,Fehler
+Hatalar,Fehler
+Hazır,Bereit
+Hazırlayan Operatör,Vom Betreiber vorbereitet
+Hedef Döviz,Zielwährung
+Henüz arıza bildirimi yapılmamış.,Es wurde bisher keine Störung gemeldet.
+Henüz bakım kaydı yok.,Es liegen noch keine Wartungsaufzeichnungen vor.
+Hurda Düzenle,Ausschuss bearbeiten
+Hurda Ekle,Schrott hinzufügen
+Hurda Nedeni,Grund für Verschrottung
+Hurda Nedeni geçersiz. Lütfen listeden seçin.,Der Ausschussgrund ist ungültig. Bitte wählen Sie aus der Liste aus.
+Hurda eklendi,Schrott hinzugefügt
+Hurda güncellendi,Schrott aktualisiert
+Hurda kaydı yok.,Es gibt kein Schrottprotokoll.
+Hurda satır kimliği (row name) bulunamadı.,Die Ausschusszeilen-ID (Zeilenname) konnte nicht gefunden werden.
+Hurda satırı bulunamadı (rowname: {0}).,Ausschusszeile nicht gefunden (Zeilenname: {0}).
+Hurda silindi,Schrott gelöscht
+IDC satır kimliği (row name) bulunamadı.,IDC-Zeilenname nicht gefunden.
+IDC Ölçümü Düzenle,IDC-Messung bearbeiten
+IDC Ölçümü Ekle,IDC-Messung hinzufügen
+IDC Ölçümü Kopyala,IDC-Messung kopieren
+IDC ölçüm satırı bulunamadı (rowname: {0}).,IDC-Messzeile nicht gefunden (Zeilenname: {0}).
+IDC ölçümü eklendi,IDC-Messung hinzugefügt
+IDC ölçümü güncellendi,IDC-Messung aktualisiert
+IDC ölçümü kopyalandı ve eklendi,IDC-Messung kopiert und hinzugefügt
+IDC ölçümü silindi,IDC-Messung gelöscht
+KTA,KTA
+KTA Sevk Parametreleri'nde eşleşmeyen müşteri/adres kayıtları (ilk 10):<br><br>{0},Nicht übereinstimmende Kunden-/Adressdatensätze in den KTA-Versandparametern (Top 10):<br><br>{0}
+Kablo ve Kontak Bilgileri,Kabel- und Kontaktinformationen
+Kalite,Qualität
+Kalite Kontrol Gönderim Hatası {0},Fehler bei der Übermittlung bei der Qualitätskontrolle {0}
+Kalite Muayene Formu,Qualitätsprüfformular
+Kalite Ret Formu,Qualitätsablehnungsformular
+Kalite Sorumlusu,Qualitätsbeauftragter
+Kalite belgesi oluşturuldu ve onaylandı,Qualitätszertifikat erstellt und genehmigt
+Kalite belgesi oluşturuldu ve reddedildi,Qualitätszertifikat erstellt und abgelehnt
+Kalite durumu güncellendi,Qualitätsstatus aktualisiert
+Kalite kontrol belgesi olmadan reddetmek istediğinizden emin misiniz?,"Sind Sie sicher, dass Sie ohne Qualitätskontrollzertifikat ablehnen möchten?"
+Kalite Şablonu,Qualitätsvorlage
+Kalıp No,Form-Nr.
+Kapalı,Geschlossen
+Kapasite Dengeleme Yapılsın mı?,Kapazitätsausgleich durchführen?
+Kapatılan SO,SO geschlossen
+Kart Sayısı,Anzahl der Karten
+Karşılaştırma için önceki Satış Siparişi Güncelleme kaydı bulunamadı (bu ilk kayıt).,Für den Vergleich wurde kein früherer Datensatz zur Aktualisierung von Kundenaufträgen gefunden (dies ist der erste Datensatz).
+Karşılaştırma senkronizasyonu kuyruğa alındı.,Benchmark-Synchronisierung in der Warteschlange.
+Karşılaştırma tamamlandı.,Vergleich abgeschlossen.
+Karşılaştırma yapılıyor...,Es wird ein Vergleich durchgeführt...
+Kaydediliyor...,Aufnahme...
+Kaydet,Speichern
+Kaydet ve Onayla,Speichern und Einreichen
+Kaydet ve Reddet,Speichern und Ablehnen
+Kayıt bulunamadı.,Kein Datensatz gefunden.
+Kayıt yok,Keine Aufzeichnung
+Kayıt yok.,Keine Aufzeichnung.
+Kontrol Periyodu,Kontrollzeitraum
+Kopyalama başarısız.,Der Kopiervorgang ist fehlgeschlagen.
+Kopyalandı,Kopiert
+Krimp Book değerleri yüklendi,Krimp-Buchwerte geladen
+Krimp satır kimliği bulunamadı.,Crimpreihen-ID nicht gefunden.
+Krimp Ölçümü Düzenle,Crimpmessung bearbeiten
+Krimp Ölçümü Ekle,Crimpmessung hinzufügen
+Krimp Ölçümü Kopyala,Crimpmessung kopieren
+Krimp ölçüm satırı bulunamadı (rowname: {0}).,Crimp-Messlinie nicht gefunden (Zeilenname: {0}).
+Krimp ölçümü eklendi,Crimpmessung hinzugefügt
+Krimp ölçümü güncellendi,Crimpmessung aktualisiert
+Krimp ölçümü kopyalandı ve eklendi,Crimpmaß kopiert und hinzugefügt
+Krimp ölçümü silindi,Crimpmessung gelöscht
+Kritik hata: {0},Kritischer Fehler: {0}
+Kısayollar,Verknüpfungen
+Kısmen Faturalandırıldı,Teilweise abgerechnet
+Log kaydını açmak için tıklayın.,"Klicken Sie hier, um den Protokolldatensatz zu öffnen."
+Lütfen KTA Çalışma Kartı Ayarları panelinden 'Hurda Gider Hesabı' bilgisini tanımlayın.,Bitte definieren Sie die Informationen zum „Abfallkostenkonto“ im Bereich „KTA-Personalzeiterfassungneinstellungen“.
+Lütfen bakım kontrolünü onaylayın.,Bitte bestätigen Sie die Wartungsprüfung.
+Lütfen bir hurda nedeni seçin.,Bitte wählen Sie einen Ausschussgrund aus.
+Lütfen bir parça seçin.,Bitte wählen Sie ein Stück aus.
+Lütfen bir şablon seçin.,Bitte wählen Sie eine Vorlage aus.
+Lütfen geçerli bir miktar girin.,Bitte geben Sie einen gültigen Betrag ein.
+Lütfen makine seçin.,Bitte Maschine auswählen.
+MOQ Uyarısı,MOQ-Hinweis
+Makine Arıza Bildirimi,Benachrichtigung über Maschinenfehler
+Makine Günlük Bakım,Tägliche Wartung der Maschine
+Makine No,Maschinennr.
+Makine numarasını yazarak seçin (ör: M 1),Wählen Sie durch Eingabe der Maschinennummer (z. B. M 1) aus.
+Makine ve Kalıp,Maschine und Form
+Makine:,Maschine:
+Miktar,Menge
+Miktar:,Menge:
+Motor Devir,Motorgeschwindigkeit
+Mükerrer Kayıt,Doppelte Registrierung
+Mükerrer Kayıt Engeli,Verhinderung doppelter Registrierungen
+Müşteri,Kunde
+Müşteri Grubu,Kundengruppe
+Müşteri Grubu seçildiğinde Üretim Sahası (Plant Floor) zorunludur.,"Die Werksebene ist obligatorisch, wenn die Kundengruppe ausgewählt ist."
+Neden:,Wovon:
+Net Dakika,Nettominuten
+"Net Süre: {0}', [frm.doc.net_calisma_suresi]), 'cyan","Nettodauer: {0}', [frm.doc.net_work_duration]), 'cyan"
+Net Çalışma (dk),Netzwerkarbeit (min.)
+Not Açıklama,Hinweisbeschreibung
+Notlar (İsteğe Bağlı),Notizen (optional)
+Numune Sayısı,Anzahl der Proben
+Oluştur,Erstellen
+Oluşturulan SO,SO erstellt
+Oluşturulma,Schaffung
+Onay,Genehmigung
+Onay Bekliyor,Ausstehende Genehmigung
+Onayla ve Kaydet,Genehmigen und Speichern
+Onaylandı,Genehmigt
+Onaylayan,Genehmigt von
+Onaylıyorum,Ich stimme zu
+Operasyon,Vorgang
+Operasyon zorunludur,Die Bedienung ist Pflicht
+Operatör,Bediener
+Ortalama ({0}),Durchschnitt ({0})
+Parametreler,Parameter
+Parametreler yükleniyor...,Parameter werden geladen...
+Parça Numarası,Teilenummer
+Parça Numarası (Item) boş olamaz.,Teilenummer (Artikel) darf nicht leer sein.
+Periyot,Zeitraum
+Proses Parametreleri,Prozessparameter
+QC güncelleme yetkiniz yok.,Sie verfügen nicht über die Berechtigung zur QC-Aktualisierung.
+Radüs Mevcut,Radius verfügbar
+Ramp-up (Önden Üretim) Yapılsın mı?,Sollte ein Ramp-up durchgeführt werden?
+Ramp-up Süresi (Hafta),Hochlaufzeit (Wochen)
+Reddedildi,Abgelehnt
+Reddedilmiş çalışma kartında işlem yapılamaz.,Mit einer abgelehnten Personalzeiterfassung können keine Transaktionen durchgeführt werden.
+SUT barkodu için etiket bulunamadı: {0},Für den SUT-Barcode wurde kein Label gefunden: {0}
+SUT için Stok Defteri Kaydı bulunamadı: {0},Für SUT: {0} wurde kein Lagerbucheintrag gefunden.
+Sadece Hazır durumundaki işlemler başlatılabilir.,Es können nur Prozesse im Status „Bereit“ gestartet werden.
+Sadece Teslim Edilmemişler,Einfach nicht geliefert
+Sadece Varsayılan Reçeteler (BOM),Nur Standard-Stücklisten (BOM)
+Sadece durdurulmuş bir işlem devam ettirilebilir.,Nur ein gestoppter Prozess kann fortgesetzt werden.
+Sadece varsayılan reçeteleri (BOM) arar.,Es wird nur nach Standardrezepten (BOM) gesucht.
+Sadece ürün kartında varsayılan olarak tanımlanmış aktif reçeteleri listeler.,"Es werden nur aktive Rezepte aufgelistet, die standardmäßig in der Produktkarte definiert sind."
+Satınalma Siparişi (Satınalma Siparişi) {0} için ERPNext'te Satış Siparişi bulunamadı. Manuel oluşturulmalı.,Für die Bestellung (Purchase Order) {0} wurde in ERPNext kein Kundenauftrag gefunden. Es muss manuell erstellt werden.
+"Satınalma Siparişi (Satınalma Siparişi) {0}, Ürün {1} için yeni Satış Siparişi manuel oluşturulmalı.","Bestellung (Purchase Order) {0}, neue Kundenbestellung für Produkt {1} muss manuell erstellt werden."
+"Satınalma Siparişi (Satınalma Siparişi) {0}, Ürün {1} için yeni teslimat satırı eklenmelidir. Manuel işlem gerekli.","Für die Bestellung (Purchase Order) {0}, Produkt {1} sollte eine neue Lieferzeile hinzugefügt werden. Manuelle Bedienung erforderlich."
+"Satır {0} — <b>{1}</b>: Rate değeri <b>{2} {3}</b> kabul edilemez. Kaynak belgeden beklenen: <b>{4} {5}</b> (Sapma: %{6}, izin verilen: %{7}). Fiyatı düzeltin veya önce satın alma siparişini güncelleyin.","Zeile {0} – <b>{1}</b>: Der Bewertungswert <b>{2} {3}</b> ist inakzeptabel. Vom Quelldokument erwartet: <b>{4} {5}</b> (Abweichung: {6} %, zulässig: {7} %). Korrigieren Sie zunächst den Preis oder aktualisieren Sie die Bestellung."
+Satır {0}: {1} için Taraf Tipi ve Taraf zorunludur,Seitentyp und Seite sind für Zeile {0} erforderlich: {1}
+Satış Siparişi Güncelleme Listesi,Aktualisierungsliste für Kundenaufträge
+Satış Siparişi Güncelleme kaydı bulunamadı: {0},Kein Datensatz zur Auftragsaktualisierung gefunden: {0}
+Satış Siparişi Güncelleme referansı belirtilmedi.,Es wurde keine Referenz zur Aktualisierung des Kundenauftrags angegeben.
+Satış Siparişi Güncelleme seçilmedi.,„Kundenauftragsaktualisierung“ ist nicht ausgewählt.
+Satış Siparişi Güncelleme tarihi seçilmeden belge oluşturulamaz.,Ohne Auswahl des Aktualisierungsdatums für den Kundenauftrag kann kein Dokument erstellt werden.
+Satış Siparişi Güncelleme İşlemleri,Transaktionen zur Aktualisierung von Kundenaufträgen
+Satış Siparişi içinde eşleşen ürün bulunamadı.,Im Kundenauftrag wurden keine passenden Produkte gefunden.
+Satış Siparişi senkronizasyonu kuyruğa alındı.,Die Synchronisierung von Kundenaufträgen befindet sich in der Warteschlange.
+Satış Siparişinde hiç ürün yok.,Der Kundenauftrag enthält keine Produkte.
+Satış Siparişleri güncelleniyor...,Kundenaufträge werden aktualisiert...
+Satış Siparişlerini Senkronize Et,Kundenaufträge synchronisieren
+Satış siparişlerinde tedarik değerlendirilirken hata oluştu: {0},Fehler bei der Bewertung des Angebots für Kundenaufträge: {0}
+Sayım listeleri arka planda oluşturuluyor. İşlem tamamlandığında bildirim alacaksınız.,"Zähllisten werden im Hintergrund erstellt. Sie erhalten eine Benachrichtigung, wenn der Vorgang abgeschlossen ist."
+Sayım listeleri oluşturuluyor...,Volkszählungslisten werden erstellt...
+Senkronizasyon Sonucu,Synchronisierungsergebnis
+Senkronizasyon Tamamlandı,Synchronisierung abgeschlossen
+Senkronizasyon kuyruğa alındı,Synchronisierung in der Warteschlange
+Seç,Auswählen
+"Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector veya 110-Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)","Der ausgewählte IDC-Code ist nicht geeignet. (item_group=120-IDC Connector oder 110-Connector, custom_ara_malzeme_grubu=ROHMATERIAL)"
+Seçilen depo bir grup olmalıdır,Das ausgewählte Repository muss eine Gruppe sein
+Seçilen hammadde ({0}) iş emri BOM'unda bu aşama için izin verilmiyor.,Der ausgewählte Rohstoff ({0}) ist für diese Phase in der Arbeitsauftragsstückliste nicht zulässig.
+Seçilen varlığın Makine No alanı dolu değil.,Das Feld „Maschinen-ID“ der ausgewählten Entität ist nicht ausgefüllt.
+Seçilen İş Emri bulunamadı: {0},Ausgewählter Arbeitsauftrag nicht gefunden: {0}
+Seçilen İş Kartı bulunamadı: {0},Ausgewählte Jobkarte nicht gefunden: {0}
+"Seçilen İş Kartı, seçtiğiniz İş Emri\'ne ait değil. Lütfen doğru kartı seçin.",Die ausgewählte Jobkarte gehört nicht zu dem von Ihnen ausgewählten Arbeitsauftrag. Bitte wählen Sie die richtige Karte aus.
+Sil,Löschen
+Silinen Satır (SO iptal edildi ve silindi),Gelöschte Zeile (SO abgebrochen und gelöscht)
+Silme Engeli,Löschsperre
+Sistem kaydı olan '{0}' silinemez.,Der Systemdatensatz „{0}“ kann nicht gelöscht werden.
+Sistemde {0} numarasına sahip bir makine/varlık bulunamadı.,Im System wurde keine Maschine/Einheit mit der Nummer {0} gefunden.
+Stok Girişi için birden fazla Giriş Türü İşlem bulundu: {0},Für den Aktieneintrag wurde mehr als eine Eintragstyp-Transaktion gefunden: {0}
+Stok Uzlaştırma Panosu,Dashboard zur Bestandsabstimmung
+Süre:,Dauer:
+Sıfır Tüketimi Göster,Nullverbrauch anzeigen
+Sınıflandırma,Einstufung
+Tamamlanan Miktar,Abgeschlossene Menge
+Tamamlanan miktar negatif olamaz.,Der abgeschlossene Betrag darf nicht negativ sein.
+Tamamlanan miktar sayısal olmalıdır.,Der abgeschlossene Betrag muss numerisch sein.
+Tamamlandı,Vollendet
+Tarih Aralığı,Datumsbereich
+Tarih:,Geschichte:
+Taslak,Entwurf
+Tedarik başlık belgesinde değerlendirme verisi bulunamadı,Im Beschaffungskopfbeleg wurden keine Bewertungsdaten gefunden
+Tedarik için bakiye bulunamadı: {0},Für den Vorrat wurde kein Guthaben gefunden: {0}
+Tek belge sonuca hakim,Ein Dokument dominiert das Ergebnis
+Tek depoda toplandı,In einem Lager gesammelt
+Teslim edilen qty: {0},Gelieferte Menge: {0}
+Teslimat miktarına çekildi,Auf Liefermenge bezogen
+Tolerans değerleri yüklendi,Toleranzwerte geladen
+"Toplam Duruş: {0}', [frm.doc.toplam_durus]), 'orange","Gesamthaltung: {0}', [frm.doc.total_duration]), 'orange"
+Toplu Oluştur,Massen erstellen
+Toplu Stok Uzlaştırması Tamamlandı,Massenabstimmung der Lagerbestände abgeschlossen
+Tüm Kalite Kontroller,Alle Qualitätskontrollen
+Tüm Müşteriler,Alle Kunden
+"Tüm itemlar silindi, SO iptal edildi","Alle Artikel gelöscht, SO storniert"
+Tümü,Alle
+Tümünü Ekle,Alle hinzufügen
+Uyarı,Warnung
+Varsayılan Tedarikçi,Standardlieferant
+Varsayılan kalite kontrol planı başarıyla güncellendi,Der Standard-Qualitätskontrollplan wurde erfolgreich aktualisiert
+Varsayılan plan güncellenirken hata oluştu: {0},Fehler beim Aktualisieren des Standardplans: {0}
+Vazgeç,Stornieren
+Work Order üzerinde BOM bulunamadı (bom_no boş).,Die Stückliste wurde im Arbeitsauftrag nicht gefunden (bom_no ist leer).
+XLS dosyası bulunamadı: {0},XLS-Datei nicht gefunden: {0}
+Yalnızca Ürün Bazlı Grupla,Nur mit produktbasierten Gruppen
+Yazdırılacak IDC ölçümü yok.,Es sind keine IDC-Messungen zum Drucken vorhanden.
+Yazdırılacak enjeksiyon ölçümü yok.,Es sind keine Injektionsmessungen zum Drucken vorhanden.
+Yazdırılacak krimp ölçümü yok.,Es sind keine Crimpmaße zum Ausdrucken vorhanden.
+Yazıcıya gönderiliyor...,An Drucker senden...
+Yeni Satır,Neue Linie
+Yeniden Bas,Abdruck
+Yukarıdan parametre ekleyin.,Parameter von oben hinzufügen.
+Yükleniyor...,Laden...
+"gr_number, label veya q_ref sağlanmalıdır.","Gr_number, label oder q_ref müssen angegeben werden."
+için bir değer girmelisiniz.,Sie müssen einen Wert für eingeben.
+{0} '{1}' başka bir Çalışma Kartı ({2}) tarafından zaten kullanılmış.,{0} „{1}“ wurde bereits von einer anderen Personalzeiterfassung ({2}) verwendet.
+{0} için varsayılan etiket şablonu seçilmemiş.,Die Standardetikettenvorlage für {0} ist nicht ausgewählt.
+{0} işlemleri için etiket basımı aktif değildir.,Der Etikettendruck ist für {0} Transaktionen nicht aktiv.
+{0} makinesi için sistemde 'Asset Maintenance' (Varlık Bakımı) kaydı bulunamadı. Lütfen önce bakım ekibini atayın.,Für Maschine {0} wurde im System kein „Asset Maintenance“-Datensatz gefunden. Bitte weisen Sie zuerst das Wartungsteam zu.
+{0}. satır için depo bulunamadı,{0}. Für die Zeile wurde kein Repository gefunden
+Çalışma Kartları,Personalzeiterfassungn
+Çalışma Kartlarım,Meine Personalzeiterfassungn
+Çalışma Kartı,Personalzeiterfassung
+Çalışma Kartı bir İş Kartı (Job Card) ile bağlantılı değil.,Die Personalzeiterfassung ist nicht mit einer Jobkarte verknüpft.
+Çalışma Kartı henüz bitirilmemiş. Lütfen önce kartı bitirin.,Die Personalzeiterfassung ist noch nicht fertig. Bitte beenden Sie zuerst die Karte.
+Çalışma Kartı üzerinde Work Order bulunamadı.,Auf der Personalzeiterfassung wurde kein Arbeitsauftrag gefunden.
+"Çalışma Kartı, Makine No, Arıza Nedeni ve Açıklama alanları zorunludur.","Die Felder „Personalzeiterfassung“, „Maschinennummer“, „Fehlergrund“ und „Beschreibung“ sind Pflichtfelder."
+Çalışma kartı bulunamadı.,Personalzeiterfassung nicht gefunden.
+Çalışıyor,In Bearbeitung
+Ölçümler,Messungen
+Önce bir İş Emri seçin.,Wählen Sie zunächst einen Arbeitsauftrag aus.
+Önceki Verilerle Karşılaştır,Vergleichen Sie mit früheren Daten
+Özel Belgeler,Private Dokumente
+Ürün,Produkt
+Ürün Grubu,Produktgruppe
+Ürün Kodu,Produktcode
+Ürün Kodu boş olamaz.,Der Produktcode darf nicht leer sein.
+Ürün Kodu zorunludur,Produktcode ist erforderlich
+Ürün için müşteri paketleme miktarı bulunamadı: {0},Für das Produkt konnte keine Kundenverpackungsmenge gefunden werden: {0}
+Ürün {0} için Minimum Sipariş Miktarı {1}. Satır miktarı {2}.,Die Mindestbestellmenge für Produkt {0} beträgt {1}. Zeilenanzahl {2}.
+Ürün:,Produkt:
+Ürünleri Getir,Artikel abrufen
+İade,Zurückkehren
+İade Düzenlendi,Rückerstattung ausgestellt
+İptal Edildi,Abgesagt
+İptal edilmiş kartta işlem yapılamaz.,Mit einer stornierten Karte können keine Transaktionen durchgeführt werden.
+İsim,Name
+İstasyon,Station
+İzin verilmiyor,Nicht erlaubt
+İş Emri,Arbeitsauftrag
+İş Emri Bulunamadı,Arbeitsauftrag nicht gefunden
+İş Emri Kapalı,Arbeitsauftrag geschlossen
+İş Emri onaylanmamış (docstatus != 1).,Arbeitsauftrag nicht genehmigt (Dokumentstatus != 1).
+İş Emri tamamlanmış ve tolerans süresi dolmuş.,Arbeitsauftrag ist erforderlich
+İş Emri zorunludur,Arbeitsauftrag ist erforderlich
+İş Kartı,Jobkarte
+İş Kartı Bulunamadı,Jobkarte nicht gefunden
+İş Kartı boş olamaz.,Jobkarte darf nicht leer sein.
+İş Kartı zorunludur,Jobkarte ist erforderlich
+İş emrinde bu aşama için izin verilen malzeme grubunda hammadde bulunamadı.,In der für diese Phase des Arbeitsauftrags zulässigen Materialgruppe wurden keine Rohstoffe gefunden.
+İş İstasyonu,Arbeitsstation
+İş İstasyonu zorunludur,Arbeitsplatz erforderlich
+İş İstasyonu zorunludur (Job Card veya wizard tarafından sağlanmalı).,Der Arbeitsplatz ist obligatorisch (muss per Personalzeiterfassung oder Assistent bereitgestellt werden).
+İşlem Başarılı,Transaktion erfolgreich
+İşlem Kuyruğa Alındı,Transaktion in der Warteschlange
+İşlem Tamamlandı,Transaktion abgeschlossen
+İşlem başarıyla bitirildi.,Der Vorgang wurde erfolgreich abgeschlossen.
+İşlem başlatılacak.,Der Prozess wird gestartet.
+İşlem bitirilecek. Devam etmek istediğinizden emin misiniz?,"Der Vorgang wird abgeschlossen. Sind Sie sicher, dass Sie fortfahren möchten?"
+İşlem sırasında bir hata oluştu.,Während des Vorgangs ist ein Fehler aufgetreten.
+İşlem tamamlandı. Şimdi kartı gönderebilirsiniz (Submit).,Der Vorgang ist abgeschlossen. Jetzt können Sie die Karte versenden (Submit).
+İşlem yapılıyor...,Die Bearbeitung läuft...
+İşleme alındı,Verarbeitet
+İşlemi bitmiş veya reddedilmiş karta müdahale edemezsiniz.,"Sie können nicht in eine Karte eingreifen, deren Transaktion abgeschlossen oder abgelehnt wurde."
+İşlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.,"Damit der Vorgang abgeschlossen werden kann, muss mindestens ein Untervorgangsdatensatz vorhanden sein."
+İşlemler,Transaktionen
+Şablon Seçiniz...,Bitte Vorlage auswählen...
+Şirket zorunludur,Firma ist Pflicht
+Hurda,Schrott
+Duruş Geçmişi,Stillstandszeiten
+Hammadde No,Rohstoff-Nr
+Ölçülen İletken Krimp Yük. (mm),Gemessene Leiter-Crimphöhe (mm)
+Barkod,Barcode
+Hedef Çekme Kuvveti (N),Ziel-Zugkraft (N)
+Makine / Pres No,Maschinen- / Pressen-Nr
+Soğutma Zamanı (sn),Kühlzeit (Sek.)
+Hedef Kablo Boyu (mm),Ziel-Kabellänge (mm)
+Çapak Boyu (mm),Gratlänge (mm)
+Kablo Kesiti (Rehberden),Kabelquerschnitt (Aus Leitfaden)
+Hammadde Enjeksiyon Zamanı (sn),Rohstoffeinspritzzeit (Sek.)
+Kalite Belgesi,Qualitätsdokument
+Krimp Ölçümleri,Crimp-Messungen
+Ara Hortum Isısı (°C),Zwischenschlauchtemperatur (°C)
+Sıyırma Boyu (mm),Abisolierlänge (mm)
+Hammadde Kazan Isısı (°C),Rohstoffkesseltemperatur (°C)
+Hammadde (Opsiyonel),Rohstoff (Optional)
+Ölçülen Kablo Boyu (mm),Gemessene Kabellänge (mm)
+Hedef İletken Krimp Yük. (mm),Ziel-Leiter-Crimphöhe (mm)
+Sonuç,Ergebnis
+KONTAK:,TERMINAL:
+Depo,Lager
+Soğuk Su Isısı (°C),Kaltwassertemperatur (°C)
+Kalite Kontrol,Qualitätskontrolle
+Görüntüle ↗,Ansehen ↗
+Çekme Kuvveti (N),Zugkraft (N)
+İşleniyor...,Wird verarbeitet...
+Ölçülen Çekme Kuvveti (N),Gemessene Zugkraft (N)
+Tel Kesme Mevcut,Drahtschnitt vorhanden
+MAKİNE:,MASCHINE:
+Çekme (N),Zug (N)
+Kablo No,Kabel-Nr
+Parça ara veya kod gir...,Teil suchen oder Code eingeben...
+Değer,Wert
+KABLO:,KABEL:
+Ek bilgi...,Zusätzliche Info...
+Yükseklik (mm),Höhe (mm)
+Kontak No,Terminal-Nr
+KESİT:,QUERSCHNITT:
+İzokrimp Yüksekliği (mm),Isocrimphöhe (mm)
+Adet,Menge
+KALIP:,FORM:
+Kafa (Meme) Isısı (°C),Kopf- (Düsen-) Temperatur (°C)
+Kopyala,Kopieren
+Hedef karşılandı,Ziel erreicht
+kısa,Kurz
+uzun,Lang
+Grafik sınırı,Grafikgrenze
+aşıldı,Überschritten
+kartınızda eksik veri var:,Es fehlen Daten in Ihrer Karte:
+Hedef:,Ziel:
+Hdf. Krimp Yük.,Ziel-Crimphöhe
+Kalıp,Form
+Radüs,Radius
+Kazan Isısı,Kesseltemperatur
+Sıyırma Boyu,Abisolierlänge
+Soğ. Zamanı,Kühlzeit
+Ölc. Krimp Yük.,Gem. Crimphöhe
+Sapma,Abweichung
+Çapak Boyu,Gratlänge
+İzokrimp,Isocrimp
+PERİYOT:,PERIODE:
+Ölc. Kablo Boyu,Gem. Kabellänge
+Krimp Yük.,Crimphöhe
+Soğutma Zamanı,Kühlzeit
+Hortum Isısı,Schlauchtemperatur
+Barkod Kayıtları,Barcode-Aufzeichnungen
+Soğuk Su,Kaltwasser
+Çapak,Grat
+IDC Ölçümleri,IDC-Messungen
+Hdf. Kablo Boyu,Ziel-Kabellänge
+Kesit,Querschnitt
+Kafa (Meme) Isısı,Kopf- (Düsen-) Temperatur
+Kablo Boyu,Kabellänge
+Meme Isısı,Düsentemperatur
+Göz Knt.,Sichtprüfung
+Enjeksiyon Zamanı,Einspritzzeit
+Sıyırma,Abisolierung
+Item Code,Artikelcode
+Ölçüm Tarihi,Messdatum
+Ara Hortum Isısı,Zwischenschlauchtemperatur
+Makine,Maschine
+Çekme Kuvveti,Zugkraft
+Yine de devam etmek istiyor musunuz?,Möchten Sie trotzdem fortfahren?
+Giren,Eingegeben von
+Devir,Drehzahl
+Hammadde Kazan Isısı,Rohstoffkesseltemperatur
+Yükseklik,Höhe
+Enjeksiyon Ölçümleri,Injektionsmessungen
+Tel Kesme,Drahtschnitt
+HAMMADDE:,ROHSTOFF:
+Hammadde,Rohstoff
+Çekme,Ziehen
+Enj. Zamanı,Einspritzzeit
+Soğuk Su Isısı,Kaltwassertemperatur
+🖨️ Protokol,🖨️ Protokoll
++ Ekle,+ Hinzufügen
+Yok,Nein
+Var,Ja
+Anahtar Alt Montajı (Düğme Kapak Birleştirme),Schalter-Untermontage (Tastenabdeckung Verbinden)
+Bund,Bund
+Direnç Bükme,Widerstandsbiegen
+Doppel,Doppel
+Elektriksel Test (Pushback),Elektrischer Test (Pushback)
+Enjeksiyon,Injektion
+Etiketleme,Etikettierung
+Form Verme,Formen
+Hortum Boylandırma (Kesme),Schlauchkürzen (Schneiden)
+Hortum Montajı,Schlauchmontage
+IDC Basma,IDC-Pressen
+Isıl Fonksiyon Testi (Fırınlama),Thermischer Funktionstest (Ofenhärtung)
+Kablo Kesme,Kabelschneiden
+Kablo Kısaltma,Kabelkürzen
+Kapak Takma (Terminal Kapağı),Abdeckmontage (Terminalabdeckung)
+Kontak Basma,Kontaktpressen
+Lehim,Löten
+Makaron Isıtma,Schrumpfschlauch Erwärmen
+Manto Sıyırma,Mantelabisolieren
+Otomatik Çift Taraflı Kontak Basma,Automatisches beidseitiges Kontaktpressen
+Otomatik Çift Taraflı Kontak Basma + Inkjet,Automatisches beidseitiges Kontaktpressen + Inkjet
+Otomatik Küt Kablo Kesme,Automatisches stumpfes Kabelschneiden
+Otomatik Tek Taraflı Kontak Basma,Automatisches einseitiges Kontaktpressen
+Paketleme,Verpacken
+Perçinleme,Nieten
+Plaka Basma,Plattenpressen
+Pres,Presse
+Pushback (Elektriksel Test),Pushback (Elektrischer Test)
+Seal Takma,Dichtungsmontage
+Silikon Uygulama,Silikonanwendung
+Soket Basma,Buchsenpressen
+Soket Lubrikasyonu (Yağlama),Buchsenschmierung (Fetten)
+Soket Takma,Buchsenmontage
+Son Kontrol,Endkontrolle
+Son Kontrol ve Paketleme,Endkontrolle und Verpacken
+Tel Sıkma,Drahtklemmen
+Test,Test
+Torklama,Anzugsmomentprüfung
+Tülle Takma,Tüllenmontage
+Work Order barkodu,Work Order Barcode
+Seçilecek İş Kartı,Auszuwählende Jobkarte
+Varsayılan veya manuel istasyon,Standard oder manuelle Arbeitsstation
+Operasyon seçimi,Vorgangsauswahl
+Operatör (Employee) seçimi,Bediener (Mitarbeiter) Auswahl
+İş Kartı barkodu / adı,Jobkarten-Barcode / Name
+İleri,Weiter
+Gönderiliyor...,Wird eingereicht...
+Çalışma Kartını Oluştur,Arbeitskarte erstellen
+Çalışma Kartı zaten mevcut,Arbeitskarte bereits vorhanden
+Çalışma Kartı oluşturuldu,Arbeitskarte erstellt
+Bu işlem için aktif bir kartınız zaten bulunuyor.,Sie haben bereits eine aktive Karte für diesen Vorgang.
+Yeni Çalışma Kartı başarıyla kaydedildi.,Neue Arbeitskarte erfolgreich gespeichert.
+Doküman,Dokument
+Çalışma Kartına Git,Zur Arbeitskarte gehen
+Yeni Çalışma Kartı Başlat,Neue Arbeitskarte starten
+İş Emri ile,Mit Work Order
+İş Kartı ile,Mit Jobkarte
+İş Emri Barkodu,Work Order Barcode
+Barkod okuyucu ile,Mit dem Barcode-Lesegerät
+İş Emri barkodunu,den Work Order Barcode
+okut. Okuyucu genelde Enter ile bittiği için ek işlem yapman gerekmez.,"scannen. Das Lesegerät endet normalerweise mit Enter, sodass keine weitere Aktion erforderlich ist."
+Barkodu okutun...,Barcode scannen...
+İş Emri doğrulanıyor...,Work Order wird überprüft...
+Seçilen İş Emri\'ne bağlı,"Mit dem ausgewählten Work Order verknüpft,"
+lardan birini seç.,wählen Sie eine aus.
+iş kartı bulundu,Jobkarten gefunden
+Bu İş Emri\'ne bağlı herhangi bir İş Kartı bulunamadı.,Keine Jobkarte für diesen Work Order gefunden.
+Seçili,Ausgewählt
+İş Kartı Barkodu,Jobkarten-Barcode
+İş Kartı barkodunu,den Jobkarten-Barcode
+okut veya Job Card numarasını gir. Okuyucu genelde Enter ile bittiği için ek işlem yapman gerekmez.,scannen oder die Jobkartennummer eingeben. Das Lesegerät endet normalerweise mit Enter.
+İş Kartı barkodunu okutun veya JC-00045 girin...,Jobkarten-Barcode scannen oder JC-00045 eingeben...
+İş Kartı doğrulanıyor...,Jobkarte wird überprüft...
+Seçili İş Kartı Bilgisi,Ausgewählte Jobkarten-Info
+KTA Çalışma Kartı Operasyonları,KTA Arbeitskarten-Vorgänge
+listesinden bir operasyon seç.,wählen Sie einen Vorgang aus der Liste.
+operasyon bulundu,Vorgänge gefunden
+Bu İş Kartı için tanımlı herhangi bir operasyon bulunamadı.,Kein Vorgang für diese Jobkarte gefunden.
+Bu Çalışma Kartı ile ilişkilendirilecek,Wählen Sie den
+operatörü (Employee),Bediener (Mitarbeiter)
+seç. Sadece,für diese Arbeitskarte aus. Nur
+aktif,aktive
+ve,und
+User bağlı,nutzerverknüpfte
+çalışanlar listelenir.,Mitarbeiter werden aufgelistet.
+çalışan,Mitarbeiter
+İsim / e-posta ile ara...,Nach Name / E-Mail suchen...
+Uygun çalışan bulunamadı. Employee kayıtlarını kontrol edin.,Keine geeigneten Mitarbeiter gefunden. Bitte prüfen Sie die Mitarbeiterdatensätze.
+Filtreye uygun çalışan bulunamadı. Arama kriterini değiştirin.,Keine Mitarbeiter entsprechen dem Filter. Bitte ändern Sie das Suchkriterium.
+Seçili Operatör,Ausgewählter Bediener
+Departman,Abteilung
+Bu Çalışma Kartı\'nın üretileceği,Geben Sie die
+iş istasyonunu,Arbeitsstation
+belirle. Job Card üzerinde zaten tanımlı bir istasyon varsa otomatik olarak doldurulur.,"an, an der diese Arbeitskarte produziert wird. Wenn bereits eine Arbeitsstation auf der Jobkarte eingestellt ist, wird sie automatisch ausgefüllt."
+Önerilen,Empfohlen
+Job Card üzerinde tanımlı istasyon,Die auf der Jobkarte definierte Arbeitsstation ist
+İstersen aşağıdaki buton ile bu değeri kullanabilirsin.,"Sie können die Schaltfläche unten verwenden, um diesen Wert zu übernehmen."
+Örn: IST-01,Z.B.: IST-01
+Job Card istasyonunu kullan,Jobkarten-Arbeitsstation verwenden
+Bu alan,Dieses Feld wird in das
+alanına yazılacak. Zorunlu bir alandır.,Feld geschrieben. Es ist ein Pflichtfeld.
+Seçilen İş Emri'ne bağlı İş Kartlarından birini seç.,Wählen Sie eine der mit dem ausgewählten Work Order verknüpften Jobkarten aus.
+KTA Çalışma Kartı Operasyonları listesinden bir operasyon seç.,Wählen Sie einen Vorgang aus der KTA-Arbeitskarten-Vorgangsliste.
+Bu Çalışma Kartı'nın üretileceği iş istasyonunu belirle. Job Card üzerinde zaten tanımlı bir istasyon varsa otomatik olarak doldurulur.,"Bestimmen Sie die Arbeitsstation, an der diese Arbeitskarte erstellt wird. Wenn bereits eine Arbeitsstation auf der Jobkarte definiert ist, wird diese automatisch ausgefüllt."
+30-0900 Bosch Montaj istasyonu,30-0900 Bosch-Montagestation
+40-0900 Form Verme+Test istasyonu,40-0900 Formgebungs- und Prüfstation
+10-0000 OTM Kablo Kesme istasyonu,10-0000 OTM-Kabelschneidestation
+30-0800 Enjeksiyon istasyonu,30-0800 Spritzgussstation
+Kablo Kesme ve Terminal Basma,Kabelschneiden und Klemmenpressen
+Manuel Kablo Kesme ve Terminal Basma,Manuelles Kabelschneiden und Klemmenpressen
+Ön Hazırlık,Vormontage
+IDC ve Soket,IDC und Buchse
+Form Verme ve Test,Formgebung und Prüfung
+Krimp İşlemleri,Crimpvorgänge
+IDC İşlemleri,IDC-Vorgänge
+Enjeksiyon İşlemleri,Spritzgussvorgänge
+Barkod İşlemleri,Barcode-Vorgänge
+Liste Görünümü,Listenansicht
+Grid Görünümü,Gitteransicht
+Kanban Görünümü,Kanban-Ansicht
+Liste alınamadı.,Liste konnte nicht geladen werden.
+Barkod kaydı yok.,Keine Barcode-Datensätze.
+Bekleyen Çalışma Kartınız Var,Sie haben ausstehende Arbeitskarten
+Dikkat,Achtung
+Sistem tarafından otomatik olarak beklemeye alınmış açık kartlarınız bulunuyor. Lütfen aşağıdan bir kart seçerek mesainize göre ilgili işlemi gerçekleştirin.,"Sie haben offene Karten, die vom System automatisch pausiert wurden. Bitte wählen Sie unten eine Karte aus und führen Sie die entsprechende Aktion gemäß Ihrer Schicht aus."
+Lütfen İşlem Yapılacak Kartı Seçiniz,Bitte wählen Sie eine Karte zur Bearbeitung aus
+Seçili Karta Devam Et,Ausgewählte Karte fortsetzen
+Kartı Görüntüle,Karte anzeigen
+İşlem Başarıyla Devam Ettirildi,Prozess erfolgreich fortgesetzt
+Başlatılıyor...,Starten...
+"Lütfen bekleyin, ilgili karta yönlendiriliyorsunuz.","Bitte warten Sie, Sie werden zur entsprechenden Karte weitergeleitet."
+Duruş Nedeni,Stillstandsgrund
+Arıza Sonrası Bekleme,Warten nach Störung
+DURUŞTA (ARIZA),ANGEHALTEN (STÖRUNG)
+"Arıza giderildi, operatör onayı bekleniyor.","Störung behoben, warte auf Bestätigung des Bedieners."
+"Arıza iptal edildi, operatör bekleniyor.","Störung storniert, warte auf Bediener."
+"Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Wartungsteam fertig, warte auf Bediener, um Produktion fortzusetzen."
+"[Bakım Sonucu: Tamamlandı.]","[Wartungsergebnis: Abgeschlossen.]"
+"[Bakım Sonucu: İptal Edildi.]","[Wartungsergebnis: Storniert.]"
+Kullanıcı için varsayılan yazıcı bulunamadı,Standarddrucker für Benutzer nicht gefunden
+Kullanıcı için varsayılan yazıcı bulunamadı: {0},Standarddrucker für Benutzer nicht gefunden: {0}
+⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ Diese Karte hat {0} Minuten überschritten! Bitte prüfen Sie das Formular (beenden oder anhalten).
+Süre Uyarısı,Dauer Warnung
+Sadece 'Çalışıyor' veya 'Duruşta' olan kartlar için arıza bildirimi yapabilirsiniz.,"Sie können nur für Karten, die sich im Status 'In Bearbeitung' oder 'Angehalten' befinden, eine Störung melden."
+Bu çalışma kartına ait zaten devam eden açık bir arıza kaydı ({0}) bulunuyor. Yeni bir kayıt açmadan önce mevcut kaydın tamamlanmasını veya iptal edilmesini beklemelisiniz.,"Es gibt bereits eine offene Störungsmeldung ({0}) für diese Arbeitskarte. Bitte warten Sie, bis diese abgeschlossen oder storniert ist, bevor Sie eine neue öffnen."

@@ -4,6 +4,7 @@ import KTACalismaCardVue from './App.vue';
 // A simple function to mount your Vue app
 function setup_vue(wrapper) {
   const app = createApp(KTACalismaCardVue);
+  app.config.globalProperties.__ = window.__ || ((s) => s);
   app.mount(wrapper.get(0));
   return app;
 }

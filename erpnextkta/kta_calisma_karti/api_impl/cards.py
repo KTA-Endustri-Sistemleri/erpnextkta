@@ -206,6 +206,29 @@ def _attach_bom_musteri_indeksi(rows):
         r["custom_musteri_indeksi_no"] = bom_index_map.get(bom)
 
     return rows
+def _attach_aktif_durus_nedeni(rows):
+    """Enrich rows with aktif_durus_nedeni from Operasyon Duruslari if status is paused."""
+    paused_names = [r.get("name") for r in rows if r.get("durum") == "Duruşta"]
+    if not paused_names:
+        return rows
+
+    active_downtimes = frappe.get_all(
+        "Operasyon Duruslari",
+        filters={
+            "parent": ("in", paused_names),
+            "parenttype": "Calisma Karti",
+            "durus_bitis": ("is", "not set")
+        },
+        fields=["parent", "durus_nedeni"]
+    )
+    
+    reasons_by_card = {d["parent"]: d.get("durus_nedeni") for d in active_downtimes}
+    
+    for r in rows:
+        if r.get("name") in reasons_by_card:
+            r["aktif_durus_nedeni"] = reasons_by_card[r.get("name")]
+
+    return rows
 
 @frappe.whitelist()
 def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None, durum=None, search_term=None, qc_filter=None):
@@ -301,6 +324,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
     rows = _attach_customer_groups(rows)
     rows = _attach_operasyon_label(rows)
     rows = _attach_bom_musteri_indeksi(rows)
+    rows = _attach_aktif_durus_nedeni(rows)
     
     if customer_group:
         rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
@@ -398,7 +422,7 @@ def _handle_baslat(doc, now):
         return
         
     if durum != "hazir":
-        frappe.throw("Sadece Hazır durumundaki işlemler başlatılabilir.")
+        frappe.throw(_("Sadece Hazır durumundaki işlemler başlatılabilir."))
 
     # Backend guard: block start if hard mode and incomplete active card exists
     if doc.operator and _get_kart_gecis_modu() == "hard":
@@ -416,7 +440,7 @@ def _handle_baslat(doc, now):
 
 def _handle_devam_et(doc, now):
     if doc.get_durum() != "durusta":
-        frappe.throw("Sadece durdurulmuş bir işlem devam ettirilebilir.")
+        frappe.throw(_("Sadece durdurulmuş bir işlem devam ettirilebilir."))
 
     # Backend guard: block resume if hard mode and incomplete active card exists
     if doc.operator and _get_kart_gecis_modu() == "hard":
@@ -430,6 +454,18 @@ def _handle_devam_et(doc, now):
     if doc.duruslar:
         last_row = doc.duruslar[-1]
         if not last_row.durus_bitis:
+            if last_row.durus_nedeni == "Arıza":
+                ariza_modu = frappe.db.get_single_value("KTA Calisma Karti Settings", "ariza_devam_modu")
+                if ariza_modu == "Kat\u0131 (Hard)":
+                    open_log = frappe.db.get_value("Asset Maintenance Log", {
+                        "custom_calisma_karti_ref": doc.name,
+                        "maintenance_status": ["not in", ["Completed", "Cancelled"]],
+                        "custom_ariza_nedeni": ["is", "set"],
+                        "docstatus": ["<", 2]
+                    }, "name")
+                    if open_log:
+                        frappe.throw(_("Bakım ekibi bildirilen arızayı tamamlamadan (kapatmadan) üretime devam edemezsiniz."))
+
             last_row.durus_bitis = now
             from frappe.utils import get_datetime
             start_dt = get_datetime(last_row.durus_baslangic)
@@ -441,14 +477,14 @@ def _handle_devam_et(doc, now):
 def _handle_durus(doc, now, durus_nedeni, aciklama):
     durum = doc.get_durum()
     if durum == "bitmis":
-        frappe.throw("Bitmiş bir işlemde duruş yapılamaz.")
+        frappe.throw(_("Bitmiş bir işlemde duruş yapılamaz."))
     if durum == "hazir":
-        frappe.throw("Başlamamış bir işlemde duruş yapılamaz.")
+        frappe.throw(_("Başlamamış bir işlemde duruş yapılamaz."))
     if doc.aktif_durus_var_mi():
-        frappe.throw("Bu işlem zaten durdurulmuş.")
+        frappe.throw(_("Bu işlem zaten durdurulmuş."))
 
     if not durus_nedeni:
-        frappe.throw("Duruşa geçmek için Duruş Nedeni belirtilmelidir.")
+        frappe.throw(_("Duruşa geçmek için Duruş Nedeni belirtilmelidir."))
         
     doc.append(
         "duruslar",
@@ -462,9 +498,9 @@ def _handle_durus(doc, now, durus_nedeni, aciklama):
 def _handle_bitis(doc, now, aciklama, qty):
     durum = doc.get_durum()
     if durum == "hazir":
-        frappe.throw("Başlamamış işlem bitirilemez.")
+        frappe.throw(_("Başlamamış işlem bitirilemez."))
     if durum == "bitmis":
-        frappe.throw("Bu kart zaten bitmiş.")
+        frappe.throw(_("Bu kart zaten bitmiş."))
 
     # 1. Close active durus if any
     if doc.aktif_durus_var_mi():
@@ -480,7 +516,7 @@ def _handle_bitis(doc, now, aciklama, qty):
 
     # 3. Check amount constraint (Tamamlanan miktar artık zorunlu değil, alt operasyon zorunlu)
     if not doc.get("alt_operasyon_kayitlari"):
-        frappe.throw("İşlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.")
+        frappe.throw(_("İşlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır."))
 
     doc.bitis_saati = now
     
@@ -590,7 +626,7 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
 
     durum = doc.get_durum()
     if (doc.kalite_kontrol or '').strip() == 'Reddedildi' and islem_tipi != "Bitis":
-        frappe.throw('Reddedilmiş çalışma kartında işlem yapılamaz.')
+        frappe.throw(_('Reddedilmiş çalışma kartında işlem yapılamaz.'))
 
     from frappe.utils import now_datetime
     now = now_datetime()
@@ -599,9 +635,9 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
         try:
             qty = float(tamamlanan_miktar)
         except Exception:
-            frappe.throw("Tamamlanan miktar sayısal olmalıdır.")
+            frappe.throw(_("Tamamlanan miktar sayısal olmalıdır."))
         if qty < 0:
-            frappe.throw("Tamamlanan miktar negatif olamaz.")
+            frappe.throw(_("Tamamlanan miktar negatif olamaz."))
 
     if islem_tipi == "Baslat":
         _handle_baslat(doc, now)
@@ -614,7 +650,7 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
     elif islem_tipi == "Bitis":
         _handle_bitis(doc, now, aciklama, qty)
     else:
-        frappe.throw("Geçersiz işlem tipi.")
+        frappe.throw(_("Geçersiz işlem tipi."))
 
     doc.update_durum()
 

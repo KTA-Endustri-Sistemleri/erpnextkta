@@ -2,6 +2,8 @@
 import { ref } from "vue";
 import CkHurdaModal from "../components/CkHurdaModal.vue";
 
+const __ = (...args: any[]) => (window as any).__(...args);
+
 const props = defineProps<{
   doc: any;
   canEditData: boolean;
@@ -26,22 +28,22 @@ function onHurdaDuzenle(h: any) {
 async function handleModalSubmit(payload: any) {
   if (payload.rowname) {
     await props.onUpdate(payload);
-    frappe.show_alert({ message: "Hurda güncellendi", indicator: "green" });
+    frappe.show_alert({ message: __("Hurda güncellendi"), indicator: "green" });
   } else {
     await props.onAdd(payload);
-    frappe.show_alert({ message: "Hurda eklendi", indicator: "green" });
+    frappe.show_alert({ message: __("Hurda eklendi"), indicator: "green" });
   }
 }
 
 function onHurdaSil(h: any) {
   if (!h?.name) {
-    frappe.msgprint("Hurda satır kimliği (row name) bulunamadı.");
+    frappe.msgprint(__("Hurda satır kimliği (row name) bulunamadı."));
     return;
   }
 
-  frappe.confirm("Bu hurda satırı silinecek. Emin misiniz?", async () => {
+  frappe.confirm(__("Bu hurda satırı silinecek. Emin misiniz?"), async () => {
     await props.onDelete(h.name);
-    frappe.show_alert({ message: "Hurda silindi", indicator: "green" });
+    frappe.show_alert({ message: __("Hurda silindi"), indicator: "green" });
   });
 }
 
@@ -55,33 +57,33 @@ function openStockEntry() {
 <template>
   <div class="ck-card">
     <div class="ck-view-action" v-if="props.canEditData">
-      <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onHurdaEkle">Hurda Ekle</button>
+      <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onHurdaEkle">{{ __("Hurda Ekle") }}</button>
     </div>
 
     <!-- Stock Entry Link -->
     <div v-if="doc.scrap_stock_entry" class="ck-se-link-box" @click="openStockEntry">
       <div class="ck-se-icon">📦</div>
       <div class="ck-se-text">
-        <div class="ck-se-label">Bağlı Stok Belgesi</div>
+        <div class="ck-se-label">{{ __("Bağlı Stok Belgesi") }}</div>
         <div class="ck-se-name">{{ doc.scrap_stock_entry }}</div>
       </div>
       <div class="ck-se-arrow">→</div>
     </div>
 
-    <div v-if="(doc.hurdalar||[]).length===0" class="ck-empty-state">Hurda kaydı yok.</div>
+    <div v-if="(doc.hurdalar||[]).length===0" class="ck-empty-state">{{ __("Hurda kaydı yok.") }}</div>
 
     <div v-else class="ck-mini-list">
       <div v-for="(h, i) in doc.hurdalar" :key="h.name || i" class="ck-mini-item">
         <div class="ck-mini-content">
             <b class="ck-mini-title">{{ h.parca_no || ('Hurda #' + (Number(i) + 1)) }}</b>
-            <div class="ck-muted ck-mini-sub"><b>Neden:</b> {{ h.hurda_nedeni || "-" }}</div>
-            <div class="ck-muted ck-mini-sub"><b>Miktar:</b> {{ h.miktar ?? "-" }} {{ h.birim || "" }}</div>
+            <div class="ck-muted ck-mini-sub"><b>{{ __("Neden:") }} </b> {{ h.hurda_nedeni || "-" }}</div>
+            <div class="ck-muted ck-mini-sub"><b>{{ __("Miktar:") }} </b> {{ h.miktar ?? "-" }} {{ h.birim || "" }}</div>
             <div v-if="h.aciklama" class="ck-muted ck-mini-sub italic">"{{ h.aciklama }}"</div>
         </div>
 
         <div class="ck-mini-actions" v-if="props.canEditData">
-          <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onHurdaDuzenle(h)">Düzenle</button>
-          <button class="ck-btn ck-btn--danger ck-btn-small" @click="onHurdaSil(h)">Sil</button>
+          <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onHurdaDuzenle(h)">{{ __("Düzenle") }}</button>
+          <button class="ck-btn ck-btn--danger ck-btn-small" @click="onHurdaSil(h)">{{ __("Sil") }}</button>
         </div>
       </div>
     </div>

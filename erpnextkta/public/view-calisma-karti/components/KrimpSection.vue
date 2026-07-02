@@ -14,21 +14,23 @@ const props = defineProps<{
   onPrint: () => void;
 }>();
 
+const __ = (...args: any[]) => window.__(...args);
+
 function actions(r: any) {
   const items = props.canEditData
-    ? ["Düzenle", "Kopyala", "Sil"]
-    : ["Kopyala"];
-  openActionSheet("Krimp İşlemleri", items, (a) => {
-    if (a === "Düzenle") props.onEdit(r);
-    if (a === "Kopyala") props.onClone(r);
-    if (a === "Sil") props.onDelete(r);
+    ? [__("Düzenle"), __("Kopyala"), __("Sil")]
+    : [__("Kopyala")];
+  openActionSheet(__("Krimp İşlemleri"), items, (a) => {
+    if (a === __("Düzenle")) props.onEdit(r);
+    if (a === __("Kopyala")) props.onClone(r);
+    if (a === __("Sil")) props.onDelete(r);
   });
 }
 </script>
 
 <template>
   <div class="ck-qc-header">
-    <b>Krimp Ölçümleri</b>
+    <b>{{ __('Krimp Ölçümleri') }}</b>
     <div style="display:flex; gap:6px;">
       <button
         v-if="(props.rows||[]).length > 0"
@@ -36,10 +38,10 @@ function actions(r: any) {
         style="padding: 8px 10px; font-size: 12px;"
         @click="props.onPrint"
       >
-        🖨️ Protokol
+        {{ __('🖨️ Protokol') }}
       </button>
       <button v-if="props.canEditData" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
-        + Ekle
+        {{ __('+ Ekle') }}
       </button>
     </div>
   </div>
@@ -53,27 +55,27 @@ function actions(r: any) {
       <div style="display:flex; flex-direction:column; gap:8px;">
         <div class="ck-krimp-header-info">
            <div class="ck-header-row">
-             <span class="ck-label">KABLO:</span>
+             <span class="ck-label">{{ __('KABLO:') }}</span>
              <span class="ck-val">{{ r.kablo_no || '-' }}</span>
            </div>
            <div class="ck-header-row">
-             <span class="ck-label">KONTAK:</span>
+             <span class="ck-label">{{ __('KONTAK:') }}</span>
              <span class="ck-val">{{ r.kontak_no || '-' }}</span>
            </div>
            <div class="ck-header-row">
-             <span class="ck-label">KESİT:</span>
+             <span class="ck-label">{{ __('KESİT:') }}</span>
              <span class="ck-val">{{ r.kablo_kesiti || '-' }}</span>
            </div>
         </div>
 
         <div class="ck-krimp-sub-info">
-            <div><span class="ck-label">MAKİNE:</span> <b>{{ r.makine_pres_no || "-" }}</b></div>
-            <div><span class="ck-label">KALIP:</span> <b>{{ r.kalip_no || "-" }}</b></div>
+            <div><span class="ck-label">{{ __('MAKİNE:') }}</span> <b>{{ r.makine_pres_no || "-" }}</b></div>
+            <div><span class="ck-label">{{ __('KALIP:') }}</span> <b>{{ r.kalip_no || "-" }}</b></div>
         </div>
 
         <div class="ck-krimp-grid">
           <div class="ck-krimp-box ck-krimp-box--wide">
-             <span>Kablo Boyu</span>
+             <span>{{ __('Kablo Boyu') }}</span>
              <MeasureGauge
                :measured="r.olculen_kablo_boyu"
                :target="r.hedef_kablo_boyu"
@@ -83,7 +85,7 @@ function actions(r: any) {
              />
           </div>
           <div class="ck-krimp-box ck-krimp-box--wide">
-             <span>Krimp Yük.</span>
+             <span>{{ __('Krimp Yük.') }}</span>
              <MeasureGauge
                :measured="r.olculen_iletken_krimp_yuksekliği"
                :target="r.hedef_iletken_krimp_yuksekliği"
@@ -95,7 +97,7 @@ function actions(r: any) {
              />
           </div>
           <div class="ck-krimp-box">
-             <span>Çekme</span>
+             <span>{{ __('Çekme') }}</span>
              <div v-if="r.olculen_cekme_kuvveti_n > 0" class="ck-pull-force">
                 <span
                   class="ck-pull-val"
@@ -110,25 +112,25 @@ function actions(r: any) {
              <div v-else class="ck-pull-na">—</div>
           </div>
           <div class="ck-krimp-box">
-             <span>İzokrimp</span>
+             <span>{{ __('İzokrimp') }}</span>
              <b>{{ r.izokrimp_yuksekligi }}</b>
           </div>
           <div class="ck-krimp-box">
-             <span>Sıyırma Boyu</span>
+             <span>{{ __('Sıyırma Boyu') }}</span>
              <b>{{ r.siyirma_boyu }}</b> <small>mm</small>
           </div>
           <div class="ck-krimp-box">
-             <span>Çapak Boyu</span>
+             <span>{{ __('Çapak Boyu') }}</span>
              <b>{{ r.capak_boyu }}</b> <small>mm</small>
           </div>
         </div>
 
         <div class="ck-status-grid">
             <div :class="['ck-status-box', r.radus_mevcut ? 'ck-status--success' : 'ck-status--danger']">
-                Radüs {{ r.radus_mevcut ? '✓' : '✕' }}
+                {{ __('Radüs') }} {{ r.radus_mevcut ? '✓' : '✕' }}
             </div>
             <div :class="['ck-status-box', !r.tel_kesme_mevcut ? 'ck-status--success' : 'ck-status--danger']">
-                Tel Kesme {{ !r.tel_kesme_mevcut ? 'Yok ✓' : 'Var ✕' }}
+                {{ __('Tel Kesme') }} {{ !r.tel_kesme_mevcut ? __('Yok') + ' ✓' : __('Var') + ' ✕' }}
             </div>
         </div>
 
@@ -137,13 +139,13 @@ function actions(r: any) {
           class="ck-muted"
           style="border:1px dashed rgba(0,0,0,.12); border-radius:12px; padding:8px 10px;"
         >
-          <div v-if="r.olcum_tarihi">Tarih: {{ fmtDt(r.olcum_tarihi) }}</div>
-          <div v-if="r.operator">Giren: {{ r.operator }}</div>
+          <div v-if="r.olcum_tarihi">{{ __('Tarih') }}: {{ fmtDt(r.olcum_tarihi) }}</div>
+          <div v-if="r.operator">{{ __('Giren') }}: {{ r.operator }}</div>
         </div>
 
         <div style="display:flex; justify-content:flex-end;">
           <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            İŞLEMLER ▾
+            {{ __('İŞLEMLER') }} ▾
           </button>
         </div>
       </div>

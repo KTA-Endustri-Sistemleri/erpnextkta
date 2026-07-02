@@ -2,6 +2,8 @@
 import { computed, ref, onMounted } from "vue";
 import { altOperasyonFields } from "../composables/prompts";
 
+const __ = (...args: any[]) => (window as any).__(...args);
+
 const props = defineProps<{
   doc: any;
   canEditData: boolean;
@@ -47,10 +49,10 @@ function onAltOperasyonEkle() {
         uom: v.uom || null,
         note: v.note || null,
       });
-      frappe.show_alert({ message: "Alt İşlem eklendi", indicator: "green" });
+      frappe.show_alert({ message: __("Alt İşlem eklendi"), indicator: "green" });
     },
-    "Alt İşlem Ekle",
-    "Kaydet"
+    __("Alt İşlem Ekle"),
+    __("Kaydet")
   );
 }
 
@@ -73,10 +75,10 @@ function onAltOperasyonDuzenle(h: any) {
         uom: v.uom || null,
         note: v.note || null,
       });
-      frappe.show_alert({ message: "Alt İşlem güncellendi", indicator: "green" });
+      frappe.show_alert({ message: __("Alt İşlem güncellendi"), indicator: "green" });
     },
-    "Alt İşlem Düzenle",
-    "Kaydet"
+    __("Alt İşlem Düzenle"),
+    __("Kaydet")
   );
 }
 
@@ -86,9 +88,9 @@ function onAltOperasyonSil(h: any) {
     return;
   }
 
-  frappe.confirm("Bu işlem satırı silinecek. Emin misiniz?", async () => {
+  frappe.confirm(__("Bu işlem satırı silinecek. Emin misiniz?"), async () => {
     await props.onDelete(h.name);
-    frappe.show_alert({ message: "Alt İşlem silindi", indicator: "green" });
+    frappe.show_alert({ message: __("Alt İşlem silindi"), indicator: "green" });
   });
 }
 </script>
@@ -96,10 +98,10 @@ function onAltOperasyonSil(h: any) {
 <template>
   <div class="ck-card">
     <div class="ck-view-action" v-if="props.canEditData">
-      <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onAltOperasyonEkle">Alt İşlem Ekle</button>
+      <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onAltOperasyonEkle">{{ __("Alt İşlem Ekle") }}</button>
     </div>
 
-    <div v-if="sortedRows.length === 0" class="ck-empty-state">Kayıt yok.</div>
+    <div v-if="sortedRows.length === 0" class="ck-empty-state">{{ __("Kayıt yok.") }}</div>
 
     <div v-else class="ck-mini-list">
       <div v-for="(h, i) in sortedRows" :key="h.name || i" class="ck-mini-item">
@@ -111,8 +113,8 @@ function onAltOperasyonSil(h: any) {
         </div>
 
         <div class="ck-mini-actions" v-if="props.canEditData">
-          <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onAltOperasyonDuzenle(h)">Düzenle</button>
-          <button class="ck-btn ck-btn--danger ck-btn-small" @click="onAltOperasyonSil(h)">Sil</button>
+          <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onAltOperasyonDuzenle(h)">{{ __("Düzenle") }}</button>
+          <button class="ck-btn ck-btn--danger ck-btn-small" @click="onAltOperasyonSil(h)">{{ __("Sil") }}</button>
         </div>
       </div>
     </div>

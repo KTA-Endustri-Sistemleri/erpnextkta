@@ -371,6 +371,36 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
         self.assertEqual(len(labels), 1, "Should generate exactly 1 label when do_not_split is checked")
         self.assertEqual(float(labels[0].qty), 5.0, "The label quantity should be the full receipt quantity")
 
+    def test_purchase_receipt_do_not_split_with_zero_split_qty(self):
+        """When a Purchase Receipt is submitted, if custom_do_not_split is checked,
+        the batch should NOT be split into smaller batches/labels, even if custom_split_qty is 0."""
+        
+        # Configure item to require quality inspection and enable batch tracking
+        frappe.db.set_value("Item", self.item, "inspection_required_before_purchase", 1)
+        frappe.db.set_value("Item", self.item, "has_batch_no", 1)
+        frappe.db.commit()
+
+        # Create Purchase Receipt with split quantity set to 0, and do_not_split = 1
+        pr = self.create_test_purchase_receipt(qty=5)
+        for item in pr.items:
+            item.custom_split_qty = 0
+            item.custom_do_not_split = 1
+
+        pr.insert(ignore_permissions=True)
+        pr.submit()
+        
+        pr.reload()
+        
+        # Verify that only 1 batch label was created with full quantity
+        labels = frappe.get_all("KTA Stock Label", filters={
+            "reference_doctype": "Purchase Receipt",
+            "reference_name": pr.name,
+            "label_type": "Depo Giriş Etiketi"
+        }, fields=["batch", "qty"])
+        
+        self.assertEqual(len(labels), 1, "Should generate exactly 1 label when do_not_split is checked")
+        self.assertEqual(float(labels[0].qty), 5.0, "The label quantity should be the full receipt quantity")
+
     def test_purchase_receipt_gkk_transfer_skipped_allowed(self):
         """If a Purchase Receipt is skipped under the skip logic (no Quality Inspection is generated),
         the batch should be allowed to be transferred without any blocking."""

@@ -51,7 +51,7 @@
             "fetch_if_empty": 1,
             "fieldname": "urun_no",
             "fieldtype": "Data",
-            "in_list_view": 1,
+            "in_list_view": 0,
             "in_standard_filter": 1,
             "label": "Ürün No.",
             "read_only": 1
@@ -131,7 +131,8 @@
         {
             "fieldname": "urun_kodu",
             "fieldtype": "Link",
-            "label": "\u00dcr\u00fcn Kodu",
+            "in_list_view": 1,
+            "label": "Ürün Kodu",
             "options": "Item"
         },
         {

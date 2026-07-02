@@ -168,7 +168,7 @@ class BatchSplitManager:
             qty = flt(row.stock_qty or 0)
             split_qty = flt(row.custom_split_qty or 0)
 
-        if not qty or split_qty <= 0:
+        if not qty:
             return []
 
         if not is_manufacturing and row.get("custom_do_not_split"):
@@ -178,6 +178,9 @@ class BatchSplitManager:
                 "sut_code": f"{base_batch_number}{0:04d}",
                 "pack_no": 0,
             }]
+
+        if split_qty <= 0:
+            return []
 
         num_packs = cint(qty // split_qty)
         remainder_qty = qty % split_qty
@@ -277,7 +280,7 @@ class BatchSplitManager:
         
         warehouse = row.get("warehouse") or row.get("t_warehouse") or row.get("s_warehouse")
         if not warehouse:
-            frappe.throw(_("Warehouse not found for row {0}").format(row.name))
+            frappe.throw(_("{0}. satır için depo bulunamadı").format(row.name))
 
         original_incoming_rate = BatchSplitManager._get_reliable_incoming_rate(row, bundle_doc)
 
@@ -505,7 +508,7 @@ def find_bins_of_sut(sut, mobil):
     sle_entries = BatchSplitManager.get_warehouse_quantity_for_sabe_parents(sabe_parents)
 
     if not sle_entries:
-        frappe.throw(frappe._("No Stock Ledger Entries found for SUT: {0}").format(sut))
+        frappe.throw(frappe._("SUT için Stok Defteri Kaydı bulunamadı: {0}").format(sut))
 
     for sle_entry in sle_entries:
         child = frappe.new_doc("KTA Mobil Depo Kalemi")

@@ -1,6 +1,7 @@
-<!-- StepIndicator.vue -->
 <script setup>
 import { computed } from 'vue';
+const __ = (...args) => window.__(...args);
+
 
 const props = defineProps({
   currentStep: {
@@ -10,7 +11,7 @@ const props = defineProps({
   steps: {
     type: Array,
     required: true,
-    // e.g. [{ id: 1, label: 'İş Emri', description: '...' }, ...]
+    // e.g. [{ id: 1, label: __('İş Emri'), description: '...' }, ...]
   },
 });
 
@@ -27,7 +28,7 @@ const totalSteps = computed(() => props.steps.length);
     <div class="step-compact">
       <div class="step-compact__row">
         <span class="step-compact__stage">
-          Aşama {{ currentStep }} / {{ totalSteps }}
+          {{ __('Aşama') }} {{ currentStep }} / {{ totalSteps }}
         </span>
         <span v-if="currentStepObj" class="step-compact__label">
           · {{ currentStepObj.label }}

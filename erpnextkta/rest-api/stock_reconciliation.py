@@ -216,9 +216,9 @@ def create_stock_reco_docs_for_warehouse_group(
     """
 
     if not warehouse_group:
-        frappe.throw(_("Warehouse Group is required"))
+        frappe.throw(_("Depo Grubu zorunludur"))
     if not company:
-        frappe.throw(_("Company is required"))
+        frappe.throw(_("Şirket zorunludur"))
 
     posting_date = posting_date or today()
     posting_time = posting_time or nowtime()
@@ -242,7 +242,7 @@ def create_stock_reco_docs_for_warehouse_group(
     return {
         "queued": True,
         "job_id": getattr(job, "id", None),
-        "message": _("Background job queued. You will be notified when it finishes."),
+        "message": _("Arkaplan görevi sıraya alındı. Tamamlandığında bildirim alacaksınız."),
     }
 
 
@@ -261,7 +261,7 @@ def _job_create_stock_reco_docs_for_warehouse_group(
 
     group = frappe.get_doc("Warehouse", warehouse_group)
     if not group.is_group:
-        frappe.throw(_("Selected warehouse must be a group"))
+        frappe.throw(_("Seçilen depo bir grup olmalıdır"))
 
     # Fetch ALL items for the entire group in one go
     all_rows = get_items_static(
@@ -274,7 +274,7 @@ def _job_create_stock_reco_docs_for_warehouse_group(
     )
 
     if not all_rows:
-        frappe.throw(_("No items found with stock in this warehouse group"))
+        frappe.throw(_("Bu depo grubunda stoğu olan ürün bulunamadı"))
 
     # Partition by warehouse
     warehouse_partition = {}
@@ -362,7 +362,7 @@ def _notify_bulk_stock_reco_result(user: str, warehouse_group: str, created: lis
     frappe.get_doc(
         {
             "doctype": "Notification Log",
-            "subject": _("Bulk Stock Reconciliation Completed"),
+            "subject": _("Toplu Stok Uzlaştırması Tamamlandı"),
             "email_content": msg.replace("\n", "<br>"),
             "for_user": user,
             "type": "Alert",

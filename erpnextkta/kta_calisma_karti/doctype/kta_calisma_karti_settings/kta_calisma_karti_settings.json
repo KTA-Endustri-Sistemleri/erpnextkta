@@ -12,6 +12,7 @@
         "detay_yenileme_araligi_sn",
         "sb_kart_gecis",
         "kart_gecis_modu",
+        "ariza_devam_modu",
         "auto_pause_durus_nedeni",
         "timeout_durus_nedeni",
         "mukerrer_kalite_kontrolu_yap",
@@ -20,6 +21,8 @@
         "hata_raporu_alicilari",
         "sb_stok",
         "hurda_gider_hesabi",
+        "sb_job_card_sync",
+        "job_card_time_log_sync_modu",
         "admin_roles"
     ],
     "fields": [
@@ -78,6 +81,14 @@
             "description": "S\u0131k\u0131: Veri eksikse yeni kart ba\u015flat\u0131lamaz. Esnek: Uyar\u0131 g\u00f6sterilir, operat\u00f6r devam edebilir."
         },
         {
+            "default": "Esnek (Soft)",
+            "fieldname": "ariza_devam_modu",
+            "fieldtype": "Select",
+            "label": "Ar\u0131za Devam Modu",
+            "options": "Esnek (Soft)\nKat\u0131 (Hard)",
+            "description": "Kat\u0131: Bak\u0131m ekibi ar\u0131zay\u0131 tamamlamadan operat\u00f6r \u00fcretime devam edemez. Esnek: Operat\u00f6r inisiyatif al\u0131p \u00fcretime devam edebilir."
+        },
+        {
             "fieldname": "auto_pause_durus_nedeni",
             "fieldtype": "Link",
             "label": "Otomatik Duraklatma Nedeni",
@@ -125,6 +136,19 @@
             "fieldtype": "Link",
             "label": "Hurda Gider Hesabı",
             "options": "Account"
+        },
+        {
+            "fieldname": "sb_job_card_sync",
+            "fieldtype": "Section Break",
+            "label": "Job Card Senkronizasyon Ayarlar\u0131"
+        },
+        {
+            "default": "Kapal\u0131",
+            "description": "Esnek: Yaln\u0131zca draft/open Job Card'lara yazar. S\u0131k\u0131: Submit edilmi\u015f Job Card'lar dahil t\u00fcm belgelere yazar.",
+            "fieldname": "job_card_time_log_sync_modu",
+            "fieldtype": "Select",
+            "label": "Job Card S\u00fcre Senkronizasyon Modu",
+            "options": "Kapal\u0131\nEsnek (Soft)\nS\u0131k\u0131 (Hard)"
         },
         {
             "default": "System Manager, Quality Manager, Manufacturing Manager",

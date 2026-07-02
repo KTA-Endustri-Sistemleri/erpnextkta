@@ -1,4 +1,6 @@
 <script setup>
+const __ = (...args) => window.__(...args);
+
 const props = defineProps({
   operations: {
     type: Array,
@@ -26,10 +28,9 @@ function isSelected(name) {
   <section class="step-operation">
     <div class="step-operation__header">
       <div>
-        <h2 class="step-operation__title">Operasyon</h2>
+        <h2 class="step-operation__title">{{ __('Operasyon') }}</h2>
         <p class="step-operation__subtitle">
-          <strong>KTA Çalışma Kartı Operasyonları</strong> listesinden bir operasyon seç.
-          Seçilen değer ilgili <code>operasyon</code> alanına yazılacak.
+          {{ __('Çalışma Kartı Operasyonları listesinden bir operasyon seç.') }}
         </p>
       </div>
 
@@ -37,7 +38,7 @@ function isSelected(name) {
         v-if="operations.length"
         class="step-operation__count"
       >
-        {{ operations.length }} operasyon bulundu
+        {{ operations.length }} {{ __('operasyon bulundu') }}
       </div>
     </div>
 
@@ -46,7 +47,7 @@ function isSelected(name) {
       v-if="!operations.length"
       class="step-operation__empty"
     >
-      Bu İş Kartı için tanımlı herhangi bir operasyon bulunamadı.
+      {{ __('Bu İş Kartı için tanımlı herhangi bir operasyon bulunamadı.') }}
     </div>
 
     <!-- Kart grid -->
@@ -64,7 +65,7 @@ function isSelected(name) {
       >
         <div class="step-operation__card-header">
           <div class="step-operation__card-name">
-            {{ op.calisma_karti_op }}
+            {{ __(op.calisma_karti_op) }}
           </div>
           <div
             class="step-operation__badge"
@@ -72,7 +73,7 @@ function isSelected(name) {
               ? 'step-operation__badge--selected'
               : 'step-operation__badge--default'"
           >
-            {{ isSelected(op.name) ? 'Seçili' : 'Seç' }}
+            {{ isSelected(op.name) ? __('Seçili') : __('Seç') }}
           </div>
         </div>
       </button>

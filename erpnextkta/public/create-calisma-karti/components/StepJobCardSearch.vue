@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+const __ = (...args) => window.__(...args);
 
 const props = defineProps({
   barcode: {
@@ -55,11 +56,9 @@ function onKeydown(event) {
 <template>
   <section class="step-wo">
     <div>
-      <h2 class="step-wo__title">İş Kartı Barkodu</h2>
+      <h2 class="step-wo__title">{{ __('İş Kartı Barkodu') }}</h2>
       <p class="step-wo__subtitle">
-        Barkod okuyucu ile <strong>İş Kartı barkodunu</strong> okut
-        veya Job Card numarasını gir. Okuyucu genelde Enter ile bittiği için
-        ek işlem yapman gerekmez.
+        {{ __('Barkod okuyucu ile') }} <strong>{{ __('İş Kartı barkodunu') }}</strong> {{ __('okut veya Job Card numarasını gir. Okuyucu genelde Enter ile bittiği için ek işlem yapman gerekmez.') }}
       </p>
     </div>
 
@@ -71,7 +70,7 @@ function onKeydown(event) {
         class="step-wo__input"
         :readonly="loading"
         :value="barcode"
-        placeholder="İş Kartı barkodunu okutun veya JC-00045 girin..."
+        :placeholder="__('İş Kartı barkodunu okutun veya JC-00045 girin...')"
         autocomplete="off"
         @input="onInput"
         @keydown="onKeydown"
@@ -83,7 +82,7 @@ function onKeydown(event) {
 
     <!-- Loading sırasında mini açıklama -->
     <div v-if="loading" class="step-wo__loading-text">
-      İş Kartı doğrulanıyor...
+      {{ __('İş Kartı doğrulanıyor...') }}
     </div>
 
     <!-- Seçili İş Kartı Özeti -->
@@ -91,19 +90,19 @@ function onKeydown(event) {
       <div v-if="jobCard && !loading" class="step-wo__summary">
         <div class="step-wo__summary-header">
           <span class="step-wo__summary-icon">✓</span>
-          <span class="step-wo__summary-title">Seçili İş Kartı Bilgisi</span>
+          <span class="step-wo__summary-title">{{ __('Seçili İş Kartı Bilgisi') }}</span>
         </div>
         <div class="step-wo__summary-body">
           <div class="step-wo__summary-row">
-            <span class="label">İş Kartı:</span>
+            <span class="label">{{ __('İş Kartı') }}:</span>
             <span class="value">{{ jobCard.name }}</span>
           </div>
           <div v-if="jobCard.work_order" class="step-wo__summary-row">
-            <span class="label">İş Emri:</span>
+            <span class="label">{{ __('İş Emri') }}:</span>
             <span class="value">{{ jobCard.work_order }}</span>
           </div>
           <div v-if="jobCard.production_item" class="step-wo__summary-row">
-            <span class="label">Ürün:</span>
+            <span class="label">{{ __('Ürün') }}:</span>
             <span class="value">{{ jobCard.production_item }}</span>
           </div>
         </div>

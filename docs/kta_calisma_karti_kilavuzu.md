@@ -78,18 +78,25 @@ Bir çalışma kartı içinde, daha spesifik alt işlemler veya malzeme kullanı
 
 ---
 
-## 📐 5. Kalite Kontrol (QC) ve IDC Ölçümleri
+## 📐 5. Kalite Kontrol (QC) ve Özel Ölçüm Formları
 
-Kalite yetkilileri veya operatörler tarafından üründen alınan spesifik ölçümler buraya kaydedilir.
+Kalite yetkilileri veya operatörler tarafından üründen alınan spesifik ölçümler (Çekme testi, yükseklik, gramaj vb.) bu sekme altında kaydedilir. İşlemin niteliğine ve kullanılan hammaddeye/operasyona göre ekranda dinamik olarak farklı ölçüm formları belirir:
 
-1. **Ölçümler (IDC vb.) Sekmesi:** "**IDC Ölçüleri**" tablosuna gelin ve satır ekleyin. 
-2. Yalnızca *120-IDC Connector* veya *110-Connector* grubu içindeki hammaddeler IDC çekme ve yükseklik ölçümlerine konu edilebilir. Ölçüm değerlerini girerek onaylayın.
+1. **Ölçümler Sekmesi ve Dinamik Formlar:** Çalışma kartındaki Kalite sekmesine girdiğinizde, üretim türüne göre aşağıdaki formlardan biri veya birkaçı listelenir:
+    - **IDC Ölçüleri Formu:** Yalnızca *120-IDC Connector* veya *110-Connector* hammadde grubunda olan işlemler için açılır. İlgili konnektörün çekme kuvveti ve yükseklik ölçümlerini kaydetmenizi sağlar.
+    - **Krimp (Sıkma) Ölçüleri Formu:** Terminalli (Krimp) kablo işlemlerinde devreye girer. Yalıtkan/İletken krimp yüksekliği, çekme kuvveti ve mikrometre ölçümlerinin sisteme girilmesi içindir.
+    - **Enjeksiyon Ölçüleri Formu:** Plastik enjeksiyon operasyonlarında görünür. Baskı gramajı, yolluk ağırlığı, çevrim süresi ve sıcaklık gibi spesifik proses verilerinin kayıt altına alınmasını sağlar.
+2. **Formların Doldurulması:** İlgili tabloya gelerek **"Ekle"** (veya +) butonuna basın, ölçüm cihazlarından okuduğunuz değerleri girip kaydedin. Hatalı girişler tolerans dışı ise sistem sizi uyarabilir.
 3. **Kalite Statüsü ve Belge Bağlantısı:**
     - Bir çalışma kartına standart kalite şablonu üzerinden belge bağlandığında, arayüzdeki kalite butonları **otomatik olarak kilitlenir**.
     - Bu aşamadan sonra kalite durumu sadece ilgili **Kalite Belgesi (Quality Inspection)** üzerinden yönetilir. "Görüntüle" butonu ile ilgili belgeye hızlıca ulaşılabilir.
 4. **Statü Restorasyonu (Geri Dönüş):**
     - Bir kartın durumu *"Reddedildi"* yapıldığında, çalışma kartı tümüyle kilitlenerek üretim durdurulur.
     - Kalite yetkilisi Kalite Belgesi'nin durumunu tekrar *"Kabul Edildi"* (Accepted) durumuna çekerse, Çalışma Kartı'nın durumu **otomatik olarak eski haline** (Çalışıyor, Duruşta vb.) restore edilir.
+5. **🖨️ Formların Protokol Belgesi Olarak Yazdırılması:**
+    - İlgili ölçüm formlarındaki (IDC, Krimp, Enjeksiyon) veriler girilip kaydedildikten sonra, formun alt/üst kısmında yer alan **"Protokol"** butonuna basılarak o ölçüme ait resmi **Ölçüm Protokol Belgesi** oluşturulabilir.
+    - Bu işlem, girilen tüm kritik ölçüm değerlerini, tolerans limitlerini ve parça bilgilerini içeren profesyonel bir HTML formatlı evrak (Örn: `Krimp Ölçüm Protokol Belgesi`) hazırlar. 
+    - Oluşan bu evrak yerel ağ yazıcılarına veya bağlı terminal yazıcılarına gönderilerek fiziksel kalite kayıtları/etiketleri oluşturulmasını sağlar.
 
 ---
 
@@ -111,6 +118,12 @@ Operatörlerin işe başlamadan önce veya vardiya sırasında kullandıkları m
 ### Manuel Bitirme:
 1. **"Bitir" Butonu:** İşlem bittiğinde **Bitir** butonuna tıklayın.
 2. **Miktar Bildirimi:** Üretilen miktarı girin. Operasyon tanımına göre miktar girişi zorunlu olabilir. 0 girerek kapatma izni operasyon ayarına bağlıdır.
+3. **Bekleyen Kartlar Uyarı Ekranı (Modal):** Bir kartı bitirdiğinizde, sistem arka planda sizin daha önceden başlattığınız ancak sistem tarafından otomatik olarak "Duruşta" bekletilen (askıda kalmış) başka kartlarınız olup olmadığını kontrol eder.
+    - Eğer bekleyen kartlarınız varsa, işlemi tamamladıktan hemen sonra modern bir **uyarı ekranı (Modal)** açılır.
+    - Bu ekranda bekleyen tüm kartlarınız liste halinde sunulur. Kartın yanındaki **"GİT"** butonuna basarak o karta hızlıca geçiş yapabilir ve işinize kaldığınız yerden devam edebilirsiniz.
+    - Dilerseniz sağ üst köşedeki **Çarpı (X)** butonuyla uyarı ekranını kapatarak bulunduğunuz ekranda kalabilirsiniz.
+    - **Akıllı Kontrol:** Eğer o an halihazırda "Çalışıyor" durumunda olan aktif başka bir kartınız varsa, sistem çalışmanızı bölmemek (sizi yeni bir kart seçmeye zorlamamak) adına bu uyarı ekranını **göstermeyecektir**.
+
 
 ### Otomatik Vardiya Sonu Kapatma (Akıllı Kapatma):
 Kartı açık unutmanız durumunda sistem vardiya sonlarında (**16:00** ve **00:00**) kartları otomatik olarak kapatır:
@@ -156,13 +169,12 @@ ERPNext Arama Çubuğuna `KTA Calisma Karti Settings` yazarak ulaşabileceğiniz
     - İçeriği virgülle ayırarak genişletilir (Örnek: `System Manager, Quality Manager, Manufacturing Manager`).
     - Bu alana sistemdeki rollerin isimlerini girdiğinizde, ilgili role sahip yöneticiler; **"Bitmiş"** durumda kilitlenen kartlardaki Düzenle/Sil/Ekle gibi butonlara yeniden erişip (bypass edip) verileri düzeltebilir. İptal edilmiş (docstatus=2) kartlara ise hiçbir rol müdahale edemez.
 
----
-+
-+## 🛡️ 10. Sistem Güvenilirliği ve Test Otomasyonu
-+
-+KTA Çalışma Kartı platformu, endüstriyel sahadaki veri bütünlüğünü korumak için **Otomatik Entegrasyon Testleri** ile korunmaktadır.
-+- **Kritik İş Akışları:** Kart başlatma, durdurma, bitirme ve kalite kontrol süreçleri her güncelleme öncesinde otomatik test senaryoları ile denetlenir.
-+- **Veri Senkronizasyonu:** Hurda girişlerinin Stok Kayıtları ile senkronizasyonu ve Alt Operasyon kayıtlarının tutarlılığı sistem tarafından anlık olarak izlenir ve doğrulanır.
-+- **Hata Önleme:** "Anti-double-click" gibi koruma mekanizmaları, operatörlerin yanlışlıkla mükerrer veri girişi yapmasını engeller ve bu özellikler düzenli olarak test edilir.
-+
-+</main>
+
+## 🛡️ 10. Sistem Güvenilirliği ve Test Otomasyonu
+
+KTA Çalışma Kartı platformu, endüstriyel sahadaki veri bütünlüğünü korumak için **Otomatik Entegrasyon Testleri** ile korunmaktadır.
+- **Kritik İş Akışları:** Kart başlatma, durdurma, bitirme ve kalite kontrol süreçleri her güncelleme öncesinde otomatik test senaryoları ile denetlenir.
+- **Veri Senkronizasyonu:** Hurda girişlerinin Stok Kayıtları ile senkronizasyonu ve Alt Operasyon kayıtlarının tutarlılığı sistem tarafından anlık olarak izlenir ve doğrulanır.
+- **Hata Önleme:** "Anti-double-click" gibi koruma mekanizmaları, operatörlerin yanlışlıkla mükerrer veri girişi yapmasını engeller ve bu özellikler düzenli olarak test edilir.
+
+</main>

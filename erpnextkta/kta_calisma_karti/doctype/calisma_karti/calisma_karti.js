@@ -228,6 +228,7 @@ function addBitisButton(frm) {
           message: __("İşlem başarıyla bitirildi."),
           indicator: "blue"
         });
+        check_and_show_auto_paused_cards(frm);
       });
     });
   }, __("İşlemler")).addClass('btn-danger');
@@ -459,3 +460,112 @@ function showArizaBildirimiDialog(frm) {
 
   dialog.show();
 }
+
+// ====== Arka Planda Unutulan Duruşlar İçin Zorunlu Seçim ======
+function check_and_show_auto_paused_cards(frm) {
+  if (!frm.doc.operator) return;
+
+  frappe.call({
+    method: 'erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.get_auto_paused_cards',
+    args: { operator: frm.doc.operator },
+    callback: function(r) {
+      const cards = r.message || [];
+      const other_cards = cards.filter(c => c.name !== frm.doc.name);
+      
+      if (other_cards.length > 0) {
+        show_auto_paused_cards_dialog(frm, other_cards);
+      }
+    }
+  });
+}
+
+function show_auto_paused_cards_dialog(frm, cards) {
+  const card_options = cards.map(c => ({
+    label: `${c.name} (Op: ${c.operasyon || '-'}, Ürün: ${c.urun_kodu || '-'})`,
+    value: c.name
+  }));
+
+  const dialog = new frappe.ui.Dialog({
+    title: __('Bekleyen Çalışma Kartınız Var!'),
+    fields: [
+      {
+        fieldtype: 'HTML',
+        fieldname: 'info',
+        options: `<div class="alert alert-warning">
+          <strong>DİKKAT:</strong> Sistem tarafından otomatik olarak beklemeye alınmış açık kart(lar)ınız bulunuyor. 
+          Lütfen aşağıdan bir kart seçerek mesainize göre ilgili işlemi gerçekleştirin.
+        </div>`
+      },
+      {
+        fieldtype: 'Select',
+        fieldname: 'secili_kart',
+        label: __('İşlem Yapılacak Kart'),
+        options: card_options,
+        reqd: 1
+      },
+      {
+        fieldtype: 'Column Break'
+      },
+      {
+        fieldtype: 'Button',
+        fieldname: 'btn_devam',
+        label: __('Seçili Karta Devam Et'),
+        click: function() {
+          const val = dialog.get_value('secili_kart');
+          if (!val) return;
+          frappe.call({
+            method: 'erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.islem_yap',
+            args: { docname: val, islem_tipi: 'Baslat' },
+            freeze: true,
+            callback: function(r) {
+              if (r.message && r.message.status === 'success') {
+                frappe.msgprint(__('İşlem başarıyla devam ettirildi.'));
+                dialog.hide();
+                frappe.set_route('Form', 'Calisma Karti', val);
+              }
+            }
+          });
+        }
+      },
+      {
+        fieldtype: 'Button',
+        fieldname: 'btn_bitir',
+        label: __('Seçili Kartı Bitir'),
+        click: function() {
+          const val = dialog.get_value('secili_kart');
+          if (!val) return;
+          frappe.confirm(__('Seçili kartı tamamen bitirmek istediğinizden emin misiniz?'), () => {
+            frappe.call({
+              method: 'erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.islem_yap',
+              args: { docname: val, islem_tipi: 'Bitis' },
+              freeze: true,
+              callback: function(r) {
+                if (r.message && r.message.status === 'success') {
+                  frappe.msgprint(__('Kart başarıyla kapatıldı.'));
+                  dialog.hide();
+                  // Varsa diğer kartlar için ekranı tekrar çıkar
+                  setTimeout(() => check_and_show_auto_paused_cards(frm), 500);
+                }
+              }
+            });
+          });
+        }
+      }
+    ]
+  });
+
+  // Make dialog unclosable
+  dialog.$wrapper.find('.modal-dialog').css("pointer-events", "auto");
+  dialog.$wrapper.find('.modal-backdrop').css('pointer-events', 'none');
+  dialog.get_close_btn().hide();
+  
+  // Custom button CSS
+  dialog.get_field('btn_devam').$input.addClass('btn-success w-100');
+  dialog.get_field('btn_bitir').$input.addClass('btn-danger w-100');
+
+  // Prevent clicking outside to close
+  dialog.show();
+  dialog.$wrapper.data('bs.modal', null); // Frappe modals
+  dialog.$wrapper.modal({backdrop: 'static', keyboard: false});
+}
+

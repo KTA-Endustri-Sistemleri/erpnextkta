@@ -5,6 +5,46 @@ def setup():
     create_kta_roles()
     setup_permissions()
     cleanup_duplicate_custom_fields()
+    setup_system_downtime_reasons()
+    add_custom_fields()
+
+def add_custom_fields():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+    create_custom_fields(get_custom_fields())
+
+def get_custom_fields():
+    return {
+        "Job Card Time Log": [
+            {
+                "fieldname": "custom_calisma_karti",
+                "fieldtype": "Link",
+                "options": "Calisma Karti",
+                "label": "Çalışma Kartı",
+                "insert_after": "operation",
+                "no_copy": 1,
+                "read_only": 1,
+                "in_list_view": 0,
+            },
+            {
+                "fieldname": "custom_operasyon",
+                "fieldtype": "Data",
+                "label": "KTA Operasyon",
+                "insert_after": "custom_calisma_karti",
+                "no_copy": 1,
+                "read_only": 1,
+                "in_list_view": 0,
+            },
+            {
+                "fieldname": "custom_alt_operasyon",
+                "fieldtype": "Data",
+                "label": "KTA Alt Operasyon",
+                "insert_after": "custom_operasyon",
+                "no_copy": 1,
+                "read_only": 1,
+                "in_list_view": 0,
+            }
+        ]
+    }
 
 def cleanup_duplicate_custom_fields():
     """Remove duplicate Custom Field records for fields already defined in custom DocTypes JSON."""
@@ -68,6 +108,11 @@ def setup_permissions():
         {"parent": "Calisma Karti", "role": "Manufacturing Manager", "read": 1, "write": 1, "permlevel": 3},
         {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1, "permlevel": 0},
         {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "permlevel": 3},
+        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 0, "permlevel": 2},
+        {"parent": "Calisma Karti", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "permlevel": 2},
+        {"parent": "Calisma Karti", "role": "Manufacturing User", "read": 1, "write": 1, "permlevel": 2},
+        {"parent": "Calisma Karti", "role": "Manufacturing Manager", "read": 1, "write": 1, "permlevel": 2},
+        {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "permlevel": 2},
         # Stock Entry
         {"parent": "Stock Entry", "role": "KTA Çalışma Kartı Kullanıcısı", "read": 1, "write": 1, "create": 1, "delete": 0, "submit": 0, "cancel": 0, "amend": 0, "if_owner": 1},
         {"parent": "Stock Entry", "role": "KTA Çalışma Kartı Yöneticisi", "read": 1, "write": 1, "create": 1, "delete": 0, "submit": 0, "cancel": 0, "amend": 0},
@@ -194,18 +239,25 @@ def setup_system_downtime_reasons():
             "description": "Vardiya sonunda veya uzun süre işlem yapılmadığında sistem tarafından otomatik kapatılan kartlar için kullanılır."
         },
         {
-            "reason": "Kalıp Bağlama / Makine Ayarı",
-            "durus_tipi": "Plansız",
+            "reason": "Makine Hazırlık / Ayar",
+            "durus_tipi": "Ürün Geçişi / Hazırlık",
             "is_system": 0,
             "exclude_from_charts": 0,
             "description": "İş değişimi sırasında kalıp bağlama ve makine ayarları için yapılan duruş."
         },
         {
-            "reason": "Board Kurma Hazırlık",
-            "durus_tipi": "Plansız",
+            "reason": "Test Board Değişimi",
+            "durus_tipi": "Ürün Geçişi / Hazırlık",
             "is_system": 0,
             "exclude_from_charts": 0,
             "description": "Üretime başlamadan önceki board kurma ve hazırlık süreci."
+        },
+        {
+            "reason": "İlk Ürün / Numune Onayı",
+            "durus_tipi": "Ürün Geçişi / Hazırlık",
+            "is_system": 0,
+            "exclude_from_charts": 0,
+            "description": "Seri üretime geçmeden önceki ilk ürün veya numune onay süreci."
         },
         {
             "reason": "Malzeme Taşıma",
@@ -223,13 +275,20 @@ def setup_system_downtime_reasons():
         },
         {
             "reason": "Arıza",
-            "durus_tipi": "Plansız",
-            "is_system": 0,
+            "durus_tipi": "Sistem",
+            "is_system": 1,
             "exclude_from_charts": 0,
             "description": "Makine veya ekipman kaynaklı teknik arızalar."
         },
         {
-            "reason": "Bakım",
+            "reason": "Arıza Sonrası Bekleme",
+            "durus_tipi": "Sistem",
+            "is_system": 1,
+            "exclude_from_charts": 0,
+            "description": "Arıza giderildikten sonra operatörün makine başına geçip üretime başlamasının beklendiği süre."
+        },
+        {
+            "reason": "Planlı Bakım / Kalibrasyon",
             "durus_tipi": "Planlı",
             "is_system": 0,
             "exclude_from_charts": 0,
@@ -247,7 +306,7 @@ def setup_system_downtime_reasons():
             "durus_tipi": "Plansız",
             "is_system": 0,
             "exclude_from_charts": 0,
-            "description": "Kalite kontrol onayı beklerken geçen süre."
+            "description": "Üretim esnasında çıkan bir hata nedeniyle durma."
         },
         {
             "reason": "Malzeme Bekleme",
@@ -273,11 +332,12 @@ def setup_system_downtime_reasons():
             })
             doc.insert(ignore_permissions=True)
         else:
-            # Update existing system records to ensure is_system=1
+            # Update existing system records to ensure correct flags
             frappe.db.set_value("KTA Durus Sebebi", data["reason"], {
-                "is_system": 1,
+                "is_system": data.get("is_system", 0),
                 "durus_tipi": data["durus_tipi"],
-                "exclude_from_charts": data["exclude_from_charts"]
+                "exclude_from_charts": data["exclude_from_charts"],
+                "description": data.get("description", "")
             }, update_modified=False)
 
     # Link these reasons to KTA Calisma Karti Settings automatically

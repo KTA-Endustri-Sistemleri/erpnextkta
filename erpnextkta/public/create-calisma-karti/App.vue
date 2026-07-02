@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+const __ = (...args) => window.__(...args);
 import StepWorkOrder from './components/StepWorkOrder.vue';
 import StepJobCard from './components/StepJobCard.vue';
 import StepOperation from './components/StepOperation.vue';
@@ -84,40 +85,40 @@ const steps = computed(() => {
 
   // WO MODE: 5 ADIM
   if (searchMode.value === 'WO') {
-    let step1Desc = 'Work Order barkodu';
+    let step1Desc = __('Work Order barkodu');
     if (wo && wo.name) step1Desc = wo.name;
 
-    let step2Desc = 'Seçilecek İş Kartı';
+    let step2Desc = __('Seçilecek İş Kartı');
     if (jc) step2Desc = jc.name;
 
-    let step3Desc = 'Varsayılan veya manuel istasyon';
+    let step3Desc = __('Varsayılan veya manuel istasyon');
     if (ws) step3Desc = ws;
 
-    let step4Desc = 'Operasyon seçimi';
+    let step4Desc = __('Operasyon seçimi');
     if (op && op.calisma_karti_op) step4Desc = op.calisma_karti_op;
     else if (selectedOperationName.value) step4Desc = selectedOperationName.value;
 
-    let step5Desc = 'Operatör (Employee) seçimi';
+    let step5Desc = __('Operatör (Employee) seçimi');
     if (emp) step5Desc = emp.employee_name || emp.name;
 
     return [
-      { id: 1, label: 'İş Emri',      description: step1Desc },
-      { id: 2, label: 'İş Kartı',     description: step2Desc },
-      { id: 3, label: 'İş İstasyonu', description: step3Desc },
-      { id: 4, label: 'Operasyon',    description: step4Desc },
-      { id: 5, label: 'Operatör',     description: step5Desc },
+      { id: 1, label: __('İş Emri'),      description: step1Desc },
+      { id: 2, label: __('İş Kartı'),     description: step2Desc },
+      { id: 3, label: __('İş İstasyonu'), description: step3Desc },
+      { id: 4, label: __('Operasyon'),    description: step4Desc },
+      { id: 5, label: __('Operatör'),     description: step5Desc },
     ];
   }
 
   // JC MODE: 3 ADIM
-  let step1Desc = 'İş Kartı barkodu / adı';
+  let step1Desc = __('İş Kartı barkodu / adı');
   if (jc) {
     const parts = [jc.name];
     if (jc.work_order) parts.push(jc.work_order);
     step1Desc = parts.join(' · ');
   }
 
-  let step2Desc = 'Operasyon seçimi';
+  let step2Desc = __('Operasyon seçimi');
   if (op && op.calisma_karti_op) step2Desc = op.calisma_karti_op;
   else if (selectedOperationName.value) step2Desc = selectedOperationName.value;
 
@@ -125,9 +126,9 @@ const steps = computed(() => {
   if (emp) step3Desc = emp.employee_name || emp.name;
 
   return [
-    { id: 1, label: 'İş Kartı',  description: step1Desc },
+    { id: 1, label: __('İş Kartı'),  description: step1Desc },
     { id: 2, label: 'Operasyon', description: step2Desc },
-    { id: 3, label: 'Operatör',  description: step3Desc },
+    { id: 3, label: __('Operatör'),  description: step3Desc },
   ];
 });
 
@@ -741,7 +742,7 @@ defineExpose({
           :class="{ 'mode-pill--active': searchMode === 'WO' }"
           @click="setSearchMode('WO')"
         >
-          İş Emri ile
+          {{ __('İş Emri ile') }}
         </button>
         <button
           type="button"
@@ -749,7 +750,7 @@ defineExpose({
           :class="{ 'mode-pill--active': searchMode === 'JC' }"
           @click="setSearchMode('JC')"
         >
-          İş Kartı ile
+          {{ __('İş Kartı ile') }}
         </button>
       </div>
       </teleport>
@@ -882,7 +883,7 @@ defineExpose({
             :disabled="loading"
             @click="goBack"
           >
-            ← Geri
+            ← {{ __('Geri') }}
           </button>
         </div>
 
@@ -895,7 +896,7 @@ defineExpose({
             :disabled="!isStepValid || loading"
             @click="goNext"
           >
-            İleri →
+            {{ __('İleri') }} →
           </button>
 
           <!-- Submit Button -->
@@ -906,7 +907,7 @@ defineExpose({
             :disabled="!isStepValid || loading"
             @click="submitWorkCard"
           >
-            {{ loading ? "Gönderiliyor..." : "Çalışma Kartını Oluştur" }}
+            {{ loading ? __('Gönderiliyor...') : __('Çalışma Kartını Oluştur') }}
           </button>
         </div>
       </div>
@@ -917,9 +918,9 @@ defineExpose({
         <div class="success-card__header">
           <div class="success-card__icon">✓</div>
           <div class="success-card__text">
-            <h2 class="success-card__title">{{ createdDoc._is_existing ? "Çalışma Kartı zaten mevcut" : "Çalışma Kartı oluşturuldu" }}</h2>
+            <h2 class="success-card__title">{{ createdDoc._is_existing ? __('Çalışma Kartı zaten mevcut') : __('Çalışma Kartı oluşturuldu') }}</h2>
             <p class="success-card__subtitle">
-              {{ createdDoc._is_existing ? "Bu işlem için aktif bir kartınız zaten bulunuyor." : "Yeni Çalışma Kartı başarıyla kaydedildi." }}
+              {{ createdDoc._is_existing ? __('Bu işlem için aktif bir kartınız zaten bulunuyor.') : __('Yeni Çalışma Kartı başarıyla kaydedildi.') }}
             </p>
           </div>
         </div>
@@ -928,7 +929,7 @@ defineExpose({
           v-if="createdDoc && createdDoc.name"
           class="success-card__doc"
         >
-          <span class="success-card__doc-label">Doküman:</span>
+          <span class="success-card__doc-label">{{ __('Doküman') }}:</span>
           <span class="success-card__doc-value">{{ createdDoc.name }}</span>
         </div>
 
@@ -938,7 +939,7 @@ defineExpose({
             class="success-btn success-btn--primary"
             @click="goToCreatedDoc"
           >
-            Çalışma Kartına Git
+            {{ __('Çalışma Kartına Git') }}
           </button>
 
           <button
@@ -946,7 +947,7 @@ defineExpose({
             class="success-btn success-btn--secondary"
             @click="startNewWorkCard"
           >
-            Yeni Çalışma Kartı Başlat
+            {{ __('Yeni Çalışma Kartı Başlat') }}
           </button>
         </div>
       </div>

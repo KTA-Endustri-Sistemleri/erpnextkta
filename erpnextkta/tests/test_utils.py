@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from erpnextkta.kta_calisma_karti.setup import setup_system_downtime_reasons
 
 
@@ -163,7 +164,7 @@ def before_tests():
 			account_type = frappe.get_cached_value("Account", d.account, "account_type")
 			if account_type in ["Receivable", "Payable"]:
 				if not (d.party_type and d.party) and not self.get("party_not_required"):
-					frappe.throw(f"Row {d.idx}: Party Type and Party is required for {d.account}")
+					frappe.throw(_("Satır {0}: {1} için Taraf Tipi ve Taraf zorunludur").format(d.idx, d.account))
 
 	JournalEntry.validate_party = patched_validate_party
 	print("DEBUG: Monkeypatched JournalEntry.validate_party")

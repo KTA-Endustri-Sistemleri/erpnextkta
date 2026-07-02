@@ -17,14 +17,14 @@ frappe.ui.form.on('KTA Sales Order Update', {
                     }
                 },
             });
-        }, __('Sales Order Update İşlemleri'));
+        }, __('Satış Siparişi Güncelleme İşlemleri'));
 
-        frm.add_custom_button(__('Sales Order\'ları Senkronize Et'), () => {
+        frm.add_custom_button(__('Satış Siparişlerini Senkronize Et'), () => {
             frappe.call({
                 method: 'erpnextkta.api.sync_sales_orders_from_sales_order_update',
                 args: { sales_order_update_reference: referenceName },
                 freeze: true,
-                freeze_message: __('Sales Order\'lar güncelleniyor...'),
+                freeze_message: __('Satış Siparişleri güncelleniyor...'),
                 callback: (r) => {
                     if (r.message) {
                         const result = r.message;
@@ -69,9 +69,9 @@ frappe.ui.form.on('KTA Sales Order Update', {
                     }
                 },
             });
-        }, __('Sales Order Update İşlemleri'));
+        }, __('Satış Siparişi Güncelleme İşlemleri'));
 
-        frm.add_custom_button(__('Sales Order Update Listesi'), () => {
+        frm.add_custom_button(__('Satış Siparişi Güncelleme Listesi'), () => {
             frappe.set_route('List', 'KTA Sales Order Update');
         }, __('Kısayollar'));
 

@@ -18,7 +18,7 @@ function openDoc(doctype: string, docname: string) {
           <polyline points="15 3 21 3 21 9"></polyline>
           <line x1="10" y1="14" x2="21" y2="3"></line>
         </svg>
-        <span>İş Emri</span>
+        <span>{{ __("İş Emri") }}</span>
         <b>{{ props.doc.custom_work_order || "-" }}</b>
       </div>
     </div>
@@ -29,37 +29,37 @@ function openDoc(doctype: string, docname: string) {
           <polyline points="15 3 21 3 21 9"></polyline>
           <line x1="10" y1="14" x2="21" y2="3"></line>
         </svg>
-        <span>İş Kartı</span>
+        <span>{{ __("İş Kartı") }}</span>
         <b>{{ props.doc.is_karti || "-" }}</b>
       </div>
     </div>
     <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col">
       <div class="ck-info-cell">
-        <span>Ürün</span>
+        <span>{{ __("Ürün") }}</span>
         <b>{{ props.doc.urun_kodu || "-" }}</b>
       </div>
     </div>
     <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col">
       <div class="ck-info-cell">
-        <span>Operasyon</span>
+        <span>{{ __("Operasyon") }}</span>
         <b>{{ props.doc.operasyon || "-" }}</b>
       </div>
     </div>
     <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col">
       <div class="ck-info-cell">
-        <span>İstasyon</span>
+        <span>{{ __("İstasyon") }}</span>
         <b>{{ props.doc.is_istasyonu || "-" }}</b>
       </div>
     </div>
     <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col">
       <div class="ck-info-cell">
-        <span>Operatör</span>
+        <span>{{ __("Operatör") }}</span>
         <b>{{ props.doc.operator || "-" }}</b>
       </div>
     </div>
     <div class="col-xs-12 ck-info-col">
       <div class="ck-info-cell ck-cell-full">
-        <span>Belge Yaratılış Tarihi</span>
+        <span>{{ __("Belge Yaratılış Tarihi") }}</span>
         <b>{{ props.doc.creation || "-" }}</b>
       </div>
     </div>

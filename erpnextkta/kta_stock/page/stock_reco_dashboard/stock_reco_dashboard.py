@@ -10,5 +10,5 @@ def get_context(context):
     # Server-side access control for the page itself
     user = frappe.session.user
     roles = frappe.get_roles(user) or []
-    if ROLE_REQUIRED not in roles:
-        frappe.throw(_("Not permitted"), frappe.PermissionError)
+    if not frappe.has_permission("Stock Reconciliation", "read"):
+        frappe.throw(_("İzin verilmiyor"), frappe.PermissionError)

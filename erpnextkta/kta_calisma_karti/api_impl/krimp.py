@@ -148,9 +148,15 @@ def extract_kesit_from_item(item_code):
     return None
 
 @frappe.whitelist()
-def get_unique_kesit_list():
-    """Returns a flat list of unique kesit values from KTA Krimp Book."""
-    res = frappe.db.sql("SELECT DISTINCT kesit FROM `tabKTA Krimp Book` ORDER BY kesit ASC")
+def get_unique_kesit_list(kontak_no=None):
+    """Returns a flat list of unique kesit values from KTA Krimp Book, optionally filtered by terminal (kontak_no)."""
+    if kontak_no:
+        res = frappe.db.sql(
+            "SELECT DISTINCT kesit FROM `tabKTA Krimp Book` WHERE kontak_no = %s ORDER BY kesit ASC",
+            (kontak_no,)
+        )
+    else:
+        res = frappe.db.sql("SELECT DISTINCT kesit FROM `tabKTA Krimp Book` ORDER BY kesit ASC")
     return [r[0] for r in res if r[0]]
 
 @frappe.whitelist()
