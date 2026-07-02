@@ -19,4 +19,4 @@ erpnextkta.patches.v1_4_1.fix_stuck_gkk_purchase_receipts
 erpnextkta.patches.v1_4_1.fix_cancelled_calisma_kartlari_durum
 erpnextkta.patches.v1_4_1.rename_downtime_reasons
 erpnextkta.patches.v1_4_1.update_ariza_sonrasi_bekleme
-
+erpnextkta.patches.v1_4_1.sync_past_job_cards_qty

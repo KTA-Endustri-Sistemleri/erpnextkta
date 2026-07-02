@@ -6,6 +6,45 @@ def setup():
     setup_permissions()
     cleanup_duplicate_custom_fields()
     setup_system_downtime_reasons()
+    add_custom_fields()
+
+def add_custom_fields():
+    from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+    create_custom_fields(get_custom_fields())
+
+def get_custom_fields():
+    return {
+        "Job Card Time Log": [
+            {
+                "fieldname": "custom_calisma_karti",
+                "fieldtype": "Link",
+                "options": "Calisma Karti",
+                "label": "Çalışma Kartı",
+                "insert_after": "operation",
+                "no_copy": 1,
+                "read_only": 1,
+                "in_list_view": 0,
+            },
+            {
+                "fieldname": "custom_operasyon",
+                "fieldtype": "Data",
+                "label": "KTA Operasyon",
+                "insert_after": "custom_calisma_karti",
+                "no_copy": 1,
+                "read_only": 1,
+                "in_list_view": 0,
+            },
+            {
+                "fieldname": "custom_alt_operasyon",
+                "fieldtype": "Data",
+                "label": "KTA Alt Operasyon",
+                "insert_after": "custom_operasyon",
+                "no_copy": 1,
+                "read_only": 1,
+                "in_list_view": 0,
+            }
+        ]
+    }
 
 def cleanup_duplicate_custom_fields():
     """Remove duplicate Custom Field records for fields already defined in custom DocTypes JSON."""

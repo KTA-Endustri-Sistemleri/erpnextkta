@@ -140,10 +140,18 @@ class CalismaKarti(Document):
 
     def on_update_after_submit(self):
         self.on_update()
+        from erpnextkta.kta_calisma_karti.api_impl.job_card_sync import sync_time_log_to_job_card
+        sync_time_log_to_job_card(self)
+
+    def on_submit(self):
+        from erpnextkta.kta_calisma_karti.api_impl.job_card_sync import sync_time_log_to_job_card
+        sync_time_log_to_job_card(self)
 
     def on_cancel(self):
         self.db_set("durum", "İptal Edildi", update_modified=True)
         publish_calisma_karti_changed(self.name, reason="doc:on_cancel")
+        from erpnextkta.kta_calisma_karti.api_impl.job_card_sync import remove_time_log_from_job_card
+        remove_time_log_from_job_card(self)
 
     def before_validate(self):
         if not self.custom_work_order and self.is_karti:
