@@ -259,7 +259,6 @@ function setupKrimpBookLogic(dialog: any) {
         callback: (r: any) => {
           if (r.message && Object.keys(r.message).length > 0) {
             const data = r.message;
-            // Note: we don't overwrite kablo_kesiti if it's already set
             dialog.set_value("kalip_no", data.kalip_no);
             dialog.set_value("hedef_iletken_krimp_yuksekliği", data.hedef_iletken_krimp_yuksekliği);
             dialog.set_value("hedef_cekme_kuvveti_n", data.hedef_cekme_kuvveti_n);
@@ -269,8 +268,49 @@ function setupKrimpBookLogic(dialog: any) {
           }
         }
       });
+    } else {
+      dialog.set_value("kalip_no", "");
+      dialog.set_value("hedef_iletken_krimp_yuksekliği", 0);
+      dialog.set_value("hedef_cekme_kuvveti_n", 0);
+      dialog.set_value("izokrimp_yuksekligi", 0);
     }
   };
+
+  if (kontak_fld) {
+    kontak_fld.df.onchange = () => {
+      const current_kontak = dialog.get_value("kontak_no");
+      if (dialog.last_kontak === current_kontak) return;
+      dialog.last_kontak = current_kontak;
+
+      // Clear dependent fields when contact changes manually
+      dialog.set_value("kablo_kesiti", "");
+      dialog.set_value("kablo_no", "");
+
+      if (current_kontak) {
+        frappe.call({
+          method: "erpnextkta.kta_calisma_karti.api.get_unique_kesit_list",
+          args: { kontak_no: current_kontak },
+          callback: (r: any) => {
+            if (r.message) {
+              dialog.set_df_property("kablo_kesiti", "options", ["", ...r.message]);
+            }
+          }
+        });
+      } else {
+        // Fallback to all kesits if contact is cleared
+        frappe.call({
+          method: "erpnextkta.kta_calisma_karti.api.get_unique_kesit_list",
+          callback: (r: any) => {
+            if (r.message) {
+              dialog.set_df_property("kablo_kesiti", "options", ["", ...r.message]);
+            }
+          }
+        });
+      }
+
+      updateDetails();
+    };
+  }
 
   if (kesit_fld) {
     kesit_fld.df.onchange = () => {
@@ -278,25 +318,17 @@ function setupKrimpBookLogic(dialog: any) {
       if (dialog.last_kesit === current_kesit) return;
       dialog.last_kesit = current_kesit;
 
-      // Clear dependent fields when kesit changes manually
+      // Clear dependent cable field when kesit changes manually
       dialog.set_value("kablo_no", "");
-      dialog.set_value("kontak_no", "");
       updateDetails();
     };
   }
+
   if (kablo_fld) {
     kablo_fld.df.onchange = () => {
       const current = dialog.get_value("kablo_no");
       if (dialog.last_kablo === current) return;
       dialog.last_kablo = current;
-      updateDetails();
-    };
-  }
-  if (kontak_fld) {
-    kontak_fld.df.onchange = () => {
-      const current = dialog.get_value("kontak_no");
-      if (dialog.last_kontak === current) return;
-      dialog.last_kontak = current;
       updateDetails();
     };
   }

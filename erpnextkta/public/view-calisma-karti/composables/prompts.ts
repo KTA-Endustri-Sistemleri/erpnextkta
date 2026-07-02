@@ -205,6 +205,18 @@ export function krimpOlcumFields(defaults: any = {}) {
             label: __("Kablo ve Kontak Bilgileri")
         },
         {
+            fieldtype: "Link",
+            label: __("Kontak No"),
+            fieldname: "kontak_no",
+            options: "Item",
+            default: defaults.kontak_no || "",
+            reqd: 1,
+            get_query: () => ({
+                query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
+                filters: { calisma_karti: defaults.calisma_karti_name, type: "kontak" }
+            })
+        },
+        {
             fieldtype: "Select",
             label: __("Kablo Kesiti (Rehberden)"),
             fieldname: "kablo_kesiti",
@@ -218,22 +230,10 @@ export function krimpOlcumFields(defaults: any = {}) {
             fieldname: "kablo_no",
             options: "Item",
             default: defaults.kablo_no || "",
-            reqd: 1,
+            reqd: 0,
             get_query: () => ({
                 query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
                 filters: { calisma_karti: defaults.calisma_karti_name, type: "kablo" }
-            })
-        },
-        {
-            fieldtype: "Link",
-            label: __("Kontak No"),
-            fieldname: "kontak_no",
-            options: "Item",
-            default: defaults.kontak_no || "",
-            reqd: 1,
-            get_query: () => ({
-                query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
-                filters: { calisma_karti: defaults.calisma_karti_name, type: "kontak" }
             })
         },
         {
