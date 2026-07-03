@@ -68,6 +68,15 @@
  "custom_perms": [],
  "doctype": "Item Quality Inspection Parameter",
  "links": [],
- "property_setters": [],
+ "property_setters": [
+  {
+   "doc_type": "Item Quality Inspection Parameter",
+   "doctype_or_field": "DocField",
+   "field_name": "value",
+   "property": "depends_on",
+   "property_type": "Small Text",
+   "value": "eval:!doc.formula_based_criteria"
+  }
+ ],
  "sync_on_migrate": 1
 }
