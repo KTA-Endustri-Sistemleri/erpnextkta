@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.1.1 (2026-07-03)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **quality**: allow acceptance criteria value with numeric parameter in templates and readings
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.1.0 (2026-07-02)
 
 
