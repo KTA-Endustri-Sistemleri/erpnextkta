@@ -119,6 +119,9 @@ def sync_time_log_to_job_card(calisma_karti_doc) -> None:
     if mod == "Sıkı (Hard)":
         job_card.flags.ignore_validate_update_after_submit = True
 
+    # Senkronizasyon sırasında sadece zaman logları kaydediliyor; completed_qty = 0
+    # dağıtımı atlayarak validate_sequence_id hatasını önle.
+    job_card.flags.kta_sync_mode = True
     job_card.flags.ignore_permissions = True
     job_card.save()
 
@@ -159,6 +162,9 @@ def remove_time_log_from_job_card(calisma_karti_doc) -> None:
     if mod == "Sıkı (Hard)":
         job_card.flags.ignore_validate_update_after_submit = True
 
+    # Senkronizasyon sırasında sadece zaman logları kaydediliyor; completed_qty = 0
+    # dağıtımı atlayarak validate_sequence_id hatasını önle.
+    job_card.flags.kta_sync_mode = True
     job_card.flags.ignore_permissions = True
     job_card.save()
 
@@ -173,6 +179,11 @@ def distribute_completed_qty(doc, method=None):
     Bu metod hooks.py üzerinden Job Card'ın 'validate' event'ine bağlıdır.
     """
     if not doc.time_logs:
+        return
+
+    # KTA sync modunda sadece zaman logları kaydedilir; adet dağıtımı atlanır
+    # (completed_qty = 0 kalır → validate_sequence_id sırası hatası oluşmaz).
+    if doc.flags.get("kta_sync_mode"):
         return
 
     # KTA Calisma Karti Settings kontrolü
