@@ -280,6 +280,13 @@ class KTATestCase(FrappeTestCase):
 		# 0. Infrastructure data seeding
 		setup_system_downtime_reasons()
 
+		# Temizlik (Önceki testlerden kalan Job Card Time Log'ları temizle)
+		frappe.db.sql("DELETE FROM `tabJob Card Time Log` WHERE parent='TEST-JC-KTA-001'")
+		frappe.db.sql("UPDATE `tabJob Card` SET quality_inspection=NULL WHERE name='TEST-JC-KTA-001'")
+		# Çalışma kartı kirliliğini temizle
+		frappe.db.sql("DELETE FROM `tabCalisma Karti` WHERE name LIKE 'TEST-CK-OP%%'")
+		frappe.db.commit()
+
 		# 1. KTA Settings
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "mukerrer_kalite_kontrolu_yap", 1)
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk", 430)
@@ -489,6 +496,7 @@ def make_mock_calisma_karti(**kwargs):
 	doc.toplam_durus = kwargs.get("toplam_durus", None)
 	doc.net_calisma_suresi = kwargs.get("net_calisma_suresi", None)
 	doc.durum = kwargs.get("durum", None)
+	doc.is_karti = kwargs.get("is_karti", None)
 	return doc
 
 
