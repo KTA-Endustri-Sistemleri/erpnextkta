@@ -11,10 +11,19 @@ class TestJobCardSync(KTATestCase):
     def setUp(self):
         super().setUp()
         from unittest.mock import patch
+        
+        # Orijinal metodu tutalım
+        self.original_get_single_value = frappe.db.get_single_value
+
         self.patcher = patch('frappe.db.get_single_value')
         self.mock_get_single_value = self.patcher.start()
-        # Varsayılan olarak her zaman Sıkı (Hard) döndür
-        self.mock_get_single_value.return_value = "Sıkı (Hard)"
+        
+        def mock_get_single_value_side_effect(doctype, fieldname, *args, **kwargs):
+            if doctype == "KTA Calisma Karti Settings" and fieldname == "job_card_time_log_sync_modu":
+                return "Sıkı (Hard)"
+            return self.original_get_single_value(doctype, fieldname, *args, **kwargs)
+            
+        self.mock_get_single_value.side_effect = mock_get_single_value_side_effect
 
     def tearDown(self):
         super().tearDown()
@@ -33,7 +42,8 @@ class TestJobCardSync(KTATestCase):
             
         doc = frappe._dict({
             "for_quantity": for_quantity,
-            "time_logs": logs
+            "time_logs": logs,
+            "flags": frappe._dict()
         })
         return doc
 
@@ -143,3 +153,208 @@ class TestJobCardSync(KTATestCase):
             
         self.assertEqual(len(alt_op_str), 140)
         self.assertTrue(alt_op_str.endswith("..."))
+
+    def test_distribute_completed_qty_kta_sync_mode_bypass(self):
+        """kta_sync_mode flag'i True olduğunda miktar dağıtımının atlanmasını test eder."""
+        doc = self.create_mock_job_card(
+            for_quantity=100.0,
+            time_logs=[
+                {"from_time": "2024-01-01 08:00:00", "to_time": "2024-01-01 09:00:00"}, # 1 saat
+                {"from_time": "2024-01-01 09:00:00", "to_time": "2024-01-01 10:00:00"}  # 1 saat
+            ]
+        )
+        
+        # Önceden 0.0 olarak mock edilmiş. Dağıtım yapılmazsa completed_qty 0.0 kalmalı.
+        doc.flags.kta_sync_mode = True
+        distribute_completed_qty(doc)
+        
+        self.assertEqual(doc.time_logs[0].completed_qty, 0.0)
+        self.assertEqual(doc.time_logs[1].completed_qty, 0.0)
+
+        # Flag'i kaldırıp tekrar çalıştıralım, bu sefer dağıtım yapılmalı.
+        doc.flags.kta_sync_mode = False
+        distribute_completed_qty(doc)
+        
+        self.assertEqual(doc.time_logs[0].completed_qty, 50.0)
+        self.assertEqual(doc.time_logs[1].completed_qty, 50.0)
+
+    def _run_sequence_bypass_scenario(self, skip_transfer, transfer_material_against, test_suffix, start_time):
+        """Yardımcı metod: Farklı İş Emri senaryolarında sıra kuralı baypasını test eder."""
+        from erpnextkta.tests.test_utils import create_test_erpnext_operation, make_mock_calisma_karti, create_test_operator
+        from erpnextkta.kta_calisma_karti.api_impl.job_card_sync import sync_time_log_to_job_card
+        
+        op1_name = create_test_erpnext_operation(f"_Test Seq OP 1 {test_suffix}", self.ws_name)
+        op2_name = create_test_erpnext_operation(f"_Test Seq OP 2 {test_suffix}", self.ws_name)
+        
+        # Test izolasyonu için benzersiz operatör oluşturalım
+        emp_email = f"test_{test_suffix}@kta.com"
+        create_test_operator(emp_email, f"Test Op {test_suffix}")
+        
+        # Daha önceki testlerden kalan draft Time Log'ları temizleyelim (OverlapError önlemi)
+        frappe.db.sql("DELETE FROM `tabJob Card Time Log` WHERE employee=%s", emp_email)
+        frappe.db.commit()
+        
+        wo = frappe.get_doc({
+            "doctype": "Work Order",
+            "production_item": self.item,
+            "qty": 100,
+            "company": self.company,
+            "wip_warehouse": self.wip_warehouse,
+            "fg_warehouse": self.wip_warehouse,
+            "use_multi_level_bom": 0,
+            "skip_transfer": skip_transfer,
+            "transfer_material_against": transfer_material_against,
+            "operations": [
+                {
+                    "operation": op1_name,
+                    "workstation": self.ws_name,
+                    "time_in_mins": 60,
+                    "sequence_id": 1,
+                    "operating_cost": 100
+                },
+                {
+                    "operation": op2_name,
+                    "workstation": self.ws_name,
+                    "time_in_mins": 60,
+                    "sequence_id": 2,
+                    "operating_cost": 100
+                }
+            ]
+        })
+        # BOM validation'ı atlamak için:
+        wo.flags.ignore_mandatory = True 
+        wo.insert(ignore_permissions=True)
+        wo.submit()
+        
+        # Frappe otomatik olarak 2 Job Card oluşturmuş olmalı
+        job_cards = frappe.get_all("Job Card", filters={"work_order": wo.name}, order_by="sequence_id asc", pluck="name")
+        self.assertEqual(len(job_cards), 2, "Frappe 2 adet Job Card oluşturmalıydı")
+        
+        jc1_name = job_cards[0]
+        jc2_name = job_cards[1]
+        
+        # BOM olmadan Work Order yarattığımız için Frappe wip_warehouse'u Job Card'a 
+        # taşımayı unutabiliyor. Biz manuel atayalım ki MandatoryError vermesin.
+        frappe.db.set_value("Job Card", jc2_name, "wip_warehouse", self.wip_warehouse)
+        
+        # Frappe'nin Job Card kaydederken 'LinkValidationError' fırlatmaması için 
+        # bu sahte Çalışma Kartı'nın gerçekten veritabanında var olması gerekiyor.
+        ck_name = f"TEST-CK-OP2-{test_suffix}"
+        frappe.db.sql("""
+            INSERT INTO `tabCalisma Karti` (name, is_karti, baslangic_saati, net_calisma_suresi, operator, creation, modified, modified_by)
+            VALUES (%s, %s, %s, %s, %s, NOW(), NOW(), 'Administrator')
+            ON DUPLICATE KEY UPDATE name=name
+        """, (ck_name, jc2_name, start_time, "01:00:00", emp_email))
+        
+        # Mock bir Çalışma Kartı nesnesi oluşturalım (Sadece süre tutan bir kayıt)
+        ck = make_mock_calisma_karti(
+            name=ck_name,
+            is_karti=jc2_name,
+            baslangic_saati=start_time,
+            net_calisma_suresi="01:00:00",
+            operator=emp_email
+        )
+        
+        # Aktarma işlemi hata fırlatmamalı (Sıra hatası vermemeli)
+        try:
+            sync_time_log_to_job_card(ck)
+        except frappe.exceptions.ValidationError as e:
+            self.fail(f"Senkronizasyon (sync) sıra hatasına (OperationSequenceError) takıldı: {e}")
+            
+        # Başarıyla senkronize oldu mu ve completed_qty 0 kaldı mı kontrol edelim
+        jc2_reloaded = frappe.get_doc("Job Card", jc2_name)
+        self.assertTrue(len(jc2_reloaded.time_logs) >= 1)
+        
+        log_row = None
+        for row in jc2_reloaded.time_logs:
+            if row.custom_calisma_karti == ck_name:
+                log_row = row
+                break
+                
+        self.assertIsNotNone(log_row)
+        self.assertEqual(log_row.completed_qty, 0.0)
+        self.assertEqual(jc2_reloaded.total_completed_qty, 0.0)
+
+    def test_job_card_sequence_bypass_transfer_job_card(self):
+        """KTA Senaryosu: Malzeme aktarımı atlanmış (Skip Transfer) ve Transfer Job Card'a göre."""
+        self._run_sequence_bypass_scenario(skip_transfer=1, transfer_material_against="Job Card", test_suffix="JC", start_time="2026-01-01 08:00:00")
+
+    def test_job_card_sequence_bypass_transfer_work_order(self):
+        """KTA Senaryosu: Malzeme aktarımı atlanmış (Skip Transfer) ve Transfer Work Order'a göre."""
+        self._run_sequence_bypass_scenario(skip_transfer=1, transfer_material_against="Work Order", test_suffix="WO", start_time="2026-01-01 10:00:00")
+
+    def test_job_card_sequence_bypass_no_skip_transfer(self):
+        """KTA Senaryosu: Malzeme aktarımı atlanmamış (No Skip Transfer) normal Work Order süreci."""
+        self._run_sequence_bypass_scenario(skip_transfer=0, transfer_material_against="Work Order", test_suffix="NO_SKIP", start_time="2026-01-01 12:00:00")
+
+    def test_overlap_error_bypass_with_disable_capacity_planning(self):
+        """KTA Senaryosu: Kapasite planlama kapalıyken OverlapError'ın atlanması."""
+        from erpnext.manufacturing.doctype.job_card.job_card import OverlapError
+        from erpnextkta.tests.test_utils import create_test_operator
+        
+        # Orijinal side_effect'i saklayalım
+        original_side_effect = self.mock_get_single_value.side_effect
+        
+        # Operatör
+        emp_email = "test_overlap@kta.com"
+        create_test_operator(emp_email, "Test Overlap")
+        
+        # Eski verileri temizleyelim ki OverlapError çakışmasın
+        frappe.db.sql("DELETE FROM `tabJob Card Time Log` WHERE employee=%s", emp_email)
+        
+        # Workstation'ları oluşturalım
+        ws1 = "Test WS Overlap 1"
+        ws2 = "Test WS Overlap 1"  # Aynı istasyonu kullanalım ki çakışma olsun!
+        for ws in [ws1, ws2]:
+            if not frappe.db.exists("Workstation", ws):
+                frappe.get_doc({"doctype": "Workstation", "workstation_name": ws}).insert(ignore_permissions=True)
+
+        # Job Card 1 (Draft)
+        jc1 = frappe.new_doc("Job Card")
+        jc1.workstation = ws1
+        jc1.operation = "Montaj"
+        jc1.append("time_logs", {
+            "from_time": "2026-05-01 08:00:00",
+            "to_time": "2026-05-01 09:00:00",
+            "completed_qty": 10,
+            "employee": emp_email
+        })
+        jc1.insert(ignore_permissions=True, ignore_mandatory=True)
+
+        # Job Card 2 (Draft)
+        jc2 = frappe.new_doc("Job Card")
+        jc2.workstation = ws2
+        jc2.operation = "Montaj"
+        jc2.append("time_logs", {
+            "from_time": "2026-05-01 08:30:00",
+            "to_time": "2026-05-01 09:30:00",
+            "completed_qty": 10,
+            "employee": emp_email
+        })
+        
+        # 1. Kapasite planlama devredeyken (disable_capacity_planning=0) hata fırlatmasını bekliyoruz.
+        def mock_side_effect_enabled(doctype, fieldname, *args, **kwargs):
+            if doctype == "Manufacturing Settings" and fieldname == "disable_capacity_planning":
+                return 0
+            return original_side_effect(doctype, fieldname, *args, **kwargs)
+            
+        self.mock_get_single_value.side_effect = mock_side_effect_enabled
+        
+        with self.assertRaises(OverlapError):
+            jc2.insert(ignore_permissions=True, ignore_mandatory=True)
+
+        # 2. Kapasite planlama DEVRE DIŞIYKEN (disable_capacity_planning=1) hata FIRLATMAMASINI bekliyoruz.
+        def mock_side_effect_disabled(doctype, fieldname, *args, **kwargs):
+            if doctype == "Manufacturing Settings" and fieldname == "disable_capacity_planning":
+                return 1
+            return original_side_effect(doctype, fieldname, *args, **kwargs)
+            
+        self.mock_get_single_value.side_effect = mock_side_effect_disabled
+        
+        try:
+            jc2.insert(ignore_permissions=True, ignore_mandatory=True)
+            self.assertTrue(jc2.name) # Başarıyla oluşturuldu
+        except OverlapError:
+            self.fail("disable_capacity_planning=1 iken OverlapError fırlatılmamalıydı!")
+        finally:
+            self.mock_get_single_value.side_effect = original_side_effect
