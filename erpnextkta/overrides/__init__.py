@@ -11,6 +11,43 @@ def apply():
         ps.set_print_templates_for_item_table = set_print_templates_for_item_table
 
     apply_bom_search_override()
+    apply_job_card_override()
+    apply_document_permission_override()
+
+def apply_document_permission_override():
+    try:
+        import frappe
+        import frappe.model.document
+        
+        if not hasattr(frappe.model.document.Document, "_original_has_permission"):
+            frappe.model.document.Document._original_has_permission = frappe.model.document.Document.has_permission
+
+            def custom_doc_has_permission(self, permtype="read", *, debug=False, user=None):
+                if self.flags.ignore_permissions or frappe.flags.ignore_permissions:
+                    return True
+                return self._original_has_permission(permtype=permtype, debug=debug, user=user)
+
+            frappe.model.document.Document.has_permission = custom_doc_has_permission
+    except Exception as e:
+        import frappe
+        frappe.log_error(f"Error applying Document permission override: {e}", "KTA Override Error")
+
+def apply_job_card_override():
+    try:
+        from erpnext.manufacturing.doctype.job_card.job_card import JobCard
+        if not hasattr(JobCard, "_original_validate_sequence_id"):
+            JobCard._original_validate_sequence_id = JobCard.validate_sequence_id
+
+            def custom_validate_sequence_id(self):
+                if self.flags.get("kta_sync_mode"):
+                    return
+                return self._original_validate_sequence_id()
+
+            JobCard.validate_sequence_id = custom_validate_sequence_id
+    except Exception as e:
+        import frappe
+        frappe.log_error(f"Error applying Job Card override: {e}", "KTA Override Error")
+
 
 def apply_bom_search_override():
     try:
