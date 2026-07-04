@@ -157,7 +157,7 @@ doc_events = {
         "on_submit": "erpnextkta.erpnextkta.doctype.calisma_karti.calisma_karti.qc_on_submit"
     },
     "Job Card": {
-        "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status",
+        # "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status",
         "validate": "erpnextkta.kta_calisma_karti.api_impl.job_card_sync.distribute_completed_qty",
         "before_update_after_submit": "erpnextkta.kta_calisma_karti.api_impl.job_card_sync.distribute_completed_qty"
     },
