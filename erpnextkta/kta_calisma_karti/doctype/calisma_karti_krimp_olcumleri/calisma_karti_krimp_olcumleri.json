@@ -1,172 +1,173 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2026-05-13 12:30:00.000000",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "kablo_no",
-  "kontak_no",
-  "kalip_no",
-  "makine_pres_no",
-  "kablo_kesiti",
-  "column_break_1",
-  "hedef_kablo_boyu",
-  "olculen_kablo_boyu",
-  "hedef_iletken_krimp_yuksekliği",
-  "olculen_iletken_krimp_yuksekliği",
-  "column_break_2",
-  "izokrimp_yuksekligi",
-  "siyirma_boyu",
-  "hedef_cekme_kuvveti_n",
-  "olculen_cekme_kuvveti_n",
-  "capak_boyu",
-  "column_break_3",
-  "radus_mevcut",
-  "tel_kesme_mevcut",
-  "olcum_tarihi",
-  "operator"
- ],
- "fields": [
-  {
-   "allow_on_submit": 1,
-   "fieldname": "kablo_no",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Kablo No"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "kontak_no",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Kontak No"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "kalip_no",
-   "fieldtype": "Data",
-   "label": "Kal\u0131p No"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "makine_pres_no",
-   "fieldtype": "Data",
-   "label": "Makine / Pres No"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "kablo_kesiti",
-   "fieldtype": "Data",
-   "label": "Kablo Kesiti"
-  },
-  {
-   "fieldname": "column_break_1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "hedef_kablo_boyu",
-   "fieldtype": "Float",
-   "label": "Hedef Kablo Boyu (mm)"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "olculen_kablo_boyu",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "\u00d6l\u00e7\u00fclen Kablo Boyu (mm)"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "hedef_iletken_krimp_yuksekli\u011fi",
-   "fieldtype": "Float",
-   "label": "Hedef \u0130letken Krimp Y\u00fck. (mm)"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "olculen_iletken_krimp_yuksekli\u011fi",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "\u00d6l\u00e7\u00fclen \u0130letken Krimp Y\u00fck. (mm)"
-  },
-  {
-   "fieldname": "column_break_2",
-   "fieldtype": "Column Break"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "izokrimp_yuksekligi",
-   "fieldtype": "Float",
-   "label": "\u0130zokrimp Y\u00fcksekli\u011fi (mm)"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "siyirma_boyu",
-   "fieldtype": "Float",
-   "label": "S\u0131y\u0131rma Boyu (mm)"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "hedef_cekme_kuvveti_n",
-   "fieldtype": "Float",
-   "label": "Hedef \u00c7ekme Kuvveti (N)"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "olculen_cekme_kuvveti_n",
-   "fieldtype": "Float",
-   "label": "\u00d6l\u00e7\u00fclen \u00c7ekme Kuvveti (N)"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "capak_boyu",
-   "fieldtype": "Float",
-   "label": "\u00c7apak Boyu (mm)"
-  },
-  {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "0",
-   "fieldname": "radus_mevcut",
-   "fieldtype": "Check",
-   "label": "Rad\u00fcs Mevcut"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "0",
-   "fieldname": "tel_kesme_mevcut",
-   "fieldtype": "Check",
-   "label": "Tel Kesme Mevcut"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "now",
-   "fieldname": "olcum_tarihi",
-   "fieldtype": "Datetime",
-   "label": "\u00d6l\u00e7\u00fcm Tarihi"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "operator",
-   "fieldtype": "Link",
-   "label": "Operat\u00f6r",
-   "options": "Employee"
-  }
- ],
- "index_web_pages_for_search": 1,
- "istable": 1,
- "modified": "2026-05-13 12:30:00.000000",
- "modified_by": "Administrator",
- "module": "kta_calisma_karti",
- "name": "Calisma Karti Krimp Olcumleri",
- "owner": "Administrator",
- "permissions": [],
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2026-05-13 12:30:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "kablo_no",
+        "kontak_no",
+        "kalip_no",
+        "makine_pres_no",
+        "kablo_kesiti",
+        "column_break_1",
+        "hedef_kablo_boyu",
+        "olculen_kablo_boyu",
+        "hedef_iletken_krimp_yuksekliği",
+        "olculen_iletken_krimp_yuksekliği",
+        "column_break_2",
+        "izokrimp_yuksekligi",
+        "siyirma_boyu",
+        "hedef_cekme_kuvveti_n",
+        "olculen_cekme_kuvveti_n",
+        "capak_boyu",
+        "column_break_3",
+        "radus_mevcut",
+        "tel_kesme_mevcut",
+        "olcum_tarihi",
+        "operator"
+    ],
+    "fields": [
+        {
+            "allow_on_submit": 1,
+            "fieldname": "kablo_no",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Kablo No"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "kontak_no",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Kontak No"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "kalip_no",
+            "fieldtype": "Data",
+            "label": "Kal\u0131p No"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "makine_pres_no",
+            "fieldtype": "Data",
+            "label": "Makine / Pres No"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "kablo_kesiti",
+            "fieldtype": "Data",
+            "label": "Kablo Kesiti"
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "hedef_kablo_boyu",
+            "fieldtype": "Float",
+            "label": "Hedef Kablo Boyu (mm)"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "olculen_kablo_boyu",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "\u00d6l\u00e7\u00fclen Kablo Boyu (mm)"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "hedef_iletken_krimp_yuksekli\u011fi",
+            "fieldtype": "Float",
+            "label": "Hedef \u0130letken Krimp Y\u00fck. (mm)"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "olculen_iletken_krimp_yuksekli\u011fi",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "\u00d6l\u00e7\u00fclen \u0130letken Krimp Y\u00fck. (mm)"
+        },
+        {
+            "fieldname": "column_break_2",
+            "fieldtype": "Column Break"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "izokrimp_yuksekligi",
+            "fieldtype": "Float",
+            "label": "\u0130zokrimp Y\u00fcksekli\u011fi (mm)"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "siyirma_boyu",
+            "fieldtype": "Float",
+            "label": "S\u0131y\u0131rma Boyu (mm)"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "hedef_cekme_kuvveti_n",
+            "fieldtype": "Float",
+            "label": "Hedef \u00c7ekme Kuvveti (N)"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "olculen_cekme_kuvveti_n",
+            "fieldtype": "Float",
+            "label": "\u00d6l\u00e7\u00fclen \u00c7ekme Kuvveti (N)"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "capak_boyu",
+            "fieldtype": "Float",
+            "label": "\u00c7apak Boyu (mm)"
+        },
+        {
+            "fieldname": "column_break_3",
+            "fieldtype": "Column Break"
+        },
+        {
+            "allow_on_submit": 1,
+            "default": "0",
+            "fieldname": "radus_mevcut",
+            "fieldtype": "Check",
+            "label": "Rad\u00fcs Mevcut"
+        },
+        {
+            "allow_on_submit": 1,
+            "default": "0",
+            "fieldname": "tel_kesme_mevcut",
+            "fieldtype": "Check",
+            "label": "Tel Kesme Mevcut"
+        },
+        {
+            "allow_on_submit": 1,
+            "default": "now",
+            "fieldname": "olcum_tarihi",
+            "fieldtype": "Datetime",
+            "label": "\u00d6l\u00e7\u00fcm Tarihi"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "operator",
+            "fieldtype": "Link",
+            "label": "Operat\u00f6r",
+            "ignore_user_permissions": 1,
+            "options": "Employee"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "istable": 1,
+    "modified": "2026-05-13 12:30:00.000000",
+    "modified_by": "Administrator",
+    "module": "kta_calisma_karti",
+    "name": "Calisma Karti Krimp Olcumleri",
+    "owner": "Administrator",
+    "permissions": [],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
 }

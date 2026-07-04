@@ -11,26 +11,6 @@ def apply():
         ps.set_print_templates_for_item_table = set_print_templates_for_item_table
 
     apply_bom_search_override()
-    apply_job_card_overlap_override()
-
-
-def apply_job_card_overlap_override():
-    try:
-        from erpnext.manufacturing.doctype.job_card.job_card import JobCard
-        import frappe
-
-        if not hasattr(JobCard, "_original_get_overlap_for"):
-            JobCard._original_get_overlap_for = JobCard.get_overlap_for
-
-            def custom_get_overlap_for(self, args, open_job_cards=None):
-                if frappe.db.get_single_value("Manufacturing Settings", "disable_capacity_planning"):
-                    return {}
-                return self._original_get_overlap_for(args, open_job_cards)
-
-            JobCard.get_overlap_for = custom_get_overlap_for
-    except Exception as e:
-        import frappe
-        frappe.log_error(f"Error applying Job Card Overlap override: {e}", "KTA Override Error")
 
 def apply_bom_search_override():
     try:
