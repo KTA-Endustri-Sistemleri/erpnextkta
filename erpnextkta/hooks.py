@@ -150,6 +150,7 @@ override_doctype_class = {
     "Stock Entry": "erpnextkta.overrides.KTAStockEntry.KTAStockEntry",
     "Delivery Note": "erpnextkta.overrides.delivery_note.KTADeliveryNote",
     "Sales Invoice": "erpnextkta.overrides.sales_invoice.KTASalesInvoice",
+    "Job Card": "erpnextkta.overrides.job_card.KTAJobCard",
 }
 doc_events = {
     "Kalite Kontrol": {
