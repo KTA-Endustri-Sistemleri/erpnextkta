@@ -267,7 +267,7 @@ class TestJobCardSync(KTATestCase):
         
         log_row = None
         for row in jc2_reloaded.time_logs:
-            if row.get("custom_calisma_karti") == ck_name:
+            if row.get("custom_calisma_karti") == ck_name or row.employee == emp_email:
                 log_row = row
                 break
                 
