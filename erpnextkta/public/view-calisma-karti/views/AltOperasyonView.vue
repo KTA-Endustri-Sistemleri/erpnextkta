@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
-import { altOperasyonFields } from "../composables/prompts";
+import { altOperasyonFieldsMulti, altOperasyonFieldsSingle } from "../composables/prompts";
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
@@ -23,13 +23,21 @@ const sortedRows = computed(() => {
 });
 
 const altOpOptions = ref<any[]>([]);
+const ekranTipi = ref<string>("Tekli Hammadde");
 
 async function fetchAltOpOptions() {
   const r = await frappe.call({
     method: "erpnextkta.kta_calisma_karti.api.get_alt_operasyon_options",
     args: { parent_operation: props.doc.operasyon },
   });
-  altOpOptions.value = r.message || [];
+  if (r.message && !Array.isArray(r.message)) {
+    altOpOptions.value = r.message.options || [];
+    ekranTipi.value = r.message.ekran_tipi || "Tekli Hammadde";
+  } else {
+    // Fallback for older api response format if needed
+    altOpOptions.value = r.message || [];
+    ekranTipi.value = "Tekli Hammadde";
+  }
 }
 
 onMounted(() => {
@@ -38,16 +46,27 @@ onMounted(() => {
 
 function onAltOperasyonEkle() {
   let d: any;
-  const fields = altOperasyonFields(props.doc.operasyon, props.doc.name, {}, () => d?.get_value("alt_operasyon"), altOpOptions.value);
+  const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
+  const fields = fieldsFn(props.doc.operasyon, props.doc.name, {}, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = frappe.prompt(
     fields,
     async (v: any) => {
+      let islem_1 = typeof v.islem_adedi_1 !== 'undefined' ? v.islem_adedi_1 : (v.adet || 1);
+      let islem_3 = v.islem_adedi_3 || 1;
+
       await props.onAdd({
         alt_operasyon: v.alt_operasyon,
         hammadde: v.hammadde || null,
-        adet: v.adet || 0,
-        uom: v.uom || null,
+        boyut_1_mm: v.boyut_1_mm || 0,
+        islem_adedi_1: islem_1, // fallback to adet for single mode handled above
+        hammadde_2: v.hammadde_2 || null,
+        boyut_2_mm: v.boyut_2_mm || 0,
+        islem_adedi_2: v.islem_adedi_2 || 1,
+        hammadde_3: v.hammadde_3 || null,
+        boyut_3_mm: v.boyut_3_mm || 0,
+        islem_adedi_3: islem_3,
         note: v.note || null,
+        uom: v.uom || null, // Capture UOM from old mode
       });
       frappe.show_alert({ message: __("Alt İşlem eklendi"), indicator: "green" });
     },
@@ -63,17 +82,32 @@ function onAltOperasyonDuzenle(h: any) {
   }
 
   let d: any;
-  const fields = altOperasyonFields(props.doc.operasyon, props.doc.name, h, () => d?.get_value("alt_operasyon"), altOpOptions.value);
+  const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
+  const defaults = {
+    ...h,
+    adet: h.adet || h.islem_adedi_1 // map islem_adedi_1 to adet for single mode edit
+  };
+  const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = frappe.prompt(
     fields,
     async (v: any) => {
+      let islem_1 = typeof v.islem_adedi_1 !== 'undefined' ? v.islem_adedi_1 : (v.adet || 1);
+      let islem_3 = v.islem_adedi_3 || 1;
+
       await props.onUpdate({
         row_id: h.name,
         alt_operasyon: v.alt_operasyon,
         hammadde: v.hammadde || null,
-        adet: v.adet || 0,
-        uom: v.uom || null,
+        boyut_1_mm: v.boyut_1_mm || 0,
+        islem_adedi_1: islem_1,
+        hammadde_2: v.hammadde_2 || null,
+        boyut_2_mm: v.boyut_2_mm || 0,
+        islem_adedi_2: v.islem_adedi_2 || 1,
+        hammadde_3: v.hammadde_3 || null,
+        boyut_3_mm: v.boyut_3_mm || 0,
+        islem_adedi_3: islem_3,
         note: v.note || null,
+        uom: v.uom || null,
       });
       frappe.show_alert({ message: __("Alt İşlem güncellendi"), indicator: "green" });
     },
@@ -107,8 +141,41 @@ function onAltOperasyonSil(h: any) {
       <div v-for="(h, i) in sortedRows" :key="h.name || i" class="ck-mini-item">
         <div class="ck-mini-content">
             <b class="ck-mini-title">{{ h.alt_operasyon_title || h.alt_operasyon }}</b>
-            <div class="ck-muted ck-mini-sub" v-if="h.hammadde">{{ h.hammadde }} ({{ h.adet || 0 }} {{ h.uom || '' }})</div>
-            <div class="ck-muted ck-mini-sub" v-else-if="h.adet || h.uom">{{ h.adet || 0 }} {{ h.uom || '' }}</div>
+            
+            <div class="ck-muted ck-mini-sub" v-if="h.hammadde_2 || h.boyut_2_mm || h.hammadde_3">
+              <b>{{ __("T1") }}:</b> 
+              <template v-if="h.hammadde_2">
+                  {{ h.hammadde_2 }}
+                  <template v-if="h.boyut_2_mm > 0"> ({{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm)</template>
+                  <span v-if="h.uom_2"> [{{ h.adet_2 || 0 }} {{ h.uom_2 }}]</span>
+              </template>
+              <template v-else>
+                  <template v-if="h.boyut_2_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm</template>
+                  <template v-else>{{ __("SIYIRMASIZ") }}</template>
+              </template>
+            </div>
+
+            <div class="ck-muted ck-mini-sub" v-if="h.hammadde || h.boyut_1_mm">
+              <b>{{ __("C") }}:</b> 
+              <template v-if="h.hammadde">{{ h.hammadde }}</template>
+              <template v-if="h.hammadde && h.boyut_1_mm"> ({{ __("Boy") }}: {{ h.boyut_1_mm }}mm)</template>
+              <template v-if="!h.hammadde && h.boyut_1_mm">{{ __("Boy") }}: {{ h.boyut_1_mm }}mm</template>
+              <span v-if="h.uom"> [{{ h.adet || 0 }} {{ h.uom }}]</span>
+            </div>
+            
+            <div class="ck-muted ck-mini-sub" v-if="h.hammadde_3 || h.boyut_3_mm || h.hammadde_2">
+              <b>{{ __("T2") }}:</b> 
+              <template v-if="h.hammadde_3">
+                  {{ h.hammadde_3 }}
+                  <template v-if="h.boyut_3_mm > 0"> ({{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm)</template>
+                  <span v-if="h.uom_3"> [{{ h.adet_3 || 0 }} {{ h.uom_3 }}]</span>
+              </template>
+              <template v-else>
+                  <template v-if="h.boyut_3_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm</template>
+                  <template v-else>{{ __("SIYIRMASIZ") }}</template>
+              </template>
+            </div>
+            
             <div class="ck-muted ck-mini-sub" v-if="h.note">{{ h.note }}</div>
         </div>
 

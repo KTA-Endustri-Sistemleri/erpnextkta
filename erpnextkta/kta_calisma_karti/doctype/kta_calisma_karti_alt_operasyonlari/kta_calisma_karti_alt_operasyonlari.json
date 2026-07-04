@@ -11,6 +11,7 @@
         "title",
         "sequence",
         "is_active",
+        "operasyon_tipi",
         "allowed_material_groups"
     ],
     "fields": [
@@ -40,6 +41,13 @@
             "fieldtype": "Check",
             "label": "Is Active",
             "default": "1"
+        },
+        {
+            "fieldname": "operasyon_tipi",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Operasyon Tipi",
+            "options": "\nBlunt\nTek Taraf\nÇift Taraf"
         },
         {
             "fieldname": "allowed_material_groups",

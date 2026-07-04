@@ -79,7 +79,7 @@ def get_child_table_fieldname(parent_doc, child_doctype: str) -> str:
             return df.fieldname
     frappe.throw(_("Ana belge içinde '{0}' alt tablo alanı bulunamadı.").format(child_doctype))
 
-def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = None) -> list[str]:
+def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = None, hammadde_sira: str = "Tümü") -> list[str]:
     ck = frappe.db.get_value("Calisma Karti", calisma_karti_name, ["custom_work_order", "operasyon"], as_dict=True)
     if not ck or not ck.custom_work_order:
         return []
@@ -99,7 +99,7 @@ def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = 
 
         current_groups = []
         for row in getattr(ao_doc, "allowed_material_groups", []):
-            if row.item_group:
+            if row.item_group and (not getattr(row, "hammadde_sira", None) or row.hammadde_sira in ["Tümü", hammadde_sira]):
                 current_groups.append(row.item_group)
 
         if current_groups:
@@ -113,12 +113,12 @@ def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = 
             for ao in ao_list:
                 ao_detail = frappe.get_doc("KTA Calisma Karti Alt Operasyonlari", ao.name)
                 for row in getattr(ao_detail, "allowed_material_groups", []):
-                    if row.item_group:
+                    if row.item_group and (not getattr(row, "hammadde_sira", None) or row.hammadde_sira in ["Tümü", hammadde_sira]):
                         allowed_groups.append(row.item_group)
 
             op_doc = frappe.get_doc("KTA Calisma Karti Operasyonlari", parent_op)
             for row in getattr(op_doc, "allowed_material_groups", []):
-                if row.item_group:
+                if row.item_group and (not getattr(row, "hammadde_sira", None) or row.hammadde_sira in ["Tümü", hammadde_sira]):
                     allowed_groups.append(row.item_group)
     else:
         # Hurda logic (or missing alt_operasyon): fallback to parent_operation based on Calisma Karti
@@ -138,7 +138,7 @@ def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = 
                 
                 # 1. Ana operasyonun kendisindeki malzeme gruplarını ekle
                 for row in getattr(op_doc, "allowed_material_groups", []):
-                    if row.item_group:
+                    if row.item_group and (not getattr(row, "hammadde_sira", None) or row.hammadde_sira in ["Tümü", hammadde_sira]):
                         allowed_groups.append(row.item_group)
 
                 # 2. Bu ana operasyona bağlı tüm Alt Operasyonların malzeme gruplarını çek ve ekle
@@ -150,7 +150,7 @@ def get_allowed_items_with_groups(calisma_karti_name: str, alt_operasyon: str = 
                 for sub_op in sub_ops:
                     sub_op_doc = frappe.get_doc("KTA Calisma Karti Alt Operasyonlari", sub_op.name)
                     for row in getattr(sub_op_doc, "allowed_material_groups", []):
-                        if row.item_group:
+                        if row.item_group and (not getattr(row, "hammadde_sira", None) or row.hammadde_sira in ["Tümü", hammadde_sira]):
                             allowed_groups.append(row.item_group)
 
     allowed_groups = list(set(allowed_groups))

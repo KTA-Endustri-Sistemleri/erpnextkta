@@ -1,9 +1,10 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-06-25 (Hata Raporlama, Dashboard Grafik, Validasyonlar)
+> Son güncelleme: 2026-07-04 (Alt Operasyon Dinamik Mantığı, Hata Raporlama, Dashboard Grafik, Validasyonlar)
 
-Bu dönemde yapılan geliştirmeler: Günlük Hata Raporu altyapısı, User Dashboard override entegrasyonu, "Operator Düşük Net Süre" dashboard grafiği ve duruş başlatma sürecinde "Diger" nedeni için açıklama zorunluluğu validasyonları eklendi.
+Bu dönemde yapılan geliştirmeler: Alt operasyon türüne (Küt Kesme, Tek Taraf, Çift Taraf) göre arayüzdeki boyut ve adet alanlarının dinamik olarak gizlenmesi ve arka planda otomatik eşitlenmesi sağlandı. Ayrıca Günlük Hata Raporu altyapısı, User Dashboard override entegrasyonu, "Operator Düşük Net Süre" dashboard grafiği ve duruş başlatma sürecinde "Diger" nedeni için açıklama zorunluluğu validasyonları eklendi.
 
+- [x] **Alt Operasyon Dinamik Formu**: "Küt", "Tek Taraf", "Çift Taraf" isimli alt operasyonlarda Terminal adet ve boyut alanları arayüzden gizlenip, otomatik olarak Kablo adetine (Hammadde 2) eşitlenerek veritabanına yazılması sağlandı (2026-07-04).
 - [x] **Günlük Hata Raporu**: Hedef çalışma süresinin altında kalan (5 saat altı) operatörleri tespit edip amirlere günlük e-posta raporu gönderen cron job eklendi (2026-06-25).
 - [x] **User Dashboard Override**: `User` doctype dashboard'u genişletilerek kullanıcının Employee kartı ile ilişkili Çalışma Kartları listesi ve open count sayımı eklendi (2026-06-25).
 - [x] **Operator Düşük Net Süre Grafiği**: Son N günde en az net çalışma süresine sahip operatörlerin net sürelerini dakika bazında görselleştiren custom dashboard chart bileşeni eklendi (2026-06-25).
@@ -16,9 +17,14 @@ Bu dönemde yapılan geliştirmeler: Günlük Hata Raporu altyapısı, User Dash
 - [x] **Backend Submission Validation**: Bitiş saati olmayan kartların onaylanmasının engellenmesi (2026-04-24).
 - [ ] **Krimp Protokolü Baskı Şablonu**: Print format henüz tasarlanmadı (Planlanıyor).
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
-- [ ] **Statü Senkronizasyonu**: CK → Job Card statü akışının tasarımı (Beklemede).
+- [ ] Statü Senkronizasyonu: CK → Job Card statü akışının tasarımı (Beklemede).
 
-## Son Değişiklikler (2026-06-25) — Raporlama, Dashboard ve Validasyon Güncellemeleri
+## Son Değişiklikler (2026-07-04) — Alt Operasyon Dinamik Arayüzü
+Kullanıcının işini kolaylaştırmak ve hatalı veri girişini önlemek için:
+*   **İsime Dayalı Akıllı Form**: `AltOperasyonView.vue` ve `prompts.ts` içerisinde, seçilen alt operasyonun isminde geçen "Küt", "Tek Taraf" ve "Çift Taraf" anahtar kelimelerine göre arayüz tepkisi dinamikleştirildi.
+*   **Otomatik Adet Eşitleme**: Tek ve Çift Taraf işlemlerinde Terminal (Hammadde 1 ve 3) alanlarının Boyut ve Adet kutuları formdan (`depends_on` kullanılarak) gizlendi. Kullanıcı formda sadece Kablo (Hammadde 2) adedini girdiğinde, frontend aşamasında `islem_adedi_1` ve `islem_adedi_3` bu kablo adedine eşitlenip (override edilip) arka plana gönderiliyor.
+
+## Önceki Geliştirmeler (2026-06-25) — Raporlama, Dashboard ve Validasyon Güncellemeleri
 Kullanıcı deneyimini, yönetimsel takibi ve veri kalitesini artırmak amacıyla yapılan son eklemeler:
 *   **Daily Operator Error Report**: Günlük hedef çalışma süresini (7 saat 10 dk) dolduramayan ve 5 saatin altında kalan operatörlerin listesini amirlere otomatik olarak e-posta ile raporlayan zamanlanmış bir cron görevi (`tasks.py` -> `send_daily_calisma_karti_error_report`) eklendi.
 *   **User Dashboard Override**: `User` DocType dashboard'u `hooks.py` üzerindeki `override_doctype_dashboards` ile ezildi. Kullanıcı profili içinde, kullanıcının `Employee` kartı ile eşleşen tüm aktif/açık `Calisma Karti` kayıtlarının sayısı ve listesi "Aktivite" kartı olarak eklendi (`overrides/user_dashboard.py`).

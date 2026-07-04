@@ -1,84 +1,175 @@
 {
-    "actions": [],
-    "allow_import": 1,
-    "allow_rename": 0,
-    "autoname": "hash",
-    "creation": "2026-02-26 00:00:00.000000",
-    "doctype": "DocType",
-    "engine": "InnoDB",
-    "field_order": [
-        "alt_operasyon",
-        "hammadde",
-        "adet",
-        "uom",
-        "note"
-    ],
-    "fields": [
-        {
-            "allow_on_submit": 1,
-            "fieldname": "alt_operasyon",
-            "fieldtype": "Link",
-            "options": "KTA Calisma Karti Alt Operasyonlari",
-            "label": "Alt Operasyon",
-            "reqd": 1,
-            "in_list_view": 1
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "hammadde",
-            "fieldtype": "Link",
-            "options": "Item",
-            "label": "Hammadde",
-            "reqd": 0,
-            "in_list_view": 1
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "adet",
-            "fieldtype": "Float",
-            "label": "Adet",
-            "reqd": 0,
-            "default": "1"
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "uom",
-            "fieldtype": "Link",
-            "options": "UOM",
-            "label": "UOM"
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "note",
-            "fieldtype": "Small Text",
-            "label": "Note"
-        }
-    ],
-    "grid_page_length": 50,
-    "istable": 1,
-    "links": [],
-    "modified": "2026-02-26 00:00:00.000000",
-    "modified_by": "Administrator",
-    "module": "kta_calisma_karti",
-    "name": "Calisma Karti Alt Operasyon Kayitlari",
-    "naming_rule": "By fieldname",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "System Manager",
-            "share": 1,
-            "write": 1
-        }
-    ],
-    "row_format": "Dynamic",
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": []
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-02-26 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "alt_operasyon",
+  "hammadde",
+  "adet",
+  "uom",
+  "note",
+  "boyut_1_mm",
+  "islem_adedi_1",
+  "cb_2",
+  "hammadde_2",
+  "boyut_2_mm",
+  "islem_adedi_2",
+  "adet_2",
+  "uom_2",
+  "cb_3",
+  "hammadde_3",
+  "boyut_3_mm",
+  "islem_adedi_3",
+  "adet_3",
+  "uom_3",
+  "sb_note"
+ ],
+ "fields": [
+  {
+   "allow_on_submit": 1,
+   "fieldname": "alt_operasyon",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Alt Operasyon",
+   "options": "KTA Calisma Karti Alt Operasyonlari",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "hammadde",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Hammadde 1",
+   "options": "Item"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "adet",
+   "fieldtype": "Float",
+   "label": "Toplam T\u00fcketim 1"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM 1",
+   "options": "UOM"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "boyut_1_mm",
+   "fieldtype": "Float",
+   "label": "Boyut 1 (mm)"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "islem_adedi_1",
+   "fieldtype": "Float",
+   "label": "\u0130\u015flem Adedi 1"
+  },
+  {
+   "fieldname": "cb_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "hammadde_2",
+   "fieldtype": "Link",
+   "label": "Hammadde 2",
+   "options": "Item"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "boyut_2_mm",
+   "fieldtype": "Float",
+   "label": "Boyut 2 (mm)"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "islem_adedi_2",
+   "fieldtype": "Float",
+   "label": "\u0130\u015flem Adedi 2"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "adet_2",
+   "fieldtype": "Float",
+   "label": "Toplam T\u00fcketim 2"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "uom_2",
+   "fieldtype": "Link",
+   "label": "UOM 2",
+   "options": "UOM"
+  },
+  {
+   "fieldname": "cb_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "hammadde_3",
+   "fieldtype": "Link",
+   "label": "Hammadde 3",
+   "options": "Item"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "boyut_3_mm",
+   "fieldtype": "Float",
+   "label": "Boyut 3 (mm)"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "islem_adedi_3",
+   "fieldtype": "Float",
+   "label": "\u0130\u015flem Adedi 3"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "1",
+   "fieldname": "adet_3",
+   "fieldtype": "Float",
+   "label": "Toplam T\u00fcketim 3"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "uom_3",
+   "fieldtype": "Link",
+   "label": "UOM 3",
+   "options": "UOM"
+  },
+  {
+   "fieldname": "sb_note",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-04 20:47:24.261270",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "Calisma Karti Alt Operasyon Kayitlari",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
 }
