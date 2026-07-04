@@ -408,6 +408,7 @@ def add_hurda(
     doc.check_permission("read")
 
     _assert_can_write_on_doc(doc)
+    frappe.flags.ignore_permissions = True
     _assert_cost_center_allowed(hurda_nedeni)
     _assert_hurda_item_allowed_for_operation(doc, parca_no)
 
@@ -497,6 +498,7 @@ def update_hurda(
     doc.check_permission("read")
 
     _assert_can_write_on_doc(doc)
+    frappe.flags.ignore_permissions = True
     _assert_cost_center_allowed(hurda_nedeni)
     _assert_hurda_item_allowed_for_operation(doc, parca_no)
 
@@ -552,6 +554,7 @@ def delete_hurda(name: str, rowname: str):
     doc.check_permission("read")
 
     _assert_can_write_on_doc(doc)
+    frappe.flags.ignore_permissions = True
 
     child_fieldname = get_child_table_fieldname(doc, "Calisma Karti Hurda")
     rows = doc.get(child_fieldname) or []
