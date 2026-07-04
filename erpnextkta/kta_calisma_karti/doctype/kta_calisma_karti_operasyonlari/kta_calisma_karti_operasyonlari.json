@@ -1,157 +1,176 @@
 {
-    "actions": [],
-    "allow_import": 1,
-    "allow_rename": 1,
-    "autoname": "Prompt",
-    "creation": "2025-08-11 15:28:08.976412",
-    "doctype": "DocType",
-    "engine": "InnoDB",
-    "field_order": [
-        "sequence",
-        "calisma_karti_op",
-        "board_dogrulamasi_gerektirir",
-        "customer_group",
-        "plant_floor",
-        "miktar_zorunlu_mu",
-        "erpnext_operations",
-        "allowed_material_groups",
-        "form_gorunurluk_section",
-        "has_krimp",
-        "has_idc",
-        "has_barkod",
-        "has_enjeksiyon"
-    ],
-    "fields": [
-        {
-            "fieldname": "sequence",
-            "fieldtype": "Int",
-            "in_list_view": 1,
-            "label": "Sequence",
-            "default": "0"
-        },
-        {
-            "fieldname": "calisma_karti_op",
-            "fieldtype": "Data",
-            "in_list_view": 1,
-            "label": "Calisma Karti Op",
-            "reqd": 1
-        },
-        {
-            "default": "0",
-            "fieldname": "board_dogrulamasi_gerektirir",
-            "fieldtype": "Check",
-            "label": "Board Doğrulaması Gerektirir"
-        },
-        {
-            "fieldname": "customer_group",
-            "fieldtype": "Link",
-            "options": "Customer Group",
-            "label": "Customer Group",
-            "in_list_view": 1
-        },
-        {
-            "fieldname": "plant_floor",
-            "fieldtype": "Link",
-            "options": "Plant Floor",
-            "label": "Plant Floor",
-            "depends_on": "eval:doc.customer_group",
-            "mandatory_depends_on": "eval:doc.customer_group",
-            "in_list_view": 1
-        },
-        {
-            "fieldname": "miktar_zorunlu_mu",
-            "fieldtype": "Check",
-            "label": "Miktar Bildirimi Zorunlu",
-            "default": "1",
-            "description": "Seçiliyse kart bitirilirken tamamlanan miktar > 0 olmak zorundadır. Seçili değilse alt operasyon girilerek 0 miktarla bitirilebilir."
-        },
-        {
-            "fieldname": "erpnext_operations",
-            "fieldtype": "Table",
-            "label": "ERPNext Operasyon Eşleştirmeleri",
-            "options": "KTA Operation ERPNext Mappings",
-            "description": "Bu KTA operasyonuyla eşleşecek ERPNext operasyonları. Boş bırakılırsa tüm Job Card'lara genel olarak uygulanır."
-        },
-        {
-            "fieldname": "allowed_material_groups",
-            "fieldtype": "Table",
-            "label": "Allowed Material Groups",
-            "options": "KTA Operation Allowed Material Groups"
-        },
-        {
-            "fieldname": "form_gorunurluk_section",
-            "fieldtype": "Section Break",
-            "label": "Form Görünürlükleri"
-        },
-        {
-            "default": "0",
-            "fieldname": "has_krimp",
-            "fieldtype": "Check",
-            "label": "Krimp Formu Aktif"
-        },
-        {
-            "default": "0",
-            "fieldname": "has_idc",
-            "fieldtype": "Check",
-            "label": "IDC Formu Aktif"
-        },
-        {
-            "default": "0",
-            "fieldname": "has_barkod",
-            "fieldtype": "Check",
-            "label": "Barkod Kaydı Aktif"
-        },
-        {
-            "default": "0",
-            "fieldname": "has_enjeksiyon",
-            "fieldtype": "Check",
-            "label": "Enjeksiyon Formu Aktif"
-        }
-    ],
-    "grid_page_length": 50,
-    "links": [],
-    "modified": "2025-08-11 15:31:14.837383",
-    "modified_by": "Administrator",
-    "is_submittable": 1,
-    "module": "kta_calisma_karti",
-    "name": "KTA Calisma Karti Operasyonlari",
-    "naming_rule": "Set by user",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "amend": 1,
-            "cancel": 1,
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "System Manager",
-            "share": 1,
-            "submit": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "Manufacturing User",
-            "share": 1,
-            "write": 1
-        },
-        {
-            "read": 1,
-            "role": "KTA Çalışma Kartı Kullanıcısı"
-        }
-    ],
-    "row_format": "Dynamic",
-    "sort_field": "sequence",
-    "sort_order": "ASC",
-    "states": []
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "Prompt",
+ "creation": "2025-08-11 15:28:08.976412",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sequence",
+  "calisma_karti_op",
+  "board_dogrulamasi_gerektirir",
+  "customer_group",
+  "plant_floor",
+  "miktar_zorunlu_mu",
+  "erpnext_operations",
+  "allowed_material_groups",
+  "form_gorunurluk_section",
+  "has_krimp",
+  "has_idc",
+  "has_barkod",
+  "has_enjeksiyon",
+  "ekran_tipi",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Sequence"
+  },
+  {
+   "fieldname": "calisma_karti_op",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Calisma Karti Op",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "board_dogrulamasi_gerektirir",
+   "fieldtype": "Check",
+   "label": "Board Do\u011frulamas\u0131 Gerektirir"
+  },
+  {
+   "fieldname": "customer_group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer Group",
+   "options": "Customer Group"
+  },
+  {
+   "depends_on": "eval:doc.customer_group",
+   "fieldname": "plant_floor",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Plant Floor",
+   "mandatory_depends_on": "eval:doc.customer_group",
+   "options": "Plant Floor"
+  },
+  {
+   "default": "1",
+   "description": "Se\u00e7iliyse kart bitirilirken tamamlanan miktar > 0 olmak zorundad\u0131r. Se\u00e7ili de\u011filse alt operasyon girilerek 0 miktarla bitirilebilir.",
+   "fieldname": "miktar_zorunlu_mu",
+   "fieldtype": "Check",
+   "label": "Miktar Bildirimi Zorunlu"
+  },
+  {
+   "description": "Bu KTA operasyonuyla e\u015fle\u015fecek ERPNext operasyonlar\u0131. Bo\u015f b\u0131rak\u0131l\u0131rsa t\u00fcm Job Card'lara genel olarak uygulan\u0131r.",
+   "fieldname": "erpnext_operations",
+   "fieldtype": "Table",
+   "label": "ERPNext Operasyon E\u015fle\u015ftirmeleri",
+   "options": "KTA Operation ERPNext Mappings"
+  },
+  {
+   "fieldname": "allowed_material_groups",
+   "fieldtype": "Table",
+   "label": "Allowed Material Groups",
+   "options": "KTA Operation Allowed Material Groups"
+  },
+  {
+   "fieldname": "form_gorunurluk_section",
+   "fieldtype": "Section Break",
+   "label": "Form G\u00f6r\u00fcn\u00fcrl\u00fckleri"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_krimp",
+   "fieldtype": "Check",
+   "label": "Krimp Formu Aktif"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_idc",
+   "fieldtype": "Check",
+   "label": "IDC Formu Aktif"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_barkod",
+   "fieldtype": "Check",
+   "label": "Barkod Kayd\u0131 Aktif"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_enjeksiyon",
+   "fieldtype": "Check",
+   "label": "Enjeksiyon Formu Aktif"
+  },
+  {
+   "default": "Tekli Hammadde",
+   "fieldname": "ekran_tipi",
+   "fieldtype": "Select",
+   "label": "Ekran Tipi",
+   "options": "Tekli Hammadde\n\u00c7oklu Hammadde"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "KTA Calisma Karti Operasyonlari",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-07-04 21:26:19.459317",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "KTA Calisma Karti Operasyonlari",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Manufacturing User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "KTA \u00c7al\u0131\u015fma Kart\u0131 Kullan\u0131c\u0131s\u0131"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "sequence",
+ "sort_order": "ASC",
+ "states": []
 }

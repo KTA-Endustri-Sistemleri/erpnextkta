@@ -1,6 +1,10 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-06-25 (Hata Raporlama, Dashboard Grafik, Validasyonlar)
+> Son güncelleme: 2026-07-04 (Alt Operasyon Dinamik Mantığı, Hata Raporlama, Dashboard Grafik, Validasyonlar)
+
+### Alt Operasyon Dinamik Mantığı (2026-07-04 — Tamamlandı)
+- [x] **İsime Dayalı Dinamik Form**: `prompts.ts` içerisindeki form yapısı, seçilen alt operasyonun ismindeki "Küt", "Tek Taraf", "Çift Taraf" kelimelerine göre `depends_on` ile dinamikleştirildi.
+- [x] **Adetlerin Otomatik Eşitlenmesi**: Tek Taraf ve Çift Taraf kontak işlemlerinde, Terminallere (Hammadde 1 ve Hammadde 3) ait Adet ve Boyut alanları formdan gizlendi. `AltOperasyonView.vue` içerisinde kaydedilme anında, bu gizli kalan adetler otomatik olarak Kablo'nun (Hammadde 2) adedine eşitlenecek şekilde ayarlandı.
 
 ### Raporlama, Dashboard ve Validasyon Geliştirmeleri (2026-06-25 — Tamamlandı)
 - [x] **Günlük Hata Bildirim Raporu**: `hata_raporu_aktif` ve `hata_raporu_alicilari` KTA Ayarlarından okunarak dün 5 saatin altında kalan operatörlerin detaylı listesini amirlere e-posta olarak gönderen `send_daily_calisma_karti_error_report` zamanlanmış görevi eklendi.
