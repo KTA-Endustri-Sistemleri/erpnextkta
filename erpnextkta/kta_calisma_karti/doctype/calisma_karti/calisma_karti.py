@@ -431,6 +431,8 @@ def create_ariza_bildirimi(calisma_karti, makine_no, ariza_nedeni, aciklama):
     if doc.durum not in ["Çalışıyor", "Duruşta"]:
         frappe.throw(_("Sadece 'Çalışıyor' veya 'Duruşta' olan kartlar için arıza bildirimi yapabilirsiniz."))
 
+    frappe.flags.ignore_permissions = True
+
     _validate_open_ariza_kaydi(doc.name)
     
     asset_name, asset_maint = _get_asset_maintenance_for_machine(makine_no)

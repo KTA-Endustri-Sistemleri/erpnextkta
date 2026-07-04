@@ -619,6 +619,10 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
     doc.check_permission("write")
     _assert_can_write_on_doc(doc)
 
+    # İşlemler arka planda Work Order ve Job Card günceller.
+    # Operatörlerin bunlara erişimi olmadığı için izinleri global olarak atlıyoruz.
+    frappe.flags.ignore_permissions = True
+
     doc.reload()
 
     if doc.docstatus not in (0, 1):

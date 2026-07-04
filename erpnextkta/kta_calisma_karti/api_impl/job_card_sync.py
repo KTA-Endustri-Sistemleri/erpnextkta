@@ -126,6 +126,7 @@ def sync_time_log_to_job_card(calisma_karti_doc) -> None:
     job_card.save()
 
     if job_card.docstatus == 1:
+        frappe.flags.ignore_permissions = True
         job_card.update_work_order()
 
 
@@ -169,6 +170,7 @@ def remove_time_log_from_job_card(calisma_karti_doc) -> None:
     job_card.save()
 
     if job_card.docstatus == 1:
+        frappe.flags.ignore_permissions = True
         job_card.update_work_order()
 
 
