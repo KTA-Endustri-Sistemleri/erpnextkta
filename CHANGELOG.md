@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.1.3 (2026-07-04)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **job-card**: bypass sequence validation in sync mode and fix capacity override mechanism
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.1.2 (2026-07-04)
 
 
