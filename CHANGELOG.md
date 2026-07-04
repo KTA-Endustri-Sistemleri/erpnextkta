@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.1.4 (2026-07-04)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **permissions**: bypass standard document permission errors for operators during backend sync operations
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.1.3 (2026-07-04)
 
 
