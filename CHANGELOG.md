@@ -3,6 +3,49 @@
 
 
 
+## 🚀 v2.1.2 (2026-07-04)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **test**: match time log by employee in CI
+      
+      
+    
+      
+      
+        
+- **job-card**: use get() for custom field to prevent AttributeError in CI
+      
+      
+    
+      
+      
+        
+- **job-card**: bypass sequence validation and capacity overlap during sync
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.1.1 (2026-07-03)
 
 
