@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ _("Toplu Protokol Belgesi") }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 11px; color: #111; padding: 20px; }
+    h1 { font-size: 16px; margin-bottom: 4px; }
+    h2 { font-size: 13px; font-weight: normal; margin-bottom: 16px; color: #555; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #111; padding-bottom: 12px; }
+    .header-left h1 { font-size: 18px; }
+    .header-right { text-align: right; font-size: 11px; color: #444; }
+    .header-right b { display: block; font-size: 13px; color: #111; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    th { background: #222; color: #fff; padding: 5px 4px; text-align: center; font-size: 9px; white-space: nowrap; }
+    td { padding: 4px; text-align: center; border: 1px solid #ddd; font-size: 9px; }
+    .row-even { background: #f9f9f9; }
+    .ok { color: #166534; font-weight: bold; }
+    .low { color: #991b1b; font-weight: bold; }
+    .high { color: #1e40af; font-weight: bold; }
+    .signatures { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; margin-top: 40px; }
+    .sig-box { border-top: 1px solid #333; padding-top: 8px; }
+    .sig-box .title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .sig-box .space { height: 50px; }
+    .sig-box .name-line { border-bottom: 1px solid #aaa; margin-top: 4px; height: 20px; }
+    .footer { margin-top: 20px; font-size: 9px; color: #888; text-align: center; }
+    .page-break { page-break-after: always; }
+    @media print {
+      body { padding: 10px; }
+      button { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+{% macro render_header(doc, title) %}
+<div class="header">
+  <div class="header-left">
+    <h1>KTA Endüstri Sistemleri</h1>
+    <h2>{{ title }}</h2>
+  </div>
+  <div class="header-right">
+    <b>{{ doc.name }}</b>
+    İş Emri: {{ doc.custom_work_order or "-" }}<br>
+    Ürün: {{ doc.urun_kodu or "-" }}<br>
+    Kalite Belgesi: {{ doc.quality_inspection or "-" }}<br>
+    Tarih: {{ today }}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro render_signatures(doc) %}
+<div class="signatures">
+  <div class="sig-box">
+    <div class="title">{{ _("Hazırlayan Operatör") }}</div>
+    <div class="space"></div>
+    <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
+      {{ doc.operator_display_name }}
+    </div>
+    <div class="name-line"></div>
+    <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+  </div>
+  <div class="sig-box">
+    <div class="title">{{ _("Kalite Sorumlusu") }}</div>
+    <div class="space"></div>
+    <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
+      {{ doc.qi_owner_name }}
+    </div>
+    <div class="name-line"></div>
+    <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+  </div>
+  <div class="sig-box">
+    <div class="title">{{ _("Onaylayan") }}</div>
+    <div class="space"></div>
+    <div class="name-line"></div>
+    <div style="margin-top:4px;font-size:9px;color:#555;">{{ _("Ad Soyad / İmza / Tarih") }}</div>
+  </div>
+</div>
+<div class="footer">
+  Bu belge KTA Endüstri Sistemleri kalite takip sistemi tarafından otomatik oluşturulmuştur. • {{ today }}
+</div>
+{% endmacro %}
+
+{% for doc in docs %}
+
+  {% if doc.get("krimp_olcumleri") %}
+  <div class="page-break">
+    {{ render_header(doc, _("Krimp Ölçüm Protokol Belgesi")) }}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>{{ _('Kablo No') }}</th>
+          <th>{{ _('Kontak No') }}</th>
+          <th>{{ _('Kesit') }}</th>
+          <th>{{ _('Makine') }}</th>
+          <th>{{ _('Kalıp') }}</th>
+          <th>{{ _('Hdf. Kablo Boyu') }}</th>
+          <th>{{ _('Ölc. Kablo Boyu') }}</th>
+          <th>{{ _('Sapma') }}</th>
+          <th>{{ _('Hdf. Krimp Yük.') }}</th>
+          <th>{{ _('Ölc. Krimp Yük.') }}</th>
+          <th>{{ _('Sapma') }}</th>
+          <th>{{ _('Sıyırma') }}</th>
+          <th>{{ _('Çapak') }}</th>
+          <th>{{ _('Çekme') }}</th>
+          <th>{{ _('Radüs') }}</th>
+          <th>{{ _('Tel Kesme') }}</th>
+          <th>{{ _('Operatör') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in doc.get("krimp_olcumleri") %}
+        <tr class="row-{{ loop.cycle('odd', 'even') }}">
+          <td>{{ loop.index }}</td>
+          <td>{{ r.kablo_no or "-" }}</td>
+          <td>{{ r.kontak_no or "-" }}</td>
+          <td>{{ r.kablo_kesiti or "-" }}</td>
+          <td>{{ r.makine_pres_no or "-" }}</td>
+          <td>{{ r.kalip_no or "-" }}</td>
+          <td>{{ r.hedef_kablo_boyu if r.hedef_kablo_boyu is not none else "-" }}</td>
+          <td>{{ r.olculen_kablo_boyu if r.olculen_kablo_boyu is not none else "-" }}</td>
+          <td class="{{ sapma_class(r.olculen_kablo_boyu, r.hedef_kablo_boyu) }}">{{ sapma_txt(r.olculen_kablo_boyu, r.hedef_kablo_boyu) }}</td>
+          <td>{{ r.hedef_iletken_krimp_yuksekliği if r.hedef_iletken_krimp_yuksekliği is not none else "-" }}</td>
+          <td>{{ r.olculen_iletken_krimp_yuksekliği if r.olculen_iletken_krimp_yuksekliği is not none else "-" }}</td>
+          <td class="{{ sapma_class(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği) }}">{{ sapma_txt(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği) }}</td>
+          <td>{{ r.siyirma_boyu if r.siyirma_boyu is not none else "-" }} mm</td>
+          <td>{{ r.capak_boyu if r.capak_boyu is not none else "-" }} mm</td>
+          <td>{{ r.olculen_cekme_kuvveti_n if r.olculen_cekme_kuvveti_n is not none else "-" }} N (Hedef: {{ r.hedef_cekme_kuvveti_n if r.hedef_cekme_kuvveti_n is not none else "-" }})</td>
+          <td class="{{ 'ok' if r.radus_mevcut else 'low' }}">{{ "✔" if r.radus_mevcut else "✘" }}</td>
+          <td class="{{ 'ok' if r.tel_kesme_mevcut else 'low' }}">{{ "✔" if r.tel_kesme_mevcut else "✘" }}</td>
+          <td>{{ r.operator or "-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {{ render_signatures(doc) }}
+  </div>
+  {% endif %}
+
+  {% if doc.get("idc_olcumleri") %}
+  <div class="page-break">
+    {{ render_header(doc, _("IDC Ölçüm Protokol Belgesi")) }}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>{{ _('Item Code') }}</th>
+          <th>{{ _('Yükseklik') }}</th>
+          <th>{{ _('Çekme') }}</th>
+          <th>{{ _('Ölçüm Tarihi') }}</th>
+          <th>{{ _('Giren') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in doc.get("idc_olcumleri") %}
+        <tr class="row-{{ loop.cycle('odd', 'even') }}">
+          <td>{{ loop.index }}</td>
+          <td>{{ r.item_code or "-" }}</td>
+          <td>{{ r.olculen_yukseklik if r.olculen_yukseklik is not none else "-" }}</td>
+          <td>{{ r.olculen_cekme_kuvveti_n if r.olculen_cekme_kuvveti_n is not none else "-" }} N (Hedef: {{ r.hedef_cekme_kuvveti_n if r.hedef_cekme_kuvveti_n is not none else "-" }})</td>
+          <td>{{ r.olcum_tarihi or "-" }}</td>
+          <td>{{ r.olcumu_giren or "-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {{ render_signatures(doc) }}
+  </div>
+  {% endif %}
+
+  {% if doc.get("enjeksiyon_olcumleri") %}
+  <div class="page-break">
+    {{ render_header(doc, _("Enjeksiyon Ölçüm Protokol Belgesi")) }}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>{{ _('Periyot') }}</th>
+          <th>{{ _('Hammadde') }}</th>
+          <th>{{ _('Kazan Isısı') }}</th>
+          <th>{{ _('Hortum Isısı') }}</th>
+          <th>{{ _('Meme Isısı') }}</th>
+          <th>{{ _('Soğuk Su') }}</th>
+          <th>{{ _('Devir') }}</th>
+          <th>{{ _('Enj. Zamanı') }}</th>
+          <th>{{ _('Soğ. Zamanı') }}</th>
+          <th>{{ _('Çekme (N)') }}</th>
+          <th>{{ _('Göz Knt.') }}</th>
+          <th>{{ _('Operatör') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in doc.get("enjeksiyon_olcumleri") %}
+        <tr class="row-{{ loop.cycle('odd', 'even') }}">
+          <td>{{ loop.index }}</td>
+          <td>{{ r.periyot or "-" }}</td>
+          <td>{{ r.hammadde_no or "-" }}</td>
+          <td>{{ r.kazan_isisi if r.kazan_isisi is not none else "-" }}</td>
+          <td>{{ r.hortum_isisi if r.hortum_isisi is not none else "-" }}</td>
+          <td>{{ r.meme_isisi if r.meme_isisi is not none else "-" }}</td>
+          <td>{{ r.soguk_su_isisi if r.soguk_su_isisi is not none else "-" }}</td>
+          <td>{{ r.motor_devri if r.motor_devri is not none else "-" }}</td>
+          <td>{{ r.enjeksiyon_zamani if r.enjeksiyon_zamani is not none else "-" }}</td>
+          <td>{{ r.sogutma_zamani if r.sogutma_zamani is not none else "-" }}</td>
+          <td>{{ r.olculen_cekme_kuvveti_n if r.olculen_cekme_kuvveti_n is not none else "-" }} N (Hedef: {{ r.hedef_cekme_kuvveti_n if r.hedef_cekme_kuvveti_n is not none else "-" }})</td>
+          <td class="{{ 'ok' if r.goz_kontrolu_ok else 'low' }}">{{ "✔" if r.goz_kontrolu_ok else "✘" }}</td>
+          <td>{{ r.operator or "-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {{ render_signatures(doc) }}
+  </div>
+  {% endif %}
+
+  {% if doc.get("barkod_kayitlari") %}
+  <div class="page-break">
+    {{ render_header(doc, _("Barkod Protokol Belgesi")) }}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>{{ _('Barkod') }}</th>
+          <th>{{ _('Ölçüm Tarihi') }}</th>
+          <th>{{ _('Ölçümü Giren') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in doc.get("barkod_kayitlari") %}
+        <tr class="row-{{ loop.cycle('odd', 'even') }}">
+          <td>{{ loop.index }}</td>
+          <td>{{ r.barcode or "-" }}</td>
+          <td>{{ r.olcum_tarihi or "-" }}</td>
+          <td>{{ r.olcumu_giren or "-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {{ render_signatures(doc) }}
+  </div>
+  {% endif %}
+
+{% endfor %}
+
+<script>
+  window.onload = () => window.print();
+</script>
+</body>
+</html>

@@ -419,6 +419,7 @@ fixtures = [
 ]
 doctype_js = {
     "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",
+    "Job Card": "public/js/job_card.js",
     "Stock Reconciliation": "public/js/stock_reconciliation.js",
     "Purchase Receipt": "public/js/purchase_receipt.js"
 }
