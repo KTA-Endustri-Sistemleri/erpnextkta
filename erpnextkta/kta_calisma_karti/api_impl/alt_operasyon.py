@@ -1,10 +1,179 @@
 from __future__ import annotations
 import frappe
 from frappe import _
+from frappe.utils import flt
 
 from ._helpers import require_my_employee, has_admin_roles, get_allowed_items_with_groups
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 
+
+def _is_coklu_hammadde(calisma_karti: str) -> bool:
+    """Return True if the operation uses the multi-material screen."""
+    operasyon = frappe.db.get_value(
+        "Calisma Karti", calisma_karti, "operasyon"
+    )
+    if not operasyon:
+        return False
+    ekran_tipi = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", operasyon, "ekran_tipi"
+    )
+    return ekran_tipi == "Çoklu Hammadde"
+
+
+def _get_wo_required_qty_map(work_order: str) -> dict[str, float]:
+    """Return {item_code: required_qty} from Work Order required_items."""
+    rows = frappe.get_all(
+        "Work Order Item",
+        filters={"parent": work_order, "parenttype": "Work Order"},
+        fields=["item_code", "required_qty"],
+    )
+    return {r.item_code: flt(r.required_qty) for r in rows}
+
+
+def _get_existing_consumption(
+    work_order: str, exclude_row: str = None
+) -> dict[str, float]:
+    """Sum material consumption across ALL job cards of this work order.
+
+    Returns {item_code: total_consumed} aggregated from hammadde/adet,
+    hammadde_2/adet_2, hammadde_3/adet_3 columns.
+    """
+    exclude_condition = ""
+    params = [work_order]
+    if exclude_row:
+        exclude_condition = "AND aok.name != %s"
+        params.append(exclude_row)
+
+    # Three separate queries for clarity and correctness
+    totals: dict[str, float] = {}
+
+    for h_col, a_col in [
+        ("hammadde", "adet"),
+        ("hammadde_2", "adet_2"),
+        ("hammadde_3", "adet_3"),
+    ]:
+        rows = frappe.db.sql(
+            f"""
+            SELECT aok.{h_col} AS item_code, SUM(aok.{a_col}) AS total
+            FROM `tabCalisma Karti Alt Operasyon Kayitlari` aok
+            JOIN `tabCalisma Karti` ck ON ck.name = aok.parent
+            WHERE ck.custom_work_order = %s
+              AND IFNULL(aok.{h_col}, '') != ''
+              {exclude_condition}
+            GROUP BY aok.{h_col}
+            """,
+            tuple(params),
+            as_dict=True,
+        )
+        for r in rows:
+            totals[r.item_code] = totals.get(r.item_code, 0) + flt(r.total)
+
+    return totals
+
+
+def _get_wo_scrap_totals(work_order: str) -> dict[str, float]:
+    """Sum scrap quantities per item from submitted Stock Entries linked to this work order.
+
+    Considers Stock Entry types: 'Scrap for Manufacturing' and 'Material Issue'.
+    """
+    rows = frappe.db.sql(
+        """
+        SELECT sed.item_code, SUM(sed.qty) AS total
+        FROM `tabStock Entry Detail` sed
+        JOIN `tabStock Entry` se ON se.name = sed.parent
+        WHERE se.work_order = %s
+          AND se.docstatus = 1
+          AND se.stock_entry_type IN ('Scrap for Manufacturing', 'Material Issue')
+        GROUP BY sed.item_code
+        """,
+        (work_order,),
+        as_dict=True,
+    )
+    return {r.item_code: flt(r.total) for r in rows}
+
+
+def _assert_within_wo_limits(
+    calisma_karti: str,
+    new_items: list[tuple[str, float]],
+    exclude_row: str = None,
+):
+    """Validate that new consumption does not exceed Work Order limits.
+
+    Args:
+        calisma_karti: Calisma Karti name.
+        new_items: List of (item_code, consumption_qty) for the new/updated row.
+        exclude_row: Row name to exclude from existing totals (update scenario).
+    """
+    if not _is_coklu_hammadde(calisma_karti):
+        return
+
+    ck_data = frappe.db.get_value(
+        "Calisma Karti", calisma_karti, ["custom_work_order", "operasyon"], as_dict=True
+    )
+    if not ck_data or not ck_data.custom_work_order or not ck_data.operasyon:
+        return
+
+    work_order = ck_data.custom_work_order
+    
+    tuketim_limiti_aktif = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", ck_data.operasyon, "tuketim_limiti_aktif"
+    )
+    
+    if not tuketim_limiti_aktif:
+        return
+
+    required_map = _get_wo_required_qty_map(work_order)
+    if not required_map:
+        return
+
+    existing = _get_existing_consumption(work_order, exclude_row)
+    scrap_totals = _get_wo_scrap_totals(work_order)
+
+    # Aynı operasyon içerisinde (örn. sağ ve sol terminal) aynı hammadde seçilirse toplamını almalıyız.
+    aggregated_new_items = {}
+    for item_code, new_qty in new_items:
+        if not item_code or flt(new_qty) == 0:
+            continue
+        aggregated_new_items[item_code] = aggregated_new_items.get(item_code, 0) + flt(new_qty)
+
+    for item_code, total_new_qty in aggregated_new_items.items():
+        wo_limit = required_map.get(item_code)
+        if wo_limit is None:
+            continue
+
+        scrap_allowance = flt(scrap_totals.get(item_code, 0))
+        allowed = wo_limit + scrap_allowance
+        current = flt(existing.get(item_code, 0))
+        projected = current + total_new_qty
+
+        if projected > allowed:
+            scrap_line = ""
+            if scrap_allowance > 0:
+                scrap_line = _(
+                    "<li><b>Fire Toleransı:</b> +{0}</li>"
+                ).format(frappe.format_value(scrap_allowance, {"fieldtype": "Float"}))
+
+            msg = _(
+                "<b>{0}</b> hammaddesi için iş emrindeki tüketim limiti aşılıyor!<br><br>"
+                "<ul>"
+                "<li><b>İş Emri Miktarı:</b> {1}</li>"
+                "{2}"
+                "<li><b>Toplam İzin:</b> {3}</li>"
+                "<li><b>Mevcut Tüketim:</b> {4}</li>"
+                "<li><b>Yeni Eklenen:</b> {5}</li>"
+                "<li><b>Oluşacak Toplam:</b> <span style='color:red;'>{6}</span></li>"
+                "</ul>"
+                "Lütfen girdiğiniz işlem adedini kontrol edin."
+            ).format(
+                item_code,
+                frappe.format_value(wo_limit, {"fieldtype": "Float"}),
+                scrap_line,
+                frappe.format_value(allowed, {"fieldtype": "Float"}),
+                frappe.format_value(current, {"fieldtype": "Float"}),
+                frappe.format_value(total_new_qty, {"fieldtype": "Float"}),
+                frappe.format_value(projected, {"fieldtype": "Float"}),
+            )
+            frappe.throw(msg, title=_("Tüketim Limiti Aşıldı"), exc=frappe.ValidationError)
 
 def _assert_hammadde_allowed(calisma_karti: str, hammadde: str, alt_operasyon: str = None):
     if not hammadde:
@@ -84,6 +253,11 @@ def add_alt_operasyon_kaydi(
     adet_1, uom_1 = _calculate_tuketim(hammadde, boyut_1_mm, islem_adedi_1)
     adet_2, uom_2 = _calculate_tuketim(hammadde_2, boyut_2_mm, islem_adedi_2)
     adet_3, uom_3 = _calculate_tuketim(hammadde_3, boyut_3_mm, islem_adedi_3)
+
+    _assert_within_wo_limits(
+        calisma_karti,
+        [(hammadde, adet_1), (hammadde_2, adet_2), (hammadde_3, adet_3)],
+    )
 
     doc.append(
         "alt_operasyon_kayitlari",
@@ -190,6 +364,12 @@ def update_alt_operasyon_kaydi(
     adet_1, uom_1 = _calculate_tuketim(hammadde, boyut_1_mm, islem_adedi_1)
     adet_2, uom_2 = _calculate_tuketim(hammadde_2, boyut_2_mm, islem_adedi_2)
     adet_3, uom_3 = _calculate_tuketim(hammadde_3, boyut_3_mm, islem_adedi_3)
+
+    _assert_within_wo_limits(
+        calisma_karti,
+        [(hammadde, adet_1), (hammadde_2, adet_2), (hammadde_3, adet_3)],
+        exclude_row=row_id,
+    )
 
     row.alt_operasyon = alt_operasyon
     row.hammadde = hammadde

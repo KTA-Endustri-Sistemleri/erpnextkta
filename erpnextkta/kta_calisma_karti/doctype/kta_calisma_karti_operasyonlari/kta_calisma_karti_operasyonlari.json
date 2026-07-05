@@ -21,6 +21,7 @@
   "has_barkod",
   "has_enjeksiyon",
   "ekran_tipi",
+  "tuketim_limiti_aktif",
   "amended_from"
  ],
  "fields": [
@@ -114,7 +115,13 @@
    "fieldname": "ekran_tipi",
    "fieldtype": "Select",
    "label": "Ekran Tipi",
-   "options": "Tekli Hammadde\n\u00c7oklu Hammadde"
+   "options": "Tekli Hammadde\nÇoklu Hammadde"
+  },
+  {
+   "default": "0",
+   "fieldname": "tuketim_limiti_aktif",
+   "fieldtype": "Check",
+   "label": "Tüketim Limiti Doğrulaması Aktif"
   },
   {
    "fieldname": "amended_from",
