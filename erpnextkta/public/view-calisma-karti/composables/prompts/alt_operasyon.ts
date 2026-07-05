@@ -201,6 +201,18 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
                     query: "erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.search_allowed_hammadde_items",
                     filters: { calisma_karti: calismaKartiName, alt_operasyon: currentOp || "", hammadde_sira: "Hammadde 1" }
                 };
+            },
+            onchange: function(this: any) {
+                const itemCode = this.get_value();
+                if (itemCode) {
+                    frappe.db.get_value("Item", itemCode, "stock_uom", (r: any) => {
+                        if (r && r.stock_uom && this.layout && this.layout.fields_dict.uom) {
+                            this.layout.fields_dict.uom.set_value(r.stock_uom);
+                        }
+                    });
+                } else if (this.layout && this.layout.fields_dict.uom) {
+                    this.layout.fields_dict.uom.set_value("");
+                }
             }
         },
 
