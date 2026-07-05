@@ -184,11 +184,11 @@ function printIdcProtocol() {
       <thead>
         <tr>
           <th>#</th>
-          <th>{{ __('Item Code') }}</th>
-          <th>{{ __('Yükseklik') }}</th>
-          <th>{{ __('Çekme') }}</th>
-          <th>{{ __('Ölçüm Tarihi') }}</th>
-          <th>{{ __('Giren') }}</th>
+          <th>${__('Item Code')}</th>
+          <th>${__('Yükseklik')}</th>
+          <th>${__('Çekme')}</th>
+          <th>${__('Ölçüm Tarihi')}</th>
+          <th>${__('Giren')}</th>
         </tr>
       </thead>
       <tbody>${rows_html}</tbody>
@@ -196,7 +196,7 @@ function printIdcProtocol() {
 
     <div class="signatures">
       <div class="sig-box">
-        <div class="title">{{ __("Hazırlayan Operatör") }}</div>
+        <div class="title">${__("Hazırlayan Operatör")}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.operator_name || doc.operator || "-"}
@@ -205,7 +205,7 @@ function printIdcProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">{{ __("Kalite Sorumlusu") }}</div>
+        <div class="title">${__("Kalite Sorumlusu")}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.qi_details?.owner_name || "-"}
@@ -214,10 +214,10 @@ function printIdcProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">{{ __("Onaylayan") }}</div>
+        <div class="title">${__("Onaylayan")}</div>
         <div class="space"></div>
         <div class="name-line"></div>
-        <div style="margin-top:4px;font-size:9px;color:#555;">{{ __("Ad Soyad / İmza / Tarih") }}</div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">${__("Ad Soyad / İmza / Tarih")}</div>
       </div>
     </div>
 
@@ -594,23 +594,23 @@ function printKrimpProtocol() {
       <thead>
         <tr>
           <th>#</th>
-          <th>{{ __('Kablo No') }}</th>
-          <th>{{ __('Kontak No') }}</th>
-          <th>{{ __('Kesit') }}</th>
-          <th>{{ __('Makine') }}</th>
-          <th>{{ __('Kalıp') }}</th>
-          <th>{{ __('Hdf. Kablo Boyu') }}</th>
-          <th>{{ __('Ölc. Kablo Boyu') }}</th>
-          <th>{{ __('Sapma') }}</th>
-          <th>{{ __('Hdf. Krimp Yük.') }}</th>
-          <th>{{ __('Ölc. Krimp Yük.') }}</th>
-          <th>{{ __('Sapma') }}</th>
-          <th>{{ __('Sıyırma') }}</th>
-          <th>{{ __('Çapak') }}</th>
-          <th>{{ __('Çekme') }}</th>
-          <th>{{ __('Radüs') }}</th>
-          <th>{{ __('Tel Kesme') }}</th>
-          <th>{{ __('Operatör') }}</th>
+          <th>${__('Kablo No')}</th>
+          <th>${__('Kontak No')}</th>
+          <th>${__('Kesit')}</th>
+          <th>${__('Makine')}</th>
+          <th>${__('Kalıp')}</th>
+          <th>${__('Hdf. Kablo Boyu')}</th>
+          <th>${__('Ölc. Kablo Boyu')}</th>
+          <th>${__('Sapma')}</th>
+          <th>${__('Hdf. Krimp Yük.')}</th>
+          <th>${__('Ölc. Krimp Yük.')}</th>
+          <th>${__('Sapma')}</th>
+          <th>${__('Sıyırma')}</th>
+          <th>${__('Çapak')}</th>
+          <th>${__('Çekme')}</th>
+          <th>${__('Radüs')}</th>
+          <th>${__('Tel Kesme')}</th>
+          <th>${__('Operatör')}</th>
         </tr>
       </thead>
       <tbody>${rows_html}</tbody>
@@ -618,7 +618,7 @@ function printKrimpProtocol() {
 
     <div class="signatures">
       <div class="sig-box">
-        <div class="title">{{ __("Hazırlayan Operatör") }}</div>
+        <div class="title">${__("Hazırlayan Operatör")}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.operator_name || doc.operator || "-"}
@@ -627,7 +627,7 @@ function printKrimpProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">{{ __("Kalite Sorumlusu") }}</div>
+        <div class="title">${__("Kalite Sorumlusu")}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
           ${doc.qi_details?.owner_name || "-"}
@@ -636,10 +636,10 @@ function printKrimpProtocol() {
         <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
       </div>
       <div class="sig-box">
-        <div class="title">{{ __("Onaylayan") }}</div>
+        <div class="title">${__("Onaylayan")}</div>
         <div class="space"></div>
         <div class="name-line"></div>
-        <div style="margin-top:4px;font-size:9px;color:#555;">{{ __("Ad Soyad / İmza / Tarih") }}</div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">${__("Ad Soyad / İmza / Tarih")}</div>
       </div>
     </div>
 
@@ -888,18 +888,18 @@ function printEnjeksiyonProtocol() {
       <thead>
         <tr>
           <th>#</th>
-          <th>{{ __('Periyot') }}</th>
-          <th>{{ __('Hammadde') }}</th>
-          <th>{{ __('Kazan Isısı') }}</th>
-          <th>{{ __('Hortum Isısı') }}</th>
-          <th>{{ __('Meme Isısı') }}</th>
-          <th>{{ __('Soğuk Su') }}</th>
-          <th>{{ __('Devir') }}</th>
-          <th>{{ __('Enj. Zamanı') }}</th>
-          <th>{{ __('Soğ. Zamanı') }}</th>
-          <th>{{ __('Çekme (N)') }}</th>
-          <th>{{ __('Göz Knt.') }}</th>
-          <th>{{ __('Operatör') }}</th>
+          <th>${__('Periyot')}</th>
+          <th>${__('Hammadde')}</th>
+          <th>${__('Kazan Isısı')}</th>
+          <th>${__('Hortum Isısı')}</th>
+          <th>${__('Meme Isısı')}</th>
+          <th>${__('Soğuk Su')}</th>
+          <th>${__('Devir')}</th>
+          <th>${__('Enj. Zamanı')}</th>
+          <th>${__('Soğ. Zamanı')}</th>
+          <th>${__('Çekme (N)')}</th>
+          <th>${__('Göz Knt.')}</th>
+          <th>${__('Operatör')}</th>
         </tr>
       </thead>
       <tbody>${rows_html}</tbody>
