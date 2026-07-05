@@ -455,3 +455,9 @@ def get_alt_operasyon_options(parent_operation: str):
         "ekran_tipi": parent_ekran_tipi
     }
 
+
+@frappe.whitelist()
+def get_item_uom(item_code: str) -> str:
+    if not item_code:
+        return ""
+    return frappe.db.get_value("Item", item_code, "stock_uom") or ""

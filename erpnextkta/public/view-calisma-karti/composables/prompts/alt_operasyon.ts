@@ -205,9 +205,13 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             onchange: function(this: any) {
                 const itemCode = this.get_value();
                 if (itemCode) {
-                    frappe.db.get_value("Item", itemCode, "stock_uom", (r: any) => {
-                        if (r && r.stock_uom && this.layout && this.layout.fields_dict.uom) {
-                            this.layout.fields_dict.uom.set_value(r.stock_uom);
+                    frappe.call({
+                        method: "erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.get_item_uom",
+                        args: { item_code: itemCode },
+                        callback: (r: any) => {
+                            if (r && r.message && this.layout && this.layout.fields_dict.uom) {
+                                this.layout.fields_dict.uom.set_value(r.message);
+                            }
                         }
                     });
                 } else if (this.layout && this.layout.fields_dict.uom) {
