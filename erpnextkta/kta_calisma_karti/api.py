@@ -119,3 +119,4 @@ __all__ = [
     "get_enjeksiyon_tolerans",
     "search_enjeksiyon_allowed_items",
 ]
+from .api_impl.print_protocol import get_job_card_protocols_html
