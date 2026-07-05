@@ -3,6 +3,122 @@
 
 
 
+## 🚀 v2.2.0 (2026-07-05)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **alt_operasyon**: bypass permission error when fetching item uom
+      
+      
+    
+      
+      
+        
+- **job_card**: distribute completed quantities on already submitted job cards
+      
+      
+    
+      
+      
+        
+- **print**: resolve translation interpolation in print protocols
+      
+      
+    
+      
+      
+        
+- **job_card**: add overrides for document permissions and job card sequence validation
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **job_card**: add mass protocol printing from job card
+      
+      
+    
+      
+      
+        
+- **alt_operasyon**: add item uom fetching and tracking
+      
+      
+    
+      
+      
+        
+- **report**: add is emri hammadde tuketim raporu
+      
+      
+    
+      
+      
+        
+- **calisma_karti**: coklu hammadde destegi ve dinamik form eklendi
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **calisma_karti**: split prompts.ts into smaller modular files and fix single material UI
+      
+      
+    
+      
+      
+        
+- comment out Job Card on_update hook in hooks.py
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.1.4 (2026-07-04)
 
 
