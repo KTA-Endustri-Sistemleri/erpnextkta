@@ -142,39 +142,45 @@ function onAltOperasyonSil(h: any) {
         <div class="ck-mini-content">
             <b class="ck-mini-title">{{ h.alt_operasyon_title || h.alt_operasyon }}</b>
             
-            <div class="ck-muted ck-mini-sub" v-if="h.hammadde_2 || h.boyut_2_mm || h.hammadde_3">
-              <b>{{ __("T1") }}:</b> 
-              <template v-if="h.hammadde_2">
-                  {{ h.hammadde_2 }}
-                  <template v-if="h.boyut_2_mm > 0"> ({{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm)</template>
-                  <span v-if="h.uom_2"> [{{ h.adet_2 || 0 }} {{ h.uom_2 }}]</span>
-              </template>
-              <template v-else>
-                  <template v-if="h.boyut_2_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm</template>
-                  <template v-else>{{ __("SIYIRMASIZ") }}</template>
-              </template>
-            </div>
+            <template v-if="ekranTipi === 'Çoklu Hammadde'">
+              <div class="ck-muted ck-mini-sub" v-if="h.hammadde_2 || h.boyut_2_mm || h.hammadde_3">
+                <b>{{ __("T1") }}:</b> 
+                <template v-if="h.hammadde_2">
+                    {{ h.hammadde_2 }}
+                    <template v-if="h.boyut_2_mm > 0"> ({{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm)</template>
+                    <span v-if="h.uom_2"> [{{ h.adet_2 || 0 }} {{ h.uom_2 }}]</span>
+                </template>
+                <template v-else>
+                    <template v-if="h.boyut_2_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm</template>
+                    <template v-else>{{ __("SIYIRMASIZ") }}</template>
+                </template>
+              </div>
 
-            <div class="ck-muted ck-mini-sub" v-if="h.hammadde || h.boyut_1_mm">
-              <b>{{ __("C") }}:</b> 
-              <template v-if="h.hammadde">{{ h.hammadde }}</template>
-              <template v-if="h.hammadde && h.boyut_1_mm"> ({{ __("Boy") }}: {{ h.boyut_1_mm }}mm)</template>
-              <template v-if="!h.hammadde && h.boyut_1_mm">{{ __("Boy") }}: {{ h.boyut_1_mm }}mm</template>
-              <span v-if="h.uom"> [{{ h.adet || 0 }} {{ h.uom }}]</span>
-            </div>
-            
-            <div class="ck-muted ck-mini-sub" v-if="h.hammadde_3 || h.boyut_3_mm || h.hammadde_2">
-              <b>{{ __("T2") }}:</b> 
-              <template v-if="h.hammadde_3">
-                  {{ h.hammadde_3 }}
-                  <template v-if="h.boyut_3_mm > 0"> ({{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm)</template>
-                  <span v-if="h.uom_3"> [{{ h.adet_3 || 0 }} {{ h.uom_3 }}]</span>
-              </template>
-              <template v-else>
-                  <template v-if="h.boyut_3_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm</template>
-                  <template v-else>{{ __("SIYIRMASIZ") }}</template>
-              </template>
-            </div>
+              <div class="ck-muted ck-mini-sub" v-if="h.hammadde || h.boyut_1_mm">
+                <b>{{ __("C") }}:</b> 
+                <template v-if="h.hammadde">{{ h.hammadde }}</template>
+                <template v-if="h.hammadde && h.boyut_1_mm"> ({{ __("Boy") }}: {{ h.boyut_1_mm }}mm)</template>
+                <template v-if="!h.hammadde && h.boyut_1_mm">{{ __("Boy") }}: {{ h.boyut_1_mm }}mm</template>
+                <span v-if="h.uom"> [{{ h.adet || 0 }} {{ h.uom }}]</span>
+              </div>
+              
+              <div class="ck-muted ck-mini-sub" v-if="h.hammadde_3 || h.boyut_3_mm || h.hammadde_2">
+                <b>{{ __("T2") }}:</b> 
+                <template v-if="h.hammadde_3">
+                    {{ h.hammadde_3 }}
+                    <template v-if="h.boyut_3_mm > 0"> ({{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm)</template>
+                    <span v-if="h.uom_3"> [{{ h.adet_3 || 0 }} {{ h.uom_3 }}]</span>
+                </template>
+                <template v-else>
+                    <template v-if="h.boyut_3_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm</template>
+                    <template v-else>{{ __("SIYIRMASIZ") }}</template>
+                </template>
+              </div>
+            </template>
+            <template v-else>
+              <div class="ck-muted ck-mini-sub" v-if="h.hammadde">{{ h.hammadde }} ({{ h.adet || 0 }} {{ h.uom || '' }})</div>
+              <div class="ck-muted ck-mini-sub" v-else-if="h.adet || h.uom">{{ h.adet || 0 }} {{ h.uom || '' }}</div>
+            </template>
             
             <div class="ck-muted ck-mini-sub" v-if="h.note">{{ h.note }}</div>
         </div>
