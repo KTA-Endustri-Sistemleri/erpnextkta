@@ -119,9 +119,12 @@ def sync_time_log_to_job_card(calisma_karti_doc) -> None:
     if mod == "Sıkı (Hard)":
         job_card.flags.ignore_validate_update_after_submit = True
 
-    # Senkronizasyon sırasında sadece zaman logları kaydediliyor; completed_qty = 0
-    # dağıtımı atlayarak validate_sequence_id hatasını önle.
-    job_card.flags.kta_sync_mode = True
+    if job_card.docstatus == 0:
+        # Senkronizasyon sırasında (henüz submit edilmemişse)
+        # sadece zaman logları kaydediliyor; completed_qty = 0
+        # dağıtımı atlayarak validate_sequence_id hatasını önle.
+        job_card.flags.kta_sync_mode = True
+        
     job_card.flags.ignore_permissions = True
     job_card.save()
 
@@ -163,9 +166,11 @@ def remove_time_log_from_job_card(calisma_karti_doc) -> None:
     if mod == "Sıkı (Hard)":
         job_card.flags.ignore_validate_update_after_submit = True
 
-    # Senkronizasyon sırasında sadece zaman logları kaydediliyor; completed_qty = 0
-    # dağıtımı atlayarak validate_sequence_id hatasını önle.
-    job_card.flags.kta_sync_mode = True
+    if job_card.docstatus == 0:
+        # Senkronizasyon sırasında sadece zaman logları kaydediliyor; completed_qty = 0
+        # dağıtımı atlayarak validate_sequence_id hatasını önle.
+        job_card.flags.kta_sync_mode = True
+        
     job_card.flags.ignore_permissions = True
     job_card.save()
 
