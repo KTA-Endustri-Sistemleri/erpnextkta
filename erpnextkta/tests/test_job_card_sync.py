@@ -358,3 +358,67 @@ class TestJobCardSync(KTATestCase):
             self.fail("disable_capacity_planning=1 iken OverlapError fırlatılmamalıydı!")
         finally:
             self.mock_get_single_value.side_effect = original_side_effect
+
+    def test_sync_time_log_to_submitted_job_card_distributes_qty(self):
+        """Submit edilmiş bir Job Card'a yeni bir zaman logu (Calisma Karti uzerinden) eklendiğinde,
+           kta_sync_mode baypası devreye girmeyecek ve miktarlar (completed_qty) dagitilacaktir."""
+        from erpnextkta.tests.test_utils import create_test_operator, make_mock_calisma_karti
+        from erpnextkta.kta_calisma_karti.api_impl.job_card_sync import sync_time_log_to_job_card
+        
+        emp_email = "test_dist_sub@kta.com"
+        create_test_operator(emp_email, "Test Dist Sub")
+        frappe.db.sql("DELETE FROM `tabJob Card Time Log` WHERE employee=%s", emp_email)
+        
+        # 1. Job Card oluştur ve Submit et
+        jc = frappe.new_doc("Job Card")
+        jc.workstation = self.ws_name
+        jc.operation = "Montaj"
+        jc.work_order = self.wo_name
+        jc.wip_warehouse = self.wip_warehouse
+        jc.for_quantity = 100.0
+        jc.append("time_logs", {
+            "from_time": "2026-05-01 10:00:00",
+            "to_time": "2026-05-01 11:00:00",
+            "completed_qty": 100.0,
+            "employee": emp_email,
+            "custom_calisma_karti": "ESKI-CK-001"
+        })
+        # Mocking to allow submit
+        jc.flags.ignore_mandatory = True
+        jc.insert(ignore_permissions=True, ignore_links=True)
+        jc.submit()
+        
+        # Orijinal submitte 100.0 adet tek logda
+        jc.reload()
+        self.assertEqual(jc.time_logs[0].completed_qty, 100.0)
+        self.assertEqual(jc.docstatus, 1)
+
+        # 2. Yeni Çalışma Kartı (Mock) ile sync yap
+        ck_name = "YENI-CK-001"
+        frappe.db.sql("""
+            INSERT INTO `tabCalisma Karti` (name, is_karti, baslangic_saati, net_calisma_suresi, operator, creation, modified, modified_by)
+            VALUES 
+            ('ESKI-CK-001', %s, '2026-05-01 10:00:00', '01:00:00', %s, NOW(), NOW(), 'Administrator'),
+            (%s, %s, %s, %s, %s, NOW(), NOW(), 'Administrator')
+            ON DUPLICATE KEY UPDATE name=name
+        """, (jc.name, emp_email, ck_name, jc.name, "2026-05-01 11:00:00", "01:00:00", emp_email))
+        
+        ck = make_mock_calisma_karti(
+            name=ck_name,
+            is_karti=jc.name,
+            baslangic_saati="2026-05-01 11:00:00",
+            net_calisma_suresi="01:00:00", # 1 saat
+            operator=emp_email
+        )
+        
+        # Sync işlemini çalıştır (Submit edilmiş Job Card'a)
+        sync_time_log_to_job_card(ck)
+        
+        # 3. Sonuçları kontrol et
+        jc.reload()
+        
+        self.assertEqual(len(jc.time_logs), 2, "Yeni time log eklenmiş olmalı")
+        
+        # Zamanlar eşit olduğu için (1 saat vs 1 saat), 100.0 hedefi 50/50 dağılmalı.
+        self.assertEqual(jc.time_logs[0].completed_qty, 50.0)
+        self.assertEqual(jc.time_logs[1].completed_qty, 50.0)
