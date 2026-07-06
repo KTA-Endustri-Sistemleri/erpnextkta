@@ -11,7 +11,7 @@ def before_tests():
 	Uses ERPNext's setup_complete() for a full, proper initialization
 	of company, chart of accounts, default accounts, and fixtures.
 	"""
-	print("\nDEBUG: Running erpnextkta.tests.test_utils.before_tests hook...")
+	print("\nDEBUG: erpnextkta.tests.test_utils.before_tests hook'u çalıştırılıyor...")
 
 	company_name = "_Test Company"
 	abbr = "_TC"
@@ -22,7 +22,7 @@ def before_tests():
 	#    fiscal year, currencies, and all standard fixtures.
 	# ──────────────────────────────────────────────────────────────────
 	if not frappe.db.exists("Company", company_name):
-		print(f"DEBUG: Running full setup_complete for {company_name}...")
+		print(f"DEBUG: {company_name} için tam setup_complete çalıştırılıyor...")
 		from erpnext.setup.setup_wizard.setup_wizard import setup_complete
 
 		args = frappe._dict({
@@ -37,9 +37,9 @@ def before_tests():
 		})
 		try:
 			setup_complete(args)
-			print("DEBUG: setup_complete finished successfully.")
+			print("DEBUG: setup_complete başarıyla tamamlandı.")
 		except Exception as e:
-			print(f"DEBUG: setup_complete raised: {e}")
+			print(f"DEBUG: setup_complete hata fırlattı: {e}")
 			# If setup_complete failed partially, ensure Company at least exists
 			if not frappe.db.exists("Company", company_name):
 				frappe.get_doc({
@@ -52,7 +52,7 @@ def before_tests():
 
 		frappe.db.commit()
 	else:
-		print(f"DEBUG: {company_name} already exists, skipping setup_complete.")
+		print(f"DEBUG: {company_name} zaten mevcut, setup_complete atlanıyor.")
 		# FORCE updating default_currency just in case frail test runners created a shallow object
 		frappe.db.sql("UPDATE `tabCompany` SET default_currency='INR' WHERE name=%s", (company_name,))
 		frappe.db.commit()
@@ -167,7 +167,7 @@ def before_tests():
 					frappe.throw(_("Satır {0}: {1} için Taraf Tipi ve Taraf zorunludur").format(d.idx, d.account))
 
 	JournalEntry.validate_party = patched_validate_party
-	print("DEBUG: Monkeypatched JournalEntry.validate_party")
+	print("DEBUG: JournalEntry.validate_party monkeypatch uygulandı")
 
 	# 6b. BOM: ensure conversion_rate is never None
 	from erpnext.manufacturing.doctype.bom.bom import BOM
@@ -184,7 +184,7 @@ def before_tests():
 			self.conversion_rate = 1.0
 
 	BOM.set_conversion_rate = _patched_set_conversion_rate
-	print("DEBUG: Monkeypatched BOM.set_conversion_rate")
+	print("DEBUG: BOM.set_conversion_rate monkeypatch uygulandı")
 
 	# ──────────────────────────────────────────────────────────────────
 	# 7. Fix Core Accounts
@@ -258,7 +258,7 @@ def before_tests():
 	frappe.db.commit()
 	frappe.clear_cache()
 
-	print("DEBUG: All infrastructure seeded successfully.")
+	print("DEBUG: Tüm altyapı verileri başarıyla yüklendi.")
 
 from frappe.tests.utils import FrappeTestCase
 

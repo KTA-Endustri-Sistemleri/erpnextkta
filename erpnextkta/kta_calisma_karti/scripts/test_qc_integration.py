@@ -10,31 +10,31 @@ def test_qc_integration():
     Manual verification script for QC integration.
     Run via: bench --site [site] execute erpnextkta.kta_calisma_karti.scripts.test_qc_integration.test_qc_integration
     """
-    print("QC Integration Test Starting...")
+    print("QC Entegrasyon Testi Başlıyor...")
     
     # 1. Find a Calisma Karti that is linked to a Job Card
     ck_name = frappe.db.get_value("Calisma Karti", {"docstatus": 0, "is_karti": ["!=", ""]}, "name")
     
     if not ck_name:
-        print("Error: No active Calisma Karti with Job Card found for testing.")
+        print("Hata: Test için Job Card bağlantılı aktif Çalışma Kartı bulunamadı.")
         return
 
-    print(f"Testing with Calisma Karti: {ck_name}")
+    print(f"Şu Çalışma Kartı ile test ediliyor: {ck_name}")
 
     # 2. Test fetching templates
     templates_res = get_qc_templates_for_ck(ck_name)
-    print(f"Available Templates: {len(templates_res['templates'])}")
+    print(f"Mevcut Şablonlar: {len(templates_res['templates'])}")
     
     if not templates_res['templates']:
-        print("Warning: No Quality Inspection Templates found in system.")
+        print("Uyarı: Sistemde Kalite Kontrol Şablonu bulunamadı.")
         return
         
     template_name = templates_res['templates'][0]['name']
-    print(f"Selected Template for test: {template_name}")
+    print(f"Test için Seçilen Şablon: {template_name}")
 
     # 3. Test fetching details
     params = get_template_details(template_name)
-    print(f"Parameters in template: {len(params)}")
+    print(f"Şablondaki parametre sayısı: {len(params)}")
 
     # 4. Mock readings
     readings = []
@@ -50,23 +50,23 @@ def test_qc_integration():
         })
 
     # 5. Test submission
-    print("Submitting Quality Inspection...")
+    print("Kalite Kontrol gönderiliyor...")
     try:
         res = submit_kta_quality_inspection(ck_name, template_name, readings)
-        print(f"Success! Created MAT-QA: {res['quality_inspection']}")
+        print(f"Başarılı! MAT-QA oluşturuldu: {res['quality_inspection']}")
         
         # Verify CK state
         ck = frappe.get_doc("Calisma Karti", ck_name)
-        print(f"CK Quality Control Status: {ck.kalite_kontrol}")
-        print(f"CK Linked Inspection: {ck.quality_inspection}")
+        print(f"CK Kalite Kontrol Durumu: {ck.kalite_kontrol}")
+        print(f"CK Bağlı Kontrol: {ck.quality_inspection}")
         
         if ck.kalite_kontrol == "Onaylandı" and ck.quality_inspection == res['quality_inspection']:
-            print("Verification PASSED!")
+            print("Doğrulama BAŞARILI!")
         else:
-            print("Verification FAILED: Linkage or status mismatch.")
+            print("Doğrulama BAŞARISIZ: Bağlantı veya durum uyuşmazlığı.")
             
     except Exception as e:
-        print(f"Submission failed: {str(e)}")
+        print(f"Gönderim başarısız: {str(e)}")
         frappe.db.rollback()
 
 if __name__ == "__main__":
