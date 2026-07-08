@@ -15,8 +15,8 @@ def execute(filters=None):
 	filter_ara_malzeme_grubu = filters.get("ara_malzeme_grubu", "")
 	filter_musteri_grubu = filters.get("musteri_grubu") or []
 	filter_item_group = filters.get("item_group", "")
-	filter_varsayilan_tedarikci = filters.get("varsayilan_tedarikci", "")
 	filter_sifir_tuketimi_goster = cint(filters.get("sifir_tuketimi_goster", 0))
+	fiyat_varsayilan_tedarikci = cint(filters.get("fiyat_varsayilan_tedarikci", 0))
 
 	# Material Requirement raporunu "Bitmiş Ürün + Hammadde" modunda çalıştır
 	from erpnextkta.kta_mrp.report.material_requirement.material_requirement import (
@@ -99,24 +99,46 @@ def execute(filters=None):
 			if s.default_supplier:
 				default_supplier_map[s.parent] = s.default_supplier
 
-		price_data = frappe.db.sql(
-			"""
-			SELECT ip.item_code, ip.price_list_rate, ip.currency
-			FROM `tabItem Price` ip
-			INNER JOIN (
-				SELECT item_code, MAX(creation) as max_creation
-				FROM `tabItem Price`
-				WHERE item_code IN %s AND buying = 1
-				GROUP BY item_code
-			) latest ON ip.item_code = latest.item_code AND ip.creation = latest.max_creation
-			WHERE ip.buying = 1
-		""",
-			[tuple(raw_materials)],
-			as_dict=True,
-		)
-		for p in price_data:
-			price_map[p.item_code] = p.price_list_rate
-			currency_map[p.item_code] = p.currency
+		if fiyat_varsayilan_tedarikci:
+			price_data = frappe.db.sql(
+				"""
+				SELECT ip.item_code, ip.price_list_rate, ip.currency, ip.supplier
+				FROM `tabItem Price` ip
+				INNER JOIN (
+					SELECT item_code, supplier, MAX(creation) as max_creation
+					FROM `tabItem Price`
+					WHERE item_code IN %s AND buying = 1 AND supplier IS NOT NULL AND supplier != ''
+					GROUP BY item_code, supplier
+				) latest ON ip.item_code = latest.item_code AND ip.supplier = latest.supplier AND ip.creation = latest.max_creation
+				WHERE ip.buying = 1
+			""",
+				[tuple(raw_materials)],
+				as_dict=True,
+			)
+			for p in price_data:
+				def_sup = default_supplier_map.get(p.item_code)
+				if def_sup and def_sup == p.supplier:
+					price_map[p.item_code] = p.price_list_rate
+					currency_map[p.item_code] = p.currency
+		else:
+			price_data = frappe.db.sql(
+				"""
+				SELECT ip.item_code, ip.price_list_rate, ip.currency
+				FROM `tabItem Price` ip
+				INNER JOIN (
+					SELECT item_code, MAX(creation) as max_creation
+					FROM `tabItem Price`
+					WHERE item_code IN %s AND buying = 1
+					GROUP BY item_code
+				) latest ON ip.item_code = latest.item_code AND ip.creation = latest.max_creation
+				WHERE ip.buying = 1
+			""",
+				[tuple(raw_materials)],
+				as_dict=True,
+			)
+			for p in price_data:
+				price_map[p.item_code] = p.price_list_rate
+				currency_map[p.item_code] = p.currency
 
 		stock_data = frappe.db.sql(
 			"""
@@ -180,8 +202,6 @@ def execute(filters=None):
 			continue
 
 		supplier = default_supplier_map.get(hammadde, "")
-		if filter_varsayilan_tedarikci and supplier != filter_varsayilan_tedarikci:
-			continue
 
 		genel_toplam = 0
 		cg_values = {}

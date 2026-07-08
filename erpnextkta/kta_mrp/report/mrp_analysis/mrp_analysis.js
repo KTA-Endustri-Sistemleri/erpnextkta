@@ -44,16 +44,16 @@ frappe.query_reports["MRP Analysis"] = {
 			}
 		},
 		{
-			"fieldname": "varsayilan_tedarikci",
-			"label": __("Varsayılan Tedarikçi"),
-			"fieldtype": "Link",
-			"options": "Supplier",
-		},
-		{
 			"fieldname": "sifir_tuketimi_goster",
 			"label": __("Sıfır Tüketimi Göster"),
 			"fieldtype": "Check",
 			"default": 0,
+		},
+		{
+			"fieldname": "fiyat_varsayilan_tedarikci",
+			"label": __("Fiyatı Varsayılan Tedarikçiden Al"),
+			"fieldtype": "Check",
+			"default": 0
 		}
 	],
 
