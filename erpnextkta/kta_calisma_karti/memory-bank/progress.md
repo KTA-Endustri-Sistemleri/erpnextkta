@@ -1,6 +1,21 @@
 # Progress — kta_calisma_karti
 
-> Son güncelleme: 2026-07-04 (Alt Operasyon Dinamik Mantığı, Hata Raporlama, Dashboard Grafik, Validasyonlar)
+> Son güncelleme: 2026-07-06 (Job Card Senkronizasyonu, Çoklu Hammadde, Enjeksiyon & Krimp, Raporlar)
+
+### Sistem Mimarisi & Yaşam Döngüsü Yenilemesi (2026-07-06 — Tamamlandı)
+- [x] **Job Card Senkronizasyonu**: Önceden submit edilmiş Job Card'lar üzerine completed quantity (tamamlanan miktar) dağıtımı eklendi.
+- [x] **Senkronizasyon Validasyonları Bypass**: Sync modu sırasında sequence (sıralama) validasyonu ve kapasite çakışması engellerini aşan bypass mekanizmaları geliştirildi.
+- [x] **UI & Lifecycle Overhaul**: Çalışma Kartı arayüzü, yaşam döngüsü kuralları ve durum geçişleri baştan aşağı refactor edildi.
+- [x] **Miktar Zorunluluğu Değişimi**: `tamamlanan_miktar` zorunluluğu kaldırılarak tüm üretim miktar girişlerinin `alt_operasyon` üzerinden yürütülmesi zorunlu kılındı.
+
+### Operasyon & Form Geliştirmeleri (2026-07-06 — Tamamlandı)
+- [x] **Çoklu Hammadde Desteği**: `alt_operasyon` kayıtlarında birden fazla hammadde sarfının dinamik formlar ile desteklenmesi sağlandı.
+- [x] **Otomatik UOM Takibi**: Alt operasyon hammaddeleri seçildiğinde, Item'ın stok birimi (UOM) permission bypass ile arka planda çekilip kaydediliyor.
+- [x] **Özel Proses Formları**: Enjeksiyon Proses Formu ve Krimp Ölçüm Formları Çalışma Kartı'na tam entegre edildi.
+- [x] **Raporlar ve Yazdırma**: İş Emri Hammadde Tüketim Raporu eklendi. Job Card üzerinden toplu krimp/proses protokolü yazdırma (mass protocol printing) özelliği aktifleştirildi.
+- [x] **Kalite Sync & Race Condition Fix**: QI sync sürecindeki race condition çözüldü ve operatörlerin backend sync sırasında yetki (permission) hataları alması engellendi.
+- [x] **Modüler Kalite (Satır Bazlı QC)**: Ana kart düzeyindeki kalite kontrol yerini `AltOperasyonKaliteSection` ile alt operasyon bazlı ("Görüntüle", "Kalite Onayı Ver") satır bazlı onaya bıraktı. Arayüzde (CkCard.vue) modüler durumlara göre renk geçişli UI kodlandı.
+- [x] **Akıllı Krimp Formu (Küt/Tek/Çift Taraf)**: Alt operasyon QC onayı esnasında açılan Krimp Formu, alt operasyon adına göre dinamik genişler. "Çift Taraf" ise 2. yön (Yön 2) makine/kalıp ve kontak ölçüm alanları aktifleşir. Seçili satırdan hedef boylar ve kodlar forma otomatik yapıştırılır (Autofill).
 
 ### Alt Operasyon Dinamik Mantığı (2026-07-04 — Tamamlandı)
 - [x] **İsime Dayalı Dinamik Form**: `prompts.ts` içerisindeki form yapısı, seçilen alt operasyonun ismindeki "Küt", "Tek Taraf", "Çift Taraf" kelimelerine göre `depends_on` ile dinamikleştirildi.
@@ -176,8 +191,8 @@
 - [x] **Arayüz İyileştirmeleri**: Alt operasyon seçiminin iyileştirilmesi (Tamamlandı).
 
 ### Next Steps / Pendings
+- [ ] Filtreler Kısmına Çalışma Kartların Taglerine göre filtreleme eklenecek
 - [ ] **CI Test Otomasyonu**: `.github/workflows/tests.yml` dosyasına `bench run-tests` adımının eklenmesi ve `act` ile yerel ortamda doğrulanması.
-- [ ] CK → Job Card status senkronizasyonu — `on_update` hook veya bitiş anında Job Card'ın ERPNext standart statüsünü (Completed vb.) tetikleme. (Hala tasarım aşamasında)
 - [ ] Test coverage (Pytest & Jest) artırılması.
 
 ## Çalışan Özellikler
@@ -292,8 +307,8 @@
 ### Bilinmeyenler 🔍
 - [x] ~~`callIslem` backend metodu~~ → `calisma_karti.islem_yap` whitelisted fonksiyonu (`calisma_karti.py`'de)
 - [x] ~~`calisma_karti.py` controller~~ → `STATU_HARITASI`, `get_durum()`, `hesapla_*` metodları, `islem_yap` okundu
-- [x] ~~`tamamlanan_miktar`~~ → `islem_yap` içinde `doc.tamamlanan_miktar` olarak kullanılıyor (Custom Field)
-- [ ] CK → Job Card status senkronizasyonu — `on_update` hook Job Card'ı güncellemiyor; sadece `doc_events → Job Card → update_work_order_status` var
+- [x] ~~`tamamlanan_miktar`~~ → `islem_yap` içinde kullanılıyordu, yeni yapıda `alt_operasyon` üzerinden yönetiliyor.
+- [x] ~~CK → Job Card status senkronizasyonu~~ → Tamamlandı, completed quantity dağıtımı ile çözüldü.
 
 ### Potansiyel İyileştirmeler
 - [ ] Liste sayfasındaki filtreler server-side hale getirilebilir (şu an client-side)

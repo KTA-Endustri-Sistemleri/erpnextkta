@@ -75,6 +75,15 @@ export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKar
             reqd: 1,
             default: defaults.alt_operasyon || "",
         },
+        {
+            fieldtype: "Data",
+            label: __("Satır No"),
+            description: __("Teknik resimdeki kablo numarasını giriniz."),
+            fieldname: "satir_no",
+            reqd: defaults.alt_operasyon_bazli_kalite ? 1 : 0,
+            depends_on: () => !!defaults.alt_operasyon_bazli_kalite,
+            default: defaults.satir_no || "",
+        },
         { fieldtype: "Section Break" },
 
         // Sütun 1: Sol Uç
@@ -186,6 +195,15 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             options: altOpOptions.map((o: any) => ({ label: o.label, value: o.value })),
             reqd: 1,
             default: defaults.alt_operasyon || "",
+        },
+        {
+            fieldtype: "Data",
+            label: __("Satır No"),
+            description: __("Teknik resimdeki kablo numarasını giriniz."),
+            fieldname: "satir_no",
+            reqd: defaults.alt_operasyon_bazli_kalite ? 1 : 0,
+            depends_on: () => !!defaults.alt_operasyon_bazli_kalite,
+            default: defaults.satir_no || "",
         },
         { fieldtype: "Section Break" },
         {

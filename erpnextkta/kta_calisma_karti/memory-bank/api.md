@@ -54,13 +54,13 @@ Frontend method path prefix: `erpnextkta.kta_calisma_karti.api.`
 
 ## Alt Operasyon
 
-docs> **Not:** `hammadde`, `uom`, `note` opsiyonel. `adet` default `0`.  
-> `hammadde` girilirse `_assert_hammadde_allowed()` ile material group kısıtı uygulanır.
+docs> **Not:** `hammadde`, `boyut_x_mm`, `islem_adedi_x`, `note` opsiyonel. `islem_adedi` varsayılan `0`.  
+> `hammadde`, `hammadde_2`, `hammadde_3` girilirse `_assert_hammadde_allowed()` ile material group kısıtı uygulanır. UOM arka planda otomatik çekilir.
 
 | Fonksiyon | Parametreler | Yetki |
 |-----------|-------------|-------|
-| `add_alt_operasyon_kaydi` | `calisma_karti, alt_operasyon, adet=0, hammadde=None, uom=None, note=None` | Operator / SM / QC | [Test Doğrulandı] |
-| `update_alt_operasyon_kaydi` | `calisma_karti, row_id, alt_operasyon, adet=0, hammadde=None, uom=None, note=None` | Operator / SM / QC | |
+| `add_alt_operasyon_kaydi` | `calisma_karti, alt_operasyon, hammadde(1-3)=None, boyut_(1-3)_mm=0, islem_adedi_(1-3)=0, note=None` | Operator / SM / QC | [Test Doğrulandı] |
+| `update_alt_operasyon_kaydi` | `calisma_karti, row_id, alt_operasyon, hammadde(1-3)=None, boyut_(1-3)_mm=0, islem_adedi_(1-3)=0, note=None` | Operator / SM / QC | |
 | `delete_alt_operasyon_kaydi` | `calisma_karti, row_id` | Operator / SM / QC | [Test Doğrulandı] |
 | `search_allowed_hammadde_items` | `filters{calisma_karti, alt_operasyon}` — sub-op grubu tanımlıysa o grup; boşsa sequence çözümlemesi | Herkese açık (Link search) |
 

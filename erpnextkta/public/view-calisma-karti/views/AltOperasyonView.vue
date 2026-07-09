@@ -12,6 +12,11 @@ const props = defineProps<{
   onDelete: (rowname: string) => Promise<void>;
 }>();
 
+function isQCLocked(h: any): boolean {
+  if (!props.doc.alt_operasyon_bazli_kalite) return false;
+  return (h.quality_inspection_status || "").trim() === "Onaylandı" && !!(h.quality_inspection || "").trim();
+}
+
 // Sort rows by sequence from master doctype (populated by backend), then by idx
 const sortedRows = computed(() => {
   const rows: any[] = props.doc?.alt_operasyon_kayitlari ?? [];
@@ -47,7 +52,8 @@ onMounted(() => {
 function onAltOperasyonEkle() {
   let d: any;
   const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
-  const fields = fieldsFn(props.doc.operasyon, props.doc.name, {}, () => d?.get_value("alt_operasyon"), altOpOptions.value);
+  const defaults = { alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite };
+  const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = frappe.prompt(
     fields,
     async (v: any) => {
@@ -56,6 +62,7 @@ function onAltOperasyonEkle() {
 
       await props.onAdd({
         alt_operasyon: v.alt_operasyon,
+        satir_no: v.satir_no || "",
         hammadde: v.hammadde || null,
         boyut_1_mm: v.boyut_1_mm || 0,
         islem_adedi_1: islem_1, // fallback to adet for single mode handled above
@@ -85,6 +92,7 @@ function onAltOperasyonDuzenle(h: any) {
   const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
   const defaults = {
     ...h,
+    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite,
     adet: h.adet || h.islem_adedi_1 // map islem_adedi_1 to adet for single mode edit
   };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
@@ -97,6 +105,7 @@ function onAltOperasyonDuzenle(h: any) {
       await props.onUpdate({
         row_id: h.name,
         alt_operasyon: v.alt_operasyon,
+        satir_no: v.satir_no || "",
         hammadde: v.hammadde || null,
         boyut_1_mm: v.boyut_1_mm || 0,
         islem_adedi_1: islem_1,
@@ -122,7 +131,15 @@ function onAltOperasyonSil(h: any) {
     return;
   }
 
-  frappe.confirm(__("Bu işlem satırı silinecek. Emin misiniz?"), async () => {
+  const locked = isQCLocked(h);
+  const isQcUser = props.doc.is_qc_user;
+
+  let msg = __("Bu işlem satırı silinecek. Emin misiniz?");
+  if (locked && isQcUser) {
+    msg = __("Bu kayda bağlı kalite kontrol belgesi de iptal edilecektir. Devam etmek istiyor musunuz?");
+  }
+
+  frappe.confirm(msg, async () => {
     await props.onDelete(h.name);
     frappe.show_alert({ message: __("Alt İşlem silindi"), indicator: "green" });
   });
@@ -139,8 +156,12 @@ function onAltOperasyonSil(h: any) {
 
     <div v-else class="ck-mini-list">
       <div v-for="(h, i) in sortedRows" :key="h.name || i" class="ck-mini-item">
-        <div class="ck-mini-content">
-            <b class="ck-mini-title">{{ h.alt_operasyon_title || h.alt_operasyon }}</b>
+        <div style="display: flex; gap: 12px; align-items: stretch; flex: 1; min-width: 0;">
+            <div v-if="h.satir_no" style="display: flex; align-items: center; justify-content: center; padding-right: 12px; border-right: 2px solid var(--ck-glass-border-soft); margin-right: 4px;">
+                <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">{{ h.satir_no }}</span>
+            </div>
+            <div class="ck-mini-content">
+                <b class="ck-mini-title">{{ h.alt_operasyon_title || h.alt_operasyon }}</b>
             
             <template v-if="ekranTipi === 'Çoklu Hammadde'">
               <div class="ck-muted ck-mini-sub" v-if="h.hammadde_2 || h.boyut_2_mm || h.hammadde_3">
@@ -183,11 +204,19 @@ function onAltOperasyonSil(h: any) {
             </template>
             
             <div class="ck-muted ck-mini-sub" v-if="h.note">{{ h.note }}</div>
+            </div>
         </div>
 
         <div class="ck-mini-actions" v-if="props.canEditData">
-          <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onAltOperasyonDuzenle(h)">{{ __("Düzenle") }}</button>
-          <button class="ck-btn ck-btn--danger ck-btn-small" @click="onAltOperasyonSil(h)">{{ __("Sil") }}</button>
+          <template v-if="!isQCLocked(h) || props.doc.is_qc_user">
+            <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onAltOperasyonDuzenle(h)">{{ __("Düzenle") }}</button>
+            <button class="ck-btn ck-btn--danger ck-btn-small" @click="onAltOperasyonSil(h)">{{ __("Sil") }}</button>
+          </template>
+          <template v-else>
+            <span class="ck-badge ck-badge--success ck-badge--small" style="font-size: 10px; padding: 2px 6px;">
+              🔒 {{ __("Kalite Onaylı") }}
+            </span>
+          </template>
         </div>
       </div>
     </div>

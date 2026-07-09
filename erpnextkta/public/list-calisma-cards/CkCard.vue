@@ -1,6 +1,6 @@
 <template>
   <button class="ck-card" @click="$emit('click')">
-    <div class="row no-gutters" :class="qcClasses">
+    <div class="row no-gutters ck-status-card-qc" :style="qcStyle">
       <div class="col-2 p-0 ck-pill" :data-tone="statusTone">
         <span style="text-align: center; line-height: 1.15; width: max-content;">
           <template v-if="statusTone === 'cancelled'">{{ __('İptal Edildi') }}</template>
@@ -66,11 +66,40 @@ const props = defineProps({
 
 defineEmits(["click"]);
 
-const qcClasses = computed(() => ({
-  "ck-status-card-qc--running": props.row.kalite_kontrol === "Onaylandı",
-  "ck-status-card-qc--rejected": props.row.kalite_kontrol === "Reddedildi",
-  "ck-status-card-qc--pending": props.row.kalite_kontrol === "Onay Bekliyor",
-}));
+const qcStyle = computed(() => {
+  const qcList = props.row.qc_states;
+  const isQcActive = Number(props.row.alt_operasyon_bazli_kalite) === 1;
+  
+  if (!isQcActive || !qcList || qcList.length === 0) {
+    const status = props.row.kalite_kontrol;
+    if (status === "Onaylandı") return { background: "linear-gradient(270deg, var(--ck-success-bg), transparent, transparent)" };
+    if (status === "Reddedildi") return { background: "linear-gradient(270deg, var(--ck-danger-bg), transparent, transparent)" };
+    if (status === "Onay Bekliyor") return { background: "linear-gradient(270deg, rgba(59, 130, 246, 0.55), transparent, transparent)" };
+    return {};
+  }
+  
+  const colors = qcList.map(s => {
+    if (s === "Onaylandı") return "var(--ck-success-bg)";
+    if (s === "Reddedildi") return "var(--ck-danger-bg)";
+    if (s === "Onay Bekliyor") return "rgba(59, 130, 246, 0.55)";
+    return "transparent";
+  });
+  
+  const n = colors.length;
+  const heightPrc = 100 / n;
+  
+  const bgLayers = colors.map(c => `linear-gradient(270deg, ${c}, transparent, transparent)`);
+  const bgSizes = colors.map(() => `100% ${heightPrc}%`);
+  // position top to bottom
+  const bgPositions = colors.map((_, i) => `right ${i * (100 / (n - 1 || 1))}%`);
+  
+  return {
+    background: bgLayers.join(", "),
+    backgroundSize: bgSizes.join(", "),
+    backgroundPosition: bgPositions.join(", "),
+    backgroundRepeat: "no-repeat"
+  };
+});
 
 const statusTone = computed(() => {
   const v = (props.row.durum || "").toLowerCase();
@@ -191,10 +220,7 @@ const statusTone = computed(() => {
   transform: translateX(4px);
 }
 
-/* Quality Control Status Highlights */
-.ck-status-card-qc--running { background: linear-gradient(270deg, var(--ck-success-bg), transparent, transparent); border-radius: 16px; }
-.ck-status-card-qc--rejected { background: linear-gradient(270deg, var(--ck-danger-bg), transparent, transparent); border-radius: 16px; }
-.ck-status-card-qc--pending { background: linear-gradient(270deg, rgba(59, 130, 246, 0.55), transparent, transparent); border-radius: 16px; }
+.ck-status-card-qc { border-radius: 16px; }
 
 .ck-ariza-badge {
   display: inline-block;

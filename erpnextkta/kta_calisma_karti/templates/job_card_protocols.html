@@ -34,7 +34,7 @@
 </head>
 <body>
 
-{% macro render_header(doc, title) %}
+{% macro render_header(doc, title, is_sub_op_based=False) %}
 <div class="header">
   <div class="header-left">
     <h1>KTA Endüstri Sistemleri</h1>
@@ -44,13 +44,15 @@
     <b>{{ doc.name }}</b>
     İş Emri: {{ doc.custom_work_order or "-" }}<br>
     Ürün: {{ doc.urun_kodu or "-" }}<br>
+    {% if not is_sub_op_based %}
     Kalite Belgesi: {{ doc.quality_inspection or "-" }}<br>
+    {% endif %}
     Tarih: {{ today }}
   </div>
 </div>
 {% endmacro %}
 
-{% macro render_signatures(doc) %}
+{% macro render_signatures(doc, qis_list, approvers_list) %}
 <div class="signatures">
   <div class="sig-box">
     <div class="title">{{ _("Hazırlayan Operatör") }}</div>
@@ -62,17 +64,32 @@
     <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
   </div>
   <div class="sig-box">
-    <div class="title">{{ _("Kalite Sorumlusu") }}</div>
+    <div class="title">{{ _("Kalite Belgeleri") }}</div>
     <div class="space"></div>
-    <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
-      {{ doc.qi_owner_name }}
+    <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto; line-height:1.4;">
+      {% if qis_list %}
+        {% for qi in qis_list %}
+          {{ qi }}<br>
+        {% endfor %}
+      {% else %}
+        -
+      {% endif %}
     </div>
     <div class="name-line"></div>
     <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
   </div>
   <div class="sig-box">
-    <div class="title">{{ _("Onaylayan") }}</div>
+    <div class="title">{{ _("Onaylayanlar") }}</div>
     <div class="space"></div>
+    <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto; line-height:1.4;">
+      {% if approvers_list %}
+        {% for app in approvers_list %}
+          {{ app }}<br>
+        {% endfor %}
+      {% else %}
+        -
+      {% endif %}
+    </div>
     <div class="name-line"></div>
     <div style="margin-top:4px;font-size:9px;color:#555;">{{ _("Ad Soyad / İmza / Tarih") }}</div>
   </div>
@@ -83,16 +100,46 @@
 {% endmacro %}
 
 {% for doc in docs %}
+  {% set alt_ops = doc.get("alt_operasyon_kayitlari") or [] %}
+  {% set is_sub_op_based = alt_ops | selectattr("quality_inspection", "string") | list | length > 0 %}
+
+  {% set qis_list = [] %}
+  {% set approvers_list = [] %}
+
+  {% if is_sub_op_based %}
+    {% for r in doc.get("krimp_olcumleri") or [] %}
+      {% set alt_op = alt_ops | selectattr("name", "equalto", r.alt_operasyon_kaydi) | first if r.alt_operasyon_kaydi else None %}
+      {% if alt_op and alt_op.quality_inspection %}
+        {% set qi = alt_op.quality_inspection %}
+        {% set qi_owner = frappe.db.get_value("Quality Inspection", qi, "owner") %}
+        {% set qi_owner_name = frappe.db.get_value("User", qi_owner, "full_name") if qi_owner else "-" %}
+        
+        {% set item_q = loop.index ~ ". " ~ qi %}
+        {% set item_a = loop.index ~ ". " ~ qi_owner_name %}
+        
+        {% if item_q not in qis_list %}
+          {% set _ = qis_list.append(item_q) %}
+          {% set _ = approvers_list.append(item_a) %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    {% if doc.quality_inspection %}
+      {% set _ = qis_list.append(doc.quality_inspection) %}
+      {% set _ = approvers_list.append(doc.qi_owner_name or "-") %}
+    {% endif %}
+  {% endif %}
 
   {% if doc.get("krimp_olcumleri") %}
   <div class="page-break">
-    {{ render_header(doc, _("Krimp Ölçüm Protokol Belgesi")) }}
+    {{ render_header(doc, _("Krimp Ölçüm Protokol Belgesi"), is_sub_op_based) }}
     <table>
       <thead>
         <tr>
           <th>#</th>
+          <th>{{ _('Satır No') }}</th>
           <th>{{ _('Kablo No') }}</th>
-          <th>{{ _('Kontak No') }}</th>
+          <th>{{ _('Terminal No') }}</th>
           <th>{{ _('Kesit') }}</th>
           <th>{{ _('Makine') }}</th>
           <th>{{ _('Kalıp') }}</th>
@@ -105,43 +152,73 @@
           <th>{{ _('Sıyırma') }}</th>
           <th>{{ _('Çapak') }}</th>
           <th>{{ _('Çekme') }}</th>
-          <th>{{ _('Radüs') }}</th>
-          <th>{{ _('Tel Kesme') }}</th>
+          <th>{{ _('Radüs Var') }}</th>
+          <th>{{ _('Tel Kesme Yok') }}</th>
           <th>{{ _('Operatör') }}</th>
         </tr>
       </thead>
       <tbody>
         {% for r in doc.get("krimp_olcumleri") %}
-        <tr class="row-{{ loop.cycle('odd', 'even') }}">
-          <td>{{ loop.index }}</td>
-          <td>{{ r.kablo_no or "-" }}</td>
-          <td>{{ r.kontak_no or "-" }}</td>
+        {% set tr_class = loop.cycle('odd', 'even') %}
+        
+        {% set alt_op = alt_ops | selectattr("name", "equalto", r.alt_operasyon_kaydi) | first if r.alt_operasyon_kaydi else None %}
+        {% set qi = alt_op.quality_inspection if alt_op else None %}
+        {% set qi_owner = frappe.db.get_value("Quality Inspection", qi, "owner") if qi else "" %}
+        {% set qi_owner_name = frappe.db.get_value("User", qi_owner, "full_name") if qi_owner else "-" %}
+        
+        {% set t1_radus = r.yon_2_radus_mevcut if not r.kontak_no and (r.siyirma_boyu or 0) > 0 and r.yon_2_kontak_no else (1 if not r.kontak_no else r.radus_mevcut) %}
+        {% set t1_tel_kesme = r.yon_2_tel_kesme_mevcut if not r.kontak_no and (r.siyirma_boyu or 0) > 0 and r.yon_2_kontak_no else (0 if not r.kontak_no else r.tel_kesme_mevcut) %}
+        
+        {% set t2_radus = r.radus_mevcut if not r.yon_2_kontak_no and (r.yon_2_siyirma_boyu or 0) > 0 and r.kontak_no else (1 if not r.yon_2_kontak_no else r.yon_2_radus_mevcut) %}
+        {% set t2_tel_kesme = r.tel_kesme_mevcut if not r.yon_2_kontak_no and (r.yon_2_siyirma_boyu or 0) > 0 and r.kontak_no else (0 if not r.yon_2_kontak_no else r.yon_2_tel_kesme_mevcut) %}
+
+        <tr class="row-{{ tr_class }}">
+          <td {% if r.is_cift_tarafli %}rowspan="2"{% endif %}>{{ loop.index }}</td>
+          <td {% if r.is_cift_tarafli %}rowspan="2"{% endif %}>{{ alt_op.satir_no if alt_op and alt_op.satir_no else "-" }}</td>
+          <td {% if r.is_cift_tarafli %}rowspan="2"{% endif %}>{{ r.kablo_no or "-" }}</td>
+          <td>{% if r.is_cift_tarafli %}(T1) {% endif %}{{ r.kontak_no or "-" }}</td>
           <td>{{ r.kablo_kesiti or "-" }}</td>
           <td>{{ r.makine_pres_no or "-" }}</td>
           <td>{{ r.kalip_no or "-" }}</td>
-          <td>{{ r.hedef_kablo_boyu if r.hedef_kablo_boyu is not none else "-" }}</td>
-          <td>{{ r.olculen_kablo_boyu if r.olculen_kablo_boyu is not none else "-" }}</td>
-          <td class="{{ sapma_class(r.olculen_kablo_boyu, r.hedef_kablo_boyu) }}">{{ sapma_txt(r.olculen_kablo_boyu, r.hedef_kablo_boyu) }}</td>
+          <td {% if r.is_cift_tarafli %}rowspan="2"{% endif %}>{{ r.hedef_kablo_boyu if r.hedef_kablo_boyu is not none else "-" }}</td>
+          <td {% if r.is_cift_tarafli %}rowspan="2"{% endif %}>{{ r.olculen_kablo_boyu if r.olculen_kablo_boyu is not none else "-" }}</td>
+          <td {% if r.is_cift_tarafli %}rowspan="2"{% endif %} class="{{ sapma_class(r.olculen_kablo_boyu, r.hedef_kablo_boyu) }}">{{ sapma_txt(r.olculen_kablo_boyu, r.hedef_kablo_boyu) }}</td>
           <td>{{ r.hedef_iletken_krimp_yuksekliği if r.hedef_iletken_krimp_yuksekliği is not none else "-" }}</td>
           <td>{{ r.olculen_iletken_krimp_yuksekliği if r.olculen_iletken_krimp_yuksekliği is not none else "-" }}</td>
           <td class="{{ sapma_class(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği) }}">{{ sapma_txt(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği) }}</td>
           <td>{{ r.siyirma_boyu if r.siyirma_boyu is not none else "-" }} mm</td>
           <td>{{ r.capak_boyu if r.capak_boyu is not none else "-" }} mm</td>
           <td>{{ r.olculen_cekme_kuvveti_n if r.olculen_cekme_kuvveti_n is not none else "-" }} N (Hedef: {{ r.hedef_cekme_kuvveti_n if r.hedef_cekme_kuvveti_n is not none else "-" }})</td>
-          <td class="{{ 'ok' if r.radus_mevcut else 'low' }}">{{ "✔" if r.radus_mevcut else "✘" }}</td>
-          <td class="{{ 'ok' if r.tel_kesme_mevcut else 'low' }}">{{ "✔" if r.tel_kesme_mevcut else "✘" }}</td>
-          <td>{{ r.operator or "-" }}</td>
+          <td class="{{ 'ok' if t1_radus else 'low' }}">{{ "✔" if t1_radus else "✘" }}</td>
+          <td class="{{ 'ok' if not t1_tel_kesme else 'low' }}">{{ "✔" if not t1_tel_kesme else "✘" }}</td>
+          <td {% if r.is_cift_tarafli %}rowspan="2"{% endif %}>{{ r.operator or "-" }}</td>
         </tr>
+        {% if r.is_cift_tarafli %}
+        <tr class="row-{{ tr_class }}">
+          <td>(T2) {{ r.yon_2_kontak_no or "-" }}</td>
+          <td>{{ r.yon_2_kablo_kesiti or "-" }}</td>
+          <td>{{ r.yon_2_makine_pres_no or "-" }}</td>
+          <td>{{ r.yon_2_kalip_no or "-" }}</td>
+          <td>{{ r.yon_2_hedef_iletken_krimp_yuksekligi if r.yon_2_hedef_iletken_krimp_yuksekligi is not none else "-" }}</td>
+          <td>{{ r.yon_2_olculen_iletken_krimp_yuksekligi if r.yon_2_olculen_iletken_krimp_yuksekligi is not none else "-" }}</td>
+          <td class="{{ sapma_class(r.yon_2_olculen_iletken_krimp_yuksekligi, r.yon_2_hedef_iletken_krimp_yuksekligi) }}">{{ sapma_txt(r.yon_2_olculen_iletken_krimp_yuksekligi, r.yon_2_hedef_iletken_krimp_yuksekligi) }}</td>
+          <td>{{ r.yon_2_siyirma_boyu if r.yon_2_siyirma_boyu is not none else "-" }} mm</td>
+          <td>{{ r.yon_2_capak_boyu if r.yon_2_capak_boyu is not none else "-" }} mm</td>
+          <td>{{ r.yon_2_olculen_cekme_kuvveti_n if r.yon_2_olculen_cekme_kuvveti_n is not none else "-" }} N (Hedef: {{ r.yon_2_hedef_cekme_kuvveti_n if r.yon_2_hedef_cekme_kuvveti_n is not none else "-" }})</td>
+          <td class="{{ 'ok' if t2_radus else 'low' }}">{{ "✔" if t2_radus else "✘" }}</td>
+          <td class="{{ 'ok' if not t2_tel_kesme else 'low' }}">{{ "✔" if not t2_tel_kesme else "✘" }}</td>
+        </tr>
+        {% endif %}
         {% endfor %}
       </tbody>
     </table>
-    {{ render_signatures(doc) }}
+    {{ render_signatures(doc, qis_list, approvers_list) }}
   </div>
   {% endif %}
 
   {% if doc.get("idc_olcumleri") %}
   <div class="page-break">
-    {{ render_header(doc, _("IDC Ölçüm Protokol Belgesi")) }}
+    {{ render_header(doc, _("IDC Ölçüm Protokol Belgesi"), is_sub_op_based) }}
     <table>
       <thead>
         <tr>
@@ -166,13 +243,13 @@
         {% endfor %}
       </tbody>
     </table>
-    {{ render_signatures(doc) }}
+    {{ render_signatures(doc, qis_list, approvers_list) }}
   </div>
   {% endif %}
 
   {% if doc.get("enjeksiyon_olcumleri") %}
   <div class="page-break">
-    {{ render_header(doc, _("Enjeksiyon Ölçüm Protokol Belgesi")) }}
+    {{ render_header(doc, _("Enjeksiyon Ölçüm Protokol Belgesi"), is_sub_op_based) }}
     <table>
       <thead>
         <tr>
@@ -211,13 +288,13 @@
         {% endfor %}
       </tbody>
     </table>
-    {{ render_signatures(doc) }}
+    {{ render_signatures(doc, qis_list, approvers_list) }}
   </div>
   {% endif %}
 
   {% if doc.get("barkod_kayitlari") %}
   <div class="page-break">
-    {{ render_header(doc, _("Barkod Protokol Belgesi")) }}
+    {{ render_header(doc, _("Barkod Protokol Belgesi"), is_sub_op_based) }}
     <table>
       <thead>
         <tr>
@@ -238,7 +315,7 @@
         {% endfor %}
       </tbody>
     </table>
-    {{ render_signatures(doc) }}
+    {{ render_signatures(doc, qis_list, approvers_list) }}
   </div>
   {% endif %}
 

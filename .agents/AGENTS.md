@@ -61,3 +61,7 @@ All commit messages must follow the Conventional Commits specification. They are
 ## 5. Security & Database
 * Always write queries using the Frappe ORM (`frappe.db.get_value`, `frappe.get_doc`, etc.).
 * Avoid direct raw SQL queries unless absolutely necessary. When using `frappe.db.sql`, always use parameterized queries to prevent SQL injection.
+
+# Build Command Rule
+When building the frontend or checking for build errors, NEVER use `yarn build` directly. ALWAYS use the following command instead:
+`bench build --app erpnextkta --production`

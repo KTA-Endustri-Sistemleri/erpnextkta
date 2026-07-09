@@ -7,6 +7,11 @@ function openDoc(doctype: string, docname: string) {
   const slug = doctype.toLowerCase().split(" ").join("-");
   window.open(`/app/${slug}/${docname}`, "_blank");
 }
+
+function openFile(url: string) {
+  if (!url) return;
+  window.open(url, "_blank");
+}
 </script>
 
 <template>
@@ -31,6 +36,16 @@ function openDoc(doctype: string, docname: string) {
         </svg>
         <span>{{ __("İş Kartı") }}</span>
         <b>{{ props.doc.is_karti || "-" }}</b>
+      </div>
+    </div>
+    <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col" v-if="props.doc.custom_kesim_formu">
+      <div class="ck-info-cell is-link" @click="openFile(props.doc.custom_kesim_formu)">
+        <svg class="ck-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+          <polyline points="13 2 13 9 20 9"></polyline>
+        </svg>
+        <span>{{ __("Kesim Formu") }}</span>
+        <b>{{ props.doc.custom_kesim_formu.split('/').pop() || props.doc.custom_kesim_formu }}</b>
       </div>
     </div>
     <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col">

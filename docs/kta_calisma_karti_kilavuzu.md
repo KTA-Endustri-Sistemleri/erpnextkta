@@ -78,25 +78,30 @@ Bir çalışma kartı içinde, daha spesifik alt işlemler veya malzeme kullanı
 
 ---
 
-## 📐 5. Kalite Kontrol (QC) ve Özel Ölçüm Formları
+## 📐 5. Kalite Kontrol (QC) ve Akıllı Ölçüm Formları
 
-Kalite yetkilileri veya operatörler tarafından üründen alınan spesifik ölçümler (Çekme testi, yükseklik, gramaj vb.) bu sekme altında kaydedilir. İşlemin niteliğine ve kullanılan hammaddeye/operasyona göre ekranda dinamik olarak farklı ölçüm formları belirir:
+Üretim esnasında alınan spesifik ölçümler (Çekme testi, krimp yüksekliği, gramaj vb.) bu sekme altından yürütülür. Sistemin getirdiği en yenilikçi özelliklerden biri **Modüler (Satır Bazlı) Kalite Onayı** sistemidir. Bu sayede tüm karta tek bir kalite belgesi kesmek yerine, operatörün ürettiği her bir alt işleme sırasıyla onay verilir.
 
-1. **Ölçümler Sekmesi ve Dinamik Formlar:** Çalışma kartındaki Kalite sekmesine girdiğinizde, üretim türüne göre aşağıdaki formlardan biri veya birkaçı listelenir:
-    - **IDC Ölçüleri Formu:** Yalnızca *120-IDC Connector* veya *110-Connector* hammadde grubunda olan işlemler için açılır. İlgili konnektörün çekme kuvveti ve yükseklik ölçümlerini kaydetmenizi sağlar.
-    - **Krimp (Sıkma) Ölçüleri Formu:** Terminalli (Krimp) kablo işlemlerinde devreye girer. Yalıtkan/İletken krimp yüksekliği, çekme kuvveti ve mikrometre ölçümlerinin sisteme girilmesi içindir.
-    - **Enjeksiyon Ölçüleri Formu:** Plastik enjeksiyon operasyonlarında görünür. Baskı gramajı, yolluk ağırlığı, çevrim süresi ve sıcaklık gibi spesifik proses verilerinin kayıt altına alınmasını sağlar.
-2. **Formların Doldurulması:** İlgili tabloya gelerek **"Ekle"** (veya +) butonuna basın, ölçüm cihazlarından okuduğunuz değerleri girip kaydedin. Hatalı girişler tolerans dışı ise sistem sizi uyarabilir.
-3. **Kalite Statüsü ve Belge Bağlantısı:**
-    - Bir çalışma kartına standart kalite şablonu üzerinden belge bağlandığında, arayüzdeki kalite butonları **otomatik olarak kilitlenir**.
-    - Bu aşamadan sonra kalite durumu sadece ilgili **Kalite Belgesi (Quality Inspection)** üzerinden yönetilir. "Görüntüle" butonu ile ilgili belgeye hızlıca ulaşılabilir.
-4. **Statü Restorasyonu (Geri Dönüş):**
-    - Bir kartın durumu *"Reddedildi"* yapıldığında, çalışma kartı tümüyle kilitlenerek üretim durdurulur.
-    - Kalite yetkilisi Kalite Belgesi'nin durumunu tekrar *"Kabul Edildi"* (Accepted) durumuna çekerse, Çalışma Kartı'nın durumu **otomatik olarak eski haline** (Çalışıyor, Duruşta vb.) restore edilir.
-5. **🖨️ Formların Protokol Belgesi Olarak Yazdırılması:**
-    - İlgili ölçüm formlarındaki (IDC, Krimp, Enjeksiyon) veriler girilip kaydedildikten sonra, formun alt/üst kısmında yer alan **"Protokol"** butonuna basılarak o ölçüme ait resmi **Ölçüm Protokol Belgesi** oluşturulabilir.
-    - Bu işlem, girilen tüm kritik ölçüm değerlerini, tolerans limitlerini ve parça bilgilerini içeren profesyonel bir HTML formatlı evrak (Örn: `Krimp Ölçüm Protokol Belgesi`) hazırlar. 
-    - Oluşan bu evrak yerel ağ yazıcılarına veya bağlı terminal yazıcılarına gönderilerek fiziksel kalite kayıtları/etiketleri oluşturulmasını sağlar.
+### Modüler Kalite Onayı (Satır Bazlı QC)
+1. **Kalite Sekmesi Görünümü:** Çalışma Kartı ayarlarında "Alt Operasyon Bazlı Kalite" özelliği aktifse, kalite paneline girdiğinizde tüm kartı reddetmek yerine; eklenmiş olan her bir alt operasyon için ayrı bir satır ve onay butonu görürsünüz.
+2. **Liste Arayüzünde Degrade Geçişler:** Bir kartın alt operasyonlarının bazıları onaylanıp, bazıları red yemiş veya bekliyor olabilir. Bu çoklu durumu liste görünümünde (CkCard.vue) sağ kenardaki dinamik parçalı/degrade renk bloklarından anlık olarak görebilirsiniz. Örneğin 3 alt operasyon varsa sağ kenarda üst üste Yeşil (Onaylı), Kırmızı (Red) ve Mavi (Bekleyen) renk blokları görünür.
+3. **Onaylama ve Belge Entegrasyonu:** Her satırdaki "Kalite Onayı Ver" butonuna basıldığında arka planda sadece o satıra özel bir Kalite Kontrol Belgesi (Quality Inspection) oluşturulur ve o satıra bağlanır.
+   - **Önemli Not:** Alt operasyonların tamamı onaylansa dahi, ana çalışma kartının sadece "Durum" (Kalite Kontrol) alanı "Onaylandı" olarak güncellenir. Ancak ana karta **herhangi bir kalite belgesi (Quality Inspection ID) işlenmez**. Bu sayede, UI tarafında kartın "Klasik" bir QC belgesine sahip olduğu yanılgısı yaratılmaz ve her bir belgenin kendi satırında kalması sağlanır.
+
+
+### Akıllı Krimp Formu ve Çift Taraf Mantığı
+Özellikle "Kablo Kesme ve Kontak Basma" gibi krimp işlemlerinde kalite onayı verilirken sistem, girilen alt operasyon verisine bakarak form ekranını akıllı bir şekilde yapılandırır:
+
+1. **Tek Taraf ve Küt İşlemler:** Eğer alt operasyonun isminde "Küt" veya "Tek Taraf" geçiyorsa, krimp formunda sadece tek bir tarafa ait kontak numarası, hedef ölçü, makine numarası ve çekme testi alanı açılır.
+2. **Çift Taraf (Double Sided) İşlemler:** Eğer alt operasyonun isminde "Çift Taraf" geçiyorsa, sistem form arayüzünü otomatik genişletir. **"2. Taraf - Makine ve Kalıp"** isminde yepyeni alanlar açılır. Bu sayede her iki tarafın kontak bilgisi, ölçümleri ve makine bilgisi aynı tek form üzerinde toplanır.
+3. **Sihirli Otomatik Doldurma (Auto-fill):**
+   - Krimp formunu doldururken verileri elle aramanıza gerek yoktur.
+   - Form açılır açılmaz alt operasyonda seçilmiş olan **Kablo Kesiti**, **Hedef İletken/Yalıtkan Yükseklikleri**, 1. ve 2. Taraf **Kontak Kodları** form alanlarına anında doldurulur. Operatör sadece okuduğu mikrometre değerini ve kullandığı makine numarasını/kalıbı yazar.
+   - Form kaydedilir kaydedilmez kalite onayı verilmiş sayılır ve Krimp tablosunda listelenir.
+
+### Diğer Formlar ve Özellikler
+- **IDC ve Enjeksiyon Formları:** Krimp işlemleri haricindeki alanlarda 120-IDC konnektörler için veya plastik enjeksiyon için (gramaj, çevrim süresi vb.) özel form tabloları mevcuttur.
+- **Protokol Belgesi Olarak Yazdırılması (🖨️):** Kalite formları kaydedildikten sonra "Protokol" butonuna basılarak ilgili ölçüme ait resmi HTML tabanlı evrak oluşturulup ağdaki yazıcıdan etiketi/çıktısı alınabilir.
 
 ---
 
@@ -147,10 +152,19 @@ Yöneticiler, amirler ve kalite sorumluları sistem üzerinden şu araçlarla ge
 
 ## 🔒 9. Yetki Yönetimi ve Konfigürasyon (Yöneticiler İçin)
 
-Çalışma Kartı üzerindeki veri düzenleme yetkileri (alt işlem ekleme, hurda silme, kalite girme), kartların **"Bitmiş"** veya **"İptal Edilmiş"** statüsünde olup olmadığına ve kullanıcının sahip olduğu rollere göre sistem tarafından dinamik olarak yönetilir:
+Çalışma Kartı üzerindeki veri düzenleme yetkileri (alt işlem ekleme, hurda silme, kalite girme), kartların durumuna ve kullanıcının sahip olduğu rollere göre dinamik olarak yönetilir:
 
-- **Operatör Kısıtı:** Normal operatörler, yalnızca "Çalışıyor" veya "Duruşta" olan aktif kartlarda veri girişi/silme yapabilir. Bitmiş kartlarda arayüz kilitlenir.
-- **İptal Kısıtı:** Bir kart iptal edildiyse hiçbir yetkili buna müdahale edemez.
+### A. Operatör Kısıtları (Normal Kullanıcılar)
+- **Aktif Kart Şartı:** Normal operatörler, yalnızca "Çalışıyor" veya "Duruşta" olan aktif kartlarda veri girişi/silme yapabilir. Kart "Bitmiş" veya "İptal" statüsüne geçerse tüm butonlar ve arayüzler kilitlenir.
+- **Kalite Kilit Mekanizması:** Modüler kalite sürecinde, kalite birimi tarafından "Onaylandı" durumuna getirilmiş bir alt operasyon satırı operatör tarafından değiştirilemez veya silinemez. Silmeye veya düzenlemeye çalışırsa sistem "Bu işlem kalite tarafından onaylanmıştır" uyarısı verir. Bu durumda kalite birimine haber verilmelidir.
+
+### B. Kalite Birimi Yetkileri (QC Allowed Roles)
+- "KTA Calisma Karti Settings" üzerinden ayarlanan kalite rollerine sahip kullanıcılar (Örn: Quality Manager), kalite onayı verilmiş satırlardaki kilidi (bypass) aşabilir. 
+- Eğer kalite birimi onaylı bir satırı silerse veya değiştirirse, arka planda o satıra bağlı oluşturulmuş Kalite Kontrol Belgesi (Quality Inspection) otomatik olarak iptal edilir ve silinir (Clean-up).
+
+### C. Yönetici ve Müdahale Yetkileri (Admin Roles)
+- **Kilit Açma (Bypass):** Normalde "Bitmiş" statüsünde olan bir karta operatörler dokunamazken, "KTA Calisma Karti Settings" içindeki `admin_roles` alanında tanımlı olan yöneticiler (Örn: System Manager, Manufacturing Manager), kart bittikten sonra bile içine girip (bypass edip) verileri (Alt işlem, Hurda vb.) düzeltebilir.
+- **Mutlak İptal Kısıtı:** Bir kart tamamen "İptal Edildi" (Cancelled / docstatus=2) konumuna getirildiyse, sistemde hangi role sahip olursanız olun hiçbir şekilde müdahale edilemez, veri girilemez veya silinemez.
 
 ### Sistem ve Performans Ayarları:
 ERPNext Arama Çubuğuna `KTA Calisma Karti Settings` yazarak ulaşabileceğiniz konfigürasyonlar şunlardır:

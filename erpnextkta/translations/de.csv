@@ -686,3 +686,10 @@ Kullanıcı için varsayılan yazıcı bulunamadı: {0},Standarddrucker für Ben
 Süre Uyarısı,Dauer Warnung
 Sadece 'Çalışıyor' veya 'Duruşta' olan kartlar için arıza bildirimi yapabilirsiniz.,"Sie können nur für Karten, die sich im Status 'In Bearbeitung' oder 'Angehalten' befinden, eine Störung melden."
 Bu çalışma kartına ait zaten devam eden açık bir arıza kaydı ({0}) bulunuyor. Yeni bir kayıt açmadan önce mevcut kaydın tamamlanmasını veya iptal edilmesini beklemelisiniz.,"Es gibt bereits eine offene Störungsmeldung ({0}) für diese Arbeitskarte. Bitte warten Sie, bis diese abgeschlossen oder storniert ist, bevor Sie eine neue öffnen."
+Satır No:,Zeilennummer:
+Satır No,Zeilennummer
+Teknik resimdeki kablo numarasını giriniz.,Geben Sie die Kabelnummer aus der technischen Zeichnung ein.
+T1 Ölçümleri,T1-Messungen
+T2 Ölçümleri,T2-Messungen
+Hedef,Ziel
+Kablo Uç İşlemleri,Kabelenden-Bearbeitungen

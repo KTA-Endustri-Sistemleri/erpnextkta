@@ -64,6 +64,7 @@ for df in meta.fields:
 Hammadde ve hurda listeleri, operasyonun iş akışındaki sırasına (`sequence`) göre kümülatif olarak genişletilir:
 
 - **Alt Operasyon (Hammadde)**:
+    - Çoklu Hammadde (v5): `alt_operasyon` seviyesinde artık tek bir hammadde değil, çoklu hammadde (Hammadde 1, Hammadde 2, Hammadde 3 vb.) desteklenir ve dinamik form yapısı ile gösterilir/gizlenir. Seçilen hammaddenin UOM bilgisi otomatik çekilip takibi yapılır.
     - Akut Kısıt: Alt operasyonun kendi `allowed_material_groups` listesi doluysa **SADECE** o gruplar kullanılır.
     - Kümülatif Fallback: Liste boşsa, aynı ana operasyona bağlı olan ve sequence numarası mevcut olandan küçük/eşit olan **TÜM** alt operasyonların grupları + ana operasyonun grupları birleştirilir.
 - **Hurda (Genel)**:
@@ -146,6 +147,12 @@ get_operations_for_job_card(job_card)
   → Prio-2: erpnext_operation == jc.operation AND production_item boş → döndür
   → Prio-3: Hiç mapping satırı olmayan KTA operasyonları → döndür
 ```
+
+### 9.5. Job Card Sync & Validation Bypass Pattern
+Çalışma kartı üzerinden Job Card'a completed quantity dağıtımı yapılırken, Frappe'nin sıkı Job Card validasyonlarının operatör seviyesinde hata vermemesi için kullanılan desen:
+- **Sequence Bypass**: Senkronizasyon sırasında operasyonların sıralama (sequence) validasyonları atlanır (`flags.ignore_sequence_validation`).
+- **Capacity Bypass**: Job Card üzerindeki kapasite çakışması (overlap) doğrulamaları senkronizasyon sırasında esnetilir.
+- **Permission Bypass**: `tamamlanan_miktar` yazılırken veya `item_uom` (birim) çekilirken operatörlerin sahip olmadığı yetkiler `ignore_permissions=True` ile güvenli şekilde aşılır.
 
 ### 10. Koşullu Autoname Pattern (KTA Operasyonlari)
 ```python

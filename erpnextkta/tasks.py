@@ -132,6 +132,14 @@ def auto_close_timed_out_cards():
                 "net_calisma_suresi": doc.net_calisma_suresi,
             }, update_modified=False)
             
+            # Kart Draft (docstatus=0) kaldığı için on_submit hook'u çalışmıyor,
+            # Job Card senkronizasyonunu manuel tetikliyoruz.
+            try:
+                from erpnextkta.kta_calisma_karti.api_impl.job_card_sync import sync_time_log_to_job_card
+                sync_time_log_to_job_card(doc)
+            except Exception:
+                frappe.log_error(title=f"auto_close sync_time_log_to_job_card hatası: {k.name}", message=frappe.get_traceback())
+            
             frappe.db.commit()
             publish_calisma_karti_changed(doc.name, reason="scheduler:auto_close")
 

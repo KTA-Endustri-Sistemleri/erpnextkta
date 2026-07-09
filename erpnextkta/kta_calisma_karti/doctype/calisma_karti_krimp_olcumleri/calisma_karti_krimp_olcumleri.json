@@ -6,6 +6,7 @@
     "editable_grid": 1,
     "engine": "InnoDB",
     "field_order": [
+        "satir_no",
         "kablo_no",
         "kontak_no",
         "kalip_no",
@@ -14,8 +15,8 @@
         "column_break_1",
         "hedef_kablo_boyu",
         "olculen_kablo_boyu",
-        "hedef_iletken_krimp_yuksekliği",
-        "olculen_iletken_krimp_yuksekliği",
+        "hedef_iletken_krimp_yuksekli\u011fi",
+        "olculen_iletken_krimp_yuksekli\u011fi",
         "column_break_2",
         "izokrimp_yuksekligi",
         "siyirma_boyu",
@@ -26,9 +27,35 @@
         "radus_mevcut",
         "tel_kesme_mevcut",
         "olcum_tarihi",
-        "operator"
+        "operator",
+        "alt_operasyon_kaydi",
+        "is_cift_tarafli",
+        "sb_yon_2",
+        "yon_2_kontak_no",
+        "yon_2_kablo_kesiti",
+        "yon_2_kalip_no",
+        "yon_2_makine_pres_no",
+        "cb_yon_2_1",
+        "yon_2_hedef_iletken_krimp_yuksekligi",
+        "yon_2_olculen_iletken_krimp_yuksekligi",
+        "yon_2_izokrimp_yuksekligi",
+        "yon_2_siyirma_boyu",
+        "cb_yon_2_2",
+        "yon_2_hedef_cekme_kuvveti_n",
+        "yon_2_olculen_cekme_kuvveti_n",
+        "yon_2_capak_boyu",
+        "cb_yon_2_3",
+        "yon_2_radus_mevcut",
+        "yon_2_tel_kesme_mevcut"
     ],
     "fields": [
+        {
+            "allow_on_submit": 1,
+            "fieldname": "satir_no",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Sat\u0131r No"
+        },
         {
             "allow_on_submit": 1,
             "fieldname": "kablo_no",
@@ -157,6 +184,135 @@
             "label": "Operat\u00f6r",
             "ignore_user_permissions": 1,
             "options": "Employee"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "alt_operasyon_kaydi",
+            "fieldtype": "Data",
+            "label": "Alt Operasyon Kayd\u0131",
+            "options": "Calisma Karti Alt Operasyon Kayitlari"
+        },
+        {
+            "allow_on_submit": 1,
+            "default": "0",
+            "fieldname": "is_cift_tarafli",
+            "fieldtype": "Check",
+            "label": "\u00c7ift Tarafl\u0131 m\u0131?"
+        },
+        {
+            "fieldname": "sb_yon_2",
+            "fieldtype": "Section Break",
+            "label": "2. Taraf \u00d6l\u00e7\u00fcmleri",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_kontak_no",
+            "fieldtype": "Link",
+            "label": "2. Y\u00f6n Kontak No",
+            "options": "Item",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_kablo_kesiti",
+            "fieldtype": "Data",
+            "label": "2. Y\u00f6n Kablo Kesiti",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_kalip_no",
+            "fieldtype": "Data",
+            "label": "2. Y\u00f6n Kal\u0131p No",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_makine_pres_no",
+            "fieldtype": "Data",
+            "label": "2. Y\u00f6n Makine Pres No",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "fieldname": "cb_yon_2_1",
+            "fieldtype": "Column Break",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_hedef_iletken_krimp_yuksekligi",
+            "fieldtype": "Float",
+            "label": "2. Y\u00f6n Hedef \u0130lt. Kr. Y\u00fck.",
+            "depends_on": "eval:doc.is_cift_tarafli",
+            "read_only": 1
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_olculen_iletken_krimp_yuksekligi",
+            "fieldtype": "Float",
+            "label": "2. Y\u00f6n \u00d6l\u00e7\u00fclen \u0130lt. Kr. Y\u00fck.",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_izokrimp_yuksekligi",
+            "fieldtype": "Float",
+            "label": "2. Y\u00f6n \u0130zokrimp Y\u00fcksekli\u011fi",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_siyirma_boyu",
+            "fieldtype": "Float",
+            "label": "2. Y\u00f6n S\u0131y\u0131rma Boyu"
+        },
+        {
+            "fieldname": "cb_yon_2_2",
+            "fieldtype": "Column Break",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_hedef_cekme_kuvveti_n",
+            "fieldtype": "Float",
+            "label": "2. Y\u00f6n Hedef \u00c7ekme K. (N)",
+            "depends_on": "eval:doc.is_cift_tarafli",
+            "read_only": 1
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_olculen_cekme_kuvveti_n",
+            "fieldtype": "Float",
+            "label": "2. Y\u00f6n \u00d6l\u00e7\u00fclen \u00c7ekme K.",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "yon_2_capak_boyu",
+            "fieldtype": "Float",
+            "label": "2. Y\u00f6n \u00c7apak Boyu"
+        },
+        {
+            "fieldname": "cb_yon_2_3",
+            "fieldtype": "Column Break",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "default": "0",
+            "fieldname": "yon_2_radus_mevcut",
+            "fieldtype": "Check",
+            "label": "2. Y\u00f6n Rad\u00fcs Mevcut",
+            "depends_on": "eval:doc.is_cift_tarafli"
+        },
+        {
+            "allow_on_submit": 1,
+            "default": "0",
+            "fieldname": "yon_2_tel_kesme_mevcut",
+            "fieldtype": "Check",
+            "label": "2. Y\u00f6n Tel Kesme Mevcut",
+            "depends_on": "eval:doc.is_cift_tarafli"
         }
     ],
     "index_web_pages_for_search": 1,

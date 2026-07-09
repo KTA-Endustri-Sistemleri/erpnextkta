@@ -697,3 +697,10 @@ Kullanıcı için varsayılan yazıcı bulunamadı: {0},Default printer for user
 Süre Uyarısı,Duration Warning
 Sadece 'Çalışıyor' veya 'Duruşta' olan kartlar için arıza bildirimi yapabilirsiniz.,You can only report a fault for cards that are 'Working' or 'Paused'.
 Bu çalışma kartına ait zaten devam eden açık bir arıza kaydı ({0}) bulunuyor. Yeni bir kayıt açmadan önce mevcut kaydın tamamlanmasını veya iptal edilmesini beklemelisiniz.,There is already an open fault record ({0}) for this work card. You must wait for the existing record to be completed or cancelled before opening a new one.
+Satır No:,Row No:
+Satır No,Row No
+Teknik resimdeki kablo numarasını giriniz.,Enter the cable number from the technical drawing.
+T1 Ölçümleri,T1 Measurements
+T2 Ölçümleri,T2 Measurements
+Hedef,Target
+Kablo Uç İşlemleri,Cable End Operations
