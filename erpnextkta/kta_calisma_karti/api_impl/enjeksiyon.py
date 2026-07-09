@@ -134,7 +134,7 @@ def update_enjeksiyon_olcumu(name: str, rowname: str, payload: str | dict):
     target.hedef_cekme_kuvveti_min = float(payload.get("hedef_cekme_kuvveti_min") or 0)
 
     target.olcum_tarihi = frappe.utils.now_datetime()
-    target.operator = _session_employee_name_or_throw()
+    # target.operator intentionally left unchanged
 
     doc.flags.ignore_validate_update_after_submit = True
     doc.save()

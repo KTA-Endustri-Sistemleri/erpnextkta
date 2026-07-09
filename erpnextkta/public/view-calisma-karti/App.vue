@@ -96,6 +96,7 @@ const {
   showStop,
   showFinish,
   canEditData,
+  qcBypass,
 } = useCalismaKartiUi(doc);
 
 const showTimeoutWarning = computed(() => {
@@ -116,8 +117,8 @@ const showQcModal = ref(false);
 const qcTemplates = ref<any[]>([]);
 const qcDefaultTemplate = ref("");
 const qcItemCode = ref("");
-/** "approve" veya "reject" — modal hangi amaçla açıldığını bilir */
 const qcIntent = ref<"approve" | "reject">("approve");
+const qcTargetRow = ref<string | null>(null);
 
 function backToList() {
   frappe.set_route("list-calisma-cards");
@@ -303,7 +304,11 @@ async function setQC(nextValue: string) {
 
 async function handleStandardQcSubmit(payload: any) {
     try {
-        await submitStandardQC({ ...payload, intent: qcIntent.value });
+        const fullPayload = { ...payload, intent: qcIntent.value };
+        if (qcTargetRow.value) {
+            fullPayload.rowname = qcTargetRow.value;
+        }
+        await submitStandardQC(fullPayload);
         const ok = qcIntent.value === "approve";
         frappe.show_alert({
             message: ok ? __("Kalite belgesi oluşturuldu ve onaylandı") : __("Kalite belgesi oluşturuldu ve reddedildi"),
@@ -312,7 +317,36 @@ async function handleStandardQcSubmit(payload: any) {
     } catch (e) {
         console.error("Standard QC submission failed", e);
         throw e;
+    } finally {
+        qcTargetRow.value = null;
     }
+}
+
+async function setSubOpQC(rowname: string, item_code: string) {
+  if (!canEditQC.value) {
+    frappe.msgprint(__("QC güncelleme yetkiniz yok."));
+    return;
+  }
+
+  try {
+    qcSaving.value = true;
+    const res = await getQcTemplates();
+    
+    if (res.message && res.message.templates && res.message.templates.length > 0) {
+      qcTemplates.value = res.message.templates;
+      qcDefaultTemplate.value = res.message.default_template;
+      qcItemCode.value = item_code || res.message.item_code;
+      qcIntent.value = "approve"; // Alt operasyonlarda hep onay kullanıyoruz
+      qcTargetRow.value = rowname;
+      showQcModal.value = true;
+    } else {
+      frappe.msgprint(__("Bu operasyon için kalite kontrol şablonu bulunamadı."));
+    }
+  } catch(e) {
+    console.error("SubOp QC templates fetch failed", e);
+  } finally {
+    qcSaving.value = false;
+  }
 }
 
 watch(
@@ -364,6 +398,7 @@ watch(
         :showStop="showStop"
         :showFinish="showFinish"
         :qcApproved="qcApproved"
+        :qcBypass="qcBypass"
         :onBaslatDevam="onBaslatDevam"
         :onDurus="onDurus"
         :onBitir="onBitir"
@@ -410,6 +445,7 @@ watch(
             :canEditData="canEditData"
             :qcSaving="qcSaving"
             :onSetQC="setQC"
+            :onSetSubOpQC="setSubOpQC"
             :onAddIdc="addIdcOlcumu"
             :onUpdateIdc="updateIdcOlcumu"
             :onDeleteIdc="deleteIdcOlcumu"
@@ -438,7 +474,7 @@ watch(
         :defaultTemplate="qcDefaultTemplate"
         :itemCode="qcItemCode"
         :intent="qcIntent"
-        :onClose="() => showQcModal = false"
+        :onClose="() => { showQcModal = false; qcTargetRow = null; }"
         :onFetchDetails="getTemplateDetails"
         :onSubmit="handleStandardQcSubmit"
     />

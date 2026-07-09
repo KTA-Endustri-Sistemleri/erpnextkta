@@ -21,6 +21,8 @@
   "has_barkod",
   "has_enjeksiyon",
   "ekran_tipi",
+  "alt_operasyon_bazli_kalite",
+  "yuzde_yuz_kalite_kontrol",
   "tuketim_limiti_aktif",
   "amended_from"
  ],
@@ -119,6 +121,20 @@
   },
   {
    "default": "0",
+   "fieldname": "alt_operasyon_bazli_kalite",
+   "fieldtype": "Check",
+   "label": "Alt Operasyon Bazlı Kalite Onayı"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.alt_operasyon_bazli_kalite",
+   "description": "Seçiliyse her alt operasyonda kalite onayı zorunludur ve onaysız kart bitirilemez. Seçili değilse kalite onayı isteğe bağlıdır ve operatörler kartı serbestce bitirebilir.",
+   "fieldname": "yuzde_yuz_kalite_kontrol",
+   "fieldtype": "Check",
+   "label": "%100 Kalite Kontrol"
+  },
+  {
+   "default": "0",
    "fieldname": "tuketim_limiti_aktif",
    "fieldtype": "Check",
    "label": "Tüketim Limiti Doğrulaması Aktif"
@@ -137,7 +153,7 @@
  "grid_page_length": 50,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-04 21:26:19.459317",
+ "modified": "2026-07-09 14:36:00.000000",
  "modified_by": "Administrator",
  "module": "kta_calisma_karti",
  "name": "KTA Calisma Karti Operasyonlari",

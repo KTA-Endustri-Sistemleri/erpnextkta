@@ -18,6 +18,10 @@ KTA operatörleri:
 | İş Emri - KTA Operasyon uyumsuzluğu | **Job Card Mapping**: ERPNext operasyonlarını esnek şekilde KTA operasyonlarına bağlayan eşleştirme tablosu |
 | Tamamlanmış iş emirlerinde tıkanma | **Smart Tolerance**: Son stok girişinden sonraki N saat (varsayılan 8) boyunca işlem izni |
 | Makine arızaları / Denetim eksikliği | **Makine Günlük Bakım**: Operatörün işe başlamadan önce makine kontrolü yapmasını sağlayan talimat ve form sistemi |
+| Frappe Job Card katı kısıtlamaları | **Job Card Sync Bypass**: Job Card senkronizasyonu sırasında sequence (sıralama) validasyonları ve overlap (çakışma) hataları bypass edilir, tamamlanan miktarlar mevcut formlara dağıtılır. |
+| Spesifik proses ve ölçüm verileri (Krimp, Enjeksiyon) | **Özel Proses Formları**: Enjeksiyon Proses Formu ve Krimp Ölçüm Formu sisteme entegre edildi, üretim esnasında kayıt girilebiliyor. |
+| Toplu Etiket ve Raporlama ihtiyacı | **Toplu Yazdırma ve Raporlar**: Job Card üzerinden toplu krimp protokolü yazdırma eklendi; İş Emri Hammadde Tüketim Raporu ile fireler takip ediliyor. |
+| Birden çok hammaddeli alt operasyonlar | **Çoklu Hammadde Desteği**: `alt_operasyon` kayıtlarında tek hammadde yerine çoklu (dinamik) hammadde seçimi sağlandı ve UOM (birim) otomatik çekiliyor. |
 
 ## Duruş ve Verimlilik Yönetimi
 - **Dinamik Duruş Nedenleri**: Tüm duruş nedenleri `KTA Durus Sebebi` tablosundan yönetilir.

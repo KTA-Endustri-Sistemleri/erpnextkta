@@ -12,7 +12,10 @@ from erpnextkta.tests.test_utils import (
 	make_mock_durus
 )
 
-
+from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import (
+    format_sure,
+    _parse_minsec
+)
 
 
 class TestValidate(KTATestCase):
@@ -152,7 +155,7 @@ class TestCalismaKartiIntegration(KTATestCase):
 			patch("erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti.get_kta_settings", return_value=(430, 400))
 		):
 			doc.hesapla_toplam_sure()
-			self.assertEqual(doc.net_calisma_suresi, local_format_sure(1800))
+			self.assertEqual(doc.net_calisma_suresi, format_sure(1800))
 
 	def test_different_quality_inspections_allowed(self):
 		"""Farklı kalite kontrol kayıtları kullanan iki farklı kartın kaydedilebildiğini doğrular."""

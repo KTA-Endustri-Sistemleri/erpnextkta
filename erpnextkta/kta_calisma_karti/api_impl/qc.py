@@ -6,15 +6,16 @@ import json
 import frappe
 from frappe import _
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
+from erpnextkta.kta_calisma_karti.api_impl._helpers import has_qc_role
+
 # -----------------------------
 # QC Update (Role-gated)
 # -----------------------------
 
-QC_ALLOWED_ROLES = {"KTA Kalite Kullanıcısı", "Quality Manager", "System Manager"}
 QC_ALLOWED_VALUES = {"Onay Bekliyor", "Onaylandı", "Reddedildi"}
 
-def _session_employee_name_or_throw() -> str:
-    """Return Employee.name (e.g., HR-EMP-00001) mapped to current session user."""
+def _session_employee_name_or_throw() -> str | None:
+    """Return Employee.name (e.g., HR-EMP-00001) mapped to current session user, or None if not found."""
     user = frappe.session.user
 
     # Primary: Employee.user_id matches the logged-in user (email)
@@ -31,20 +32,12 @@ def _session_employee_name_or_throw() -> str:
     if emp:
         return emp
 
-    frappe.throw(
-        _("Bu kullanıcı için Employee kaydı bulunamadı. Employee.user_id / company_email / personal_email eşleşmeli: {0}").format(user),
-        frappe.ValidationError,
-    )
+    return None
 
-
-def _has_any_role(roles: set[str]) -> bool:
-    """Return True if current user has any of the given roles."""
-    user_roles = set(frappe.get_roles(frappe.session.user) or [])
-    return bool(user_roles.intersection(roles))
 
 def _require_qc_role():
     """Hard gate for QC-related operations."""
-    if not _has_any_role(QC_ALLOWED_ROLES):
+    if not has_qc_role():
         frappe.throw(_("QC güncelleme yetkiniz yok."), frappe.PermissionError)
 
 
@@ -508,22 +501,31 @@ def get_template_details(template_name):
 
 
 @frappe.whitelist()
-def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=1, intent="approve"):
+def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=1, intent="approve", rowname=None):
     """
     Creates and submits a Quality Inspection (MAT-QA) linked to the Calisma Karti.
 
     intent: "approve" → kalite_kontrol = "Onaylandı" (if QA Accepted)
             "reject"  → all readings forced Rejected, kalite_kontrol = "Reddedildi"
     sample_size: numune sayısı (kullanıcı tarafından girilir, default 1)
+    rowname: (Opsiyonel) Eğer modüler kalite kullanılıyorsa ilgili alt operasyonun satır ID'si.
     """
 
-    # [FIX] Mükerrer kayıt kontrolü
-    existing_qi = frappe.db.get_value("Calisma Karti", ck_name, "quality_inspection")
-    if existing_qi:
-        frappe.throw(
-            _("Bu Çalışma Kartı'na ait zaten bir kalite belgesi ({0}) bulunmaktadır. Yeni bir tane oluşturulamaz.").format(existing_qi),
-            title=_("Mükerrer Kayıt Engeli")
-        )
+    # [FIX] Mükerrer kayıt kontrolü (Race Condition engeli)
+    if rowname:
+        existing_qi = frappe.db.get_value("Calisma Karti Alt Operasyon Kayitlari", rowname, "quality_inspection")
+        if existing_qi:
+            frappe.throw(
+                _("Bu alt operasyona ait zaten bir kalite belgesi ({0}) bulunmaktadır. Yeni bir tane oluşturulamaz.").format(existing_qi),
+                title=_("Mükerrer Kayıt Engeli")
+            )
+    else:
+        existing_qi = frappe.db.get_value("Calisma Karti", ck_name, "quality_inspection")
+        if existing_qi:
+            frappe.throw(
+                _("Bu Çalışma Kartı'na ait zaten bir kalite belgesi ({0}) bulunmaktadır. Yeni bir tane oluşturulamaz.").format(existing_qi),
+                title=_("Mükerrer Kayıt Engeli")
+            )
     ck = frappe.get_doc("Calisma Karti", ck_name, for_update=True)
     _require_qc_role()
 
@@ -541,6 +543,8 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
     qa.inspected_by = frappe.session.user
     qa.sample_size = int(sample_size or 1)
     qa.custom_calisma_karti = ck_name
+    if rowname:
+        qa.custom_alt_operasyon_kaydi = rowname
 
     # Parse readings if it arrives as a JSON string (HTTP form data)
     if isinstance(readings, str):
@@ -607,13 +611,26 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
     else:
         final_qc_status = "Onaylandı"
 
-    # Update Calisma Karti
-    ck.db_set("quality_inspection", qa.name)
-    ck.db_set("kalite_kontrol", final_qc_status)
+    # Update Calisma Karti or Alt Operasyon Kaydi
+    if rowname:
+        # Modüler onay süreci (satır bazlı)
+        target = next((r for r in ck.get("alt_operasyon_kayitlari") if r.name == rowname), None)
+        if not target:
+            frappe.throw(_("Alt operasyon kaydı bulunamadı."))
+        target.db_set("quality_inspection", qa.name)
+        target.db_set("quality_inspection_status", final_qc_status)
+        
+        # Ana kartın durumunu alt operasyonlara göre güncelle
+        ck.reload()
+        _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=qa.name)
+    else:
+        # Klasik kart bazlı onay süreci
+        ck.db_set("quality_inspection", qa.name)
+        ck.db_set("kalite_kontrol", final_qc_status)
 
-    # If rejected, also update durum field
-    if final_qc_status == "Reddedildi":
-        ck.db_set("durum", "Reddedildi", update_modified=True)
+        # If rejected, also update durum field
+        if final_qc_status == "Reddedildi":
+            ck.db_set("durum", "Reddedildi", update_modified=True)
 
     # Notify frontend
     publish_calisma_karti_changed(ck_name, reason=f"qc_submit:{qa.name}")
@@ -624,6 +641,27 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
         "qc_status": final_qc_status
     }
 
+
+def _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=None):
+    if not ck.get("alt_operasyon_kayitlari"):
+        return
+
+    statuses = [(r.quality_inspection_status or "Onay Bekliyor").strip() for r in ck.get("alt_operasyon_kayitlari")]
+    
+    if "Reddedildi" in statuses:
+        final_status = "Reddedildi"
+    elif all(s == "Onaylandı" for s in statuses):
+        final_status = "Onaylandı"
+    else:
+        final_status = "Onay Bekliyor"
+        
+    ck.db_set("kalite_kontrol", final_status, update_modified=True)
+    
+    # Alt operasyon bazlı yapıda, ana karta hiçbir zaman belge işlenmemeli, sadece durum güncellenmeli.
+    ck.db_set("quality_inspection", "", update_modified=True)
+
+    if final_status == "Reddedildi":
+        ck.db_set("durum", "Reddedildi", update_modified=True)
 
 @frappe.whitelist()
 def sync_qi_to_calisma_karti(doc, method=None):
@@ -655,20 +693,34 @@ def sync_qi_to_calisma_karti(doc, method=None):
     final_qc_status = "Onaylandı" if qi_status == "Accepted" else "Reddedildi"
 
     ck = frappe.get_doc("Calisma Karti", ck_name)
-    
-    # Avoid redundant updates if both QI link and status are already correct
-    if ck.quality_inspection == doc.name and ck.kalite_kontrol == final_qc_status:
-        return
+    rowname = doc.get("custom_alt_operasyon_kaydi")
 
-    # Update Calisma Karti fields
-    ck.flags.ignore_permissions = True
-    ck.db_set("quality_inspection", doc.name, update_modified=True)
-    ck.db_set("kalite_kontrol", final_qc_status, update_modified=True)
+    if rowname:
+        # Modüler (Satır Bazlı) Senkronizasyon
+        target = next((r for r in ck.get("alt_operasyon_kayitlari") if r.name == rowname), None)
+        if target:
+            if target.quality_inspection == doc.name and target.quality_inspection_status == final_qc_status:
+                return
+            
+            target.db_set("quality_inspection", doc.name)
+            target.db_set("quality_inspection_status", final_qc_status)
 
-    if final_qc_status == "Reddedildi":
-        # Force critical lock status
-        ck.db_set("durum", "Reddedildi", update_modified=True)
+            # Ana kartın durumunu güncelle
+            ck.reload()
+            _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=doc.name)
     else:
+        # Klasik (Kart Bazlı) Senkronizasyon
+        if ck.quality_inspection == doc.name and ck.kalite_kontrol == final_qc_status:
+            return
+
+        ck.flags.ignore_permissions = True
+        ck.db_set("quality_inspection", doc.name, update_modified=True)
+        ck.db_set("kalite_kontrol", final_qc_status, update_modified=True)
+
+    if not rowname and final_qc_status == "Reddedildi":
+        # Force critical lock status only if classical (or modular handles it differently later)
+        ck.db_set("durum", "Reddedildi", update_modified=True)
+    elif not rowname:
         # Restoration logic:
         # If we just moved away from Reddedildi, or if we were never Reddedildi but need a sync,
         # re-calculate the 'natural' status (Hazır/Çalışıyor/Duruşta/Bitmiş) using DocType logic.

@@ -20,6 +20,17 @@ frappe.ui.form.on('Calisma Karti', {
         }
       };
     });
+
+    const setAltOpQuery = () => {
+      return {
+        query: "erpnextkta.kta_calisma_karti.api.search_alt_operasyon_kayitlari",
+        filters: { calisma_karti: frm.doc.name }
+      };
+    };
+
+    frm.set_query("alt_operasyon_kaydi", "idc_olcumleri", setAltOpQuery);
+    frm.set_query("alt_operasyon_kaydi", "krimp_olcumleri", setAltOpQuery);
+    frm.set_query("alt_operasyon_kaydi", "enjeksiyon_olcumleri", setAltOpQuery);
   },
 
   // --- 2) İş Emri değişince bağımlı alanları sıfırla ---
@@ -73,7 +84,7 @@ frappe.ui.form.on('Calisma Karti', {
     if (frm.doc.__islocal) return;
 
     const getDurum = () => {
-      if (frm.doc.kalite_kontrol === 'Reddedildi' || frm.doc.durum === 'Reddedildi') return 'reddedildi';
+      if (frm.doc.quality_inspection_status === 'Reddedildi' || frm.doc.durum === 'Reddedildi') return 'reddedildi';
       const aktifDurusVarMi = (frm.doc.duruslar || []).some(row => row && row.durus_baslangic && !row.durus_bitis);
       if (frm.doc.bitis_saati) return 'bitmis';
       if (!frm.doc.baslangic_saati) return 'hazir';

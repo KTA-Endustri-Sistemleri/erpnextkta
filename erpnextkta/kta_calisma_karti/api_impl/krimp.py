@@ -4,8 +4,21 @@ from __future__ import annotations
 import frappe
 from frappe import _
 from .qc import _get_doc_for_idc_write, _assert_child_table_exists, _session_employee_name_or_throw
+from .alt_operasyon import _assert_qc_unlocked
 
 KRIMP_CHILD_FIELDNAME = "krimp_olcumleri"
+
+def _assert_krimp_qc_unlocked(doc, krimp_row):
+    """Check if the krimp row's parent alt operasyon is QC-locked."""
+    ao_row_id = (krimp_row.alt_operasyon_kaydi or "").strip()
+    if not ao_row_id:
+        return
+
+    ao_row = next((r for r in doc.get("alt_operasyon_kayitlari", []) if r.name == ao_row_id), None)
+    if not ao_row:
+        return
+
+    _assert_qc_unlocked(doc, ao_row)
 
 @frappe.whitelist()
 def add_krimp_olcumu(name: str, payload: str | dict):
@@ -18,6 +31,7 @@ def add_krimp_olcumu(name: str, payload: str | dict):
         payload = json.loads(payload)
 
     row = {
+        "satir_no": payload.get("satir_no"),
         "kablo_no": payload.get("kablo_no"),
         "kontak_no": payload.get("kontak_no"),
         "kalip_no": payload.get("kalip_no"),
@@ -34,6 +48,23 @@ def add_krimp_olcumu(name: str, payload: str | dict):
         "capak_boyu": float(payload.get("capak_boyu") or 0),
         "radus_mevcut": 1 if payload.get("radus_mevcut") else 0,
         "tel_kesme_mevcut": 1 if payload.get("tel_kesme_mevcut") else 0,
+
+        "alt_operasyon_kaydi": payload.get("alt_operasyon_kaydi"),
+        "is_cift_tarafli": 1 if payload.get("is_cift_tarafli") else 0,
+        "yon_2_kontak_no": payload.get("yon_2_kontak_no"),
+        "yon_2_kablo_kesiti": payload.get("yon_2_kablo_kesiti"),
+        "yon_2_kalip_no": payload.get("yon_2_kalip_no"),
+        "yon_2_makine_pres_no": payload.get("makine_pres_no"),
+        "yon_2_hedef_iletken_krimp_yuksekligi": float(payload.get("yon_2_hedef_iletken_krimp_yuksekligi") or 0),
+        "yon_2_olculen_iletken_krimp_yuksekligi": float(payload.get("yon_2_olculen_iletken_krimp_yuksekligi") or 0),
+        "yon_2_izokrimp_yuksekligi": float(payload.get("yon_2_izokrimp_yuksekligi") or 0),
+        "yon_2_siyirma_boyu": float(payload.get("yon_2_siyirma_boyu") or 0),
+        "yon_2_hedef_cekme_kuvveti_n": float(payload.get("yon_2_hedef_cekme_kuvveti_n") or 0),
+        "yon_2_olculen_cekme_kuvveti_n": float(payload.get("yon_2_olculen_cekme_kuvveti_n") or 0),
+        "yon_2_capak_boyu": float(payload.get("yon_2_capak_boyu") or 0),
+        "yon_2_radus_mevcut": 1 if payload.get("yon_2_radus_mevcut") else 0,
+        "yon_2_tel_kesme_mevcut": 1 if payload.get("yon_2_tel_kesme_mevcut") else 0,
+
         "olcum_tarihi": frappe.utils.now_datetime(),
         "operator": _session_employee_name_or_throw(),
     }
@@ -58,6 +89,9 @@ def update_krimp_olcumu(name: str, rowname: str, payload: str | dict):
     if not target:
         frappe.throw(_("Krimp ölçüm satırı bulunamadı (rowname: {0}).").format(rowname))
 
+    _assert_krimp_qc_unlocked(doc, target)
+
+    target.satir_no = payload.get("satir_no")
     target.kablo_no = payload.get("kablo_no")
     target.kontak_no = payload.get("kontak_no")
     target.kalip_no = payload.get("kalip_no")
@@ -75,8 +109,26 @@ def update_krimp_olcumu(name: str, rowname: str, payload: str | dict):
     target.radus_mevcut = 1 if payload.get("radus_mevcut") else 0
     target.tel_kesme_mevcut = 1 if payload.get("tel_kesme_mevcut") else 0
 
+    if "alt_operasyon_kaydi" in payload:
+        target.alt_operasyon_kaydi = payload.get("alt_operasyon_kaydi")
+    
+    target.is_cift_tarafli = 1 if payload.get("is_cift_tarafli") else 0
+    target.yon_2_kontak_no = payload.get("yon_2_kontak_no")
+    target.yon_2_kablo_kesiti = payload.get("yon_2_kablo_kesiti")
+    target.yon_2_kalip_no = payload.get("yon_2_kalip_no")
+    target.yon_2_makine_pres_no = payload.get("makine_pres_no")
+    target.yon_2_hedef_iletken_krimp_yuksekligi = float(payload.get("yon_2_hedef_iletken_krimp_yuksekligi") or 0)
+    target.yon_2_olculen_iletken_krimp_yuksekligi = float(payload.get("yon_2_olculen_iletken_krimp_yuksekligi") or 0)
+    target.yon_2_izokrimp_yuksekligi = float(payload.get("yon_2_izokrimp_yuksekligi") or 0)
+    target.yon_2_siyirma_boyu = float(payload.get("yon_2_siyirma_boyu") or 0)
+    target.yon_2_hedef_cekme_kuvveti_n = float(payload.get("yon_2_hedef_cekme_kuvveti_n") or 0)
+    target.yon_2_olculen_cekme_kuvveti_n = float(payload.get("yon_2_olculen_cekme_kuvveti_n") or 0)
+    target.yon_2_capak_boyu = float(payload.get("yon_2_capak_boyu") or 0)
+    target.yon_2_radus_mevcut = 1 if payload.get("yon_2_radus_mevcut") else 0
+    target.yon_2_tel_kesme_mevcut = 1 if payload.get("yon_2_tel_kesme_mevcut") else 0
+
     target.olcum_tarihi = frappe.utils.now_datetime()
-    target.operator = _session_employee_name_or_throw()
+    # operator is intentionally not updated to preserve the original creator's name
 
     doc.flags.ignore_validate_update_after_submit = True
     doc.save()
@@ -93,6 +145,9 @@ def delete_krimp_olcumu(name: str, rowname: str):
 
     if idx is None:
         frappe.throw(_("Krimp ölçüm satırı bulunamadı (rowname: {0}).").format(rowname))
+
+    target = rows[idx]
+    _assert_krimp_qc_unlocked(doc, target)
 
     rows.pop(idx)
     doc.set(KRIMP_CHILD_FIELDNAME, rows)
@@ -158,6 +213,31 @@ def get_unique_kesit_list(kontak_no=None):
     else:
         res = frappe.db.sql("SELECT DISTINCT kesit FROM `tabKTA Krimp Book` ORDER BY kesit ASC")
     return [r[0] for r in res if r[0]]
+
+@frappe.whitelist()
+def get_kalip_list(kontak_no=None, selected_kesit=None):
+    """Returns all unique kalip (mold) values from KTA Krimp Book for a given terminal + kesit combo.
+    Used to populate the kalip_no dropdown in the krimp measurement dialog.
+    """
+    if not kontak_no or not selected_kesit:
+        return []
+
+    # Fetch all entries for this terminal
+    entries = frappe.get_all(
+        "KTA Krimp Book",
+        filters={"kontak_no": kontak_no},
+        fields=["kesit", "kalip"],
+    )
+
+    norm_target = normalize_kesit(selected_kesit)
+    kaliplar = []
+    for e in entries:
+        if normalize_kesit(e.kesit) == norm_target and e.kalip:
+            val = str(e.kalip).strip()
+            if val and val not in kaliplar:
+                kaliplar.append(val)
+
+    return sorted(kaliplar)
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs

@@ -1,23 +1,21 @@
 # Active Context — kta_calisma_karti
 
-> Son güncelleme: 2026-07-04 (Alt Operasyon Dinamik Mantığı, Hata Raporlama, Dashboard Grafik, Validasyonlar)
+> Son güncelleme: 2026-07-06 (Job Card Senkronizasyonu, UI Yenilemesi, Çoklu Hammadde, Enjeksiyon & Krimp Formları, Raporlama)
 
-Bu dönemde yapılan geliştirmeler: Alt operasyon türüne (Küt Kesme, Tek Taraf, Çift Taraf) göre arayüzdeki boyut ve adet alanlarının dinamik olarak gizlenmesi ve arka planda otomatik eşitlenmesi sağlandı. Ayrıca Günlük Hata Raporu altyapısı, User Dashboard override entegrasyonu, "Operator Düşük Net Süre" dashboard grafiği ve duruş başlatma sürecinde "Diger" nedeni için açıklama zorunluluğu validasyonları eklendi.
+Bu dönemde yapılan geliştirmeler: Çalışma Kartı arayüzü ve yaşam döngüsü baştan aşağı yenilendi (Overhaul). Job Card senkronizasyonu tamamlandı (miktar dağıtımı ve sequence doğrulama bypass mekanizmaları eklendi). Alt operasyonlarda çoklu hammadde desteği, dinamik formlar ve otomatik UOM (Birim) çekme özellikleri getirildi. Krimp Ölçüm Formu ve Enjeksiyon Proses Formu eklendi. Ayrıca İş Emri Hammadde Tüketim Raporu ve Job Card üzerinden toplu protokol yazdırma özelliği eklendi. `tamamlanan_miktar` zorunluluğu kaldırılarak, üretim girişleri `alt_operasyon` üzerinden zorunlu hale getirildi.
 
+- [x] **Job Card Senkronizasyonu**: Çalışma kartı üzerinden Job Card'a completed quantities dağıtımı, sequence validasyonu ve kapasite limiti bypass mekanizmaları eklendi (2026-07-06).
+- [x] **UI ve Yaşam Döngüsü Overhaul**: Arayüz modernizasyonu, lifecycle güncellemeleri ve otomatik etiketleme entegrasyonu (2026-07-06).
+- [x] **Çoklu Hammadde & UOM Takibi**: Alt operasyonlara çoklu hammadde desteği geldi. Item UOM (Birim) otomatik olarak arka planda permission error olmadan çekilip takip ediliyor (2026-07-06).
+- [x] **Formlar & Raporlar**: Enjeksiyon Proses Formu, Krimp Ölçüm Formu ve İş Emri Hammadde Tüketim Raporu eklendi. Toplu Krimp Protokolü Yazdırma aktifleştirildi (2026-07-06).
+- [x] **Kalite & Güvenlik Fixleri**: QI sync race condition düzeltildi. Operatörler için standart döküman permission hataları bypass edildi (2026-07-06).
+- [x] **Modüler Kalite (Alt Operasyon Bazlı Kalite Onayı)**: Bütüncül çalışma kartı kalitesinden alt operasyon satır bazlı kalite onayına geçiş sağlandı. Kart liste görünümüne (CkCard.vue) çoklu statüler için dinamik parçalı/degrade renk blokları eklendi (2026-07-06).
+- [x] **Krimp Formu Çift Taraf & Akıllı Autofill**: Alt operasyon onayında açılan krimp formunda, alt operasyon ismi "Çift Taraf" içeriyorsa form dinamik genişleyerek 2. yön alanlarını açar. Ayrıca hedeflenen yükseklikler ve kablo/kontak kodları form ekranına otomatik (`autofill`) doldurulur (2026-07-06).
+- [x] **Üretim Miktarı Mantığı**: `tamamlanan_miktar` alanı zorunluluktan çıkarılıp, verinin `alt_operasyon`lar üzerinden girilmesi zorunlu kılındı (2026-07-06).
 - [x] **Alt Operasyon Dinamik Formu**: "Küt", "Tek Taraf", "Çift Taraf" isimli alt operasyonlarda Terminal adet ve boyut alanları arayüzden gizlenip, otomatik olarak Kablo adetine (Hammadde 2) eşitlenerek veritabanına yazılması sağlandı (2026-07-04).
 - [x] **Günlük Hata Raporu**: Hedef çalışma süresinin altında kalan (5 saat altı) operatörleri tespit edip amirlere günlük e-posta raporu gönderen cron job eklendi (2026-06-25).
-- [x] **User Dashboard Override**: `User` doctype dashboard'u genişletilerek kullanıcının Employee kartı ile ilişkili Çalışma Kartları listesi ve open count sayımı eklendi (2026-06-25).
-- [x] **Operator Düşük Net Süre Grafiği**: Son N günde en az net çalışma süresine sahip operatörlerin net sürelerini dakika bazında görselleştiren custom dashboard chart bileşeni eklendi (2026-06-25).
-- [x] **Duruş "Diğer" Validasyonu**: Duruş nedeni "Diger" seçildiğinde açıklama girmeyi hem form/SPA arayüzünde hem de backend `validate` aşamasında zorunlu kılan mekanizma eklendi (2026-06-25).
-- [x] **Krimp Ölçüm Modülü**: `Calisma Karti Krimp Olcumleri` DocType, backend CRUD API, `KrimpSection.vue` bileşeni ve `MeasureGauge.vue` tolerans göstergesi tamamlandı (2026-05-13 – 2026-05-15).
-- [x] **QC Reddetme Yaşam Döngüsü Düzeltmesi**: Red kararında QI belgesi anında submit ediliyor, `finalize_rejected_card()` ile Çalışma Kartı da otomatik gönderiliyor (2026-05-11).
-- [x] **Alt Operasyon Submit İzinleri**: `kta_calisma_karti_alt_operasyonlari` ve `kta_calisma_karti_operasyonlari` DocType'larında eksik Submit rolleri `setup.py` ile düzeltildi (2026-05-15).
-- [x] **Frontend Race Condition Guards**: `App.vue` üzerinde `loading` tabanlı atomik kilitler ve `withLoading` geciktirme mekanizması (2026-04-24).
-- [x] **Robust Frontend Testing**: Vitest ile spamming ve asenkron yarış durumlarını kapsayan 113 testin başarıyla geçmesi (2026-04-24).
-- [x] **Backend Submission Validation**: Bitiş saati olmayan kartların onaylanmasının engellenmesi (2026-04-24).
-- [ ] **Krimp Protokolü Baskı Şablonu**: Print format henüz tasarlanmadı (Planlanıyor).
+- [x] **Krimp Ölçüm Modülü**: `Calisma Karti Krimp Olcumleri` DocType, backend CRUD API, `KrimpSection.vue` bileşeni ve `MeasureGauge.vue` tolerans göstergesi tamamlandı.
 - [ ] **Test Masası Entegrasyonu**: Arayüz tarafındaki eksiklerin giderilmesi (Planlanıyor).
-- [ ] Statü Senkronizasyonu: CK → Job Card statü akışının tasarımı (Beklemede).
 
 ## Son Değişiklikler (2026-07-04) — Alt Operasyon Dinamik Arayüzü
 Kullanıcının işini kolaylaştırmak ve hatalı veri girişini önlemek için:
@@ -68,3 +66,7 @@ Kritik iş akışlarını korumak için `tests/test_api.py` altında kapsamlı b
 
 ### Smart Shift-End
 *   **Vardiya Sonu Akıllı Kapatma**: Duruşta olanlar `durus_baslangic` zamanında, çalışıyor olanlar vardiya sonunda (`16:00` / `00:00`) kapatılır.
+
+## Recent Changes
+- **Modular QC Parent State Bugfix:** Corrected the behavior of modular QC where `_update_parent_qc_status_from_alt_ops` was erroneously setting the `quality_inspection` (document link) field on the parent `Calisma Karti` when all sub-operations were approved. Now, it only updates the `kalite_kontrol` status field to 'Onaylandı' or 'Onay Bekliyor', while explicitly clearing `quality_inspection` to prevent the UI from acting like a classical (card-based) QC process.
+- **Authorization Documentation:** Updated the user guides to explicitly explain the behavior of `qc_allowed_roles` (Quality Roles) and `admin_roles` (Admin Roles) configuration in 'KTA Calisma Karti Settings', documenting that ordinary operators cannot delete/modify QC-approved sub-operations, but Quality Roles can bypass this lock, while Admin Roles can modify entirely finished (submitted) cards.

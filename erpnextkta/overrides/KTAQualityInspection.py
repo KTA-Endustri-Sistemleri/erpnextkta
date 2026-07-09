@@ -8,6 +8,43 @@ from erpnextkta.kta_stock.label_manager import print_kta_pr_labels, custom_split
 
 
 class KTAQualityInspection(QualityInspection):
+    def validate(self):
+        super().validate()
+        self.validate_unique_calisma_karti()
+
+    def validate_unique_calisma_karti(self):
+        if getattr(self, "custom_calisma_karti", None):
+            ck_operasyon = frappe.db.get_value("Calisma Karti", self.custom_calisma_karti, "operasyon")
+            if ck_operasyon:
+                alt_kalite_zorunlu = frappe.db.get_value("KTA Calisma Karti Operasyonlari", ck_operasyon, "alt_operasyon_bazli_kalite")
+            else:
+                alt_kalite_zorunlu = 0
+            
+            alt_op = getattr(self, "custom_alt_operasyon_kaydi", None)
+
+            if alt_kalite_zorunlu and not alt_op:
+                frappe.throw(_("Bu operasyon Alt Operasyon bazlı kalite onayı gerektirmektedir. Kalite kontrol belgesine Alt Operasyon Kaydı mutlaka seçilmelidir."))
+            elif not alt_kalite_zorunlu and alt_op:
+                frappe.throw(_("Bu operasyon Alt Operasyon bazlı kalite onayı gerektirmez. Alt Operasyon Kaydı alanı boş bırakılmalıdır."))
+
+            filters = {
+                "custom_calisma_karti": self.custom_calisma_karti,
+                "name": ("!=", self.name),
+                "docstatus": ("<", 2)
+            }
+            alt_op = getattr(self, "custom_alt_operasyon_kaydi", None)
+            if alt_op:
+                filters["custom_alt_operasyon_kaydi"] = alt_op
+            else:
+                filters["custom_alt_operasyon_kaydi"] = ("is", "not set")
+
+            existing = frappe.db.get_value("Quality Inspection", filters, "name")
+            if existing:
+                if alt_op:
+                    frappe.throw(_("Bu Çalışma Kartı'nın seçili Alt Operasyonu için zaten bir Kalite Kontrol belgesi ({0}) mevcut.").format(existing))
+                else:
+                    frappe.throw(_("Bu Çalışma Kartı için zaten bir Kalite Kontrol belgesi ({0}) mevcut.").format(existing))
+
     def on_update(self):
         super().on_update()
         self.update_reference_status()

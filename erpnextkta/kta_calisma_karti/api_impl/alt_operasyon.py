@@ -3,7 +3,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
-from ._helpers import require_my_employee, has_admin_roles, get_allowed_items_with_groups
+from ._helpers import require_my_employee, has_admin_roles, get_allowed_items_with_groups, get_my_employee_or_none, has_qc_role
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 
 
@@ -59,6 +59,7 @@ def _get_existing_consumption(
             JOIN `tabCalisma Karti` ck ON ck.name = aok.parent
             WHERE ck.custom_work_order = %s
               AND IFNULL(aok.{h_col}, '') != ''
+              AND IFNULL(aok.quality_inspection_status, '') != 'Reddedildi'
               {exclude_condition}
             GROUP BY aok.{h_col}
             """,
@@ -146,7 +147,7 @@ def _assert_within_wo_limits(
         current = flt(existing.get(item_code, 0))
         projected = current + total_new_qty
 
-        if projected > allowed:
+        if flt(projected, 3) > flt(allowed, 3):
             scrap_line = ""
             if scrap_allowance > 0:
                 scrap_line = _(
@@ -221,6 +222,7 @@ def add_alt_operasyon_kaydi(
     hammadde_2: str = None, boyut_2_mm: float = 0, islem_adedi_2: float = 0,
     hammadde_3: str = None, boyut_3_mm: float = 0, islem_adedi_3: float = 0,
     note: str = None,
+    satir_no: str = None,
 ):
     doc = frappe.get_doc("Calisma Karti", calisma_karti)
     doc.check_permission("write")
@@ -232,7 +234,9 @@ def add_alt_operasyon_kaydi(
 
     # Tek Taraf Validation
     ao_doc = frappe.get_cached_doc("KTA Calisma Karti Alt Operasyonlari", alt_operasyon)
-    if ao_doc.operasyon_tipi == "Tek Taraf":
+    op_tipi = ao_doc.get("operasyon_tipi")
+    
+    if op_tipi == "Tek Taraf":
         if not hammadde_2 and not hammadde_3:
             frappe.throw(_("Tek Taraflı operasyonda Sol veya Sağ uca mutlaka bir terminal seçilmelidir."))
         if hammadde_2 and hammadde_3:
@@ -241,7 +245,7 @@ def add_alt_operasyon_kaydi(
             frappe.throw(_("Sol uca terminal seçildiğinde Sol Sıyırma (mm) girilemez."))
         if hammadde_3 and float(boyut_3_mm or 0) > 0:
             frappe.throw(_("Sağ uca terminal seçildiğinde Sağ Sıyırma (mm) girilemez."))
-    elif ao_doc.operasyon_tipi == "Çift Taraf":
+    elif op_tipi == "Çift Taraf":
         if not hammadde_2 or not hammadde_3:
             frappe.throw(_("Çift Taraflı operasyonlarda hem Sol hem de Sağ uca terminal seçilmesi zorunludur."))
             
@@ -259,10 +263,11 @@ def add_alt_operasyon_kaydi(
         [(hammadde, adet_1), (hammadde_2, adet_2), (hammadde_3, adet_3)],
     )
 
-    doc.append(
+    new_ao_row = doc.append(
         "alt_operasyon_kayitlari",
         {
             "alt_operasyon": alt_operasyon,
+            "title": ao_doc.title,
             "hammadde": hammadde,
             "boyut_1_mm": boyut_1_mm,
             "islem_adedi_1": islem_adedi_1,
@@ -279,13 +284,56 @@ def add_alt_operasyon_kaydi(
             "adet_3": adet_3,
             "uom_3": uom_3,
             "note": note,
+            "satir_no": satir_no,
         },
     )
+    
+    # Otomatik Krimp Formu Ekleme
+    # Zeki Logic: Gelen verilere göre T1 ve T2'yi belirle (Sabit Eşleştirme)
+    # T1 her zaman Sol Uç, T2 her zaman Sağ Uç
+    sol_kontak = (hammadde_2 or "").strip()
+    sag_kontak = (hammadde_3 or "").strip()
+    sol_siyirma = float(boyut_2_mm or 0)
+    sag_siyirma = float(boyut_3_mm or 0)
+
+    krimp_kontak_1 = sol_kontak
+    siyirma_1 = sol_siyirma
+    krimp_kontak_2 = sag_kontak
+    siyirma_2 = sag_siyirma
+    
+    # Sağ uçta (T2) terminal veya sıyırma varsa, veya operasyon tipi Çift Taraf ise T2 alanlarını aç
+    is_cift_tarafli = 1 if (sag_kontak or sag_siyirma > 0 or ao_doc.get("operasyon_tipi") == "Çift Taraf") else 0
+        
+    new_krimp = doc.append(
+        "krimp_olcumleri",
+        {
+            "kablo_no": hammadde or "",
+            "hedef_kablo_boyu": float(boyut_1_mm or 0),
+            "kontak_no": krimp_kontak_1,
+            "siyirma_boyu": siyirma_1,
+            "is_cift_tarafli": is_cift_tarafli,
+            "yon_2_kontak_no": krimp_kontak_2,
+            "yon_2_siyirma_boyu": siyirma_2,
+            "olcum_tarihi": frappe.utils.now_datetime(),
+            "operator": require_my_employee(), # Default operator
+        }
+    )
+
     doc.flags.ignore_validate_update_after_submit = True
+    doc.flags.ignore_links = True
     doc.save(ignore_permissions=True)
     frappe.db.commit()
+    
+    if new_krimp.name and new_ao_row.name:
+        frappe.db.set_value("Calisma Karti Krimp Olcumleri", new_krimp.name, "alt_operasyon_kaydi", new_ao_row.name)
+        frappe.db.commit()
+    
+    from erpnextkta.kta_calisma_karti.api_impl.qc import _update_parent_qc_status_from_alt_ops
+    doc.reload()
+    _update_parent_qc_status_from_alt_ops(doc)
+    
     publish_calisma_karti_changed(calisma_karti, reason="alt_operasyon:add")
-    return doc.get("alt_operasyon_kayitlari")[-1].name
+    return new_ao_row.name
 
 
 @frappe.whitelist()
@@ -314,9 +362,73 @@ def search_allowed_hammadde_items(doctype, txt, searchfield, start, page_len, fi
             """,
             tuple(allowed_items) + (like, like, int(start), int(page_len)),
         )
-    else:
         return []
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def search_alt_operasyon_kayitlari(doctype, txt, searchfield, start, page_len, filters):
+    calisma_karti = (filters or {}).get("calisma_karti")
+    if not calisma_karti:
+        return []
+
+    txt = (txt or "").strip()
+    like = f"%{txt}%"
+    
+    return frappe.db.sql(
+        f"""
+        SELECT name, alt_operasyon
+        FROM `tabCalisma Karti Alt Operasyon Kayitlari`
+        WHERE parent = %s
+          AND (name LIKE %s OR alt_operasyon LIKE %s)
+        ORDER BY idx ASC
+        LIMIT %s, %s
+        """,
+        (calisma_karti, like, like, int(start), int(page_len))
+    )
+
+def _assert_qc_unlocked(doc, row):
+    """Check if the alt operasyon row is QC-locked.
+    
+    Rules:
+    - Only applies when alt_operasyon_bazli_kalite is active on the operation
+    - Row is locked when quality_inspection_status == "Onaylandı" AND quality_inspection is set
+    - QC-allowed roles can always bypass (but will be warned about linked QI in frontend)
+    - Normal users are blocked with a descriptive error message
+    """
+    op_has_qc = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", doc.operasyon, 
+        "alt_operasyon_bazli_kalite"
+    )
+    if not op_has_qc:
+        return
+
+    qi_status = (row.quality_inspection_status or "").strip()
+    qi_name = (row.quality_inspection or "").strip()
+
+    if qi_status != "Onaylandı" or not qi_name:
+        return
+
+    if has_qc_role():
+        return
+
+    frappe.throw(
+        _("Bu alt operasyon kaydı kalite tarafından onaylanmıştır ({0}). "
+          "Değişiklik için kalite birimini bilgilendirin.").format(qi_name)
+    )
+
+def _cancel_linked_quality_inspection(qi_name: str):
+    """Cancel and delete the linked Quality Inspection document."""
+    if not frappe.db.exists("Quality Inspection", qi_name):
+        return
+
+    qi = frappe.get_doc("Quality Inspection", qi_name)
+
+    if qi.docstatus == 1:
+        qi.cancel()
+        frappe.db.commit()
+
+    frappe.delete_doc("Quality Inspection", qi_name, force=True, ignore_permissions=True)
+    frappe.db.commit()
 
 @frappe.whitelist()
 def update_alt_operasyon_kaydi(
@@ -327,10 +439,15 @@ def update_alt_operasyon_kaydi(
     hammadde_2: str = None, boyut_2_mm: float = 0, islem_adedi_2: float = 0,
     hammadde_3: str = None, boyut_3_mm: float = 0, islem_adedi_3: float = 0,
     note: str = None,
+    satir_no: str = None,
 ):
     doc = frappe.get_doc("Calisma Karti", calisma_karti)
     doc.check_permission("write")
     _assert_can_write(doc)
+    
+    row = doc.get("alt_operasyon_kayitlari", {"name": row_id})
+    if row:
+        _assert_qc_unlocked(doc, row[0])
     
     if hammadde: _assert_hammadde_allowed(calisma_karti, hammadde, alt_operasyon)
     if hammadde_2: _assert_hammadde_allowed(calisma_karti, hammadde_2, alt_operasyon)
@@ -391,10 +508,45 @@ def update_alt_operasyon_kaydi(
     row.uom_3 = uom_3
     
     row.note = note
+    row.satir_no = satir_no
+
+    ao_doc = frappe.get_cached_doc("KTA Calisma Karti Alt Operasyonlari", alt_operasyon)
+    
+    krimp_row_id = next((r.name for r in doc.get("krimp_olcumleri") if r.alt_operasyon_kaydi == row_id), None)
+    if krimp_row_id:
+        krimp_row = doc.get("krimp_olcumleri", {"name": krimp_row_id})[0]
+        krimp_row.kablo_no = hammadde or ""
+        krimp_row.hedef_kablo_boyu = float(boyut_1_mm or 0)
+        
+        # Zeki Logic: Gelen verilere göre T1 ve T2'yi belirle (Sabit Eşleştirme)
+        # T1 her zaman Sol Uç, T2 her zaman Sağ Uç
+        sol_kontak = (hammadde_2 or "").strip()
+        sag_kontak = (hammadde_3 or "").strip()
+        sol_siyirma = float(boyut_2_mm or 0)
+        sag_siyirma = float(boyut_3_mm or 0)
+
+        krimp_kontak_1 = sol_kontak
+        siyirma_1 = sol_siyirma
+        krimp_kontak_2 = sag_kontak
+        siyirma_2 = sag_siyirma
+        
+        is_cift_tarafli = 1 if (sag_kontak or sag_siyirma > 0 or ao_doc.get("operasyon_tipi") == "Çift Taraf") else 0
+            
+        krimp_row.kontak_no = krimp_kontak_1
+        krimp_row.siyirma_boyu = siyirma_1
+        krimp_row.is_cift_tarafli = is_cift_tarafli
+        krimp_row.yon_2_kontak_no = krimp_kontak_2
+        krimp_row.yon_2_siyirma_boyu = siyirma_2
 
     doc.flags.ignore_validate_update_after_submit = True
+    doc.flags.ignore_links = True
     doc.save(ignore_permissions=True)
     frappe.db.commit()
+
+    from erpnextkta.kta_calisma_karti.api_impl.qc import _update_parent_qc_status_from_alt_ops
+    doc.reload()
+    _update_parent_qc_status_from_alt_ops(doc)
+
     publish_calisma_karti_changed(calisma_karti, reason="alt_operasyon:update")
     return row.name
 
@@ -409,12 +561,28 @@ def delete_alt_operasyon_kaydi(calisma_karti: str, row_id: str):
     if not to_remove:
         frappe.throw(_("Kayıt bulunamadı."))
 
+    row = to_remove[0]
+    _assert_qc_unlocked(doc, row)
+
+    qi_name = (row.quality_inspection or "").strip()
+    if qi_name and has_qc_role():
+        _cancel_linked_quality_inspection(qi_name)
+
     for r in to_remove:
+        doc.remove(r)
+
+    krimp_to_remove = [r for r in doc.get("krimp_olcumleri", []) if r.alt_operasyon_kaydi == row_id]
+    for r in krimp_to_remove:
         doc.remove(r)
 
     doc.flags.ignore_validate_update_after_submit = True
     doc.save(ignore_permissions=True)
     frappe.db.commit()
+
+    from erpnextkta.kta_calisma_karti.api_impl.qc import _update_parent_qc_status_from_alt_ops
+    doc.reload()
+    _update_parent_qc_status_from_alt_ops(doc)
+
     publish_calisma_karti_changed(calisma_karti, reason="alt_operasyon:delete")
     return True
 
@@ -461,3 +629,20 @@ def get_item_uom(item_code: str) -> str:
     if not item_code:
         return ""
     return frappe.db.get_value("Item", item_code, "stock_uom") or ""
+
+
+@frappe.whitelist()
+def is_kut_kablo_operation(operasyon_name: str) -> bool:
+    allowed = frappe.db.get_all(
+        "KTA Sub Operation Allowed Material Groups",
+        filters={
+            "parent": operasyon_name,
+            "parenttype": "KTA Calisma Karti Alt Operasyonlari"
+        },
+        fields=["item_group"],
+        ignore_permissions=True
+    )
+    if not allowed:
+        return False
+    has_terminal = any("terminal" in (a.item_group or "").lower() for a in allowed)
+    return not has_terminal

@@ -6,12 +6,17 @@ export type CKState = "ready" | "running" | "paused" | "finished" | "rejected" |
 export function useCalismaKartiUi(docRef: any) {
     function computeState(d: any): CKState {
         if (!d) return "ready";
-        
+
         // Cancelled status takes absolute precedence
         if (Number(d.docstatus) === 2 || (d.durum || "").toString().toLowerCase().includes("iptal")) return "cancelled";
 
         // If QC rejected, lock UI state
         if ((d.kalite_kontrol || "").trim() === "Reddedildi" || (d.durum || "").toString().includes("Reddedildi")) return "rejected";
+
+        if (Number(d.alt_operasyon_bazli_kalite) === 1) {
+            const altOps = d.alt_operasyon_kayitlari || [];
+            if (altOps.some((r: any) => r.quality_inspection_status === "Reddedildi")) return "rejected";
+        }
 
         const duruslar = d.duruslar || [];
         const hasOpenStop = duruslar.some((x: any) => x?.durus_baslangic && !x?.durus_bitis);
@@ -53,7 +58,17 @@ export function useCalismaKartiUi(docRef: any) {
         }[state.value] || "ck-status--ready";
     });
 
-    const qcValue = computed(() => (docRef.value?.kalite_kontrol || "Onay Bekliyor").trim());
+    const qcValue = computed(() => {
+        if (Number(docRef.value?.alt_operasyon_bazli_kalite) === 1) {
+            const altOps = docRef.value?.alt_operasyon_kayitlari || [];
+            if (altOps.length === 0) return "Onay Bekliyor";
+            if (altOps.some((r: any) => r.quality_inspection_status === "Reddedildi")) return "Reddedildi";
+            if (altOps.every((r: any) => r.quality_inspection_status === "Onaylandı")) return "Onaylandı";
+            return "Onay Bekliyor";
+        }
+        return (docRef.value?.kalite_kontrol || "Onay Bekliyor").trim();
+    });
+
     const qcLabel = computed(() => __(qcValue.value));
     const qcApproved = computed(() => qcValue.value === "Onaylandı");
 
@@ -81,9 +96,9 @@ export function useCalismaKartiUi(docRef: any) {
 
         const roles = frappe?.boot?.user?.roles || [];
         const adminRoles = frappe?.boot?.kta_admin_roles || ["System Manager", "Quality Manager", "Manufacturing Manager"];
-        
+
         const isManager = adminRoles.some((r: string) => roles.includes(r));
-                          
+
         if (isManager) return true;
 
         // Normal operators can only edit if not finished/rejected/cancelled, and maybe not 'ready'
@@ -104,8 +119,12 @@ export function useCalismaKartiUi(docRef: any) {
     const isRejected = computed(() => state.value === "rejected");
     const showResume = computed(() => state.value === "paused" && !isRejected.value && !isCancelled.value);
     const showStop = computed(() => state.value === "running" && !isRejected.value && !isCancelled.value);
+    const qcBypass = computed(() =>
+        Number(docRef.value?.alt_operasyon_bazli_kalite) === 1 &&
+        Number(docRef.value?.yuzde_yuz_kalite_kontrol) === 0
+    );
     const showFinish = computed(
-        () => !isRejected.value && !isCancelled.value && (state.value === "running" || state.value === "paused") && qcApproved.value
+        () => !isCancelled.value && (state.value === "running" || state.value === "paused" || (qcBypass.value && state.value === "rejected")) && (qcApproved.value || qcBypass.value)
     );
 
     return {
@@ -126,5 +145,6 @@ export function useCalismaKartiUi(docRef: any) {
         isRejected,
         isCancelled,
         canEditData,
+        qcBypass,
     };
 }

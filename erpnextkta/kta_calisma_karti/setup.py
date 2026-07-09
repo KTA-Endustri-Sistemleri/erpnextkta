@@ -43,6 +43,26 @@ def get_custom_fields():
                 "read_only": 1,
                 "in_list_view": 0,
             }
+        ],
+        "Quality Inspection": [
+            {
+                "fieldname": "custom_calisma_karti",
+                "fieldtype": "Link",
+                "options": "Calisma Karti",
+                "label": "Çalışma Kartı",
+                "insert_after": "reference_name",
+                "description": "Bu kalite belgesini oluşturan spesifik çalışma kartı.",
+                "read_only": 0,
+                "unique": 0,
+                "no_copy": 1
+            },
+            {
+                "fieldname": "custom_alt_operasyon_kaydi",
+                "fieldtype": "Data",
+                "label": "Alt Operasyon Kaydı",
+                "insert_after": "custom_calisma_karti",
+                "description": "Modüler kalite sürecinde belgenin bağlandığı alt operasyon satırı."
+            }
         ]
     }
 
@@ -80,7 +100,12 @@ def setup_scrap_stock_entry_type():
 
 def create_kta_roles():
     """Create 'KTA Çalışma Kartı Kullanıcısı' and 'KTA Çalışma Kartı Yöneticisi' roles if they don't exist."""
-    roles = ['KTA Çalışma Kartı Kullanıcısı', 'KTA Çalışma Kartı Yöneticisi']
+    roles = [
+        'KTA Çalışma Kartı Kullanıcısı', 
+        'KTA Çalışma Kartı Yöneticisi',
+        'KTA Kalite Kullanıcısı',
+        'KTA Kalite Yöneticisi'
+    ]
     for role_name in roles:
         if not frappe.db.exists("Role", role_name):
             doc = frappe.get_doc({
@@ -188,6 +213,12 @@ def setup_permissions():
         {"parent": "Calisma Karti Hurda", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0},
         {"parent": "Operasyon Duruslari", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0},
         {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 0, "create": 0, "delete": 0},
+        {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "permlevel": 1},
+        {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "KTA Kalite Yöneticisi", "read": 1, "write": 1, "permlevel": 1},
+        {"parent": "Calisma Karti Alt Operasyon Kayitlari", "role": "System Manager", "read": 1, "write": 1, "permlevel": 1},
+        {"parent": "Calisma Karti", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "permlevel": 1},
+        {"parent": "Calisma Karti", "role": "KTA Kalite Yöneticisi", "read": 1, "write": 1, "permlevel": 1},
+        {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "permlevel": 1},
     ]
 
     # KTA'ya özel olan ve tüm rollerini yönetmek istediğimiz DocType'lar

@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "alt_operasyon",
+  "satir_no",
   "hammadde",
   "adet",
   "uom",
@@ -24,7 +25,9 @@
   "islem_adedi_3",
   "adet_3",
   "uom_3",
-  "sb_note"
+  "sb_note",
+  "quality_inspection_status",
+  "quality_inspection"
  ],
  "fields": [
   {
@@ -35,6 +38,13 @@
    "label": "Alt Operasyon",
    "options": "KTA Calisma Karti Alt Operasyonlari",
    "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "satir_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Satır No"
   },
   {
    "allow_on_submit": 1,
@@ -156,6 +166,21 @@
   {
    "fieldname": "sb_note",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "Onay Bekliyor",
+   "fieldname": "quality_inspection_status",
+   "fieldtype": "Select",
+   "label": "Kalite Kontrol",
+   "options": "Onay Bekliyor\nOnayland\u0131\nReddedildi",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "quality_inspection",
+   "fieldtype": "Link",
+   "label": "Quality Inspection",
+   "options": "Quality Inspection",
+   "permlevel": 1
   }
  ],
  "grid_page_length": 50,

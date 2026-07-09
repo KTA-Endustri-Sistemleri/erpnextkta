@@ -10,6 +10,7 @@ from ._helpers import (
     first_child_table,
     has_admin_roles,
     require_my_employee,
+    has_qc_role,
 )
 
 
@@ -133,14 +134,19 @@ def _attach_operasyon_label(rows):
     ops = frappe.get_all(
         "KTA Calisma Karti Operasyonlari",
         filters={"name": ["in", op_ids]},
-        fields=["name", "calisma_karti_op"],
+        fields=["name", "calisma_karti_op", "alt_operasyon_bazli_kalite", "yuzde_yuz_kalite_kontrol"],
         limit_page_length=len(op_ids),
     )
     label_by_id = {o["name"]: o.get("calisma_karti_op") for o in ops}
+    qc_flag_by_id = {o["name"]: o.get("alt_operasyon_bazli_kalite") for o in ops}
+    qc_100_by_id = {o["name"]: o.get("yuzde_yuz_kalite_kontrol") for o in ops}
 
     for r in rows:
         op_id = r.get("operasyon")
         if op_id:
+            # Attach the flag before replacing the ID
+            r["alt_operasyon_bazli_kalite"] = qc_flag_by_id.get(op_id)
+            r["yuzde_yuz_kalite_kontrol"] = qc_100_by_id.get(op_id)
             # If missing, keep original id to avoid breaking UI
             r["operasyon"] = label_by_id.get(op_id) or op_id
 
@@ -230,8 +236,39 @@ def _attach_aktif_durus_nedeni(rows):
 
     return rows
 
+def _attach_qc_states(rows):
+    """Enrich rows with qc_states array from Calisma Karti Alt Operasyon Kayitlari."""
+    card_names = [r.get("name") for r in rows]
+    if not card_names:
+        return rows
+
+    alt_ops = frappe.get_all(
+        "Calisma Karti Alt Operasyon Kayitlari",
+        filters={
+            "parent": ("in", card_names),
+            "parenttype": "Calisma Karti"
+        },
+        fields=["parent", "quality_inspection_status"],
+        order_by="idx asc"
+    )
+
+    qc_by_card = {}
+    for op in alt_ops:
+        parent = op["parent"]
+        if parent not in qc_by_card:
+            qc_by_card[parent] = []
+        
+        status = op.get("quality_inspection_status") or "Onay Bekliyor"
+        qc_by_card[parent].append(status)
+
+    for r in rows:
+        if r.get("name") in qc_by_card:
+            r["qc_states"] = qc_by_card[r.get("name")]
+
+    return rows
+
 @frappe.whitelist()
-def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None, durum=None, search_term=None, qc_filter=None):
+def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_group=None, durum=None, search_term=None, qc_filter=None, tag_filter=None):
     """Return assigned Calisma Karti rows for list UI (with customer_group info and filters)."""
 
     fields = [
@@ -249,6 +286,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
         "creation",
         "kalite_kontrol",
         "docstatus",
+        "_user_tags",
     ]
 
     allowed = {
@@ -282,6 +320,9 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
         
     if qc_filter:
         db_filters["kalite_kontrol"] = qc_filter
+
+    if tag_filter:
+        db_filters["_user_tags"] = ["like", f"%{tag_filter}%"]
 
     rows = frappe.get_all(
         "Calisma Karti",
@@ -325,6 +366,7 @@ def get_my_calisma_kartlari(order_by=None, start=0, page_length=200, customer_gr
     rows = _attach_operasyon_label(rows)
     rows = _attach_bom_musteri_indeksi(rows)
     rows = _attach_aktif_durus_nedeni(rows)
+    rows = _attach_qc_states(rows)
     
     if customer_group:
         rows = [r for r in rows if r.get("customer_group") == customer_group or customer_group in (r.get("customer_groups") or [])]
@@ -371,10 +413,16 @@ def get_calisma_karti_detail(name: str):
             qi_details["owner_name"] = frappe.db.get_value("User", qi_details["owner"], "full_name") or qi_details["owner"]
 
     op_meta = frappe.db.get_value("KTA Calisma Karti Operasyonlari", doc.operasyon, 
-                                 ["miktar_zorunlu_mu", "has_krimp", "has_idc", "has_barkod", "has_enjeksiyon"], as_dict=1) or {}
+                                 ["miktar_zorunlu_mu", "has_krimp", "has_idc", "has_barkod", "has_enjeksiyon", "alt_operasyon_bazli_kalite", "yuzde_yuz_kalite_kontrol"], as_dict=1) or {}
+    custom_kesim_formu = None
+    if doc.custom_work_order:
+        bom_no = frappe.db.get_value("Work Order", doc.custom_work_order, "bom_no")
+        if bom_no:
+            custom_kesim_formu = frappe.db.get_value("BOM", bom_no, "custom_kesim_formu")
 
     return {
         "name": doc.name,
+        "custom_kesim_formu": custom_kesim_formu,
         "custom_work_order": doc.custom_work_order,
         "is_karti": doc.is_karti,
         "operasyon": doc.operasyon,
@@ -401,6 +449,9 @@ def get_calisma_karti_detail(name: str):
         "has_idc": bool(op_meta.get("has_idc")),
         "has_barkod": bool(op_meta.get("has_barkod")),
         "has_enjeksiyon": bool(op_meta.get("has_enjeksiyon")),
+        "alt_operasyon_bazli_kalite": bool(op_meta.get("alt_operasyon_bazli_kalite")),
+        "yuzde_yuz_kalite_kontrol": bool(op_meta.get("yuzde_yuz_kalite_kontrol", 1)),
+        "is_qc_user": has_qc_role(),
         "creation": doc.creation,
         "docstatus": doc.docstatus,
         "max_kart_suresi_dk": frappe.db.get_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk") or 430,

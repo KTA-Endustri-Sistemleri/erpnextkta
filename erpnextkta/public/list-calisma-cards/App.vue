@@ -11,6 +11,7 @@ const errorMsg = ref("");
 const sortKey = ref("creation_desc");
 const statusFilter = ref("all"); // all | ready | running | paused | finished | rejected
 const qcFilter = ref("all");     // all | waiting | approved | rejected // all | ready | running | paused | finished
+const tagFilter = ref("all");    // all | <tag>
 
 const q = ref(""); // search query
 const settings = ref({
@@ -74,7 +75,8 @@ async function load(opts = {}) {
       durum: statusFilter.value !== "all" ? statusMap[statusFilter.value] : null,
       search_term: q.value,
       customer_group: customerGroupFilter.value !== "all" ? customerGroupFilter.value : null,
-      qc_filter: qcFilter.value !== "all" ? qcMap[qcFilter.value] : null
+      qc_filter: qcFilter.value !== "all" ? qcMap[qcFilter.value] : null,
+      tag_filter: tagFilter.value !== "all" ? tagFilter.value : null
     });
 
     const data = r.message || [];
@@ -102,6 +104,13 @@ async function load(opts = {}) {
     ) {
       customerGroupFilter.value = "all";
     }
+
+    if (
+      tagFilter.value !== "all" &&
+      !availableTags.value.includes(tagFilter.value)
+    ) {
+      tagFilter.value = "all";
+    }
   } catch (e) {
     errorMsg.value = e?.message || __("Liste alınamadı.");
   } finally {
@@ -120,7 +129,7 @@ async function load(opts = {}) {
 
 // Trigger load on filter changes (debounced)
 let searchTimer = null;
-watch([q, statusFilter, qcFilter, customerGroupFilter, sortKey], () => {
+watch([q, statusFilter, qcFilter, customerGroupFilter, tagFilter, sortKey], () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
         load();
@@ -227,6 +236,9 @@ function qcKeyFromText(qc) {
 const availableCustomerGroups = ref([]);
 const customerGroupCounts = ref({});
 
+const availableTags = ref([]);
+const tagCounts = ref({});
+
 // Görünüm Modu Yönetimi (list | grid | kanban)
 const viewMode = ref(localStorage.getItem('ck_view_mode') || 'list');
 const isDesktop = ref(window.innerWidth >= 1024);
@@ -259,30 +271,48 @@ const kanbanColumns = computed(() => {
   return cols;
 });
 
-watch([rows, customerGroupFilter], ([newRows, filter]) => {
-  if (filter !== "all" && availableCustomerGroups.value.length > 0) {
-    // Keep previously calculated groups and counts visible so user can switch away
-    return;
-  }
-  
-  const set = new Set();
-  const c = { all: (newRows || []).length };
+watch([rows, customerGroupFilter, tagFilter], ([newRows, filter, tFilter]) => {
+  // Update Customer Groups
+  if (filter === "all" || availableCustomerGroups.value.length === 0) {
+    const set = new Set();
+    const c = { all: (newRows || []).length };
 
-  for (const r of newRows || []) {
-    const groups = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
-    const single = r?.customer_group;
-    const uniq = new Set(groups);
-    if (single) uniq.add(single);
+    for (const r of newRows || []) {
+      const groups = Array.isArray(r?.customer_groups) ? r.customer_groups : [];
+      const single = r?.customer_group;
+      const uniq = new Set(groups);
+      if (single) uniq.add(single);
 
-    for (const g of uniq) {
-      if (!g) continue;
-      set.add(g);
-      c[g] = (c[g] || 0) + 1;
+      for (const g of uniq) {
+        if (!g) continue;
+        set.add(g);
+        c[g] = (c[g] || 0) + 1;
+      }
     }
+
+    availableCustomerGroups.value = Array.from(set).sort((a, b) => a.localeCompare(b, "tr"));
+    customerGroupCounts.value = c;
   }
 
-  availableCustomerGroups.value = Array.from(set).sort((a, b) => a.localeCompare(b, "tr"));
-  customerGroupCounts.value = c;
+  // Update Tags
+  if (tFilter === "all" || availableTags.value.length === 0) {
+    const tSet = new Set();
+    const tC = { all: (newRows || []).length };
+
+    for (const r of newRows || []) {
+      const tagsString = r?._user_tags || "";
+      const tags = tagsString.split(",").map(t => t.trim()).filter(t => t);
+      const uniqTags = new Set(tags);
+
+      for (const t of uniqTags) {
+        tSet.add(t);
+        tC[t] = (tC[t] || 0) + 1;
+      }
+    }
+
+    availableTags.value = Array.from(tSet).sort((a, b) => a.localeCompare(b, "tr"));
+    tagCounts.value = tC;
+  }
 }, { immediate: true });
 
 // Computed counts for filters
@@ -358,10 +388,13 @@ onUnmounted(() => {
         v-model:statusFilter="statusFilter"
         v-model:qcFilter="qcFilter"
         v-model:customerGroupFilter="customerGroupFilter"
+        v-model:tagFilter="tagFilter"
         :statusCounts="statusCounts"
         :qcCounts="qcCounts"
         :customerGroupCounts="customerGroupCounts"
         :availableCustomerGroups="availableCustomerGroups"
+        :tagCounts="tagCounts"
+        :availableTags="availableTags"
       />
 
     </div>

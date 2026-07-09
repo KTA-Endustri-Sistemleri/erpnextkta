@@ -23,7 +23,9 @@
         "hurda_gider_hesabi",
         "sb_job_card_sync",
         "job_card_time_log_sync_modu",
-        "admin_roles"
+        "sb_permissions",
+        "admin_roles",
+        "qc_allowed_roles"
     ],
     "fields": [
         {
@@ -156,6 +158,17 @@
             "fieldtype": "Small Text",
             "label": "Admin Kontrol Rolleri",
             "description": "Bitmiş, reddedilmiş veya kilitli kartlardaki verileri düzeltebilecek/bypass edebilecek rol adlarını virgülle ayırarak giriniz."
+        },
+        {
+            "fieldname": "sb_permissions",
+            "fieldtype": "Section Break",
+            "label": "\u0130zin ve Yetki Ayarlar\u0131"
+        },
+        {
+            "fieldname": "qc_allowed_roles",
+            "fieldtype": "Table",
+            "options": "KTA Calisma Karti QC Rolleri",
+            "label": "Kalite Kontrol Rolleri (QC Allowed Roles)"
         }
     ],
     "issingle": 1,

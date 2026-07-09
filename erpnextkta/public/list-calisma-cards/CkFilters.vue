@@ -94,6 +94,27 @@
           {{ g }} <span class="ck-filter-count">{{ customerGroupCounts[g] || 0 }}</span>
         </button>
       </div>
+
+      <!-- Tag Filters -->
+      <div class="ck-filters ck-filters--sub" v-if="availableTags && availableTags.length">
+        <button
+          class="ck-filter ck-filter--qc"
+          :class="{ active: tagFilter === 'all' }"
+          @click="$emit('update:tagFilter', 'all')"
+        >{{ __("Tüm Departmanlar") }}<span class="ck-filter-count">{{ tagCounts.all }}</span>
+        </button>
+
+        <button
+          v-for="t in availableTags"
+          :key="t"
+          class="ck-filter ck-filter--qc"
+          :class="{ active: tagFilter === t }"
+          @click="$emit('update:tagFilter', t)"
+          :title="t"
+        >
+          {{ t }} <span class="ck-filter-count">{{ tagCounts[t] || 0 }}</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -108,10 +129,13 @@ const props = defineProps({
   statusFilter: String,
   qcFilter: String,
   customerGroupFilter: String,
+  tagFilter: String,
   statusCounts: Object,
   qcCounts: Object,
   customerGroupCounts: Object,
-  availableCustomerGroups: Array
+  availableCustomerGroups: Array,
+  tagCounts: Object,
+  availableTags: Array
 });
 
 const emit = defineEmits([
@@ -119,7 +143,8 @@ const emit = defineEmits([
   "update:sortKey", 
   "update:statusFilter", 
   "update:qcFilter", 
-  "update:customerGroupFilter"
+  "update:customerGroupFilter",
+  "update:tagFilter"
 ]);
 
 const isFiltersOpen = ref(false);
@@ -175,6 +200,10 @@ const activeFilterLabels = computed(() => {
   
   if (props.customerGroupFilter && props.customerGroupFilter !== "all") {
     labels.push(props.customerGroupFilter);
+  }
+  
+  if (props.tagFilter && props.tagFilter !== "all") {
+    labels.push(props.tagFilter);
   }
   
   return labels;

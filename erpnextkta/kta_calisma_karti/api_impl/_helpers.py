@@ -245,3 +245,20 @@ def finalize_rejected_card(doc, now=None) -> None:
     doc.reload()
     if doc.docstatus == 0:
         doc.submit()
+
+def get_qc_allowed_roles() -> set[str]:
+    """Retrieve QC-allowed roles from KTA Calisma Karti Settings."""
+    settings = frappe.get_cached_doc("KTA Calisma Karti Settings")
+    roles = set()
+    for row in settings.get("qc_allowed_roles", []):
+        if row.role:
+            roles.add(row.role)
+    # Sensible fallback if table is empty
+    return roles or {"KTA Kalite Kullanıcısı", "Quality Manager", "System Manager"}
+
+def has_qc_role() -> bool:
+    """Check if current user has any QC-allowed role."""
+    if frappe.session.user == "Administrator":
+        return True
+    user_roles = set(frappe.get_roles(frappe.session.user) or [])
+    return bool(user_roles & get_qc_allowed_roles())

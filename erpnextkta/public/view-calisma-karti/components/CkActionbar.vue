@@ -7,6 +7,7 @@ const props = defineProps<{
   showStop: boolean;
   showFinish: boolean;
   qcApproved: boolean;
+  qcBypass: boolean;
   onBaslatDevam: () => void;
   onDurus: () => void;
   onBitir: () => void;
@@ -45,7 +46,7 @@ const isVisible = computed(() => {
 
     <button
       v-if="props.showFinish"
-      :disabled="!props.qcApproved"
+      :disabled="!props.qcApproved && !props.qcBypass"
       class="ck-btn ck-btn--danger ck-btn--wide"
       @click="props.onBitir"
     >
