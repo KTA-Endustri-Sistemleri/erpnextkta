@@ -255,6 +255,27 @@ def before_tests():
 
 	frappe.db.sql("UPDATE `tabProperty Setter` SET value = '0' WHERE property = 'reqd' AND value = '1'")
 
+	# ──────────────────────────────────────────────────────────────────
+	# 10. Ensure Missing Custom Fields for Tests
+	# ──────────────────────────────────────────────────────────────────
+	from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+	
+	if not frappe.db.has_column("Quality Inspection", "custom_calisma_karti"):
+			create_custom_field("Quality Inspection", dict(
+					fieldname='custom_calisma_karti',
+					label='Çalışma Kartı',
+					fieldtype='Link',
+					options='Calisma Karti',
+					insert_after='reference_type'
+			))
+	if not frappe.db.has_column("Quality Inspection", "custom_alt_operasyon_kaydi"):
+			create_custom_field("Quality Inspection", dict(
+					fieldname='custom_alt_operasyon_kaydi',
+					label='Alt Operasyon Kaydı',
+					fieldtype='Data',
+					insert_after='custom_calisma_karti'
+			))
+
 	frappe.db.commit()
 	frappe.clear_cache()
 
