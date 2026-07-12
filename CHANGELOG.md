@@ -3,6 +3,87 @@
 
 
 
+## 🚀 v2.3.0 (2026-07-12)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **tests**: use get() for alt_op status and create op configs in setUp
+      
+      
+    
+      
+      
+        
+- **tests**: resolve missing custom fields and employee mock for CI
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_calisma_karti**: overhaul crimp UI, sub-op QC, tags, sync, and related docs
+      
+      
+    
+      
+      
+        
+- **kta_mrp**: add price selection criteria filter to MRP analysis report
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **tests**: optimize calisma_karti, localize QC, and add time log test
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.2.0 (2026-07-05)
 
 
