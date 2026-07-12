@@ -7,6 +7,19 @@ class TestQIValidation(KTATestCase):
         super().setUp()
         from erpnextkta.tests.test_utils import make_mock_calisma_karti
 
+        # Ensure operations exist with correct settings
+        for op_name, mode in [("TEST-OP-LEGACY", 0), ("TEST-OP-SUB", 1)]:
+            if not frappe.db.exists("KTA Calisma Karti Operasyonlari", op_name):
+                frappe.get_doc({
+                    "doctype": "KTA Calisma Karti Operasyonlari",
+                    "name": op_name,
+                    "calisma_karti_op": op_name,
+                    "alt_operasyon_bazli_kalite": mode,
+                    "yuzde_yuz_kalite_kontrol": mode
+                }).insert(ignore_permissions=True, ignore_mandatory=True)
+            else:
+                frappe.db.set_value("KTA Calisma Karti Operasyonlari", op_name, "alt_operasyon_bazli_kalite", mode)
+
         # Create Calisma Karti 1 (Legacy)
         self.ck_legacy = frappe.get_doc({
             "doctype": "Calisma Karti",
@@ -16,8 +29,6 @@ class TestQIValidation(KTATestCase):
             "custom_work_order": "WO-DUMMY",
             "is_karti": "JC-DUMMY"
         }).insert(ignore_permissions=True, ignore_links=True, ignore_mandatory=True)
-        # Ensure operation is set to legacy mode
-        frappe.db.set_value("KTA Calisma Karti Operasyonlari", self.ck_legacy.operasyon, "alt_operasyon_bazli_kalite", 0)
 
         # Create Calisma Karti 2 (Sub-Op)
         self.ck_sub = frappe.get_doc({
@@ -28,8 +39,6 @@ class TestQIValidation(KTATestCase):
             "custom_work_order": "WO-DUMMY",
             "is_karti": "JC-DUMMY"
         }).insert(ignore_permissions=True, ignore_links=True, ignore_mandatory=True)
-        # Ensure operation is set to sub-op mode
-        frappe.db.set_value("KTA Calisma Karti Operasyonlari", self.ck_sub.operasyon, "alt_operasyon_bazli_kalite", 1)
 
         # Create Dummy Item for QI
         if not frappe.db.exists("Item", "TEST-QI-ITEM"):

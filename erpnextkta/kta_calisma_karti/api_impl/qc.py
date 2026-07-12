@@ -646,7 +646,7 @@ def _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=None):
     if not ck.get("alt_operasyon_kayitlari"):
         return
 
-    statuses = [(r.quality_inspection_status or "Onay Bekliyor").strip() for r in ck.get("alt_operasyon_kayitlari")]
+    statuses = [(r.get("quality_inspection_status") or "Onay Bekliyor").strip() for r in ck.get("alt_operasyon_kayitlari")]
     
     if "Reddedildi" in statuses:
         final_status = "Reddedildi"
