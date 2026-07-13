@@ -9,24 +9,29 @@ export function useKrimpDialogs(props: any) {
     const kesit_fld = dialog.get_field("kablo_kesiti");
     const kablo_fld = dialog.get_field("kablo_no");
     const kontak_fld = dialog.get_field("kontak_no");
+    const kalip_fld = dialog.get_field("kalip_no");
     
     const yon_2_kontak_fld = dialog.get_field("yon_2_kontak_no");
     const yon_2_kesit_fld = dialog.get_field("yon_2_kablo_kesiti");
+    const yon_2_kalip_fld = dialog.get_field("yon_2_kalip_no");
     
     dialog.last_kesit = dialog.get_value("kablo_kesiti");
     dialog.last_kablo = dialog.get_value("kablo_no");
     dialog.last_kontak = dialog.get_value("kontak_no");
+    dialog.last_kalip = dialog.get_value("kalip_no");
     dialog.last_yon_2_kontak = dialog.get_value("yon_2_kontak_no");
     dialog.last_yon_2_kesit = dialog.get_value("yon_2_kablo_kesiti");
+    dialog.last_yon_2_kalip = dialog.get_value("yon_2_kalip_no");
 
-    const updateDetails = () => {
+    const updateDetails = (is_kalip_change = false) => {
       const kesit = dialog.get_value("kablo_kesiti");
       const kontak = dialog.get_value("kontak_no");
+      const kalip = dialog.get_value("kalip_no");
 
       if (kesit && kontak) {
         frappe.call({
           method: "erpnextkta.kta_calisma_karti.api.get_krimp_book_details",
-          args: { kablo_no: dialog.get_value("kablo_no") || "", kontak_no: kontak, selected_kesit: kesit },
+          args: { kablo_no: dialog.get_value("kablo_no") || "", kontak_no: kontak, selected_kesit: kesit, kalip_no: kalip },
           callback: (r: any) => {
             if (r.message && Object.keys(r.message).length > 0) {
               const data = r.message;
@@ -37,22 +42,26 @@ export function useKrimpDialogs(props: any) {
             }
           }
         });
-        // Load kalip options separately so user can choose when multiple exist
-        frappe.call({
-          method: "erpnextkta.kta_calisma_karti.api.get_kalip_list",
-          args: { kontak_no: kontak, selected_kesit: kesit },
-          callback: (r: any) => {
-            const list: string[] = r.message || [];
-            dialog.set_df_property("kalip_no", "options", ["", ...list]);
-            if (list.length === 1) {
-              dialog.set_value("kalip_no", list[0]);
-            } else if (list.length > 1) {
-              dialog.set_value("kalip_no", "");
-            } else {
-              dialog.set_value("kalip_no", "");
+        
+        if (!is_kalip_change) {
+          // Load kalip options separately so user can choose when multiple exist
+          frappe.call({
+            method: "erpnextkta.kta_calisma_karti.api.get_kalip_list",
+            args: { kontak_no: kontak, selected_kesit: kesit },
+            callback: (r: any) => {
+              const list: string[] = r.message || [];
+              const currentKalip = dialog.get_value("kalip_no");
+              dialog.set_df_property("kalip_no", "options", ["", ...list]);
+              if (list.length === 1) {
+                dialog.set_value("kalip_no", list[0]);
+              } else if (list.length > 1) {
+                if (!list.includes(currentKalip)) dialog.set_value("kalip_no", "");
+              } else {
+                dialog.set_value("kalip_no", "");
+              }
             }
-          }
-        });
+          });
+        }
       } else {
         dialog.set_value("kalip_no", "");
         dialog.set_df_property("kalip_no", "options", [""]);
@@ -62,14 +71,15 @@ export function useKrimpDialogs(props: any) {
       }
     };
 
-    const updateYon2Details = () => {
+    const updateYon2Details = (is_kalip_change = false) => {
       const kesit = dialog.get_value("yon_2_kablo_kesiti");
       const kontak = dialog.get_value("yon_2_kontak_no");
+      const kalip = dialog.get_value("yon_2_kalip_no");
 
       if (kesit && kontak) {
         frappe.call({
           method: "erpnextkta.kta_calisma_karti.api.get_krimp_book_details",
-          args: { kablo_no: dialog.get_value("kablo_no") || "", kontak_no: kontak, selected_kesit: kesit },
+          args: { kablo_no: dialog.get_value("kablo_no") || "", kontak_no: kontak, selected_kesit: kesit, kalip_no: kalip },
           callback: (r: any) => {
             if (r.message && Object.keys(r.message).length > 0) {
               const data = r.message;
@@ -80,20 +90,26 @@ export function useKrimpDialogs(props: any) {
             }
           }
         });
-        // Load T2 kalip options
-        frappe.call({
-          method: "erpnextkta.kta_calisma_karti.api.get_kalip_list",
-          args: { kontak_no: kontak, selected_kesit: kesit },
-          callback: (r: any) => {
-            const list: string[] = r.message || [];
-            dialog.set_df_property("yon_2_kalip_no", "options", ["", ...list]);
-            if (list.length === 1) {
-              dialog.set_value("yon_2_kalip_no", list[0]);
-            } else {
-              dialog.set_value("yon_2_kalip_no", "");
+        
+        if (!is_kalip_change) {
+          // Load T2 kalip options
+          frappe.call({
+            method: "erpnextkta.kta_calisma_karti.api.get_kalip_list",
+            args: { kontak_no: kontak, selected_kesit: kesit },
+            callback: (r: any) => {
+              const list: string[] = r.message || [];
+              const currentKalip = dialog.get_value("yon_2_kalip_no");
+              dialog.set_df_property("yon_2_kalip_no", "options", ["", ...list]);
+              if (list.length === 1) {
+                dialog.set_value("yon_2_kalip_no", list[0]);
+              } else if (list.length > 1) {
+                if (!list.includes(currentKalip)) dialog.set_value("yon_2_kalip_no", "");
+              } else {
+                dialog.set_value("yon_2_kalip_no", "");
+              }
             }
-          }
-        });
+          });
+        }
       } else {
         dialog.set_value("yon_2_kalip_no", "");
         dialog.set_df_property("yon_2_kalip_no", "options", [""]);
@@ -187,6 +203,24 @@ export function useKrimpDialogs(props: any) {
       };
     }
 
+    if (kalip_fld) {
+      kalip_fld.df.onchange = () => {
+        const current_kalip = dialog.get_value("kalip_no");
+        if (dialog.last_kalip === current_kalip) return;
+        dialog.last_kalip = current_kalip;
+        updateDetails(true);
+      };
+    }
+
+    if (yon_2_kalip_fld) {
+      yon_2_kalip_fld.df.onchange = () => {
+        const current_kalip = dialog.get_value("yon_2_kalip_no");
+        if (dialog.last_yon_2_kalip === current_kalip) return;
+        dialog.last_yon_2_kalip = current_kalip;
+        updateYon2Details(true);
+      };
+    }
+
     const altOpFld = dialog.get_field("alt_operasyon_kaydi");
     if (altOpFld) {
       altOpFld.df.onchange = () => {
@@ -254,7 +288,8 @@ export function useKrimpDialogs(props: any) {
     const defaults: any = {
       calisma_karti_name: props.doc.name,
       alt_op_options: altOpOptions,
-      alt_operasyon_kaydi: altOpKaydiName || ""
+      alt_operasyon_kaydi: altOpKaydiName || "",
+      has_alt_operasyon_bazli_kalite: !!props.doc.alt_operasyon_bazli_kalite
     };
 
     if (sides) {
@@ -349,7 +384,7 @@ export function useKrimpDialogs(props: any) {
     }
 
     const dialog = frappe.prompt(
-      krimpOlcumFields({ ...row, calisma_karti_name: props.doc.name, isKutKablo, alt_op_options: altOpOptions }),
+      krimpOlcumFields({ ...row, calisma_karti_name: props.doc.name, isKutKablo, alt_op_options: altOpOptions, has_alt_operasyon_bazli_kalite: !!props.doc.alt_operasyon_bazli_kalite }),
       async (v: any) => {
         await props.onUpdateKrimp({ rowname: row.name, payload: v });
         frappe.show_alert({ message: __("Krimp ölçümü güncellendi"), indicator: "green" });
@@ -447,6 +482,7 @@ export function useKrimpDialogs(props: any) {
       calisma_karti_name: props.doc.name,
       alt_op_options: altOpOptions,
       alt_operasyon_kaydi: row.alt_operasyon_kaydi || "",
+      has_alt_operasyon_bazli_kalite: !!props.doc.alt_operasyon_bazli_kalite,
       kablo_kesiti: row.kablo_kesiti || "",
       kablo_no: row.kablo_no || "",
       kontak_no: row.kontak_no || "",

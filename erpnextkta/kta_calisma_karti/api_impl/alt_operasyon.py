@@ -289,42 +289,49 @@ def add_alt_operasyon_kaydi(
     )
     
     # Otomatik Krimp Formu Ekleme
-    # Zeki Logic: Gelen verilere göre T1 ve T2'yi belirle (Sabit Eşleştirme)
-    # T1 her zaman Sol Uç, T2 her zaman Sağ Uç
-    sol_kontak = (hammadde_2 or "").strip()
-    sag_kontak = (hammadde_3 or "").strip()
-    sol_siyirma = float(boyut_2_mm or 0)
-    sag_siyirma = float(boyut_3_mm or 0)
-
-    krimp_kontak_1 = sol_kontak
-    siyirma_1 = sol_siyirma
-    krimp_kontak_2 = sag_kontak
-    siyirma_2 = sag_siyirma
-    
-    # Sağ uçta (T2) terminal veya sıyırma varsa, veya operasyon tipi Çift Taraf ise T2 alanlarını aç
-    is_cift_tarafli = 1 if (sag_kontak or sag_siyirma > 0 or ao_doc.get("operasyon_tipi") == "Çift Taraf") else 0
-        
-    new_krimp = doc.append(
-        "krimp_olcumleri",
-        {
-            "kablo_no": hammadde or "",
-            "hedef_kablo_boyu": float(boyut_1_mm or 0),
-            "kontak_no": krimp_kontak_1,
-            "siyirma_boyu": siyirma_1,
-            "is_cift_tarafli": is_cift_tarafli,
-            "yon_2_kontak_no": krimp_kontak_2,
-            "yon_2_siyirma_boyu": siyirma_2,
-            "olcum_tarihi": frappe.utils.now_datetime(),
-            "operator": require_my_employee(), # Default operator
-        }
+    new_krimp = None
+    op_meta = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", doc.operasyon,
+        ["has_krimp", "alt_operasyon_bazli_kalite"], as_dict=True
     )
+
+    if op_meta and op_meta.get("has_krimp") and op_meta.get("alt_operasyon_bazli_kalite"):
+        # Zeki Logic: Gelen verilere göre T1 ve T2'yi belirle (Sabit Eşleştirme)
+        # T1 her zaman Sol Uç, T2 her zaman Sağ Uç
+        sol_kontak = (hammadde_2 or "").strip()
+        sag_kontak = (hammadde_3 or "").strip()
+        sol_siyirma = float(boyut_2_mm or 0)
+        sag_siyirma = float(boyut_3_mm or 0)
+
+        krimp_kontak_1 = sol_kontak
+        siyirma_1 = sol_siyirma
+        krimp_kontak_2 = sag_kontak
+        siyirma_2 = sag_siyirma
+        
+        # Sağ uçta (T2) terminal veya sıyırma varsa, veya operasyon tipi Çift Taraf ise T2 alanlarını aç
+        is_cift_tarafli = 1 if (sag_kontak or sag_siyirma > 0 or ao_doc.get("operasyon_tipi") == "Çift Taraf") else 0
+            
+        new_krimp = doc.append(
+            "krimp_olcumleri",
+            {
+                "kablo_no": hammadde or "",
+                "hedef_kablo_boyu": float(boyut_1_mm or 0),
+                "kontak_no": krimp_kontak_1,
+                "siyirma_boyu": siyirma_1,
+                "is_cift_tarafli": is_cift_tarafli,
+                "yon_2_kontak_no": krimp_kontak_2,
+                "yon_2_siyirma_boyu": siyirma_2,
+                "olcum_tarihi": frappe.utils.now_datetime(),
+                "operator": require_my_employee(), # Default operator
+            }
+        )
 
     doc.flags.ignore_validate_update_after_submit = True
     doc.flags.ignore_links = True
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     
-    if new_krimp.name and new_ao_row.name:
+    if new_krimp and getattr(new_krimp, "name", None) and new_ao_row.name:
         frappe.db.set_value("Calisma Karti Krimp Olcumleri", new_krimp.name, "alt_operasyon_kaydi", new_ao_row.name)
         frappe.db.commit()
     

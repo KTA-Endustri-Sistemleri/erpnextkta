@@ -1,6 +1,9 @@
 frappe.ui.form.on('Calisma Karti', {
   // --- 1) Link sorgu filtreleri ---
   setup(frm) {
+    // Parent Job Card cascade iptal dialoguna girmemesi için:
+    frm.ignore_doctypes_on_cancel_all = ['Job Card'];
+
     // Açık İş Emri filtresi (custom field)
     frm.set_query('custom_work_order', () => {
       return {
