@@ -646,6 +646,10 @@ def _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=None):
     if not ck.get("alt_operasyon_kayitlari"):
         return
 
+    is_alt_op_qc = frappe.get_cached_value("KTA Calisma Karti Operasyonlari", ck.operasyon, "alt_operasyon_bazli_kalite")
+    if not is_alt_op_qc:
+        return
+
     statuses = [(r.get("quality_inspection_status") or "Onay Bekliyor").strip() for r in ck.get("alt_operasyon_kayitlari")]
     
     if "Reddedildi" in statuses:
@@ -658,7 +662,7 @@ def _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=None):
     ck.db_set("kalite_kontrol", final_status, update_modified=True)
     
     # Alt operasyon bazlı yapıda, ana karta hiçbir zaman belge işlenmemeli, sadece durum güncellenmeli.
-    ck.db_set("quality_inspection", "", update_modified=True)
+    ck.db_set("quality_inspection", None, update_modified=True)
 
     if final_status == "Reddedildi":
         ck.db_set("durum", "Reddedildi", update_modified=True)

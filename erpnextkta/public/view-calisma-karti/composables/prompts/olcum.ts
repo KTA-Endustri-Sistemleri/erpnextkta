@@ -33,6 +33,7 @@ export function idcOlcumFields(docname: string, defaults: any = {}) {
 }
 
 export function krimpOlcumFields(defaults: any = {}) {
+    const is_manual = !defaults.has_alt_operasyon_bazli_kalite;
     return applyDecimalInputMode([
         {
             fieldtype: "Section Break",
@@ -52,6 +53,13 @@ export function krimpOlcumFields(defaults: any = {}) {
             fieldname: "makine_pres_no",
             options: "Asset",
             default: defaults.makine_pres_no || "",
+        },
+        {
+            fieldtype: "Check",
+            label: __("Çift Taraflı İşlem"),
+            fieldname: "is_cift_tarafli",
+            default: defaults.is_cift_tarafli || 0,
+            hidden: is_manual ? 0 : 1
         },
         {
             fieldtype: "Section Break",
@@ -99,17 +107,17 @@ export function krimpOlcumFields(defaults: any = {}) {
         },
         { fieldtype: "Float", label: __("T1 Sıyırma Boyu (mm)"), fieldname: "siyirma_boyu", default: defaults.siyirma_boyu ?? 0 },
         { fieldtype: "Column Break" },
-        { fieldtype: "Float", label: __("T2 Sıyırma Boyu (mm)"), fieldname: "yon_2_siyirma_boyu", default: defaults.yon_2_siyirma_boyu ?? 0 },
+        { fieldtype: "Float", label: __("T2 Sıyırma Boyu (mm)"), fieldname: "yon_2_siyirma_boyu", default: defaults.yon_2_siyirma_boyu ?? 0, depends_on: is_manual ? "eval:doc.is_cift_tarafli == 1" : undefined },
 
         { fieldtype: "Section Break", hide_border: 1 },
         { fieldtype: "Float", label: __("T1 Çapak Boyu (mm)"), fieldname: "capak_boyu", default: defaults.capak_boyu ?? 0 },
         { fieldtype: "Column Break" },
-        { fieldtype: "Float", label: __("T2 Çapak Boyu (mm)"), fieldname: "yon_2_capak_boyu", default: defaults.yon_2_capak_boyu ?? 0 },
+        { fieldtype: "Float", label: __("T2 Çapak Boyu (mm)"), fieldname: "yon_2_capak_boyu", default: defaults.yon_2_capak_boyu ?? 0, depends_on: is_manual ? "eval:doc.is_cift_tarafli == 1" : undefined },
 
         {
             fieldtype: "Section Break",
             label: __("T1 - Terminal Bilgileri"),
-            depends_on: "eval:doc.kontak_no"
+            depends_on: is_manual ? undefined : "eval:doc.kontak_no"
         },
         {
             fieldtype: "Link",
@@ -179,15 +187,9 @@ export function krimpOlcumFields(defaults: any = {}) {
             default: defaults.tel_kesme_mevcut ?? 0,
         },
         {
-            fieldtype: "Check",
-            fieldname: "is_cift_tarafli",
-            default: defaults.is_cift_tarafli || 0,
-            hidden: 1
-        },
-        {
             fieldtype: "Section Break",
             label: __("T2 - Terminal Bilgileri"),
-            depends_on: "eval:doc.yon_2_kontak_no"
+            depends_on: is_manual ? "eval:doc.is_cift_tarafli == 1" : "eval:doc.yon_2_kontak_no"
         },
         {
             fieldtype: "Link",
@@ -196,7 +198,7 @@ export function krimpOlcumFields(defaults: any = {}) {
             options: "Item",
             default: defaults.yon_2_kontak_no || "",
             reqd: 0,
-            depends_on: "eval:doc.yon_2_kontak_no",
+            depends_on: is_manual ? "eval:doc.is_cift_tarafli == 1" : "eval:doc.yon_2_kontak_no",
             get_query: () => ({
                 query: "erpnextkta.kta_calisma_karti.api.search_krimp_items",
                 filters: { calisma_karti: defaults.calisma_karti_name, type: "kontak" }
@@ -208,7 +210,7 @@ export function krimpOlcumFields(defaults: any = {}) {
             fieldname: "yon_2_kablo_kesiti",
             options: defaults.yon_2_kablo_kesiti ? ["", defaults.yon_2_kablo_kesiti] : [""],
             default: defaults.yon_2_kablo_kesiti || "",
-            depends_on: "eval:doc.yon_2_kontak_no"
+            depends_on: is_manual ? "eval:doc.is_cift_tarafli == 1" : "eval:doc.yon_2_kontak_no"
         },
         {
             fieldtype: "Section Break",

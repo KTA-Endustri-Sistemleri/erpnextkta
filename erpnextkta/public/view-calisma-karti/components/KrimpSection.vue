@@ -92,6 +92,14 @@ function actions(r: any) {
     <b>{{ __('Krimp Ölçümleri') }}</b>
     <div style="display:flex; gap:6px;">
       <button
+        v-if="props.canEditData && props.doc.has_krimp && !props.doc.alt_operasyon_bazli_kalite"
+        class="ck-btn ck-btn--primary"
+        style="padding: 8px 10px; font-size: 12px;"
+        @click="props.onAdd()"
+      >
+        {{ __('Ekle') }}
+      </button>
+      <button
         v-if="(props.rows||[]).length > 0"
         class="ck-btn"
         style="padding: 8px 10px; font-size: 12px;"

@@ -335,7 +335,7 @@ def search_krimp_items(doctype, txt, searchfield, start, page_len, filters):
     )
 
 @frappe.whitelist()
-def get_krimp_book_details(kablo_no=None, kontak_no=None, selected_kesit=None):
+def get_krimp_book_details(kablo_no=None, kontak_no=None, selected_kesit=None, kalip_no=None):
     """
     Tries to find matching values from 'KTA Krimp Book' based on Cable and Terminal.
     Uses normalization to handle variations like '20 AWG' vs 'AWG20'.
@@ -359,16 +359,23 @@ def get_krimp_book_details(kablo_no=None, kontak_no=None, selected_kesit=None):
         fields=["*"]
     )
     
-    book_entry = None
+    matches = []
     for entry in potential_entries:
         if normalize_kesit(entry.kesit) == norm_target:
-            book_entry = entry
-            break
+            matches.append(entry)
             
-    if not book_entry:
+    if not matches:
         return {}
-    
-    # book_entry already found via normalized comparison above
+        
+    book_entry = None
+    if kalip_no:
+        for m in matches:
+            if m.kalip and str(m.kalip).strip() == str(kalip_no).strip():
+                book_entry = m
+                break
+                
+    if not book_entry:
+        book_entry = matches[0]
 
     # Helper to parse string values to float
     def to_f(val):
