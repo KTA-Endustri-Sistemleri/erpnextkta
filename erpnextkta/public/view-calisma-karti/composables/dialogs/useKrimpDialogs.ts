@@ -232,6 +232,8 @@ export function useKrimpDialogs(props: any) {
             dialog.set_value("is_cift_tarafli", sides.is_cift ? 1 : 0);
             dialog.set_value("kontak_no", sides.t1.kontak);
             dialog.set_value("siyirma_boyu", sides.t1.siyirma);
+            if (sides.kablo_no) dialog.set_value("kablo_no", sides.kablo_no);
+            if (sides.hedef_kablo_boyu) dialog.set_value("hedef_kablo_boyu", sides.hedef_kablo_boyu);
             if (sides.is_cift && sides.t2) {
               dialog.set_value("yon_2_kontak_no", sides.t2.kontak);
               dialog.set_value("yon_2_siyirma_boyu", sides.t2.siyirma);
@@ -240,9 +242,7 @@ export function useKrimpDialogs(props: any) {
               dialog.set_value("yon_2_siyirma_boyu", 0);
             }
           }
-          if (altOpRow.hammadde) dialog.set_value("kablo_no", altOpRow.hammadde);
           if (altOpRow.satir_no) dialog.set_value("satir_no", altOpRow.satir_no);
-          if (altOpRow.boyut_1_mm) dialog.set_value("hedef_kablo_boyu", parseFloat(altOpRow.boyut_1_mm));
         }
       };
     }
@@ -258,17 +258,40 @@ export function useKrimpDialogs(props: any) {
 
   function resolveAltOpSides(altOpRow: any) {
     if (!altOpRow) return null;
-    const solKontak = (altOpRow.hammadde_2 || "").trim();
-    const sagKontak = (altOpRow.hammadde_3 || "").trim();
-    const solSiyirma = parseFloat(altOpRow.boyut_2_mm || 0);
-    const sagSiyirma = parseFloat(altOpRow.boyut_3_mm || 0);
+    let solKontak = "";
+    let sagKontak = "";
+    let solSiyirma = 0;
+    let sagSiyirma = 0;
+    let ortaKablo = "";
+    let hedefKabloBoyu = 0;
 
-    const is_cift = !!(sagKontak || sagSiyirma > 0 || altOpRow.operasyon_tipi === "Çift Taraf");
+    const tuketimler = Array.isArray(altOpRow.hammadde_tuketimleri) ? altOpRow.hammadde_tuketimleri : [];
+    
+    for (const t of tuketimler) {
+      const h = (t.hammadde || "").trim();
+      const b = parseFloat(t.boyut_mm || 0);
+      const y = t.yon || "Orta";
+      
+      if (y === "Orta" || (!t.yon && (h.toLowerCase().includes("kablo") || h.toLowerCase().includes("cable") || h.toLowerCase().includes("wire")))) {
+         if (h && !ortaKablo) ortaKablo = h;
+         if (b > 0 && !hedefKabloBoyu) hedefKabloBoyu = b;
+      } else if (y === "Sol") {
+         if (h && !solKontak) solKontak = h; // Autofill first item as contact
+         if (b > 0 && !solSiyirma) solSiyirma = b;
+      } else if (y === "Sağ") {
+         if (h && !sagKontak) sagKontak = h;
+         if (b > 0 && !sagSiyirma) sagSiyirma = b;
+      }
+    }
+
+    const is_cift = !!(sagKontak || sagSiyirma > 0);
 
     return { 
       is_cift: is_cift, 
       t1: { kontak: solKontak, siyirma: solSiyirma }, 
-      t2: { kontak: sagKontak, siyirma: sagSiyirma } 
+      t2: { kontak: sagKontak, siyirma: sagSiyirma },
+      kablo_no: ortaKablo,
+      hedef_kablo_boyu: hedefKabloBoyu
     };
   }
 
@@ -296,16 +319,17 @@ export function useKrimpDialogs(props: any) {
       defaults.is_cift_tarafli = sides.is_cift ? 1 : 0;
       defaults.kontak_no = sides.t1.kontak;
       defaults.siyirma_boyu = sides.t1.siyirma;
+      defaults.kablo_no = sides.kablo_no;
+      defaults.hedef_kablo_boyu = sides.hedef_kablo_boyu;
+      
       if (sides.is_cift && sides.t2) {
         defaults.yon_2_kontak_no = sides.t2.kontak;
         defaults.yon_2_siyirma_boyu = sides.t2.siyirma;
       }
     }
     
-    if (altOpRow) {
-      defaults.kablo_no = altOpRow.hammadde || "";
-      defaults.satir_no = altOpRow.satir_no || "";
-      defaults.hedef_kablo_boyu = parseFloat(altOpRow.boyut_1_mm || 0);
+    if (altOpRow && altOpRow.satir_no) {
+      defaults.satir_no = altOpRow.satir_no;
     }
 
     const dialog = frappe.prompt(

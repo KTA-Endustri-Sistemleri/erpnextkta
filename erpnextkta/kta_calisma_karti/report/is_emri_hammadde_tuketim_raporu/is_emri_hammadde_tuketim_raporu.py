@@ -19,12 +19,8 @@ def execute(filters=None):
 
 def _get_pivot_data(work_order_filter: str = None, operator_filter: str = None, item_filter: str = None):
     """Fetch consumption data and pivot it as Operator x Items."""
-    material_slots = [
-        ("hammadde", "adet", "uom"),
-        ("hammadde_2", "adet_2", "uom_2"),
-        ("hammadde_3", "adet_3", "uom_3"),
-    ]
-
+    from erpnextkta.kta_calisma_karti.api_impl.alt_operasyon import _calculate_tuketim
+    
     conditions = []
     query_params = []
 
@@ -42,12 +38,16 @@ def _get_pivot_data(work_order_filter: str = None, operator_filter: str = None, 
         f"""
         SELECT
             ck.operator,
-            aok.hammadde,   aok.adet,   aok.uom,
-            aok.hammadde_2, aok.adet_2, aok.uom_2,
-            aok.hammadde_3, aok.adet_3, aok.uom_3
-        FROM `tabCalisma Karti Alt Operasyon Kayitlari` aok
-        JOIN `tabCalisma Karti` ck ON ck.name = aok.parent
+            hk.hammadde, 
+            hk.boyut_mm, 
+            hk.islem_adedi, 
+            hk.uom
+        FROM `tabKTA Calisma Karti Hammadde Kayitlari` hk
+        JOIN `tabCalisma Karti` ck ON ck.name = hk.parent
+        JOIN `tabCalisma Karti Alt Operasyon Kayitlari` aok ON aok.name = hk.alt_operasyon_ref
         WHERE {where_clause}
+          AND IFNULL(hk.hammadde, '') != ''
+          AND IFNULL(aok.quality_inspection_status, '') != 'Reddedildi'
         """,
         tuple(query_params),
         as_dict=True,
@@ -59,35 +59,38 @@ def _get_pivot_data(work_order_filter: str = None, operator_filter: str = None, 
     employee_names = {}
 
     for r in rows:
-        for h_field, a_field, u_field in material_slots:
-            item_code = r.get(h_field)
-            qty = flt(r.get(a_field))
-            uom = r.get(u_field)
+        item_code = r.get("hammadde")
+        if not item_code:
+            continue
+            
+        if item_filter and item_code != item_filter:
+            continue
 
-            if not item_code or qty == 0:
-                continue
+        calculated_qty, calculated_uom = _calculate_tuketim(item_code, r.get("boyut_mm"), r.get("islem_adedi"))
+        qty = flt(calculated_qty)
+        uom = calculated_uom or r.get("uom")
 
-            if item_filter and item_code != item_filter:
-                continue
+        if qty == 0:
+            continue
 
-            operator = r.operator
-            if operator and operator not in employee_names:
-                employee_names[operator] = frappe.db.get_value("Employee", operator, "employee_name") or operator
+        operator = r.operator
+        if operator and operator not in employee_names:
+            employee_names[operator] = frappe.db.get_value("Employee", operator, "employee_name") or operator
 
-            if item_code not in item_names:
-                item_names[item_code] = frappe.db.get_value("Item", item_code, "item_name") or item_code
-                item_uoms[item_code] = uom
+        if item_code not in item_names:
+            item_names[item_code] = frappe.db.get_value("Item", item_code, "item_name") or item_code
+            item_uoms[item_code] = uom
 
-            if operator not in operator_data:
-                operator_data[operator] = {
-                    "operator": operator,
-                    "operator_name": employee_names.get(operator, ""),
-                }
+        if operator not in operator_data:
+            operator_data[operator] = {
+                "operator": operator,
+                "operator_name": employee_names.get(operator, ""),
+            }
 
-            if item_code not in operator_data[operator]:
-                operator_data[operator][item_code] = 0.0
+        if item_code not in operator_data[operator]:
+            operator_data[operator][item_code] = 0.0
 
-            operator_data[operator][item_code] += qty
+        operator_data[operator][item_code] += qty
 
     # Build dynamic columns
     columns = [

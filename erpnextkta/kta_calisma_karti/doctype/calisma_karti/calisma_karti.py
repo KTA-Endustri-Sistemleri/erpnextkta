@@ -146,6 +146,12 @@ class CalismaKarti(Document):
     def on_submit(self):
         from erpnextkta.kta_calisma_karti.api_impl.job_card_sync import sync_time_log_to_job_card
         sync_time_log_to_job_card(self)
+        
+        # Rezervasyon olan Sanal Yarimamulleri Aktif yap
+        draft_wips = frappe.db.get_all("KTA Sanal Yarimamul", filters={"calisma_karti": self.name, "status": "Rezervasyon"})
+        for w in draft_wips:
+            frappe.db.set_value("KTA Sanal Yarimamul", w.name, "status", "Aktif")
+
 
     def on_cancel(self):
         self.db_set("durum", "İptal Edildi", update_modified=True)

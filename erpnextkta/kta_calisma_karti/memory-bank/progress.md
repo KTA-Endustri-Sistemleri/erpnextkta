@@ -197,6 +197,14 @@
 
 ## Çalışan Özellikler
 
+### Sanal Yarımamül Grafik Altyapısı Düzeltmeleri (2026-07-15 — Tamamlandı)
+- [x] **Traceability (Köken İzleme) Hatası:** `trace_origin` fonksiyonunun yeni kalıntıları ararken kendini tüketen operasyona takılı kalıp sonsuz döngüye girmesi engellendi.
+- [x] **Kalıntı Eşleştirme Hataları:** Split edilmiş (bir kısmı tüketilen, kalanı ayrılan) aynı kabloların kalıntılarının kime ait olduğunu karıştırma sorunu giderildi.
+- [x] **Mavi Alan (Görünüm) Senkronizasyonu:** UI tarafındaki yeşil ve mavi bloklarda referans numarası etiketlerinin yanlış kabloya atanması tamamen düzeltildi.
+- [x] **Graph Status (Uç Durumları):** (Açık) ve (Dolu) statülerinin koda statik olarak yazılması yerine, bizzat graph objesinden dinamik okunması sağlandı.
+- [x] **Doppel & Filtreleme Algoritması (UX):** İşlem sonucunda kalıntılarla birlikte oluşan Doppel Ana WIP'lerinin UI'da ayrı çizilmesini engelleyip, kalıntı WIP'lerin filtre yardımıyla önizlemeden düşürülerek temiz bir Doppel yapısının kullanıcıya sunulması sağlandı.
+
+
 ### Dashboard ✅
 - [x] **`Calisma Karti` Chart Source** (`dashboard_chart_source/calisma_karti/`)
   - Günlük durum dağılımı bar chart (5 durum × N gün)

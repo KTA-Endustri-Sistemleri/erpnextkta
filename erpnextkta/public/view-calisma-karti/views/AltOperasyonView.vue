@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
-import { altOperasyonFieldsMulti, altOperasyonFieldsSingle } from "../composables/prompts";
+import { computed, ref, onMounted, watch } from "vue";
+import CkAltOperasyonModal from "../components/CkAltOperasyonModal.vue";
+import CkGraphViewerModal from "../components/CkGraphViewerModal.vue";
+import NodeSelectorModal from "../components/NodeSelectorModal.vue";
+import SocketPinModal from "../components/SocketPinModal.vue";
+import InjectionMoldModal from "../components/InjectionMoldModal.vue";
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
@@ -11,6 +15,43 @@ const props = defineProps<{
   onUpdate: (payload: any) => Promise<void>;
   onDelete: (rowname: string) => Promise<void>;
 }>();
+
+const formatYon = (yon?: string) => {
+  if (yon === 'Sol') return 'T1';
+  if (yon === 'Sağ') return 'T2';
+  if (yon === 'Orta') return 'C';
+  return yon || '';
+};
+
+const sortTuketimler = (tuketimler: any[]) => {
+  if (!tuketimler) return [];
+  const order: Record<string, number> = { 'Sol': 1, 'Orta': 2, 'Sağ': 3 };
+  
+  // Clone to avoid mutating the reactive object
+  let processed = tuketimler.map(t => ({...t}));
+  
+  const graphRows = processed.filter(t => !t.hammadde || t.hammadde === 'GRAPH');
+  const realRows = processed.filter(t => !!t.hammadde && t.hammadde !== 'GRAPH');
+  
+  if (graphRows.length > 0 && realRows.length > 0) {
+     const combinedWips = graphRows
+       .map(g => g.source_wip_ids)
+       .filter(Boolean)
+       .join(",");
+       
+     if (combinedWips) {
+       realRows[0].source_wip_ids = combinedWips;
+     }
+     
+     processed = realRows;
+  }
+  
+  return processed.sort((a, b) => {
+    const aOrder = order[a.yon || 'Orta'] || 99;
+    const bOrder = order[b.yon || 'Orta'] || 99;
+    return aOrder - bOrder;
+  });
+};
 
 function isQCLocked(h: any): boolean {
   if (!props.doc.alt_operasyon_bazli_kalite) return false;
@@ -29,6 +70,19 @@ const sortedRows = computed(() => {
 
 const altOpOptions = ref<any[]>([]);
 const ekranTipi = ref<string>("Tekli Hammadde");
+const showModal = ref(false);
+const showGraphModal = ref(false);
+const activeGraphWipId = ref<string | null>(null);
+const editingRow = ref<any>(null);
+
+// Modal states for Graph Actions
+const showNodeSelector = ref(false);
+const showSocketPin = ref(false);
+const showInjectionMold = ref(false);
+const pendingAltOperasyon = ref<any>(null);
+const activeNodesForSelector = ref<any[]>([]);
+const activeNodeForSocket = ref<any>(null);
+const activeNodesForInjection = ref<any[]>([]);
 
 async function fetchAltOpOptions() {
   const r = await frappe.call({
@@ -45,41 +99,82 @@ async function fetchAltOpOptions() {
   }
 }
 
+const wipLabelMap = ref<Record<string, string>>({});
+
+async function loadWipLabels() {
+  const wipIds: string[] = [];
+  const rows: any[] = props.doc?.alt_operasyon_kayitlari ?? [];
+  for (const r of rows) {
+    if (r.hammadde_tuketimleri) {
+      for (const tk of r.hammadde_tuketimleri) {
+        if (tk.source_wip_ids) {
+          const ids = tk.source_wip_ids.split(",").map((i: string) => i.trim());
+          wipIds.push(...ids);
+        }
+      }
+    }
+  }
+  
+  if (wipIds.length > 0) {
+    try {
+      const res = await frappe.call({
+        method: "erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.get_wip_source_info",
+        args: { wip_ids: Array.from(new Set(wipIds)) }
+      });
+      if (res.message) {
+        wipLabelMap.value = res.message;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
+
+watch(() => props.doc?.alt_operasyon_kayitlari, () => {
+  loadWipLabels();
+}, { deep: true, immediate: true });
+
 onMounted(() => {
   fetchAltOpOptions();
 });
 
 function onAltOperasyonEkle() {
-  let d: any;
-  const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
-  const defaults = { alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite };
-  const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
-  d = frappe.prompt(
-    fields,
-    async (v: any) => {
-      let islem_1 = typeof v.islem_adedi_1 !== 'undefined' ? v.islem_adedi_1 : (v.adet || 1);
-      let islem_3 = v.islem_adedi_3 || 1;
+  editingRow.value = null;
+  showModal.value = true;
+}
 
-      await props.onAdd({
-        alt_operasyon: v.alt_operasyon,
-        satir_no: v.satir_no || "",
-        hammadde: v.hammadde || null,
-        boyut_1_mm: v.boyut_1_mm || 0,
-        islem_adedi_1: islem_1, // fallback to adet for single mode handled above
-        hammadde_2: v.hammadde_2 || null,
-        boyut_2_mm: v.boyut_2_mm || 0,
-        islem_adedi_2: v.islem_adedi_2 || 1,
-        hammadde_3: v.hammadde_3 || null,
-        boyut_3_mm: v.boyut_3_mm || 0,
-        islem_adedi_3: islem_3,
-        note: v.note || null,
-        uom: v.uom || null, // Capture UOM from old mode
-      });
-      frappe.show_alert({ message: __("Alt İşlem eklendi"), indicator: "green" });
-    },
-    __("Alt İşlem Ekle"),
-    __("Kaydet")
-  );
+const activeGraphOpRefs = ref<string[] | null>(null);
+
+function getTargetWipId(altOperasyonRef: string, fallbackIds: string, operationRow: any): string {
+  if (operationRow && operationRow.wip_snapshots) {
+    try {
+      const snaps = typeof operationRow.wip_snapshots === 'string' ? JSON.parse(operationRow.wip_snapshots) : operationRow.wip_snapshots;
+      if (snaps && snaps.created_wips && snaps.created_wips.length > 0) {
+        return snaps.created_wips.join(',');
+      }
+    } catch (e) {
+      console.error("Failed to parse wip_snapshots in getTargetWipId", e);
+    }
+  }
+  
+  if (!props.doc?.hammadde_tuketimleri) return fallbackIds;
+  const targetRow = props.doc.hammadde_tuketimleri.find((r: any) => r.alt_operasyon_ref === altOperasyonRef && r.wip_id);
+  return targetRow?.wip_id || fallbackIds;
+}
+
+function openGraphViewer(wipId: string, currentOpRef?: string) {
+  activeGraphWipId.value = wipId;
+  if (currentOpRef) {
+    const idx = props.doc.alt_operasyon_kayitlari?.findIndex((r: any) => r.name === currentOpRef);
+    if (idx !== undefined && idx !== -1) {
+      activeGraphOpRefs.value = props.doc.alt_operasyon_kayitlari.slice(0, idx + 1).map((r: any) => r.name);
+    } else {
+      activeGraphOpRefs.value = null;
+    }
+  } else {
+    activeGraphOpRefs.value = null;
+  }
+  showGraphModal.value = true;
 }
 
 function onAltOperasyonDuzenle(h: any) {
@@ -87,42 +182,141 @@ function onAltOperasyonDuzenle(h: any) {
     frappe.msgprint("Satır kimliği (row name) bulunamadı.");
     return;
   }
+  editingRow.value = h;
+  showModal.value = true;
+}
 
-  let d: any;
-  const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
-  const defaults = {
-    ...h,
-    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite,
-    adet: h.adet || h.islem_adedi_1 // map islem_adedi_1 to adet for single mode edit
-  };
-  const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
-  d = frappe.prompt(
-    fields,
-    async (v: any) => {
-      let islem_1 = typeof v.islem_adedi_1 !== 'undefined' ? v.islem_adedi_1 : (v.adet || 1);
-      let islem_3 = v.islem_adedi_3 || 1;
+async function handleModalSubmit(payload: any) {
+  const selectedOption = altOpOptions.value.find((o) => o.value === payload.alt_operasyon);
+  const behavior = selectedOption?.sanal_yarimamul_davranisi;
 
-      await props.onUpdate({
-        row_id: h.name,
-        alt_operasyon: v.alt_operasyon,
-        satir_no: v.satir_no || "",
-        hammadde: v.hammadde || null,
-        boyut_1_mm: v.boyut_1_mm || 0,
-        islem_adedi_1: islem_1,
-        hammadde_2: v.hammadde_2 || null,
-        boyut_2_mm: v.boyut_2_mm || 0,
-        islem_adedi_2: v.islem_adedi_2 || 1,
-        hammadde_3: v.hammadde_3 || null,
-        boyut_3_mm: v.boyut_3_mm || 0,
-        islem_adedi_3: islem_3,
-        note: v.note || null,
-        uom: v.uom || null,
-      });
-      frappe.show_alert({ message: __("Alt İşlem güncellendi"), indicator: "green" });
-    },
-    __("Alt İşlem Düzenle"),
-    __("Kaydet")
-  );
+  if (behavior && !payload._modalProcessed) {
+    const sourceWipIds = payload.source_wip_ids ? payload.source_wip_ids.split(",").map((s: string) => s.trim()) : [];
+    const mainWipId = sourceWipIds[0] || null;
+
+    let graphNodes = [];
+    if (mainWipId) {
+        try {
+            const r = await frappe.call({
+                method: "erpnextkta.kta_calisma_karti.api.get_wip_graph",
+                args: { wip_id: mainWipId }
+            });
+            if (r.message && r.message.nodes) {
+                graphNodes = r.message.nodes;
+                const graphEdges = r.message.edges || [];
+                
+                // Formulate display titles for UX
+                graphNodes.forEach(n => {
+                    let cableMat = null;
+                    if (n.type.includes("Uç")) {
+                        // try to find the connected Kablo Merkezi
+                        const edge = graphEdges.find(e => e.source === n.id || e.target === n.id);
+                        if (edge) {
+                            const otherId = edge.source === n.id ? edge.target : edge.source;
+                            const otherNode = graphNodes.find(on => on.id === otherId);
+                            if (otherNode && otherNode.type === "Kablo Merkezi" && otherNode.materials) {
+                                cableMat = otherNode.materials.find(m => m.yon === "Orta");
+                            }
+                        }
+                    }
+                    if (cableMat && cableMat.hammadde) {
+                        const cableLength = cableMat.boyut_mm ? ` (${cableMat.boyut_mm}mm)` : "";
+                        n.display_title = `${n.type} — ${cableMat.hammadde}${cableLength}`;
+                    } else {
+                        n.display_title = n.type;
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Graph fetch error", e);
+        }
+    }
+
+    pendingAltOperasyon.value = payload;
+    activeGraphWipId.value = mainWipId;
+
+    if (behavior === "Soketler" || behavior === "Soket Çakma") {
+      const poolItems = payload.hammadde_tuketimleri?.filter((r:any) => r.source_wip_ids) || [];
+      if (poolItems.length > 0 && poolItems.every((r:any) => r.hedef_node_id)) {
+          proceedSubmit(payload);
+          return;
+      }
+      activeNodesForSelector.value = graphNodes.filter(n => n.status !== "Soketlendi" && n.status !== "Kalıplanmış" && n.status !== "Birleşti" && !n.type.includes("Soket") && !n.type.includes("Kablo Merkezi"));
+      showNodeSelector.value = true;
+      return;
+    } else if (behavior === "Uca / Düğüme Bileşen Ekler" || behavior === "Seçili Düğüme Komponent Ekle" || behavior === "Bileşeni Aktifleştirir" || behavior === "Ucu Böler") {
+      const poolItems = payload.hammadde_tuketimleri?.filter((r:any) => r.source_wip_ids) || [];
+      if (poolItems.length > 0 && poolItems.every((r:any) => r.hedef_node_id)) {
+          proceedSubmit(payload);
+          return;
+      }
+      activeNodesForSelector.value = graphNodes.filter(n => n.status !== "Birleşti"); 
+      showNodeSelector.value = true;
+      return;
+    } else if (behavior === "Enjeksiyon" || behavior === "Enjeksiyon Baskı") {
+      activeNodesForInjection.value = graphNodes.filter(n => n.status === "Soketlendi" || n.status === "Birleşti" || n.status === "Dolu");
+      showInjectionMold.value = true;
+      return;
+    }
+  }
+
+  await proceedSubmit(payload);
+}
+
+async function proceedSubmit(payload: any) {
+  if (editingRow.value) {
+    await props.onUpdate(payload);
+    frappe.show_alert({ message: __("Alt İşlem güncellendi"), indicator: "green" });
+  } else {
+    await props.onAdd(payload);
+    frappe.show_alert({ message: __("Alt İşlem eklendi"), indicator: "green" });
+  }
+}
+
+// Modal Handlers
+function handleNodeSelectorSave(nodeId: string) {
+  if (pendingAltOperasyon.value) {
+    const selectedOption = altOpOptions.value.find((o) => o.value === pendingAltOperasyon.value.alt_operasyon);
+    const behavior = selectedOption?.sanal_yarimamul_davranisi;
+
+    if (behavior === "Soketler" || behavior === "Soket Çakma") {
+        // We selected the node, now we need to ask for the pin number!
+        showNodeSelector.value = false;
+        activeNodeForSocket.value = nodeId;
+        showSocketPin.value = true;
+        return;
+    }
+
+    const payload = { ...pendingAltOperasyon.value, _modalProcessed: true };
+    if (payload.hammadde_tuketimleri && payload.hammadde_tuketimleri.length > 0) {
+        payload.hammadde_tuketimleri[0].hedef_node_id = nodeId;
+    }
+    showNodeSelector.value = false;
+    proceedSubmit(payload);
+  }
+}
+
+function handleSocketPinSave(data: { nodeId: string; pin: string }) {
+  if (pendingAltOperasyon.value) {
+    const payload = { ...pendingAltOperasyon.value, _modalProcessed: true };
+    if (payload.hammadde_tuketimleri && payload.hammadde_tuketimleri.length > 0) {
+        payload.hammadde_tuketimleri[0].hedef_node_id = data.nodeId;
+        payload.note = (payload.note || "") + `\nPin: ${data.pin}`;
+    }
+    showSocketPin.value = false;
+    proceedSubmit(payload);
+  }
+}
+
+function handleInjectionMoldSave(nodeId: string) {
+  if (pendingAltOperasyon.value) {
+    const payload = { ...pendingAltOperasyon.value, _modalProcessed: true };
+    if (payload.hammadde_tuketimleri && payload.hammadde_tuketimleri.length > 0) {
+        payload.hammadde_tuketimleri[0].hedef_node_id = nodeId;
+    }
+    showInjectionMold.value = false;
+    proceedSubmit(payload);
+  }
 }
 
 function onAltOperasyonSil(h: any) {
@@ -144,6 +338,14 @@ function onAltOperasyonSil(h: any) {
     frappe.show_alert({ message: __("Alt İşlem silindi"), indicator: "green" });
   });
 }
+
+function formatSatirNo(val: any): string {
+  if (!val) return val;
+  const parts = String(val).split('.');
+  const intPart = parts[0].padStart(2, '0');
+  const decPart = parts[1] ? parts[1].padStart(2, '0') : '';
+  return decPart ? `${intPart}.${decPart}` : intPart;
+}
 </script>
 
 <template>
@@ -158,49 +360,97 @@ function onAltOperasyonSil(h: any) {
       <div v-for="(h, i) in sortedRows" :key="h.name || i" class="ck-mini-item">
         <div style="display: flex; gap: 12px; align-items: stretch; flex: 1; min-width: 0;">
             <div v-if="h.satir_no" style="display: flex; align-items: center; justify-content: center; padding-right: 12px; border-right: 2px solid var(--ck-glass-border-soft); margin-right: 4px;">
-                <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">{{ h.satir_no }}</span>
+                <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">{{ formatSatirNo(h.satir_no) }}</span>
             </div>
             <div class="ck-mini-content">
                 <b class="ck-mini-title">{{ h.alt_operasyon_title || h.alt_operasyon }}</b>
             
-            <template v-if="ekranTipi === 'Çoklu Hammadde'">
-              <div class="ck-muted ck-mini-sub" v-if="h.hammadde_2 || h.boyut_2_mm || h.hammadde_3">
-                <b>{{ __("T1") }}:</b> 
-                <template v-if="h.hammadde_2">
-                    {{ h.hammadde_2 }}
-                    <template v-if="h.boyut_2_mm > 0"> ({{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm)</template>
-                    <span v-if="h.uom_2"> [{{ h.adet_2 || 0 }} {{ h.uom_2 }}]</span>
+            <template v-if="h.hammadde_tuketimleri && h.hammadde_tuketimleri.length > 0">
+              <div class="ck-muted ck-mini-sub" v-for="(tk, iidx) in sortTuketimler(h.hammadde_tuketimleri)" :key="iidx">
+                <template v-if="(!tk.hammadde || tk.hammadde === 'GRAPH') && tk.source_wip_ids">
+                  <!-- GRAPH marker: Havuzdan seçilen WIP referansı -->
+                  <div v-for="(swid, widx) in tk.source_wip_ids.split(',').map(s => s.trim()).filter(Boolean)" :key="widx" style="margin-top: 2px; padding-left: 10px; border-left: 2px solid var(--ck-primary);">
+                    <template v-if="wipLabelMap[swid]">
+                      <span style="color: var(--ck-text); font-weight: 500; font-size: 0.9em;">
+                        {{ wipLabelMap[swid] }}
+                      </span>
+                    </template>
+                    <template v-else>
+                      <span style="color: var(--ck-primary); font-weight: bold;">[{{ __("HAVUZDAN SEÇİLDİ") }}]</span>
+                    </template>
+                    <span style="font-weight: 500; margin-left: 6px;">[{{ tk.islem_adedi || 1 }} {{ __("Adet") }}]</span>
+                    <span 
+                      style="cursor: pointer; font-size: 14px; margin-left: 4px;"
+                      title="Grafiği Görüntüle"
+                      @click="openGraphViewer(swid)"
+                    >🔍</span>
+                  </div>
+                </template>
+                <template v-else-if="tk.hammadde">
+                  <template v-if="tk.source_wip_ids">
+                    <div style="margin-bottom: 4px; display: flex; align-items: stretch; gap: 8px;">
+                      <template v-if="tk.hammadde && tk.hammadde.trim()">
+                        <div style="display: flex; align-items: center;">
+                          <b v-if="formatYon(tk.yon)">{{ formatYon(tk.yon) }}:</b> 
+                          <span style="color: var(--ck-primary); font-weight: bold; margin-left: 4px; margin-right: 4px;">{{ tk.hammadde }} &lt;</span>
+                          <template v-if="tk.boyut_mm > 0"> ({{ __("Boy") }}: {{ tk.boyut_mm }}mm)</template>
+                          <template v-if="tk.uom && ['m', 'metre', 'meter'].includes(tk.uom.toLowerCase())">
+                            <span style="font-weight: 500;"> [{{ tk.islem_adedi || 1 }} {{ __("Adet") }}]</span>
+                            <span class="ck-muted" style="font-size: 0.85em; margin-left: 4px;">(Tüketim: {{ parseFloat(((tk.boyut_mm || 0) * (tk.islem_adedi || 1) / 1000).toFixed(3)) }} m)</span>
+                          </template>
+                          <template v-else>
+                            <span style="font-weight: 500;"> [{{ tk.islem_adedi || 1 }} {{ tk.uom || __("Adet") }}]</span>
+                          </template>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span 
+                              style="cursor: pointer; font-size: 14px; text-decoration: none;"
+                              title="Birleştirilmiş İşlem Grafiğini Görüntüle"
+                              @click="openGraphViewer(getTargetWipId(tk.alt_operasyon_ref, tk.source_wip_ids, h), tk.alt_operasyon_ref)"
+                            >
+                              🔍
+                            </span>
+                        </div>
+                      </template>
+                      
+                      <div style="display: flex; flex-direction: column; justify-content: center; border-left: 2px solid var(--ck-glass-border); padding-left: 8px;">
+                          <div v-for="(swid, widx) in tk.source_wip_ids.split(',').map(s => s.trim()).filter(Boolean)" :key="widx">
+                            <template v-if="wipLabelMap[swid]">
+                              <span style="color: var(--ck-text); font-weight: 500; font-size: 0.9em; text-decoration: none;">
+                                {{ wipLabelMap[swid] }}
+                              </span>
+                            </template>
+                            <template v-else>
+                              <span style="color: var(--ck-primary); font-weight: bold; margin-right: 4px;">[{{ __("HAVUZDAN SEÇİLDİ") }}]</span>
+                            </template>
+                          </div>
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <b v-if="formatYon(tk.yon)">{{ formatYon(tk.yon) }}:</b> {{ tk.hammadde }}
+                    <template v-if="tk.boyut_mm > 0"> ({{ __("Boy") }}: {{ tk.boyut_mm }}mm)</template>
+                    <template v-if="tk.uom && ['m', 'metre', 'meter'].includes(tk.uom.toLowerCase())">
+                      <span style="font-weight: 500;"> [{{ tk.islem_adedi || 1 }} {{ __("Adet") }}]</span>
+                      <span class="ck-muted" style="font-size: 0.85em; margin-left: 4px;">(Tüketim: {{ parseFloat(((tk.boyut_mm || 0) * (tk.islem_adedi || 1) / 1000).toFixed(3)) }} m)</span>
+                    </template>
+                    <template v-else>
+                      <span style="font-weight: 500;"> [{{ tk.islem_adedi || 1 }} {{ tk.uom || __("Adet") }}]</span>
+                    </template>
+                  </template>
                 </template>
                 <template v-else>
-                    <template v-if="h.boyut_2_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm</template>
-                    <template v-else>{{ __("SIYIRMASIZ") }}</template>
-                </template>
-              </div>
-
-              <div class="ck-muted ck-mini-sub" v-if="h.hammadde || h.boyut_1_mm">
-                <b>{{ __("C") }}:</b> 
-                <template v-if="h.hammadde">{{ h.hammadde }}</template>
-                <template v-if="h.hammadde && h.boyut_1_mm"> ({{ __("Boy") }}: {{ h.boyut_1_mm }}mm)</template>
-                <template v-if="!h.hammadde && h.boyut_1_mm">{{ __("Boy") }}: {{ h.boyut_1_mm }}mm</template>
-                <span v-if="h.uom"> [{{ h.adet || 0 }} {{ h.uom }}]</span>
-              </div>
-              
-              <div class="ck-muted ck-mini-sub" v-if="h.hammadde_3 || h.boyut_3_mm || h.hammadde_2">
-                <b>{{ __("T2") }}:</b> 
-                <template v-if="h.hammadde_3">
-                    {{ h.hammadde_3 }}
-                    <template v-if="h.boyut_3_mm > 0"> ({{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm)</template>
-                    <span v-if="h.uom_3"> [{{ h.adet_3 || 0 }} {{ h.uom_3 }}]</span>
-                </template>
-                <template v-else>
-                    <template v-if="h.boyut_3_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm</template>
-                    <template v-else>{{ __("SIYIRMASIZ") }}</template>
+                  <span class="ck-muted" v-if="tk.boyut_mm > 0">
+                    <b v-if="formatYon(tk.yon)">{{ formatYon(tk.yon) }}:</b> {{ tk.boyut_mm }}mm ({{ __("Sıyırma") }})
+                  </span>
+                  <span class="ck-muted" v-else>
+                    <b v-if="formatYon(tk.yon)">{{ formatYon(tk.yon) }}:</b> ({{ __("Sıyırmasız") }})
+                  </span>
                 </template>
               </div>
             </template>
             <template v-else>
-              <div class="ck-muted ck-mini-sub" v-if="h.hammadde">{{ h.hammadde }} ({{ h.adet || 0 }} {{ h.uom || '' }})</div>
-              <div class="ck-muted ck-mini-sub" v-else-if="h.adet || h.uom">{{ h.adet || 0 }} {{ h.uom || '' }}</div>
+              <div class="ck-muted ck-mini-sub" style="font-style: italic;">{{ __("Hammadde eklenmemiş.") }}</div>
             </template>
             
             <div class="ck-muted ck-mini-sub" v-if="h.note">{{ h.note }}</div>
@@ -220,6 +470,45 @@ function onAltOperasyonSil(h: any) {
         </div>
       </div>
     </div>
+
+    <CkAltOperasyonModal
+      :show="showModal"
+      :doc="props.doc"
+      :editData="editingRow"
+      :altOpOptions="altOpOptions"
+      :ekranTipi="ekranTipi"
+      @close="showModal = false"
+      @submit="handleModalSubmit"
+    />
+
+    <CkGraphViewerModal
+      :show="showGraphModal"
+      :wipId="activeGraphWipId"
+      :allowedOpRefs="activeGraphOpRefs"
+      @close="showGraphModal = false"
+    />
+
+    <NodeSelectorModal
+      :show="showNodeSelector"
+      :wipId="activeGraphWipId"
+      :nodes="activeNodesForSelector"
+      @close="showNodeSelector = false"
+      @save="handleNodeSelectorSave"
+    />
+    <SocketPinModal
+      :show="showSocketPin"
+      :wipId="activeGraphWipId"
+      :nodeId="activeNodeForSocket"
+      @close="showSocketPin = false"
+      @save="handleSocketPinSave"
+    />
+    <InjectionMoldModal
+      :show="showInjectionMold"
+      :wipId="activeGraphWipId"
+      :nodes="activeNodesForInjection"
+      @close="showInjectionMold = false"
+      @save="handleInjectionMoldSave"
+    />
   </div>
 </template>
 

@@ -662,7 +662,9 @@ def _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=None):
     ck.db_set("kalite_kontrol", final_status, update_modified=True)
     
     # Alt operasyon bazlı yapıda, ana karta hiçbir zaman belge işlenmemeli, sadece durum güncellenmeli.
-    ck.db_set("quality_inspection", None, update_modified=True)
+    if ck.quality_inspection:
+        frappe.db.sql("UPDATE `tabCalisma Karti` SET quality_inspection = NULL WHERE name = %s", ck.name)
+        ck.quality_inspection = None
 
     if final_status == "Reddedildi":
         ck.db_set("durum", "Reddedildi", update_modified=True)

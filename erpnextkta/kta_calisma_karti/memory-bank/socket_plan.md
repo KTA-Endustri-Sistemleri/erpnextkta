@@ -1,0 +1,1 @@
+# Soketleme (Pin-to-Pin) Altyapısı\n\nSoketleme (Pin-to-Pin) altyapısının detaylı tasarım ve uygulama planı, modüler yapıyı merkezde toplamak amacıyla [graph_wip_plan.md](graph_wip_plan.md) dosyasının içine 'Tip 4: Soketler' olarak entegre edilmiştir. \n\nLütfen ilgili dosyadaki *Soketler* davranış tipini ve örnek senaryoları inceleyiniz.

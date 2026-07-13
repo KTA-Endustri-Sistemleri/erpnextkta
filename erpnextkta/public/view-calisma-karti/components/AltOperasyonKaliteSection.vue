@@ -23,7 +23,7 @@ function getThemeClass(status: string) {
 
 async function onKaliteOnayiVer(row: any) {
   // Eski prompt mantığı yerine direkt olarak Quality Inspection açılacak
-  // Hangi ham maddeye kalite kontrol belgesi açılacaksa onu gönderiyoruz (hammadde veya hammadde_3 olabilir ama varsayılan hammadde)
+  // Hangi ham maddeye kalite kontrol belgesi açılacaksa onu gönderiyoruz
   props.onSubmitQC(row.name, row.hammadde || "");
 }
 </script>
