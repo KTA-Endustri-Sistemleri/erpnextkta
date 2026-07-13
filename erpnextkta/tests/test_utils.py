@@ -288,6 +288,7 @@ class KTATestCase(FrappeTestCase):
 
 	def setUp(self):
 		super().setUp()
+		frappe.flags.use_serial_and_batch_fields = False
 		desc = self.shortDescription()
 		if desc:
 			print(f"\n🔍 [TEST] {self._testMethodName}: {desc}")
