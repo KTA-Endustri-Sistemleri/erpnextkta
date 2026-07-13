@@ -3,6 +3,42 @@
 
 
 
+## 🚀 v2.3.1 (2026-07-13)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **tests**: resolve CI test leak causing PR submit failure
+      
+      
+    
+      
+      
+        
+- krimp form updates, qc fixes and cascade cancel
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.3.0 (2026-07-12)
 
 
