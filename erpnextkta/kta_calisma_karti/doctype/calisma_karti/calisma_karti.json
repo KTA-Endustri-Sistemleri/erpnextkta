@@ -27,6 +27,7 @@
         "operasyon",
         "alt_operasyonlar_section",
         "alt_operasyon_kayitlari",
+        "hammadde_tuketimleri",
         "kalite_tab",
         "kalite_durum_ve_belge_bilgisi_section",
         "kalite_kontrol",
@@ -199,6 +200,13 @@
             "fieldtype": "Table",
             "label": "Alt Operasyon Kayitlari",
             "options": "Calisma Karti Alt Operasyon Kayitlari"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "hammadde_tuketimleri",
+            "fieldtype": "Table",
+            "label": "Hammadde Tüketimleri",
+            "options": "KTA Calisma Karti Hammadde Kayitlari"
         },
         {
             "fieldname": "kalite_tab",

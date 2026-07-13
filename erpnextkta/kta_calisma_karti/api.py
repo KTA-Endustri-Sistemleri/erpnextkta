@@ -11,6 +11,12 @@ So we keep this file as a stable facade and move implementations into
 """
 
 from __future__ import annotations
+import frappe
+
+@frappe.whitelist(allow_guest=True)
+def test_pool():
+    import frappe
+    return frappe.db.get_all("Error Log", fields=["method", "error"], limit=5, order_by="creation desc")
 
 # Re-export whitelisted functions
 from .api_impl.barcode import get_job_card_by_barcode, get_work_order_by_barcode
@@ -71,10 +77,13 @@ from .api_impl.alt_operasyon import (
     is_kut_kablo_operation,
 )
 
+from .api_impl.wip_graph_engine import get_wip_graph
+
 __all__ = [
     "get_my_calisma_kartlari",
     "get_calisma_karti_detail",
     "check_active_card_data",
+    "get_wip_graph",
 
     # QC
     "update_kalite_kontrol",

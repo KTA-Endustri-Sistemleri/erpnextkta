@@ -7,24 +7,7 @@
  "field_order": [
   "alt_operasyon",
   "satir_no",
-  "hammadde",
-  "adet",
-  "uom",
   "note",
-  "boyut_1_mm",
-  "islem_adedi_1",
-  "cb_2",
-  "hammadde_2",
-  "boyut_2_mm",
-  "islem_adedi_2",
-  "adet_2",
-  "uom_2",
-  "cb_3",
-  "hammadde_3",
-  "boyut_3_mm",
-  "islem_adedi_3",
-  "adet_3",
-  "uom_3",
   "sb_note",
   "quality_inspection_status",
   "quality_inspection"
@@ -44,124 +27,13 @@
    "fieldname": "satir_no",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Satır No"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "hammadde",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Hammadde 1",
-   "options": "Item"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "1",
-   "fieldname": "adet",
-   "fieldtype": "Float",
-   "label": "Toplam T\u00fcketim 1"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "uom",
-   "fieldtype": "Link",
-   "label": "UOM 1",
-   "options": "UOM"
+   "label": "Sat\u0131r No"
   },
   {
    "allow_on_submit": 1,
    "fieldname": "note",
    "fieldtype": "Small Text",
    "label": "Note"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "boyut_1_mm",
-   "fieldtype": "Float",
-   "label": "Boyut 1 (mm)"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "1",
-   "fieldname": "islem_adedi_1",
-   "fieldtype": "Float",
-   "label": "\u0130\u015flem Adedi 1"
-  },
-  {
-   "fieldname": "cb_2",
-   "fieldtype": "Column Break"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "hammadde_2",
-   "fieldtype": "Link",
-   "label": "Hammadde 2",
-   "options": "Item"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "boyut_2_mm",
-   "fieldtype": "Float",
-   "label": "Boyut 2 (mm)"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "1",
-   "fieldname": "islem_adedi_2",
-   "fieldtype": "Float",
-   "label": "\u0130\u015flem Adedi 2"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "1",
-   "fieldname": "adet_2",
-   "fieldtype": "Float",
-   "label": "Toplam T\u00fcketim 2"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "uom_2",
-   "fieldtype": "Link",
-   "label": "UOM 2",
-   "options": "UOM"
-  },
-  {
-   "fieldname": "cb_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "hammadde_3",
-   "fieldtype": "Link",
-   "label": "Hammadde 3",
-   "options": "Item"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "boyut_3_mm",
-   "fieldtype": "Float",
-   "label": "Boyut 3 (mm)"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "1",
-   "fieldname": "islem_adedi_3",
-   "fieldtype": "Float",
-   "label": "\u0130\u015flem Adedi 3"
-  },
-  {
-   "allow_on_submit": 1,
-   "default": "1",
-   "fieldname": "adet_3",
-   "fieldtype": "Float",
-   "label": "Toplam T\u00fcketim 3"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "uom_3",
-   "fieldtype": "Link",
-   "label": "UOM 3",
-   "options": "UOM"
   },
   {
    "fieldname": "sb_note",
@@ -181,6 +53,14 @@
    "label": "Quality Inspection",
    "options": "Quality Inspection",
    "permlevel": 1
+  },
+  {
+   "fieldname": "wip_snapshots",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "WIP Snapshots",
+   "options": "JSON",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,

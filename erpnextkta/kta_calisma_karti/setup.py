@@ -10,6 +10,16 @@ def setup():
 
 def add_custom_fields():
     from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+    
+    # Bypass "Fieldtype cannot be changed from Link to Data" on test_site
+    try:
+        fields_to_check = ['custom_operasyon', 'custom_alt_operasyon', 'custom_alt_operasyon_kaydi']
+        for f in fields_to_check:
+            frappe.db.sql("DELETE FROM `tabCustom Field` WHERE fieldname = %s AND fieldtype = 'Link'", (f,))
+        frappe.db.commit()
+    except Exception:
+        pass
+
     create_custom_fields(get_custom_fields())
 
 def get_custom_fields():
@@ -219,10 +229,16 @@ def setup_permissions():
         {"parent": "Calisma Karti", "role": "KTA Kalite Kullanıcısı", "read": 1, "write": 1, "permlevel": 1},
         {"parent": "Calisma Karti", "role": "KTA Kalite Yöneticisi", "read": 1, "write": 1, "permlevel": 1},
         {"parent": "Calisma Karti", "role": "System Manager", "read": 1, "write": 1, "permlevel": 1},
+        # KTA Sanal Yarimamul
+        {"parent": "KTA Sanal Yarimamul", "role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "KTA Sanal Yarimamul", "role": "Manufacturing User", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "KTA Sanal Yarimamul", "role": "Manufacturing Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "KTA Sanal Yarimamul", "role": "All", "read": 1, "write": 1, "create": 1, "delete": 1},
+        {"parent": "KTA Sanal Yarimamul", "role": "Employee", "read": 1, "write": 1, "create": 1, "delete": 1},
     ]
 
     # KTA'ya özel olan ve tüm rollerini yönetmek istediğimiz DocType'lar
-    kta_parents = ["Calisma Karti", "KTA Calisma Karti Operasyonlari", "KTA Calisma Karti Alt Operasyonlari", "KTA Calisma Karti Settings"]
+    kta_parents = ["Calisma Karti", "KTA Calisma Karti Operasyonlari", "KTA Calisma Karti Alt Operasyonlari", "KTA Calisma Karti Settings", "KTA Sanal Yarimamul"]
 
     cleared_pairs = set()
 

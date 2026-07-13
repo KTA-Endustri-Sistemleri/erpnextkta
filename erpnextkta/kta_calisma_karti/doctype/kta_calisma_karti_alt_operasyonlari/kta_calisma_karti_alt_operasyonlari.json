@@ -12,6 +12,9 @@
         "sequence",
         "is_active",
         "operasyon_tipi",
+        "sanal_yarimamul_davranisi",
+        "davranis_alt_parametresi",
+        "damar_sayisi",
         "allowed_material_groups"
     ],
     "fields": [
@@ -55,6 +58,23 @@
             "label": "Allowed Material Groups",
             "description": "If empty, inherits from parent operation's allowed material groups.",
             "options": "KTA Sub Operation Allowed Material Groups"
+        },
+        {
+            "fieldname": "sanal_yarimamul_davranisi",
+            "fieldtype": "Select",
+            "label": "Sanal Yar\u0131mam\u00fcl Davran\u0131\u015f\u0131",
+            "options": "\nTemel Kablo Oluşturur\nUca / Düğüme Bileşen Ekler\nDüğümleri Birleştirir\nSoketler\nEnjeksiyon\nYapısal Değişikliksiz İşlem\nDoğrulama / Test\nBileşeni Aktifleştirir\nUcu Böler\nAlt Montaj (Sub-Assembly)"
+        },
+        {
+            "fieldname": "davranis_alt_parametresi",
+            "fieldtype": "Data",
+            "label": "Davran\u0131\u015f Alt Parametresi"
+        },
+        {
+            "fieldname": "damar_sayisi",
+            "fieldtype": "Int",
+            "label": "Damar Say\u0131s\u0131",
+            "default": "1"
         }
     ],
     "grid_page_length": 50,

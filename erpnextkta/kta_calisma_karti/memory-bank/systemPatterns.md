@@ -14,6 +14,11 @@ Frappe ORM → MariaDB
 
 ## Tasarım Desenleri
 
+### Graph ve Görselleştirme UI Pattern
+Sanal yarımamül grafiklerinin gösterimi (özellikle Doppel gibi karmaşık işlemlerde) için geliştirilen UI filtresi:
+- **Kalıntı Filtrelemesi:** Operasyon sonucunda birden fazla çıktı oluşuyorsa (örneğin ana birleştirilmiş kablo + 2 adet kesilen kalıntı kablo), kullanıcı önizlemede (Vue `CkGraphViewerModal`) sadece o operasyonun imzasını (örneğin terminalini) taşıyan Ana Çıktıyı görür. Kalıntı kablolar (üzerinde bu operasyonun işareti olmayanlar) önizleme ekranından gizlenerek karmaşa yaratması engellenir ve Ortak Terminal (Shared Merge Node) algoritmasının kusursuz çalışması sağlanır.
+
+
 ### 1. Facade Pattern (`api.py`)
 ```python
 # api.py sadece re-export yapar

@@ -1,0 +1,103 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-07-10 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "alt_operasyon_ref",
+  "yon",
+  "hedef_node_id",
+  "hammadde",
+  "boyut_mm",
+  "islem_adedi",
+  "uom",
+  "wip_id",
+  "source_wip_ids",
+  "hedef_kavite"
+ ],
+ "fields": [
+  {
+   "fieldname": "alt_operasyon_ref",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Alt Operasyon Referans\u0131",
+   "read_only": 1
+  },
+  {
+   "fieldname": "yon",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Y\u00f6n",
+   "options": "\nSol\nOrta\nSa\u011f"
+  },
+  {
+   "fieldname": "hedef_node_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Hedef Node ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "hammadde",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Hammadde",
+   "options": "Item"
+  },
+  {
+   "fieldname": "boyut_mm",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Boyut (mm)"
+  },
+  {
+   "default": "1",
+   "fieldname": "islem_adedi",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "\u0130\u015flem Adedi"
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "UoM",
+   "options": "UOM"
+  },
+  {
+   "fieldname": "wip_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "WIP ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_wip_ids",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Source WIP IDs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "hedef_kavite",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Hedef Kavite (Pin)"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-10 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "KTA Calisma Karti Hammadde Kayitlari",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

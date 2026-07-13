@@ -181,13 +181,8 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         );
     }
 
-    async function addAltOperasyon(payload: {
-        alt_operasyon: string;
-        hammadde?: string;
-        adet: number;
-        uom?: string;
-        note?: string;
-    }) {
+    async function addAltOperasyon(payload: any) {
+        // payload expects: { alt_operasyon: string, note?: string, satir_no?: string, hammadde_tuketimleri: any[] }
         return refreshAfter(() =>
             frappe.call("erpnextkta.kta_calisma_karti.api.add_alt_operasyon_kaydi", {
                 calisma_karti: docname.value,
@@ -196,14 +191,7 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
         );
     }
 
-    async function updateAltOperasyon(payload: {
-        row_id: string;
-        alt_operasyon: string;
-        hammadde?: string;
-        adet: number;
-        uom?: string;
-        note?: string;
-    }) {
+    async function updateAltOperasyon(payload: any) {
         return refreshAfter(() =>
             frappe.call("erpnextkta.kta_calisma_karti.api.update_alt_operasyon_kaydi", {
                 calisma_karti: docname.value,

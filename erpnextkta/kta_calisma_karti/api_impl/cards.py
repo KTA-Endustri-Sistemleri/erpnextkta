@@ -396,6 +396,18 @@ def get_calisma_karti_detail(name: str):
     enjeksiyon_olcumleri = first_child_table(doc, ["enjeksiyon_olcumleri", "enjeksiyon_olcumleri", "calisma_karti_enjeksiyon_olcumleri"])
     barkod_kayitlari = first_child_table(doc, ["barkod_kayitlari", "barkod_kayitlari", "calisma_karti_barkod_kayitlari"])
     alt_operasyon_kayitlari = first_child_table(doc, ["alt_operasyon_kayitlari", "alt_operasyon", "calisma_karti_alt_operasyon_kayitlari"])
+    hammadde_tuketimleri = first_child_table(doc, ["hammadde_tuketimleri", "hammadde", "kta_calisma_karti_hammadde_kayitlari"])
+
+    # Group hammadde tuketimleri by alt_operasyon_ref
+    ht_map = {}
+    for ht in hammadde_tuketimleri:
+        ref = ht.get("alt_operasyon_ref")
+        if ref:
+            ht_map.setdefault(ref, []).append(ht)
+
+    # Attach to alt_operasyon_kayitlari
+    for ao in alt_operasyon_kayitlari:
+        ao["hammadde_tuketimleri"] = ht_map.get(ao.get("name"), [])
 
     # Enrich alt_operasyon rows with title and sequence from the master doctype
     _attach_alt_operasyon_titles(alt_operasyon_kayitlari)
