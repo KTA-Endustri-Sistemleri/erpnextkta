@@ -601,6 +601,8 @@ def get_alt_operasyon_options(parent_operation: str):
         fields.append("hammadde_sayisi")
     if frappe.get_meta("KTA Calisma Karti Alt Operasyonlari").has_field("operasyon_tipi"):
         fields.append("operasyon_tipi")
+    if frappe.get_meta("KTA Calisma Karti Alt Operasyonlari").has_field("is_tuketim_hesaplanir"):
+        fields.append("is_tuketim_hesaplanir")
 
     ops = frappe.get_all(
         "KTA Calisma Karti Alt Operasyonlari",
@@ -626,7 +628,7 @@ def get_alt_operasyon_options(parent_operation: str):
             o["hammadde_sayisi"] = str(count) if count > 0 else "1"
 
     return {
-        "options": [{"label": o.title, "value": o.name, "hammadde_sayisi": o.get("hammadde_sayisi") or "1", "operasyon_tipi": o.get("operasyon_tipi") or ""} for o in ops],
+        "options": [{"label": o.title, "value": o.name, "hammadde_sayisi": o.get("hammadde_sayisi") or "1", "operasyon_tipi": o.get("operasyon_tipi") or "", "is_tuketim_hesaplanir": o.get("is_tuketim_hesaplanir", 1)} for o in ops],
         "ekran_tipi": parent_ekran_tipi
     }
 

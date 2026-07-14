@@ -17,6 +17,11 @@ function isQCLocked(h: any): boolean {
   return (h.quality_inspection_status || "").trim() === "Onaylandı" && !!(h.quality_inspection || "").trim();
 }
 
+function getIsTuketimHesaplanir(h: any) {
+  const op = altOpOptions.value.find((o: any) => o.value === h.alt_operasyon || o.label === h.alt_operasyon);
+  return op && op.is_tuketim_hesaplanir !== undefined ? op.is_tuketim_hesaplanir : 1;
+}
+
 // Sort rows by sequence from master doctype (populated by backend), then by idx
 const sortedRows = computed(() => {
   const rows: any[] = props.doc?.alt_operasyon_kayitlari ?? [];
@@ -54,9 +59,24 @@ function onAltOperasyonEkle() {
   const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
   const defaults = { alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
-  d = frappe.prompt(
-    fields,
-    async (v: any) => {
+  d = new frappe.ui.Dialog({
+    title: __("Alt İşlem Ekle"),
+    fields: fields,
+    primary_action_label: __("Kaydet"),
+    primary_action: async (v: any) => {
+      if (ekranTipi.value === "Tekli Hammadde") {
+        const uom = (v.uom || "").toLowerCase();
+        const selectedOp = altOpOptions.value.find((o: any) => o.value === v.alt_operasyon || o.label === v.alt_operasyon);
+        const isTuketim = selectedOp && selectedOp.is_tuketim_hesaplanir !== undefined ? selectedOp.is_tuketim_hesaplanir : 1;
+
+        if (isTuketim && (uom === "metre" || uom === "m" || uom === "meter")) {
+          if (!v.boyut_1_mm || v.boyut_1_mm <= 0) {
+            frappe.msgprint(__("Birim 'Metre' seçildiğinde tüketimin hesaplanabilmesi için 'Parça Boyu (mm)' alanı doldurulmalıdır."));
+            return;
+          }
+        }
+      }
+
       let islem_1 = typeof v.islem_adedi_1 !== 'undefined' ? v.islem_adedi_1 : (v.adet || 1);
       let islem_3 = v.islem_adedi_3 || 1;
 
@@ -75,11 +95,11 @@ function onAltOperasyonEkle() {
         note: v.note || null,
         uom: v.uom || null, // Capture UOM from old mode
       });
+      d.hide();
       frappe.show_alert({ message: __("Alt İşlem eklendi"), indicator: "green" });
-    },
-    __("Alt İşlem Ekle"),
-    __("Kaydet")
-  );
+    }
+  });
+  d.show();
 }
 
 function onAltOperasyonDuzenle(h: any) {
@@ -96,9 +116,24 @@ function onAltOperasyonDuzenle(h: any) {
     adet: h.adet || h.islem_adedi_1 // map islem_adedi_1 to adet for single mode edit
   };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
-  d = frappe.prompt(
-    fields,
-    async (v: any) => {
+  d = new frappe.ui.Dialog({
+    title: __("Alt İşlem Düzenle"),
+    fields: fields,
+    primary_action_label: __("Kaydet"),
+    primary_action: async (v: any) => {
+      if (ekranTipi.value === "Tekli Hammadde") {
+        const uom = (v.uom || "").toLowerCase();
+        const selectedOp = altOpOptions.value.find((o: any) => o.value === v.alt_operasyon || o.label === v.alt_operasyon);
+        const isTuketim = selectedOp && selectedOp.is_tuketim_hesaplanir !== undefined ? selectedOp.is_tuketim_hesaplanir : 1;
+
+        if (isTuketim && (uom === "metre" || uom === "m" || uom === "meter")) {
+          if (!v.boyut_1_mm || v.boyut_1_mm <= 0) {
+            frappe.msgprint(__("Birim 'Metre' seçildiğinde tüketimin hesaplanabilmesi için 'Parça Boyu (mm)' alanı doldurulmalıdır."));
+            return;
+          }
+        }
+      }
+
       let islem_1 = typeof v.islem_adedi_1 !== 'undefined' ? v.islem_adedi_1 : (v.adet || 1);
       let islem_3 = v.islem_adedi_3 || 1;
 
@@ -118,11 +153,11 @@ function onAltOperasyonDuzenle(h: any) {
         note: v.note || null,
         uom: v.uom || null,
       });
+      d.hide();
       frappe.show_alert({ message: __("Alt İşlem güncellendi"), indicator: "green" });
-    },
-    __("Alt İşlem Düzenle"),
-    __("Kaydet")
-  );
+    }
+  });
+  d.show();
 }
 
 function onAltOperasyonSil(h: any) {
@@ -199,8 +234,15 @@ function onAltOperasyonSil(h: any) {
               </div>
             </template>
             <template v-else>
-              <div class="ck-muted ck-mini-sub" v-if="h.hammadde">{{ h.hammadde }} ({{ h.adet || 0 }} {{ h.uom || '' }})</div>
-              <div class="ck-muted ck-mini-sub" v-else-if="h.adet || h.uom">{{ h.adet || 0 }} {{ h.uom || '' }}</div>
+              <div class="ck-muted ck-mini-sub" v-if="h.hammadde">
+                {{ h.hammadde }} 
+                <template v-if="h.boyut_1_mm">({{ __("Boy") }}: {{ h.boyut_1_mm }}mm) </template>
+                [{{ h.islem_adedi_1 !== undefined ? h.islem_adedi_1 : (h.adet || 0) }} {{ getIsTuketimHesaplanir(h) ? (h.uom || '') : 'Adet' }}]
+              </div>
+              <div class="ck-muted ck-mini-sub" v-else-if="h.islem_adedi_1 !== undefined || h.adet || h.uom">
+                <template v-if="h.boyut_1_mm">{{ __("Boy") }}: {{ h.boyut_1_mm }}mm </template>
+                [{{ h.islem_adedi_1 !== undefined ? h.islem_adedi_1 : (h.adet || 0) }} {{ getIsTuketimHesaplanir(h) ? (h.uom || '') : 'Adet' }}]
+              </div>
             </template>
             
             <div class="ck-muted ck-mini-sub" v-if="h.note">{{ h.note }}</div>
