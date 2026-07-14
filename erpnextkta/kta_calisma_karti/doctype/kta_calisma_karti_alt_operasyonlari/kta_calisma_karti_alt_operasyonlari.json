@@ -12,6 +12,7 @@
         "sequence",
         "is_active",
         "operasyon_tipi",
+        "is_tuketim_hesaplanir",
         "allowed_material_groups"
     ],
     "fields": [
@@ -48,6 +49,13 @@
             "in_list_view": 1,
             "label": "Operasyon Tipi",
             "options": "\nBlunt\nTek Taraf\nÇift Taraf"
+        },
+        {
+            "fieldname": "is_tuketim_hesaplanir",
+            "fieldtype": "Check",
+            "in_list_view": 1,
+            "label": "Tüketim Hesaplanır",
+            "default": "1"
         },
         {
             "fieldname": "allowed_material_groups",

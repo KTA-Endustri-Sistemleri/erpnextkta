@@ -240,6 +240,23 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
 
         {
             fieldtype: "Float",
+            label: __("Parça Boyu (mm)"),
+            description: __("Birim 'Metre' seçildiğinde tüketimi hesaplamak için doldurunuz."),
+            fieldname: "boyut_1_mm",
+            depends_on: (doc: any) => {
+                if (!doc) return false;
+                const selectedOp = altOpOptions.find((o: any) => o.value === doc.alt_operasyon || o.label === doc.alt_operasyon);
+                const isTuketim = selectedOp && selectedOp.is_tuketim_hesaplanir !== undefined ? selectedOp.is_tuketim_hesaplanir : 1;
+                if (!isTuketim) return false;
+
+                const u = (doc.uom || "").toLowerCase();
+                return u === "metre" || u === "m" || u === "meter";
+            },
+            reqd: 0,
+            default: defaults.boyut_1_mm ?? 0,
+        },
+        {
+            fieldtype: "Float",
             label: __("İşlem Adedi"),
             fieldname: "adet",
             reqd: 0,
