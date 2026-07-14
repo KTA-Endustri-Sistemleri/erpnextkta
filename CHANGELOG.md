@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.4.0 (2026-07-14)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **core**: add custom Item script to remove item_group link filters
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.3.1 (2026-07-13)
 
 

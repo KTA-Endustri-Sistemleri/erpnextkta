@@ -1,6 +1,6 @@
 [project]
 name = "erpnextkta"
-version = "2.3.1"
+version = "2.4.0"
 authors = [
     { name = "Framras AS", email = "bilgi@framras.com.tr" }
 ]
