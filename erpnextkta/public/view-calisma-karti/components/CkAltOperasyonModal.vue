@@ -20,6 +20,14 @@ const alt_operasyon = ref("");
 const satir_no = ref("");
 const note = ref("");
 
+// Wizard state
+const currentStep = ref(1);
+const isWizardBehavior = computed(() => {
+  const selectedOption = props.altOpOptions.find(o => o.value === alt_operasyon.value);
+  const behavior = selectedOption ? selectedOption.sanal_yarimamul_davranisi : "";
+  return behavior === "Soketler" || behavior === "Soket Çakma";
+});
+
 // Dynamic raw material rows
 const hammaddeRows = ref<any[]>([]);
 const ortaHammadde = ref<any>({ hammadde: "", boyut_mm: null, islem_adedi: 1, uom: "", yon: "Orta", _showItemResults: false, _itemResults: [] });
@@ -275,6 +283,7 @@ watch(() => props.show, (val) => {
           }
       }
     } else {
+      currentStep.value = 1;
       alt_operasyon.value = "";
       satir_no.value = "";
       note.value = "";
@@ -297,6 +306,33 @@ const maxHavuzAdedi = computed(() => {
 const isQCRequired = computed(() => {
   return !!props.doc.alt_operasyon_bazli_kalite;
 });
+
+function nextStep() {
+  if (currentStep.value === 1) {
+    if (selectedWipIds.value.length === 0) {
+        frappe.msgprint(__("Lütfen en az bir adet yarımamül seçin."));
+        return;
+    }
+  }
+  if (currentStep.value === 2) {
+    let allMapped = true;
+    for (const wid of selectedWipIds.value) {
+        const w = wipPool.value.find(x => x.wip_id === wid);
+        if (w) {
+            for (const m of w.mappings) {
+                if (!m.node_id || !m.pin) {
+                    allMapped = false;
+                }
+            }
+        }
+    }
+    if (!allMapped) {
+        frappe.msgprint(__("Lütfen seçtiğiniz ürünlerin uç ve pin eşleştirmelerini eksiksiz yapın."));
+        return;
+    }
+  }
+  currentStep.value++;
+}
 </script>
 
 <template>
@@ -309,31 +345,32 @@ const isQCRequired = computed(() => {
         </div>
 
         <div class="ck-modal-body">
-          <div class="ck-form-row">
-            <div class="ck-form-group" style="flex: 2;">
-              <label>{{ __("Alt İşlem") }}</label>
-              <select v-model="alt_operasyon" class="ck-select">
-                <option value="" disabled>{{ __("Seçiniz...") }}</option>
-                <option v-for="opt in props.altOpOptions" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </select>
+          
+          <!-- ADIM 1: OPERASYON VE YARIMAMÜL SEÇİMİ -->
+          <div v-show="!isWizardBehavior || currentStep === 1">
+            <div class="ck-form-row">
+              <div class="ck-form-group" style="flex: 2;">
+                <label>{{ __("Alt İşlem") }}</label>
+                <select v-model="alt_operasyon" class="ck-select">
+                  <option value="" disabled>{{ __("Seçiniz...") }}</option>
+                  <option v-for="opt in props.altOpOptions" :key="opt.value" :value="opt.value">
+                    {{ opt.label }}
+                  </option>
+                </select>
+              </div>
+              <div class="ck-form-group" style="flex: 1;" v-if="isQCRequired">
+                <label>{{ __("Satır No") }}</label>
+                <input type="text" v-model="satir_no" class="ck-input" :placeholder="__('Örn: K1')" />
+              </div>
             </div>
-            <div class="ck-form-group" style="flex: 1;" v-if="isQCRequired">
-              <label>{{ __("Satır No") }}</label>
-              <input type="text" v-model="satir_no" class="ck-input" :placeholder="__('Örn: K1')" />
-            </div>
-          </div>
 
-          <!-- Dynamic Materials Section -->
-          <div class="ck-form-group" style="margin-top: 10px; border-top: 1px dashed var(--ck-glass-border-soft); padding-top: 20px;">
-            
             <!-- HAVUZ KISMI -->
-            <div v-if="wipPool.length > 0" style="border: 1px solid var(--ck-primary); border-radius: 8px; padding: 12px; margin-bottom: 16px; background: rgba(0,0,0,0.02);">
-              <label class="form-label" style="text-align: center; border-bottom: 1px solid var(--ck-primary); padding-bottom: 8px; margin-bottom: 12px; display: block; font-weight: bold; color: var(--ck-primary);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align: text-bottom;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                {{ __("ÖNCEKİ İŞLEMLERDEN GELENLER (HAVUZ)") }}
-              </label>
+            <div class="ck-form-group" style="margin-top: 10px; border-top: 1px dashed var(--ck-glass-border-soft); padding-top: 20px;">
+              <div v-if="wipPool.length > 0" style="border: 1px solid var(--ck-primary); border-radius: 8px; padding: 12px; margin-bottom: 16px; background: rgba(0,0,0,0.02);">
+                <label class="form-label" style="text-align: center; border-bottom: 1px solid var(--ck-primary); padding-bottom: 8px; margin-bottom: 12px; display: block; font-weight: bold; color: var(--ck-primary);">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align: text-bottom;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                  {{ isWizardBehavior ? __("ADIM 1: ÖNCEKİ İŞLEMLERDEN GELENLER (HAVUZ)") : __("ÖNCEKİ İŞLEMLERDEN GELENLER (HAVUZ)") }}
+                </label>
               <div v-if="poolLoading" style="text-align: center; color: var(--ck-muted);">{{ __("Yükleniyor...") }}</div>
               <div v-else style="display: flex; flex-direction: column; gap: 8px;">
                 <div v-for="wip in wipPool" :key="wip.wip_id" style="display: flex; flex-direction: column; gap: 4px; padding: 4px; border-radius: 4px;" :style="{ background: selectedWipIds.includes(wip.wip_id) ? 'rgba(0,0,0,0.05)' : 'transparent' }">
@@ -341,7 +378,7 @@ const isQCRequired = computed(() => {
                     <input type="checkbox" :value="wip.wip_id" v-model="selectedWipIds" />
                     <span style="margin-left: 8px;">{{ wip.label }} <strong style="color: var(--ck-primary); font-size: 11px; margin-left: 4px;">({{ wip.islem_adedi || 1 }} Adet)</strong></span>
                   </label>
-                  <div v-if="selectedWipIds.includes(wip.wip_id)" style="margin-left: 24px; display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                  <div v-if="selectedWipIds.includes(wip.wip_id) && !isWizardBehavior" style="margin-left: 24px; display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
                     <div v-for="(m, idx) in wip.mappings" :key="idx" style="display: flex; gap: 6px; align-items: center;">
                       <select class="ck-select ck-select-small" v-model="m.node_id" style="width: 120px; padding: 4px 8px; font-size: 12px; min-height: unset; height: 26px;">
                           <template v-if="wip.endpoints && wip.endpoints.length > 0">
@@ -376,7 +413,47 @@ const isQCRequired = computed(() => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+          <!-- END ADIM 1 -->
 
+          <!-- ADIM 2: UÇ VE PİN EŞLEŞTİRME -->
+          <div v-show="isWizardBehavior && currentStep === 2">
+              <label class="form-label" style="text-align: center; border-bottom: 1px solid var(--ck-primary); padding-bottom: 8px; margin-bottom: 12px; display: block; font-weight: bold; color: var(--ck-primary);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align: text-bottom;"><polyline points="8 17 12 21 16 17"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"></path></svg>
+                {{ __("ADIM 2: UÇ VE PİN EŞLEŞTİRME") }}
+              </label>
+              
+              <div v-if="selectedWipIds.length > 0">
+                <div v-for="wip in wipPool.filter(w => selectedWipIds.includes(w.wip_id))" :key="wip.wip_id" style="border: 1px solid var(--ck-glass-border); padding: 12px; margin-bottom: 12px; border-radius: 8px; background: rgba(0,0,0,0.02);">
+                    <strong style="margin-bottom: 12px; display: block; color: var(--ck-text);">{{ wip.label }}</strong>
+                    <div v-for="(m, idx) in wip.mappings" :key="idx" style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                        <select class="ck-select" v-model="m.node_id" style="flex: 1;">
+                            <template v-if="wip.endpoints && wip.endpoints.length > 0">
+                                <option value="" disabled>{{ __("Hangi uç bağlanacak?") }}</option>
+                                <option v-for="ep in wip.endpoints" :key="ep.id" :value="ep.id">{{ ep.label }}</option>
+                            </template>
+                            <template v-else>
+                                <option value="" disabled>{{ __("Hangi uç bağlanacak?") }}</option>
+                                <option value="T1">{{ __("Sol Uç (T1)") }}</option>
+                                <option value="T2">{{ __("Sağ Uç (T2)") }}</option>
+                            </template>
+                        </select>
+                        <input type="text" class="ck-input" v-model="m.pin" :placeholder="__('Pin No (Örn: 1)')" style="flex: 1;" />
+                        
+                        <button class="ck-btn ck-btn-secondary" style="padding: 0 12px; display: flex; align-items: center; justify-content: center;" @click.prevent.stop="wip.mappings.push({node_id:'', pin:''})" title="Yeni Pin Ekle">+</button>
+                        <button v-if="wip.mappings.length > 1" class="ck-btn ck-btn-danger" style="padding: 0 12px; display: flex; align-items: center; justify-content: center;" @click.prevent.stop="wip.mappings.splice(idx, 1)" title="Sil">&times;</button>
+                    </div>
+                </div>
+              </div>
+          </div>
+
+          <!-- ADIM 3: KULLANILAN HAMMADDELER -->
+          <div v-show="!isWizardBehavior || currentStep === 3">
+            <label v-if="isWizardBehavior" class="form-label" style="text-align: center; border-bottom: 1px solid var(--ck-primary); padding-bottom: 8px; margin-bottom: 12px; display: block; font-weight: bold; color: var(--ck-primary);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align: text-bottom;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              {{ __("ADIM 3: KULLANILAN SOKET VE TERMİNALLER") }}
+            </label>
             <template v-if="props.ekranTipi === 'Çoklu Hammadde'">
 
               <!-- ORTA KISIM: KABLO -->
@@ -539,15 +616,21 @@ const isQCRequired = computed(() => {
         </div>
 
         <div class="ck-modal-footer">
-          <button class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">{{ __("Vazgeç") }}</button>
-          <button
-            class="ck-btn ck-btn--primary"
-            style="flex: 2"
-            @click="handleSubmit"
-            :disabled="submitting"
-          >
-            {{ submitting ? __("Kaydediliyor...") : __("Kaydet") }}
-          </button>
+          <template v-if="isWizardBehavior">
+              <button v-if="currentStep > 1" type="button" class="ck-btn ck-btn--ghost" @click="currentStep--">{{ __("Geri") }}</button>
+              <div style="flex:1"></div>
+              <button type="button" class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">{{ __("Vazgeç") }}</button>
+              <button v-if="currentStep < 3" type="button" class="ck-btn ck-btn--primary" @click="nextStep">{{ __("İleri") }}</button>
+              <button v-if="currentStep === 3" type="button" class="ck-btn ck-btn--primary" :disabled="submitting" @click="handleSubmit">
+                {{ submitting ? __("Kaydediliyor...") : __("Kaydet") }}
+              </button>
+          </template>
+          <template v-else>
+              <button type="button" class="ck-btn ck-btn--ghost" @click="props.onClose" :disabled="submitting">{{ __("Vazgeç") }}</button>
+              <button type="button" class="ck-btn ck-btn--primary" style="flex: 2" :disabled="submitting" @click="handleSubmit">
+                {{ submitting ? __("Kaydediliyor...") : __("Kaydet") }}
+              </button>
+          </template>
         </div>
       </div>
     </div>
