@@ -1285,14 +1285,56 @@ def get_work_order_pool(work_order: str, operasyon: str, exclude_row: str = None
                     type_counters[typ] = type_counters.get(typ, 0) + 1
                     
             curr_counters = {k: 0 for k in type_counters.keys()}
+            
+            def get_kablo_kodu(node_id):
+                queue = [node_id]
+                visited = {node_id}
+                while queue:
+                    curr = queue.pop(0)
+                    curr_node = next((nn for nn in g.get("nodes", []) if nn.get("id") == curr), None)
+                    if curr_node and curr_node.get("type") == "Kablo Merkezi" and curr_node.get("materials"):
+                        return curr_node["materials"][0].get("hammadde", "")
+                    for e in g.get("edges", []):
+                        neighbor = None
+                        if e.get("source") == curr:
+                            neighbor = e.get("target")
+                        elif e.get("target") == curr:
+                            neighbor = e.get("source")
+                        if neighbor and neighbor not in visited:
+                            visited.add(neighbor)
+                            queue.append(neighbor)
+                return ""
+
             for n in g.get("nodes", []):
                 typ = n.get("type", "")
                 if "Uç" in typ and n.get("status") not in ["Birleşti", "Soketlendi", "Kalıplanmış"]:
                     curr_counters[typ] += 1
+                    
+                    terminal_kodu = ""
+                    child_edges = [e for e in g.get("edges", []) if e.get("source") == n.get("id")]
+                    for e in child_edges:
+                        child_node = next((cn for cn in g.get("nodes", []) if cn.get("id") == e.get("target")), None)
+                        if child_node and child_node.get("type") == "Bileşen" and child_node.get("materials"):
+                            terminal_kodu = child_node["materials"][0].get("hammadde", "")
+                            break
+                            
+                    kablo_kodu = get_kablo_kodu(n.get("id"))
+                    
+                    lbl_parts = [typ]
                     if type_counters[typ] > 1:
-                        lbl = f"{typ} #{curr_counters[typ]}"
+                        lbl_parts.append(f"#{curr_counters[typ]}")
+                        
+                    ek_bilgi_parts = []
+                    if kablo_kodu:
+                        ek_bilgi_parts.append(kablo_kodu)
+                    if terminal_kodu:
+                        ek_bilgi_parts.append(terminal_kodu)
+                        
+                    if ek_bilgi_parts:
+                        lbl = f"{' '.join(lbl_parts)} ({' - '.join(ek_bilgi_parts)})"
                     else:
-                        lbl = typ
+                        lbl = " ".join(lbl_parts)
+                        
                     endpoints.append({"id": n.get("id"), "label": lbl})
         except Exception:
             pass
