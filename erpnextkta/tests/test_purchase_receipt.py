@@ -228,6 +228,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
         # Enable batch tracking on the item for this test
         frappe.db.set_value("Item", self.item, "has_batch_no", 1)
         frappe.db.commit()
+        frappe.local.request_cache.clear()
 
         # 1. Create and submit Purchase Receipt
         pr = self.create_test_purchase_receipt()
@@ -311,6 +312,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
         frappe.db.set_value("Item", self.item, "inspection_required_before_purchase", 1)
         frappe.db.set_value("Item", self.item, "has_batch_no", 1)
         frappe.db.commit()
+        frappe.local.request_cache.clear()
 
         # Create Purchase Receipt with split quantity set to 2
         pr = self.create_test_purchase_receipt(qty=5)
@@ -349,6 +351,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
         frappe.db.set_value("Item", self.item, "inspection_required_before_purchase", 1)
         frappe.db.set_value("Item", self.item, "has_batch_no", 1)
         frappe.db.commit()
+        frappe.local.request_cache.clear()
 
         # Create Purchase Receipt with split quantity set to 2, but do_not_split = 1
         pr = self.create_test_purchase_receipt(qty=5)
@@ -379,6 +382,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
         frappe.db.set_value("Item", self.item, "inspection_required_before_purchase", 1)
         frappe.db.set_value("Item", self.item, "has_batch_no", 1)
         frappe.db.commit()
+        frappe.local.request_cache.clear()
 
         # Create Purchase Receipt with split quantity set to 0, and do_not_split = 1
         pr = self.create_test_purchase_receipt(qty=5)
