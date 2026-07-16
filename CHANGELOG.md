@@ -3,6 +3,54 @@
 
 
 
+## 🚀 v2.5.0 (2026-07-16)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_stock**: add work_order field to KTA Stock Label and update label data mapping
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **ui**: dynamic consumption validation and conditional parça boyu field for alt operasyon
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.4.0 (2026-07-14)
 
 
