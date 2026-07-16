@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.5.1 (2026-07-16)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_stock**: resolve Purchase Receipt batch bundle creation errors in v15
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.5.0 (2026-07-16)
 
 
