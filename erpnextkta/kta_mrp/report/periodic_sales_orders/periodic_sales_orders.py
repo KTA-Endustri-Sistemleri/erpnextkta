@@ -125,6 +125,7 @@ class SatisAnalizi:
             label = self.get_period_label(end)
             self.columns.append({"label": label, "fieldname": scrub(label), "fieldtype": column_type, "width": 120})
         self.columns.append({"label": "Toplam", "fieldname": "total", "fieldtype": column_type, "width": 120})
+        self.columns.append({"label": "Toplam Fiyat", "fieldname": "total_amount", "fieldtype": "Currency", "options": "currency", "width": 120})
 
     def get_data(self):
         tree_field = {"Müşteri": "customer", "Müşteri Grubu": "customer_group", "Ürün Grubu": "item_group"}.get(self.filters.tree_type, "customer")
@@ -206,6 +207,10 @@ class SatisAnalizi:
                     row[key] = val
                     total += val
             row["total"] = total
+            if self.filters.value_quantity == "Quantity":
+                row["total_amount"] = total * (rate or 0)
+            else:
+                row["total_amount"] = total
             self.data.append(row)
 
     def append_summary_row(self):
@@ -217,6 +222,7 @@ class SatisAnalizi:
             summary_row[key] = column_total
             total += column_total
         summary_row["total"] = total
+        summary_row["total_amount"] = sum(row.get("total_amount", 0) for row in self.data if isinstance(row.get("total_amount"), (int, float)))
         if self.data: self.data.append(summary_row)
 
     def get_chart(self):
@@ -239,10 +245,13 @@ class SatisAnalizi:
         summary_row = self.data[-1]
         total_val = summary_row.get("total", 0)
         label = "Toplam Tutar" if self.filters.value_quantity != "Quantity" else "Toplam Miktar"
-        return [
+        summary = [
             {"value": total_val, "label": label, "indicator": "Green", "datatype": "Currency" if self.filters.value_quantity != "Quantity" else "Float"},
             {"value": len(self.data) - 1, "label": "Satır Sayısı", "indicator": "Blue"}
         ]
+        if self.filters.value_quantity == "Quantity":
+            summary.insert(1, {"value": summary_row.get("total_amount", 0), "label": "Toplam Tutar", "indicator": "Green", "datatype": "Currency"})
+        return summary
 
     def get_period_key(self, date_obj):
         for start, end in self.periodic_ranges:
