@@ -42,7 +42,7 @@ class SatisAnalizi:
         return self.columns, self.data, None, chart, summary
 
     def get_exchange_rates(self):
-        if not self.filters.target_currency:
+        if not self.filters.target_currency and not self.filters.convert_pending_to_eur:
             return {}
         exchange_date = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
         rates = frappe.get_all(
@@ -68,8 +68,8 @@ class SatisAnalizi:
                     except KeyError: continue
         return exchange_map
 
-    def convert(self, value, from_currency):
-        to_currency = self.filters.target_currency
+    def convert(self, value, from_currency, to_currency=None):
+        to_currency = to_currency or self.filters.target_currency
         if not to_currency or from_currency == to_currency:
             return value
         rate = self.exchange_rates.get((from_currency, to_currency))
@@ -113,8 +113,11 @@ class SatisAnalizi:
             {"label": "Ürün Adı", "fieldname": "item_name", "fieldtype": "Data", "width": 180},
             {"label": "Adres", "fieldname": "shipping_address_name", "fieldtype": "Data", "width": 180},
         ]
+        self.columns.append({"label": "Birim Fiyat", "fieldname": "rate", "fieldtype": "Currency", "options": "currency", "width": 120})
+
         if self.filters.value_quantity == "Quantity":
             self.columns.append({"label": "Birim", "fieldname": "uom", "fieldtype": "Data", "width": 100})
+            self.columns.append({"label": "Döviz Kuru", "fieldname": "currency", "fieldtype": "Data", "width": 100, "hidden": 1})
         else:
             self.columns.append({"label": "Döviz Kuru", "fieldname": "currency", "fieldtype": "Data", "width": 100})
         column_type = "Float"
@@ -126,7 +129,6 @@ class SatisAnalizi:
     def get_data(self):
         tree_field = {"Müşteri": "customer", "Müşteri Grubu": "customer_group", "Ürün Grubu": "item_group"}.get(self.filters.tree_type, "customer")
         show_pending_only = self.filters.get("show_pending_only")
-        value_expr = "GREATEST(soi.qty - soi.delivered_qty, 0)" if show_pending_only and self.filters.value_quantity == "Quantity" else "soi.amount" if not show_pending_only and self.filters.value_quantity != "Quantity" else "GREATEST(soi.qty - soi.delivered_qty, 0) * soi.rate" if self.filters.value_quantity != "Quantity" else "soi.qty"
         conditions = "so.docstatus = 1 AND so.status NOT IN ('Closed','Completed')"
         values = []
         if self.filters.from_date and self.filters.to_date:
@@ -137,21 +139,65 @@ class SatisAnalizi:
             values.append(self.filters.tree_key)
         if show_pending_only and self.filters.value_quantity == "Quantity":
             conditions += " AND soi.qty > soi.delivered_qty"
-        query = f"SELECT so.{tree_field} AS tree_key, soi.item_code, soi.item_name, so.name as sales_order, so.shipping_address_name, DATE(so.{self.date_field}) AS posting_date, {value_expr} AS value, so.currency, soi.uom FROM `tabSales Order Item` soi JOIN `tabSales Order` so ON so.name = soi.parent WHERE {conditions}"
+        query = f"SELECT so.{tree_field} AS tree_key, soi.item_code, soi.item_name, so.name as sales_order, so.shipping_address_name, DATE(so.{self.date_field}) AS posting_date, so.currency, soi.uom, soi.rate, soi.qty, soi.delivered_qty, soi.amount FROM `tabSales Order Item` soi JOIN `tabSales Order` so ON so.name = soi.parent WHERE {conditions}"
         raw_data = frappe.db.sql(query, values, as_dict=True)
+
+        item_prices_data = frappe.db.sql("""
+            SELECT `tabItem Price`.item_code, `tabItem Price`.currency, `tabItem Price`.price_list_rate
+            FROM `tabItem Price`
+            JOIN `tabPrice List` ON `tabPrice List`.name = `tabItem Price`.price_list
+            WHERE `tabPrice List`.selling = 1
+            ORDER BY IFNULL(`tabItem Price`.valid_from, '1900-01-01') DESC
+        """, as_dict=True)
+        item_prices = {}
+        for ip in item_prices_data:
+            key = (ip.item_code, ip.currency)
+            if key not in item_prices:
+                item_prices[key] = ip.price_list_rate
+
         grouped = frappe._dict()
         for row in raw_data:
             period_key = self.get_period_key(row.posting_date)
             if not period_key: continue
-            extra_key = row.currency if self.filters.value_quantity != "Quantity" else row.uom
-            group_key = (row.tree_key, row.item_code, row.item_name, row.shipping_address_name, extra_key)
-            if group_key not in grouped: grouped[group_key] = {}
-            converted_value = self.convert(row.value, row.currency) if self.filters.value_quantity != "Quantity" else row.value
-            grouped[group_key][period_key] = grouped[group_key].get(period_key, 0) + (converted_value or 0)
-        for (tree_key, item_code, item_name, shipping_address_name, extra_value), periods in grouped.items():
-            row = {"tree_key": tree_key, "item_code": item_code, "item_name": item_name, "shipping_address_name": shipping_address_name, "indent": 1}
-            if self.filters.value_quantity == "Quantity": row["uom"] = extra_value
-            else: row["currency"] = extra_value
+            
+            delivered_qty = row.delivered_qty or 0
+            qty = row.qty or 0
+            pending_qty = max(qty - delivered_qty, 0)
+            
+            parts = []
+            
+            if not show_pending_only and delivered_qty > 0:
+                parts.append({
+                    'rate': row.rate,
+                    'qty': delivered_qty,
+                    'amount': delivered_qty * row.rate,
+                    'currency': row.currency
+                })
+                
+            if pending_qty > 0:
+                current_rate = item_prices.get((row.item_code, row.currency), row.rate)
+                part_currency = row.currency
+                
+                if self.filters.convert_pending_to_eur and part_currency != "EUR":
+                    current_rate = self.convert(current_rate, part_currency, "EUR")
+                    part_currency = "EUR"
+                    
+                parts.append({
+                    'rate': current_rate,
+                    'qty': pending_qty,
+                    'amount': pending_qty * current_rate,
+                    'currency': part_currency
+                })
+                
+            for part in parts:
+                val = part['qty'] if self.filters.value_quantity == "Quantity" else part['amount']
+                group_key = (row.tree_key, row.item_code, row.item_name, row.shipping_address_name, row.uom, part['currency'], part['rate'])
+                if group_key not in grouped: grouped[group_key] = {}
+                converted_value = self.convert(val, part['currency']) if self.filters.value_quantity != "Quantity" else val
+                grouped[group_key][period_key] = grouped[group_key].get(period_key, 0) + (converted_value or 0)
+            
+        for (tree_key, item_code, item_name, shipping_address_name, uom, currency, rate), periods in grouped.items():
+            row = {"tree_key": tree_key, "item_code": item_code, "item_name": item_name, "shipping_address_name": shipping_address_name, "uom": uom, "currency": currency, "rate": rate, "indent": 1}
             total = 0
             for _, end in self.periodic_ranges:
                 key = scrub(self.get_period_label(end))
