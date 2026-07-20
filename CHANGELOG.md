@@ -3,6 +3,42 @@
 
 
 
+## 🚀 v2.6.0 (2026-07-20)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- add Toplam Fiyat column to periodic sales orders
+      
+      
+    
+      
+      
+        
+- periodic sales order pending EUR conversion
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.5.1 (2026-07-16)
 
 
