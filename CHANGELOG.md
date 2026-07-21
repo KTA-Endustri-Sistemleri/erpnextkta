@@ -3,6 +3,54 @@
 
 
 
+## 🚀 v2.6.1 (2026-07-21)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **test**: clear request cache to prevent batch requirement validation error in tests
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **kta_mrp**: revamp periodic sales order report ui and logic
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.6.0 (2026-07-20)
 
 
