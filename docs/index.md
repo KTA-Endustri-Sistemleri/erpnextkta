@@ -27,6 +27,7 @@ title: "ERPNext için üretim odaklı KTA özelleştirmeleri"
 
   - [🚀 KTA Çalışma Kartı Kullanım Kılavuzu](kta_calisma_karti_kilavuzu.html)
   - [📏 KTA Kalite Yönetimi (Krimp & Test Masası) Kılavuzu](kta_kalite_kilavuzu.html)
+  - [📈 Periyodik Satış Siparişleri (MRP) Raporu Kılavuzu](periodic_sales_orders.html)
   - [🧬 Modüller ve Teknik Yapı](modules.html)
 
 </main>
