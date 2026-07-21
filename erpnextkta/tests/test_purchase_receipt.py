@@ -418,6 +418,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
             "custom_atlama_sirasi": 1
         })
         frappe.db.commit()
+        frappe.local.request_cache.clear()
 
         # 1. Create and submit Purchase Receipt
         pr = self.create_test_purchase_receipt()
@@ -475,6 +476,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
             "has_batch_no": 1
         })
         frappe.db.commit()
+        frappe.local.request_cache.clear()
 
         # 1. Create and submit Purchase Receipt
         pr = self.create_test_purchase_receipt()
@@ -543,6 +545,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
             "has_batch_no": 1
         })
         frappe.db.commit()
+        frappe.local.request_cache.clear()
 
         # 1. Create and submit Purchase Receipt
         pr = self.create_test_purchase_receipt()
@@ -588,6 +591,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
             "has_batch_no": 1
         })
         frappe.db.commit()
+        frappe.local.request_cache.clear()
 
         # 1. Create and submit Purchase Receipt
         pr = self.create_test_purchase_receipt()
@@ -666,6 +670,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
             "has_batch_no": 1
         })
         frappe.db.commit()
+        frappe.local.request_cache.clear()
 
         # 1. Create and submit Purchase Receipt (this automatically creates a draft QI)
         pr = self.create_test_purchase_receipt()
