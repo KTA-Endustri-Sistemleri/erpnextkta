@@ -258,9 +258,9 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
         {
             fieldtype: "Float",
             label: __("İşlem Adedi"),
-            fieldname: "adet",
+            fieldname: "islem_adedi_1",
             reqd: 0,
-            default: defaults.adet ?? 1,
+            default: defaults.islem_adedi_1 !== undefined ? defaults.islem_adedi_1 : (defaults.adet ?? 1),
         },
         {
             fieldtype: "Link",

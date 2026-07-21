@@ -112,8 +112,7 @@ function onAltOperasyonDuzenle(h: any) {
   const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
   const defaults = {
     ...h,
-    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite,
-    adet: h.adet || h.islem_adedi_1 // map islem_adedi_1 to adet for single mode edit
+    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite
   };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = new frappe.ui.Dialog({
@@ -237,11 +236,11 @@ function onAltOperasyonSil(h: any) {
               <div class="ck-muted ck-mini-sub" v-if="h.hammadde">
                 {{ h.hammadde }} 
                 <template v-if="h.boyut_1_mm">({{ __("Boy") }}: {{ h.boyut_1_mm }}mm) </template>
-                [{{ h.islem_adedi_1 !== undefined ? h.islem_adedi_1 : (h.adet || 0) }} {{ getIsTuketimHesaplanir(h) ? (h.uom || '') : 'Adet' }}]
+                [{{ getIsTuketimHesaplanir(h) ? (h.adet || 0) : (h.islem_adedi_1 !== undefined ? h.islem_adedi_1 : (h.adet || 0)) }} {{ getIsTuketimHesaplanir(h) ? (h.uom || '') : 'Adet' }}]
               </div>
               <div class="ck-muted ck-mini-sub" v-else-if="h.islem_adedi_1 !== undefined || h.adet || h.uom">
                 <template v-if="h.boyut_1_mm">{{ __("Boy") }}: {{ h.boyut_1_mm }}mm </template>
-                [{{ h.islem_adedi_1 !== undefined ? h.islem_adedi_1 : (h.adet || 0) }} {{ getIsTuketimHesaplanir(h) ? (h.uom || '') : 'Adet' }}]
+                [{{ getIsTuketimHesaplanir(h) ? (h.adet || 0) : (h.islem_adedi_1 !== undefined ? h.islem_adedi_1 : (h.adet || 0)) }} {{ getIsTuketimHesaplanir(h) ? (h.uom || '') : 'Adet' }}]
               </div>
             </template>
             
