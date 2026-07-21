@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.6.2 (2026-07-21)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **ui**: decouple operation quantity and consumption amount in single screen
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.6.1 (2026-07-21)
 
 
