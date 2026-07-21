@@ -68,12 +68,6 @@ frappe.query_reports["Periodic Sales Orders"] = {
 			"label": __("Sadece Teslim Edilmemişler"),
 			"fieldtype": "Check",
 			"default": 1
-		},
-		{
-			"fieldname": "convert_pending_to_eur",
-			"label": __("Bekleyenleri EUR'ya Çevir"),
-			"fieldtype": "Check",
-			"default": 0
 		}
 	],
 

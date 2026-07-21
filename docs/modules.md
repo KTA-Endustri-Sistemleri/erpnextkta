@@ -165,4 +165,26 @@ ERPNext’in üretim ekranlarını daha anlamlı hale getiren özel raporlar ve 
 
 </section>
 
+<section class="module-card" markdown="1">
+
+## 📈 KTA MRP (Material Requirements Planning)
+
+Satış ve üretim verilerini entegre ederek ileriye dönük periyodik öngörüler ve raporlamalar sunan veri analiz modüldür.
+
+**Öne çıkan özellikler:**
+
+- [Periyodik Satış Siparişleri Raporu Kılavuzu](periodic_sales_orders.html) (Müşteri ve ürün bazlı finansal/miktarsal öngörüler) 📈
+- Dinamik kur çevrimi (Cross-rate) ve Çoklu Döviz (Multi-Currency) desteği.
+- Açık siparişlerde akıllı fiyat (EUR) algılama algoritması.
+- Frappe standartlarının ötesinde, modern ve Premium arayüzlere (Rich Aesthetics) sahip özet gösterge panelleri.
+
+**Dosya yapısı (örnek):**
+
+- `kta_mrp/`
+  - `report/periodic_sales_orders/`
+    - `periodic_sales_orders.py` (Ana Veri Motoru)
+    - `periodic_sales_orders.js` (Arayüz ve Filtre Yönetimi)
+
+</section>
+
 </main>
