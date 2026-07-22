@@ -118,15 +118,15 @@
         {% set item_a = loop.index ~ ". " ~ qi_owner_name %}
         
         {% if item_q not in qis_list %}
-          {% set _ = qis_list.append(item_q) %}
-          {% set _ = approvers_list.append(item_a) %}
+          {% set _dummy = qis_list.append(item_q) %}
+          {% set _dummy = approvers_list.append(item_a) %}
         {% endif %}
       {% endif %}
     {% endfor %}
   {% else %}
     {% if doc.quality_inspection %}
-      {% set _ = qis_list.append(doc.quality_inspection) %}
-      {% set _ = approvers_list.append(doc.qi_owner_name or "-") %}
+      {% set _dummy = qis_list.append(doc.quality_inspection) %}
+      {% set _dummy = approvers_list.append(doc.qi_owner_name or "-") %}
     {% endif %}
   {% endif %}
 
