@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.6.3 (2026-07-22)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: prevent gettext shadowing in jinja template
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.6.2 (2026-07-21)
 
 
