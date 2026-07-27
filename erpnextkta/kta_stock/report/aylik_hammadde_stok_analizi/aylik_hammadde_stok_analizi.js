@@ -31,5 +31,11 @@ frappe.query_reports["Aylik Hammadde Stok Analizi"] = {
             "default": frappe.datetime.get_today(),
             "reqd": 1
         }
-    ]
+    ],
+    "formatter": function (value, row, column, data, default_formatter) {
+        if (column.fieldname === "fire_orani" && value !== null && value !== undefined) {
+            return parseFloat(value).toFixed(2) + "%";
+        }
+        return default_formatter(value, row, column, data);
+    }
 };
