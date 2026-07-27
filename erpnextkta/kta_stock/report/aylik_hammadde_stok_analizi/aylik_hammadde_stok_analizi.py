@@ -1,29 +1,11 @@
 import frappe
 from dateutil.relativedelta import relativedelta
 import datetime
+import re
 
 def execute(filters=None):
-    columns = get_columns()
-    data = get_data(filters)
-    return columns, data
-
-def get_columns():
-    return [
-        {"fieldname": "item_code", "label": "Ürün Kodu", "fieldtype": "Link", "options": "Item", "width": 140},
-        {"fieldname": "item_name", "label": "Ürün Adı", "fieldtype": "Data", "width": 250},
-        {"fieldname": "ay", "label": "Ay", "fieldtype": "Data", "width": 100},
-        {"fieldname": "acilis_stogu", "label": "Açılış Stoğu", "fieldtype": "Float", "width": 110},
-        {"fieldname": "uretim_tuketimi", "label": "Üretim Tüketimi", "fieldtype": "Float", "width": 130},
-        {"fieldname": "fire_cikis", "label": "Fire / Çıkış", "fieldtype": "Float", "width": 110},
-        {"fieldname": "malzeme_girisi", "label": "Malzeme Girişi", "fieldtype": "Float", "width": 120},
-        {"fieldname": "sayim_farki", "label": "Sayım Farkı", "fieldtype": "Float", "width": 110},
-        {"fieldname": "diger_hareketler", "label": "Diğer Hareketler", "fieldtype": "Float", "width": 130},
-        {"fieldname": "kapanis_stogu", "label": "Kapanış Stoğu", "fieldtype": "Float", "width": 110}
-    ]
-
-def get_data(filters):
     if not filters or not filters.get("from_date") or not filters.get("to_date"):
-        return []
+        return [], []
 
     conditions = ""
     if filters.get("item_group"):
@@ -31,6 +13,7 @@ def get_data(filters):
     if filters.get("item_code"):
         conditions += " AND sle.item_code = %(item_code)s"
         
+    # Get opening balances
     opening_balances = frappe.db.sql(f"""
         SELECT
             sle.item_code,
@@ -44,38 +27,28 @@ def get_data(filters):
         GROUP BY sle.item_code
     """.format(conditions=conditions), filters, as_dict=True)
 
+    # Get movements with actual voucher types
     monthly_movements = frappe.db.sql(f"""
         SELECT
             sle.item_code,
             i.item_name,
             DATE_FORMAT(sle.posting_date, '%%Y-%%m') as month,
-            SUM(CASE 
-                WHEN se.stock_entry_type = 'Manufacture' AND sle.actual_qty < 0 THEN sle.actual_qty
-                ELSE 0 END) as uretim_tuketimi,
-            SUM(CASE 
-                WHEN se.stock_entry_type IN ('Material Issue', 'Scrap for Manufacturing') AND sle.actual_qty < 0 THEN sle.actual_qty
-                ELSE 0 END) as fire_cikis,
-            SUM(CASE 
-                WHEN (se.stock_entry_type IN ('Material Receipt', 'Manufacture', 'Repack', 'Material Transfer for Manufacture') AND sle.actual_qty > 0) 
-                      OR sle.voucher_type = 'Purchase Receipt' THEN sle.actual_qty
-                ELSE 0 END) as malzeme_girisi,
-            SUM(CASE 
-                WHEN sle.voucher_type = 'Stock Reconciliation' THEN sle.actual_qty
-                ELSE 0 END) as sayim_farki,
-            SUM(CASE
-                WHEN (se.stock_entry_type NOT IN ('Manufacture', 'Material Issue', 'Scrap for Manufacturing', 'Material Receipt', 'Repack', 'Material Transfer for Manufacture') OR se.stock_entry_type IS NULL) 
-                     AND sle.voucher_type NOT IN ('Purchase Receipt', 'Stock Reconciliation') THEN sle.actual_qty
-                ELSE 0 END) as diger_hareketler
+            sle.voucher_type,
+            se.stock_entry_type,
+            SUM(sle.actual_qty) as qty
         FROM `tabStock Ledger Entry` sle
         JOIN `tabItem` i ON sle.item_code = i.name
         LEFT JOIN `tabStock Entry` se ON sle.voucher_type = 'Stock Entry' AND sle.voucher_no = se.name
         WHERE sle.is_cancelled = 0
           AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s
           {{conditions}}
-        GROUP BY sle.item_code, DATE_FORMAT(sle.posting_date, '%%Y-%%m')
+        GROUP BY sle.item_code, DATE_FORMAT(sle.posting_date, '%%Y-%%m'), sle.voucher_type, se.stock_entry_type
     """.format(conditions=conditions), filters, as_dict=True)
 
-    # Process into data structure
+    # Find unique movement types to create dynamic columns
+    movement_types = set()
+    
+    # Structure data
     item_data = {}
     for ob in opening_balances:
         item_data[ob.item_code] = {
@@ -91,9 +64,49 @@ def get_data(filters):
                 "item_name": row.item_name,
                 "months": {}
             }
-        item_data[row.item_code]["months"][row.month] = row
+        
+        # Determine the key for this movement
+        mov_type = row.voucher_type
+        if row.voucher_type == 'Stock Entry' and row.stock_entry_type:
+            mov_type = f"Stock Entry - {row.stock_entry_type}"
+            
+        movement_types.add(mov_type)
+        
+        month_key = row.month
+        if month_key not in item_data[row.item_code]["months"]:
+            item_data[row.item_code]["months"][month_key] = {}
+            
+        if mov_type not in item_data[row.item_code]["months"][month_key]:
+            item_data[row.item_code]["months"][month_key][mov_type] = 0.0
+            
+        item_data[row.item_code]["months"][month_key][mov_type] += row.qty
+        
+    # Sort movement types for consistent columns
+    movement_types = sorted(list(movement_types))
+    
+    # Build dynamic columns
+    columns = [
+        {"fieldname": "item_code", "label": "Ürün Kodu", "fieldtype": "Link", "options": "Item", "width": 140},
+        {"fieldname": "item_name", "label": "Ürün Adı", "fieldtype": "Data", "width": 250},
+        {"fieldname": "ay", "label": "Ay", "fieldtype": "Data", "width": 100},
+        {"fieldname": "acilis_stogu", "label": "Açılış Stoğu", "fieldtype": "Float", "width": 120}
+    ]
+    
+    for mt in movement_types:
+        # Create a safe fieldname
+        fieldname = re.sub(r'[^a-zA-Z0-9_]', '_', mt.lower())
+        fieldname = re.sub(r'_+', '_', fieldname).strip('_')
+        columns.append({
+            "fieldname": fieldname,
+            "label": mt,
+            "fieldtype": "Float",
+            "width": 160
+        })
+        
+    columns.append({"fieldname": "kapanis_stogu", "label": "Kapanış Stoğu", "fieldtype": "Float", "width": 120})
+    columns.append({"fieldname": "fire_orani", "label": "Fire Oranı (%)", "fieldtype": "Percent", "width": 120})
 
-    # Build the final output row by row
+    # Build rows
     data = []
     
     start_date = filters.get("from_date")
@@ -103,7 +116,6 @@ def get_data(filters):
     if isinstance(end_date, str):
         end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
         
-    # generate list of month strings
     month_list = []
     cur = start_date.replace(day=1)
     while cur <= end_date:
@@ -113,46 +125,48 @@ def get_data(filters):
     for item_code, item_info in item_data.items():
         running_bal = item_info["opening"]
         
-        # If opening bal is 0 and there are no movements in this period, skip the item entirely.
+        # Skip if no movements and zero balance
         if running_bal == 0 and not item_info["months"]:
             continue
             
         for m in month_list:
-            mov = item_info["months"].get(m)
+            movs = item_info["months"].get(m, {})
             
             # Show row if there are movements or if running_bal is non-zero
-            if mov:
-                kapanis = running_bal + mov.uretim_tuketimi + mov.fire_cikis + mov.malzeme_girisi + mov.sayim_farki + mov.diger_hareketler
-                data.append({
+            if movs or running_bal != 0:
+                row_dict = {
                     "item_code": item_code,
                     "item_name": item_info["item_name"],
                     "ay": m,
-                    "acilis_stogu": running_bal,
-                    "uretim_tuketimi": mov.uretim_tuketimi,
-                    "fire_cikis": mov.fire_cikis,
-                    "malzeme_girisi": mov.malzeme_girisi,
-                    "sayim_farki": mov.sayim_farki,
-                    "diger_hareketler": mov.diger_hareketler,
-                    "kapanis_stogu": kapanis
-                })
+                    "acilis_stogu": running_bal
+                }
+                
+                net_change = 0.0
+                for mt in movement_types:
+                    fieldname = re.sub(r'[^a-zA-Z0-9_]', '_', mt.lower())
+                    fieldname = re.sub(r'_+', '_', fieldname).strip('_')
+                    val = movs.get(mt, 0.0)
+                    row_dict[fieldname] = val
+                    net_change += val
+                    
+                kapanis = running_bal + net_change
+                row_dict["kapanis_stogu"] = kapanis
+                
+                # Calculate Fire Oranı (%)
+                tuketim = abs(row_dict.get("stock_entry_manufacture", 0.0))
+                fire = abs(row_dict.get("stock_entry_material_issue", 0.0)) + abs(row_dict.get("stock_entry_scrap_for_manufacturing", 0.0))
+                
+                if tuketim > 0:
+                    row_dict["fire_orani"] = round((fire / tuketim) * 100, 2)
+                elif fire > 0:
+                    row_dict["fire_orani"] = 100.0
+                else:
+                    row_dict["fire_orani"] = 0.0
+                
+                data.append(row_dict)
                 running_bal = kapanis
-            else:
-                # no movements this month
-                if running_bal != 0:
-                    data.append({
-                        "item_code": item_code,
-                        "item_name": item_info["item_name"],
-                        "ay": m,
-                        "acilis_stogu": running_bal,
-                        "uretim_tuketimi": 0,
-                        "fire_cikis": 0,
-                        "malzeme_girisi": 0,
-                        "sayim_farki": 0,
-                        "diger_hareketler": 0,
-                        "kapanis_stogu": running_bal
-                    })
 
     # Sort data by item_code then ay
     data = sorted(data, key=lambda x: (x["item_code"], x["ay"]))
     
-    return data
+    return columns, data
