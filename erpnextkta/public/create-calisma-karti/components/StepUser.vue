@@ -20,22 +20,44 @@ const emit = defineEmits(['update:selectedUser']);
 
 // Arama kutusu
 const searchText = ref('');
+const selectedDepartment = ref('');
+
+// Benzersiz departman listesi
+const departments = computed(() => {
+  const deps = (props.users || [])
+    .map(u => u.department)
+    .filter(d => !!d); // Boş olanları ele
+  return [...new Set(deps)].sort();
+});
+
+function formatDepartmentName(dep) {
+  if (!dep) return '';
+  return dep.replace(/\s*-\s*KTA$/i, '').replace(/_/g, ' ');
+}
 
 // Filtrelenmiş liste
 const filteredUsers = computed(() => {
-  const q = searchText.value.trim().toLowerCase();
-  if (!q) return props.users || [];
+  let list = props.users || [];
+  
+  if (selectedDepartment.value) {
+    list = list.filter(u => u.department === selectedDepartment.value);
+  }
 
-  return (props.users || []).filter((u) => {
-    const name = (u.employee_name || '').toLowerCase();
-    const userId = (u.user_id || '').toLowerCase();
-    const empName = (u.name || '').toLowerCase();
-    return (
-      name.includes(q) ||
-      userId.includes(q) ||
-      empName.includes(q)
-    );
-  });
+  const q = searchText.value.trim().toLowerCase();
+  if (q) {
+    list = list.filter((u) => {
+      const name = (u.employee_name || '').toLowerCase();
+      const userId = (u.user_id || '').toLowerCase();
+      const empName = (u.name || '').toLowerCase();
+      return (
+        name.includes(q) ||
+        userId.includes(q) ||
+        empName.includes(q)
+      );
+    });
+  }
+
+  return list;
 });
 
 function selectUser(name) {
@@ -72,6 +94,28 @@ function getInitials(emp) {
       >
         {{ users.length }} {{ __('çalışan') }}
       </div>
+    </div>
+
+    <!-- Departman Filtresi (Pills) -->
+    <div v-if="departments.length" class="step-user__departments">
+      <button
+        type="button"
+        class="step-user__dep-pill"
+        :class="{ 'step-user__dep-pill--active': selectedDepartment === '' }"
+        @click="selectedDepartment = ''"
+      >
+        {{ __('Tümü') }}
+      </button>
+      <button
+        v-for="dep in departments"
+        :key="dep"
+        type="button"
+        class="step-user__dep-pill"
+        :class="{ 'step-user__dep-pill--active': selectedDepartment === dep }"
+        @click="selectedDepartment = dep"
+      >
+        {{ formatDepartmentName(dep) }}
+      </button>
     </div>
 
     <!-- Arama kutusu -->
@@ -120,7 +164,7 @@ function getInitials(emp) {
               {{ emp.employee_name || emp.name }}
             </span>
             <span v-if="emp.department" class="step-user__department">
-              {{ emp.department }}
+              {{ formatDepartmentName(emp.department) }}
             </span>
           </div>
           <div v-if="emp.user_id" class="step-user__email">
@@ -155,7 +199,7 @@ function getInitials(emp) {
             </div>
             <div v-if="emp.department" class="step-user__summary-row">
               <span class="step-user__label">{{ __('Departman') }}:</span>
-              <span>{{ emp.department }}</span>
+              <span>{{ formatDepartmentName(emp.department) }}</span>
             </div>
           </template>
         </template>
@@ -217,6 +261,46 @@ function getInitials(emp) {
 .step-user__search-input:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+}
+
+.step-user__departments {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.25rem 0 0.5rem 0;
+  margin-bottom: 0.25rem;
+  scrollbar-width: none;
+}
+
+.step-user__departments::-webkit-scrollbar {
+  display: none;
+}
+
+.step-user__dep-pill {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 999px;
+  border: 1px solid var(--ck-border);
+  background: var(--ck-card-bg);
+  color: var(--ck-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.step-user__dep-pill:hover {
+  background: var(--ck-ghost-bg);
+  color: var(--ck-text);
+  border-color: var(--ck-text-muted);
+}
+
+.step-user__dep-pill--active {
+  background: var(--ck-accent);
+  color: #ffffff;
+  border-color: var(--ck-accent);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
 .step-user__empty {
