@@ -3,6 +3,42 @@
 
 
 
+## 🚀 v2.7.0 (2026-07-28)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_calisma_karti**: add production department filter pills for operators
+      
+      
+    
+      
+      
+        
+- **report**: add dynamic cols and scrap rate to raw material analysis
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.6.3 (2026-07-22)
 
 
