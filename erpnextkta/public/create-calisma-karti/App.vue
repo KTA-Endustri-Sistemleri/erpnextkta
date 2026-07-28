@@ -419,11 +419,29 @@ async function fetchUsers() {
 
   try {
     await withLoading(async () => {
+      // 1. "Üretim" ana departmanı ve altındakileri bul
+      let uretimDepts = ['Üretim'];
+      try {
+        const depts = await callFrappe('frappe.client.get_list', {
+          doctype: 'Department',
+          filters: { parent_department: 'Üretim' },
+          fields: ['name'],
+          limit_page_length: 500
+        });
+        if (depts && depts.length) {
+          uretimDepts = uretimDepts.concat(depts.map(d => d.name));
+        }
+      } catch (deptErr) {
+        console.warn('Departmanlar alınırken hata oluştu (Üretim alt departmanları):', deptErr);
+      }
+
+      // 2. Çalışanları Üretim departmanlarına göre filtrele
       const list = await callFrappe('frappe.client.get_list', {
         doctype: 'Employee',
         filters: {
           status: 'Active',
-          user_id: ['is', 'set']
+          user_id: ['is', 'set'],
+          department: ['in', uretimDepts]
         },
         fields: ['name', 'employee_name', 'user_id', 'department'],
         limit_page_length: 500
