@@ -180,12 +180,13 @@ class BatchSplitManager:
         if split_qty <= 0:
             return []
 
+        remainder_qty = qty % split_qty
         num_packs = cint(qty // split_qty)
         
-        if num_packs > 300:
-            frappe.throw(_("Miktar ve paketleme oranına göre çok fazla ({0}) paket/batch oluşmaktadır. Lütfen transfer miktarını veya müşteri paketleme miktarını kontrol ediniz. (Maks: 300)").format(num_packs))
-
-        remainder_qty = qty % split_qty
+        total_packs = num_packs + (1 if remainder_qty > 0 else 0)
+        
+        if total_packs > 300:
+            frappe.throw(_("Miktar ve paketleme oranına göre çok fazla ({0}) paket/batch oluşmaktadır. Lütfen transfer miktarını veya müşteri paketleme miktarını kontrol ediniz. (Maks: 300)").format(total_packs))
         allocations = []
 
         start_pack_no = 1

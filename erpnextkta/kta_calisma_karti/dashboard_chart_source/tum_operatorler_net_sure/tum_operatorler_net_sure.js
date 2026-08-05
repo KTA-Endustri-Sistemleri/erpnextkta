@@ -19,11 +19,11 @@ frappe.dashboards.chart_sources["Tum Operatorler Net Sure"] = {
             ],
         },
         {
-            fieldname: "is_istasyonu",
-            label: __("İş İstasyonu"),
+            fieldname: "department",
+            label: __("Departman"),
             fieldtype: "MultiSelectList",
-            get_data: function(txt) {
-                return frappe.db.get_link_options("Workstation", txt);
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Department", txt, { parent_department: "Üretim" });
             },
         }
     ],

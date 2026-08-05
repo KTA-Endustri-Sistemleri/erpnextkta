@@ -38,7 +38,7 @@ def get_data(**kwargs):
             filters = {}
 
     date_range   = filters.get("date_range")
-    is_istasyonu = filters.get("is_istasyonu") or None
+    department = filters.get("department") or None
 
 
     if date_range and len(date_range) == 2:
@@ -61,12 +61,12 @@ def get_data(**kwargs):
 
 
 
-    if is_istasyonu:
-        if isinstance(is_istasyonu, str):
-            is_istasyonu = [s.strip() for s in is_istasyonu.split(",") if s.strip()]
-        if is_istasyonu:
-            conditions.append("ck.is_istasyonu IN %(is_istasyonu)s")
-            params["is_istasyonu"] = is_istasyonu
+    if department:
+        if isinstance(department, str):
+            department = [s.strip() for s in department.split(",") if s.strip()]
+        if department:
+            conditions.append("emp.department IN %(department)s")
+            params["department"] = department
 
     where_clause = " AND ".join(conditions)
 
@@ -116,28 +116,38 @@ def get_data(**kwargs):
     net_values = [round(mins, 1) for op, mins in sorted_ops]
 
     missing_values = []
-    for op, mins in sorted_ops:
-        required_days = len(dates_map.get(op, set()))
-        net_val = totals[op]
-        missing_val = max(0.0, (required_days * target_duration) - net_val)
-        missing_values.append(round(missing_val, 1))
+    show_missing = True
+
+    if show_missing:
+        for op, mins in sorted_ops:
+            required_days = len(dates_map.get(op, set()))
+            net_val = totals[op]
+            missing_val = max(0.0, (required_days * target_duration) - net_val)
+            missing_values.append(round(missing_val, 1))
 
     avg_val = sum(net_values) / len(net_values) if net_values else 0
 
+    datasets = [
+        {
+            "name":      _("Net Çalışma (dk)"),
+            "values":    net_values,
+            "chartType": "bar",
+        }
+    ]
+    
+    colors = ["#3498db"]
+
+    if show_missing:
+        datasets.append({
+            "name":      _("Eksik Süre (dk) [(Gün x {0}) - Net]").format(int(target_duration)),
+            "values":    missing_values,
+            "chartType": "bar",
+        })
+        colors.append("#e74c3c")
+
     return {
         "labels": labels,
-        "datasets": [
-            {
-                "name":      _("Net Çalışma (dk)"),
-                "values":    net_values,
-                "chartType": "bar",
-            },
-            {
-                "name":      _("Eksik Süre (dk) [(Gün x {0}) - Net]").format(int(target_duration)),
-                "values":    missing_values,
-                "chartType": "bar",
-            }
-        ],
+        "datasets": datasets,
         "yMarkers": [
             {
                 "label": _("Ortalama ({0})").format(round(avg_val, 1)),
@@ -146,7 +156,7 @@ def get_data(**kwargs):
                 "options": { "labelPos": "left" }
             }
         ],
-        "colors": ["#3498db", "#e74c3c"]
+        "colors": colors
     }
 
 

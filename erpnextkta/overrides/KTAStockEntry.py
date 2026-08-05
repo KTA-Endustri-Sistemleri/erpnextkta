@@ -45,9 +45,8 @@ class KTAStockEntry(StockEntry):
         
         if self.purpose == "Manufacture":
             for batch_name in batches_to_disable:
-                frappe.db.set_value("Batch", batch_name, "batch_qty", 0, update_modified=False)
-                # Ensure the batch is marked as disabled to prevent future use if it's considered empty/cancelled.
-                frappe.db.set_value("Batch", batch_name, "disabled", 1, update_modified=False)
+                if frappe.db.exists("Batch", batch_name):
+                    frappe.db.set_value("Batch", batch_name, {"batch_qty": 0, "disabled": 1}, update_modified=False)
 
     def on_trash(self):
         batches_to_delete = []
@@ -59,12 +58,15 @@ class KTAStockEntry(StockEntry):
         
         if self.purpose == "Manufacture":
             for batch_name in batches_to_delete:
-                try:
-                    frappe.delete_doc("Batch", batch_name, ignore_permissions=True)
-                except Exception:
-                    # If deletion fails (e.g., due to LinkExistsError), ensure it's empty
-                    frappe.db.set_value("Batch", batch_name, "batch_qty", 0, update_modified=False)
-                    frappe.db.set_value("Batch", batch_name, "disabled", 1, update_modified=False)
+                if frappe.db.exists("Batch", batch_name):
+                    try:
+                        frappe.delete_doc("Batch", batch_name, ignore_permissions=True)
+                    except Exception:
+                        # If deletion fails (e.g., due to LinkExistsError), ensure it's empty and disabled
+                        frappe.db.set_value("Batch", batch_name, {
+                            "batch_qty": 0,
+                            "disabled": 1
+                        }, update_modified=False)
                     
     def _delete_associated_labels(self):
         labels = frappe.get_all("KTA Stock Label", filters={
@@ -80,11 +82,17 @@ class KTAStockEntry(StockEntry):
                 try:
                     frappe.delete_doc("KTA Print Log", log, ignore_permissions=True, force=True)
                 except Exception:
-                    pass
+                    frappe.log_error(
+                        f"Failed to delete KTA Print Log {log} for label {label} (Stock Entry {self.name}).\n{frappe.get_traceback()}",
+                        "KTAStockEntry cleanup"
+                    )
             try:
                 frappe.delete_doc("KTA Stock Label", label, ignore_permissions=True, force=True)
             except Exception:
-                pass
+                frappe.log_error(
+                    f"Failed to delete KTA Stock Label {label} (Stock Entry {self.name}).\n{frappe.get_traceback()}",
+                    "KTAStockEntry cleanup"
+                )
 
     def _get_generated_batches(self):
         batches = set()
