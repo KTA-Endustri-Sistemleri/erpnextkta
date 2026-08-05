@@ -142,8 +142,6 @@ class BatchSplitManager:
             batch_doc.update({
                 "reference_doctype": "Work Order",
                 "reference_name": parent_doc.work_order,
-                "stock_entry_reference_doctype": "Stock Entry",
-                "stock_entry_reference_name": parent_doc.name,
                 "manufacturing_date": parent_doc.get("posting_date"),
             })
         else:
@@ -183,6 +181,10 @@ class BatchSplitManager:
             return []
 
         num_packs = cint(qty // split_qty)
+        
+        if num_packs > 300:
+            frappe.throw(_("Miktar ve paketleme oranına göre çok fazla ({0}) paket/batch oluşmaktadır. Lütfen transfer miktarını veya müşteri paketleme miktarını kontrol ediniz. (Maks: 300)").format(num_packs))
+
         remainder_qty = qty % split_qty
         allocations = []
 
