@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.7.1 (2026-08-05)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **stock**: remove orphaned batches on manufacture stock entry cancellation
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.7.0 (2026-07-28)
 
 
