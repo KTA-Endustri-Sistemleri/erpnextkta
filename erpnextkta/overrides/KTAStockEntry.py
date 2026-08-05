@@ -34,6 +34,35 @@ class KTAStockEntry(StockEntry):
             enqueue_after_commit=True,
         )
 
+    def on_cancel(self):
+        super().on_cancel()
+        if self.purpose == "Manufacture":
+            batches = frappe.get_all("Batch", filters={
+                "stock_entry_reference_doctype": "Stock Entry",
+                "stock_entry_reference_name": self.name
+            }, pluck="name")
+            for batch_name in batches:
+                frappe.db.set_value("Batch", batch_name, "batch_qty", 0, update_modified=False)
+                # Ensure the batch is marked as disabled to prevent future use if it's considered empty/cancelled.
+                frappe.db.set_value("Batch", batch_name, "disabled", 1, update_modified=False)
+
+    def on_trash(self):
+        if self.purpose == "Manufacture":
+            batches = frappe.get_all("Batch", filters={
+                "stock_entry_reference_doctype": "Stock Entry",
+                "stock_entry_reference_name": self.name
+            }, pluck="name")
+            
+            for batch_name in batches:
+                try:
+                    frappe.delete_doc("Batch", batch_name, ignore_permissions=True)
+                except Exception:
+                    # If deletion fails (e.g., due to LinkExistsError), ensure it's empty
+                    frappe.db.set_value("Batch", batch_name, "batch_qty", 0, update_modified=False)
+                    frappe.db.set_value("Batch", batch_name, "disabled", 1, update_modified=False)
+                    
+        super().on_trash()
+
 
 def print_labels_on_submit(stock_entry, user=None):
     if user:
