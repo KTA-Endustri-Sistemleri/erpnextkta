@@ -19,7 +19,7 @@ def get_data(**kwargs):
             filters = {}
 
     date_range   = filters.get("date_range")
-    is_istasyonu = filters.get("is_istasyonu") or None
+    department = filters.get("department") or None
     top_n        = int(filters.get("top_n", 15))
 
     if date_range and len(date_range) == 2:
@@ -40,12 +40,12 @@ def get_data(**kwargs):
     ]
     params = {"start": start_date, "end": end_date}
 
-    if is_istasyonu:
-        if isinstance(is_istasyonu, str):
-            is_istasyonu = [s.strip() for s in is_istasyonu.split(",") if s.strip()]
-        if is_istasyonu:
-            conditions.append("ck.is_istasyonu IN %(is_istasyonu)s")
-            params["is_istasyonu"] = is_istasyonu
+    if department:
+        if isinstance(department, str):
+            department = [s.strip() for s in department.split(",") if s.strip()]
+        if department:
+            conditions.append("emp.department IN %(department)s")
+            params["department"] = department
 
     where_clause = " AND ".join(conditions)
 
