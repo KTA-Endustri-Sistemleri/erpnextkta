@@ -1,10 +1,95 @@
 import frappe
+from frappe import _
 from frappe.model.docstatus import DocStatus
+from frappe.utils import flt
 from erpnextkta.kta_stock.batch_manager import BatchSplitManager
 from erpnext.stock.doctype.stock_entry.stock_entry import StockEntry
 
 
 class KTAStockEntry(StockEntry):
+    def get_work_order_raw_materials(self, qty):
+        """Override to deduct quantities already consumed via
+        operation-based Material Consumption Stock Entries."""
+        item_dict = super().get_work_order_raw_materials(qty)
+
+        if not (self.work_order and self.pro_doc and self.pro_doc.skip_transfer):
+            return item_dict
+
+        consumed = self._get_already_consumed_qty()
+        if not consumed:
+            return item_dict
+
+        items_to_remove = []
+        for item_code, row in item_dict.items():
+            already = flt(consumed.get(row.get("item_code") or item_code, 0))
+            if already <= 0:
+                continue
+            remaining = flt(row.qty) - already
+            if remaining <= 0:
+                items_to_remove.append(item_code)
+            else:
+                row.qty = flt(
+                    remaining,
+                    frappe.get_precision("Stock Entry Detail", "qty"),
+                )
+
+        for key in items_to_remove:
+            del item_dict[key]
+
+        return item_dict
+
+    def _get_already_consumed_qty(self):
+        """Return {item_code: consumed_qty} from submitted
+        Material Consumption for Manufacture Stock Entries
+        against this Work Order."""
+        data = frappe.db.sql(
+            """
+            SELECT detail.item_code, SUM(detail.qty) as qty
+            FROM `tabStock Entry` entry
+            INNER JOIN `tabStock Entry Detail` detail ON detail.parent = entry.name
+            WHERE entry.work_order = %s
+                AND entry.purpose = 'Material Consumption for Manufacture'
+                AND entry.docstatus = 1
+                AND detail.s_warehouse IS NOT NULL
+            GROUP BY detail.item_code
+            """,
+            (self.work_order,),
+            as_dict=True,
+        )
+        return {d.item_code: flt(d.qty) for d in data} if data else {}
+
+    def check_if_operations_completed(self):
+        """Override to skip operation completion validation for Material Consumption Stock Entries."""
+        if self.purpose == "Material Consumption for Manufacture":
+            return
+            
+        super().check_if_operations_completed()
+
+    def validate_purpose(self):
+        valid_purposes = [
+            "Material Issue",
+            "Material Receipt",
+            "Material Transfer",
+            "Material Transfer for Manufacture",
+            "Manufacture",
+            "Repack",
+            "Send to Subcontractor",
+            "Material Consumption for Manufacture",
+            "Disassemble",
+        ]
+
+        if self.purpose not in valid_purposes:
+            frappe.throw(_("Purpose must be one of {0}").format(", ".join(valid_purposes)))
+
+        # KTA Override: Allow 'Material Consumption for Manufacture' against Job Card
+        allowed_job_card_purposes = ["Material Transfer for Manufacture", "Repack", "Material Consumption for Manufacture"]
+        if self.job_card and self.purpose not in allowed_job_card_purposes:
+            frappe.throw(
+                _(
+                    "For job card {0}, you can only make {1} type stock entries"
+                ).format(self.job_card, ", ".join(allowed_job_card_purposes))
+            )
+
     def validate(self):
         # 1. Standart ERPNext kontrollerini yap
         super().validate()
