@@ -3,6 +3,54 @@
 
 
 
+## 🚀 v2.8.0 (2026-08-07)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **stock**: resolve batch and label deletion issues on manufacture stock entry cancel and trash
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **calisma_karti**: update operator net time charts
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.7.0 (2026-07-28)
 
 
