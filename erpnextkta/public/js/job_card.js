@@ -21,5 +21,29 @@ frappe.ui.form.on("Job Card", {
                 });
             }, __("Kalite"));
         }
+        
+        // Kısmi Üretim Bildirimi Butonu
+        if (!frm.is_new() && frm.doc.docstatus === 0 && frm.doc.time_logs && frm.doc.time_logs.length > 0) {
+            frm.add_custom_button(__("Kısmi Üretim Bildir"), () => {
+                frappe.prompt({
+                    label: __("Tamamlanan Miktar"),
+                    fieldname: "qty",
+                    fieldtype: "Float",
+                    reqd: 1,
+                    description: __("Bu operasyonda üretilen toplam adet")
+                }, (values) => {
+                    frm.call("peel_off_partial_production", { qty: values.qty })
+                        .then(r => {
+                            if (r.message) {
+                                frappe.show_alert({
+                                    message: __("Kısmi üretim {0} olarak oluşturuldu", [r.message]),
+                                    indicator: "green"
+                                });
+                                frm.reload_doc();
+                            }
+                        });
+                }, __("Kısmi Üretim Bildirimi"), __("Onayla"));
+            }, __("İşlemler"));
+        }
     }
 });

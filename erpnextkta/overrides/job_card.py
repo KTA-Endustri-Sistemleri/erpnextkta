@@ -245,3 +245,87 @@ class KTAJobCard(JobCard):
                 alert=True,
                 indicator="orange",
             )
+            
+    @frappe.whitelist()
+    def peel_off_partial_production(self, qty):
+        """Kısmi üretim bildirimi: mevcut Job Card'dan qty adedi koparıp
+        yeni bir Job Card olarak Submit eder."""
+        qty = flt(qty)
+        if qty <= 0:
+            frappe.throw(_("Miktar 0'dan büyük olmalıdır."))
+        if qty >= self.for_quantity:
+            frappe.throw(_("Miktar mevcut Job Card miktarından küçük olmalıdır. Tamamı bittiyse direkt Submit edebilirsiniz."))
+        if self.docstatus != 0:
+            frappe.throw(_("Kısmi üretim bildirimi sadece Taslak (Draft) durumundaki İş Kartlarında yapılabilir."))
+
+        # 1. Boş (NULL) logları temizle ve time_logs listesini kategorize et
+        time_logs_to_peel = []
+        time_logs_to_keep = []
+        
+        for log in self.time_logs:
+            # Boş başlatılmış, kapatılmamış manuel log (idx=1 vb)
+            if not log.custom_calisma_karti and not log.to_time:
+                continue # Temizle (sil)
+                
+            if log.custom_calisma_karti:
+                ck_status = frappe.db.get_value("Calisma Karti", log.custom_calisma_karti, "docstatus")
+                if ck_status == 1:
+                    time_logs_to_peel.append(log)
+                else:
+                    time_logs_to_keep.append(log)
+            else:
+                # Eğer manuel olarak girilmiş ve bitirilmiş bir log ise (to_time var)
+                time_logs_to_peel.append(log)
+
+        if not time_logs_to_peel:
+            frappe.throw(_("Ayırılacak ve onaylanacak hiçbir bitmiş Çalışma Kartı (Zaman Çizelgesi) bulunamadı."))
+
+        # 2. Create Job Card B (Copy of self core fields)
+        new_jc = frappe.new_doc("Job Card")
+        fields_to_copy = [
+            "work_order", "operation", "operation_id", "workstation", 
+            "workstation_type", "sequence_id", "bom_no", "project", 
+            "company", "wip_warehouse", "hour_rate", "serial_no", 
+            "production_item"
+        ]
+        for field in fields_to_copy:
+            new_jc.set(field, self.get(field))
+            
+        new_jc.for_quantity = qty
+        new_jc.total_completed_qty = 0
+        new_jc.docstatus = 0
+        new_jc.flags.kta_sync_mode = True # Prevents sequence validation during creation
+
+        # Move time logs
+        for log in time_logs_to_peel:
+            new_jc.append("time_logs", {
+                "from_time": log.from_time,
+                "to_time": log.to_time,
+                "time_in_mins": log.time_in_mins,
+                "completed_qty": 0,
+                "employee": log.employee,
+                "custom_calisma_karti": log.custom_calisma_karti,
+                "custom_operasyon": log.custom_operasyon,
+                "custom_alt_operasyon": log.custom_alt_operasyon
+            })
+            
+        # Insert will call before_validate -> get_required_items for the new for_quantity
+        new_jc.insert(ignore_permissions=True)
+
+        # 3. Update Calisma Karti references to point to new_jc
+        for log in time_logs_to_peel:
+            if log.custom_calisma_karti:
+                frappe.db.set_value("Calisma Karti", log.custom_calisma_karti, "is_karti", new_jc.name, update_modified=False)
+
+        # 4. Submit Job Card B (triggers material consumption & update_work_order)
+        new_jc.submit()
+
+        # 5. Update self (Job Card A)
+        self.for_quantity = self.for_quantity - qty
+        self.time_logs = time_logs_to_keep
+        self.items = [] # Force recalculation of raw materials based on new for_quantity
+        self.flags.kta_sync_mode = True
+        self.save(ignore_permissions=True)
+
+        return new_jc.name
+
