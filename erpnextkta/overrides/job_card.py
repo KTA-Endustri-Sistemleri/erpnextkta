@@ -318,6 +318,9 @@ class KTAJobCard(JobCard):
                 frappe.db.set_value("Calisma Karti", log.custom_calisma_karti, "is_karti", new_jc.name, update_modified=False)
 
         # 4. Submit Job Card B (triggers material consumption & update_work_order)
+        # distribute_completed_qty hook'unun submit sırasında (validate) çalışabilmesi 
+        # için kta_sync_mode'u kapatalım.
+        new_jc.flags.kta_sync_mode = False
         new_jc.submit()
 
         # 5. Update self (Job Card A)
