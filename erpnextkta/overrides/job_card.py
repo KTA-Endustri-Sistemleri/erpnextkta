@@ -15,6 +15,25 @@ class KTAJobCard(JobCard):
             return
         return super().validate_sequence_id()
 
+    def set_status(self, update_status=False):
+        super().set_status(update_status)
+        
+        # Eğer KTA skip_transfer yüzünden yanlışlıkla Material Transferred/Partially Transferred olduysa ve
+        # aslında gerçek bir Material Transfer fişi yoksa, durumunu Open'a çevir.
+        if self.status in ("Material Transferred", "Partially Transferred") and self.get("work_order"):
+            wo = frappe.get_cached_doc("Work Order", self.work_order)
+            if wo and wo.skip_transfer:
+                has_real_transfer = frappe.db.exists(
+                    "Stock Entry", 
+                    {
+                        "job_card": self.name, 
+                        "purpose": "Material Transfer for Manufacture", 
+                        "docstatus": 1
+                    }
+                )
+                if not has_real_transfer:
+                    self.status = "Open"
+
     def before_validate(self):
         if hasattr(super(), "before_validate"):
             super().before_validate()
