@@ -223,7 +223,7 @@ export function useKrimpDialogs(props: any) {
 
     const altOpFld = dialog.get_field("alt_operasyon_kaydi");
     if (altOpFld) {
-      altOpFld.df.onchange = () => {
+      altOpFld.df.onchange = async () => {
         const rowId = dialog.get_value("alt_operasyon_kaydi");
         const altOpRow = getAltOpRow(rowId);
         if (altOpRow) {
@@ -240,7 +240,21 @@ export function useKrimpDialogs(props: any) {
               dialog.set_value("yon_2_siyirma_boyu", 0);
             }
           }
-          if (altOpRow.hammadde) dialog.set_value("kablo_no", altOpRow.hammadde);
+          
+          let isKutKablo = false;
+          if (altOpRow.alt_operasyon) {
+            isKutKablo = await frappe.call({
+              method: "erpnextkta.kta_calisma_karti.api.is_kut_kablo_operation",
+              args: { operasyon_name: altOpRow.alt_operasyon }
+            }).then((r: any) => r.message || false);
+          }
+          
+          if (isKutKablo && altOpRow.hammadde) {
+            dialog.set_value("kablo_no", altOpRow.hammadde);
+          } else {
+            dialog.set_value("kablo_no", "");
+          }
+
           if (altOpRow.satir_no) dialog.set_value("satir_no", altOpRow.satir_no);
           if (altOpRow.boyut_1_mm) dialog.set_value("hedef_kablo_boyu", parseFloat(altOpRow.boyut_1_mm));
         }
@@ -272,7 +286,7 @@ export function useKrimpDialogs(props: any) {
     };
   }
 
-  function addKrimp(altOpKaydiName?: string) {
+  async function addKrimp(altOpKaydiName?: string) {
     const altOpOptions = [
       "",
       ...(props.doc.alt_operasyon_kayitlari || [])
@@ -284,6 +298,14 @@ export function useKrimpDialogs(props: any) {
 
     const altOpRow = getAltOpRow(altOpKaydiName);
     const sides = resolveAltOpSides(altOpRow);
+    
+    let isKutKablo = false;
+    if (altOpRow && altOpRow.alt_operasyon) {
+      isKutKablo = await frappe.call({
+        method: "erpnextkta.kta_calisma_karti.api.is_kut_kablo_operation",
+        args: { operasyon_name: altOpRow.alt_operasyon }
+      }).then((r: any) => r.message || false);
+    }
 
     const defaults: any = {
       calisma_karti_name: props.doc.name,
@@ -303,7 +325,11 @@ export function useKrimpDialogs(props: any) {
     }
     
     if (altOpRow) {
-      defaults.kablo_no = altOpRow.hammadde || "";
+      if (isKutKablo) {
+        defaults.kablo_no = altOpRow.hammadde || "";
+      } else {
+        defaults.kablo_no = "";
+      }
       defaults.satir_no = altOpRow.satir_no || "";
       defaults.hedef_kablo_boyu = parseFloat(altOpRow.boyut_1_mm || 0);
     }
