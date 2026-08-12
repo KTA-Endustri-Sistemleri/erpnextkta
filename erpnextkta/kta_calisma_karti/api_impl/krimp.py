@@ -229,13 +229,29 @@ def get_kalip_list(kontak_no=None, selected_kesit=None):
         fields=["kesit", "kalip"],
     )
 
-    norm_target = normalize_kesit(selected_kesit)
     kaliplar = []
+    
+    # 1. Try exact match first
+    exact_match_found = False
     for e in entries:
-        if normalize_kesit(e.kesit) == norm_target and e.kalip:
-            val = str(e.kalip).strip()
-            if val and val not in kaliplar:
-                kaliplar.append(val)
+        if e.kesit and str(e.kesit).strip() == str(selected_kesit).strip():
+            exact_match_found = True
+            break
+            
+    if exact_match_found:
+        for e in entries:
+            if e.kesit and str(e.kesit).strip() == str(selected_kesit).strip() and e.kalip:
+                val = str(e.kalip).strip()
+                if val and val not in kaliplar:
+                    kaliplar.append(val)
+    else:
+        # 2. Fallback to normalized match
+        norm_target = normalize_kesit(selected_kesit)
+        for e in entries:
+            if normalize_kesit(e.kesit) == norm_target and e.kalip:
+                val = str(e.kalip).strip()
+                if val and val not in kaliplar:
+                    kaliplar.append(val)
 
     return sorted(kaliplar)
 
@@ -338,31 +354,38 @@ def search_krimp_items(doctype, txt, searchfield, start, page_len, filters):
 def get_krimp_book_details(kablo_no=None, kontak_no=None, selected_kesit=None, kalip_no=None):
     """
     Tries to find matching values from 'KTA Krimp Book' based on Cable and Terminal.
-    Uses normalization to handle variations like '20 AWG' vs 'AWG20'.
+    Uses exact match for selected_kesit if provided.
+    Falls back to normalization to handle variations like '20 AWG' vs 'AWG20' if relying on cable item.
     """
     if not kontak_no:
         return {}
 
-    norm_target = normalize_kesit(selected_kesit)
-    
-    if not norm_target and kablo_no:
-        # If no kesit selected, try to extract from cable
-        raw_val = extract_kesit_from_item(kablo_no)
-        norm_target = normalize_kesit(raw_val)
-
-    if not norm_target:
-        return {}
-    
-    # Fetch entries for this contact and compare normalized kesit
+    # Fetch entries for this contact
     potential_entries = frappe.get_all("KTA Krimp Book", 
         filters={"kontak_no": kontak_no}, 
         fields=["*"]
     )
     
     matches = []
-    for entry in potential_entries:
-        if normalize_kesit(entry.kesit) == norm_target:
-            matches.append(entry)
+    
+    # 1. Try exact match if selected_kesit is provided
+    if selected_kesit:
+        for entry in potential_entries:
+            if entry.kesit and str(entry.kesit).strip() == str(selected_kesit).strip():
+                matches.append(entry)
+
+    # 2. If no exact match and kablo_no is provided, fallback to extracted kesit
+    if not matches:
+        norm_target = normalize_kesit(selected_kesit)
+        if not norm_target and kablo_no:
+            # If no kesit selected, try to extract from cable
+            raw_val = extract_kesit_from_item(kablo_no)
+            norm_target = normalize_kesit(raw_val)
+
+        if norm_target:
+            for entry in potential_entries:
+                if normalize_kesit(entry.kesit) == norm_target:
+                    matches.append(entry)
             
     if not matches:
         return {}
