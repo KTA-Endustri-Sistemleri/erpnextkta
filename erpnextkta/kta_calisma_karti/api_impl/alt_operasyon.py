@@ -303,7 +303,13 @@ def add_alt_operasyon_kaydi(
         sol_siyirma = float(boyut_2_mm or 0)
         sag_siyirma = float(boyut_3_mm or 0)
 
+        is_kut_kablo = is_kut_kablo_operation(alt_operasyon)
+        is_coklu = _is_coklu_hammadde(calisma_karti)
+
         krimp_kontak_1 = sol_kontak
+        if not is_coklu and not is_kut_kablo and hammadde and not krimp_kontak_1:
+            krimp_kontak_1 = hammadde
+            
         siyirma_1 = sol_siyirma
         krimp_kontak_2 = sag_kontak
         siyirma_2 = sag_siyirma
@@ -314,7 +320,7 @@ def add_alt_operasyon_kaydi(
         new_krimp = doc.append(
             "krimp_olcumleri",
             {
-                "kablo_no": hammadde or "",
+                "kablo_no": hammadde if (is_coklu or is_kut_kablo) else "",
                 "hedef_kablo_boyu": float(boyut_1_mm or 0),
                 "kontak_no": krimp_kontak_1,
                 "siyirma_boyu": siyirma_1,
@@ -522,7 +528,11 @@ def update_alt_operasyon_kaydi(
     krimp_row_id = next((r.name for r in doc.get("krimp_olcumleri") if r.alt_operasyon_kaydi == row_id), None)
     if krimp_row_id:
         krimp_row = doc.get("krimp_olcumleri", {"name": krimp_row_id})[0]
-        krimp_row.kablo_no = hammadde or ""
+        
+        is_kut_kablo = is_kut_kablo_operation(alt_operasyon)
+        is_coklu = _is_coklu_hammadde(calisma_karti)
+        
+        krimp_row.kablo_no = hammadde if (is_coklu or is_kut_kablo) else ""
         krimp_row.hedef_kablo_boyu = float(boyut_1_mm or 0)
         
         # Zeki Logic: Gelen verilere göre T1 ve T2'yi belirle (Sabit Eşleştirme)
@@ -533,6 +543,9 @@ def update_alt_operasyon_kaydi(
         sag_siyirma = float(boyut_3_mm or 0)
 
         krimp_kontak_1 = sol_kontak
+        if not is_coklu and not is_kut_kablo and hammadde and not krimp_kontak_1:
+            krimp_kontak_1 = hammadde
+            
         siyirma_1 = sol_siyirma
         krimp_kontak_2 = sag_kontak
         siyirma_2 = sag_siyirma
