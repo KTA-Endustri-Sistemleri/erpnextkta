@@ -249,10 +249,20 @@ export function useKrimpDialogs(props: any) {
             }).then((r: any) => r.message || false);
           }
           
-          if (isKutKablo && altOpRow.hammadde) {
+          let isCokluHammadde = false;
+          if (props.doc && props.doc.operasyon) {
+            isCokluHammadde = await frappe.db.get_value("KTA Calisma Karti Operasyonlari", props.doc.operasyon, "ekran_tipi")
+              .then((r: any) => r.message && r.message.ekran_tipi === "Çoklu Hammadde");
+          }
+          
+          if ((isKutKablo || isCokluHammadde) && altOpRow.hammadde) {
             dialog.set_value("kablo_no", altOpRow.hammadde);
           } else {
             dialog.set_value("kablo_no", "");
+          }
+          
+          if (!isCokluHammadde && !isKutKablo && altOpRow.hammadde) {
+            dialog.set_value("kontak_no", altOpRow.hammadde);
           }
 
           if (altOpRow.satir_no) dialog.set_value("satir_no", altOpRow.satir_no);
@@ -307,6 +317,12 @@ export function useKrimpDialogs(props: any) {
       }).then((r: any) => r.message || false);
     }
 
+    let isCokluHammadde = false;
+    if (props.doc && props.doc.operasyon) {
+      isCokluHammadde = await frappe.db.get_value("KTA Calisma Karti Operasyonlari", props.doc.operasyon, "ekran_tipi")
+        .then((r: any) => r.message && r.message.ekran_tipi === "Çoklu Hammadde");
+    }
+
     const defaults: any = {
       calisma_karti_name: props.doc.name,
       alt_op_options: altOpOptions,
@@ -325,10 +341,14 @@ export function useKrimpDialogs(props: any) {
     }
     
     if (altOpRow) {
-      if (isKutKablo) {
+      if (isKutKablo || isCokluHammadde) {
         defaults.kablo_no = altOpRow.hammadde || "";
       } else {
         defaults.kablo_no = "";
+      }
+      
+      if (!isCokluHammadde && !isKutKablo && altOpRow.hammadde) {
+        defaults.kontak_no = altOpRow.hammadde;
       }
       defaults.satir_no = altOpRow.satir_no || "";
       defaults.hedef_kablo_boyu = parseFloat(altOpRow.boyut_1_mm || 0);
