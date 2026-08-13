@@ -3,6 +3,54 @@
 
 
 
+## 🚀 v2.8.1 (2026-08-13)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **kta_calisma_karti**: handle multi-material & auto-fill terminal for non-cable ops
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **kta_calisma_karti**: match exact crimp specs & restrict cable autofill
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.8.0 (2026-08-07)
 
 
