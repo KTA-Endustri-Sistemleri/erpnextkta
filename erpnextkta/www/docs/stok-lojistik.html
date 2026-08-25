@@ -1,0 +1,105 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "stok-lojistik" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">📦</span>
+  <h1>KTA Stok ve Lojistik Kılavuzu</h1>
+</div>
+
+<div class="kta-doc-section">
+<p><main class="container" markdown="1"></p>
+
+<p><strong>KTA Stok Modülü</strong>, ERPNext'in standart depo hareketlerini akıllı parti bölme (Smart Batch Splitting), Zebra (ZPL) entegrasyonu ve sıfır toleranslı Giriş Kalite Kontrol (GKK) kısıtlamalarıyla güçlendiren özel bir altyapıdır.</p>
+
+<p>Bu kılavuz, depo personelinin ve lojistik yöneticilerinin günlük işlemlerde bu sistemi nasıl kullanması gerektiğini özetler.</p>
+
+<hr />
+
+<h2>📥 1. Mal Kabul (Purchase Receipt) İşlemleri</h2>
+
+<p>Tedarikçilerden gelen hammaddelerin fabrikaya alınması ve sisteme kaydedilmesi sürecidir.</p>
+
+<h3>Lojistik Takip İş Akışı (Workflow)</h3>
+
+<p>Sistem, malzemenin fiziksel yolculuğunu takip etmeniz için bir iş akışı sunar. İlgili belge üzerinden şu statüleri seçerek ilerleyebilirsiniz:</p>
+<ol>
+  <li><strong>Yolda:</strong> Tedarikçi ürünü kargoladı.</li>
+  <li><strong>Antrepoda:</strong> Ürün gümrükte/antrepoda bekliyor.</li>
+  <li><strong>Mal Girişe Hazır:</strong> Ürün yola çıktı, fabrikaya geliyor.</li>
+  <li><strong>Mal Giriş:</strong> Ürün fiziksel olarak deponun kapısına yanaştı.</li>
+  <li><strong>[Kabul Et (Submit)]:</strong> Depo personeli sayımı yapar ve belgeyi onaylar.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Önemli Not:</strong> "Kabul Et" (Submit) butonuna basılana kadar sistem stokları artırmaz ve etiket basmaz.</p>
+</blockquote>
+
+<hr />
+
+<h2>🏷️ 2. Akıllı Parti Bölme ve Etiketleme</h2>
+
+<p>Sistem, ürünleri büyük bir "Tek Parti" olarak almak yerine fiziksel kutulara/paketlere bölerek yönetmenizi sağlar.</p>
+
+<h3>Nasıl Çalışır?</h3>
+
+<ul>
+<li><strong>Purchase Receipt (Mal Kabul):</strong> Satır detayında bulunan <code>custom_split_qty</code> alanına kutu içi miktarı (Örn: 20) girdiğinizde, sistem 100 adetlik bir alımı otomatik olarak 5 ayrı partiye böler (<code>PARTI-0001</code>, <code>PARTI-0002</code> vb.).</li>
+<li><strong>Stock Entry (Repack/Transfer):</strong> Ürün kartındaki (Item Customer Detail) <code>musteri_paketleme_miktari</code> baz alınarak ürünler transfer veya üretimden çıkış anında otomatik olarak yeni partilere bölünür.</li>
+</ul>
+
+<h3>Zebra (SUT) Otomasyonu</h3>
+
+<p>Belge onaylandığı (Submit) <strong>milisaniye</strong> içinde parçalara ayrılan her bir kutu için Zebra yazıcılardan (ZPL formatında) SUT barkodları otomatik olarak dökülür. Personelin ekstra bir "Etiket Yazdır" tuşuna basmasına gerek yoktur.</p>
+
+<hr />
+
+<h2>🚫 3. Karantina ve Transfer Güvenlik Duvarı</h2>
+
+<p>Ürünlerin depoya girdikten sonra kalite onayı (GKK) almadan <strong>kesinlikle</strong> hareket ettirilmemesini sağlayan sistemdir.</p>
+
+<h3>Kalite Onayı Öncesi Kısıtlamalar</h3>
+
+<p>Ürünler mal kabul ile sisteme girip etiketlendiğinde:</p>
+<ol>
+  <li>Sistem arka planda bu partiler için otomatik bir <strong>"Taslak" Kalite Kontrol (Quality Inspection)</strong> belgesi açar.</li>
+  <li>Kalite ekibi bu belgeyi <strong>Accepted (Kabul Edildi)</strong> statüsüne çekene kadar ürünler Karantinadadır.</li>
+  <li>Bir depo personeli, kalite onayı almamış bir barkodu okutarak <code>Stock Entry</code> (Depolar Arası Transfer/Üretime Çıkış) veya <code>Delivery Note</code> (İrsaliye) ile çıkarmak isterse:
+    <ul>
+      <li><strong>Sistem Anında Bloklar:</strong> <em>"HATA: PARTI-XXXX numaralı koli henüz Kalite Kontrol (GKK) onayı almadığı için transfer edilemez!"</em> uyarısı fırlatır.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>Onay Sonrası Süreç</h3>
+
+<p>Kalite birimi "Kabul" butonuna bastığı an, sistem ilgili <code>PARTI</code> kodları üzerindeki tüm dijital kilitleri otomatik açar. Artık malzemeler serbestçe tüketilebilir ve transfer edilebilir.</p>
+
+<hr />
+
+<h2>🔄 4. Eksik Barkod Verisi Kurtarma (Fallback)</h2>
+
+<p>Taslak aşamasında olan işlemlerinizde (Henüz parti numarası ERPNext tarafından oluşturulmadığında), sistem etiketlerin boş çıkmasını engeller. Kaynak deponuzdaki veya satırdaki mevcut <code>Batch</code> bilgilerini "miras" (Fallback) olarak kullanarak, işlem gerçekleşmeden de doğru etiketi basabilmenizi sağlar.</p>
+
+<hr />
+
+<h2>🖨️ 5. Zebra Etiket Yazdırma Kuyruk Yönetimi (Print Queue)</h2>
+
+<p>Zebra etiket basım işlemlerinde sunucu tıkanıklıklarını önlemek ve yazıcıların stabil çalışmasını sağlamak için kuyruk yönetimi (Print Queue) entegre edilmiştir:</p>
+<ul>
+  <li><strong>Asenkron İşleme</strong>: Yazdırma talepleri doğrudan yazıcıya gönderilip beklemek yerine arka planda kuyruğa atılır.</li>
+  <li><strong>Yazıcı İzleme</strong>: Kuyruktaki etiketlerin yazdırılma durumları (Beklemede, Yazdırılıyor, Tamamlandı, Hatalı) kuyruk paneli üzerinden takip edilebilir ve başarısız gönderimler tek tuşla yeniden denenebilir (Retry).</li>
+</ul>
+
+<hr />
+
+<h2>⚡ 6. Stok Mutabakatı Toplu Veri Optimizasyonu (Bulk Optimization)</h2>
+
+<p>Stock Reconciliation (Stok Mutabakatı) işlemlerinde binlerce satırlık veri güncellemelerinin sebep olduğu veritabanı darboğazları ve timeout sorunları için özel optimizasyon geliştirilmiştir:</p>
+<ul>
+  <li><strong>Toplu Sorgu Yükleme (Bulk Loading)</strong>: Satırlar tek tek sorgulanmak yerine bellek üzerinde gruplanarak toplu şekilde veritabanından çekilir. Bu sayede veritabanı gidiş-dönüş (Round-Trip) maliyeti %90 oranında düşürülmüş ve arka plan işlem yükü minimize edilmiştir.</li>
+</ul>
+
+
+</div>
+{% endblock %}

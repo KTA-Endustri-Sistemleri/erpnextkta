@@ -1,0 +1,88 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "production-pipeline" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🔬</span>
+  <h1>Üretim Pipeline Analizi</h1>
+  <p>Satış siparişlerinden fabrika çıkışına kadar tüm üretim hattını tek bir ekranda, 8 aşama halinde görselleştiren stratejik analiz aracı.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Raporun Temel Amacı</h2>
+  <ul>
+    <li>Üretim hattınızın <strong>8 aşamasını</strong> tek bir tabloda karşılaştırmalı olarak gösterir.</li>
+    <li>Haftalık <strong>stok evrimini</strong> (stock evolution) izleyerek stok fazlası veya kıtlığı önceden tespit edersiniz.</li>
+    <li>Kapasite sınırlarını dikkate alarak <strong>yeni planlanması gereken üretimi</strong> görürsünüz.</li>
+    <li>Geçmiş sevkiyat gecikmelerinin (backlog) mevcut plana etkisini anlarsınız.</li>
+  </ul>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. 8 Aşamalı Pipeline</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>#</th><th>Aşama</th><th>Hesaplama</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="kta-doc-badge red">1</span></td><td><strong>Müşteri Beklentisi</strong></td><td>SO'daki teslimat tarihine göre haftalara dağıtılmış miktar</td></tr>
+        <tr><td><span class="kta-doc-badge blue">2</span></td><td><strong>Sevkiyat Haftası</strong></td><td>Teslimat − Sevkiyat Süresi</td></tr>
+        <tr><td><span class="kta-doc-badge orange">3</span></td><td><strong>Üretim Başlama</strong></td><td>Teslimat − (Sevkiyat + Üretim Süresi)</td></tr>
+        <tr><td><span class="kta-doc-badge green">4</span></td><td><strong>İdeal Haftalık Üretim</strong></td><td>Net toplam ihtiyacın haftalara eşit dağıtılmış hali</td></tr>
+        <tr><td><span class="kta-doc-badge purple">5</span></td><td><strong>Devam Eden Üretim</strong></td><td>Açık iş emirlerinin planlanan bitiş haftasına dağıtılmış miktarı</td></tr>
+        <tr><td><span class="kta-doc-badge green">6</span></td><td><strong>Yeni Planlanacak Üretim</strong></td><td>Kalan kapasite dahilinde eklenmesi gereken yeni üretim</td></tr>
+        <tr><td><span class="kta-doc-badge blue">7</span></td><td><strong>Toplam Üretim Girişi</strong></td><td>Aşama 5 + Aşama 6</td></tr>
+        <tr><td><span class="kta-doc-badge gray">8</span></td><td><strong>Beklenen Stok Bakiyesi</strong></td><td>(Önceki Stok + Toplam Üretim) − Sevkiyat</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Kapasite Tespiti</h2>
+  <p>Kapasite üç katmanlı bir öncelik sırasıyla belirlenir:</p>
+  <ol>
+    <li><strong>Tanımlı Kapasite:</strong> Ürün grubundaki en yüksek <code>custom_weekly_production</code> değeri.</li>
+    <li><strong>Geçmiş Veri Kapasitesi:</strong> Son 3 ayda tamamlanan iş emirlerinin haftalık ortalaması.</li>
+    <li>Hiçbiri yoksa <strong>sınırsız (999999)</strong> kabul edilir.</li>
+  </ol>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Filtreler</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Başlangıç / Bitiş Tarihi</strong></td><td>Analiz periyodu</td><td>Bugün — 90 gün sonra</td></tr>
+        <tr><td><strong>Ürün Grubu</strong></td><td>Belirli bir ürün grubuna filtreleme (önerilir)</td><td>(Hepsi)</td></tr>
+        <tr><td><strong>Müşteri</strong></td><td>Belirli bir müşteriye filtreleme</td><td>(Hepsi)</td></tr>
+        <tr><td><strong>Depolar</strong></td><td>Stok bakiyesi hesaplaması için kullanılacak depolar</td><td>(Boş)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="kta-doc-info warning">
+    <strong>⚠️ Depo Seçimi:</strong> Depo seçilmezse stok bakiyesi hesaplanmaz ve stok evrimi 0'dan başlar.
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>5. Grafik</h2>
+  <p><strong>Karma Grafik (Axis-Mixed)</strong> — 4 katmanlı görselleştirme:</p>
+  <ul>
+    <li><span class="kta-doc-badge red">Çubuk</span> <strong>Haftalık Sevkiyat:</strong> O hafta sevk edilmesi gereken miktar.</li>
+    <li><span class="kta-doc-badge green">Çubuk</span> <strong>Haftalık Üretim:</strong> O hafta yapılacak toplam üretim.</li>
+    <li><span class="kta-doc-badge blue">Çizgi</span> <strong>Stok Bakiyesi:</strong> Hafta sonunda beklenen stok miktarı.</li>
+    <li><span class="kta-doc-badge gray">Çizgi</span> <strong>Kapasite:</strong> Haftalık üretim kapasite limiti.</li>
+  </ul>
+</div>
+
+<div class="kta-doc-section">
+  <h2>6. Bilgi Mesajı</h2>
+  <p>Grafik altında kapasite detayları ve backlog bilgisi gösterilir:</p>
+  <div class="kta-doc-code">Geçmiş Veri Kapasitesi: X | Tanımlı Kapasite: Y | Açık İ.E: Z | Toplam Backlog: W</div>
+</div>
+{% endblock %}

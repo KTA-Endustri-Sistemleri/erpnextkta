@@ -1,0 +1,95 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "capacity-planning" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">⚙️</span>
+  <h1>Kapasite Planlama Raporu</h1>
+  <p>Haftalık üretim kapasitesine göre dengeleme yaparak, üretimi haftalara dengeli şekilde dağıtan kapasite planlama ekranı.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Raporun Temel Amacı</h2>
+  <ul>
+    <li>Her ürün için <strong>hangi hafta kaç adet üretileceğini</strong>, kapasite sınırlarına uygun şekilde gösterir.</li>
+    <li>Haftalık kapasite kullanım oranını renk kodlarıyla anlık değerlendirmenizi sağlar.</li>
+    <li>Geçmiş haftalardan devretmiş (backlog) üretim yükünü takip edersiniz.</li>
+  </ul>
+  <div class="kta-doc-flow">
+    <div class="kta-doc-flow-step">📈 Satış Siparişleri</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">🏭 Üretime Başlama</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step active">⚙️ Kapasite Planlama</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">🧱 Malzeme İhtiyaç</div>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. Hesaplama Mantığı</h2>
+  <h3>🏭 Kapasite Tanımı</h3>
+  <p>Her ürünün <code>Item</code> kaydındaki <code>custom_weekly_production</code> alanı, haftalık üretim kapasitesini belirtir. Aynı ürün grubundaki en yüksek kapasite değeri, grubun haftalık üst limiti olarak kullanılır.</p>
+
+  <h3>🔄 Dengeleme Algoritması</h3>
+  <p><strong>Kapasite Dengeleme</strong> aktif olduğunda:</p>
+  <ol>
+    <li><strong>Backlog (Geçmiş Yük):</strong> Geçmiş haftalardan kalan siparişler toplanır.</li>
+    <li>Her hafta için önce backlog üretilir (kritiklik ağırlıklı dağıtım).</li>
+    <li>Kalan kapasite varsa cari haftanın talebine geçilir.</li>
+    <li>Karşılanamayan talep otomatik sonraki haftaya devredilir.</li>
+  </ol>
+  <div class="kta-doc-info">
+    <strong>💡 Dengeleme kapatılırsa:</strong> Backlog sadece ilk haftaya eklenir ve kapasite aşımları olduğu gibi gösterilir.
+  </div>
+
+  <h3>🚀 Ramp-up (Önden Üretim)</h3>
+  <p>Ramp-up aktif olduğunda, bir sonraki haftanın yükü bir önceki haftanın yüküne göre çok yüksekse, fark önceki haftaya çekilir. Artış hızı <code>Ramp-up Süresi</code> parametresine göre hesaplanır.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Filtreler</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Planlama periyodunun başlangıcı (geçmiş tarih seçilemez)</td><td>Haftanın Pazartesi'si</td></tr>
+        <tr><td><strong>Bitiş Tarihi</strong></td><td>Planlama periyodunun bitişi (min 90 gün)</td><td>3 ay sonra</td></tr>
+        <tr><td><strong>Kapasite Dengeleme</strong></td><td>Kapasite sınırlı dengeleme algoritmasını aktif eder</td><td>Açık ✓</td></tr>
+        <tr><td><strong>Ramp-up</strong></td><td>Gelecek haftaların yükünü önceki haftalara yayar</td><td>Kapalı</td></tr>
+        <tr><td><strong>Ramp-up Süresi</strong></td><td>Ramp-up aktifken artış hızını belirler (hafta)</td><td>3</td></tr>
+        <tr><td><strong>Müşteri Grubu</strong></td><td>Belirli bir KTA müşteri grubuna filtreleme</td><td>(Hepsi)</td></tr>
+        <tr><td><strong>Ürün Grubu</strong></td><td>Belirli bir ürün grubuna filtreleme</td><td>(Hepsi)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Renk Kodlaması</h2>
+  <p>Her hücre, üretim miktarının kapasiteye oranına göre renklendirilir:</p>
+  <div class="kta-doc-color-row">
+    <div class="kta-doc-color-swatch" style="background: #90EE90;"></div>
+    <span><strong>Açık Yeşil</strong> — Kapasite kullanımı düşük</span>
+  </div>
+  <div class="kta-doc-color-row">
+    <div class="kta-doc-color-swatch" style="background: #006400;"></div>
+    <span><strong>Koyu Yeşil</strong> — Kapasite kullanımı yüksek ama sınır içinde</span>
+  </div>
+  <div class="kta-doc-color-row">
+    <div class="kta-doc-color-swatch" style="background: #4B4B4B;"></div>
+    <span><strong>Koyu Gri</strong> — ⚠️ Kapasite aşımı!</span>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>5. Grafik ve Özet</h2>
+  <ul>
+    <li><strong>📈 Çizgi Grafik:</strong> Hafta bazında toplam planlanan üretim miktarı.</li>
+    <li><span class="kta-doc-badge green">Toplam Planlanan</span> Tüm zaman aralığındaki planlanan üretim toplamı.</li>
+    <li><span class="kta-doc-badge blue">Ürün Sayısı</span> Rapordaki benzersiz ürün kalemi sayısı.</li>
+  </ul>
+</div>
+{% endblock %}

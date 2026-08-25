@@ -1,0 +1,117 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "kalite-yonetimi" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">✅</span>
+  <h1>KTA Kalite Yönetimi Kılavuzu</h1>
+</div>
+
+<div class="kta-doc-section">
+<p><main class="container" markdown="1"></p>
+
+<p><strong>KTA Kalite Modülü</strong>, üretim sahasındaki en kritik operasyonlardan olan <strong>Krimp (Kontak Basma)</strong> ve <strong>Test Masası</strong> süreçlerinde hata payını sıfıra indirmek (Poke-Yoke) ve standartlara tam uyumu sağlamak için geliştirilmiştir.</p>
+
+<h2>📥 Veri Aktarımı (Krimp Book Setup)</h2>
+
+<p>Krimp Book kütüphanesinin (1500+ kayıt) sistem performansını etkilememesi ve <code>bench migrate</code> sırasında zaman aşımı (timeout) oluşturmaması için manuel aktarılması önerilir.</p>
+
+<p>Yeni bir kurulumda şu komutu terminalden çalıştırınız:</p>
+
+<div class="codehilite">
+<pre><span></span><code>bench<span class="w"> </span>--site<span class="w"> </span><span class="o">[</span>site-adı<span class="o">]</span><span class="w"> </span>execute<span class="w"> </span>erpnextkta.kta_quality.scripts.import_krimp_data.execute
+</code></pre>
+</div>
+
+<hr />
+
+<h2>📚 1. Krimp Teknik Kütüphanesi (Krimp Book)</h2>
+
+<p>Krimp operasyonlarında kullanılan terminal, kablo ve kalıp (<code>Amboss</code>) eşleşmeleri için devasa bir referans ansiklopedisidir.</p>
+
+<ul>
+<li><strong>Kapsam:</strong> Sistemde 1500+ adet onaylı üretici standardı (Tyco, Molex, Delphi vb.) yüklüdür.</li>
+<li><strong>İçerik:</strong> Her kayıt; kablo kesiti, terminal part no, krimp yüksekliği/genişliği ve ilgili kalıp ismini barındırır.</li>
+<li><strong>Kullanım Amacı:</strong> Operatör ve kalite teknisyenlerinin, hangi terminalin hangi ölçülerle basılması gerektiğini manuel aramadan, sistem üzerinden doğrulamasını sağlar.</li>
+</ul>
+
+<hr />
+
+<h2>📏 2. Krimp Yükseklik Parametreleri ve Ölçüm Doğrulama</h2>
+
+<p>Krimp Book'taki "Ansiklopedi" verisinin, sahada uygulanan "Onaylı Parametre" katmanına dönüştürülmüş halidir.</p>
+
+<h3>Temel İşleyiş ve Cascade Seçim Aşamaları:</h3>
+
+<ol>
+<li><strong>Dinamik Kısıt ve Cascade Seçim</strong>: Operatör veri girişi yaparken <em>Kesit Seçimi</em> -> <em>Kablo Seçimi</em> (kesite ait BOM kalıpları) -> <em>Kontak Seçimi</em> -> <em>Makine Seçimi (Asset)</em> şeklinde adım adım daralan bağımlı bir seçim akışı (Cascade Selection) izler. Bu sayede hatalı eşleşmeler daha giriş aşamasında elenir.</li>
+<li><strong>Otomatik Tolerans Algılama</strong>: Seçilen üçlüye (Kablo + Kontak + Kesit) göre <code>KTA Krimp Book</code> veritabanından minimum/maksimum tolerans limitleri otomatik olarak çekilir.</li>
+<li><strong>Canlı Gösterge (MeasureGauge)</strong>: Arayüzde ölçüm değerleri girildiğinde ±10 mm segment göstergesi canlı olarak çalışır. Girilen değer hedefe göre <em>Kısa</em>, <em>Uzun</em> veya <em>OK</em> olarak anlık işaretlenir. Limitlerin aşılması durumunda ekran "LIMIT AŞILDI" uyarısı verir.</li>
+<li><strong>Veri Koparma (Decoupling)</strong>: Onaylı bir parametre oluşturulduğunda, veriler Krimp Book'tan kopyalanır ve dondurulur. Böylece ana kütüphane değişse bile üretimdeki "Onaylı Formül" sabit kalır.</li>
+</ol>
+
+<hr />
+
+<h2>🏗️ 3. Test Masası Doğrulama Kaydı (Poke-Yoke)</h2>
+
+<p>Harness/Kablo gruplama (Board) işlemlerine başlamadan önce makine ve test donanımının doğruluğunu garanti altına alan kontrol sistemidir.</p>
+
+<h3>🛡️ Poke-Yoke Kontrol Listesi (17 Madde)</h3>
+
+<p>Her yeni doğrulama kaydında, sistem otomatik olarak <strong>17 maddelik standart bir kontrol listesi</strong> oluşturur:</p>
+<ul>
+  <li>"Test programı doğru mu?"</li>
+  <li>"Board üzerindeki klipsler çalışıyor mu?"</li>
+  <li>"Etiket yazıcısı bağlı mı?" gibi kritik soruların cevaplanması zorunludur.</li>
+</ul>
+
+<h3>🔗 Bağlantı Noktası Kontrolü</h3>
+
+<p>Board üzerindeki fiziksel bağlantı noktalarının (Connector pinleri vb.) tek tek doğrulanması için özel bir tablo sunar.</p>
+
+<h3>🔄 Çalışma Kartı (Work Card) Senkronizasyonu</h3>
+
+<ul>
+<li><strong>Otomatik Linkage:</strong> Bir doğrulama kaydı oluşturulduğunda ve <code>Çalışma Kartı</code> referansı girildiğinde, sistem bu sonucu anlık olarak ilgili üretim kartına işler.</li>
+<li><strong>Bypass Engeli:</strong> Test masası doğrulaması yapılmayan işlerde, ileri aşamalara geçiş kısıtlanabilir (Sıkı Mod).</li>
+</ul>
+
+<hr />
+
+<h2>⚙️ 4. Kalite Ayarları (Yöneticiler İçin)</h2>
+
+<p><code>KTA Quality Settings</code> üzerinden şu konfigürasyonlar yapılabilir:</p>
+<ol>
+  <li><strong>İzin Verilen Terminal Grupları:</strong> Krimp Parametreleri tablosunda hangi Item Group'ların (Örn: 110-Connector, 150-Terminals) seçilebileceği belirlenir.</li>
+  <li><strong>Kriter Yönetimi:</strong> Test masası doğrulamasındaki sabit kriterlerin (PTR form referansları) varsayılan değerleri izlenir.</li>
+</ol>
+
+<hr />
+
+<h2>📈 5. Raporlama ve İzlenebilirlik</h2>
+
+<p>Sistem, kaydedilen tüm krimp ölçümlerini ve test masası doğrulama sonuçlarını geriye dönük olarak saklar. Bu veriler:</p>
+<ul>
+  <li><strong>DÇF (Düzeltici Önleyici Faaliyet)</strong> gerektiren durumların tespiti,</li>
+  <li>Müşteri şikayetlerinde üretilen partinin kalite verilerine ulaşılması,</li>
+  <li>Operatör bazlı ölçüm hassasiyeti analizleri için kullanılır.</li>
+</ul>
+
+<hr />
+
+<h2>🔍 6. Giriş Kalite Kontrol (GKK) ve Karantina Süreci</h2>
+
+<p>Dışarıdan (tedarikçilerden) gelen hammaddelerin kalite onayı almadan üretime veya satışa çıkışını engelleyen entegre karantina sistemidir.</p>
+
+<h3>Temel İşleyiş:</h3>
+
+<ul>
+<li><strong>Anında Etiketleme:</strong> Mal Kabul (Purchase Receipt) onaylandığı an ürünler otomatik olarak kutu içi miktarlarına bölünür (<code>PARTI-0001</code>, <code>PARTI-0002</code> vb.) ve <strong>Zebra SUT etiketleri</strong> yazdırılır. Depo personeli ürünleri etiketleyip rafa kaldırır.</li>
+<li><strong>Otomatik GKK Belgesi:</strong> Etiketlenen ürünler için sistem arka planda otomatik olarak "Taslak" statüsünde bir Kalite Kontrol belgesi (Quality Inspection) oluşturur.</li>
+<li><strong>Transfer Kısıtı (Sıfır Tolerans):</strong> Kalite teknisyeni bu belgeyi inceleyip <strong>"Accepted (Kabul)"</strong> durumuna çekene kadar, bu partilerin hiçbir şekilde depodan çıkışına (Stock Entry, Delivery Note vb.) izin verilmez. Sistem <code>frappe.throw</code> ile kesin bir güvenlik duvarı oluşturur.</li>
+</ul>
+
+
+
+</div>
+{% endblock %}

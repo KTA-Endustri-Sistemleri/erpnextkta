@@ -1,0 +1,79 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "work-order-planning" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">📋</span>
+  <h1>İş Emri Planlama</h1>
+  <p>Kapasite planından gelen haftalık üretim planını mevcut açık iş emirleriyle karşılaştırarak "Hangi hafta için yeni iş emri açılmalı?" sorusunu cevaplar.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Raporun Temel Amacı</h2>
+  <ul>
+    <li>Her ürün ve hafta için <strong>planlanan üretim miktarını</strong> gösterir.</li>
+    <li>Mevcut açık iş emirlerinin bu planı <strong>ne kadar karşıladığını</strong> gösterir.</li>
+    <li>Eksik kalan miktarlar için <strong>yeni iş emri ihtiyacını</strong> otomatik tespit eder.</li>
+  </ul>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. Hesaplama Mantığı</h2>
+  <p>İki farklı kaynaktan beslenir:</p>
+  <ol>
+    <li><strong>Kapasite Planlama Raporu:</strong> Haftalık planlanmış üretim miktarları.</li>
+    <li><strong>Work Order (İş Emri):</strong> İptal edilmemiş ve tamamlanmamış tüm açık iş emirleri.</li>
+  </ol>
+  <div class="kta-doc-code">Yeni İş Emri İhtiyacı = max(Planlanan Üretim − Açık İş Emri Miktarı, 0)</div>
+  <div class="kta-doc-info">
+    <strong>📌 Backlog Dağıtımı:</strong> Geçmiş tarihli iş emirlerinin kalan miktarları, ilk haftalara öncelikli olarak dağıtılır ve plan ile eşleştirilerek kullanılır.
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Filtreler</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Başlangıç / Bitiş Tarihi</strong></td><td>Planlama periyodu</td><td>Bugün — 3 ay sonra</td></tr>
+        <tr><td><strong>Kapasite Dengeleme</strong></td><td>Kapasite Planlama raporuna aktarılır</td><td>Açık ✓</td></tr>
+        <tr><td><strong>Ramp-up</strong></td><td>Kapasite Planlama raporuna aktarılır</td><td>Kapalı</td></tr>
+        <tr><td><strong>Müşteri Grubu / Ürün Grubu</strong></td><td>Filtreleme</td><td>(Hepsi)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Tablo Kolonları</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Kolon</th><th>Açıklama</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Ürün Grubu / Ürün</strong></td><td>Ürünün grubu ve kodu</td></tr>
+        <tr><td><strong>Hafta</strong></td><td>ISO hafta etiketi (Örn: 2026-W35)</td></tr>
+        <tr><td><strong>Planlanan Üretim</strong></td><td>Kapasite Planlama'dan gelen planlı miktar</td></tr>
+        <tr><td><strong>Açık İş Emri Miktarı</strong></td><td>Mevcut açık iş emirlerinin kalan miktarı</td></tr>
+        <tr><td><strong>Yeni İş Emri İhtiyacı</strong></td><td>Açılması gereken yeni iş emri miktarı</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>5. Grafik ve Özet</h2>
+  <ul>
+    <li><strong>📊 Çubuk Grafik:</strong> Hafta bazında üç katmanlı görselleştirme:
+      <span class="kta-doc-badge green">Planlanan</span>
+      <span class="kta-doc-badge blue">Açık İş Emri</span>
+      <span class="kta-doc-badge red">Yeni İhtiyaç</span>
+    </li>
+    <li><span class="kta-doc-badge red">Toplam Yeni İş Emri İhtiyacı</span> Tüm haftalar için toplam yeni iş emri adedi.</li>
+  </ul>
+</div>
+{% endblock %}

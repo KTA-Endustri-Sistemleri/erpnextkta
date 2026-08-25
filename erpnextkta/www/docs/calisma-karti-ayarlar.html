@@ -1,0 +1,171 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "calisma-karti-ayarlar" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">⚙️</span>
+  <h1>KTA Çalışma Kartı Konfigürasyon ve Ayarlar Rehberi</h1>
+</div>
+
+<div class="kta-doc-section">
+
+
+<p>KTA Çalışma Kartı uygulamasının davranışı, yöneticiler tarafından 3 farklı noktadan dinamik olarak yönetilir. Uygulamanın esnekliğini sağlayan tüm ayarlar, bunların ne işe yaradığı ve hangi modüllere etki ettiği aşağıda detaylandırılmıştır.</p>
+
+<hr />
+
+<h2>1. Genel Sistem Ayarları (<code>KTA Calisma Karti Settings</code>)</h2>
+
+<p>Sistemin kalbindeki ana kuralları belirler. ERPNext arama çubuğuna <strong>KTA Calisma Karti Settings</strong> yazarak ulaşabilirsiniz.</p>
+
+<h3>⏱️ Vardiya ve Süre Limitleri</h3>
+
+<ul>
+<li><strong>Maksimum Çalışma Kartı Süresi (DK) (<code>max_kart_suresi_dk</code>):</strong> Bir kartın en fazla kaç dakika açık (Çalışıyor) kalabileceğini belirler. (Standart: 430). Bu süreyi aşan kartlar sistem (cron) tarafından otomatik duraklatılır veya kapatılır.</li>
+<li><strong>Kart Uyarı Süresi (DK) (<code>kart_uyari_suresi_dk</code>):</strong> Operatörün ekranında kırmızı renkli <em>"Vardiya Sonuna Yaklaşıyor"</em> uyarısının (Banner) çıkacağı dakikadır (Standart: 400).</li>
+<li><strong>Tamamlanmış İE Tolerans Süresi (Saat) (<code>tolerans_saat</code>):</strong> ERPNext tarafında bir İş Emri kapatılsa bile, son stok hareketinin üzerinden bu kadar saat geçene kadar sahadaki operatör o iş emrine Çalışma Kartı başlatabilir.</li>
+</ul>
+
+<h3>🔄 Senkronizasyon ve UI Yenileme</h3>
+
+<ul>
+<li><strong>Liste / Detay Yenileme Aralığı (Sn) (<code>liste_yenileme_araligi_sn</code>, <code>detay_yenileme_araligi_sn</code>):</strong> Sahadaki tablet sayısına göre sunucu yükünü (API Rate Limit) ayarlamak için kullanılır. Frontend ekranlarının (Liste ve İç kart) arka planda veritabanını kaç saniyede bir yoklayacağını belirler.</li>
+</ul>
+
+<h3>🛑 Kart Geçiş ve Duruş Kontrolleri</h3>
+
+<ul>
+<li><strong>Kart Geçiş Modu (<code>kart_gecis_modu</code>):</strong>
+<ul>
+<li><strong>Sıkı (Hard):</strong> Operatör mevcut kartına bir alt işlem vb. girmediyse yeni bir karta geçmesine <strong>asla izin verilmez.</strong></li>
+<li><strong>Esnek (Soft):</strong> Operatöre uyarı verilir ancak sorumluluk onda kalmak üzere geçişine izin verilir.</li>
+</ul></li>
+<li><strong>Arıza Devam Modu (<code>ariza_devam_modu</code>):</strong> Makine arızası bildirildiğinde, bakım ekibi arızayı kapatmadan operatörün üretime devam edip edemeyeceğini belirler.</li>
+<li><strong>Otomatik Duraklatma / Zaman Aşımı Nedeni:</strong> Bir operatör açık bir kartı varken başka bir kartı başlattığında veya gece vardiya kapanışlarında önceki kartlar sistem tarafından durdurulur. Bu duruşlara atanacak "Duruş Sebepleri" buradan seçilir (Örn: <em>Zaman Aşımı</em> veya <em>Sistem Tarafından Otomatik Duraklatıldı</em>).</li>
+</ul>
+
+<h3>📧 Kalite, Yetki ve Raporlama</h3>
+
+<ul>
+<li><strong>Mükerrer Kalite Kontrolü Yap:</strong> Aynı Kalite Muayene (QI) belgesinin birden fazla çalışma kartına bağlanmasını (kilit mekanizmasıyla) engeller.</li>
+<li><strong>Günlük Hata Raporu Aktif:</strong> Dün 5 saatin altında çalışan (verimsiz) operatörleri her sabah ilgili e-postalara ileten arka plan görevini (cron) açıp kapatır.</li>
+<li><strong>Job Card Süre Senkronizasyon Modu:</strong> Çalışma Kartındaki sürelerin standart ERPNext Job Card'lara aktarılırken hangi katılıkta olacağını (Submit edilmişlere yazılsın/yazılmasın) belirler.</li>
+<li><strong>Kalite Kontrol Rolleri (QC Allowed Roles):</strong> Modüler (alt operasyon bazlı) kalite onaylarında, "Onaylandı" durumuna gelmiş ve kalite belgesi (Quality Inspection) kesilmiş bir satır operatörler tarafından silinemez veya düzenlenemez. Sadece bu tabloya (KTA Calisma Karti QC Rolleri) eklenen rollere sahip kullanıcılar (Örn: <em>Quality Manager</em>, <em>KTA Kalite Kullanıcısı</em>) bu kilidi aşarak (bypass) düzenleme ve silme işlemi yapabilir.</li>
+<li><strong>Admin Kontrol Rolleri (<code>admin_roles</code>):</strong> Virgülle ayrılarak girilen roller (Örn: <em>System Manager, Quality Manager, Manufacturing Manager</em>); "Bitmiş" statüsüne geçerek normal operatörlere kilitlenen çalışma kartlarına dışarıdan girip içindeki verileri (alt işlem ekleme, hurda silme vb.) bypass ederek değiştirebilme yetkisine sahip olur. (Not: İptal edilmiş kartlara kimse müdahale edemez).</li>
+</ul>
+
+<hr />
+
+<h2>2. Operasyon Bazlı Ayarlar (<code>KTA Calisma Karti Operasyonlari</code>)</h2>
+
+<p>KTA Çalışma Kartı'nın arayüzü ve zorunlulukları <strong>seçilen operasyona göre</strong> şekil değiştirir. Bu ayarları değiştirmek için <strong>KTA Calisma Karti Operasyonlari</strong> listesine girmelisiniz.</p>
+
+<h3>📊 Üretim Akışı ve Zorunluluklar</h3>
+
+<ul>
+<li><strong>Miktar Bildirimi Zorunlu (<code>miktar_zorunlu_mu</code>):</strong> İşaretliyse operatör kartı bitirirken "Tamamlanan Miktar" kısmına en az 1 yazmalıdır. İşaretli değilse, miktar alanına 0 yazarak ve yalnızca alt operasyonlar vasıtasıyla tüketim gerçekleştirerek kartı bitirebilir.</li>
+<li><strong>Tüketim Limiti Doğrulaması Aktif (<code>tuketim_limiti_aktif</code>):</strong> Alt operasyonlarda girilen hammadde miktarının, ERPNext İş Emrindeki (BOM) izin verilen miktarı aşıp aşmadığına bakar.</li>
+</ul>
+
+<h3>🧩 Kalite ve Ekran Arayüzleri (Form Görünürlükleri)</h3>
+
+<p>Bir operasyonun içine girdiğinizde arayüzde hangi sekmelerin görüneceğini buradan açıp kapatabilirsiniz:
+- <strong>Krimp Formu Aktif:</strong> O operasyonda <em>Krimp (Sıkma)</em> sekmesini aktif eder.
+- <strong>IDC Formu Aktif:</strong> O operasyonda <em>IDC</em> ölçüm sekmesini aktif eder.
+- <strong>Enjeksiyon Formu Aktif:</strong> Plastik <em>Enjeksiyon</em> ölçüm formunu aktif eder.
+- <strong>Ekran Tipi (<code>ekran_tipi</code>):</strong> Operatörün hammadde giriş tarzını belirler. <em>Çoklu Hammadde</em> seçilirse, alt operasyon ekranında tek işlemde birden fazla hammadde kullanılmasına izin veren geniş form açılır.</p>
+
+<h3>🧪 Yeni Özellik: Modüler Kalite (Alt Operasyon Bazlı Kalite Onayı)</h3>
+
+<ul>
+<li><strong>Alt Operasyon Bazlı Kalite Onayı (<code>alt_operasyon_bazli_kalite</code>):</strong> Bu kutucuk işaretlenirse, kalite kontrol birimi "Bütün Kart" yerine, kart içindeki her bir alt operasyona (Küt, Çift Taraf vb.) satır satır onay verir. Formlar (Krimp formu vb.) bu alt operasyonların içeriğine göre sihirli şekilde (Auto-fill) dolar.
+<ul>
+<li><strong>Sistem Davranışı:</strong> Bu modda ana Çalışma Kartının (parent) <code>quality_inspection</code> (Kalite Belgesi) alanı hiçbir zaman doldurulmaz; yalnızca belgenin genel durumu (<code>kalite_kontrol</code> alanı) içindeki satırların durumlarına bakılarak dinamik olarak "Onaylandı" ya da "Onay Bekliyor" olarak hesaplanır. Böylelikle klasik kalite süreciyle modüler süreç birbirine karışmaz.</li>
+</ul></li>
+</ul>
+
+<blockquote>
+  <p><strong>Önemli:</strong> Modüler kalitenin ve krimp testlerinin aktif olması için o operasyonun <strong>Quality Inspection Template</strong> alanında ERPNext'te tanımlanmış bir Kalite Şablonunun seçili olması şarttır!</p>
+</blockquote>
+
+<hr />
+
+<h2>3. Duruş Sebebi Konfigürasyonları (<code>KTA Durus Sebebi</code>)</h2>
+
+<p>Operatörlerin arayüzde seçtiği veya sistemin atadığı duruş nedenleri <strong>KTA Durus Sebebi</strong> listesinden yönetilir. </p>
+
+<ul>
+<li><strong>Duruş Tipi (<code>durus_tipi</code>):</strong> Planlı, Plansız veya Sistem olarak ayrılır. Dashboard raporlamalarında OEE hesaplamalarına (Kayıp Zaman vs.) etki eder.</li>
+<li><strong>Sistem Kaydı (<code>is_system</code>):</strong> Bu kutucuk işaretliyse operatörler tabletlerinde bu nedeni göremez. Yalnızca arka plan işlemleri (Vardiya otomatik kapatma vb.) bu nedeni gizli şekilde atayabilir.</li>
+<li><strong>Grafiklerde Gizle (<code>exclude_from_charts</code>):</strong> Günlük mola veya yemek gibi duruşların Dashboard'daki pasta grafiklerini şişirmemesi isteniyorsa bu kutucuk işaretlenir.</li>
+</ul>
+
+<hr />
+
+<h2>4. ERPNext Çekirdek (Core) Bağımlılıkları</h2>
+
+<blockquote>
+  <p>[!IMPORTANT]
+  <strong>Bu ayarlar KTA menüsünde veya kodlarında bulunmaz!</strong> Bunlar ERPNext'in standart modül ayarlarıdır. Eğer operatörler sahada <em>"Kapasite Aşıldı"</em> veya <em>"Stok Yetersiz"</em> gibi sistem hataları alıyorsa, bunun sebebi KTA Çalışma Kartı kodu değil, aşağıdaki ERPNext standart kısıtlamalarıdır.</p>
+</blockquote>
+
+<p>KTA Çalışma Kartı, ERPNext'in üretim ve stok altyapısı üzerine inşa edildiği için standart ERPNext ayarlarından da doğrudan etkilenir.</p>
+
+<h3>🏭 Üretim Ayarları (<code>Manufacturing Settings</code>)</h3>
+
+<ul>
+<li><strong>Kapasite Planlamasını Devre Dışı Bırak (<code>disable_capacity_planning</code>):</strong> Eğer bu seçenek işaretlenirse, Çalışma Kartı bittiğinde arka planda Job Card (İş Kartı) güncellenirken iş istasyonlarının kapasite limitleri göz ardı edilir. Bu ayar kapalıyken (yani kapasite planlaması aktifken), bir iş istasyonuna aynı saatler arasında kapasitesinden fazla Çalışma Kartı süresi yazmaya çalışırsanız sistem (Job Card override üzerinden) bunu engeller.</li>
+<li><strong>Hammadde Tüketimi (Backflush):</strong> Sistem çalışma kartını kapatırken miktar girilirse arka planda ERPNext standartlarına göre üretim (Manufacture) stok belgesi oluşturur. Bu belgedeki varsayılan hammadde depoları ve backflush kuralları standart Üretim Ayarları'ndan okunur.</li>
+</ul>
+
+<h3>📦 Stok Ayarları (<code>Stock Settings</code>)</h3>
+
+<ul>
+<li><strong>Stok İşlemleri:</strong> Çalışma Kartı üzerinden verilen "Hurda" girişleri, arka planda bir <code>Stock Entry</code> (Stok Girişi/Çıkışı) belgesi oluşturur. Stok Ayarları altındaki eksi stok izinleri, isimlendirme serileri gibi kurallar Hurda girişinin başarılı olup olmayacağını doğrudan belirler. KTA modülü bu kurallara %100 sadık kalır.</li>
+</ul>
+
+<hr />
+
+<h2>🎯 Özet Tablo: Nerede Ne Yapılır?</h2>
+
+<div class="kta-doc-table-wrap"><table class="kta-doc-table">
+<thead>
+<tr>
+  <th style="text-align:left;">Sorun / İhtiyaç</th>
+  <th style="text-align:left;">Çözüm Yeri</th>
+  <th style="text-align:left;">Ne Yapılmalı?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:left;">Operatörlerin kart kapatma limiti olan 430 dakikayı değiştirmek</td>
+  <td style="text-align:left;"><strong>KTA Calisma Karti Settings</strong></td>
+  <td style="text-align:left;"><code>max_kart_suresi_dk</code> değerini güncelleyin.</td>
+</tr>
+<tr>
+  <td style="text-align:left;">Kaliteci bir çalışma kartının verisini değiştiremiyor (Kilitli)</td>
+  <td style="text-align:left;"><strong>KTA Calisma Karti Settings</strong></td>
+  <td style="text-align:left;"><code>admin_roles</code> listesine kalitecinin Frappe rolünü ekleyin.</td>
+</tr>
+<tr>
+  <td style="text-align:left;">X operasyonunda Krimp formunu görmek istiyoruz</td>
+  <td style="text-align:left;"><strong>KTA Calisma Karti Operasyonlari</strong></td>
+  <td style="text-align:left;">İlgili operasyonu açıp <code>has_krimp</code> tikini işaretleyin.</td>
+</tr>
+<tr>
+  <td style="text-align:left;">Y operasyonunda her alt işleme kalite onayı vermek istiyoruz</td>
+  <td style="text-align:left;"><strong>KTA Calisma Karti Operasyonlari</strong></td>
+  <td style="text-align:left;">İlgili operasyonu açıp <code>alt_operasyon_bazli_kalite</code> tikini işaretleyin.</td>
+</tr>
+<tr>
+  <td style="text-align:left;">Yeni bir duruş nedeni eklemek (Örn: Çay Molası)</td>
+  <td style="text-align:left;"><strong>KTA Durus Sebebi</strong></td>
+  <td style="text-align:left;">Yeni kayıt açıp Planlı Duruş olarak sisteme kaydedin.</td>
+</tr>
+</tbody>
+</table></div>
+
+
+
+</div>
+{% endblock %}

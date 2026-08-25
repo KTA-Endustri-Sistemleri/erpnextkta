@@ -1,0 +1,92 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "periodic-sales-orders" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">📈</span>
+  <h1>Periyodik Satış Siparişleri</h1>
+  <p>Satış siparişlerinin teslimat tarihlerine göre geleceğe yönelik periyodik dağılımını gösteren stratejik analiz ekranı.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Raporun Temel Amacı</h2>
+  <ul>
+    <li>Hangi müşteriye, hangi ay ne kadarlık ürün teslim etmeniz gerektiğini gösterir.</li>
+    <li>Önümüzdeki haftalarda/aylarda kasanıza girecek paranın (EUR/TRY vb.) kur bazlı dağılımını sunar.</li>
+    <li>Bekleyen sipariş yükünüzü tek bir ekranda, modern grafiklerle görebilirsiniz.</li>
+  </ul>
+  <div class="kta-doc-flow">
+    <div class="kta-doc-flow-step active">📈 Periyodik Satış Siparişleri</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">🏭 Üretime Başlama Haftası</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">⚙️ Kapasite Planlama</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">🧱 Malzeme İhtiyaç</div>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. Filtreler</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Analiz etmek istediğiniz zaman aralığının başlangıcı</td><td>1 ay önce</td></tr>
+        <tr><td><strong>Bitiş Tarihi</strong></td><td>Analiz etmek istediğiniz zaman aralığının bitişi</td><td>Bugün</td></tr>
+        <tr>
+          <td><strong>Periyot</strong></td>
+          <td>
+            Zaman çizelgesinin nasıl bölüneceğini belirler:<br>
+            • <strong>Haftalık:</strong> Verileri hafta hafta gösterir (Örn: 2026-W37)<br>
+            • <strong>Aylık:</strong> Her sütunda 1 aylık veri gösterir<br>
+            • <strong>Üç Aylık:</strong> Çeyrek bazında (Q1, Q2, Q3, Q4)<br>
+            • <strong>Yıllık:</strong> Uzun vadeli projeksiyonlar için
+          </td>
+          <td>Haftalık</td>
+        </tr>
+        <tr>
+          <td><strong>Değer Türü</strong></td>
+          <td>
+            • <strong>Miktar:</strong> Adet/metre gibi birimleri gösterir (üretim planlamacılar için)<br>
+            • <strong>Tutar:</strong> Finansal karşılığı gösterir (yöneticiler/finans için)
+          </td>
+          <td>Miktar</td>
+        </tr>
+        <tr><td><strong>Hedef Döviz</strong></td><td>Tüm tabloyu tek bir para biriminde görmek için seçilir. Sistem çapraz kur ile dönüştürür.</td><td>(Boş)</td></tr>
+        <tr>
+          <td><strong>Sınıflandırma</strong></td>
+          <td>
+            Satırların neye göre gruplanacağını belirler:<br>
+            • <strong>Müşteri:</strong> Müşteri bazlı, alt satırlarında ürünler<br>
+            • <strong>Müşteri Grubu:</strong> Önce İç Piyasa/İhracat, sonra müşteriler
+          </td>
+          <td>Müşteri</td>
+        </tr>
+        <tr><td><strong>Müşteri</strong></td><td>Belirli bir müşteriye filtreleme</td><td>(Hepsi)</td></tr>
+        <tr><td><strong>Sadece Teslim Edilmemişler</strong></td><td>Teslimatı bekleyen siparişleri filtreler</td><td>Açık ✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Akıllı Özellikler</h2>
+  <div class="kta-doc-info">
+    <strong>💱 Otomatik EUR Fiyat Algılama:</strong> Henüz faturası kesilmemiş siparişlerde, müşterinin anlaştığı standart EUR fiyatı varsa, sipariş TRY girilmiş olsa bile rapor gerçek EUR fiyatını yansıtır.
+  </div>
+  <div class="kta-doc-info success">
+    <strong>✅ Hatasız Genel Toplamlar:</strong> Tablonun en alt satırında dövizler asla birbirine toplanmaz. "Genel Toplam (TRY)" ve "Genel Toplam (EUR)" olarak döviz bazında ayrı satırlar açılır.
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Özet Kartları ve Grafik</h2>
+  <ul>
+    <li><strong>Renkli Özet Kartları:</strong> Toplam sipariş tutarlarını TRY, EUR veya diğer dövizler olarak tamamen ayrı kartlar halinde gösterir.</li>
+    <li><strong>Çoklu Çizgi Grafiği:</strong> Her döviz türü farklı renkte (TRY turuncu, EUR mavi) ayrı bir çizgi olarak belirir.</li>
+  </ul>
+</div>
+{% endblock %}

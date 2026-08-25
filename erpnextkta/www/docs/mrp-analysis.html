@@ -1,0 +1,93 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "mrp-analysis" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">📊</span>
+  <h1>MRP Analiz Raporu</h1>
+  <p>MRP zincirinin en üst düzey özet ekranıdır. Hammadde bazında tüketim, stok durumu, fiyat ve müşteri grubu kırılımını tek tabloda sunar.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Raporun Temel Amacı</h2>
+  <ul>
+    <li>Her hammaddenin toplam tahmini tüketimini ve mevcut stokla karşılama durumunu görürsünüz.</li>
+    <li>Tüketimin <strong>hangi müşteri grubundan</strong> (İç Piyasa, İhracat vb.) geldiğini analiz edersiniz.</li>
+    <li>Birim fiyatları, stok değerleri ve tedarikçi bilgileriyle bütünsel bir tablo elde edersiniz.</li>
+    <li>Stokta olup hiç tüketimi olmayan kalemleri de görerek ölü stok analizi yapabilirsiniz.</li>
+  </ul>
+  <div class="kta-doc-info success">
+    <strong>📌 MRP Zincirinin Son Halkası:</strong> Bu rapor, tüm hammadde portföyünüzün stratejik özetini sunar.
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. Hesaplama Mantığı</h2>
+  <h3>📦 Veri Kaynağı</h3>
+  <p>Arka planda <strong>Malzeme İhtiyaç Raporu</strong>'nu <code>stage = "1 - Temel Hammadde İhtiyacı"</code> ve <code>group_by = "Bitmiş Ürün + Hammadde"</code> modunda çalıştırır.</p>
+
+  <h3>🧮 Müşteri Grubu Kırılımı</h3>
+  <p>Her bitmiş ürünün <code>custom_musteri_grubu</code> alanından müşteri grubu belirlenir. Hammadde tüketimi bu gruplara göre dağıtılarak, her KTA Customer Group için ayrı bir sütun oluşturulur.</p>
+
+  <h3>💰 Fiyat Bilgisi</h3>
+  <ul>
+    <li><strong>Varsayılan Tedarikçi Fiyatı:</strong> Filtre açıkken, sadece varsayılan tedarikçinin son fiyatı gösterilir.</li>
+    <li><strong>Genel Son Fiyat:</strong> Filtre kapalıyken, tüm tedarikçilerden en son girilen alış fiyatı gösterilir.</li>
+  </ul>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Filtreler</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Periyot</strong></td><td>Yıllık, 3 Aylık, 6 Aylık, Süresiz</td><td>Yıllık</td></tr>
+        <tr><td><strong>Ürün Grubu</strong></td><td>Belirli bir ürün grubuna göre filtreleme</td><td>(Hepsi)</td></tr>
+        <tr><td><strong>Ara Malzeme Grubu</strong></td><td>Hammaddeleri ara malzeme grubuna göre filtreleme</td><td>(Hepsi)</td></tr>
+        <tr><td><strong>Müşteri Grubu</strong></td><td>Birden fazla müşteri grubu seçilebilir (MultiSelect)</td><td>(Hepsi)</td></tr>
+        <tr><td><strong>Sıfır Tüketimi Göster</strong></td><td>Tüketimi olmayan ama depoda stoku olan hammaddeleri gösterir</td><td>Kapalı</td></tr>
+        <tr><td><strong>Fiyat Varsayılan Tedarikçi</strong></td><td>Sadece varsayılan tedarikçinin fiyatını gösterir</td><td>Kapalı</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Tablo Kolonları</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Kolon</th><th>Açıklama</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Hammadde Kodu / Adı</strong></td><td>Hammadde item kodu ve tanım adı</td></tr>
+        <tr><td><strong>Grup</strong></td><td>Hammaddenin ürün grubu (Item Group)</td></tr>
+        <tr><td><strong>Varsayılan Tedarikçi</strong></td><td>Item Default'taki varsayılan tedarikçi</td></tr>
+        <tr><td><strong>Fiyat / Para Birimi</strong></td><td>Son alış fiyatı ve para birimi</td></tr>
+        <tr><td><strong>Depo Stok</strong></td><td>Mevcut stok miktarı (Kullanılabilir Stok depoları)</td></tr>
+        <tr><td><strong>Bakiye Değeri</strong></td><td>Mevcut stokun toplam parasal değeri</td></tr>
+        <tr><td><strong>Müşteri Grubu Dağılımı</strong></td><td>Tüketimin yüzde dağılımı (Örn: "İhracat%65-İç Piyasa%35")</td></tr>
+        <tr><td><strong>[Müşteri Grubu] Sütunları</strong></td><td>Her KTA Customer Group için ayrı tüketim miktarı</td></tr>
+        <tr><td><strong>Genel Toplam</strong></td><td>Tüm müşteri gruplarındaki toplam tüketim</td></tr>
+        <tr><td><strong>Toplam Tüketim (Kapasite)</strong></td><td>Kapasite planından gelen toplam brüt tüketim</td></tr>
+        <tr><td><strong>Fark Oran</strong></td><td>Toplam Tüketim ile Genel Toplam arasındaki fark yüzdesi</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="kta-doc-info">
+    <strong>📊 Sıralama:</strong> Veriler <strong>bakiye değerine göre büyükten küçüğe</strong> sıralanır (en değerli stoku olan hammadde en üstte).
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>5. Özet Kartları</h2>
+  <ul>
+    <li><span class="kta-doc-badge blue">Toplam Kalem</span> Rapordaki benzersiz hammadde sayısı.</li>
+    <li><span class="kta-doc-badge red">Eksik Kalem</span> Depo stoğu, tahmini tüketimden az olan hammadde sayısı.</li>
+    <li><span class="kta-doc-badge green">Toplam Stok Değeri</span> Tüm hammaddelerin toplam parasal stok değeri.</li>
+  </ul>
+</div>
+{% endblock %}
