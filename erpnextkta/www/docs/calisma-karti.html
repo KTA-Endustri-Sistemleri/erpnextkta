@@ -1,0 +1,213 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "calisma-karti" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">📋</span>
+  <h1>KTA Çalışma Kartı Kullanım Kılavuzu</h1>
+</div>
+
+<div class="kta-doc-section">
+
+
+<p><strong>KTA Çalışma Kartı</strong>, operatörlerin sahada üretim süreçlerini gerçek zamanlı olarak takip etmelerini, süreleri ölçmelerini, hurdaları ve ölçümleri kaydetmelerini sağlayan özel üretim arayüzüdür.</p>
+
+<h2>🌟 Modern SPA ve Kullanıcı Deneyimi (UI/UX)</h2>
+
+<p>Çalışma Kartı arayüzü, operatör kullanım kolaylığını en üst düzeye çıkarmak için modern bir <strong>Single Page Application (SPA)</strong> mimarisiyle çalışır.
+- <strong>Glassmorphism (Yarı Saydam Cam Efekti):</strong> Arayüz, derinlik hissi veren, hem Açık (Light) hem de Koyu (Dark) temalara tam uyum gösteren <em>Soft UI</em> kart ve buton tasarımlarına sahiptir. 
+- <strong>Akıcı Tab Geçişleri:</strong> Kalite, Hurda, Alt İşlem gibi alt sayfalar arasında hiçbir sayfa yenilenmesi olmadan, yüksek performanslı donanımsal (hardware-accelerated) kayma animasyonlarıyla pürüzsüzce geçiş yapılır.
+- <strong>Dinamik Geri Bildirim:</strong> Kalite Kontrol sekmesi gibi alanlar, işlem durumlarına ("Onaylandı" - Yeşil, "Reddedildi" - Kırmızı) göre dinamik olarak renk değiştirerek kullanıcıya anında görsel onay sunar.
+- <strong>Mobil Öncelikli Endüstriyel Tasarım:</strong> Çok dar (321px ve altı) ekranlı endüstriyel el terminallerinde bile yatay taşma yapmadan, bilgileri CSS Grid yapısıyla alt alta düzenleyerek mükemmel okunabilirlik sağlar.</p>
+
+<hr />
+
+<h2>🚀 1. Çalışma Kartı Oluşturma ve Başlatma</h2>
+
+<p>Çalışma Kartı, ERPNext'teki İş Emri (Work Order) ve İş Kartı (Job Card) temel alınarak oluşturulur.</p>
+
+<h3>Kart Oluşturma Adımları:</h3>
+
+<ol>
+<li><strong>İş Kartı Seçimi:</strong> QR kod okutarak veya listeden "İş Kartı" (<code>Job Card</code>) seçerek başlayın. İş Emri ve Üretilecek Ürün bilgileri otomatik olarak gelecektir. (Sistem akıllı barkod desteği ile <code>2026-X</code> gibi kısa girişleri otomatik tamamlar).</li>
+<li><strong>Operasyon Seçimi:</strong> Yapılacak işlemi (örneğin: <em>Kablo Kesme ve Kontak Basma</em>) seçin.</li>
+<li><strong>İş İstasyonu ve Operatör:</strong> Hangi istasyonda çalışılacağını ve operatörü belirleyin.</li>
+<li><strong>Oluştur:</strong> "Oluştur" butonuna basarak kartı sisteme kaydedin. Kart, başlangıçta <strong>"Taslak" (Draft)</strong> durumunda ve <strong>"Hazır"</strong> statüsünde bekleyecektir.</li>
+</ol>
+
+<h3>Kartı Başlatma:</h3>
+
+<p>Kartı oluşturduktan sonra içine girip, üst kısımdaki <strong>"Başlat"</strong> butonuna basın. Durum <strong>"Çalışıyor"</strong> olarak güncellenecek ve süre sayacı başlayacaktır.</p>
+
+<blockquote>
+  <p><strong>Önemli Kural (Kartın Bitirilmesi ve Veri Doğrulama):</strong>
+  Bir operatör hesabında yeni bir kart başlatıldığında, açıkta kalan diğer kartlar sistem tarafından otomatik olarak mola (Duruş) statüsüne alınır; yani sistem yeni bir karta geçiş yapmanıza her koşulda izin verecektir.
+  <strong>Ancak</strong>, bir çalışma kartını tamamen <em>Bitirmek</em> (Kapatmak) istediğinizde; eğer kalite onayı alınmamışsa veya yapılması zorunlu alt operasyon kayıtları girilmemişse sistem hata verecek ve kartı bitirmenize izin vermeyecektir. İlgili kalite onayı ve alt veri girişleri tamamlandıktan sonra kart kapatılabilir.</p>
+</blockquote>
+
+<hr />
+
+<h2>⏸️ 2. Mola ve Duruş İşlemleri</h2>
+
+<p>Üretime ara vermeniz gerektiğinde (yemek, çay molası, arıza vb.) çalışma kartını duraklatmalısınız.</p>
+
+<ol>
+<li><strong>Durdur Butonu:</strong> Kart içindeyken <strong>"Durdur"</strong> butonuna basın.</li>
+<li><strong>Duruş Nedeni:</strong> Açılan ekrandan duruş nedeninizi seçin. Duruş nedenleri artık dinamik olarak yönetilir ve üç ana kategoriye ayrılır:
+<ul>
+<li><strong>Plansız Duruşlar</strong>: Makine arızası, malzeme bekleme, kalite onayı bekleme vb. (OEE kayıpları).</li>
+<li><strong>Planlı Duruşlar</strong>: Mola, yemek, eğitim veya planlı bakım süreçleri.</li>
+<li><strong>Sistem Duruşları</strong>: Arka plan görevleri veya otomatik kurallar tarafından eklenen, operatöre gizli duruşlar.</li>
+<li><strong>"Diğer" Nedeni Kontrolü</strong>: Duruş nedeni olarak <em>"Diğer"</em> seçilirse, duruşun nedenini açıklayan bir metin (en az bir kelime) girmek zorunludur. Aksi takdirde hem arayüzde (kırmızı uyarı) hem de sunucu tarafında kaydetme işlemi engellenir.</li>
+</ul></li>
+<li>Kartın durumu <strong>"Duruşta"</strong> olarak güncellenir. Bu süre boyunca çalışılan net süre sayacı ilerlemez.</li>
+<li>İşe tekrar dönüldüğünde <strong>"Devam Et" (Başlat)</strong> butonuna basarak kaldığınız yerden süre saymaya devam edebilirsiniz.</li>
+</ol>
+
+<blockquote>
+  <p><strong>Güvenlik Sınırı:</strong> Bir çalışma kartı açık unutulsa bile sistem en fazla vardiya sınırlarına (Örn: 430 dakika) kadar çalışmasına izin verir. Bu süreyi aşan kartlar arka planda sistem tarafından otomatik olarak mola/duruş durumuna alınır ve kırmızı uyarı banner'ı ile bildirilir.</p>
+</blockquote>
+
+<hr />
+
+<h2>🧩 3. Alt Operasyon Ekleme</h2>
+
+<p>Bir çalışma kartı içinde, daha spesifik alt işlemler veya malzeme kullanımları yapılıyorsa "Alt İşlemler" paneli kullanılır.</p>
+
+<ol>
+<li>Kart içindeki <strong>Alt İşlemler</strong> sekmesine geçin.</li>
+<li>Sağ üstteki <strong>"Alt İşlem Ekle"</strong> butonuna basın. <em>(Bu buton yalnızca kart "Çalışıyor" veya "Duruşta" ise görünür).</em></li>
+<li><strong>İşlem Tipi:</strong> Uygulanan spesifik alt operasyonu listeden seçin. (Sistem karmaşık kodlar yerine kolay anlaşılır <strong>Başlıklar</strong> üzerinden seçim yapmanızı sağlar).</li>
+<li><strong>Hammadde (Opsiyonel):</strong> Eğer bu adımda spesifik bir malzeme girilecekse, sistem sadece bu operasyon için izin verilen malzemelerin (Örn: terminal, kablo vb.) listesini sunacaktır.</li>
+<li>Kullanılan miktarı girin ve kaydedin. Her yeni eklenen alt işlem, geçmişte eklenenlere göre ve operasyon tanımlarındaki master sıralamaya (sequence) göre dizilir.</li>
+</ol>
+
+<hr />
+
+<h2>🗑️ 4. Hurda Bildirimi</h2>
+
+<p>Üretim sırasında fire/hurda verilirse sisteme kaydedilmelidir.</p>
+
+<ol>
+<li>Kart içindeki <strong>Hurda</strong> sekmesine geçin.</li>
+<li><strong>"Hurda Ekle"</strong> butonuna basın.</li>
+<li>Listede sadece bulunduğunuz iş emrine/operasyona bağlı malzemeleri (<code>BOM</code>) görebilirsiniz.</li>
+<li>Hurdası verilen <strong>Parça No</strong>, <strong>Miktar</strong> ve <strong>Hurda Nedeni</strong> seçeneklerini doldurup kaydedin. </li>
+</ol>
+
+<hr />
+
+<h2>📐 5. Kalite Kontrol (QC) ve Akıllı Ölçüm Formları</h2>
+
+<p>Üretim esnasında alınan spesifik ölçümler (Çekme testi, krimp yüksekliği, gramaj vb.) bu sekme altından yürütülür. Sistemin getirdiği en yenilikçi özelliklerden biri <strong>Modüler (Satır Bazlı) Kalite Onayı</strong> sistemidir. Bu sayede tüm karta tek bir kalite belgesi kesmek yerine, operatörün ürettiği her bir alt işleme sırasıyla onay verilir.</p>
+
+<h3>Modüler Kalite Onayı (Satır Bazlı QC)</h3>
+
+<ol>
+<li><strong>Kalite Sekmesi Görünümü:</strong> Çalışma Kartı ayarlarında "Alt Operasyon Bazlı Kalite" özelliği aktifse, kalite paneline girdiğinizde tüm kartı reddetmek yerine; eklenmiş olan her bir alt operasyon için ayrı bir satır ve onay butonu görürsünüz.</li>
+<li><strong>Liste Arayüzünde Degrade Geçişler:</strong> Bir kartın alt operasyonlarının bazıları onaylanıp, bazıları red yemiş veya bekliyor olabilir. Bu çoklu durumu liste görünümünde (CkCard.vue) sağ kenardaki dinamik parçalı/degrade renk bloklarından anlık olarak görebilirsiniz. Örneğin 3 alt operasyon varsa sağ kenarda üst üste Yeşil (Onaylı), Kırmızı (Red) ve Mavi (Bekleyen) renk blokları görünür.</li>
+<li><strong>Onaylama ve Belge Entegrasyonu:</strong> Her satırdaki "Kalite Onayı Ver" butonuna basıldığında arka planda sadece o satıra özel bir Kalite Kontrol Belgesi (Quality Inspection) oluşturulur ve o satıra bağlanır.
+<ul>
+<li><strong>Önemli Not:</strong> Alt operasyonların tamamı onaylansa dahi, ana çalışma kartının sadece "Durum" (Kalite Kontrol) alanı "Onaylandı" olarak güncellenir. Ancak ana karta <strong>herhangi bir kalite belgesi (Quality Inspection ID) işlenmez</strong>. Bu sayede, UI tarafında kartın "Klasik" bir QC belgesine sahip olduğu yanılgısı yaratılmaz ve her bir belgenin kendi satırında kalması sağlanır.</li>
+</ul></li>
+</ol>
+
+<h3>Akıllı Krimp Formu ve Çift Taraf Mantığı</h3>
+
+<p>Özellikle "Kablo Kesme ve Kontak Basma" gibi krimp işlemlerinde kalite onayı verilirken sistem, girilen alt operasyon verisine bakarak form ekranını akıllı bir şekilde yapılandırır:</p>
+
+<ol>
+<li><strong>Tek Taraf ve Küt İşlemler:</strong> Eğer alt operasyonun isminde "Küt" veya "Tek Taraf" geçiyorsa, krimp formunda sadece tek bir tarafa ait kontak numarası, hedef ölçü, makine numarası ve çekme testi alanı açılır.</li>
+<li><strong>Çift Taraf (Double Sided) İşlemler:</strong> Eğer alt operasyonun isminde "Çift Taraf" geçiyorsa, sistem form arayüzünü otomatik genişletir. <strong>"2. Taraf - Makine ve Kalıp"</strong> isminde yepyeni alanlar açılır. Bu sayede her iki tarafın kontak bilgisi, ölçümleri ve makine bilgisi aynı tek form üzerinde toplanır.</li>
+<li><strong>Sihirli Otomatik Doldurma (Auto-fill):</strong>
+<ul>
+<li>Krimp formunu doldururken verileri elle aramanıza gerek yoktur.</li>
+<li>Form açılır açılmaz alt operasyonda seçilmiş olan <strong>Kablo Kesiti</strong>, <strong>Hedef İletken/Yalıtkan Yükseklikleri</strong>, 1. ve 2. Taraf <strong>Kontak Kodları</strong> form alanlarına anında doldurulur. Operatör sadece okuduğu mikrometre değerini ve kullandığı makine numarasını/kalıbı yazar.</li>
+<li>Form kaydedilir kaydedilmez kalite onayı verilmiş sayılır ve Krimp tablosunda listelenir.</li>
+</ul></li>
+</ol>
+
+<h3>Diğer Formlar ve Özellikler</h3>
+
+<ul>
+<li><strong>IDC ve Enjeksiyon Formları:</strong> Krimp işlemleri haricindeki alanlarda 120-IDC konnektörler için veya plastik enjeksiyon için (gramaj, çevrim süresi vb.) özel form tabloları mevcuttur.</li>
+<li><strong>Protokol Belgesi Olarak Yazdırılması (🖨️):</strong> Kalite formları kaydedildikten sonra "Protokol" butonuna basılarak ilgili ölçüme ait resmi HTML tabanlı evrak oluşturulup ağdaki yazıcıdan etiketi/çıktısı alınabilir.</li>
+</ul>
+
+<hr />
+
+<hr />
+
+<h2>🛠️ 6. Makine Günlük Bakım Onayı</h2>
+
+<p>Operatörlerin işe başlamadan önce veya vardiya sırasında kullandıkları makinenin (Asset) bakım kontrollerini yapmalarını sağlar.</p>
+
+<ol>
+<li><strong>Bakım Sekmesi:</strong> Kart içindeki <strong>Bakım</strong> sekmesine geçin.</li>
+<li><strong>Talimat Görüntüleme:</strong> İlgili makineye ait güncel bakım talimatı (Örn: <code>Bakım Talimatı - PTR.BT.049</code>) ekranda liste şeklinde görünecektir.</li>
+<li><strong>Onay Verme:</strong> Talimattaki maddeleri kontrol ettikten sonra, makineyi seçip "Bakım Yapıldı" onayını vererek kaydedin. Bu işlem arka planda resmi bir <em>Makine Günlük Bakım Formu</em> oluşturur.</li>
+</ol>
+
+<hr />
+
+<h2>✅ 7. Kartı Bitirme ve Vardiya Sonu</h2>
+
+<p>Üretim tamamlandığında veya vardiya sona erdiğinde işi kapatmak için kullanılır.</p>
+
+<h3>Manuel Bitirme:</h3>
+
+<ol>
+<li><strong>"Bitir" Butonu:</strong> İşlem bittiğinde <strong>Bitir</strong> butonuna tıklayın.</li>
+<li><strong>Miktar Bildirimi:</strong> Üretilen miktarı girin. Operasyon tanımına göre miktar girişi zorunlu olabilir. 0 girerek kapatma izni operasyon ayarına bağlıdır.</li>
+<li><strong>Bekleyen Kartlar Uyarı Ekranı (Modal):</strong> Bir kartı bitirdiğinizde, sistem arka planda sizin daha önceden başlattığınız ancak sistem tarafından otomatik olarak "Duruşta" bekletilen (askıda kalmış) başka kartlarınız olup olmadığını kontrol eder.
+<ul>
+<li>Eğer bekleyen kartlarınız varsa, işlemi tamamladıktan hemen sonra modern bir <strong>uyarı ekranı (Modal)</strong> açılır.</li>
+<li>Bu ekranda bekleyen tüm kartlarınız liste halinde sunulur. Kartın yanındaki <strong>"GİT"</strong> butonuna basarak o karta hızlıca geçiş yapabilir ve işinize kaldığınız yerden devam edebilirsiniz.</li>
+<li>Dilerseniz sağ üst köşedeki <strong>Çarpı (X)</strong> butonuyla uyarı ekranını kapatarak bulunduğunuz ekranda kalabilirsiniz.</li>
+<li><strong>Akıllı Kontrol:</strong> Eğer o an halihazırda "Çalışıyor" durumunda olan aktif başka bir kartınız varsa, sistem çalışmanızı bölmemek (sizi yeni bir kart seçmeye zorlamamak) adına bu uyarı ekranını <strong>göstermeyecektir</strong>.</li>
+</ul></li>
+</ol>
+
+<h3>Otomatik Vardiya Sonu Kapatma (Akıllı Kapatma):</h3>
+
+<p>Kartı açık unutmanız durumunda sistem vardiya sonlarında (<strong>16:00</strong> ve <strong>00:00</strong>) kartları otomatik olarak kapatır:
+- <strong>Duruşta olan kartlar</strong>, duruşa geçtikleri saat itibariyle kapatılır.
+- <strong>Çalışıyor olan kartlar</strong>, vardiyanın tam bitiş saatinde (16:00 / 00:00) kapatılır.
+- Kapatılan kartların net süreleri vardiya sınırı olan <strong>430 dakika</strong> ile kısıtlanır.
+- <strong>İptal Edildi (Cancelled) Durumu:</strong> Eğer bir kart yönetici tarafından veya hatalı olduğu için "İptal Edildi" (docstatus=2) konumuna getirilirse, arayüzde <strong>Gri</strong> renkte ve "İptal Edildi" etiketiyle görünür. Bu durumdaki kartlarda herhangi bir işlem yapılamaz ve tüm aksiyon butonları gizlenir.</p>
+
+<hr />
+
+<h2>📊 8. İzleme, Dashboard ve Raporlama</h2>
+
+<p>Yöneticiler, amirler ve kalite sorumluları sistem üzerinden şu araçlarla gerçek zamanlı izleme yapabilir:</p>
+
+<ul>
+<li><strong>Çalışma Kartı Dashboard:</strong> Günlük durum dağılımını (Çalışan, Duruşta, Bitmiş kart sayıları), operatör net çalışma sürelerini, kalite kontrol ve hurda dağılımlarını anlık gösterir.</li>
+<li><strong>Kullanıcı Paneli (User Dashboard) Entegrasyonu:</strong> Her kullanıcının kendi profil sayfasında, kullanıcının bağlı olduğu <code>Employee</code> kaydı üzerinden açık ve tamamlanmış Çalışma Kartlarının adedi ve linkleri otomatik olarak listelenir.</li>
+<li><strong>Düşük Net Süre Grafiği (Operator Performance Chart):</strong> Son N günde toplam net çalışma süresi en az olan operatörleri ve net sürelerini bar grafik olarak karşılaştırır.</li>
+<li><strong>Günlük Performans ve Hata Raporlama (E-posta):</strong> Günlük net çalışma süresi 5 saatin altında kalan operatörler ve bu operatörlerin o günkü kart detayları, her sabah saat <code>08:30</code>'da KTA Settings'te tanımlanmış amir e-postalarına HTML raporu olarak otomatik gönderilir.</li>
+</ul>
+
+<hr />
+
+<h2>🔒 9. Yetki Yönetimi ve Konfigürasyon</h2>
+
+<p>Sistem yöneticileri için detaylı yetki kontrolleri, vardiya süre limitleri, kalite onay rolleri ve genel konfigürasyon ayarları <strong>Çalışma Kartı Konfigürasyon ve Ayarlar Rehberi</strong>'ne taşınmıştır.</p>
+<a href="/docs/calisma-karti-ayarlar" class="kta-doc-card" style="margin-top: 16px; margin-bottom: 32px; display: block; text-decoration: none;">
+  <span class="kta-doc-card-icon">⚙️</span>
+  <h3 style="margin: 0 0 8px 0; color: var(--kta-text-main);">Ayarlar Kılavuzuna Git</h3>
+  <p style="margin: 0; color: var(--kta-text-muted);">Maksimum süreler, kart geçiş modları ve admin rolleri hakkında detaylı bilgi alın.</p>
+</a>
+
+<h2>🛡️ 10. Sistem Güvenilirliği ve Test Otomasyonu</h2>
+
+<p>KTA Çalışma Kartı platformu, endüstriyel sahadaki veri bütünlüğünü korumak için <strong>Otomatik Entegrasyon Testleri</strong> ile korunmaktadır.
+- <strong>Kritik İş Akışları:</strong> Kart başlatma, durdurma, bitirme ve kalite kontrol süreçleri her güncelleme öncesinde otomatik test senaryoları ile denetlenir.
+- <strong>Veri Senkronizasyonu:</strong> Hurda girişlerinin Stok Kayıtları ile senkronizasyonu ve Alt Operasyon kayıtlarının tutarlılığı sistem tarafından anlık olarak izlenir ve doğrulanır.
+- <strong>Hata Önleme:</strong> "Anti-double-click" gibi koruma mekanizmaları, operatörlerin yanlışlıkla mükerrer veri girişi yapmasını engeller ve bu özellikler düzenli olarak test edilir.</p>
+
+
+
+</div>
+{% endblock %}

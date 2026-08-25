@@ -1,0 +1,155 @@
+{% extends "templates/web.html" %}
+
+{% block page_container %}
+<link rel="stylesheet" href="/assets/erpnextkta/css/kta_docs.css">
+
+<div class="kta-docs-layout">
+  <!-- Sidebar -->
+  <nav class="kta-docs-sidebar" id="kta-docs-sidebar">
+    <div class="kta-docs-sidebar-header">
+      <span class="kta-docs-logo-icon">📚</span>
+      <span class="kta-docs-logo-text">KTA | ERPNEXT Docs</span>
+    </div>
+    <div class="kta-docs-nav">
+      <a href="/docs" class="kta-docs-nav-item {% if active_page == 'index' %}active{% endif %}">
+        <span class="kta-docs-nav-icon">🏠</span>Ana Sayfa
+      </a>
+
+      <!-- MRP (ÜRETİM PLANLAMA) -->
+      {% set mrp_pages = ['mrp-overview', 'periodic-sales-orders', 'production-start-week', 'capacity-planning', 'material-requirement', 'mrp-analysis', 'recommended-purchase-orders', 'work-order-planning', 'shipment-week', 'production-pipeline'] %}
+      <div class="kta-docs-nav-group {% if active_page in mrp_pages %}open{% endif %}">
+        <div class="kta-docs-nav-group-title" onclick="this.parentElement.classList.toggle('open')">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="kta-docs-nav-icon">⚙️</span>
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <span style="line-height: 1;">MRP</span>
+              <span style="font-size: 8.5px; opacity: 0.7; letter-spacing: 0.2px; text-transform: none; font-weight: 500; line-height: 1;">Malzeme İhtiyaç & Üretim</span>
+            </div>
+          </div>
+          <svg class="chevron" style="flex-shrink: 0;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        <div class="kta-docs-nav-items">
+          <a href="/docs/mrp-overview" class="kta-docs-nav-item {% if active_page == 'mrp-overview' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">🔗</span>Genel Bakış
+          </a>
+          <a href="/docs/periodic-sales-orders" class="kta-docs-nav-item {% if active_page == 'periodic-sales-orders' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">📈</span>Satış Siparişleri
+          </a>
+          <a href="/docs/production-start-week" class="kta-docs-nav-item {% if active_page == 'production-start-week' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">🏭</span>Üretime Başlama
+          </a>
+          <a href="/docs/capacity-planning" class="kta-docs-nav-item {% if active_page == 'capacity-planning' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">⚙️</span>Kapasite Planlama
+          </a>
+          <a href="/docs/material-requirement" class="kta-docs-nav-item {% if active_page == 'material-requirement' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">🧱</span>Malzeme İhtiyaç
+          </a>
+          <a href="/docs/mrp-analysis" class="kta-docs-nav-item {% if active_page == 'mrp-analysis' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">📊</span>MRP Analiz
+          </a>
+          <a href="/docs/recommended-purchase-orders" class="kta-docs-nav-item {% if active_page == 'recommended-purchase-orders' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">🛒</span>Önerilen PO
+          </a>
+          <a href="/docs/work-order-planning" class="kta-docs-nav-item {% if active_page == 'work-order-planning' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">📋</span>İş Emri Planlama
+          </a>
+          <a href="/docs/shipment-week" class="kta-docs-nav-item {% if active_page == 'shipment-week' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">🚚</span>Sevkiyat Haftası
+          </a>
+          <a href="/docs/production-pipeline" class="kta-docs-nav-item {% if active_page == 'production-pipeline' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">🔬</span>Üretim Pipeline
+          </a>
+        </div>
+      </div>
+
+      <!-- ÇALIŞMA KARTI -->
+      {% set work_pages = ['calisma-karti', 'calisma-karti-ayarlar'] %}
+      <div class="kta-docs-nav-group {% if active_page in work_pages %}open{% endif %}">
+        <div class="kta-docs-nav-group-title" onclick="this.parentElement.classList.toggle('open')">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="kta-docs-nav-icon">📋</span>
+            <span>Üretim Yönetimi</span>
+          </div>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        <div class="kta-docs-nav-items">
+          <a href="/docs/calisma-karti" class="kta-docs-nav-item {% if active_page == 'calisma-karti' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">📋</span>Çalışma Kartı (Genel)
+          </a>
+          <a href="/docs/calisma-karti-ayarlar" class="kta-docs-nav-item {% if active_page == 'calisma-karti-ayarlar' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">⚙️</span>Çalışma Kartı Ayarları
+          </a>
+        </div>
+      </div>
+
+      <!-- KALİTE YÖNETİMİ -->
+      {% set quality_pages = ['kalite-yonetimi'] %}
+      <div class="kta-docs-nav-group {% if active_page in quality_pages %}open{% endif %}">
+        <div class="kta-docs-nav-group-title" onclick="this.parentElement.classList.toggle('open')">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="kta-docs-nav-icon">✅</span>
+            <span>Kalite Yönetimi</span>
+          </div>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        <div class="kta-docs-nav-items">
+          <a href="/docs/kalite-yonetimi" class="kta-docs-nav-item {% if active_page == 'kalite-yonetimi' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">✅</span>Kalite (Krimp & Test)
+          </a>
+        </div>
+      </div>
+
+      <!-- STOK & LOJİSTİK -->
+      {% set stock_pages = ['stok-lojistik'] %}
+      <div class="kta-docs-nav-group {% if active_page in stock_pages %}open{% endif %}">
+        <div class="kta-docs-nav-group-title" onclick="this.parentElement.classList.toggle('open')">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="kta-docs-nav-icon">📦</span>
+            <span>Stok & Lojistik</span>
+          </div>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        <div class="kta-docs-nav-items">
+          <a href="/docs/stok-lojistik" class="kta-docs-nav-item {% if active_page == 'stok-lojistik' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">📦</span>Stok ve Lojistik
+          </a>
+        </div>
+      </div>
+
+      <!-- SİSTEM & TEKNİK -->
+      {% set sys_pages = ['moduller'] %}
+      <div class="kta-docs-nav-group {% if active_page in sys_pages %}open{% endif %}">
+        <div class="kta-docs-nav-group-title" onclick="this.parentElement.classList.toggle('open')">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="kta-docs-nav-icon">🧬</span>
+            <span>Sistem & Teknik</span>
+          </div>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        <div class="kta-docs-nav-items">
+          <a href="/docs/moduller" class="kta-docs-nav-item {% if active_page == 'moduller' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">🧬</span>Modüller ve Teknik Yapı
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="kta-docs-main">
+    <div class="kta-docs-overlay" id="kta-docs-overlay" onclick="toggleSidebar()"></div>
+    <button class="kta-docs-mobile-toggle" onclick="toggleSidebar()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      Menü
+    </button>
+    {% block doc_content %}{% endblock %}
+  </main>
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('kta-docs-sidebar').classList.toggle('open');
+    document.getElementById('kta-docs-overlay').classList.toggle('open');
+  }
+</script>
+{% endblock %}

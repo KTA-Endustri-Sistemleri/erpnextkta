@@ -1,0 +1,73 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "shipment-week" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🚚</span>
+  <h1>Sevkiyat Haftası</h1>
+  <p>Açık satış siparişlerinin teslimat tarihlerinden sevkiyat süresini düşerek "Bu ürünün fabrikadan en geç hangi hafta çıkması gerekiyor?" sorusunu cevaplar.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Raporun Temel Amacı</h2>
+  <ul>
+    <li>Her müşteri ve ürün için <strong>fabrikadan sevk edilmesi gereken haftayı</strong> gösterir.</li>
+    <li>Teslimat tarihleri yerine <strong>fiili sevkiyat tarihlerini</strong> baz alarak lojistik planlamanızı yaparsınız.</li>
+    <li>Haftalık sevkiyat yoğunluğunu grafik üzerinden takip edersiniz.</li>
+  </ul>
+  <div class="kta-doc-info">
+    <strong>🔀 Karşılaştırma:</strong>
+    <strong>Üretime Başlama Haftası</strong> → "Ne zaman üretmeliyim?" (Üretim bakış açısı) |
+    <strong>Sevkiyat Haftası</strong> → "Ne zaman sevk etmeliyim?" (Lojistik bakış açısı)
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. Hesaplama Mantığı</h2>
+  <div class="kta-doc-code">Sevkiyat Tarihi = Teslimat Haftasının Son Günü − Sevkiyat Süresi (gün)</div>
+  <p><strong>Sevkiyat Süresi</strong>, müşteri ve sevkiyat adresine göre <strong>KTA Sevk Parametreleri</strong> DocType'ından <code>delivery_time</code> alanı olarak alınır. Önce müşteri + adres eşleşmesi denenir, bulunamazsa sadece müşteri adına bakılır.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Filtreler</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Analiz periyodunun başlangıcı</td><td>1 ay önce</td></tr>
+        <tr><td><strong>Bitiş Tarihi</strong></td><td>Analiz periyodunun bitişi</td><td>2 ay sonra</td></tr>
+        <tr><td><strong>Müşteri</strong></td><td>Belirli bir müşteriye filtreleme</td><td>(Hepsi)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Tablo Kolonları</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Kolon</th><th>Açıklama</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Müşteri</strong></td><td>Siparişteki müşteri adı</td></tr>
+        <tr><td><strong>Ürün Kodu / Adı</strong></td><td>Sevk edilecek ürünün kodu ve adı</td></tr>
+        <tr><td><strong>Adres</strong></td><td>Sevkiyat adresi</td></tr>
+        <tr><td><strong>Haftalık Sütunlar</strong></td><td>O hafta sevk edilmesi gereken miktar</td></tr>
+        <tr><td><strong>Toplam</strong></td><td>Tüm haftalar boyunca sevk edilecek toplam miktar</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>5. Grafik ve Özet</h2>
+  <ul>
+    <li><strong>📊 Çubuk Grafik:</strong> Hafta bazında toplam sevkiyat miktarını görselleştirir.</li>
+    <li><span class="kta-doc-badge blue">Toplam Sevk Miktarı</span> Tüm zaman aralığındaki sevk edilecek toplam adet.</li>
+    <li><span class="kta-doc-badge green">Sevk Edilecek Kalem</span> Benzersiz müşteri-ürün-adres kombinasyon sayısı.</li>
+  </ul>
+</div>
+{% endblock %}

@@ -27,7 +27,20 @@ title: "ERPNext için üretim odaklı KTA özelleştirmeleri"
 
   - [🚀 KTA Çalışma Kartı Kullanım Kılavuzu](kta_calisma_karti_kilavuzu.html)
   - [📏 KTA Kalite Yönetimi (Krimp & Test Masası) Kılavuzu](kta_kalite_kilavuzu.html)
-  - [📈 Periyodik Satış Siparişleri (MRP) Raporu Kılavuzu](periodic_sales_orders.html)
   - [🧬 Modüller ve Teknik Yapı](modules.html)
+
+  ## 📊 MRP Raporları Kılavuzları
+  Üretim planlama (MRP) zincirindeki tüm raporların detaylı kullanım kılavuzları:
+
+  - [📈 Periyodik Satış Siparişleri](periodic_sales_orders.html) — Satış sipariş portföyünün periyodik analizi
+  - [🏭 Üretime Başlama Haftası](production_start_week.html) — Siparişlerin üretime dönüşme zamanlaması
+  - [⚙️ Kapasite Planlama](capacity_planning_report.html) — Kapasite dengelemeli haftalık üretim planı
+  - [🧱 Malzeme İhtiyaç](material_requirement.html) — Hammadde tüketim ihtiyaçları (BOM bazlı)
+  - [📊 MRP Analiz](mrp_analysis.html) — Hammadde stok ve tüketim özet analizi
+  - [🛒 Önerilen Satın Alma Siparişleri](recommended_purchase_orders.html) — Otomatik PO önerileri
+  - [📋 İş Emri Planlama](work_order_planning.html) — Yeni iş emri ihtiyaç tespiti
+  - [🚚 Sevkiyat Haftası](shipment_week.html) — Fabrika çıkış zamanlaması
+  - [🔬 Üretim Pipeline Analizi](production_pipeline_analysis.html) — Uçtan uca üretim hattı görünümü
+  - [🔗 MRP Veri Akışı (Genel Bakış)](mrp_data_flow.html) — Tüm raporların birbirine nasıl bağlandığı
 
 </main>

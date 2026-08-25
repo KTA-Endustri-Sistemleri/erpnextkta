@@ -1,0 +1,93 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "material-requirement" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🧱</span>
+  <h1>Malzeme İhtiyaç Raporu</h1>
+  <p>Kapasite planından gelen haftalık üretim miktarlarını BOM ile çarparak "Hangi hafta, hangi hammaddeden ne kadar tüketilecek?" sorusunu cevaplar.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Raporun Temel Amacı</h2>
+  <ul>
+    <li>Her hammaddenin haftalık brüt tüketim miktarını gösterir.</li>
+    <li>Stok ve PO teslimatlarını düşerek <strong>net hammadde ihtiyacını</strong> hesaplar.</li>
+    <li>Bitmiş ürün + hammadde kırılımı veya sadece hammadde bazında gruplama yapabilirsiniz.</li>
+  </ul>
+  <div class="kta-doc-flow">
+    <div class="kta-doc-flow-step">📈 Satış Siparişleri</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">🏭 Üretime Başlama</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">⚙️ Kapasite Planlama</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step active">🧱 Malzeme İhtiyaç</div>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. Hesaplama Mantığı</h2>
+  <h3>🧮 Hammadde İhtiyaç Hesaplaması</h3>
+  <p>Her bitmiş ürün için aktif ve varsayılan BOM'un <strong>Explosion Items</strong> (patlatılmış malzeme listesi) tablosu okunur. Bu, alt-BOM'ları da içeren en uç hammaddelere kadar iner.</p>
+  <div class="kta-doc-code">Hammadde Miktarı = BOM'daki stock_qty × Planlanan Üretim Adedi</div>
+
+  <h3>📉 Aşamalar</h3>
+  <div class="kta-doc-info">
+    <strong>Aşama 1 — Temel Hammadde İhtiyacı:</strong> Sadece brüt ihtiyaç hesaplanır. Stok ve PO dikkate alınmaz.
+  </div>
+  <div class="kta-doc-info warning">
+    <strong>Aşama 2 — Stokları Düş:</strong> Kullanılabilir Stok depolarındaki mevcut stok, haftalara kronolojik sırayla dağıtılır. Stokun yettiği haftaların ihtiyacı sıfırlanır.
+  </div>
+  <div class="kta-doc-info success">
+    <strong>Aşama 3 — PO Teslimatlarını Düş:</strong> Stok düşmeye ek olarak, açık Satın Alma Siparişlerindeki teslim alınmamış miktarlar da haftalara dağıtılır. İhtiyaç varsa MOQ ve paketleme katına yuvarlanır.
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Filtreler</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Planlama periyodunun başlangıcı</td><td>Bugün</td></tr>
+        <tr><td><strong>Bitiş Tarihi</strong></td><td>Planlama periyodunun bitişi</td><td>3 ay sonra</td></tr>
+        <tr><td><strong>Aşama</strong></td><td>Hesaplama derinliği: Brüt / Stok Düş / Stok+PO Düş</td><td>1 - Temel Hammadde İhtiyacı</td></tr>
+        <tr><td><strong>Gruplama Şekli</strong></td><td>"Bitmiş Ürün + Hammadde" veya "Sadece Hammadde"</td><td>Bitmiş Ürün + Hammadde</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Tablo Kolonları</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Kolon</th><th>Açıklama</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Ürün / BOM</strong></td><td>Bitmiş ürün kodu ve kullanılan Reçete</td></tr>
+        <tr><td><strong>Müşteri Grubu</strong></td><td>Bitmiş ürünün tanımlı müşteri grubu</td></tr>
+        <tr><td><strong>Hammadde</strong></td><td>Hammadde kodu ve açıklaması</td></tr>
+        <tr><td><strong>Birim</strong></td><td>Stok birimi (Metre, Kg, Adet vb.)</td></tr>
+        <tr><td><strong>Varsayılan Tedarikçi</strong></td><td>Hammaddenin varsayılan tedarikçisi</td></tr>
+        <tr><td><strong>Haftalık Sütunlar</strong></td><td>O hafta tüketilecek hammadde miktarı</td></tr>
+        <tr><td><strong>Satır Toplamı</strong></td><td>Stok/PO düşülmüş net ihtiyaç toplamı</td></tr>
+        <tr><td><strong>Toplam İhtiyaç</strong></td><td>Brüt toplam ihtiyaç</td></tr>
+        <tr><td><strong>Stok / PO Teslimat / Net İhtiyaç</strong></td><td>Stok/PO düşme aktifken görünür</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>5. Özet Kartları</h2>
+  <ul>
+    <li><span class="kta-doc-badge blue">Toplam Brüt İhtiyaç</span> Stok ve PO düşülmeden önceki toplam hammadde ihtiyacı.</li>
+    <li><span class="kta-doc-badge red">Toplam Net İhtiyaç</span> Stok ve PO düşüldükten sonraki gerçek ihtiyaç.</li>
+  </ul>
+</div>
+{% endblock %}

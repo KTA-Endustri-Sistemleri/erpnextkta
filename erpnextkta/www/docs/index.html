@@ -1,0 +1,191 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "index" %}
+
+{% block doc_content %}
+<style>
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 32px;
+    margin-bottom: 60px;
+  }
+  .role-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 32px;
+    text-decoration: none !important;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 10px -2px rgba(0,0,0,0.03);
+    position: relative;
+    overflow: hidden;
+  }
+  .role-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 25px 45px -12px rgba(59, 130, 246, 0.15);
+    border-color: #93c5fd;
+    background: #f8fafc;
+  }
+  .role-card::after {
+    content: '➔';
+    position: absolute;
+    right: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    color: #cbd5e1;
+    transition: all 0.3s ease;
+  }
+  .role-card:hover::after {
+    color: #3b82f6;
+    right: 24px;
+    transform: translateY(-50%) scale(1.2);
+  }
+  .role-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    flex-shrink: 0;
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.8), 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #ffffff;
+    transition: transform 0.3s ease;
+  }
+  .role-card:hover .role-icon {
+    transform: scale(1.05) rotate(-5deg);
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  }
+  .role-content {
+    flex: 1;
+  }
+  .role-content h3 {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+  }
+  .role-content p {
+    margin: 0;
+    font-size: 14.5px;
+    color: #475569;
+    line-height: 1.6;
+    padding-right: 40px; /* Ok işareti için boşluk */
+  }
+  .role-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .role-badge.op { background: #dcfce7; color: #166534; }
+  .role-badge.log { background: #f3e8ff; color: #6b21a8; }
+  .role-badge.qc { background: #ffedd5; color: #9a3412; }
+  .role-badge.admin { background: #dbeafe; color: #1e40af; }
+  .role-badge.sys { background: #f1f5f9; color: #334155; }
+
+  @media (max-width: 600px) {
+    .role-grid {
+      grid-template-columns: 1fr;
+    }
+    .role-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 24px;
+    }
+    .role-card::after {
+      top: 32px;
+      right: 24px;
+      transform: none;
+    }
+    .role-card:hover::after {
+      right: 16px;
+      transform: scale(1.2);
+    }
+    .role-icon {
+      width: 60px;
+      height: 60px;
+      font-size: 30px;
+    }
+    .role-content p {
+      padding-right: 0;
+    }
+  }
+</style>
+
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">👋</span>
+  <h1>Kılavuza Hoş Geldiniz</h1>
+  <p>Lütfen KTA ERPNext sistemindeki görevinizi seçin. Sizi, günlük işlemlerinizi en hızlı şekilde yapabilmeniz için ihtiyacınız olan ekranlara yönlendireceğiz.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>Sistemdeki Rolünüz Nedir?</h2>
+  <div class="role-grid">
+    
+    <!-- Operatör -->
+    <a href="/docs/calisma-karti" class="role-card">
+      <div class="role-icon">👨‍🔧</div>
+      <div class="role-content">
+        <span class="role-badge op">Üretİm Sahası</span>
+        <h3>Üretim Operatörüyüm</h3>
+        <p>Tablet veya barkod okuyucu kullanarak iş kartı başlatmak, duruş girmek ve üretim kaydı oluşturmak istiyorum.</p>
+      </div>
+    </a>
+
+    <!-- Lojistik -->
+    <a href="/docs/stok-lojistik" class="role-card">
+      <div class="role-icon">📦</div>
+      <div class="role-content">
+        <span class="role-badge log">Depo & Lojİstİk</span>
+        <h3>Depo Personeliyim</h3>
+        <p>Tedarikçiden gelen ürünleri mal kabul ile almak, etiket basmak ve depo transferlerini (Stock Entry) yönetmek istiyorum.</p>
+      </div>
+    </a>
+
+    <!-- Kalite -->
+    <a href="/docs/kalite-yonetimi" class="role-card">
+      <div class="role-icon">🔍</div>
+      <div class="role-content">
+        <span class="role-badge qc">Kalİte Kontrol</span>
+        <h3>Kalite Teknisyeniyim</h3>
+        <p>Krimp parametresi doğrulamak, Test Masası sonuçlarını girmek ve karantinadaki (GKK) ürünleri serbest bırakmak istiyorum.</p>
+      </div>
+    </a>
+
+    <!-- Yönetici / Planlamacı -->
+    <a href="/docs/mrp-overview" class="role-card">
+      <div class="role-icon">👔</div>
+      <div class="role-content">
+        <span class="role-badge admin">Yönetİm & Planlama</span>
+        <h3>Planlamacı & Yöneticiyim</h3>
+        <p>MRP analizlerine, kapasite raporlarına bakmak ve sistemdeki genel ayarları (Roller, Limitler vb.) yapılandırmak istiyorum.</p>
+      </div>
+    </a>
+
+    <!-- IT / Sistem -->
+    <a href="/docs/moduller" class="role-card">
+      <div class="role-icon">💻</div>
+      <div class="role-content">
+        <span class="role-badge sys">Mİmarİ Altyapı</span>
+        <h3>IT / Sistem Sorumlusuyum</h3>
+        <p>Sistemin arkaplanında çalışan KTA modüllerinin mimarisini, dosya yapılarını ve genel teknik detayları incelemek istiyorum.</p>
+      </div>
+    </a>
+
+  </div>
+</div>
+{% endblock %}

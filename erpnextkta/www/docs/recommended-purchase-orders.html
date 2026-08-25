@@ -1,0 +1,84 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "recommended-purchase-orders" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🛒</span>
+  <h1>Önerilen Satın Alma Siparişleri</h1>
+  <p>Net hammadde ihtiyacını, tedarikçi bilgilerini (temin süresi, MOQ, paketleme miktarı) dikkate alarak "Hangi hafta, ne kadar PO verilmeli?" sorusunu cevaplar.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Raporun Temel Amacı</h2>
+  <ul>
+    <li>Her hammadde için <strong>sipariş verilmesi gereken haftayı</strong> (temin süresi düşülerek) gösterir.</li>
+    <li>Siparişlerin <strong>MOQ</strong> ve <strong>paketleme katlarına</strong> uygun şekilde otomatik yuvarlandığını gösterir.</li>
+    <li>Küçük haftalık ihtiyaçları birleştirerek verimli sipariş miktarlarına dönüştürür.</li>
+  </ul>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. Hesaplama Mantığı</h2>
+  <h3>📦 Veri Kaynağı</h3>
+  <p>Malzeme İhtiyaç Raporu'nu <code>Stokları Düş + PO Teslimatlarını Düş</code> modunda çalıştırarak <strong>net haftalık hammadde ihtiyacını</strong> alır.</p>
+
+  <h3>⏳ Sipariş Zamanlaması</h3>
+  <div class="kta-doc-code">Sipariş Haftası = İhtiyaç Haftası − Temin Süresi (gün)</div>
+  <p>Temin Süresi, varsayılan tedarikçinin <code>Item Price</code> kaydındaki <code>lead_time_days</code> alanından alınır.</p>
+
+  <h3>📦 MOQ ve Paketleme Yuvarlaması</h3>
+  <ol>
+    <li>Bir haftanın ihtiyacı MOQ'nun altındaysa, sonraki haftaların ihtiyaçları çekilerek MOQ'ya ulaşılmaya çalışılır.</li>
+    <li>Toplam miktar, paketleme miktarının katına yukarı yuvarlanır.</li>
+    <li>Yuvarlamadan kaynaklı fazlalık, sonraki haftaların ihtiyacından düşürülür.</li>
+  </ol>
+  <div class="kta-doc-info warning">
+    <strong>⚠️ Tedarikçi Koşulu:</strong> Varsayılan tedarikçisi veya o tedarikçi için Item Price kaydı bulunmayan hammaddeler raporda yer almaz.
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Filtreler</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Planlama periyodunun başlangıcı</td><td>Bugün</td></tr>
+        <tr><td><strong>Bitiş Tarihi</strong></td><td>Planlama periyodunun bitişi</td><td>3 ay sonra</td></tr>
+        <tr><td><strong>Ürün Grubu</strong></td><td>Belirli bir ürün grubuna filtreleme</td><td>(Hepsi)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Tablo Kolonları</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Kolon</th><th>Açıklama</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Hammadde</strong></td><td>Hammadde item kodu</td></tr>
+        <tr><td><strong>Tedarikçi</strong></td><td>Varsayılan tedarikçi</td></tr>
+        <tr><td><strong>Birim</strong></td><td>Stok birimi</td></tr>
+        <tr><td><strong>Lead Time (Gün)</strong></td><td>Temin süresi</td></tr>
+        <tr><td><strong>MOQ</strong></td><td>Minimum sipariş miktarı</td></tr>
+        <tr><td><strong>Paket Miktarı</strong></td><td>Sipariş bu katın çarpanına yuvarlanır</td></tr>
+        <tr><td><strong>Haftalık Sütunlar</strong></td><td>O hafta verilmesi önerilen sipariş miktarı</td></tr>
+        <tr><td><strong>Satır Toplamı</strong></td><td>Toplam önerilen sipariş miktarı</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>5. Özet Kartları</h2>
+  <ul>
+    <li><span class="kta-doc-badge blue">Önerilen PO Sayısı</span> Benzersiz hammadde-tedarikçi kombinasyon sayısı.</li>
+    <li><span class="kta-doc-badge green">Toplam Önerilen Miktar</span> Tüm hammaddeler için önerilen toplam sipariş miktarı.</li>
+  </ul>
+</div>
+{% endblock %}

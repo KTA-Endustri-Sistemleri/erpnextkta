@@ -1,0 +1,274 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "moduller" %}
+
+{% block doc_content %}
+<style>
+  .module-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 28px;
+    margin-top: 32px;
+    margin-bottom: 60px;
+  }
+  .kta-module-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 32px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy hover */
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+  .kta-module-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.2);
+    border-color: #93c5fd;
+  }
+  .kta-module-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(90deg, #3b82f6, #10b981, #3b82f6);
+    background-size: 200% 100%;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    animation: gradientMove 3s ease infinite;
+  }
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .kta-module-card:hover::before {
+    opacity: 1;
+  }
+  .module-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 24px;
+    color: #3b82f6;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+  }
+  .kta-module-card:hover .module-icon-wrapper {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    transform: scale(1.1) rotate(5deg);
+  }
+  .module-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.03em;
+  }
+  .module-desc {
+    font-size: 15px;
+    color: #475569;
+    line-height: 1.65;
+    margin: 0 0 24px 0;
+    flex-grow: 1;
+  }
+  .module-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 28px 0;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 24px;
+  }
+  .module-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .module-features li::before {
+    content: '✧';
+    color: #3b82f6;
+    font-size: 18px;
+    line-height: 1.2;
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+  }
+  .module-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    background: #f8fafc;
+    margin: 0 -32px -32px -32px;
+    padding: 20px 32px;
+    border-top: 1px solid #f1f5f9;
+  }
+  .module-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: #e2e8f0;
+    color: #475569;
+  }
+  .module-badge.core { 
+    background: #dbeafe; 
+    color: #1d4ed8; 
+  }
+  .module-badge.extension { 
+    background: #f3e8ff; 
+    color: #7e22ce; 
+  }
+  .module-link {
+    color: #3b82f6;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    background: #eff6ff;
+    padding: 8px 16px;
+    border-radius: 8px;
+  }
+  .module-link:hover {
+    gap: 10px;
+    color: #ffffff;
+    background: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  @media (max-width: 600px) {
+    .module-grid {
+      grid-template-columns: 1fr;
+    }
+    .kta-module-card {
+      padding: 24px;
+    }
+    .module-footer {
+      margin: 0 -24px -24px -24px;
+      padding: 16px 24px;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+  }
+</style>
+
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🧬</span>
+  <h1>ERPNext KTA Modül Mimarisi</h1>
+  <p>ERPNext çekirdeğini üretim, lojistik ve kalite süreçlerine tam entegre eden yüksek performanslı KTA Endüstriyel alt modülleri.</p>
+</div>
+
+<div class="module-grid">
+  <!-- Üretim Yönetimi -->
+  <div class="kta-module-card">
+    <div class="module-icon-wrapper">📋</div>
+    <h3 class="module-title">KTA Çalışma Kartı</h3>
+    <p class="module-desc">Üretim sahasındaki operasyonların gerçek zamanlı takibi, duruş ve zaman yönetimi için geliştirilmiş atölye kontrol modülü.</p>
+    <ul class="module-features">
+      <li>Gerçek zamanlı Job Card ve operasyon güncellemeleri</li>
+      <li>Dinamik duruş yönetimi ve standardizasyon</li>
+      <li>Yetki bypass kontrolleri ve otomatik kapanışlar</li>
+    </ul>
+    <div class="module-footer">
+      <span class="module-badge core">CORE MODÜL</span>
+      <a href="/docs/calisma-karti" class="module-link">Kılavuza Git ➔</a>
+    </div>
+  </div>
+
+  <!-- Stok ve Lojistik -->
+  <div class="kta-module-card">
+    <div class="module-icon-wrapper">📦</div>
+    <h3 class="module-title">KTA Stok & Lojistik</h3>
+    <p class="module-desc">Mal kabulden üretime kadar olan süreçte barkodlama, parti bölme ve karantina güvenlik duvarını işleten depo otomasyonu.</p>
+    <ul class="module-features">
+      <li>Akıllı Parti Bölme (Smart Batch Splitting)</li>
+      <li>Otomatik Zebra ZPL barkod yazdırma entegrasyonu</li>
+      <li>Sıfır Toleranslı GKK (Giriş Kalite) güvenlik duvarı</li>
+    </ul>
+    <div class="module-footer">
+      <span class="module-badge core">CORE MODÜL</span>
+      <a href="/docs/stok-lojistik" class="module-link">Kılavuza Git ➔</a>
+    </div>
+  </div>
+
+  <!-- Kalite Yönetimi -->
+  <div class="kta-module-card">
+    <div class="module-icon-wrapper">✅</div>
+    <h3 class="module-title">KTA Kalite Yönetimi</h3>
+    <p class="module-desc">Krimp parametreleri ve Test Masası işlemlerini dijitalleştirerek üretim sahasında sıfır hata (Poke-Yoke) prensibini uygulayan modül.</p>
+    <ul class="module-features">
+      <li>1500+ kayıtlık Krimp Teknik Kütüphanesi</li>
+      <li>17 maddelik Poke-Yoke Kontrol Sistemi</li>
+      <li>Canlı ölçüm tolerans takibi ve dinamik kısıtlamalar</li>
+    </ul>
+    <div class="module-footer">
+      <span class="module-badge core">CORE MODÜL</span>
+      <a href="/docs/kalite-yonetimi" class="module-link">Kılavuza Git ➔</a>
+    </div>
+  </div>
+
+  <!-- MRP -->
+  <div class="kta-module-card">
+    <div class="module-icon-wrapper">⚙️</div>
+    <h3 class="module-title">KTA MRP & Planlama</h3>
+    <p class="module-desc">Periyodik siparişler, tedarik önerileri ve üretim kapasitesini tek ekrandan yönetmeyi sağlayan ileri düzey planlama ve analiz sistemi.</p>
+    <ul class="module-features">
+      <li>Periyodik Satış Siparişleri (Finansal Öngörü)</li>
+      <li>Üretime Başlama ve Sevkiyat Haftası analizleri</li>
+      <li>Çoklu döviz ve akıllı kur çevrimi desteği</li>
+    </ul>
+    <div class="module-footer">
+      <span class="module-badge core">CORE MODÜL</span>
+      <a href="/docs/periodic-sales-orders" class="module-link">Kılavuza Git ➔</a>
+    </div>
+  </div>
+
+  <!-- Asset Maintenance -->
+  <div class="kta-module-card">
+    <div class="module-icon-wrapper">🔧</div>
+    <h3 class="module-title">KTA Varlık & Bakım</h3>
+    <p class="module-desc">Fabrikadaki makine ve kalıpların periyodik bakımlarını, arıza kayıtlarını ve üretimle olan ilişkilerini yöneten bakım otomasyonu.</p>
+    <ul class="module-features">
+      <li>Makine ve kalıp bazlı otomatik bakım olayları</li>
+      <li>Arıza durumunda üretim duruşu senkronizasyonu</li>
+      <li>Planlı bakım takibi</li>
+    </ul>
+    <div class="module-footer">
+      <span class="module-badge extension">EXTENSION</span>
+    </div>
+  </div>
+
+  <!-- Sales -->
+  <div class="kta-module-card">
+    <div class="module-icon-wrapper">🤝</div>
+    <h3 class="module-title">KTA Satış & CRM</h3>
+    <p class="module-desc">Müşteri siparişlerini, özel fiyatlandırmaları ve B2B satış operasyonlarını ERPNext standartlarına ek özellikler getirerek yönetir.</p>
+    <ul class="module-features">
+      <li>Özelleştirilmiş Satış Siparişi onay mekanizmaları</li>
+      <li>Müşteri özel barkodlama ve paketleme miktarları</li>
+      <li>Gelişmiş sipariş karşılama raporları</li>
+    </ul>
+    <div class="module-footer">
+      <span class="module-badge extension">EXTENSION</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

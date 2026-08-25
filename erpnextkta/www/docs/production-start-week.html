@@ -1,0 +1,95 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "production-start-week" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🏭</span>
+  <h1>Üretime Başlama Haftası</h1>
+  <p>Açık satış siparişlerinden teslimat tarihlerini ve müşteriye özgü üretim/sevkiyat sürelerini hesaba katarak "Bu ürünün üretimine en geç hangi hafta başlanmalı?" sorusunu cevaplar.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Raporun Temel Amacı</h2>
+  <ul>
+    <li>Her ürünün, teslimatı yakalayabilmek için <strong>üretime en geç ne zaman başlanması gerektiğini</strong> hafta bazında gösterir.</li>
+    <li>Bitmiş ürün stokunun hangi haftaların talebini karşıladığını, hangilerinin üretilmesi gerektiğini belirler.</li>
+    <li>Müşteri bazlı veya sadece ürün bazlı gruplama ile farklı bakış açıları sunar.</li>
+  </ul>
+  <div class="kta-doc-flow">
+    <div class="kta-doc-flow-step">📈 Satış Siparişleri</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step active">🏭 Üretime Başlama Haftası</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">⚙️ Kapasite Planlama</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">🧱 Malzeme İhtiyaç</div>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. Hesaplama Mantığı</h2>
+  <h3>⏳ Üretime Başlama Tarihi</h3>
+  <div class="kta-doc-code">Üretime Başlama Tarihi = Teslimat Tarihi − (Üretim Süresi + Sevkiyat Süresi)</div>
+  <p><strong>Üretim Süresi</strong> ve <strong>Sevkiyat Süresi</strong> değerleri, her müşteri/sevk adresi için ayrı ayrı tanımlanan <strong>KTA Sevk Parametreleri</strong> DocType'ından alınır.</p>
+  <div class="kta-doc-info warning">
+    <strong>⚠️ Eşleşme Bulunamazsa:</strong> Teslimat tarihi olduğu gibi kullanılır ve rapor sonunda eşleşmeyen müşteriler listesi bildirilir.
+  </div>
+
+  <h3>📊 Stok Düşme Mantığı</h3>
+  <p>Bitmiş ürünlerin deposundaki (<code>warehouse_type = "Kullanılabilir Stok"</code>) mevcut stok, haftalara kronolojik sırayla dağıtılır:</p>
+  <ol>
+    <li>İlk haftanın talebi stoktan karşılanabildiği kadar karşılanır.</li>
+    <li>Kalan stok bir sonraki haftaya aktarılır.</li>
+    <li>Stok tükendiğinde, kalan talep <strong>"Üretilecek"</strong> olarak işaretlenir.</li>
+  </ol>
+
+  <h3>📦 Müşteri Paketleme Yuvarlaması</h3>
+  <p>Üretilmesi gereken miktar belirlenirken, <code>Item Customer</code> tablosundaki <code>custom_musteri_paketleme_miktari</code> alanına bakılır. Müşteriye özel bir paketleme miktarı tanımlıysa, üretim miktarı bu değerin katına yukarı yuvarlanır. Fazlalık sonraki haftalar için stok olarak kullanılır.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Filtreler</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Analiz periyodunun başlangıcı</td><td>Bugün</td></tr>
+        <tr><td><strong>Bitiş Tarihi</strong></td><td>Analiz periyodunun bitişi</td><td>Bugünden 3 ay sonra</td></tr>
+        <tr><td><strong>Ürün Grubu</strong></td><td>Belirli bir ürün grubuna filtreleme</td><td>(Hepsi)</td></tr>
+        <tr><td><strong>Yalnızca Ürün Bazlı Grupla</strong></td><td>İşaretlenirse müşteri kırılımı gösterilmez, sadece ürün bazında toplanır</td><td>Kapalı</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Tablo Kolonları</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>Kolon</th><th>Açıklama</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Ürün Grubu</strong></td><td>Ürünün ait olduğu Item Group</td></tr>
+        <tr><td><strong>Müşteri</strong></td><td>Siparişi veren müşteri (sadece ürün bazlı gruplama kapalıyken görünür)</td></tr>
+        <tr><td><strong>Ürün Kodu / Adı</strong></td><td>Bitmiş ürünün kodu ve adı</td></tr>
+        <tr><td><strong>Haftalık Sütunlar</strong></td><td>O hafta üretilmesi gereken net miktar (stok düşülmüş)</td></tr>
+        <tr><td><strong>Stok Karşılanan</strong></td><td>Mevcut stoktan karşılanan toplam miktar</td></tr>
+        <tr><td><strong>Üretilecek</strong></td><td>Üretilmesi gereken toplam miktar</td></tr>
+        <tr><td><strong>Toplam</strong></td><td>Brüt toplam talep (stok düşülmeden önceki ham talep)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>5. Grafik ve Özet</h2>
+  <ul>
+    <li><strong>📊 Çubuk Grafik:</strong> Hafta bazında üretilmesi gereken miktarları görselleştirir.</li>
+    <li><span class="kta-doc-badge orange">Toplam Üretilecek</span> Stok düşüldükten sonra üretilmesi gereken toplam adet.</li>
+    <li><span class="kta-doc-badge green">Stoktan Karşılanan</span> Mevcut stokla karşılanan toplam adet.</li>
+  </ul>
+</div>
+{% endblock %}

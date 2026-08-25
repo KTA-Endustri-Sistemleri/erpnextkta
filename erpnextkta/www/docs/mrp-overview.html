@@ -1,0 +1,158 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "mrp-overview" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🔗</span>
+  <h1>KTA MRP Raporları</h1>
+  <p>Satış siparişlerinden hammadde ihtiyacına kadar tüm üretim planlama zincirinin detaylı kullanım kılavuzları.</p>
+</div>
+
+<!-- Data Flow -->
+<div class="kta-doc-section">
+  <h2>Veri Akışı</h2>
+  <p>MRP zincirindeki raporlar birbirini sırasıyla besler. Akış, satış siparişlerinden başlar ve hammadde ihtiyacına kadar iner:</p>
+
+  <div class="kta-doc-flow-vertical">
+    <div class="kta-doc-flow-vitem">
+      <div class="kta-doc-flow-vline">
+        <div class="kta-doc-flow-dot"></div>
+        <div class="kta-doc-flow-connector"></div>
+      </div>
+      <div class="kta-doc-flow-vcontent">
+        <h4>📈 Periyodik Satış Siparişleri</h4>
+        <p>Açık satış siparişlerini teslimat tarihlerine göre haftalara dağıtır.</p>
+      </div>
+    </div>
+    <div class="kta-doc-flow-vitem">
+      <div class="kta-doc-flow-vline">
+        <div class="kta-doc-flow-dot"></div>
+        <div class="kta-doc-flow-connector"></div>
+      </div>
+      <div class="kta-doc-flow-vcontent">
+        <h4>🏭 Üretime Başlama Haftası</h4>
+        <p>Teslimat tarihlerinden üretim ve sevkiyat sürelerini düşerek üretime başlama haftasını hesaplar.</p>
+      </div>
+    </div>
+    <div class="kta-doc-flow-vitem">
+      <div class="kta-doc-flow-vline">
+        <div class="kta-doc-flow-dot"></div>
+        <div class="kta-doc-flow-connector"></div>
+      </div>
+      <div class="kta-doc-flow-vcontent">
+        <h4>⚙️ Kapasite Planlama</h4>
+        <p>Haftalık üretim kapasitesine göre dengeleme yapar; taşan yükü sonraki haftalara dağıtır.</p>
+      </div>
+    </div>
+    <div class="kta-doc-flow-vitem">
+      <div class="kta-doc-flow-vline">
+        <div class="kta-doc-flow-dot"></div>
+        <div class="kta-doc-flow-connector"></div>
+      </div>
+      <div class="kta-doc-flow-vcontent">
+        <h4>🧱 Malzeme İhtiyaç</h4>
+        <p>Üretim planını BOM ile çarparak hammadde ihtiyacını hesaplar. Stok ve PO düşebilir.</p>
+      </div>
+    </div>
+    <div class="kta-doc-flow-vitem">
+      <div class="kta-doc-flow-vline">
+        <div class="kta-doc-flow-dot" style="background: #10b981; border-color: #d1fae5;"></div>
+      </div>
+      <div class="kta-doc-flow-vcontent">
+        <h4>📊 MRP Analiz &nbsp;/&nbsp; 🛒 Önerilen PO &nbsp;/&nbsp; 📋 İş Emri Planlama</h4>
+        <p>Nihai çıktılar: Hammadde özet analizi, satın alma önerileri ve iş emri ihtiyaç tespiti.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report Cards -->
+<div class="kta-doc-section">
+  <h2>MRP Zinciri Raporları</h2>
+  <div class="kta-doc-cards">
+    <a href="/docs/periodic-sales-orders" class="kta-doc-card">
+      <span class="kta-doc-card-icon">📈</span>
+      <h3>Periyodik Satış Siparişleri</h3>
+      <p>Satış sipariş portföyünün periyodik analizi — müşteri, tutar ve miktar kırılımıyla.</p>
+      <span class="kta-doc-badge blue">Veri Kaynağı</span>
+    </a>
+    <a href="/docs/production-start-week" class="kta-doc-card">
+      <span class="kta-doc-card-icon">🏭</span>
+      <h3>Üretime Başlama Haftası</h3>
+      <p>Teslimat tarihlerinden geri hesaplamayla üretime başlama zamanlaması.</p>
+      <span class="kta-doc-badge blue">İşleme</span>
+    </a>
+    <a href="/docs/capacity-planning" class="kta-doc-card">
+      <span class="kta-doc-card-icon">⚙️</span>
+      <h3>Kapasite Planlama</h3>
+      <p>Haftalık üretim kapasitesiyle dengeleme ve ramp-up algoritmaları.</p>
+      <span class="kta-doc-badge blue">İşleme</span>
+    </a>
+    <a href="/docs/material-requirement" class="kta-doc-card">
+      <span class="kta-doc-card-icon">🧱</span>
+      <h3>Malzeme İhtiyaç</h3>
+      <p>BOM bazlı haftalık hammadde tüketim ihtiyaçları (stok/PO düşülebilir).</p>
+      <span class="kta-doc-badge blue">İşleme</span>
+    </a>
+    <a href="/docs/mrp-analysis" class="kta-doc-card">
+      <span class="kta-doc-card-icon">📊</span>
+      <h3>MRP Analiz</h3>
+      <p>Hammadde stok durumu, tüketim dağılımı ve müşteri grubu kırılımlı özet.</p>
+      <span class="kta-doc-badge green">Çıktı</span>
+    </a>
+    <a href="/docs/recommended-purchase-orders" class="kta-doc-card">
+      <span class="kta-doc-card-icon">🛒</span>
+      <h3>Önerilen Satın Alma Siparişleri</h3>
+      <p>MOQ, paketleme ve temin süresine göre otomatik PO önerileri.</p>
+      <span class="kta-doc-badge green">Çıktı</span>
+    </a>
+    <a href="/docs/work-order-planning" class="kta-doc-card">
+      <span class="kta-doc-card-icon">📋</span>
+      <h3>İş Emri Planlama</h3>
+      <p>Mevcut iş emirleri ile planı karşılaştırarak yeni iş emri ihtiyacı tespiti.</p>
+      <span class="kta-doc-badge green">Çıktı</span>
+    </a>
+  </div>
+</div>
+
+<!-- Independent Reports -->
+<div class="kta-doc-section">
+  <h2>Bağımsız Raporlar</h2>
+  <div class="kta-doc-cards">
+    <a href="/docs/shipment-week" class="kta-doc-card">
+      <span class="kta-doc-card-icon">🚚</span>
+      <h3>Sevkiyat Haftası</h3>
+      <p>Fabrika çıkış haftası hesaplaması — lojistik bakış açısı.</p>
+      <span class="kta-doc-badge orange">Lojistik</span>
+    </a>
+    <a href="/docs/production-pipeline" class="kta-doc-card">
+      <span class="kta-doc-card-icon">🔬</span>
+      <h3>Üretim Pipeline Analizi</h3>
+      <p>8 aşamalı üretim hattı görünümü — stok evrimi ve kapasite izleme.</p>
+      <span class="kta-doc-badge purple">Strateji</span>
+    </a>
+  </div>
+</div>
+
+<!-- Common Data Sources -->
+<div class="kta-doc-section">
+  <h2>Ortak Veri Kaynakları</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th>DocType</th><th>Alan</th><th>Kullanım</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Sales Order Item</strong></td><td>qty, delivered_qty, delivery_date</td><td>Açık sipariş talebi</td></tr>
+        <tr><td><strong>KTA Sevk Parametreleri</strong></td><td>production_time, delivery_time</td><td>Müşteriye özel üretim ve sevk süreleri</td></tr>
+        <tr><td><strong>Item</strong></td><td>custom_weekly_production, custom_musteri_grubu</td><td>Kapasite, gruplama</td></tr>
+        <tr><td><strong>BOM Explosion Item</strong></td><td>stock_qty, stock_uom</td><td>Hammadde çarpanları (patlatılmış BOM)</td></tr>
+        <tr><td><strong>Bin / Warehouse</strong></td><td>actual_qty, stock_value</td><td>Mevcut stok (Kullanılabilir Stok depoları)</td></tr>
+        <tr><td><strong>Item Price</strong></td><td>lead_time_days, custom_minimum_order_quantity</td><td>Fiyat, temin süresi, MOQ</td></tr>
+        <tr><td><strong>Purchase Order Item</strong></td><td>qty, received_qty, schedule_date</td><td>Açık PO teslimatları</td></tr>
+        <tr><td><strong>Work Order</strong></td><td>qty, produced_qty, planned_start_date</td><td>Açık iş emirleri</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
