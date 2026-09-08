@@ -26,7 +26,7 @@ required_apps = ["frappe", "erpnext", "kta_system_utils"]
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/erpnextkta/css/erpnextkta.css"
+# app_include_css = "erpnextkta.bundle.css"
 # app_include_js = "/assets/erpnextkta/js/erpnextkta.js"
 app_include_js = [
                   "/assets/erpnextkta/js/material_transfer_patch.js",
@@ -281,6 +281,8 @@ override_doctype_dashboards = {
 # ----------------
 # before_request = ["erpnextkta.utils.before_request"]
 # after_request = ["erpnextkta.utils.after_request"]
+
+update_website_context = "erpnextkta.middlewares.update_website_context"
 
 # Job Events
 # ----------

@@ -1,0 +1,919 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* =========================================================
+   KTA ULTRA-MODERN GLASSMORPHISM THEME
+   
+   All overrides below are derived from Frappe's original SCSS:
+   - desk/global.scss       (sidebar hover, link underlines)
+   - desk/sidebar.scss      (.layout-side-section, .sidebar-label)
+   - desk/desktop.scss      (.widget, .shortcut-widget-box, .links-widget-box, .sidebar-item-container)
+   - desk/navbar.scss       (.navbar)
+   - desk/page.scss         (.page-container, .layout-main-section.frappe-card)
+   - desk/scrollbar.scss    (scrollbar variables)
+   - desk/css_variables.scss / common/css_variables.scss (--scrollbar-*, --sidebar-select-color, --navbar-bg, --bg-color, --fg-color)
+   - desk/dark.scss         (dark mode variable overrides)
+   ========================================================= */
+
+/* =========================================================
+   0. CSS VARIABLE OVERRIDES
+   Source: common/css_variables.scss, desk/css_variables.scss, desk/dark.scss
+   ========================================================= */
+:root,
+[data-theme="light"] {
+  /* Typography */
+  --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-sans-serif: var(--font-stack) !important;
+  font-family: var(--font-stack) !important;
+
+  /* Primary Brand Colors */
+  --primary-color: #6366f1;
+  --primary: #6366f1;
+  --blue-500: #6366f1;
+  --blue-600: #4f46e5;
+
+  /* Border Radiuses */
+  --border-radius: 12px;
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 20px;
+  --btn-border-radius: 12px;
+
+  /* Layout — Override common/css_variables.scss defaults */
+  --bg-color: #f0f2f5;             /* was: white */
+  --fg-color: rgba(255,255,255,0.75); /* was: white — translucent for glass */
+  --card-bg: rgba(255,255,255,0.75);
+  --navbar-bg: rgba(255,255,255,0.6); /* was: white */
+  --sidebar-select-color: rgba(99, 102, 241, 0.08); /* was: var(--gray-100) */
+
+  /* Scrollbar — Override common/css_variables.scss */
+  --scrollbar-thumb-color: rgba(99, 102, 241, 0.25);
+  --scrollbar-track-color: transparent;
+
+  /* Shadows */
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --shadow-glass-hover: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+  --card-shadow: var(--shadow-glass);
+}
+
+/* Dark Mode — Override desk/dark.scss */
+[data-theme="dark"] {
+  --primary-color: #818cf8;
+  --primary: #818cf8;
+  --blue-500: #818cf8;
+  --blue-600: #6366f1;
+
+  --bg-color: #0c111b;
+  --fg-color: rgba(30, 41, 59, 0.7);
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --navbar-bg: rgba(15, 23, 42, 0.7);
+  --sidebar-select-color: rgba(129, 140, 248, 0.1);
+
+  --scrollbar-thumb-color: rgba(129, 140, 248, 0.3);
+  --scrollbar-track-color: transparent;
+
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --shadow-glass-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+  --card-shadow: var(--shadow-glass);
+}
+
+/* Global Font Override */
+body, .form-control, .btn, .text-muted,
+h1, h2, h3, h4, h5, h6,
+.widget-title, .sidebar-label,
+.standard-sidebar-item, .standard-sidebar-label {
+  font-family: var(--font-stack) !important;
+}
+
+
+/* =========================================================
+   1. MESH GRADIENT BACKGROUND
+   Source: desk/global.scss L1-21 (html, body background-color)
+          desk/page.scss L46-53 (.page-container background-color)
+   ========================================================= */
+html {
+  background: #f0f2f5 !important;
+  background-image:
+    radial-gradient(at 80% 0%, hsla(240, 100%, 95%, 0.8) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(280, 100%, 97%, 0.7) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(190, 100%, 92%, 0.6) 0px, transparent 50%) !important;
+  background-attachment: fixed !important;
+}
+body {
+  background: transparent !important;
+}
+.page-container {
+  background: transparent !important; /* Override page.scss L47 */
+}
+
+html[data-theme="dark"] {
+  background: #0c111b !important;
+  background-image:
+    radial-gradient(at 80% 0%, hsla(240, 50%, 15%, 1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(280, 40%, 12%, 1) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(190, 50%, 15%, 1) 0px, transparent 50%) !important;
+  background-attachment: fixed !important;
+}
+[data-theme="dark"] body,
+[data-theme="dark"] .page-container {
+  background: transparent !important;
+}
+
+
+/* =========================================================
+   2. SCROLLBAR — Ultra-modern auto-hide design
+   Source: desk/scrollbar.scss (global rules)
+           desktop.scss L936-958 (workspace-specific rules)
+   
+   Design: macOS-style auto-hiding, ultra-thin pill scrollbar.
+   Normally near-invisible, appears on hover/scroll.
+   ========================================================= */
+
+/* --- Firefox (scrollbar-width + scrollbar-color) --- */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: transparent transparent !important; /* hidden by default */
+}
+*:hover, *:focus-within {
+  scrollbar-color: rgba(99, 102, 241, 0.2) transparent !important; /* appears on hover */
+}
+[data-theme="dark"] *:hover,
+[data-theme="dark"] *:focus-within {
+  scrollbar-color: rgba(129, 140, 248, 0.25) transparent !important;
+}
+
+/* --- Chrome/Safari/Edge (webkit) --- */
+/* Track: invisible */
+*::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+*::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+*::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+/* Thumb: invisible by default */
+*::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border-radius: 100px !important;
+  border: 1px solid transparent !important;
+  background-clip: content-box !important;
+  transition: background 0.3s ease !important;
+}
+/* Thumb: visible on container hover */
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.18) !important;
+  background-clip: content-box !important;
+  border: 1px solid transparent !important;
+}
+*:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.4) !important;
+  background-clip: content-box !important;
+  border: 1px solid transparent !important;
+}
+*:hover::-webkit-scrollbar-thumb:active {
+  background: rgba(99, 102, 241, 0.55) !important;
+  background-clip: content-box !important;
+  border: 1px solid transparent !important;
+}
+
+/* Dark mode thumb */
+[data-theme="dark"] *:hover::-webkit-scrollbar-thumb {
+  background: rgba(129, 140, 248, 0.2) !important;
+  background-clip: content-box !important;
+  border: 1px solid transparent !important;
+}
+[data-theme="dark"] *:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(129, 140, 248, 0.45) !important;
+  background-clip: content-box !important;
+  border: 1px solid transparent !important;
+}
+
+/* Body scrollbar: slightly wider */
+body::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+/* ---- Workspace-specific overrides (desktop.scss L936-958) ---- */
+/* Universal auto-hiding scrollbar for sidebar and main content */
+.layout-side-section,
+.layout-main-section-wrapper {
+  scrollbar-color: transparent transparent !important;
+  scrollbar-width: thin !important;
+}
+.layout-side-section:hover,
+.layout-main-section-wrapper:hover {
+  scrollbar-color: rgba(99, 102, 241, 0.25) transparent !important;
+}
+[data-theme="dark"] .layout-side-section:hover,
+[data-theme="dark"] .layout-main-section-wrapper:hover {
+  scrollbar-color: rgba(129, 140, 248, 0.3) transparent !important;
+}
+
+/* Webkit specific ultra-modern scrollbar for sidebar */
+.layout-side-section::-webkit-scrollbar,
+.layout-main-section-wrapper::-webkit-scrollbar {
+  width: 4px !important;
+}
+.layout-side-section::-webkit-scrollbar-button,
+.layout-main-section-wrapper::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.layout-side-section::-webkit-scrollbar-track,
+.layout-main-section-wrapper::-webkit-scrollbar-track {
+  background: transparent !important;
+  margin: 16px 0 !important; /* Keep scrollbar away from rounded edges */
+}
+.layout-side-section::-webkit-scrollbar-thumb,
+.layout-main-section-wrapper::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border-radius: 10px !important;
+  transition: background 0.3s ease !important;
+}
+.layout-side-section:hover::-webkit-scrollbar-thumb,
+.layout-main-section-wrapper:hover::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3) !important;
+}
+.layout-side-section:hover::-webkit-scrollbar-thumb:hover,
+.layout-main-section-wrapper:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.6) !important;
+}
+
+[data-theme="dark"] .layout-side-section:hover::-webkit-scrollbar-thumb,
+[data-theme="dark"] .layout-main-section-wrapper:hover::-webkit-scrollbar-thumb {
+  background: rgba(129, 140, 248, 0.35) !important;
+}
+
+
+/* =========================================================
+   3. NAVBAR
+   Source: desk/navbar.scss L1-33
+   Original: background: var(--navbar-bg), border-bottom: 1px solid var(--border-color)
+   ========================================================= */
+.navbar {
+  background: var(--navbar-bg) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02) !important;
+}
+[data-theme="dark"] .navbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+
+/* =========================================================
+   4. SIDEBAR
+   Source: desk/sidebar.scss L183-286 (.layout-side-section)
+   ========================================================= */
+/* Minimalist Edge-Attached Design */
+.layout-side-section {
+  border: none !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 24px 12px 24px 16px !important;
+  margin: 0 !important;
+}
+[data-theme="dark"] .layout-side-section {
+  background: transparent !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Minimalist Kategori Başlıkları (Sidebar Label) */
+.layout-side-section .sidebar-label {
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+  color: var(--text-muted) !important;
+  text-transform: none !important;
+  margin-bottom: 0.5rem !important;
+  margin-top: 1.25rem !important;
+  padding-left: 10px !important;
+  opacity: 0.7 !important;
+}
+[data-theme="dark"] .layout-side-section .sidebar-label {
+  color: #94a3b8 !important;
+}
+.layout-side-section .sidebar-label:first-child {
+  margin-top: 0 !important;
+}
+
+/* Force no-underline on sidebar links */
+.sidebar-section a:hover,
+.sidebar-section a:focus,
+.sidebar-section a:active,
+.layout-side-section a:hover,
+.layout-side-section a:focus,
+.layout-side-section a:active,
+.layout-side-section .sidebar-menu > li > a:hover,
+.layout-side-section .sidebar-menu > li > a:focus,
+.layout-side-section .sidebar-menu > li > a:active {
+  text-decoration: none !important;
+}
+
+/* Clear default Frappe hover states */
+.standard-sidebar .standard-sidebar-item:hover,
+.standard-sidebar .standard-sidebar-item:focus-within,
+.desk-sidebar .standard-sidebar-item:hover,
+.desk-sidebar .standard-sidebar-item:focus-within {
+  background-color: transparent !important;
+  text-decoration: none !important;
+}
+
+/* Sidebar Item Base - Denser layout */
+.sidebar-item-container .standard-sidebar-item {
+  transition: background-color 0.2s ease, color 0.2s ease !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  margin-bottom: 2px !important;
+}
+.sidebar-item-container .standard-sidebar-item .sidebar-item-label {
+  font-weight: 500 !important;
+  font-size: 0.88rem !important;
+  color: var(--text-color) !important;
+}
+[data-theme="dark"] .sidebar-item-container .standard-sidebar-item .sidebar-item-label {
+  color: #e2e8f0 !important;
+}
+.sidebar-item-container .standard-sidebar-item svg {
+  width: 16px !important;
+  height: 16px !important;
+  opacity: 0.7 !important;
+}
+[data-theme="dark"] .sidebar-item-container .standard-sidebar-item svg {
+  opacity: 0.8 !important;
+}
+
+/* Sidebar item hover - extremely subtle */
+.sidebar-item-container .standard-sidebar-item:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  transform: none !important;
+}
+[data-theme="dark"] .sidebar-item-container .standard-sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Active sidebar item - solid, clean pill */
+.sidebar-item-container .standard-sidebar-item.selected,
+.standard-sidebar .standard-sidebar-item.selected {
+  background: rgba(99, 102, 241, 0.12) !important;
+  box-shadow: none !important;
+}
+.sidebar-item-container .standard-sidebar-item.selected > a,
+.standard-sidebar .standard-sidebar-item.selected > a,
+.sidebar-item-container .standard-sidebar-item.selected .sidebar-item-label,
+.standard-sidebar .standard-sidebar-item.selected .sidebar-item-label {
+  color: var(--primary) !important;
+  font-weight: 600 !important;
+}
+.sidebar-item-container .standard-sidebar-item.selected svg,
+.standard-sidebar .standard-sidebar-item.selected svg {
+  --icon-stroke: var(--primary) !important;
+  opacity: 1 !important;
+}
+[data-theme="dark"] .sidebar-item-container .standard-sidebar-item.selected,
+[data-theme="dark"] .standard-sidebar .standard-sidebar-item.selected {
+  background: rgba(129, 140, 248, 0.15) !important;
+}
+
+
+/* =========================================================
+   5. WORKSPACE LAYOUT
+   Source: desk/desktop.scss L936-998 ([data-page-route="Workspaces"])
+   Original: .layout-main-section { border: 1px solid var(--border-color) }
+   Also: desk/page.scss L91-100 .layout-main-section.frappe-card { border: 1px solid }
+   ========================================================= */
+[data-page-route="Workspaces"] .layout-main-section {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* Override page.scss L91-100 — remove card border globally */
+.layout-main-section.frappe-card {
+  border: 1px solid rgba(0,0,0,0.06) !important;
+  box-shadow: var(--shadow-glass) !important;
+  background: var(--fg-color) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+[data-theme="dark"] .layout-main-section.frappe-card {
+  border: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+
+
+/* =========================================================
+   6. WORKSPACE WIDGET BOXES
+   Source: desk/desktop.scss L114-830
+   ========================================================= */
+
+/* Base widget glass styling */
+.widget {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03) !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+[data-theme="dark"] .widget {
+  background: rgba(30, 41, 59, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Widget hover */
+.widget.shortcut-widget-box:hover,
+.widget.links-widget-box:hover,
+.widget.dashboard-widget-box:hover,
+.widget.quick-list-widget-box:hover,
+.widget.number-widget-box:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.08) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+[data-theme="dark"] .widget.shortcut-widget-box:hover,
+[data-theme="dark"] .widget.links-widget-box:hover,
+[data-theme="dark"] .widget.dashboard-widget-box:hover,
+[data-theme="dark"] .widget.quick-list-widget-box:hover,
+[data-theme="dark"] .widget.number-widget-box:hover {
+  background: rgba(30, 41, 59, 0.7) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Shortcut Widget specific overrides — Square Card with Icon Design */
+.widget.shortcut-widget-box {
+  padding: 24px 16px !important;
+  min-height: 120px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  position: relative !important;
+}
+
+/* Override the default Frappe horizontal layout */
+.widget.shortcut-widget-box .widget-head {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* =========================================================
+   6.1 CUSTOM SHORTCUT ICONS
+   Frappe uses the same grid icon for all shortcuts by default.
+   We hide it and map beautiful custom SVGs based on data-widget-name.
+   ========================================================= */
+.widget.shortcut-widget-box .widget-icon svg {
+  display: none !important;
+}
+.widget.shortcut-widget-box .widget-icon {
+  width: 28px !important;
+  height: 28px !important;
+  margin-bottom: 8px !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  /* Default Generic Icon (Document) */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236366f1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>') !important;
+}
+
+/* 1. Malzeme Kalemleri (Box/Inventory) */
+.widget.shortcut-widget-box[data-widget-name="Malzeme Kalemleri"] .widget-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236366f1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>') !important;
+}
+
+/* 2. Müşteri (Users/Customer) */
+.widget.shortcut-widget-box[data-widget-name="Müşteri"] .widget-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236366f1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>') !important;
+}
+
+/* 3. Tedarikçi (Truck/Supplier) */
+.widget.shortcut-widget-box[data-widget-name="Tedarikçi"] .widget-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236366f1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25a2.25 2.25 0 00-2.25 2.25v6m-4.5 0V7.5a2.25 2.25 0 00-2.25-2.25h-3" /></svg>') !important;
+}
+
+/* 4. Satış Faturası (Invoice/Receipt) */
+.widget.shortcut-widget-box[data-widget-name="Satış Faturası"] .widget-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236366f1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-1.5-1.5m0 0l-1.5 1.5m1.5-1.5v4.5m1-15H8.25A2.25 2.25 0 006 4.5v15A2.25 2.25 0 008.25 21h7.5A2.25 2.25 0 0018 18.75v-9.75M15 10.5h.008v.008H15v-.008zm-3 0h.008v.008H12v-.008z" /></svg>') !important;
+}
+
+/* 5. Ürün Ağaçları (Tree/Structure) */
+.widget.shortcut-widget-box[data-widget-name="Ürün Ağaçları"] .widget-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236366f1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" /></svg>') !important;
+}
+
+/* 6. Yapılacaklar Listesi (To-do/Clipboard) */
+.widget.shortcut-widget-box[data-widget-name="Yapılacaklar Listesi"] .widget-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236366f1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" /></svg>') !important;
+}
+
+/* 7. Satınalma İrsaliyesi (Receipt/Box) */
+.widget.shortcut-widget-box[data-widget-name="Satınalma İrsaliyesi"] .widget-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236366f1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75" /></svg>') !important;
+}
+
+/* 8. İş Emri (Wrench/Settings) */
+.widget.shortcut-widget-box[data-widget-name="İş Emri"] .widget-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%236366f1" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" /></svg>') !important;
+}
+
+/* Hide the clunky external link arrow */
+.widget.shortcut-widget-box svg.icon-sm {
+  display: none !important;
+}
+
+/* Title text */
+.widget.shortcut-widget-box .widget-title {
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  color: var(--heading-color) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 0 !important;
+}
+
+/* CSS-injected Generic Modern Icon (Default) */
+.widget.shortcut-widget-box .widget-head .widget-title::before {
+  content: " " !important;
+  display: block !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin: 0 auto 8px auto !important;
+  /* Reliable SVG background image (indigo color #6366f1) */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' /%3e%3c/svg%3e") !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-color: transparent !important;
+  opacity: 0.9 !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+/* Dynamic Icons based on Widget Name */
+.widget.shortcut-widget-box[data-widget-name="Malzeme Kalemleri"] .widget-title::before,
+.widget.shortcut-widget-box[data-widget-name="Item"] .widget-title::before {
+  /* Box icon */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' /%3e%3c/svg%3e") !important;
+}
+.widget.shortcut-widget-box[data-widget-name*="Ürün Ağacı"] .widget-title::before,
+.widget.shortcut-widget-box[data-widget-name*="BOM"] .widget-title::before {
+  /* Hierarchy / Tree icon */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M9 19V6l12-3v13M9 19c-1.105 0-2 .895-2 2s.895 2 2 2 2-.895 2-2-.895-2-2-2zM5 8c-1.105 0-2-.895-2-2s.895-2 2-2 2 .895 2 2-.895 2-2 2zm16 13c-1.105 0-2-.895-2-2s.895-2 2-2 2 .895 2 2-.895 2-2 2z' /%3e%3c/svg%3e") !important;
+}
+.widget.shortcut-widget-box[data-widget-name*="İş Emri"] .widget-title::before,
+.widget.shortcut-widget-box[data-widget-name*="Work Order"] .widget-title::before {
+  /* Clipboard icon */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' /%3e%3c/svg%3e") !important;
+}
+.widget.shortcut-widget-box[data-widget-name*="Fabrika"] .widget-title::before,
+.widget.shortcut-widget-box[data-widget-name*="Workstation"] .widget-title::before {
+  /* Factory / Building icon */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' /%3e%3c/svg%3e") !important;
+}
+.widget.shortcut-widget-box[data-widget-name*="Rapor"] .widget-title::before,
+.widget.shortcut-widget-box[data-widget-name*="Tahmin"] .widget-title::before {
+  /* Chart / Report icon */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' /%3e%3c/svg%3e") !important;
+}
+.widget.shortcut-widget-box[data-widget-name*="Kart"] .widget-title::before,
+.widget.shortcut-widget-box[data-widget-name*="Card"] .widget-title::before {
+  /* Card / Identification icon */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2' /%3e%3c/svg%3e") !important;
+}
+
+.widget.shortcut-widget-box:hover .widget-head .widget-title::before {
+  transform: scale(1.15) translateY(-2px) !important;
+  opacity: 1 !important;
+  /* Use CSS filter to darken the hover state instead of duplicating SVGs */
+  filter: brightness(0.7) !important;
+}
+
+.widget.shortcut-widget-box:hover {
+  --icon-stroke: var(--primary) !important;
+}
+.widget.shortcut-widget-box:hover .widget-title {
+  color: var(--primary) !important;
+}
+
+/* Badge (Pill) positioning */
+.widget.shortcut-widget-box .widget-control {
+  position: static !important;
+  margin-top: 4px !important;
+}
+
+.widget.shortcut-widget-box .indicator-pill {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: var(--primary) !important;
+  font-weight: 700 !important;
+  border-radius: 20px !important;
+  padding: 4px 10px !important;
+  font-size: 0.75rem !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  display: inline-block !important;
+}
+[data-theme="dark"] .widget.shortcut-widget-box .indicator-pill {
+  background: rgba(129, 140, 248, 0.15) !important;
+}
+
+/* Links Widget specific overrides */
+.widget.links-widget-box {
+  padding: 24px !important;
+  position: relative;
+  overflow: hidden !important;
+}
+
+/* Links Widget Header */
+.widget.links-widget-box .widget-head {
+  margin-bottom: 1rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+}
+[data-theme="dark"] .widget.links-widget-box .widget-head {
+  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+}
+.widget.links-widget-box .widget-head .widget-label .widget-title {
+  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+  color: var(--heading-color) !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Link Items (Lists) */
+.widget.links-widget-box .link-item {
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+  margin-left: -12px !important;
+  margin-bottom: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.widget.links-widget-box .link-item:hover {
+  background: rgba(99, 102, 241, 0.05) !important;
+  transform: translateX(6px) !important;
+}
+[data-theme="dark"] .widget.links-widget-box .link-item:hover {
+  background: rgba(129, 140, 248, 0.08) !important;
+}
+.widget.links-widget-box .link-item .link-content {
+  font-size: 0.95rem !important;
+  color: var(--text-color) !important;
+  font-weight: 500 !important;
+}
+.widget.links-widget-box .link-item:hover .link-content {
+  color: var(--primary) !important;
+  text-decoration: none !important;
+}
+
+/* Remove old accent bar code that was clunky */
+.widget.links-widget-box::before {
+  display: none !important;
+}
+
+/* Quick list item hover */
+.widget.quick-list-widget-box .quick-list-item {
+  padding: 12px !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+}
+.widget.quick-list-widget-box .quick-list-item:hover {
+  background-color: rgba(99, 102, 241, 0.05) !important;
+  transform: translateX(4px) !important;
+}
+[data-theme="dark"] .widget.quick-list-widget-box .quick-list-item:hover {
+  background-color: rgba(129, 140, 248, 0.08) !important;
+}
+
+
+/* =========================================================
+   7. BUTTONS
+   Source: desk/global.scss L280-325 (btn sizing)
+   ========================================================= */
+.btn {
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+}
+.btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+}
+.btn-default:hover {
+  transform: translateY(-1px) !important;
+}
+
+
+/* =========================================================
+   8. FORM CONTROLS
+   ========================================================= */
+.form-control, .awesomplete > input {
+  border-radius: 12px !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+  transition: all 0.3s ease !important;
+}
+.form-control:focus {
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12) !important;
+  border-color: var(--primary) !important;
+}
+[data-theme="dark"] .form-control {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+
+/* =========================================================
+   9. MODAL
+   ========================================================= */
+.modal-content {
+  border-radius: 20px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255,255,255,0.3) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+[data-theme="dark"] .modal-content {
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+
+/* =========================================================
+   10. PAGE HEAD (sticky header)
+   Source: desk/page.scss L102-113 (.page-head background: var(--bg-color))
+   ========================================================= */
+.page-head {
+  background: rgba(240, 242, 245, 0.8) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+[data-theme="dark"] .page-head {
+  background: rgba(12, 17, 27, 0.8) !important;
+}
+
+
+/* =========================================================
+   11. DESK-PAGE & PAGE-MAIN-CONTENT
+   Source: desk/desktop.scss L936-998 (workspace layout)
+          desk/page.scss L46-53 (.page-container)
+   
+   These are the structural wrappers that contain the entire
+   workspace content: navbar → .page-container → .desk-page
+   → .page-head → .page-main-content → .layout-main
+   ========================================================= */
+
+/* desk-page: transparent, let mesh gradient show through */
+.desk-page {
+  background: transparent !important;
+}
+
+/* page-main-content: the wrapper around layout-main.
+   Give it generous padding so content doesn't feel cramped */
+.desk-page .page-main-content {
+  padding-top: 8px !important;
+}
+
+/* Page head — "Üretim" title bar area */
+[data-page-route="Workspaces"] .page-head {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+[data-page-route="Workspaces"] .page-head .page-head-content {
+  border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+}
+[data-theme="dark"] [data-page-route="Workspaces"] .page-head .page-head-content {
+  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+}
+
+/* Page title text — modern weight & size */
+[data-page-route="Workspaces"] .page-head .title-text {
+  font-weight: 800 !important;
+  font-size: 1.35rem !important;
+  letter-spacing: -0.02em !important;
+  color: var(--heading-color) !important;
+}
+
+
+/* =========================================================
+   12. WIDGET GROUP (Section headers like "Kısayollar", "Raporlar & Kayıtlar")
+   Source: desk/desktop.scss L33-112 (.widget-group)
+   ========================================================= */
+.widget-group {
+  margin-bottom: 2rem !important;
+}
+
+.widget-group .widget-group-head .widget-group-title {
+  font-weight: 800 !important;
+  font-size: 1.1rem !important;
+  letter-spacing: -0.01em !important;
+  color: var(--heading-color) !important;
+  position: relative;
+  padding-left: 14px !important;
+}
+/* Left accent bar on section titles */
+.widget-group .widget-group-head .widget-group-title::before {
+  content: '' !important;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 70%;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
+}
+[data-theme="dark"] .widget-group .widget-group-head .widget-group-title::before {
+  background: linear-gradient(180deg, #818cf8, #6366f1);
+}
+
+/* Grid spacing — more breathing room between widget cards */
+.widget-group .grid-col-3 {
+  column-gap: 20px !important;
+  row-gap: 20px !important;
+}
+.widget-group .grid-col-2 {
+  column-gap: 20px !important;
+  row-gap: 20px !important;
+}
+.widget-group .grid-col-1 {
+  column-gap: 20px !important;
+  row-gap: 20px !important;
+}
+
+
+
+
+/* =========================================================
+   15. WORKSPACE FOOTER (Düzenle / +Yeni buttons)
+   Source: desk/desktop.scss L976, L1000
+   Original: height: 30px; display: flex; flex-direction: row-reverse;
+   ========================================================= */
+[data-page-route="Workspaces"] .workspace-footer {
+  height: auto !important; /* Override hardcoded 30px */
+  min-height: 48px !important;
+  padding: 12px 20px !important;
+  margin-top: 32px !important;
+  margin-bottom: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important; /* Buttons to the right */
+  gap: 12px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03) !important;
+}
+[data-theme="dark"] [data-page-route="Workspaces"] .workspace-footer {
+  background: rgba(30, 41, 59, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Footer Buttons Styling */
+[data-page-route="Workspaces"] .workspace-footer .btn {
+  margin-left: 0 !important; /* Override Frappe margin since we use gap */
+  margin-right: 0 !important;
+  height: auto !important;
+  padding: 8px 18px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.9rem !important;
+}
+
+/* Hide the clunky Frappe edit-mode footer override just in case */
+[data-page-route="Workspaces"].edit-mode .workspace-footer {
+  display: flex !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: var(--primary) !important;
+}
