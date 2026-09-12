@@ -37,7 +37,7 @@
     <strong>Aşama 1 — Temel Hammadde İhtiyacı:</strong> Sadece brüt ihtiyaç hesaplanır. Stok ve PO dikkate alınmaz.
   </div>
   <div class="kta-doc-info warning">
-    <strong>Aşama 2 — Stokları Düş:</strong> Kullanılabilir Stok depolarındaki mevcut stok, haftalara kronolojik sırayla dağıtılır. Stokun yettiği haftaların ihtiyacı sıfırlanır.
+    <strong>Aşama 2 — Stokları Düş:</strong> Depolardaki <strong>serbest stok</strong> (toplam stok − üretim için rezerve edilmiş stok) haftalara kronolojik sırayla dağıtılır. Stokun yettiği haftaların ihtiyacı sıfırlanır.
   </div>
   <div class="kta-doc-info success">
     <strong>Aşama 3 — PO Teslimatlarını Düş:</strong> Stok düşmeye ek olarak, açık Satın Alma Siparişlerindeki teslim alınmamış miktarlar da haftalara dağıtılır. İhtiyaç varsa MOQ ve paketleme katına yuvarlanır.
@@ -77,7 +77,10 @@
         <tr><td><strong>Haftalık Sütunlar</strong></td><td>O hafta tüketilecek hammadde miktarı</td></tr>
         <tr><td><strong>Satır Toplamı</strong></td><td>Stok/PO düşülmüş net ihtiyaç toplamı</td></tr>
         <tr><td><strong>Toplam İhtiyaç</strong></td><td>Brüt toplam ihtiyaç</td></tr>
-        <tr><td><strong>Stok / PO Teslimat / Net İhtiyaç</strong></td><td>Stok/PO düşme aktifken görünür</td></tr>
+        <tr><td><strong>Stok</strong></td><td>Depodaki toplam hammadde stoku (Stok düşme aktifken görünür)</td></tr>
+        <tr><td><strong>Rezerve Stok</strong></td><td>Açık iş emirleri için rezerve edilmiş hammadde miktarı</td></tr>
+        <tr><td><strong>Serbest Stok</strong></td><td>Herhangi bir iş emrine bağlı olmayan, kullanılabilir stok (Stok − Rezerve Stok)</td></tr>
+        <tr><td><strong>PO Teslimat / Net İhtiyaç</strong></td><td>Stok/PO düşme aktifken görünür</td></tr>
       </tbody>
     </table>
   </div>

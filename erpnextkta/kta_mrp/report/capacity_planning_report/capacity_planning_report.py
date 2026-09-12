@@ -82,6 +82,10 @@ def execute(filters=None):
     item_week_demand = defaultdict(lambda: defaultdict(int))
     item_backlog = defaultdict(int) # Ürün bazlı geçmiş yük
 
+    # Kanban ayrımı için yeni değişkenler
+    item_week_kanban = defaultdict(lambda: defaultdict(int))
+    item_backlog_kanban = defaultdict(int)
+
     for row in data_psw:
         item = row.get("item_code")
         if not item or item not in item_groups: continue
@@ -94,6 +98,72 @@ def execute(filters=None):
                     item_week_demand[item][field] += qty
                 else:
                     item_backlog[item] += qty
+
+    # 2.1 Kanban/MR Taleplerini Ekle
+    mr_data = frappe.db.sql("""
+        SELECT mri.item_code, (mri.qty - mri.ordered_qty) as pending_qty, mr.schedule_date
+        FROM `tabMaterial Request` mr
+        JOIN `tabMaterial Request Item` mri ON mr.name = mri.parent
+        WHERE mr.material_request_type = 'Manufacture'
+          AND mr.docstatus = 1
+          AND mr.status NOT IN ('Completed', 'Stopped', 'Cancelled')
+          AND mri.qty > mri.ordered_qty
+    """, as_dict=True)
+
+    raw_mr_demands = defaultdict(lambda: defaultdict(int))
+    mr_items = list({d.item_code for d in mr_data})
+    missing_items = [item for item in mr_items if item not in item_groups]
+    if missing_items:
+        mr_item_meta = frappe.get_all("Item", filters={"name": ["in", missing_items]}, fields=["name", "custom_weekly_production", "item_group"])
+        for i in mr_item_meta:
+            if filters.get("item_group") and i.item_group != filters.get("item_group"): continue
+            item_groups[i.name] = i.item_group or "Diğer"
+            cap = int(float(i.custom_weekly_production or 0))
+            if item_groups[i.name] not in group_capacity or cap > group_capacity[item_groups[i.name]]:
+                group_capacity[item_groups[i.name]] = cap
+
+    item_customer_map = {}
+    for item in mr_items:
+        customer = frappe.db.get_value("Item Customer Detail", {"parent": item}, "customer_name")
+        if not customer: customer = frappe.db.get_value("Item", item, "custom_musteri_grubu")
+        item_customer_map[item] = customer
+        
+    sevk_map = psw_report.sevk_map if hasattr(psw_report, 'sevk_map') else {}
+
+    from frappe.utils import getdate, add_days, today
+
+    for d in mr_data:
+        item = d.item_code
+        if item not in item_groups: continue
+        qty = int(d.pending_qty)
+        
+        production_time = 14
+        customer_name = item_customer_map.get(item)
+        if customer_name:
+            sevk_params = sevk_map.get(customer_name)
+            if sevk_params and sevk_params.get("production_time"):
+                production_time = int(sevk_params.get("production_time"))
+                
+        s_date = getdate(d.schedule_date or today())
+        prod_start = add_days(s_date, -production_time) if production_time > 0 else s_date
+            
+        iso_year, iso_week, _ = prod_start.isocalendar()
+        field = f"{iso_year}_w{iso_week:02d}"
+        
+        ws = iso_week_start(field)
+        if ws:
+            raw_mr_demands[item][field] += qty
+            if ws >= from_date_obj:
+                item_week_kanban[item][field] += qty
+                if field not in valid_weeks:
+                    valid_weeks.append(field)
+            else:
+                item_backlog_kanban[item] += qty
+
+    valid_weeks.sort()
+
+    # İlk haftaya backlog'ları taşıma
+    # Dengeleme bunu kendisi yapıyor, o yüzden manuel taşımaya gerek yok! (Dengeleme kısmı item_carry_over ile ilk haftaya yansıtıyor)
 
     # 2.5 Ramp-up (Geriye Dönük Dengeleme / Önden Üretim)
     if filters.get("ramp_up_aktif"):
@@ -110,30 +180,36 @@ def execute(filters=None):
                 curr_load = sum(item_week_demand[it][curr_w] for it in items)
                 prev_load = sum(item_week_demand[it][prev_w] for it in items)
                 
-                # Gelecek hafta yoğunluğu ile bu hafta arasındaki farkı dengele (Kullanıcı Tanımlı Ramp-up)
-                max_step = cap / ramp_weeks # Haftalık artış hızı
+                max_step = cap / ramp_weeks
                 
                 if curr_load > prev_load + max_step:
-                    # Aradaki farkı kapatmak için önden üretim miktarını hesapla
-                    # Sadece bir önceki haftanın kapasitesini (%90) aşmayacak kadar çek
                     move_qty = min(curr_load - (prev_load + max_step), (cap * 0.9) - prev_load)
                     
                     if move_qty > 10:
                         for it in items:
                             if curr_load > 0:
                                 share = round(move_qty * (item_week_demand[it][curr_w] / curr_load))
+                                
+                                k_ratio = 0
+                                if share > 0 and item_week_demand[it][curr_w] > 0:
+                                    k_ratio = item_week_kanban[it].get(curr_w, 0) / item_week_demand[it][curr_w]
+                                k_share = round(share * k_ratio)
+                                
                                 item_week_demand[it][curr_w] -= share
                                 item_week_demand[it][prev_w] += share
+                                
+                                item_week_kanban[it][curr_w] -= k_share
+                                item_week_kanban[it][prev_w] += k_share
 
     # 3. Dengeleme Algoritması (Item-Based Forward Planning)
     dengeleme_aktif = filters.get("dengeleme_yapilsin", 0)
     item_final_plan = defaultdict(lambda: defaultdict(int))
+    item_final_kanban_plan = defaultdict(lambda: defaultdict(int))
     
-    # Her ürün için devreden miktar (Backlog ile başlar)
     item_carry_over = item_backlog.copy()
+    item_carry_over_kanban = item_backlog_kanban.copy()
 
     for week in valid_weeks:
-        # Önce grupları grupla (Haftalık kapasite kısıtını uygulamak için)
         processed_groups = set()
         for it, group in item_groups.items():
             if group in processed_groups: continue
@@ -142,7 +218,6 @@ def execute(filters=None):
             cap = group_capacity.get(group, 0)
             items_in_group = [i for i, g in item_groups.items() if g == group]
             
-            # Bu gruptaki tüm kalemlerin bu haftaki TOPLAM yükü (Kalan backlog + Bu hafta yeni talep)
             item_total_loads = {}
             total_group_load = 0
             for i in items_in_group:
@@ -151,10 +226,8 @@ def execute(filters=None):
                 total_group_load += load
 
             if dengeleme_aktif:
-                # --- AKILLI DENGELEME (FIFO + KRİTİKLİK) ---
                 remaining_cap = cap
                 
-                # A. ÖNCE BACKLOG (GEÇMİŞ YÜK) BİTİRİLECEK
                 total_item_backlogs = {i: item_carry_over[i] for i in items_in_group if item_carry_over[i] > 0}
                 sum_backlog = sum(total_item_backlogs.values())
                 
@@ -162,13 +235,21 @@ def execute(filters=None):
                     backlog_to_produce = min(sum_backlog, remaining_cap)
                     for i in items_in_group:
                         if i in total_item_backlogs:
-                            # Backlog dağıtımı (Kritiklik eklenmiş: Çok biriken daha çok pay alır)
                             share = round(backlog_to_produce * (total_item_backlogs[i] / sum_backlog))
+                            
+                            k_ratio = 0
+                            if share > 0 and item_carry_over[i] > 0:
+                                k_ratio = item_carry_over_kanban[i] / item_carry_over[i]
+                            k_share = round(share * k_ratio)
+                            
                             item_final_plan[i][week] += share
                             item_carry_over[i] -= share
+                            
+                            item_final_kanban_plan[i][week] += k_share
+                            item_carry_over_kanban[i] -= k_share
+                            
                             remaining_cap -= share
                     
-                # B. KALAN KAPASİTE VARSA CARİ HAFTA TALEBİNE GEÇİLECEK
                 total_item_current_demands = {i: item_week_demand[i].get(week, 0) for i in items_in_group if item_week_demand[i].get(week, 0) > 0}
                 sum_current = sum(total_item_current_demands.values())
                 
@@ -177,23 +258,35 @@ def execute(filters=None):
                     for i in items_in_group:
                         if i in total_item_current_demands:
                             share = round(current_to_produce * (total_item_current_demands[i] / sum_current))
+                            
+                            k_ratio = 0
+                            if share > 0 and total_item_current_demands[i] > 0:
+                                k_ratio = item_week_kanban[i].get(week, 0) / total_item_current_demands[i]
+                            k_share = round(share * k_ratio)
+                            
                             item_final_plan[i][week] += share
-                            # Üretilemeyen cari talep bir sonraki haftaya devrolur
                             remaining_current = total_item_current_demands[i] - share
                             item_carry_over[i] += remaining_current
+                            
+                            item_final_kanban_plan[i][week] += k_share
+                            remaining_kanban = item_week_kanban[i].get(week, 0) - k_share
+                            item_carry_over_kanban[i] += remaining_kanban
+                            
                             remaining_cap -= share
                 else:
-                    # Kalan tüm cari talepler devrolur
                     for i in items_in_group:
                         item_carry_over[i] += item_week_demand[i].get(week, 0)
+                        item_carry_over_kanban[i] += item_week_kanban[i].get(week, 0)
 
             else:
-                # Dengeleme kapalıysa backlog'u sadece ilk haftaya ekle ve kapasiteyi aşsa da yaz
                 for i in items_in_group:
                     val = item_carry_over[i] + item_week_demand[i].get(week, 0)
+                    k_val = item_carry_over_kanban[i] + item_week_kanban[i].get(week, 0)
                     if week != valid_weeks[0]:
                         val = item_week_demand[i].get(week, 0)
+                        k_val = item_week_kanban[i].get(week, 0)
                     item_final_plan[i][week] = val
+                    item_final_kanban_plan[i][week] = k_val
 
     # 4. Verileri tablo formatına dönüştür
     data = []
@@ -228,7 +321,7 @@ def execute(filters=None):
     summary = [{"value": total_row["total"], "label": "Toplam Planlanan", "indicator": "Green"}, {"value": len(data)-1, "label": "Ürün Sayısı", "indicator": "Blue"}]
 
     cols = get_columns() + [{"label": f.replace("_", "-W").upper(), "fieldname": f, "fieldtype": "Int", "width": 100} for f in valid_weeks] + [{"label": "Toplam", "fieldname": "total", "fieldtype": "Int", "width": 100}]
-    return cols, data, None, chart, summary
+    return cols, data, raw_mr_demands, chart, summary, item_final_kanban_plan
 
 def get_columns():
     return [{"label": "Ürün Grubu", "fieldname": "item_group", "fieldtype": "Data", "width": 140}, {"label": "Ürün", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 180}, {"label": "Haftalık Kapasite", "fieldname": "weekly_capacity", "fieldtype": "Int", "width": 150}]

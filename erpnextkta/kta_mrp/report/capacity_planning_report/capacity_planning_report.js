@@ -21,7 +21,7 @@ frappe.query_reports["Capacity Planning Report"] = {
 			"fieldname": "dengeleme_yapilsin",
 			"label": __("Kapasite Dengeleme Yapılsın mı?"),
 			"fieldtype": "Check",
-			"default": 1
+			"default": 0
 		},
 		{
 			"fieldname": "ramp_up_aktif",

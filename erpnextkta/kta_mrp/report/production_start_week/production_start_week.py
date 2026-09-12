@@ -25,7 +25,10 @@ class ProductionStartWeekReport:
         self.grouped = frappe._dict()
         self.sevk_map = self.get_sevk_parametreleri_map()
         self.stock_map = self.get_initial_stock_balance()
+        self.wip_map = self.get_wip_balance()
         self.weekly_demand_by_item = defaultdict(lambda: defaultdict(int))
+        self.internal_demand_by_item = defaultdict(int)
+        self.sales_order_demand_by_item = defaultdict(int)
         self.eşleşmeyen_müşteriler = set()
 
     def run(self):
@@ -68,7 +71,10 @@ class ProductionStartWeekReport:
             self.columns.append({"label": label, "fieldname": scrub(label), "fieldtype": "Int", "width": 120})
         self.columns += [
             {"label": "Stok Karşılanan", "fieldname": "stock_covered", "fieldtype": "Int", "width": 100},
+            {"label": "İş Emrinde Olan", "fieldname": "wip_covered", "fieldtype": "Int", "width": 100},
             {"label": "Üretilecek", "fieldname": "to_produce", "fieldtype": "Int", "width": 100},
+            {"label": "Satış Siparişi Talebi", "fieldname": "sales_order_demand", "fieldtype": "Int", "width": 140},
+            {"label": "Dahili Üretim Talebi", "fieldname": "internal_demand", "fieldtype": "Int", "width": 140},
             {"label": "Toplam", "fieldname": "total", "fieldtype": "Int", "width": 120},
             {"label": "Birim", "fieldname": "unit", "fieldtype": "Data", "width": 80}
         ]
@@ -85,8 +91,9 @@ class ProductionStartWeekReport:
         return add_days(delivery_date, -total_days) if total_days > 0 else delivery_date
 
     def get_data(self):
-        all_items = frappe.get_all("Item", fields=["name", "item_group"])
+        all_items = frappe.get_all("Item", fields=["name", "item_group", "item_name"])
         item_group_map = {item.name: item.item_group or "" for item in all_items}
+        item_name_map = {item.name: item.item_name or "" for item in all_items}
         item_group_filter = self.filters.get("item_group")
         periodic_filters = {
             "from_date": self.filters.from_date, "to_date": self.filters.to_date, "range": self.filters.range,
@@ -95,21 +102,80 @@ class ProductionStartWeekReport:
         }
         report_instance = periodic_sales_orders.SatisAnalizi(periodic_filters)
         _, source_data, *_ = report_instance.run()
-        if not source_data: return
-        for row in source_data:
+        
+        if source_data:
+            for row in source_data:
+                item_code = row.get("item_code")
+                if not item_code: continue
+                item_group = item_group_map.get(item_code, "")
+                if item_group_filter and item_group != item_group_filter: continue
+                tree_key = row.get("tree_key") or "Genel"
+                group_key = (None if self.filters.group_by_item_only else tree_key, item_code, row.get("item_name"), item_group)
+                for _, end in self.periodic_ranges:
+                    label = self.get_period_label(end)
+                    val = row.get(scrub(label), 0)
+                    if val:
+                        prod_start = self.get_production_start_date(end, tree_key, row.get("shipping_address_name"))
+                        prod_label = self.get_period_label(prod_start)
+                        self.weekly_demand_by_item[group_key][prod_label or label] += int(val)
+                        self.sales_order_demand_by_item[group_key] += int(val)
+                    
+        self.process_material_requests(item_group_map, item_name_map, item_group_filter)
+
+    def process_material_requests(self, item_group_map, item_name_map, item_group_filter):
+        mr_items = frappe.db.sql("""
+            SELECT 
+                mr.name, mri.item_code, mri.qty, mri.ordered_qty, mr.schedule_date 
+            FROM `tabMaterial Request` mr
+            JOIN `tabMaterial Request Item` mri ON mr.name = mri.parent
+            WHERE mr.docstatus = 1 
+              AND mr.material_request_type = 'Manufacture'
+              AND mr.status NOT IN ('Stopped', 'Cancelled', 'Transferred', 'Manufactured')
+              AND mri.qty > mri.ordered_qty
+        """, as_dict=True)
+
+        if not mr_items: return
+
+        item_customer_map = {}
+        
+        for row in mr_items:
             item_code = row.get("item_code")
-            if not item_code: continue
+            pending_qty = row.get("qty") - row.get("ordered_qty")
+            if pending_qty <= 0: continue
+            
             item_group = item_group_map.get(item_code, "")
             if item_group_filter and item_group != item_group_filter: continue
-            tree_key = row.get("tree_key") or "Genel"
-            group_key = (None if self.filters.group_by_item_only else tree_key, item_code, row.get("item_name"), item_group)
-            for _, end in self.periodic_ranges:
-                label = self.get_period_label(end)
-                val = row.get(scrub(label), 0)
-                if val:
-                    prod_start = self.get_production_start_date(end, tree_key, row.get("shipping_address_name"))
-                    prod_label = self.get_period_label(prod_start)
-                    self.weekly_demand_by_item[group_key][prod_label or label] += int(val)
+            
+            item_name = item_name_map.get(item_code, item_code)
+            
+            if item_code not in item_customer_map:
+                customer = frappe.db.get_value("Item Customer Detail", {"parent": item_code}, "customer_name")
+                if not customer:
+                    customer = frappe.db.get_value("Item", item_code, "custom_musteri_grubu")
+                item_customer_map[item_code] = customer
+            
+            customer_name = item_customer_map.get(item_code)
+            
+            production_time = 14
+            if customer_name:
+                sevk_params = self.sevk_map.get(customer_name)
+                if sevk_params and sevk_params.get("production_time"):
+                    production_time = int(sevk_params.get("production_time"))
+                    
+            schedule_date = getdate(row.get("schedule_date") or frappe.utils.today())
+            prod_start = add_days(schedule_date, -production_time) if production_time > 0 else schedule_date
+            
+            prod_label = self.get_period_label(prod_start)
+            if not prod_label: continue
+            
+            tree_key = customer_name if customer_name else "Genel"
+            if customer_name and self.filters.tree_type == "Müşteri Grubu":
+                c_group = frappe.db.get_value("Customer", customer_name, "customer_group")
+                if c_group: tree_key = c_group
+                
+            group_key = (None if self.filters.group_by_item_only else tree_key, item_code, item_name, item_group)
+            self.weekly_demand_by_item[group_key][prod_label] += int(pending_qty)
+            self.internal_demand_by_item[group_key] += int(pending_qty)
 
     def apply_stock_consumption(self):
         item_rows = defaultdict(list)
@@ -117,31 +183,59 @@ class ProductionStartWeekReport:
             item_rows[group_key[1]].append((group_key, week_map))
 
         for item_code, rows in item_rows.items():
-            stock = self.stock_map.get(item_code, 0)
+            net_stock = self.stock_map.get(item_code, 0)
+            stock = max(net_stock, 0)
+            deficit = max(-net_stock, 0)
+            wip = max(self.wip_map.get(item_code, 0) - deficit, 0)
+            
             total_by_week = defaultdict(int)
             for _, week_map in rows:
                 for label, val in week_map.items(): total_by_week[label] += val
             
-            coverage_by_week = {}
+            # 1. KADEME: Stok karşılama
+            stock_coverage_by_week = {}
             for _, end in self.periodic_ranges:
                 label = self.get_period_label(end)
                 demand = total_by_week.get(label, 0)
                 covered = min(stock, demand)
-                coverage_by_week[label] = covered
+                stock_coverage_by_week[label] = covered
                 stock -= covered
+                
+            # 2. KADEME: WIP (İş Emrinde Olan) karşılama (kalan talep üzerinden)
+            wip_coverage_by_week = {}
+            for _, end in self.periodic_ranges:
+                label = self.get_period_label(end)
+                demand = total_by_week.get(label, 0)
+                already_covered = stock_coverage_by_week.get(label, 0)
+                remaining_demand = demand - already_covered
+                wip_covered = min(wip, remaining_demand)
+                wip_coverage_by_week[label] = wip_covered
+                wip -= wip_covered
 
             for (tree_key, _, item_name, item_group), week_map in rows:
                 row = {"item_group": item_group, "tree_key": tree_key or "Genel", "item_code": item_code, "item_name": item_name, "unit": "Adet", "indent": 1}
-                total = stock_used = to_produce = 0
+                total = stock_used = wip_used = to_produce = 0
+                current_group_key = (None if self.filters.group_by_item_only else tree_key, item_code, item_name, item_group)
                 for _, end in self.periodic_ranges:
                     label = self.get_period_label(end)
                     demand = week_map.get(label, 0)
                     if not demand: continue
-                    available = coverage_by_week.get(label, 0)
-                    covered = min(demand, available)
-                    coverage_by_week[label] -= covered
-                    stock_used += covered
-                    production = demand - covered
+                    
+                    # Stok payı
+                    stock_available = stock_coverage_by_week.get(label, 0)
+                    stock_covered = min(demand, stock_available)
+                    stock_coverage_by_week[label] -= stock_covered
+                    stock_used += stock_covered
+                    
+                    remaining_after_stock = demand - stock_covered
+                    
+                    # WIP payı
+                    wip_available = wip_coverage_by_week.get(label, 0)
+                    wip_covered_qty = min(remaining_after_stock, wip_available)
+                    wip_coverage_by_week[label] -= wip_covered_qty
+                    wip_used += wip_covered_qty
+                    
+                    production = remaining_after_stock - wip_covered_qty
                     
                     # Müşteriye özel paketleme yuvarlaması
                     if production > 0:
@@ -149,16 +243,18 @@ class ProductionStartWeekReport:
                         if packing > 1:
                             import math
                             rounded_production = math.ceil(production / packing) * packing
-                            surplus = rounded_production - production
-                            # Fazlalığı bir sonraki haftalarda kullanılmak üzere mevcut stoğa ekle
-                            available += surplus 
                             production = rounded_production
                             
                     to_produce += production
                     total += demand # Orijinal talebi koruyoruz
-                    row[scrub(label)] = production
+                    if production > 0:
+                        row[scrub(label)] = production
+                    
                 row["stock_covered"] = stock_used
+                row["wip_covered"] = wip_used
                 row["to_produce"] = to_produce
+                row["sales_order_demand"] = self.sales_order_demand_by_item.get(current_group_key, 0)
+                row["internal_demand"] = self.internal_demand_by_item.get(current_group_key, 0)
                 row["total"] = total
                 if total: self.data.append(row)
 
@@ -185,8 +281,10 @@ class ProductionStartWeekReport:
     def get_summary(self):
         total_prod = sum(row.get("to_produce", 0) for row in self.data)
         total_stock = sum(row.get("stock_covered", 0) for row in self.data)
+        total_wip = sum(row.get("wip_covered", 0) for row in self.data)
         return [
             {"value": total_prod, "label": "Toplam Üretilecek", "indicator": "Orange"},
+            {"value": total_wip, "label": "İş Emrinde Olan", "indicator": "Blue"},
             {"value": total_stock, "label": "Stoktan Karşılanan", "indicator": "Green"}
         ]
 
@@ -194,30 +292,59 @@ class ProductionStartWeekReport:
         # Eğer filtrelerde depo seçilmişse onları kullan
         warehouses = self.filters.get("warehouses")
         
-        if not warehouses:
-            # Seçim yoksa eski mantıkla 'Kullanılabilir Stok' tipindeki depoları bul
-            warehouses = frappe.get_all("Warehouse", filters={"warehouse_type": "Kullanılabilir Stok"}, pluck="name")
-        
-        if not warehouses: return {}
-        
-        # SQL sorgusunu seçili depolara göre çalıştır
-        stock_data = frappe.db.sql("""
-            SELECT 
-                bin.item_code, 
-                SUM(bin.actual_qty) as total_qty 
-            FROM `tabBin` bin 
-            WHERE bin.warehouse IN %s 
-            GROUP BY bin.item_code
-        """, [tuple(warehouses)], as_dict=True)
-        
-        return {d.item_code: d.total_qty for d in stock_data}
+        if warehouses:
+            stock_data = frappe.db.sql("""
+                SELECT 
+                    bin.item_code, 
+                    SUM(bin.actual_qty) as total_qty 
+                FROM `tabBin` bin 
+                JOIN `tabWarehouse` w ON w.name = bin.warehouse
+                WHERE bin.warehouse IN %s AND w.is_rejected_warehouse = 0
+                GROUP BY bin.item_code
+            """, [tuple(warehouses)], as_dict=True)
+        else:
+            # Tüm depolardaki stokları topla (Hurda depoları hariç)
+            stock_data = frappe.db.sql("""
+                SELECT 
+                    bin.item_code, 
+                    SUM(bin.actual_qty) as total_qty 
+                FROM `tabBin` bin 
+                JOIN `tabWarehouse` w ON w.name = bin.warehouse
+                WHERE w.is_rejected_warehouse = 0
+                GROUP BY bin.item_code
+            """, as_dict=True)
+        safety_data = frappe.db.sql("""
+            SELECT parent as item_code, SUM(warehouse_reorder_level) as safety_stock
+            FROM `tabItem Reorder`
+            GROUP BY parent
+        """, as_dict=True)
+        safety_map = {d.item_code: d.safety_stock for d in safety_data}
+
+        usable_stock = {}
+        for d in stock_data:
+            safety = safety_map.get(d.item_code, 0)
+            usable_qty = d.total_qty - safety
+            usable_stock[d.item_code] = usable_qty
+            
+        return usable_stock
+
+    def get_wip_balance(self):
+        wip_data = frappe.db.sql("""
+            SELECT production_item, SUM(qty - produced_qty) as wip_qty
+            FROM `tabWork Order`
+            WHERE docstatus = 1
+              AND status IN ('In Process', 'Not Started')
+              AND qty > produced_qty
+            GROUP BY production_item
+        """, as_dict=True)
+        return {d.production_item: d.wip_qty for d in wip_data}
 
     def get_customer_packing(self, item_code, customer):
         if not hasattr(self, "_packing_cache"): self._packing_cache = {}
         key = (item_code, customer)
         if key in self._packing_cache: return self._packing_cache[key]
         
-        packing = frappe.db.get_value("Item Customer", 
+        packing = frappe.db.get_value("Item Customer Detail", 
             {"parent": item_code, "customer_name": customer}, 
             "custom_musteri_paketleme_miktari") or 1
             

@@ -21,7 +21,7 @@ frappe.query_reports["Material Requirement"] = {
 			"fieldname": "dengeleme_yapilsin",
 			"label": __("Kapasite Dengeleme Yapılsın mı?"),
 			"fieldtype": "Check",
-			"default": 1
+			"default": 0
 		},
 		{
 			"fieldname": "ramp_up_aktif",
@@ -46,7 +46,7 @@ frappe.query_reports["Material Requirement"] = {
 			"label": __("Ürün Grubu"),
 			"fieldtype": "Link",
 			"options": "Item Group",
-			"get_query": function() {
+			"get_query": function () {
 				const musteri_grubu = frappe.query_report.get_filter_value('custom_musteri_grubu');
 				return {
 					query: "erpnextkta.kta_mrp.report_utils.get_item_group_query",
@@ -76,7 +76,7 @@ frappe.query_reports["Material Requirement"] = {
 		}
 	],
 
-	formatter: function(value, row, column, data, default_formatter) {
+	formatter: function (value, row, column, data, default_formatter) {
 		if (window.kta && kta.report_utils && kta.report_utils.std_formatter) {
 			return kta.report_utils.std_formatter(value, row, column, data, default_formatter);
 		}

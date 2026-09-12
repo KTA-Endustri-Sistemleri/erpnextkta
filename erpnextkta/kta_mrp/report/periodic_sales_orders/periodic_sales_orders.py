@@ -123,6 +123,8 @@ class SatisAnalizi:
             {"label": "Adres", "fieldname": "shipping_address_name", "fieldtype": "Data", "width": 180},
         ]
         self.columns.append({"label": "Birim Fiyat", "fieldname": "rate", "fieldtype": "Currency", "options": "currency", "width": 120})
+        self.columns.append({"label": "Toplam Stok", "fieldname": "total_stock", "fieldtype": "HTML", "width": 100})
+        self.columns.append({"label": "Açık İş Emri Miktarı", "fieldname": "open_wo_qty", "fieldtype": "Data", "width": 120})
 
         if self.filters.value_quantity == "Quantity":
             self.columns.append({"label": "Birim", "fieldname": "uom", "fieldtype": "Data", "width": 100})
@@ -136,7 +138,8 @@ class SatisAnalizi:
         self.columns.append({"label": "Toplam", "fieldname": "total", "fieldtype": column_type, "width": 120})
 
     def get_data(self):
-        tree_field = {"Müşteri": "customer", "Müşteri Grubu": "customer_group", "Ürün Grubu": "item_group"}.get(self.filters.tree_type, "customer")
+        tree_field_mapping = {"Müşteri": "so.customer", "Müşteri Grubu": "so.customer_group", "Ürün Grubu": "soi.item_group"}
+        tree_col = tree_field_mapping.get(self.filters.tree_type, "so.customer")
         show_pending_only = self.filters.get("show_pending_only")
         conditions = "so.docstatus = 1 AND so.status NOT IN ('Closed','Completed')"
         values = []
@@ -144,12 +147,63 @@ class SatisAnalizi:
             conditions += f" AND so.{self.date_field} BETWEEN %s AND %s"
             values += [self.filters.from_date, self.filters.to_date]
         if self.filters.tree_key:
-            conditions += f" AND so.{tree_field} = %s"
+            conditions += f" AND {tree_col} = %s"
             values.append(self.filters.tree_key)
         if show_pending_only and self.filters.value_quantity == "Quantity":
             conditions += " AND soi.qty > soi.delivered_qty"
-        query = f"SELECT so.{tree_field} AS tree_key, so.customer, soi.item_code, soi.item_name, so.name as sales_order, so.shipping_address_name, DATE(so.{self.date_field}) AS posting_date, so.currency, soi.uom, soi.rate, soi.qty, soi.delivered_qty, soi.amount FROM `tabSales Order Item` soi JOIN `tabSales Order` so ON so.name = soi.parent WHERE {conditions}"
+        query = f"SELECT {tree_col} AS tree_key, so.customer, soi.item_code, soi.item_name, so.name as sales_order, so.shipping_address_name, DATE(so.{self.date_field}) AS posting_date, so.currency, soi.uom, soi.rate, soi.qty, soi.delivered_qty, soi.amount FROM `tabSales Order Item` soi JOIN `tabSales Order` so ON so.name = soi.parent WHERE {conditions}"
         raw_data = frappe.db.sql(query, values, as_dict=True)
+
+        item_codes = tuple(set([row.item_code for row in raw_data]))
+        stock_map = {}
+        wo_map = {}
+        if item_codes:
+            reorder_data = frappe.db.sql("""
+                SELECT parent as item_code, warehouse, warehouse_group, warehouse_reorder_level as reorder_level
+                FROM `tabItem Reorder`
+                WHERE parent IN %s
+            """, (item_codes,), as_dict=True)
+            
+            reorder_map = {}
+            item_valid_warehouses = {}
+            wh_tree = {w.name: w for w in frappe.get_all("Warehouse", fields=["name", "lft", "rgt"])}
+            
+            for rd in reorder_data:
+                ic = rd.item_code
+                reorder_map[ic] = reorder_map.get(ic, 0) + (rd.reorder_level or 0)
+                target_wh = rd.warehouse_group or rd.warehouse
+                if target_wh and target_wh in wh_tree:
+                    target_info = wh_tree[target_wh]
+                    valid_whs = {w for w, info in wh_tree.items() if info.lft >= target_info.lft and info.rgt <= target_info.rgt}
+                    if ic not in item_valid_warehouses:
+                        item_valid_warehouses[ic] = set()
+                    item_valid_warehouses[ic].update(valid_whs)
+
+            stock_data = frappe.db.sql("""
+                SELECT bin.item_code, bin.warehouse, bin.actual_qty
+                FROM `tabBin` bin
+                JOIN `tabWarehouse` w ON w.name = bin.warehouse
+                WHERE bin.item_code IN %s AND w.is_rejected_warehouse = 0
+            """, (item_codes,), as_dict=True)
+            
+            stock_map = {}
+            for row in stock_data:
+                ic = row.item_code
+                if ic in item_valid_warehouses:
+                    if row.warehouse in item_valid_warehouses[ic]:
+                        stock_map[ic] = stock_map.get(ic, 0) + row.actual_qty
+                else:
+                    stock_map[ic] = stock_map.get(ic, 0) + row.actual_qty
+
+            wo_data = frappe.db.sql("""
+                SELECT production_item as item_code, 
+                       SUM(CASE WHEN docstatus = 1 THEN (qty - produced_qty) ELSE 0 END) as submitted_qty,
+                       SUM(CASE WHEN docstatus = 0 THEN (qty - produced_qty) ELSE 0 END) as draft_qty
+                FROM `tabWork Order`
+                WHERE production_item IN %s AND docstatus < 2 AND status NOT IN ('Cancelled', 'Completed', 'Closed', 'Stopped')
+                GROUP BY production_item
+            """, (item_codes,), as_dict=True)
+            wo_map = {row.item_code: row for row in wo_data}
 
         item_prices_data = frappe.db.sql("""
             SELECT `tabItem Price`.item_code, `tabItem Price`.currency, `tabItem Price`.price_list_rate, IFNULL(`tabItem Price`.customer, '') as customer
@@ -228,6 +282,39 @@ class SatisAnalizi:
             
         for (tree_key, item_code, item_name, shipping_address_name, uom, currency, rate), periods in grouped.items():
             row = {"tree_key": tree_key, "item_code": item_code, "item_name": item_name, "shipping_address_name": shipping_address_name, "uom": uom, "currency": currency, "rate": rate, "indent": 1}
+            
+            st = float(stock_map.get(item_code) or 0)
+            row["raw_total_stock"] = st
+            stock_str = str(int(st)) if st.is_integer() else str(st)
+            
+            rl = reorder_map.get(item_code) if 'reorder_map' in locals() else None
+            if rl is not None and rl > 0:
+                if st == rl:
+                    bg_color, text_color = "#dcfce7", "#16a34a" # Green
+                elif st > rl:
+                    bg_color, text_color = "#e0f2fe", "#0284c7" # Blue
+                else:
+                    bg_color, text_color = "#fee2e2", "#ef4444" # Red
+                    
+                row["total_stock"] = f"""<div style='position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: {bg_color}; color: {text_color}; display: flex; align-items: center; justify-content: flex-end; padding-right: 12px; box-sizing: border-box;'>
+                    <span style='font-size: 1.1em; font-weight: 800;'>{stock_str}</span>
+                    <span style='font-size: 0.85em; font-weight: 600; opacity: 0.7; margin-left: 6px;'>/ {int(rl) if rl.is_integer() else rl}</span>
+                </div>"""
+            else:
+                row["total_stock"] = stock_str
+            
+            wo_info = wo_map.get(item_code, {})
+            sub_qty = float(wo_info.get("submitted_qty") or 0)
+            draft_qty = float(wo_info.get("draft_qty") or 0)
+            
+            sub_qty_disp = int(sub_qty) if sub_qty.is_integer() else sub_qty
+            draft_qty_disp = int(draft_qty) if draft_qty.is_integer() else draft_qty
+
+            if draft_qty > 0:
+                row["open_wo_qty"] = f"{sub_qty_disp} ({draft_qty_disp})"
+            else:
+                row["open_wo_qty"] = sub_qty_disp
+
             total = 0
             for _, end in self.periodic_ranges:
                 key = scrub(self.get_period_label(end))
@@ -257,7 +344,7 @@ class SatisAnalizi:
         if not self.data: return
         
         if self.filters.value_quantity == "Quantity":
-            row = {"tree_key": "Genel Toplam (Miktar)", "indent": 0}
+            row = {"tree_key": "Genel Toplam (Miktar)", "indent": 0, "rate": "", "total_stock": "", "open_wo_qty": ""}
             total = 0
             for _, end in self.periodic_ranges:
                 key = scrub(self.get_period_label(end))
@@ -271,7 +358,7 @@ class SatisAnalizi:
             sorted_cur = sorted(list(currencies), key=lambda c: (0 if c == "TRY" else 1, c))
             
             for cur in sorted_cur:
-                row = {"tree_key": f"Genel Toplam ({cur})", "indent": 0, "currency": cur}
+                row = {"tree_key": f"Genel Toplam ({cur})", "indent": 0, "currency": cur, "rate": "", "total_stock": "", "open_wo_qty": ""}
                 total = 0
                 for _, end in self.periodic_ranges:
                     key = scrub(self.get_period_label(end))
@@ -291,12 +378,24 @@ class SatisAnalizi:
         datasets = []
         colors = ["#ea580c", "#0284c7", "#16a34a", "#9333ea", "#eab308"]
         
+        y_markers = []
+        import math
+        
         if self.filters.value_quantity == "Quantity":
             values = []
             for label in labels:
                 val = getattr(self, "summary_row", {}).get(scrub(label), 0)
                 values.append(round(val, 2) if isinstance(val, (int, float)) else val)
             datasets.append({"name": "Miktar", "values": values})
+            
+            if values:
+                avg = sum(values) / len(values)
+                y_markers.append({"label": f"Ortalama ({round(avg, 2)})", "value": avg, "options": {"labelPos": "left"}})
+                if len(values) > 1:
+                    variance = sum((x - avg) ** 2 for x in values) / len(values)
+                    std_dev = math.sqrt(variance)
+                    upper_limit = avg + std_dev
+                    y_markers.append({"label": f"Üst Güvenlik Sınırı ({round(upper_limit, 2)})", "value": upper_limit, "lineType": "dashed", "options": {"labelPos": "left"}})
         else:
             currency_series = {}
             for row in self.data:
@@ -320,8 +419,17 @@ class SatisAnalizi:
                     values.append(round(val, 2) if isinstance(val, (int, float)) else val)
                 datasets.append({"name": f"Tutar ({cur})", "values": values})
                 
+                if values:
+                    avg = sum(values) / len(values)
+                    y_markers.append({"label": f"Ortalama {cur} ({round(avg, 2)})", "value": avg, "options": {"labelPos": "left"}})
+                    if len(values) > 1:
+                        variance = sum((x - avg) ** 2 for x in values) / len(values)
+                        std_dev = math.sqrt(variance)
+                        upper_limit = avg + std_dev
+                        y_markers.append({"label": f"Üst Sınır {cur} ({round(upper_limit, 2)})", "value": upper_limit, "lineType": "dashed", "options": {"labelPos": "left"}})
+                
         return {
-            "data": {"labels": labels, "datasets": datasets},
+            "data": {"labels": labels, "datasets": datasets, "yMarkers": y_markers},
             "type": "line",
             "colors": colors[:len(datasets)] if datasets else colors
         }
@@ -358,11 +466,17 @@ class SatisAnalizi:
             """
             
         currency_totals = {}
+        stock_value_totals = {}
         for row in self.data:
             cur = row.get("currency") or "TRY"
             amt = row.get("total_amount", 0) if self.filters.value_quantity == "Quantity" else row.get("total", 0)
             if isinstance(amt, (int, float)):
                 currency_totals[cur] = currency_totals.get(cur, 0) + amt
+            
+            st_qty = row.get("raw_total_stock", 0)
+            rate = row.get("rate") or 0
+            if isinstance(st_qty, (int, float)) and isinstance(rate, (int, float)):
+                stock_value_totals[cur] = stock_value_totals.get(cur, 0) + (st_qty * rate)
                 
         if not currency_totals:
             cards_html += f"""
@@ -380,6 +494,7 @@ class SatisAnalizi:
             sorted_currencies = sorted(currency_totals.keys(), key=lambda c: (0 if c == "TRY" else 1, c))
             for cur in sorted_currencies:
                 amt = currency_totals[cur]
+                st_val = stock_value_totals.get(cur, 0)
                 is_try = cur == "TRY"
                 css_class = "currency-value-try" if is_try else "currency-value-foreign"
                 cards_html += f"""
@@ -390,6 +505,15 @@ class SatisAnalizi:
                         <div class="mrp-card-content">
                             <div class="mrp-card-label">TOPLAM TUTAR ({cur})</div>
                             <div class="mrp-card-value {css_class}">{format_currency(amt, cur)}</div>
+                        </div>
+                    </div>
+                    <div class="mrp-summary-card">
+                        <div class="mrp-card-icon {'icon-try' if is_try else 'icon-foreign'}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                        </div>
+                        <div class="mrp-card-content">
+                            <div class="mrp-card-label">TOPLAM STOK DEĞERİ ({cur})</div>
+                            <div class="mrp-card-value {css_class}">{format_currency(st_val, cur)}</div>
                         </div>
                     </div>
                 """
