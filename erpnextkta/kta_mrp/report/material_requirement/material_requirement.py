@@ -19,7 +19,15 @@ def execute(filters=None):
         from_date = datetime.strptime(from_date, "%Y-%m-%d")
 
     from erpnextkta.kta_mrp.report.capacity_planning_report.capacity_planning_report import execute as capacity_execute
-    capacity_cols, capacity_data, raw_mr_demands, chart, summary, kanban_plan = capacity_execute(filters)
+    cap_res = capacity_execute(filters)
+    capacity_cols, capacity_data = cap_res[0], cap_res[1]
+    
+    extra_data = cap_res[5] if len(cap_res) > 5 else None
+    if isinstance(extra_data, tuple) and len(extra_data) == 2:
+        kanban_plan, raw_mr_demands = extra_data
+    else:
+        kanban_plan = extra_data if extra_data else {}
+        raw_mr_demands = cap_res[2]
 
     week_fields = []
     week_labels = {}
@@ -363,7 +371,10 @@ def execute(filters=None):
         {"value": summary_net_demand, "label": "Toplam Net İhtiyaç", "indicator": "Red"}
     ]
 
-    return columns, data, None, None, report_summary
+    from erpnextkta.kta_mrp.report.report_utils import get_modern_summary_html
+    html_summary = get_modern_summary_html(report_summary)
+
+    return columns, data, html_summary, None, None
 
 def get_base_columns():
     return [

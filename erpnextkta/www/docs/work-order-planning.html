@@ -39,8 +39,8 @@
       </thead>
       <tbody>
         <tr><td><strong>Başlangıç / Bitiş Tarihi</strong></td><td>Planlama periyodu</td><td>Bugün — 3 ay sonra</td></tr>
-        <tr><td><strong>Kapasite Dengeleme</strong></td><td>Kapasite Planlama raporuna aktarılır</td><td>Açık ✓</td></tr>
-        <tr><td><strong>Ramp-up</strong></td><td>Kapasite Planlama raporuna aktarılır</td><td>Kapalı</td></tr>
+        <tr><td><strong>Kapasite Dengeleme</strong></td><td>Kapasite Planlama raporuna aktarılır (Multi-Pass Forward + Backward Fill)</td><td>Kapalı</td></tr>
+        <tr><td><strong>Ramp-up</strong></td><td>Kapasite Planlama raporuna aktarılır (Backward Fill + Ramp-up)</td><td>Kapalı</td></tr>
         <tr><td><strong>Müşteri Grubu / Ürün Grubu</strong></td><td>Filtreleme</td><td>(Hepsi)</td></tr>
       </tbody>
     </table>
@@ -66,7 +66,8 @@
 </div>
 
 <div class="kta-doc-section">
-  <h2>5. Grafik ve Özet</h2>
+  <h2>5. Özet Kartları ve Grafik</h2>
+  <p>Raporun üst kısmında modern özet kartları ile temel metrikler gösterilir:</p>
   <ul>
     <li><strong>📊 Çubuk Grafik:</strong> Hafta bazında üç katmanlı görselleştirme:
       <span class="kta-doc-badge green">Planlanan</span>
@@ -74,6 +75,7 @@
       <span class="kta-doc-badge red">Yeni İhtiyaç</span>
     </li>
     <li><span class="kta-doc-badge red">Toplam Yeni İş Emri İhtiyacı</span> Tüm haftalar için toplam yeni iş emri adedi.</li>
+    <li><span class="kta-doc-badge blue">Planlama Satırı</span> Rapordaki toplam planlama satırı sayısı.</li>
   </ul>
 </div>
 {% endblock %}

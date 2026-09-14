@@ -9,8 +9,14 @@ def execute(filters=None):
     
     capacity_result = get_capacity_plan(filters)
     capacity_data = capacity_result[1]
-    raw_mr_demands = capacity_result[2]
-    planned_kanban_map = capacity_result[5] if len(capacity_result) > 5 else defaultdict(dict)
+    
+    extra_data = capacity_result[5] if len(capacity_result) > 5 else None
+    if isinstance(extra_data, tuple) and len(extra_data) == 2:
+        planned_kanban_map, raw_mr_demands = extra_data
+    else:
+        planned_kanban_map = extra_data if extra_data else defaultdict(dict)
+        raw_mr_demands = capacity_result[2]
+
     if not raw_mr_demands: raw_mr_demands = defaultdict(dict)
     
     wo_filters = {"docstatus": 1, "status": ("in", ["In Process", "Not Started"])}
@@ -93,7 +99,10 @@ def execute(filters=None):
     total_req = sum(w["r"] for w in week_agg.values())
     summary = [{"value": total_req, "label": "Toplam Yeni İş Emri İhtiyacı", "indicator": "Red"}, {"value": len(data), "label": "Planlama Satırı", "indicator": "Blue"}]
 
-    return get_columns(), data, None, chart, summary
+    from erpnextkta.kta_mrp.report.report_utils import get_modern_summary_html
+    html_summary = get_modern_summary_html(summary)
+
+    return get_columns(), data, html_summary, chart, None
 
 def get_columns():
     return [{"label": "Ürün Grubu", "fieldname": "item_group", "fieldtype": "Data", "width": 140}, {"label": "Ürün", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 180}, {"label": "Hafta", "fieldname": "week", "fieldtype": "Data", "width": 100}, {"label": "Planlanan Satış", "fieldname": "planned_qty", "fieldtype": "Int", "width": 130}, {"label": "Kanban Talebi (MR)", "fieldname": "kanban_qty", "fieldtype": "Int", "width": 150}, {"label": "Açık İş Emri Miktarı", "fieldname": "open_workorder_qty", "fieldtype": "Int", "width": 150}, {"label": "Yeni İş Emri İhtiyacı", "fieldname": "required_workorder_qty", "fieldtype": "Int", "width": 160}]

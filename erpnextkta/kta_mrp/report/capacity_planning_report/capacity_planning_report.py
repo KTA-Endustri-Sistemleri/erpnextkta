@@ -161,47 +161,23 @@ def execute(filters=None):
                 item_backlog_kanban[item] += qty
 
     valid_weeks.sort()
+    # 2.5 Dengeleme ve Ramp-up Algoritmaları (Multi-Pass)
+    def distribute_proportional(total_qty, weights):
+        """Largest Remainder Method ile kesin orantısal dağıtım."""
+        total_weight = sum(weights.values())
+        if total_weight == 0 or total_qty == 0:
+            return {k: 0 for k in weights}
+        raw = {k: total_qty * (w / total_weight) for k, w in weights.items()}
+        floored = {k: int(v) for k, v in raw.items()}
+        remainders = {k: raw[k] - floored[k] for k in raw}
+        diff = total_qty - sum(floored.values())
+        for k in sorted(remainders, key=remainders.get, reverse=True):
+            if diff <= 0:
+                break
+            floored[k] += 1
+            diff -= 1
+        return floored
 
-    # İlk haftaya backlog'ları taşıma
-    # Dengeleme bunu kendisi yapıyor, o yüzden manuel taşımaya gerek yok! (Dengeleme kısmı item_carry_over ile ilk haftaya yansıtıyor)
-
-    # 2.5 Ramp-up (Geriye Dönük Dengeleme / Önden Üretim)
-    if filters.get("ramp_up_aktif"):
-        ramp_weeks = int(filters.get("ramp_up_weeks") or 3)
-        if ramp_weeks < 1: ramp_weeks = 1
-        
-        for w in reversed(range(1, len(valid_weeks))):
-            curr_w = valid_weeks[w]
-            prev_w = valid_weeks[w-1]
-            
-            for group, cap in group_capacity.items():
-                if cap <= 0: continue
-                items = [it for it, gr in item_groups.items() if gr == group]
-                curr_load = sum(item_week_demand[it][curr_w] for it in items)
-                prev_load = sum(item_week_demand[it][prev_w] for it in items)
-                
-                max_step = cap / ramp_weeks
-                
-                if curr_load > prev_load + max_step:
-                    move_qty = min(curr_load - (prev_load + max_step), (cap * 0.9) - prev_load)
-                    
-                    if move_qty > 10:
-                        for it in items:
-                            if curr_load > 0:
-                                share = round(move_qty * (item_week_demand[it][curr_w] / curr_load))
-                                
-                                k_ratio = 0
-                                if share > 0 and item_week_demand[it][curr_w] > 0:
-                                    k_ratio = item_week_kanban[it].get(curr_w, 0) / item_week_demand[it][curr_w]
-                                k_share = round(share * k_ratio)
-                                
-                                item_week_demand[it][curr_w] -= share
-                                item_week_demand[it][prev_w] += share
-                                
-                                item_week_kanban[it][curr_w] -= k_share
-                                item_week_kanban[it][prev_w] += k_share
-
-    # 3. Dengeleme Algoritması (Item-Based Forward Planning)
     dengeleme_aktif = filters.get("dengeleme_yapilsin", 0)
     item_final_plan = defaultdict(lambda: defaultdict(int))
     item_final_kanban_plan = defaultdict(lambda: defaultdict(int))
@@ -209,6 +185,7 @@ def execute(filters=None):
     item_carry_over = item_backlog.copy()
     item_carry_over_kanban = item_backlog_kanban.copy()
 
+    # PASS 1: Forward Scheduling (Dengeleme)
     for week in valid_weeks:
         processed_groups = set()
         for it, group in item_groups.items():
@@ -217,67 +194,56 @@ def execute(filters=None):
             
             cap = group_capacity.get(group, 0)
             items_in_group = [i for i, g in item_groups.items() if g == group]
-            
-            item_total_loads = {}
-            total_group_load = 0
-            for i in items_in_group:
-                load = item_carry_over[i] + item_week_demand[i].get(week, 0)
-                item_total_loads[i] = load
-                total_group_load += load
 
             if dengeleme_aktif:
                 remaining_cap = cap
                 
+                # 1. Backlog dağıtımı
                 total_item_backlogs = {i: item_carry_over[i] for i in items_in_group if item_carry_over[i] > 0}
                 sum_backlog = sum(total_item_backlogs.values())
                 
                 if sum_backlog > 0 and remaining_cap > 0:
                     backlog_to_produce = min(sum_backlog, remaining_cap)
-                    for i in items_in_group:
-                        if i in total_item_backlogs:
-                            share = round(backlog_to_produce * (total_item_backlogs[i] / sum_backlog))
-                            
-                            k_ratio = 0
-                            if share > 0 and item_carry_over[i] > 0:
-                                k_ratio = item_carry_over_kanban[i] / item_carry_over[i]
-                            k_share = round(share * k_ratio)
-                            
-                            item_final_plan[i][week] += share
-                            item_carry_over[i] -= share
-                            
-                            item_final_kanban_plan[i][week] += k_share
-                            item_carry_over_kanban[i] -= k_share
-                            
-                            remaining_cap -= share
+                    shares = distribute_proportional(backlog_to_produce, total_item_backlogs)
                     
-                total_item_current_demands = {i: item_week_demand[i].get(week, 0) for i in items_in_group if item_week_demand[i].get(week, 0) > 0}
-                sum_current = sum(total_item_current_demands.values())
+                    for i, share in shares.items():
+                        k_ratio = 0
+                        if share > 0 and item_carry_over[i] > 0:
+                            k_ratio = item_carry_over_kanban[i] / item_carry_over[i]
+                        k_share = round(share * k_ratio)
+                        
+                        item_final_plan[i][week] += share
+                        item_carry_over[i] -= share
+                        
+                        item_final_kanban_plan[i][week] += k_share
+                        item_carry_over_kanban[i] -= k_share
+                        
+                        remaining_cap -= share
                 
-                if sum_current > 0 and remaining_cap > 0:
-                    current_to_produce = min(sum_current, remaining_cap)
-                    for i in items_in_group:
-                        if i in total_item_current_demands:
-                            share = round(current_to_produce * (total_item_current_demands[i] / sum_current))
-                            
+                # 2. Mevcut hafta dağıtımı
+                total_item_current = {i: item_week_demand[i].get(week, 0) for i in items_in_group if item_week_demand[i].get(week, 0) > 0}
+                sum_current = sum(total_item_current.values())
+                
+                if sum_current > 0:
+                    if remaining_cap > 0:
+                        current_to_produce = min(sum_current, remaining_cap)
+                        shares = distribute_proportional(current_to_produce, total_item_current)
+                        
+                        for i, share in shares.items():
                             k_ratio = 0
-                            if share > 0 and total_item_current_demands[i] > 0:
-                                k_ratio = item_week_kanban[i].get(week, 0) / total_item_current_demands[i]
+                            if share > 0 and total_item_current[i] > 0:
+                                k_ratio = item_week_kanban[i].get(week, 0) / total_item_current[i]
                             k_share = round(share * k_ratio)
                             
                             item_final_plan[i][week] += share
-                            remaining_current = total_item_current_demands[i] - share
-                            item_carry_over[i] += remaining_current
+                            item_carry_over[i] += (total_item_current[i] - share)
                             
                             item_final_kanban_plan[i][week] += k_share
-                            remaining_kanban = item_week_kanban[i].get(week, 0) - k_share
-                            item_carry_over_kanban[i] += remaining_kanban
-                            
-                            remaining_cap -= share
-                else:
-                    for i in items_in_group:
-                        item_carry_over[i] += item_week_demand[i].get(week, 0)
-                        item_carry_over_kanban[i] += item_week_kanban[i].get(week, 0)
-
+                            item_carry_over_kanban[i] += (item_week_kanban[i].get(week, 0) - k_share)
+                    else:
+                        for i in items_in_group:
+                            item_carry_over[i] += item_week_demand[i].get(week, 0)
+                            item_carry_over_kanban[i] += item_week_kanban[i].get(week, 0)
             else:
                 for i in items_in_group:
                     val = item_carry_over[i] + item_week_demand[i].get(week, 0)
@@ -287,6 +253,56 @@ def execute(filters=None):
                         k_val = item_week_kanban[i].get(week, 0)
                     item_final_plan[i][week] = val
                     item_final_kanban_plan[i][week] = k_val
+
+    # PASS 2 & 3: Backward Fill ve Ramp-up
+    if filters.get("ramp_up_aktif"):
+        ramp_weeks = max(int(filters.get("ramp_up_weeks") or 3), 1)
+        
+        for group, cap in group_capacity.items():
+            if cap <= 0: continue
+            items = [it for it, gr in item_groups.items() if gr == group]
+            
+            # Yeni Multi-Pass Smoothing (Hareketli Ortalama/Moving Average Filtresi)
+            # Testere dişi (sawtooth) dalgalanmasını engellemek için pik noktaları
+            # geriye doğru yumuşatıyoruz (diffuse). Küçük siparişlere dokunmuyoruz.
+            for _ in range(ramp_weeks):
+                for w in reversed(range(1, len(valid_weeks))):
+                    curr_w = valid_weeks[w]
+                    prev_w = valid_weeks[w-1]
+                    
+                    curr_load = sum(item_final_plan[it].get(curr_w, 0) for it in items)
+                    prev_load = sum(item_final_plan[it].get(prev_w, 0) for it in items)
+                    
+                    move_qty = 0
+                    
+                    # Sadece yüksek doluluk varsa (tepe noktası) VEYA 
+                    # önceki hafta zaten yüksekse (yayılma devam ediyorsa) yumuşat.
+                    if curr_load > cap * 0.70 or prev_load > cap * 0.70:
+                        if curr_load > prev_load:
+                            avg = (curr_load + prev_load) / 2
+                            move_qty = curr_load - avg
+                            
+                            # Önceki haftanın kapasitesini taşırma (maks %95)
+                            if prev_load + move_qty > cap * 0.95:
+                                move_qty = max(0, (cap * 0.95) - prev_load)
+                    
+                    if move_qty > 10:
+                        curr_item_loads = {it: item_final_plan[it].get(curr_w, 0) for it in items if item_final_plan[it].get(curr_w, 0) > 0}
+                        shares = distribute_proportional(move_qty, curr_item_loads)
+                        
+                        for it, share in shares.items():
+                            if share <= 0: continue
+                            
+                            k_ratio = 0
+                            if item_final_plan[it].get(curr_w, 0) > 0:
+                                k_ratio = item_final_kanban_plan[it].get(curr_w, 0) / item_final_plan[it].get(curr_w, 0)
+                            k_share = round(share * k_ratio)
+                            
+                            item_final_plan[it][curr_w] -= share
+                            item_final_plan[it][prev_w] += share
+                            
+                            item_final_kanban_plan[it][curr_w] -= k_share
+                            item_final_kanban_plan[it][prev_w] += k_share
 
     # 4. Verileri tablo formatına dönüştür
     data = []
@@ -320,8 +336,15 @@ def execute(filters=None):
     }
     summary = [{"value": total_row["total"], "label": "Toplam Planlanan", "indicator": "Green"}, {"value": len(data)-1, "label": "Ürün Sayısı", "indicator": "Blue"}]
 
-    cols = get_columns() + [{"label": f.replace("_", "-W").upper(), "fieldname": f, "fieldtype": "Int", "width": 100} for f in valid_weeks] + [{"label": "Toplam", "fieldname": "total", "fieldtype": "Int", "width": 100}]
-    return cols, data, raw_mr_demands, chart, summary, item_final_kanban_plan
+    summary = [{"value": total_row["total"], "label": "Toplam Planlanan", "indicator": "Green"}, {"value": len(data)-1, "label": "Ürün Sayısı", "indicator": "Blue"}]
+
+    from erpnextkta.kta_mrp.report.report_utils import get_modern_summary_html
+    html_summary = get_modern_summary_html(summary)
+
+    cols = get_columns() + [{"label": f.replace("_", "-").upper(), "fieldname": f, "fieldtype": "Int", "width": 100} for f in valid_weeks] + [{"label": "Toplam", "fieldname": "total", "fieldtype": "Int", "width": 100}]
+    
+    # Return exactly 6 elements to satisfy Frappe's ljust_list(res, 6)
+    return cols, data, html_summary, chart, None, (item_final_kanban_plan, raw_mr_demands)
 
 def get_columns():
     return [{"label": "Ürün Grubu", "fieldname": "item_group", "fieldtype": "Data", "width": 140}, {"label": "Ürün", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 180}, {"label": "Haftalık Kapasite", "fieldname": "weekly_capacity", "fieldtype": "Int", "width": 150}]

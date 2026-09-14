@@ -438,7 +438,8 @@ class SatisAnalizi:
         if not self.data: return None
         
         summary_row = getattr(self, "summary_row", {})
-        cards_html = ""
+        top_cards_html = ""
+        financial_cards_html = ""
         
         def format_currency(val, cur):
             formatted = f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -453,7 +454,7 @@ class SatisAnalizi:
         # Card 1: Toplam Miktar
         if self.filters.value_quantity == "Quantity":
             total_qty = summary_row.get("total", 0)
-            cards_html += f"""
+            top_cards_html += f"""
                 <div class="mrp-summary-card">
                     <div class="mrp-card-icon qty-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
@@ -465,6 +466,19 @@ class SatisAnalizi:
                 </div>
             """
             
+        row_count = len(self.data)
+        top_cards_html += f"""
+            <div class="mrp-summary-card">
+                <div class="mrp-card-icon count-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                </div>
+                <div class="mrp-card-content">
+                    <div class="mrp-card-label">SATIR SAYISI</div>
+                    <div class="mrp-card-value count-value">{row_count}</div>
+                </div>
+            </div>
+        """
+        
         currency_totals = {}
         stock_value_totals = {}
         for row in self.data:
@@ -479,7 +493,7 @@ class SatisAnalizi:
                 stock_value_totals[cur] = stock_value_totals.get(cur, 0) + (st_qty * rate)
                 
         if not currency_totals:
-            cards_html += f"""
+            financial_cards_html += f"""
                 <div class="mrp-summary-card">
                     <div class="mrp-card-icon icon-try">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
@@ -497,7 +511,7 @@ class SatisAnalizi:
                 st_val = stock_value_totals.get(cur, 0)
                 is_try = cur == "TRY"
                 css_class = "currency-value-try" if is_try else "currency-value-foreign"
-                cards_html += f"""
+                financial_cards_html += f"""
                     <div class="mrp-summary-card">
                         <div class="mrp-card-icon {'icon-try' if is_try else 'icon-foreign'}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
@@ -518,27 +532,20 @@ class SatisAnalizi:
                     </div>
                 """
                 
-        row_count = len(self.data)
-        cards_html += f"""
-            <div class="mrp-summary-card">
-                <div class="mrp-card-icon count-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                </div>
-                <div class="mrp-card-content">
-                    <div class="mrp-card-label">SATIR SAYISI</div>
-                    <div class="mrp-card-value count-value">{row_count}</div>
-                </div>
-            </div>
-        """
-        
         style = """
         <style>
             .mrp-summary-container {
                 display: flex;
-                flex-wrap: wrap;
+                flex-direction: column;
                 gap: 16px;
                 margin-bottom: 24px;
                 padding: 4px 0;
+            }
+            .mrp-summary-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 16px;
+                width: 100%;
             }
             .mrp-summary-card {
                 flex: 1;
@@ -596,7 +603,7 @@ class SatisAnalizi:
         </style>
         """
         
-        return f"{style}<div class='mrp-summary-container'>{cards_html}</div>"
+        return f"{style}<div class='mrp-summary-container'><div class='mrp-summary-row'>{top_cards_html}</div><div class='mrp-summary-row'>{financial_cards_html}</div></div>"
 
 
     def get_period_key(self, date_obj):

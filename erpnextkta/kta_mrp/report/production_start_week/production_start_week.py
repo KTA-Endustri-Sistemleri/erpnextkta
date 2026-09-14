@@ -43,7 +43,10 @@ class ProductionStartWeekReport:
         chart = self.get_chart()
         summary = self.get_summary()
 
-        return self.columns, self.data, None, chart, summary
+        from erpnextkta.kta_mrp.report.report_utils import get_modern_summary_html
+        html_summary = get_modern_summary_html(summary)
+
+        return self.columns, self.data, html_summary, chart, None
 
     def set_period_ranges(self):
         from_date = getdate(self.filters.from_date)
@@ -322,8 +325,8 @@ class ProductionStartWeekReport:
 
         usable_stock = {}
         for d in stock_data:
-            safety = safety_map.get(d.item_code, 0)
-            usable_qty = d.total_qty - safety
+            # Emniyet stoğu MR (Malzeme Talebi) olarak zaten geldiği için burada stoktan düşmüyoruz (Çifte sayımı engellemek için)
+            usable_qty = d.total_qty
             usable_stock[d.item_code] = usable_qty
             
         return usable_stock
