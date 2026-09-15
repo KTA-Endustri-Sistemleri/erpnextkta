@@ -124,9 +124,18 @@ kta.report_utils = {
         
         let msg = query_report.raw_data.message;
         if (typeof msg === "string" && msg.indexOf("mrp-summary-container") !== -1) {
-            let $result_area = query_report.page.main.find('.result-area');
-            $result_area.find('.mrp-summary-container').remove();
-            $result_area.prepend(msg);
+            let $summary_container = query_report.page.main.find('.kta-custom-summary');
+            if ($summary_container.length === 0) {
+                $summary_container = $('<div class="kta-custom-summary"></div>');
+                if (query_report.$chart && query_report.$chart.length) {
+                    $summary_container.insertBefore(query_report.$chart);
+                } else if (query_report.$report && query_report.$report.length) {
+                    $summary_container.insertBefore(query_report.$report);
+                } else {
+                    query_report.page.main.append($summary_container);
+                }
+            }
+            $summary_container.html(msg).show();
             
             // Eğer frappe varsayılan olarak bu message'i status bar'a yazdıysa temizle
             if (query_report.$status) {
