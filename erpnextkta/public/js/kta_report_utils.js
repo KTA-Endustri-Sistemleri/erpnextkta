@@ -120,9 +120,9 @@ kta.report_utils = {
     },
 
     inject_summary: function(query_report) {
-        if (!query_report || !query_report.data || !query_report.data.message) return;
+        if (!query_report || !query_report.raw_data || !query_report.raw_data.message) return;
         
-        let msg = query_report.data.message;
+        let msg = query_report.raw_data.message;
         if (typeof msg === "string" && msg.indexOf("mrp-summary-wrapper") !== -1) {
             let $result_area = query_report.page.main.find('.result-area');
             $result_area.find('.mrp-summary-wrapper').remove();
