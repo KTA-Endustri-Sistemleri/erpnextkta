@@ -117,6 +117,25 @@ kta.report_utils = {
             }
         `;
         frappe.dom.set_style(css, "kta-report-styles");
+    },
+
+    inject_summary: function(query_report) {
+        if (!query_report || !query_report.data || !query_report.data.message) return;
+        
+        let msg = query_report.data.message;
+        if (typeof msg === "string" && msg.indexOf("mrp-summary-wrapper") !== -1) {
+            let $result_area = query_report.page.main.find('.result-area');
+            $result_area.find('.mrp-summary-wrapper').remove();
+            $result_area.prepend(msg);
+            
+            // Eğer frappe varsayılan olarak bu message'i status bar'a yazdıysa temizle
+            if (query_report.$status) {
+                let status_html = query_report.$status.html();
+                if (status_html && status_html.indexOf("mrp-summary-wrapper") !== -1) {
+                    query_report.$status.empty().hide();
+                }
+            }
+        }
     }
 };
 

@@ -64,4 +64,10 @@ frappe.query_reports["Work Order Planning"] = {
 		}
 		return default_formatter(value, row, column, data);
 	}
+,
+	after_datatable_render: function(datatable_obj) {
+		if (window.kta && kta.report_utils && kta.report_utils.inject_summary) {
+			kta.report_utils.inject_summary(frappe.query_report);
+		}
+	}
 };
