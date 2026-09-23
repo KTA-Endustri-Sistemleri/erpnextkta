@@ -24,7 +24,7 @@ def execute(filters=None):
     shipment_map = {}
 
     for row in base_report.data:
-        if row.get("tree_key") == "<b>GENEL TOPLAM</b>": continue
+        if not row.get("item_code") or "Genel Toplam" in str(row.get("tree_key", "")): continue
 
         # KTA Sevk Parametreleri'ni bulmak için geliştirilmiş mantık
         customer = row.get("tree_key")
@@ -91,7 +91,10 @@ def execute(filters=None):
         {"value": len(data) - 1, "label": "Sevk Edilecek Kalem", "indicator": "Green"}
     ]
 
-    return columns, data, None, chart, summary
+    from erpnextkta.kta_mrp.report.report_utils import get_modern_summary_html
+    html_summary = get_modern_summary_html(summary)
+
+    return columns, data, html_summary, chart, None
 
 def week_end_from_label(label):
     try:

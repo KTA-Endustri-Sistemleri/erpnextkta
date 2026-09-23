@@ -1,0 +1,128 @@
+[
+ {
+  "assign_condition": "material_request_type == 'Manufacture' and docstatus == 1 and status not in ('Closed', 'Cancelled', 'Stopped')",
+  "assignment_days": [
+   {
+    "day": "Monday",
+    "parent": "Material Request for Re-Order",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   },
+   {
+    "day": "Tuesday",
+    "parent": "Material Request for Re-Order",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   },
+   {
+    "day": "Wednesday",
+    "parent": "Material Request for Re-Order",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   },
+   {
+    "day": "Thursday",
+    "parent": "Material Request for Re-Order",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   },
+   {
+    "day": "Friday",
+    "parent": "Material Request for Re-Order",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   }
+  ],
+  "close_condition": "per_ordered >= 100",
+  "current_index": 0,
+  "description": "Onaylı Üretim Malzeme Talebi (MR): {{ name }}",
+  "disabled": 1,
+  "docstatus": 0,
+  "doctype": "Assignment Rule",
+  "document_type": "Material Request",
+  "due_date_based_on": "transaction_date",
+  "field": null,
+  "last_user": "ecem.ugurlu@kta-endustri.com.tr",
+  "modified": "2026-09-16 15:22:52.436948",
+  "name": "Material Request for Re-Order",
+  "priority": 0,
+  "rule": "Load Balancing",
+  "unassign_condition": "status in (\"Closed\", \"Cancelled\", \"Stopped\")",
+  "users": [
+   {
+    "parent": "Material Request for Re-Order",
+    "parentfield": "users",
+    "parenttype": "Assignment Rule",
+    "user": "ecem.ugurlu@kta-endustri.com.tr",
+    "weight": 1
+   },
+   {
+    "parent": "Material Request for Re-Order",
+    "parentfield": "users",
+    "parenttype": "Assignment Rule",
+    "user": "mustafa.yasar@kta-endustri.com.tr",
+    "weight": 1
+   }
+  ],
+  "weighted_users": []
+ },
+ {
+  "assign_condition": "material_request_type == 'Manufacture' and docstatus == 0",
+  "assignment_days": [
+   {
+    "day": "Monday",
+    "parent": "Material Request for Re-Order (Draft)",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   },
+   {
+    "day": "Tuesday",
+    "parent": "Material Request for Re-Order (Draft)",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   },
+   {
+    "day": "Wednesday",
+    "parent": "Material Request for Re-Order (Draft)",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   },
+   {
+    "day": "Thursday",
+    "parent": "Material Request for Re-Order (Draft)",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   },
+   {
+    "day": "Friday",
+    "parent": "Material Request for Re-Order (Draft)",
+    "parentfield": "assignment_days",
+    "parenttype": "Assignment Rule"
+   }
+  ],
+  "close_condition": "docstatus == 1",
+  "current_index": 0,
+  "description": "Taslak Üretim Malzeme Talebi (MR): {{ name }}",
+  "disabled": 1,
+  "docstatus": 0,
+  "doctype": "Assignment Rule",
+  "document_type": "Material Request",
+  "due_date_based_on": "transaction_date",
+  "field": null,
+  "modified": "2026-09-23 15:00:00.000000",
+  "name": "Material Request for Re-Order (Draft)",
+  "priority": 0,
+  "rule": "Load Balancing",
+  "unassign_condition": "status in (\"Closed\", \"Cancelled\", \"Stopped\")",
+  "users": [
+   {
+    "parent": "Material Request for Re-Order (Draft)",
+    "parentfield": "users",
+    "parenttype": "Assignment Rule",
+    "user": "tulin.mahiroglu@kta-endustri.com.tr",
+    "weight": 1
+   }
+  ],
+  "weighted_users": []
+ }
+]

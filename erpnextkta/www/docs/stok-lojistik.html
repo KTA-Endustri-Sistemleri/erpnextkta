@@ -100,6 +100,16 @@
   <li><strong>Toplu Sorgu Yükleme (Bulk Loading)</strong>: Satırlar tek tek sorgulanmak yerine bellek üzerinde gruplanarak toplu şekilde veritabanından çekilir. Bu sayede veritabanı gidiş-dönüş (Round-Trip) maliyeti %90 oranında düşürülmüş ve arka plan işlem yükü minimize edilmiştir.</li>
 </ul>
 
+<hr />
+
+<h2>🔄 7. Otomatik Malzeme Talebi (Re-Order) ve Görev Atama Sistemi</h2>
+
+<p>Sistemdeki MRP ve stok seviyesi (Re-Order) kurallarına göre otomatik olarak açılan Üretim (Manufacture) tipi Malzeme Taleplerinin yönetimi için özel bir iş akışı oluşturulmuştur:</p>
+<ul>
+  <li><strong>Otomatik Taslak (Draft) Oluşumu:</strong> Sistem tarafından yaratılan üretim malzeme talepleri artık otomatik onaylanmak yerine "Taslak" (Draft) olarak bırakılır ve ilgili planlama personeline incelemesi için bir <strong>ToDo (Görev)</strong> atanır.</li>
+  <li><strong>Dinamik Görev Aktarımı:</strong> Personel talebi inceleyip "Onayla (Submit)" dediğinde, üzerindeki görev otomatik olarak kapanır ve üretim yöneticilerine "İş Emri Oluşturma" görevi açılır. (Görevli listesi <em>Assignment Rule</em> ekranından yönetilir).</li>
+  <li><strong>Otomatik Kapanış:</strong> Üretim yöneticileri bu talep üzerinden <strong>İş Emri (Work Order)</strong> oluşturup %100 oranında onayladıklarında, üzerlerindeki görev arka planda otomatik olarak "Tamamlandı" statüsüne geçerek kapanır.</li>
+</ul>
 
 </div>
 {% endblock %}

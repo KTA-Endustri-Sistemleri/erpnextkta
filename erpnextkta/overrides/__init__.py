@@ -13,6 +13,7 @@ def apply():
     apply_bom_search_override()
     apply_job_card_override()
     apply_document_permission_override()
+    apply_reorder_item_override()
 
 def apply_document_permission_override():
     try:
@@ -93,3 +94,65 @@ def apply_bom_search_override():
     except Exception as e:
         import frappe
         frappe.log_error(f"Error applying BOM Search override: {e}", "KTA Override Error")
+
+def apply_reorder_item_override():
+    try:
+        import erpnext.stock.reorder_item as reorder_item
+        import frappe
+        from frappe.utils import flt
+
+        if not hasattr(reorder_item, "_original_get_item_warehouse_projected_qty"):
+            reorder_item._original_get_item_warehouse_projected_qty = reorder_item.get_item_warehouse_projected_qty
+
+            def custom_get_item_warehouse_projected_qty(items_to_consider):
+                if not items_to_consider:
+                    return {}
+                    
+                # KTA Özel Mantığı: Satış Siparişlerini (reserved_qty) hesaplamaya dahil etme.
+                # Standart ERPNext gibi depo hiyerarşisini takip ederek (warehouse_group dahil) stok hesapla.
+                items_tuple = tuple(items_to_consider.keys())
+                item_warehouse_projected_qty = {}
+                
+                warehouse_parent_map = frappe._dict(
+                    frappe.get_all("Warehouse", fields=["name", "parent_warehouse"], as_list=True)
+                )
+
+                custom_data = frappe.db.sql("""
+                    select bin.item_code, bin.warehouse,
+                    sum(bin.actual_qty) + sum(bin.planned_qty) + sum(bin.indented_qty) + sum(bin.ordered_qty) - sum(bin.reserved_qty_for_production) - sum(bin.reserved_qty_for_sub_contract) as custom_projected
+                    from tabBin bin
+                    join tabWarehouse w on w.name = bin.warehouse
+                    where bin.item_code in ({})
+                    and (bin.warehouse != '' and bin.warehouse is not null)
+                    and w.is_rejected_warehouse = 0
+                    group by bin.item_code, bin.warehouse
+                """.format(", ".join(["%s"] * len(items_tuple))), items_tuple, as_dict=True)
+
+                for row in custom_data:
+                    item_code = row.item_code
+                    warehouse = row.warehouse
+                    projected_qty = flt(row.custom_projected)
+
+                    if item_code not in item_warehouse_projected_qty:
+                        item_warehouse_projected_qty[item_code] = {}
+
+                    if warehouse not in item_warehouse_projected_qty[item_code]:
+                        item_warehouse_projected_qty[item_code][warehouse] = projected_qty
+                    else:
+                        item_warehouse_projected_qty[item_code][warehouse] += projected_qty
+
+                    parent_warehouse = warehouse_parent_map.get(warehouse)
+
+                    while parent_warehouse:
+                        if not item_warehouse_projected_qty[item_code].get(parent_warehouse):
+                            item_warehouse_projected_qty[item_code][parent_warehouse] = projected_qty
+                        else:
+                            item_warehouse_projected_qty[item_code][parent_warehouse] += projected_qty
+                        parent_warehouse = warehouse_parent_map.get(parent_warehouse)
+                        
+                return item_warehouse_projected_qty
+
+            reorder_item.get_item_warehouse_projected_qty = custom_get_item_warehouse_projected_qty
+    except Exception as e:
+        import frappe
+        frappe.log_error(f"Error applying Reorder Item override: {e}", "KTA Override Error")

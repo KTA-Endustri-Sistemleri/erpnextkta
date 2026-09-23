@@ -46,22 +46,31 @@ frappe.query_reports["Periodic Sales Orders"] = {
 			"fieldtype": "Select",
 			"options": [
 				{ "label": "Müşteri", "value": "Müşteri" },
-				{ "label": "Müşteri Grubu", "value": "Müşteri Grubu" }
+				{ "label": "Müşteri Grubu", "value": "Müşteri Grubu" },
+				{ "label": "Ürün Grubu", "value": "Ürün Grubu" }
 			],
-			"default": "Müşteri"
+			"default": "Müşteri",
+			"on_change": function() {
+				var tree_type = frappe.query_report.get_filter_value('tree_type');
+				var filter = frappe.query_report.get_filter('tree_key');
+				if (filter) {
+					if (tree_type == 'Müşteri') {
+						filter.df.options = 'Customer';
+					} else if (tree_type == 'Müşteri Grubu') {
+						filter.df.options = 'Customer Group';
+					} else if (tree_type == 'Ürün Grubu') {
+						filter.df.options = 'Item Group';
+					}
+					filter.refresh();
+					frappe.query_report.set_filter_value('tree_key', '');
+				}
+			}
 		},
 		{
 			"fieldname": "tree_key",
 			"label": __("Filtre Değeri"),
 			"fieldtype": "Link",
-			"get_query": function() {
-				var tree_type = frappe.query_report.get_filter_value('tree_type');
-				if (tree_type == 'Müşteri') {
-					return { "doctype": "Customer" };
-				} else {
-					return { "doctype": "Customer Group" };
-				}
-			}
+			"options": "Customer"
 		},
 		{
 			"fieldname": "show_pending_only",
@@ -76,5 +85,11 @@ frappe.query_reports["Periodic Sales Orders"] = {
 			return kta.report_utils.std_formatter(value, row, column, data, default_formatter);
 		}
 		return default_formatter(value, row, column, data);
+	}
+,
+	after_datatable_render: function(datatable_obj) {
+		if (window.kta && kta.report_utils && kta.report_utils.inject_summary) {
+			kta.report_utils.inject_summary(frappe.query_report);
+		}
 	}
 };
