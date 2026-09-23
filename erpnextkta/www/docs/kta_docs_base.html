@@ -100,7 +100,7 @@
       </div>
 
       <!-- STOK & LOJİSTİK -->
-      {% set stock_pages = ['stok-lojistik'] %}
+      {% set stock_pages = ['stok-lojistik', 'uretilen-urunler-raporu', 'transit-antrepo-hammadde-raporu'] %}
       <div class="kta-docs-nav-group {% if active_page in stock_pages %}open{% endif %}">
         <div class="kta-docs-nav-group-title" onclick="this.parentElement.classList.toggle('open')">
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -112,6 +112,12 @@
         <div class="kta-docs-nav-items">
           <a href="/docs/stok-lojistik" class="kta-docs-nav-item {% if active_page == 'stok-lojistik' %}active{% endif %}">
             <span class="kta-docs-nav-icon">📦</span>Stok ve Lojistik
+          </a>
+          <a href="/docs/uretilen-urunler-raporu" class="kta-docs-nav-item {% if active_page == 'uretilen-urunler-raporu' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">📊</span>Üretilen Ürünler
+          </a>
+          <a href="/docs/transit-antrepo-hammadde-raporu" class="kta-docs-nav-item {% if active_page == 'transit-antrepo-hammadde-raporu' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">🚢</span>Transit ve Antrepo
           </a>
         </div>
       </div>

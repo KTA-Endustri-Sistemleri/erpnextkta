@@ -1,0 +1,57 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "uretilen-urunler-raporu" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">📊</span>
+  <h1>Üretilen Ürünler Raporu</h1>
+  <p>Sistemdeki tüm "Üretim" (Manufacture) tipi stok girişlerini, müşteri gruplarına göre kırılımlı olarak inceleyebileceğiniz modern analiz raporudur.</p>
+</div>
+
+<div class="kta-doc-section">
+<p><main class="container" markdown="1"></p>
+
+<p>Bu rapor, üretim hattından çıkan ve sisteme giren nihai ürünlerin (Finished Items) detaylı dökümünü almanızı ve analiz etmenizi sağlar.</p>
+
+<hr />
+
+<h2>🎯 Raporun Amacı</h2>
+<p>Klasik tablo raporlarından farklı olarak, bu ekran özel filtreleme yetenekleri, dinamik arayüzü ve görsel özet tabloları (Pasta/Donut Grafik) ile kullanıcı deneyimini en üst seviyeye taşımak için tasarlanmıştır.</p>
+<ul>
+    <li>Üretilen miktarları tarih bazlı takip etmek.</li>
+    <li>Ürünleri müşterilerine (Müşteri Grubu - Customer Group) göre anlık analiz etmek.</li>
+    <li>Esnek matematiksel operatörler (büyüktür, küçüktür) kullanarak hızlı stok/üretim filtrelemesi yapmak.</li>
+</ul>
+
+<hr />
+
+<h2>📈 1. Dinamik Müşteri Grubu Grafiği</h2>
+<p>Raporun en üstünde, aşağıda listelenen verilerin <strong>Müşteri Gruplarına</strong> göre dağılımını gösteren bir grafik bulunur.</p>
+<ul>
+    <li><strong>Otomatik Güncelleme:</strong> Aşağıdaki tabloda herhangi bir filtre (Örn: belirli bir tarih aralığı veya belirli bir ürün kodu) uygulandığında, üstteki grafik saniyeler içinde yeni sonuçlara göre kendini yeniden çizer.</li>
+    <li><strong>Bağımsız Üretimler:</strong> Herhangi bir müşteri grubuna veya özel siparişe bağlı olmayan, doğrudan stoğa yapılan üretimler grafikte <code>Tanımsız</code> olarak sınıflandırılır.</li>
+</ul>
+
+<hr />
+
+<h2>🔍 2. Gelişmiş Tablo Filtreleme</h2>
+<p>Tablo üzerinde standart metin aramalarının ötesinde özellikler bulunur:</p>
+
+<h3>Matematiksel Filtreler (Miktar - Qty)</h3>
+<p>Rakam içeren kolonlarda (Örn: Qty) sadece eşittir (<code>=</code>) değil, gelişmiş karşılaştırma operatörleri kullanabilirsiniz. İlgili kolonun başlığındaki <strong>"="</strong> butonuna tıklayarak operatörü değiştirebilirsiniz:</p>
+<ul>
+    <li><code>&gt; 100</code> (100'den büyük olanlar)</li>
+    <li><code>&lt; 50</code> (50'den küçük olanlar)</li>
+    <li><code>&gt;= 10</code> (10 ve üzeri)</li>
+</ul>
+
+<hr />
+
+<h2>🛠️ Teknik Detaylar (Veri Kaynağı)</h2>
+<ul>
+    <li><strong>Sorgu Temeli:</strong> Rapor, durumu Onaylı (<code>docstatus = 1</code>) ve Tipi Üretim (<code>stock_entry_type = 'Manufacture'</code>) olan <strong>Stock Entry</strong> belgelerini listeler.</li>
+    <li><strong>Müşteri Grubu:</strong> Üretilen ürünün (Item) kartının içerisindeki <code>Item Customer Detail</code> tablosundan ilk müşteri grubu verisi çekilir.</li>
+</ul>
+
+</div>
+{% endblock %}

@@ -704,3 +704,11 @@ T1 Ölçümleri,T1 Measurements
 T2 Ölçümleri,T2 Measurements
 Hedef,Target
 Kablo Uç İşlemleri,Cable End Operations
+Müşteri Grubuna Göre Üretim (Miktar),Production by Customer Group (Qty)
+Undefined,Undefined
+Toggle Operator,Toggle Operator
+Tedarikçiye Göre Lojistik Miktarı,Logistics Quantity by Supplier
+Transit ve Antrepo Hammadde Raporu,Transit and Bonded Warehouse Raw Materials
+Tanımsız Tedarikçi,Undefined Supplier
+Yolda,In Transit
+Antrepoda,In Bonded Warehouse
