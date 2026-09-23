@@ -35,3 +35,11 @@ Sistemde {0} numarasına sahip bir makine/varlık bulunamadı.,Sistemde {0} numa
 Geçersiz Fiyat,Geçersiz Fiyat
 <b>Satır {0} ({1})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır.,<b>Satır {0} ({1})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır.
 Eksik Kutu İçi Adedi Bilgisi,Eksik Kutu İçi Adedi Bilgisi
+Müşteri Grubuna Göre Üretim (Miktar),Müşteri Grubuna Göre Üretim (Miktar)
+Undefined,Tanımsız
+Toggle Operator,Operatör Değiştir
+Tedarikçiye Göre Lojistik Miktarı,Tedarikçiye Göre Lojistik Miktarı
+Transit ve Antrepo Hammadde Raporu,Transit ve Antrepo Hammadde Raporu
+Tanımsız Tedarikçi,Tanımsız Tedarikçi
+Yolda,Yolda
+Antrepoda,Antrepoda

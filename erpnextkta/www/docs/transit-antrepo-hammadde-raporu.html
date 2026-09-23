@@ -1,0 +1,54 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "transit-antrepo-hammadde-raporu" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🚢</span>
+  <h1>Transit ve Antrepo Hammadde Raporu</h1>
+  <p>Tedarikçilerden alınan hammaddelerin "Yolda (Transit)" ve "Antrepoda (Bonded Warehouse)" durumlarını miktar ve parasal hacimleriyle izleyebileceğiniz raporlama sayfasıdır.</p>
+</div>
+
+<div class="kta-doc-section">
+<p><main class="container" markdown="1"></p>
+
+<p>Bu rapor, henüz depoya fiilen girmemiş ancak faturası veya alımı yapılmış yoldaki ve antrepodaki stok kalemlerinin detaylı finansal ve operasyonel dökümünü sağlar.</p>
+
+<hr />
+
+<h2>🎯 Raporun Amacı</h2>
+<p>Lojistik sürecindeki hammaddelerin (Transit ve Antrepo) hem operasyonel miktarlarını hem de bağlanmış olan sermaye tutarlarını tedarikçi bazlı takip etmek için tasarlanmıştır.</p>
+<ul>
+    <li>Yoldaki ve antrepodaki ürünlerin tedarikçilere göre dağılımını görmek.</li>
+    <li>Satın alma fiyatları üzerinden lojistik maliyetlerini analiz etmek.</li>
+    <li>Farklı para birimlerinde hesaplanan değerleri hızlıca gözden geçirmek.</li>
+</ul>
+
+<hr />
+
+<h2>📈 1. İkili Analiz Grafikleri</h2>
+<p>Raporun üst bölümünde lojistik durumunu iki farklı açıdan analiz eden yan yana iki adet grafik (Donut Chart) bulunur:</p>
+<ul>
+    <li><strong>Sol Grafik (Miktar):</strong> Yoldaki ürünlerin adet (veya birim) bazında tedarikçilere göre hacimsel dağılımını gösterir.</li>
+    <li><strong>Sağ Grafik (Tutar Hacmi):</strong> Lojistikteki malların satın alma bedelleri üzerinden parasal büyüklük (Risk/Sermaye) dağılımını gösterir.</li>
+</ul>
+<p>Aşağıdaki tabloda uygulanan her filtreleme işlemi, anında bu grafikleri de günceller.</p>
+
+<hr />
+
+<h2>🔍 2. Dikey Birleştirilmiş Belge Toplamı (Rowspan)</h2>
+<p>Aynı "Satın Alma Fişi (Purchase Receipt)" içinde yer alan birden fazla ürün tek bir tabloda listelendiğinde:</p>
+<ul>
+    <li>Her bir ürün kendi satırında <strong>Birim Fiyat</strong> ve kendi <strong>Tutarını</strong> gösterir.</li>
+    <li>O fişin genel <strong>Belge Toplamı (Grand Total)</strong> ise satırlar boyunca dikeyde birleşerek (hücre birleştirme) tek bir blok halinde gösterilir. Böylelikle aynı belge tutarı tekrar tekrar yazılarak kafa karışıklığı yaratmaz. Ayrıca vurgulanan (highlight) satırlar birbirleriyle tam senkronize çalışır.</li>
+</ul>
+
+<hr />
+
+<h2>🛠️ Teknik Detaylar (Veri Kaynağı)</h2>
+<ul>
+    <li><strong>Sorgu Temeli:</strong> Rapor, henüz onaylanmamış (Taslak - <code>docstatus = 0</code>) durumdaki <strong>Purchase Receipt (Mal Kabul)</strong> belgelerini baz alır.</li>
+    <li><strong>Filtreleme:</strong> Satın Alma fişindeki "Status" alanı sadece <code>Transit</code> ve <code>In Bonded Warehouse</code> olan kayıtları listeler.</li>
+</ul>
+
+</div>
+{% endblock %}
