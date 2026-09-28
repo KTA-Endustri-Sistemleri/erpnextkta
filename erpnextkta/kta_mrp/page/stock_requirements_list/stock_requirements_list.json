@@ -1,0 +1,9 @@
+{
+  "doctype": "Page",
+  "title": "Stok \u0130htiya\u00e7 Listesi (MD04)",
+  "icon": "octicon octicon-list-unordered",
+  "module": "kta_mrp",
+  "name": "stock-requirements-list",
+  "restricted": 0,
+  "standard": 1
+}
