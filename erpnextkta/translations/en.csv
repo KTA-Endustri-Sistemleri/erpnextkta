@@ -691,8 +691,8 @@ DURUŞTA (ARIZA),ON HOLD (BREAKDOWN)
 "Arıza giderildi, operatör onayı bekleniyor.","Breakdown fixed, waiting for operator confirmation."
 "Arıza iptal edildi, operatör bekleniyor.","Breakdown cancelled, waiting for operator."
 "Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Maintenance team finished, waiting for operator to resume production."
-"[Bakım Sonucu: Tamamlandı.]","[Maintenance Result: Completed.]"
-"[Bakım Sonucu: İptal Edildi.]","[Maintenance Result: Cancelled.]"
+[Bakım Sonucu: Tamamlandı.],[Maintenance Result: Completed.]
+[Bakım Sonucu: İptal Edildi.],[Maintenance Result: Cancelled.]
 Kullanıcı için varsayılan yazıcı bulunamadı,Default printer for user not found
 Kullanıcı için varsayılan yazıcı bulunamadı: {0},Default printer for user not found: {0}
 ⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ This card has exceeded {0} minutes! Please check the form (finish or pause).
@@ -753,3 +753,92 @@ Tedarikçi Ambalaj Bakiyesi: {0},Supplier Packaging Balance: {0}
 Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj sayısı: {0},Packaging count calculated from the items of the selected receipt: {0}
 Lütfen Adet alanına bu değeri veya fiziki sayım sonucunuzu girin.,Please enter this value or your physical count result in the Quantity field.
 Bu Giriş fişi iptal edilemez çünkü tedarikçiye yapılmış çıkışlar bulunmaktadır. Kalan bakiye: {0},This Receipt entry cannot be cancelled because packaging issues have been made to the supplier. Remaining balance: {0}
+Emniyet Stoku,Safety Stock
+Yeniden Sipariş Seviyesi,Reorder Level
+Yeniden Sipariş Miktarı,Reorder Quantity
+Planlı Bağımlı İhtiyaç,Planned Dependent Requirement
+Planlı Bağımlı İhtiyaç ({0}),Planned Dependent Requirement ({0})
+Emniyet Stoku Tamamlama ({0}),Safety Stock Replenishment ({0})
+Müşteri Siparişi ({0}) - Müşteri Teslim: {1},Customer Order ({0}) - Customer Delivery: {1}
+Haftalık Kapasite,Weekly Capacity
+Planlı Sipariş (Öneri),Planned Order (Proposal)
+Planlı Sipariş (Emniyet Tamamlama),Planned Order (Safety Replenishment)
+Planlı Sipariş ({0}) - En Geç Başlama: {1},Planned Order ({0}) - Latest Start: {1}
+Üretim Emri (İş Emri),Production Order (Work Order)
+Planlı Sipariş ({0}) [Parça {1}/{2}] - En Geç Başlama: {3},Planned Order ({0}) [Part {1}/{2}] - Latest Start: {3}
+Satın Alma Siparişi ({0}) [Kalem {1}],Purchase Order ({0}) [Line {1}]
+Planlı Sipariş ({0}) [{1}],Planned Order ({0}) [{1}]
+İş Emri Aç,Create Work Order
+İş Emri Oluştur,Create Work Order
+Bu planlı sipariş için İş Emri açmak istiyor musunuz?,Do you want to create a Work Order for this planned order?
+Planlı Satın Alma Siparişi,Planned Purchase Order
+Planlı Satın Alma Siparişi ({0}) [{1}],Planned Purchase Order ({0}) [{1}]
+Planlı Satın Alma Siparişi Aç,Create Planned Purchase Order
+Gecikmiş Sipariş Verme,Overdue Purchase Order Release
+Tedarikçi Seçimi,Supplier Selection
+Aktif Item Price kayıtları listelenmektedir,Active Item Price records are listed
+Daha Ucuz,Cheaper
+Fiyat Yok,No Price
+Sipariş Verilecek,To Be Ordered
+Satın Alma Siparişi Aç,Create Purchase Order
+Açılış Stoğu,Opening Stock
+Gecikmiş Üretim Planı,Overdue Production Plan
+Malzeme Kodu,Item Code
+Malzeme kodu girin...,Enter Item Code...
+Malzeme kodu seçiniz,Select Item Code
+Malzeme kodu belirtilmedi,Item Code Not Specified
+Malzeme bulunamadı: {0},Item Not Found: {0}
+Malzeme,Item
+BOM Patlatma,BOM Explosion
+BOM Bileşenleri,BOM Components
+Haftalık Görünüm,Weekly View
+Sadece İstisnalar,Only Exceptions
+Sorgula,Query
+Veriler yükleniyor...,Loading Data...
+Stok İhtiyaç Listesi (MD04),Stock Requirements List (MD04)
+Bir malzeme kodu seçerek stok/ihtiyaç analizini başlatın.,Select an Item Code to start stock/requirements analysis.
+Veri yüklenirken bir hata oluştu.,An error occurred while loading data.
+Mevcut Stok,Current Stock
+Açık PO,Open PO
+Toplam Talep,Total Demand
+Net İhtiyaç,Net Requirement
+Net Açık,Net Deficit
+Eksik,Deficit
+Yeterli,Sufficient
+Karşılanma (Gün),Coverage (Days)
+İlk Açık,First Deficit
+İstisna,Exception
+Emniyet,Safety Stock
+Emniyet Stoku Altı,Below Safety Stock
+Stok Açığı,Stock Shortage
+Gecikmiş,Overdue
+MRP Elem,MRP Element
+Belge No,Document No
+Arz (+),Receipt (+)
+Talep (−),Requirement (−)
+Müşteri Siparişi,Sales Order
+Satın Alma Siparişi,Purchase Order
+Satın Alma Siparişi ({0}),Purchase Order ({0})
+İş Emri (Üretim),Work Order (Production)
+Planlı Sipariş ({0}),Planned Order ({0})
+Bağımlı İhtiyaç,Dependent Requirement
+Bağımlı İhtiyaç ({0}),Dependent Requirement ({0})
+Üretim Talebi,Production Request
+Üretim Talebi (MR),Production Request (MR)
+Satın Alma Talebi,Purchase Request
+Satın Alma Talebi (MR),Purchase Request (MR)
+Gösterilecek MRP elementi bulunamadı.,No MRP elements to display.
+Haftalık Arz,Weekly Supply
+Haftalık Talep,Weekly Demand
+Kümülatif Stok,Cumulative Stock
+Stok Evrimi,Stock Evolution
+Birim Fiyat,Unit Price
+MOQ / Paket,MOQ / Package
+Temin Süresi,Lead Time
+Sipariş Miktarı,Order Qty
+İstenen Teslim Tarihi,Requested Delivery Date
+İptal,Cancel
+Varsayılan,Default
+gün,Days
+hareket,Movements
+İhtiyaç Tarihi,Requirement Date

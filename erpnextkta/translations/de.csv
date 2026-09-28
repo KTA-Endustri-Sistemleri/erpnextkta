@@ -680,8 +680,8 @@ DURUŞTA (ARIZA),ANGEHALTEN (STÖRUNG)
 "Arıza giderildi, operatör onayı bekleniyor.","Störung behoben, warte auf Bestätigung des Bedieners."
 "Arıza iptal edildi, operatör bekleniyor.","Störung storniert, warte auf Bediener."
 "Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Wartungsteam fertig, warte auf Bediener, um Produktion fortzusetzen."
-"[Bakım Sonucu: Tamamlandı.]","[Wartungsergebnis: Abgeschlossen.]"
-"[Bakım Sonucu: İptal Edildi.]","[Wartungsergebnis: Storniert.]"
+[Bakım Sonucu: Tamamlandı.],[Wartungsergebnis: Abgeschlossen.]
+[Bakım Sonucu: İptal Edildi.],[Wartungsergebnis: Storniert.]
 Kullanıcı için varsayılan yazıcı bulunamadı,Standarddrucker für Benutzer nicht gefunden
 Kullanıcı için varsayılan yazıcı bulunamadı: {0},Standarddrucker für Benutzer nicht gefunden: {0}
 ⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ Diese Karte hat {0} Minuten überschritten! Bitte prüfen Sie das Formular (beenden oder anhalten).
@@ -742,3 +742,92 @@ Tedarikçi Ambalaj Bakiyesi: {0},Verpackungssaldo Des Lieferanten: {0}
 Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj sayısı: {0},Anhand der Positionen des ausgewählten Wareneingangs berechnete Verpackungsanzahl: {0}
 Lütfen Adet alanına bu değeri veya fiziki sayım sonucunuzu girin.,Bitte geben Sie diesen Wert oder Ihr Zählergebnis in das Feld Menge ein.
 Bu Giriş fişi iptal edilemez çünkü tedarikçiye yapılmış çıkışlar bulunmaktadır. Kalan bakiye: {0},"Dieser Eingangsbeleg kann nicht storniert werden, da bereits Ausgänge an den Lieferanten erfolgt sind. Verbleibender Saldo: {0}"
+Emniyet Stoku,Sicherheitsbestand
+Yeniden Sipariş Seviyesi,Meldebestand
+Yeniden Sipariş Miktarı,Nachbestellmenge
+Planlı Bağımlı İhtiyaç,Geplanter Sekundärbedarf
+Planlı Bağımlı İhtiyaç ({0}),Geplanter Sekundärbedarf ({0})
+Emniyet Stoku Tamamlama ({0}),Auffüllung Sicherheitsbestand ({0})
+Müşteri Siparişi ({0}) - Müşteri Teslim: {1},Kundenauftrag ({0}) - Kundenlieferung: {1}
+Haftalık Kapasite,Wöchentliche Kapazität
+Planlı Sipariş (Öneri),Planauftrag (Vorschlag)
+Planlı Sipariş (Emniyet Tamamlama),Planauftrag (Sicherheitsauffüllung)
+Planlı Sipariş ({0}) - En Geç Başlama: {1},Planauftrag ({0}) - Spätester Start: {1}
+Üretim Emri (İş Emri),Fertigungsauftrag (Arbeitsauftrag)
+Planlı Sipariş ({0}) [Parça {1}/{2}] - En Geç Başlama: {3},Planauftrag ({0}) [Teil {1}/{2}] - Spätester Start: {3}
+Satın Alma Siparişi ({0}) [Kalem {1}],Bestellung ({0}) [Pos. {1}]
+Planlı Sipariş ({0}) [{1}],Planauftrag ({0}) [{1}]
+İş Emri Aç,Fertigungsauftrag Erstellen
+İş Emri Oluştur,Fertigungsauftrag Erstellen
+Bu planlı sipariş için İş Emri açmak istiyor musunuz?,Möchten Sie für diesen Planauftrag einen Fertigungsauftrag erstellen?
+Planlı Satın Alma Siparişi,Geplante Bestellung
+Planlı Satın Alma Siparişi ({0}) [{1}],Geplante Bestellung ({0}) [{1}]
+Planlı Satın Alma Siparişi Aç,Geplante Bestellung Erstellen
+Gecikmiş Sipariş Verme,Überfällige Bestellfreigabe
+Tedarikçi Seçimi,Lieferantenauswahl
+Aktif Item Price kayıtları listelenmektedir,Aktive Item Price Datensätze werden aufgelistet
+Daha Ucuz,Günstiger
+Fiyat Yok,Kein Preis
+Sipariş Verilecek,Zu Bestellen
+Satın Alma Siparişi Aç,Bestellung Erstellen
+Açılış Stoğu,Anfangsbestand
+Gecikmiş Üretim Planı,Überfälliger Produktionsplan
+Malzeme Kodu,Artikelnummer
+Malzeme kodu girin...,Artikelnummer eingeben...
+Malzeme kodu seçiniz,Artikelnummer auswählen
+Malzeme kodu belirtilmedi,Artikelnummer nicht angegeben
+Malzeme bulunamadı: {0},Artikel nicht gefunden: {0}
+Malzeme,Artikel
+BOM Patlatma,Stücklistenauflösung
+BOM Bileşenleri,Stücklistenkomponenten
+Haftalık Görünüm,Wochenansicht
+Sadece İstisnalar,Nur Ausnahmen
+Sorgula,Abfragen
+Veriler yükleniyor...,Daten werden geladen...
+Stok İhtiyaç Listesi (MD04),Bedarfs-/Bestandsliste (MD04)
+Bir malzeme kodu seçerek stok/ihtiyaç analizini başlatın.,"Wählen Sie eine Artikelnummer, um die Bedarfs-/Bestandsanalyse zu starten."
+Veri yüklenirken bir hata oluştu.,Beim Laden der Daten ist ein Fehler aufgetreten.
+Mevcut Stok,Aktueller Bestand
+Açık PO,Offene Bestellung
+Toplam Talep,Gesamter Bedarf
+Net İhtiyaç,Nettobedarf
+Net Açık,Nettodefizit
+Eksik,Unterdeckung
+Yeterli,Ausreichend
+Karşılanma (Gün),Reichweite (Tage)
+İlk Açık,Erste Unterdeckung
+İstisna,Ausnahme
+Emniyet,Sicherheitsbestand
+Emniyet Stoku Altı,Unter Sicherheitsbestand
+Stok Açığı,Bestandsunterdeckung
+Gecikmiş,Überfällig
+MRP Elem,MRP-Element
+Belge No,Belegnummer
+Arz (+),Zugang (+)
+Talep (−),Bedarf (−)
+Müşteri Siparişi,Kundenauftrag
+Satın Alma Siparişi,Bestellung
+Satın Alma Siparişi ({0}),Bestellung ({0})
+İş Emri (Üretim),Fertigungsauftrag (Produktion)
+Planlı Sipariş ({0}),Planauftrag ({0})
+Bağımlı İhtiyaç,Sekundärbedarf
+Bağımlı İhtiyaç ({0}),Sekundärbedarf ({0})
+Üretim Talebi,Fertigungsanforderung
+Üretim Talebi (MR),Fertigungsanforderung (MR)
+Satın Alma Talebi,Bestellanforderung
+Satın Alma Talebi (MR),Bestellanforderung (MR)
+Gösterilecek MRP elementi bulunamadı.,Keine MRP-Elemente zum Anzeigen vorhanden.
+Haftalık Arz,Wöchentlicher Zugang
+Haftalık Talep,Wöchentlicher Bedarf
+Kümülatif Stok,Kumulierter Bestand
+Stok Evrimi,Bestandsentwicklung
+Birim Fiyat,Einzelpreis
+MOQ / Paket,MOQ / Paket
+Temin Süresi,Lieferzeit
+Sipariş Miktarı,Bestellmenge
+İstenen Teslim Tarihi,Gewünschtes Lieferdatum
+İptal,Abbrechen
+Varsayılan,Standard
+gün,Tage
+hareket,Bewegungen
+İhtiyaç Tarihi,Bedarfsdatum
