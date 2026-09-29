@@ -152,6 +152,7 @@ override_doctype_class = {
     "Delivery Note": "erpnextkta.overrides.delivery_note.KTADeliveryNote",
     "Sales Invoice": "erpnextkta.overrides.sales_invoice.KTASalesInvoice",
     "Job Card": "erpnextkta.overrides.job_card.KTAJobCard",
+    "Item Price": "erpnextkta.overrides.stock.item_price.KTAItemPrice",
 }
 doc_events = {
     "Kalite Kontrol": {
