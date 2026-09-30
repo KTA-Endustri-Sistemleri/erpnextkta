@@ -1,0 +1,55 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "iade-edilebilir-ambalaj-fisi" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🔄</span>
+  <h1>İade Edilebilir Ambalaj Fişi (Makara / Konipak Takibi)</h1>
+</div>
+
+<div class="kta-doc-section">
+<main class="container">
+
+<h2>📖 Genel Bakış</h2>
+<p>İade Edilebilir Ambalaj Fişi (Returnable Packaging Receipt), tedarikçilerden kablo vb. ürünlerle birlikte gelen ve sonrasında iade edilmesi gereken makara, konipak gibi ambalaj materyallerinin takibi için geliştirilmiş bir modüldür.</p>
+
+<p>Bu ambalajlar genellikle resmi irsaliye/faturalarda miktar veya tutar olarak yer almadığı ve işletmenin öz malı olmadığı için, Frappe'nin standart stok (Stock Ledger) altyapısını lüzumsuz yere şişirmemek ve depo çalışanlarına operasyonel yük (ekstra kalem girme, sıfır değerli irsaliye kesme vb.) oluşturmamak adına tamamen bağımsız bir bakiye takip sistemi (Cari Defter mantığı) olarak tasarlanmıştır.</p>
+
+<hr />
+
+<h2>🔄 Kullanım Senaryoları</h2>
+
+<h3>📥 1. Tedarikçiden Ambalajlı Ürün Geldiğinde (Giriş)</h3>
+<p>Tedarikçiden mal kabulü yapıldığında, ambalajların işletmemize girişini kaydetmek için kullanılır.</p>
+<ul>
+  <li><strong>📦 İşlem Tipi:</strong> <code>Giriş</code> seçilir.</li>
+  <li><strong>📄 Mal Alım İrsaliyesi (Purchase Receipt):</strong> Sisteme önceden girilmiş ve onaylanmış irsaliye seçilir. (Giriş işleminde irsaliye seçimi zorunludur).</li>
+  <li><strong>⚙️ Otomasyon (Otomatik Doldurma):</strong> İrsaliye seçildiği anda;
+    <ul>
+      <li><code>Tedarikçi</code> (Supplier) alanı irsaliyeden çekilerek otomatik doldurulur.</li>
+      <li>Sistem irsaliye içindeki tüm ürünleri tarar. Miktar (qty) değerini, bölme/kutu içi adet (custom_split_qty) değerine bölerek tahmini ambalaj sayısını hesaplar.</li>
+      <li>Kullanıcıya hesaplama detaylarını içeren bir bilgi penceresi (popup) gösterilir ve bu hesaplanan değer "Hesaplanan Adet" (calculated_qty) alanına salt-okunur (read-only) olarak yazılır.</li>
+    </ul>
+  </li>
+  <li><strong>✅ Doğrulama:</strong> Depo personeli "Hesaplanan Adet" değerini referans alarak fiili sayım sonucunu <code>Adet</code> alanına manuel girer ve belgeyi kaydeder (Submit).</li>
+</ul>
+
+<hr />
+
+<h3>📤 2. Tedarikçiye Ambalaj İade Edildiğinde (Çıkış)</h3>
+<p>Tedarikçi firmaya makara/konipak gibi ambalajlar iade edildiğinde stoktan düşmek için kullanılır.</p>
+<ul>
+  <li><strong>📦 İşlem Tipi:</strong> <code>Çıkış</code> seçilir.</li>
+  <li><strong>📄 Mal Alım İrsaliyesi (Purchase Receipt):</strong> İade işleminde belirli bir alım irsaliyesine referans vermek zorunlu değildir. Boş bırakılabilir.</li>
+  <li><strong>🏢 Tedarikçi:</strong> Ambalajın iade edildiği firma seçilir.</li>
+  <li><strong>🔢 Miktar:</strong> İade edilen ambalaj adedi girilir ve belge onaylanır.</li>
+</ul>
+
+<hr />
+
+<h2>📊 Raporlama ve Takip</h2>
+<p>Bu belgeler (İade Edilebilir Ambalaj Fişleri), tıpkı bir cari hesap ekstresi gibi çalışır. <code>Giriş</code> işlemleri tedarikçinin bizdeki ambalaj alacağını artırırken, <code>Çıkış</code> işlemleri azaltır. Belge listesi üzerinden veya basit raporlarla tedarikçi bazlı üzerimizde bulunan güncel makara/konipak bakiyeleri anlık olarak izlenebilir.</p>
+
+</main>
+</div>
+{% endblock %}
