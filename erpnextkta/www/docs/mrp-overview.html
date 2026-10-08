@@ -31,7 +31,7 @@
       </div>
       <div class="kta-doc-flow-vcontent">
         <h4>🏭 Üretime Başlama Haftası</h4>
-        <p>Teslimat tarihlerinden üretim ve sevkiyat sürelerini düşerek üretime başlama haftasını hesaplar.</p>
+        <p>Teslimat tarihlerinden üretim ve sevkiyat sürelerini düşerek üretime başlama haftasını hesaplar. <strong>Bitmiş ürün stoku ve açık iş emirlerindeki (WIP) miktarları da düşer.</strong></p>
       </div>
     </div>
     <div class="kta-doc-flow-vitem">
@@ -41,7 +41,7 @@
       </div>
       <div class="kta-doc-flow-vcontent">
         <h4>⚙️ Kapasite Planlama</h4>
-        <p>Haftalık üretim kapasitesine göre dengeleme yapar; taşan yükü sonraki haftalara dağıtır.</p>
+        <p>Haftalık üretim kapasitesine göre çok aşamalı (Multi-Pass) dengeleme yapar; <strong>Forward Scheduling → Backward Fill → Ramp-up</strong> sırasıyla taşan yükü sonraki haftalara dağıtır ve boş haftalara geriye çeker.</p>
       </div>
     </div>
     <div class="kta-doc-flow-vitem">
@@ -51,7 +51,7 @@
       </div>
       <div class="kta-doc-flow-vcontent">
         <h4>🧱 Malzeme İhtiyaç</h4>
-        <p>Üretim planını BOM ile çarparak hammadde ihtiyacını hesaplar. Stok ve PO düşebilir.</p>
+        <p>Üretim planını BOM ile çarparak hammadde ihtiyacını hesaplar. Serbest stok ve PO düşebilir.</p>
       </div>
     </div>
     <div class="kta-doc-flow-vitem">
@@ -85,13 +85,13 @@
     <a href="/docs/capacity-planning" class="kta-doc-card">
       <span class="kta-doc-card-icon">⚙️</span>
       <h3>Kapasite Planlama</h3>
-      <p>Haftalık üretim kapasitesiyle dengeleme ve ramp-up algoritmaları.</p>
+      <p>Haftalık üretim kapasitesiyle çok aşamalı (Multi-Pass) dengeleme, backward fill ve ramp-up algoritmaları.</p>
       <span class="kta-doc-badge blue">İşleme</span>
     </a>
     <a href="/docs/material-requirement" class="kta-doc-card">
       <span class="kta-doc-card-icon">🧱</span>
       <h3>Malzeme İhtiyaç</h3>
-      <p>BOM bazlı haftalık hammadde tüketim ihtiyaçları (stok/PO düşülebilir).</p>
+      <p>BOM bazlı haftalık hammadde tüketim ihtiyaçları (serbest stok/PO düşülebilir).</p>
       <span class="kta-doc-badge blue">İşleme</span>
     </a>
     <a href="/docs/mrp-analysis" class="kta-doc-card">
@@ -150,7 +150,7 @@
         <tr><td><strong>Bin / Warehouse</strong></td><td>actual_qty, stock_value</td><td>Mevcut stok (Kullanılabilir Stok depoları)</td></tr>
         <tr><td><strong>Item Price</strong></td><td>lead_time_days, custom_minimum_order_quantity</td><td>Fiyat, temin süresi, MOQ</td></tr>
         <tr><td><strong>Purchase Order Item</strong></td><td>qty, received_qty, schedule_date</td><td>Açık PO teslimatları</td></tr>
-        <tr><td><strong>Work Order</strong></td><td>qty, produced_qty, planned_start_date</td><td>Açık iş emirleri</td></tr>
+        <tr><td><strong>Work Order</strong></td><td>qty, produced_qty, planned_start_date</td><td>Açık iş emirleri — WIP olarak talepten düşülür (PSW) ve hammadde rezervasyonu olarak stoktan düşülür (MRP)</td></tr>
       </tbody>
     </table>
   </div>

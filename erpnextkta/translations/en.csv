@@ -704,3 +704,31 @@ T1 Ölçümleri,T1 Measurements
 T2 Ölçümleri,T2 Measurements
 Hedef,Target
 Kablo Uç İşlemleri,Cable End Operations
+Müşteri Grubuna Göre Üretim (Miktar),Production by Customer Group (Qty)
+Undefined,Undefined
+Toggle Operator,Toggle Operator
+Tedarikçiye Göre Lojistik Miktarı,Logistics Quantity by Supplier
+Transit ve Antrepo Hammadde Raporu,Transit and Bonded Warehouse Raw Materials
+Tanımsız Tedarikçi,Undefined Supplier
+Yolda,In Transit
+Antrepoda,In Bonded Warehouse
+Iade Edilebilir Ambalaj Fisi,Returnable Packaging Receipt
+Tahmini Ambalaj Sayısı,Estimated Packaging Quantity
+Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj/konipak sayısı: <b>{0}</b><br><ul>{1}</ul>Lütfen <b>Adet</b> alanına bu değeri veya fiziki sayım sonucunuzu girerek doğrulayın.,Estimated packaging/konipak quantity based on selected receipt items: <b>{0}</b><br><ul>{1}</ul>Please verify by entering this value or your physical count into the <b>Quantity</b> field.
+İşlem Tipi,Transaction Type
+Mal Alım İrsaliyesi,Purchase Receipt
+Tedarikçi,Supplier
+İrsaliye No,Delivery Note No
+Hesaplanan Adet,Calculated Qty
+Adet,Quantity
+Giriş,Receipt
+Çıkış,Issue
+Seri,Series
+Tarih,Date
+Açıklama,Remarks
+Seri,Series
+Tarih,Date
+Açıklama,Remarks
+İşlem,Transaction Type
+Teslim Eden,Delivered By
+Teslim Alan,Received By

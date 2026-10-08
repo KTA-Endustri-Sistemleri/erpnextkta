@@ -693,3 +693,31 @@ T1 Ölçümleri,T1-Messungen
 T2 Ölçümleri,T2-Messungen
 Hedef,Ziel
 Kablo Uç İşlemleri,Kabelenden-Bearbeitungen
+Müşteri Grubuna Göre Üretim (Miktar),Produktion nach Kundengruppe (Menge)
+Undefined,Undefiniert
+Toggle Operator,Operator wechseln
+Tedarikçiye Göre Lojistik Miktarı,Logistikmenge nach Lieferant
+Transit ve Antrepo Hammadde Raporu,Rohstoffe im Transit und Zolllager
+Tanımsız Tedarikçi,Undefinierter Lieferant
+Yolda,Unterwegs
+Antrepoda,Im Zolllager
+Iade Edilebilir Ambalaj Fisi,Rückgabefähiger Verpackungsbeleg
+Tahmini Ambalaj Sayısı,Geschätzte Verpackungsmenge
+Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj/konipak sayısı: <b>{0}</b><br><ul>{1}</ul>Lütfen <b>Adet</b> alanına bu değeri veya fiziki sayım sonucunuzu girerek doğrulayın.,"Berechnete Verpackungs-/Konipak-Menge basierend auf ausgewählten Lieferscheinpositionen: <b>{0}</b><br><ul>{1}</ul>Bitte überprüfen Sie dies, indem Sie diesen Wert oder Ihr Zählergebnis in das Feld <b>Menge</b> eingeben."
+İşlem Tipi,Vorgangsart
+Mal Alım İrsaliyesi,Wareneingang
+Tedarikçi,Lieferant
+İrsaliye No,Lieferschein-Nr
+Hesaplanan Adet,Berechnete Menge
+Adet,Menge
+Giriş,Eingang
+Çıkış,Ausgang
+Seri,Serie
+Tarih,Datum
+Açıklama,Bemerkungen
+Seri,Serie
+Tarih,Datum
+Açıklama,Bemerkungen
+İşlem,Vorgang
+Teslim Eden,Übergeben von
+Teslim Alan,Übernommen von

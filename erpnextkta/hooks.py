@@ -26,7 +26,7 @@ required_apps = ["frappe", "erpnext", "kta_system_utils"]
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/erpnextkta/css/erpnextkta.css"
+# app_include_css = "erpnextkta.bundle.css"
 # app_include_js = "/assets/erpnextkta/js/erpnextkta.js"
 app_include_js = [
                   "/assets/erpnextkta/js/material_transfer_patch.js",
@@ -141,6 +141,7 @@ after_migrate = [
 # Override standard doctype classes
 
 override_doctype_class = {
+    "Material Request": "erpnextkta.overrides.KTAMaterialRequest.KTAMaterialRequest",
     "Purchase Receipt": "erpnextkta.overrides.KTAPurchaseReceipt.KTAPurchaseReceipt",
     "Quality Inspection": "erpnextkta.overrides.KTAQualityInspection.KTAQualityInspection",
     "BOM": "erpnextkta.overrides.KTAbom.KTAbom",
@@ -151,6 +152,7 @@ override_doctype_class = {
     "Delivery Note": "erpnextkta.overrides.delivery_note.KTADeliveryNote",
     "Sales Invoice": "erpnextkta.overrides.sales_invoice.KTASalesInvoice",
     "Job Card": "erpnextkta.overrides.job_card.KTAJobCard",
+    "Item Price": "erpnextkta.overrides.stock.item_price.KTAItemPrice",
 }
 doc_events = {
     "Kalite Kontrol": {
@@ -281,6 +283,8 @@ override_doctype_dashboards = {
 # ----------------
 # before_request = ["erpnextkta.utils.before_request"]
 # after_request = ["erpnextkta.utils.after_request"]
+
+update_website_context = "erpnextkta.middlewares.update_website_context"
 
 # Job Events
 # ----------
@@ -415,6 +419,12 @@ fixtures = [
                 ],
             ]
         ],
+    },
+    {
+        "doctype": "Assignment Rule",
+        "filters": [
+            ["name", "in", ["Material Request for Re-Order", "Material Request for Re-Order (Draft)"]]
+        ]
     },
 ]
 doctype_js = {

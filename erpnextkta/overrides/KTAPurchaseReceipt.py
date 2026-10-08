@@ -342,11 +342,11 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                             atlama_sayisi = doc.get("custom_atlama_sayisi")
                             atlama_sirasi = doc.get("custom_atlama_sirasi")
                             if atlama_sayisi > 0:
-                                doc.db_set('custom_atlama_sirasi', atlama_sirasi + 1, commit=True)
+                                doc.db_set('custom_atlama_sirasi', atlama_sirasi + 1)
                                 if atlama_sirasi % atlama_sayisi == 0:
                                     qi_items.append(d)
                             else:
-                                doc.db_set('custom_atlama_sirasi', 2, commit=True)
+                                doc.db_set('custom_atlama_sirasi', 2)
                                 qi_items.append(d)
                         else:
                             qi_items.append(d)
@@ -415,7 +415,7 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                     atlama_sayisi = doc.get("custom_atlama_sayisi")
                     atlama_sirasi = doc.get("custom_atlama_sirasi")
                     if atlama_sayisi and atlama_sayisi > 0 and atlama_sirasi and atlama_sirasi > 0:
-                        doc.db_set('custom_atlama_sirasi', atlama_sirasi - 1, commit=True)
+                        doc.db_set('custom_atlama_sirasi', atlama_sirasi - 1)
 
 
 

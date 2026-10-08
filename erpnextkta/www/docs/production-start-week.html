@@ -11,12 +11,13 @@
 <div class="kta-doc-section">
   <h2>1. Raporun Temel Amacı</h2>
   <ul>
-    <li>Her ürünün, teslimatı yakalayabilmek için <strong>üretime en geç ne zaman başlanması gerektiğini</strong> hafta bazında gösterir.</li>
-    <li>Bitmiş ürün stokunun hangi haftaların talebini karşıladığını, hangilerinin üretilmesi gerektiğini belirler.</li>
+    <li>Satış siparişleri ve <strong>Onaylanmış (Submit Edilmiş) Dahili Üretim Taleplerini (Manufacture Material Request)</strong> toplayarak her ürünün <strong>üretime en geç ne zaman başlanması gerektiğini</strong> hafta bazında gösterir.</li>
+    <li><em>Not: Sistem tarafından "Taslak (Draft)" olarak oluşturulan otomatik üretim talepleri, ilgili personel tarafından onaylanana (Submit) kadar planlamaya dahil edilmez.</em></li>
+    <li>Bitmiş ürün stoku ve <strong>açık iş emirlerindeki miktarları (WIP)</strong> düşerek net "yeni üretim" ihtiyacını belirler.</li>
     <li>Müşteri bazlı veya sadece ürün bazlı gruplama ile farklı bakış açıları sunar.</li>
   </ul>
   <div class="kta-doc-flow">
-    <div class="kta-doc-flow-step">📈 Satış Siparişleri</div>
+    <div class="kta-doc-flow-step">📈 Satış Siparişleri & <br>Dahili Üretim (MR)</div>
     <span class="kta-doc-flow-arrow">→</span>
     <div class="kta-doc-flow-step active">🏭 Üretime Başlama Haftası</div>
     <span class="kta-doc-flow-arrow">→</span>
@@ -30,17 +31,18 @@
   <h2>2. Hesaplama Mantığı</h2>
   <h3>⏳ Üretime Başlama Tarihi</h3>
   <div class="kta-doc-code">Üretime Başlama Tarihi = Teslimat Tarihi − (Üretim Süresi + Sevkiyat Süresi)</div>
-  <p><strong>Üretim Süresi</strong> ve <strong>Sevkiyat Süresi</strong> değerleri, her müşteri/sevk adresi için ayrı ayrı tanımlanan <strong>KTA Sevk Parametreleri</strong> DocType'ından alınır.</p>
+  <p><strong>Satış Siparişleri:</strong> Üretim Süresi ve Sevkiyat Süresi değerleri, her müşteri/sevk adresi için ayrı ayrı tanımlanan <strong>KTA Sevk Parametreleri</strong> DocType'ından alınır.</p>
+  <p><strong>Dahili Üretim Talepleri (MR):</strong> Talebe bağlı ürünün <code>Item Customer</code> tablosundaki varsayılan müşterisinden üretim süresi çekilir. Müşteri bulunamazsa varsayılan olarak <strong>14 Gün</strong> üretim süresi kullanılarak gerekli tarihten (Schedule Date) geriye sayılır.</p>
   <div class="kta-doc-info warning">
     <strong>⚠️ Eşleşme Bulunamazsa:</strong> Teslimat tarihi olduğu gibi kullanılır ve rapor sonunda eşleşmeyen müşteriler listesi bildirilir.
   </div>
 
-  <h3>📊 Stok Düşme Mantığı</h3>
-  <p>Bitmiş ürünlerin deposundaki (<code>warehouse_type = "Kullanılabilir Stok"</code>) mevcut stok, haftalara kronolojik sırayla dağıtılır:</p>
+  <h3>📊 Stok ve İş Emri (WIP) Düşme Mantığı</h3>
+  <p>Talepleri karşılamak için sırasıyla şu iki kaynağa bakılır:</p>
   <ol>
-    <li>İlk haftanın talebi stoktan karşılanabildiği kadar karşılanır.</li>
-    <li>Kalan stok bir sonraki haftaya aktarılır.</li>
-    <li>Stok tükendiğinde, kalan talep <strong>"Üretilecek"</strong> olarak işaretlenir.</li>
+    <li><strong>Bitmiş Ürün Stoku:</strong> İlk olarak depodaki mevcut hazır stok, haftalara kronolojik sırayla dağıtılır.</li>
+    <li><strong>Açık İş Emirleri (WIP):</strong> Stok yetersiz kaldığında, kalan talep sahadaki (üretimi süren) <code>In Process</code> ve <code>Not Started</code> statüsündeki iş emirleriyle karşılanır.</li>
+    <li>Stok ve WIP tüketildikten sonra, kalan açık talep <strong>"Üretilecek"</strong> olarak işaretlenip Kapasite Planlamaya devredilir.</li>
   </ol>
 
   <h3>📦 Müşteri Paketleme Yuvarlaması</h3>
@@ -75,9 +77,12 @@
         <tr><td><strong>Ürün Grubu</strong></td><td>Ürünün ait olduğu Item Group</td></tr>
         <tr><td><strong>Müşteri</strong></td><td>Siparişi veren müşteri (sadece ürün bazlı gruplama kapalıyken görünür)</td></tr>
         <tr><td><strong>Ürün Kodu / Adı</strong></td><td>Bitmiş ürünün kodu ve adı</td></tr>
-        <tr><td><strong>Haftalık Sütunlar</strong></td><td>O hafta üretilmesi gereken net miktar (stok düşülmüş)</td></tr>
+        <tr><td><strong>Haftalık Sütunlar</strong></td><td>O hafta üretilmesi gereken net miktar (stok ve WIP düşülmüş)</td></tr>
         <tr><td><strong>Stok Karşılanan</strong></td><td>Mevcut stoktan karşılanan toplam miktar</td></tr>
-        <tr><td><strong>Üretilecek</strong></td><td>Üretilmesi gereken toplam miktar</td></tr>
+        <tr><td><strong>İş Emrinde Olan</strong></td><td>Açık iş emirlerinden (üretimi devam eden) karşılanan toplam miktar</td></tr>
+        <tr><td><strong>Üretilecek</strong></td><td>Sıfırdan üretilmesi gereken (Kapasite planlamaya giden) toplam miktar</td></tr>
+        <tr><td><strong>Satış Siparişi Talebi</strong></td><td>İlgili ürüne ait açık (teslim edilmemiş) satış siparişlerinin toplamı</td></tr>
+        <tr><td><strong>Dahili Üretim Talebi</strong></td><td>Kanban/Re-Order sistemi tarafından oluşturulup <strong>onaylanmış (Submit)</strong> üretim taleplerinin toplamı</td></tr>
         <tr><td><strong>Toplam</strong></td><td>Brüt toplam talep (stok düşülmeden önceki ham talep)</td></tr>
       </tbody>
     </table>
@@ -85,10 +90,12 @@
 </div>
 
 <div class="kta-doc-section">
-  <h2>5. Grafik ve Özet</h2>
+  <h2>5. Özet Kartları ve Grafik</h2>
+  <p>Raporun üst kısmında modern özet kartları ile temel metrikler gösterilir:</p>
   <ul>
     <li><strong>📊 Çubuk Grafik:</strong> Hafta bazında üretilmesi gereken miktarları görselleştirir.</li>
-    <li><span class="kta-doc-badge orange">Toplam Üretilecek</span> Stok düşüldükten sonra üretilmesi gereken toplam adet.</li>
+    <li><span class="kta-doc-badge orange">Toplam Üretilecek</span> Stok ve WIP düşüldükten sonra sıfırdan üretilmesi gereken adet.</li>
+    <li><span class="kta-doc-badge blue">İş Emrinde Olan</span> Sahada üretimi devam eden iş emirleriyle karşılanan adet.</li>
     <li><span class="kta-doc-badge green">Stoktan Karşılanan</span> Mevcut stokla karşılanan toplam adet.</li>
   </ul>
 </div>

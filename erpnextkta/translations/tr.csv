@@ -35,3 +35,31 @@ Sistemde {0} numarasına sahip bir makine/varlık bulunamadı.,Sistemde {0} numa
 Geçersiz Fiyat,Geçersiz Fiyat
 <b>Satır {0} ({1})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır.,<b>Satır {0} ({1})</b>: Lütfen bu ürün için geçerli bir <b>Bölme Miktarı (Kutu İçi Adedi)</b> giriniz. Bu değer 0'dan büyük olmalıdır.
 Eksik Kutu İçi Adedi Bilgisi,Eksik Kutu İçi Adedi Bilgisi
+Müşteri Grubuna Göre Üretim (Miktar),Müşteri Grubuna Göre Üretim (Miktar)
+Undefined,Tanımsız
+Toggle Operator,Operatör Değiştir
+Tedarikçiye Göre Lojistik Miktarı,Tedarikçiye Göre Lojistik Miktarı
+Transit ve Antrepo Hammadde Raporu,Transit ve Antrepo Hammadde Raporu
+Tanımsız Tedarikçi,Tanımsız Tedarikçi
+Yolda,Yolda
+Antrepoda,Antrepoda
+Iade Edilebilir Ambalaj Fisi,İade Edilebilir Ambalaj Fişi
+Tahmini Ambalaj Sayısı,Tahmini Ambalaj Sayısı
+Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj/konipak sayısı: <b>{0}</b><br><ul>{1}</ul>Lütfen <b>Adet</b> alanına bu değeri veya fiziki sayım sonucunuzu girerek doğrulayın.,Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj/konipak sayısı: <b>{0}</b><br><ul>{1}</ul>Lütfen <b>Adet</b> alanına bu değeri veya fiziki sayım sonucunuzu girerek doğrulayın.
+İşlem Tipi,İşlem Tipi
+Mal Alım İrsaliyesi,Mal Alım İrsaliyesi
+Tedarikçi,Tedarikçi
+İrsaliye No,İrsaliye No
+Hesaplanan Adet,Hesaplanan Adet
+Adet,Adet
+Giriş,Giriş
+Çıkış,Çıkış
+Seri,Seri
+Tarih,Tarih
+Açıklama,Açıklama
+Seri,Seri
+Tarih,Tarih
+Açıklama,Açıklama
+İşlem,İşlem
+Teslim Eden,Teslim Eden
+Teslim Alan,Teslim Alan
