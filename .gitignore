@@ -14,3 +14,12 @@ __pycache__
 /.idea/dataSources/edeab490-568c-47de-b31f-08115e1231bc.xml
 *.lock
 roadmap.md
+*check*
+*create_*
+*fix_*
+*inspect_*
+*test_*
+*update_*  
+*verify_*
+*register_*
+*find_*

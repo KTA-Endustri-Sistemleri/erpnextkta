@@ -59,7 +59,8 @@ class KTAMaterialRequest(MaterialRequest):
                     "description": frappe.render_template(rule.description or "Atama: {{ name }}", self.as_dict())
                 }, ignore_permissions=True)
             except Exception as e:
-                frappe.log_error(f"Error assigning MR {self.name} via rule {rule_name}: {e}", "KTA Assignment Error")
+                if not frappe.flags.in_test:
+                    frappe.log_error(title="KTA Assignment Error", message=f"Error assigning MR {self.name} via rule {rule_name}: {e}")
 
     def _close_open_todos(self):
         todos = frappe.get_all("ToDo", filters={
