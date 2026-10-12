@@ -131,7 +131,10 @@ def apply_reorder_item_override():
                 for row in custom_data:
                     item_code = row.item_code
                     warehouse = row.warehouse
-                    projected_qty = flt(row.custom_projected)
+                    
+                    # ERPNext standart kuralı (<=) yüzünden stok = reorder_level olduğunda sipariş açılmasını 
+                    # engellemek için çok küçük bir küsurat ekleyerek kuralı (<) şekline çeviriyoruz.
+                    projected_qty = flt(row.custom_projected) + 0.0001
 
                     if item_code not in item_warehouse_projected_qty:
                         item_warehouse_projected_qty[item_code] = {}
