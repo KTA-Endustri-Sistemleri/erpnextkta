@@ -721,3 +721,21 @@ Açıklama,Bemerkungen
 İşlem,Vorgang
 Teslim Eden,Übergeben von
 Teslim Alan,Übernommen von
+Adet sıfırdan büyük olmalıdır.,Die Menge muss größer als null sein.
+Giriş işlemlerinde Mal Alım İrsaliyesi seçilmesi zorunludur.,Für Eingangsbuchungen ist ein Wareneingang erforderlich.
+Seçilen Mal Alım İrsaliyesi onaylanmış olmalıdır.,Der ausgewählte Wareneingang muss gebucht sein.
+"Tedarikçi, seçilen Mal Alım İrsaliyesindeki tedarikçi ile aynı olmalıdır.",Der Lieferant muss mit dem Lieferanten des ausgewählten Wareneingangs übereinstimmen.
+Sayılan adet ({0}) ile hesaplanan adet ({1}) arasındaki fark çok büyük. Lütfen Açıklama alanını doldurun.,Die Abweichung zwischen gezählter Menge ({0}) und berechneter Menge ({1}) ist zu groß. Bitte füllen Sie das Feld Bemerkungen aus.
+Bu Mal Alım İrsaliyesi için zaten onaylanmış giriş fişleri var: {0},Für diesen Wareneingang existieren bereits gebuchte Eingangsbelege: {0}
+Mükerrer Giriş Uyarısı,Warnung Vor Doppeltem Eingang
+"Tedarikçi {0} için yeterli ambalaj bakiyesi yok. Mevcut bakiye: {1}, düşülecek adet: {2}","Unzureichender Verpackungssaldo für Lieferant {0}. Aktueller Saldo: {1}, abzuziehende Menge: {2}"
+Tedarikçi Adı,Lieferantenname
+Toplam Giriş,Gesamteingang
+Toplam Çıkış,Gesamtausgang
+Bakiye,Saldo
+Son İşlem Tarihi,Letztes Buchungsdatum
+Sıfır Bakiyeleri Gizle,Nullsalden Ausblenden
+Ambalaj Bakiye Raporu,Verpackungssaldo-Bericht
+Tedarikçi Ambalaj Bakiyesi: {0},Verpackungssaldo Des Lieferanten: {0}
+Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj sayısı: {0},Anhand der Positionen des ausgewählten Wareneingangs berechnete Verpackungsanzahl: {0}
+Lütfen Adet alanına bu değeri veya fiziki sayım sonucunuzu girin.,Bitte geben Sie diesen Wert oder Ihr Zählergebnis in das Feld Menge ein.

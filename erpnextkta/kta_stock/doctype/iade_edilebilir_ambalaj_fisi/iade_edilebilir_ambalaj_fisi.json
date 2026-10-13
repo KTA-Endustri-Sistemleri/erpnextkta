@@ -25,7 +25,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Seri",
-   "options": "AMB-.YYYY.-.####",
+   "options": "RPR-.YYYY.-.####",
    "reqd": 1,
    "set_only_once": 1
   },
@@ -55,12 +55,12 @@
    "options": "Purchase Receipt"
   },
   {
+   "fetch_from": "purchase_receipt.supplier_delivery_note",
    "fieldname": "irsaliye_no",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "\u0130rsaliye No",
-   "read_only": 1,
-   "fetch_from": "purchase_receipt.supplier_delivery_note"
+   "read_only": 1
   },
   {
    "fieldname": "column_break_1",
@@ -77,9 +77,9 @@
   {
    "fieldname": "calculated_qty",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Hesaplanan Adet",
-   "read_only": 1,
-   "in_list_view": 1
+   "read_only": 1
   },
   {
    "fieldname": "qty",
@@ -112,8 +112,8 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-29 18:48:33.557730",
- "modified_by": "Administrator",
+ "modified": "2026-10-14 11:54:59.034882",
+ "modified_by": "ufuk.karamalli@kta-endustri.com.tr",
  "module": "kta_stock",
  "name": "Iade Edilebilir Ambalaj Fisi",
  "naming_rule": "By \"Naming Series\" field",
@@ -169,5 +169,8 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
 }
