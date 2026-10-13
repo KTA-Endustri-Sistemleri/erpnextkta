@@ -32,6 +32,9 @@
     </ul>
   </li>
   <li><strong>✅ Doğrulama:</strong> Depo personeli "Hesaplanan Adet" değerini referans alarak fiili sayım sonucunu <code>Adet</code> alanına manuel girer ve belgeyi kaydeder (Submit).</li>
+  <li><strong>⚠️ Sayım Farkı:</strong> Girilen <code>Adet</code>, <code>Hesaplanan Adet</code> değerinden <strong>%10'dan fazla</strong> saparsa belge <code>Açıklama</code> alanı doldurulmadan kaydedilemez. Farkın nedeni (eksik/fazla makara, hasarlı ambalaj vb.) açıklamaya yazılmalıdır.</li>
+  <li><strong>🔁 Mükerrer Giriş Uyarısı:</strong> Aynı Mal Alım İrsaliyesi için daha önce onaylanmış bir Giriş fişi varsa sistem bu fişleri listeleyen bir uyarı gösterir. Kısmi teslimat gibi durumlar için işlem engellenmez; kullanıcı kontrol ederek devam eder.</li>
+  <li><strong>🔒 Sunucu Kontrolleri:</strong> İrsaliyenin onaylı olması, tedarikçinin irsaliyedeki tedarikçi ile aynı olması ve Hesaplanan Adet değeri kayıt sırasında sunucu tarafında yeniden doğrulanır. Bu kurallar Data Import veya API ile gelen kayıtlar için de geçerlidir.</li>
 </ul>
 
 <hr />
@@ -43,12 +46,35 @@
   <li><strong>📄 Mal Alım İrsaliyesi (Purchase Receipt):</strong> İade işleminde belirli bir alım irsaliyesine referans vermek zorunlu değildir. Boş bırakılabilir.</li>
   <li><strong>🏢 Tedarikçi:</strong> Ambalajın iade edildiği firma seçilir.</li>
   <li><strong>🔢 Miktar:</strong> İade edilen ambalaj adedi girilir ve belge onaylanır.</li>
+  <li><strong>🚫 Eksi Bakiye Engeli:</strong> İade edilen adet, tedarikçinin güncel ambalaj bakiyesinden büyükse belge onaylanamaz. Tedarikçinin güncel bakiyesi form üst kısmında <em>"Tedarikçi Ambalaj Bakiyesi"</em> olarak gösterilir.</li>
+</ul>
+
+<hr />
+
+<h3>❌ 3. Belge İptali</h3>
+<ul>
+  <li>Onaylanmış bir fiş iptal edildiğinde bakiyeden düşülür / bakiyeye geri eklenir.</li>
+  <li>Bir <code>Giriş</code> fişinin iptali bakiyeyi eksiye düşürecekse (ilgili ambalajlar zaten iade edilmişse) iptal işlemi engellenir. Önce ilgili <code>Çıkış</code> fişlerinin düzeltilmesi gerekir.</li>
 </ul>
 
 <hr />
 
 <h2>📊 Raporlama ve Takip</h2>
-<p>Bu belgeler (İade Edilebilir Ambalaj Fişleri), tıpkı bir cari hesap ekstresi gibi çalışır. <code>Giriş</code> işlemleri tedarikçinin bizdeki ambalaj alacağını artırırken, <code>Çıkış</code> işlemleri azaltır. Belge listesi üzerinden veya basit raporlarla tedarikçi bazlı üzerimizde bulunan güncel makara/konipak bakiyeleri anlık olarak izlenebilir.</p>
+<p>Bu belgeler (İade Edilebilir Ambalaj Fişleri), tıpkı bir cari hesap ekstresi gibi çalışır. <code>Giriş</code> işlemleri tedarikçinin bizdeki ambalaj alacağını artırırken, <code>Çıkış</code> işlemleri azaltır. Bakiye; yalnızca onaylanmış belgeler üzerinden <code>Toplam Giriş − Toplam Çıkış</code> olarak hesaplanır.</p>
+
+<h3>📈 Ambalaj Bakiye Raporu</h3>
+<p>Tedarikçi bazlı güncel makara/konipak bakiyelerini gösteren Script Report'tur.</p>
+<ul>
+  <li><strong>Sütunlar:</strong> Tedarikçi, Tedarikçi Adı, Toplam Giriş, Toplam Çıkış, Bakiye, Son İşlem Tarihi (alt satırda genel toplam).</li>
+  <li><strong>Filtreler:</strong>
+    <ul>
+      <li><code>Tedarikçi</code> – Tek bir tedarikçiye odaklanmak için.</li>
+      <li><code>Başlangıç / Bitiş Tarihi</code> – Belirli bir tarih aralığındaki hareketler. Yalnızca Bitiş Tarihi verilirse o tarihe kadarki bakiye hesaplanır.</li>
+      <li><code>Sıfır Bakiyeleri Gizle</code> – Varsayılan olarak açıktır; bakiyesi kapanmış tedarikçileri listeden çıkarır.</li>
+    </ul>
+  </li>
+  <li>Sonuçlar bakiyesi en yüksek tedarikçiden başlayarak sıralanır; böylece iadesi öncelikli firmalar en üstte görünür.</li>
+</ul>
 
 </main>
 </div>
