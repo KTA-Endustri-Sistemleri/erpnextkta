@@ -345,6 +345,7 @@ fixtures = [
             ["name", "like", "KTA%"]
         ]
     },
+
     {
         "doctype": "Custom DocPerm",
         "filters": [
@@ -416,6 +417,7 @@ fixtures = [
                     "Asset Maintenance Log-maintenance_status-options",
                     "Asset Maintenance Task-maintenance_type-options",
                     "Purchase Receipt-status-options",
+                    "Work Order-skip_transfer-default",
                 ],
             ]
         ],
@@ -426,6 +428,13 @@ fixtures = [
             ["name", "in", ["Material Request for Re-Order", "Material Request for Re-Order (Draft)"]]
         ]
     },
+
+    {
+        "doctype": "Document Naming Rule",
+        "filters": [
+            ["document_type", "=", "Item"]
+        ]
+    }
 ]
 doctype_js = {
     "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",

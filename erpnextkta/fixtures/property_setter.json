@@ -78,5 +78,21 @@
   "property_type": "Select",
   "row_name": null,
   "value": "Draft\nPartly Billed\nTo Bill\nCompleted\nReturn\nReturn Issued\nCancelled\nClosed\nGKK Bekliyor"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Work Order",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "skip_transfer",
+  "is_system_generated": 1,
+  "modified": "2026-10-12 16:43:23.402950",
+  "module": null,
+  "name": "Work Order-skip_transfer-default",
+  "property": "default",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
  }
 ]
