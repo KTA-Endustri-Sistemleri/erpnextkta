@@ -732,3 +732,21 @@ Açıklama,Remarks
 İşlem,Transaction Type
 Teslim Eden,Delivered By
 Teslim Alan,Received By
+Adet sıfırdan büyük olmalıdır.,Quantity must be greater than zero.
+Giriş işlemlerinde Mal Alım İrsaliyesi seçilmesi zorunludur.,Purchase Receipt is mandatory for receipt transactions.
+Seçilen Mal Alım İrsaliyesi onaylanmış olmalıdır.,The selected Purchase Receipt must be submitted.
+"Tedarikçi, seçilen Mal Alım İrsaliyesindeki tedarikçi ile aynı olmalıdır.",Supplier must match the supplier of the selected Purchase Receipt.
+Sayılan adet ({0}) ile hesaplanan adet ({1}) arasındaki fark çok büyük. Lütfen Açıklama alanını doldurun.,The difference between the counted quantity ({0}) and the calculated quantity ({1}) is too large. Please fill in the Remarks field.
+Bu Mal Alım İrsaliyesi için zaten onaylanmış giriş fişleri var: {0},There are already submitted receipt entries for this Purchase Receipt: {0}
+Mükerrer Giriş Uyarısı,Duplicate Receipt Warning
+"Tedarikçi {0} için yeterli ambalaj bakiyesi yok. Mevcut bakiye: {1}, düşülecek adet: {2}","Insufficient packaging balance for supplier {0}. Current balance: {1}, quantity to deduct: {2}"
+Tedarikçi Adı,Supplier Name
+Toplam Giriş,Total Receipt
+Toplam Çıkış,Total Issue
+Bakiye,Balance
+Son İşlem Tarihi,Last Transaction Date
+Sıfır Bakiyeleri Gizle,Hide Zero Balances
+Ambalaj Bakiye Raporu,Packaging Balance Report
+Tedarikçi Ambalaj Bakiyesi: {0},Supplier Packaging Balance: {0}
+Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj sayısı: {0},Packaging count calculated from the items of the selected receipt: {0}
+Lütfen Adet alanına bu değeri veya fiziki sayım sonucunuzu girin.,Please enter this value or your physical count result in the Quantity field.
