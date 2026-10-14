@@ -693,3 +693,49 @@ T1 Ölçümleri,T1-Messungen
 T2 Ölçümleri,T2-Messungen
 Hedef,Ziel
 Kablo Uç İşlemleri,Kabelenden-Bearbeitungen
+Müşteri Grubuna Göre Üretim (Miktar),Produktion nach Kundengruppe (Menge)
+Undefined,Undefiniert
+Toggle Operator,Operator wechseln
+Tedarikçiye Göre Lojistik Miktarı,Logistikmenge nach Lieferant
+Transit ve Antrepo Hammadde Raporu,Rohstoffe im Transit und Zolllager
+Tanımsız Tedarikçi,Undefinierter Lieferant
+Yolda,Unterwegs
+Antrepoda,Im Zolllager
+Iade Edilebilir Ambalaj Fisi,Rückgabefähiger Verpackungsbeleg
+Tahmini Ambalaj Sayısı,Geschätzte Verpackungsmenge
+Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj/konipak sayısı: <b>{0}</b><br><ul>{1}</ul>Lütfen <b>Adet</b> alanına bu değeri veya fiziki sayım sonucunuzu girerek doğrulayın.,"Berechnete Verpackungs-/Konipak-Menge basierend auf ausgewählten Lieferscheinpositionen: <b>{0}</b><br><ul>{1}</ul>Bitte überprüfen Sie dies, indem Sie diesen Wert oder Ihr Zählergebnis in das Feld <b>Menge</b> eingeben."
+İşlem Tipi,Vorgangsart
+Mal Alım İrsaliyesi,Wareneingang
+Tedarikçi,Lieferant
+İrsaliye No,Lieferschein-Nr
+Hesaplanan Adet,Berechnete Menge
+Adet,Menge
+Giriş,Eingang
+Çıkış,Ausgang
+Seri,Serie
+Tarih,Datum
+Açıklama,Bemerkungen
+Seri,Serie
+Tarih,Datum
+Açıklama,Bemerkungen
+İşlem,Vorgang
+Teslim Eden,Übergeben von
+Teslim Alan,Übernommen von
+Adet sıfırdan büyük olmalıdır.,Die Menge muss größer als null sein.
+Giriş işlemlerinde Mal Alım İrsaliyesi seçilmesi zorunludur.,Für Eingangsbuchungen ist ein Wareneingang erforderlich.
+Seçilen Mal Alım İrsaliyesi onaylanmış olmalıdır.,Der ausgewählte Wareneingang muss gebucht sein.
+"Tedarikçi, seçilen Mal Alım İrsaliyesindeki tedarikçi ile aynı olmalıdır.",Der Lieferant muss mit dem Lieferanten des ausgewählten Wareneingangs übereinstimmen.
+Sayılan adet ({0}) ile hesaplanan adet ({1}) arasındaki fark çok büyük. Lütfen Açıklama alanını doldurun.,Die Abweichung zwischen gezählter Menge ({0}) und berechneter Menge ({1}) ist zu groß. Bitte füllen Sie das Feld Bemerkungen aus.
+Bu Mal Alım İrsaliyesi için zaten onaylanmış giriş fişleri var: {0},Für diesen Wareneingang existieren bereits gebuchte Eingangsbelege: {0}
+Mükerrer Giriş Uyarısı,Warnung Vor Doppeltem Eingang
+"Tedarikçi {0} için yeterli ambalaj bakiyesi yok. Mevcut bakiye: {1}, düşülecek adet: {2}","Unzureichender Verpackungssaldo für Lieferant {0}. Aktueller Saldo: {1}, abzuziehende Menge: {2}"
+Tedarikçi Adı,Lieferantenname
+Toplam Giriş,Gesamteingang
+Toplam Çıkış,Gesamtausgang
+Bakiye,Saldo
+Son İşlem Tarihi,Letztes Buchungsdatum
+Sıfır Bakiyeleri Gizle,Nullsalden Ausblenden
+Ambalaj Bakiye Raporu,Verpackungssaldo-Bericht
+Tedarikçi Ambalaj Bakiyesi: {0},Verpackungssaldo Des Lieferanten: {0}
+Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj sayısı: {0},Anhand der Positionen des ausgewählten Wareneingangs berechnete Verpackungsanzahl: {0}
+Lütfen Adet alanına bu değeri veya fiziki sayım sonucunuzu girin.,Bitte geben Sie diesen Wert oder Ihr Zählergebnis in das Feld Menge ein.

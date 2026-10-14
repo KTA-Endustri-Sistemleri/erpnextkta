@@ -1,0 +1,174 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"header1\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>MRP</b></span>\",\"col\":12}},{\"id\":\"_azHPBUaX_\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":6}},{\"id\":\"vu-XjUuyYP\",\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":6}}]",
+ "creation": "2026-09-28 17:12:42.796330",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "icon": "tool",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "MRP",
+ "links": [
+  {
+   "description": "Hammadde ve \u00dcretim Planlama i\u00e7in Gerekli Raporlar",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 8,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Sat\u0131\u015f Sipari\u015fleri",
+   "link_count": 0,
+   "link_to": "Periodic Sales Orders",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Teslimat Haftas\u0131",
+   "link_count": 0,
+   "link_to": "Shipment Week",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Sales Order",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "\u00dcretim Ba\u015flang\u0131\u00e7 Haftas\u0131",
+   "link_count": 0,
+   "link_to": "Production Start Week",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Sales Order",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Kapasite Planlama Raporu",
+   "link_count": 0,
+   "link_to": "Capacity Planning Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Item",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "\u0130\u015f Emri Planlama",
+   "link_count": 0,
+   "link_to": "Work Order Planning",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Work Order",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Hammadde \u0130htiya\u00e7 Planlama",
+   "link_count": 0,
+   "link_to": "Material Requirement",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "BOM",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "\u00d6nerilen Sat\u0131nalma Sipari\u015fleri",
+   "link_count": 0,
+   "link_to": "Recommended Purchase Orders",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Purchase Order",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "MRP Analiz",
+   "link_count": 0,
+   "link_to": "MRP Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "description": "MRP ile \u0130lgili G\u00fcncellemeler \u0130\u00e7in Gerekli Ara\u00e7lar",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Tools",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sat\u0131\u015f Sipari\u015fi G\u00fcncelleme Arac\u0131",
+   "link_count": 0,
+   "link_to": "KTA Sales Order Update",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sat\u0131\u015f Sipari\u015fi Senkronizasyon G\u00fcnl\u00fc\u011f\u00fc",
+   "link_count": 0,
+   "link_to": "KTA SO Sync Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-10-06 17:39:29.342399",
+ "modified_by": "ufuk.karamalli@kta-endustri.com.tr",
+ "module": "kta_mrp",
+ "name": "MRP",
+ "number_cards": [],
+ "owner": "ufuk.karamalli@kta-endustri.com.tr",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Purchase User"
+  },
+  {
+   "role": "Purchase Manager"
+  },
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Manufacturing User"
+  },
+  {
+   "role": "Manufacturing Manager"
+  }
+ ],
+ "sequence_id": 22.0,
+ "shortcuts": [],
+ "title": "MRP"
+}
