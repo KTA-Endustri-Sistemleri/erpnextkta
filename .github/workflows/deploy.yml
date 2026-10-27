@@ -1,0 +1,64 @@
+name: Deploy Production Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag or branch to deploy (e.g. v2.8.2 or main)'
+        required: false
+        default: 'main'
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Bench
+    runs-on: [self-hosted, production]
+
+    steps:
+      - name: Determine Target Ref
+        id: target
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "ref=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          elif [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "ref=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update erpnextkta to Release
+        run: |
+          cd /home/erpnext/frappe-bench/apps/erpnextkta
+          git fetch --tags origin
+          git checkout ${{ steps.target.outputs.ref }}
+          git pull origin ${{ steps.target.outputs.ref }} || true
+
+      - name: Install Python Dependencies
+        run: |
+          /home/erpnext/frappe-bench/env/bin/pip install -q -e /home/erpnext/frappe-bench/apps/erpnextkta
+
+      - name: Run Bench Migrate
+        run: |
+          cd /home/erpnext/frappe-bench
+          bench --site erpnext.kta-endustri.com.tr migrate
+
+      - name: Build Frontend Assets
+        run: |
+          cd /home/erpnext/frappe-bench
+          bench build --app erpnextkta --production
+
+      - name: Clear Caches
+        run: |
+          cd /home/erpnext/frappe-bench
+          bench --site erpnext.kta-endustri.com.tr clear-cache
+          bench --site erpnext.kta-endustri.com.tr clear-website-cache
+
+      - name: Restart Bench Services
+        run: |
+          cd /home/erpnext/frappe-bench
+          bench restart
