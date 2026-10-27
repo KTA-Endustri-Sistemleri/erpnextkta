@@ -3,6 +3,94 @@
 
 
 
+## 🚀 v2.9.0 (2026-10-27)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Continuous integration
+
+    
+      
+      
+        
+- **deploy**: schedule weekly deployment and add maintenance mode handling
+      
+      
+    
+      
+      
+        
+- **deploy**: add production release deploy workflow and tie release to CI
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- add documentation for production and MRP processes
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **kta_stock**: add returnable packaging validations and balance report
+      
+      
+    
+      
+      
+        
+- **stock**: add returnable packaging receipt and documentation
+      
+      
+    
+      
+      
+        
+- **stock**: add transit warehouse and manufactured items reports with docs
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.8.1 (2026-08-13)
 
 
