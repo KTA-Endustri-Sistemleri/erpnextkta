@@ -3,6 +3,68 @@
 
 
 
+## 🚀 v2.10.0 (2026-10-27)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **stock**: remove explicit commit=True from db_set in purchase receipt
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **fixtures**: add item naming rules and work order skip transfer default
+      
+      
+    
+      
+      
+        
+- **stock**: set item price reference from customer custom code
+      
+      
+    
+      
+      
+        
+- **website**: secure /docs routes and update css bundle path
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.9.0 (2026-10-27)
 
 
