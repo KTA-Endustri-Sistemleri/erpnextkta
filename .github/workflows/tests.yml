@@ -4,7 +4,15 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - 'docs/**'
   pull_request:
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'README.md'
+      - 'docs/**' 
 
 concurrency:
   # PR’larda numara var; push(main) için yoksa tekil anahtar kullanır.
