@@ -485,7 +485,7 @@ def get_qc_templates_for_ck(ck_name):
 @frappe.whitelist()
 def get_template_details(template_name):
     """
-    Returns the parameters of a specific Quality Inspection Template.
+    Returns the parameters and attached files of a specific Quality Inspection Template.
     """
     template = frappe.get_doc("Quality Inspection Template", template_name)
     params = []
@@ -497,7 +497,29 @@ def get_template_details(template_name):
             "min_value": p.min_value,
             "max_value": p.max_value
         })
-    return params
+
+    attachments = []
+    for f in frappe.get_all(
+        "File",
+        filters={
+            "attached_to_doctype": "Quality Inspection Template",
+            "attached_to_name": template_name,
+        },
+        fields=["name", "file_name", "file_url", "is_private"],
+        order_by="creation asc"
+    ):
+        file_name = f.file_name or (f.file_url.split("/")[-1] if f.file_url else f.name)
+        attachments.append({
+            "name": f.name,
+            "file_name": file_name,
+            "file_url": f.file_url,
+            "is_private": bool(f.is_private)
+        })
+
+    return {
+        "parameters": params,
+        "attachments": attachments
+    }
 
 
 @frappe.whitelist()

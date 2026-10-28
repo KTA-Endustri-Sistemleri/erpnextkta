@@ -441,6 +441,7 @@ için bir değer girmelisiniz.,You must enter a value for .
 İşlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır.,"In order for the operation to be completed, there must be at least one sub-operation record."
 İŞLEMLER,Transactions
 Şablon Seçiniz...,Please select a template...
+Şablon Ekleri,Template Attachments
 Şirket zorunludur,Company is mandatory
 Hurda,Scrap
 Duruş Geçmişi,Downtimes
