@@ -18,6 +18,8 @@ const props = defineProps<{
 const selectedTemplate = ref(props.defaultTemplate || "");
 /** Şablondan gelen tüm parametreler */
 const parameters = ref<any[]>([]);
+/** Şablona ait ekler / dosyalar */
+const attachments = ref<any[]>([]);
 /** Kullanıcının eklediği okumalar (parametre havuzundan seçilmiş) */
 const readings = ref<any[]>([]);
 const loadingDetails = ref(false);
@@ -35,13 +37,24 @@ const availableParams = computed(() =>
 async function loadTemplate(name: string) {
   if (!name) {
     parameters.value = [];
+    attachments.value = [];
     readings.value = [];
     return;
   }
   loadingDetails.value = true;
   try {
     const res = await props.onFetchDetails(name);
-    parameters.value = res.message || [];
+    const msg = res?.message;
+    if (Array.isArray(msg)) {
+      parameters.value = msg;
+      attachments.value = [];
+    } else if (msg && typeof msg === "object") {
+      parameters.value = msg.parameters || [];
+      attachments.value = msg.attachments || [];
+    } else {
+      parameters.value = [];
+      attachments.value = [];
+    }
     readings.value = []; // Temizle — kullanıcı kendisi ekleyecek
   } finally {
     loadingDetails.value = false;
@@ -59,6 +72,7 @@ watch(
     if (next) {
       selectedTemplate.value = props.defaultTemplate || "";
       readings.value = [];
+      attachments.value = [];
       sampleSize.value = 1;
       if (selectedTemplate.value) loadTemplate(selectedTemplate.value);
     }
@@ -166,6 +180,38 @@ async function handleSubmit() {
                 {{ t.quality_inspection_template_name || t.name }}
               </option>
             </select>
+          </div>
+
+          <!-- Şablon Ekleri / Attachments -->
+          <div v-if="attachments.length > 0" class="ck-attachments-group">
+            <div class="ck-attachments-header">
+              <svg class="ck-attach-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+              </svg>
+              <span>{{ __("Şablon Ekleri") }} ({{ attachments.length }})</span>
+            </div>
+            <div class="ck-attachment-chips">
+              <a
+                v-for="att in attachments"
+                :key="att.name"
+                :href="att.file_url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="ck-attachment-chip"
+                :title="att.file_name"
+              >
+                <svg class="ck-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <span class="ck-attachment-name">{{ att.file_name }}</span>
+                <svg class="ck-external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </a>
+            </div>
           </div>
 
           <div v-if="loadingDetails" class="ck-muted text-center" style="padding: 20px;">{{ __("Parametreler yükleniyor...") }}</div>
@@ -502,5 +548,89 @@ async function handleSubmit() {
   background: var(--ck-danger);
   color: #fff;
   border-color: var(--ck-danger);
+}
+
+/* Şablon Ekleri */
+.ck-attachments-group {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  background: var(--ck-surface-soft, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--ck-border-soft);
+  border-radius: 12px;
+}
+
+.ck-attachments-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ck-text-muted);
+  margin-bottom: 8px;
+}
+
+.ck-attach-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--ck-info, #3b82f6);
+}
+
+.ck-attachment-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ck-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--ck-surface);
+  border: 1px solid var(--ck-border);
+  border-radius: 8px;
+  color: var(--ck-text);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 100%;
+}
+
+.ck-attachment-chip:hover {
+  background: var(--ck-primary-light, rgba(59, 130, 246, 0.1));
+  border-color: var(--ck-primary, #3b82f6);
+  color: var(--ck-primary, #3b82f6);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.ck-file-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.ck-attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.ck-external-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: transform 0.2s;
+}
+
+.ck-attachment-chip:hover .ck-external-icon {
+  opacity: 1;
+  transform: translate(1px, -1px);
 }
 </style>

@@ -33,7 +33,8 @@ def test_qc_integration():
     print(f"Test için Seçilen Şablon: {template_name}")
 
     # 3. Test fetching details
-    params = get_template_details(template_name)
+    res = get_template_details(template_name)
+    params = res["parameters"] if isinstance(res, dict) else res
     print(f"Şablondaki parametre sayısı: {len(params)}")
 
     # 4. Mock readings
