@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const __ = (...args: any[]) => (window as any).__(...args);
+
 const props = defineProps<{ doc: any }>();
 
 function openDoc(doctype: string, docname: string) {
@@ -70,6 +72,12 @@ function openFile(url: string) {
       <div class="ck-info-cell">
         <span>{{ __("Operatör") }}</span>
         <b>{{ props.doc.operator || "-" }}</b>
+      </div>
+    </div>
+    <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col" v-if="props.doc.baslangic_saati">
+      <div class="ck-info-cell">
+        <span>{{ __("Başlangıç Saati") }}</span>
+        <b>{{ props.doc.baslangic_saati }}</b>
       </div>
     </div>
     <div class="col-xs-12 ck-info-col">
