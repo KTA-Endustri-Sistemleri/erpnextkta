@@ -3,6 +3,42 @@
 
 
 
+## 🚀 v2.11.0 (2026-10-28)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **qc**: display quality inspection template attachments in modal
+      
+      
+    
+      
+      
+        
+- **calisma-karti**: display start time on info view if started
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.10.1 (2026-10-27)
 
 
