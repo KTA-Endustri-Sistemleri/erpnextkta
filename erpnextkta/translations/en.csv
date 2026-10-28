@@ -43,6 +43,7 @@ Başarılı,Successful
 Başlamamış bir işlemde duruş yapılamaz.,A process that has not started cannot be stopped.
 Başlamamış işlem bitirilemez.,A process that has not started cannot be finished.
 Başlangıç Tarihi,Start Date
+Başlangıç Saati,Start Time
 Başlangıç Tarihi Bitiş Tarihinden sonra olamaz,Start Date cannot be later than End Date
 Başlat,Start
 "Beklenmeyen bir hata oluştu, işlem yapılamadı. Hata detayları sistem loglarına kaydedildi.","An unexpected error occurred, the operation could not be performed. Error details were recorded in the system logs."

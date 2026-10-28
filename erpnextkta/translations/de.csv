@@ -43,6 +43,7 @@ Başarılı,Erfolgreich
 Başlamamış bir işlemde duruş yapılamaz.,"Ein Prozess, der nicht gestartet wurde, kann nicht gestoppt werden."
 Başlamamış işlem bitirilemez.,"Ein Prozess, der nicht begonnen hat, kann nicht beendet werden."
 Başlangıç Tarihi,Startdatum
+Başlangıç Saati,Startzeit
 Başlangıç Tarihi Bitiş Tarihinden sonra olamaz,Das Startdatum darf nicht nach dem Enddatum liegen
 Başlat,Starten
 "Beklenmeyen bir hata oluştu, işlem yapılamadı. Hata detayları sistem loglarına kaydedildi.",Ein unerwarteter Fehler ist aufgetreten. Der Vorgang konnte nicht ausgeführt werden. Fehlerdetails wurden in den Systemprotokollen aufgezeichnet.
