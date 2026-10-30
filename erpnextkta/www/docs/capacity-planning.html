@@ -5,18 +5,21 @@
 <div class="kta-doc-hero">
   <span class="kta-doc-hero-icon">⚙️</span>
   <h1>Kapasite Planlama Raporu</h1>
-  <p>Haftalık üretim kapasitesine göre dengeleme yaparak, üretimi haftalara dengeli şekilde dağıtan kapasite planlama ekranı.</p>
+  <p>Haftalık üretim kapasitesine göre çok aşamalı (Multi-Pass) dengeleme yaparak, üretimi haftalara dengeli ve akıllı
+    şekilde dağıtan kapasite planlama ekranı.</p>
 </div>
 
 <div class="kta-doc-section">
   <h2>1. Raporun Temel Amacı</h2>
   <ul>
-    <li>Her ürün için <strong>hangi hafta kaç adet üretileceğini</strong>, kapasite sınırlarına uygun şekilde gösterir.</li>
+    <li>Her ürün için <strong>hangi hafta kaç adet üretileceğini</strong>, kapasite sınırlarına uygun şekilde gösterir.
+    </li>
     <li>Haftalık kapasite kullanım oranını renk kodlarıyla anlık değerlendirmenizi sağlar.</li>
     <li>Geçmiş haftalardan devretmiş (backlog) üretim yükünü takip edersiniz.</li>
+    <li>Ani talep sıçramalarını otomatik olarak yumuşatarak <strong>pürüzsüz bir üretim eğrisi</strong> oluşturur.</li>
   </ul>
   <div class="kta-doc-flow">
-    <div class="kta-doc-flow-step">📈 Satış Siparişleri</div>
+    <div class="kta-doc-flow-step">📈 Satış Siparişleri & <br>Dahili Üretim (MR)</div>
     <span class="kta-doc-flow-arrow">→</span>
     <div class="kta-doc-flow-step">🏭 Üretime Başlama</div>
     <span class="kta-doc-flow-arrow">→</span>
@@ -29,46 +32,104 @@
 <div class="kta-doc-section">
   <h2>2. Hesaplama Mantığı</h2>
   <h3>🏭 Kapasite Tanımı</h3>
-  <p>Her ürünün <code>Item</code> kaydındaki <code>custom_weekly_production</code> alanı, haftalık üretim kapasitesini belirtir. Aynı ürün grubundaki en yüksek kapasite değeri, grubun haftalık üst limiti olarak kullanılır.</p>
+  <p>Her ürünün <code>Item</code> kaydındaki <code>custom_weekly_production</code> alanı, haftalık üretim kapasitesini
+    belirtir. Aynı ürün grubundaki en yüksek kapasite değeri, grubun haftalık üst limiti olarak kullanılır.</p>
 
-  <h3>🔄 Dengeleme Algoritması</h3>
-  <p><strong>Kapasite Dengeleme</strong> aktif olduğunda:</p>
-  <ol>
-    <li><strong>Backlog (Geçmiş Yük):</strong> Geçmiş haftalardan kalan siparişler toplanır.</li>
-    <li>Her hafta için önce backlog üretilir (kritiklik ağırlıklı dağıtım).</li>
-    <li>Kalan kapasite varsa cari haftanın talebine geçilir.</li>
-    <li>Karşılanamayan talep otomatik sonraki haftaya devredilir.</li>
-  </ol>
+  <h3>🔢 Orantısal Dağıtım (Largest Remainder Method)</h3>
+  <p>Tüm dağıtım adımlarında <strong>Largest Remainder Method</strong> kullanılır. Bu yöntem, yuvarlama hatalarını
+    ortadan kaldırarak toplam üretim miktarının hiçbir zaman kaybolmamasını veya fazla çıkmamasını garanti eder. Klasik
+    <code>round()</code> yerine kullanılan bu matematiksel yöntemle, çok ürünlü gruplarda bile ±0 adet sapma sağlanır.
+  </p>
+
+  <h3>⚡ Çok Aşamalı Algoritma (Multi-Pass)</h3>
+  <p>Kapasite planlama algoritması ardışık 3 aşamada çalışır. Her aşama bir öncekinin çıktısını alır ve üzerine kendi
+    optimizasyonunu uygular:</p>
+
   <div class="kta-doc-info">
-    <strong>💡 Dengeleme kapatılırsa:</strong> Backlog sadece ilk haftaya eklenir ve kapasite aşımları olduğu gibi gösterilir.
+    <strong>Pass 1 — Dengeleme (Forward Scheduling):</strong>
+    Talepleri haftadan haftaya ileriye doğru işler. Her hafta için önce geçmiş haftalardan sarkan
+    <strong>backlog</strong> miktarı (en yüksek öncelikli) üretilir, ardından o haftanın kendi talebi işlenir. Eğer
+    toplam yük haftalık kapasiteyi aşarsa, karşılanamayan miktar otomatik olarak <strong>sonraki haftaya
+      (carry-over)</strong> devredilir. Bu aşamada hiçbir hafta kapasite limitini aşamaz.
   </div>
-
-  <h3>🚀 Ramp-up (Önden Üretim)</h3>
-  <p>Ramp-up aktif olduğunda, bir sonraki haftanın yükü bir önceki haftanın yüküne göre çok yüksekse, fark önceki haftaya çekilir. Artış hızı <code>Ramp-up Süresi</code> parametresine göre hesaplanır.</p>
+  <div class="kta-doc-info warning">
+    <strong>Pass 2 — Geriye Doldurma (Backward Fill):</strong>
+    Dengeleme sonrası oluşan plana sondan başa doğru bakar. Eğer bir hafta <strong>%80'den fazla</strong> doluysa ve bir
+    önceki hafta <strong>%60'tan az</strong> doluysa, yoğun haftadaki yükün bir kısmını önceki boş haftaya çeker. Bu
+    sayede ileriye ötelenmiş yükler, daha erken haftalardaki boş kapasiteyle buluşturulur. Önceki hafta maksimum
+    <strong>%75</strong> doluluk oranına kadar doldurulur.
+  </div>
+  <div class="kta-doc-info success">
+    <strong>Pass 3 — Ramp-up (Akıllı Yumuşatma):</strong>
+    Son aşamada, hala kalan ani talep sıçramalarına bakılır. Bir hafta <strong>%85'in üzerinde</strong> doluysa ve
+    önceki hafta <strong>%70'in altındaysa</strong>, aradaki fark kadar miktar önceki haftaya çekilerek üretim eğrisi
+    yumuşatılır. <strong>Önemli:</strong> Kapasite doluluk oranı düşük olan haftalar (örn. kapasite 7000, talep 5000)
+    ramp-up tarafından asla bölünmez — bu sayede gereksiz sipariş parçalanması önlenir.
+  </div>
 </div>
 
 <div class="kta-doc-section">
-  <h2>3. Filtreler</h2>
+  <h2>3. Dengeleme Kapalıyken</h2>
+  <div class="kta-doc-info">
+    <strong>💡 Dengeleme kapatılırsa:</strong> Backlog sadece ilk haftaya eklenir ve kapasite aşımları olduğu gibi
+    gösterilir. Ramp-up ve Backward Fill bu modda çalışmaz.
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Filtreler</h2>
   <div class="kta-doc-table-wrap">
     <table class="kta-doc-table">
       <thead>
-        <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
+        <tr>
+          <th>Filtre</th>
+          <th>Açıklama</th>
+          <th>Varsayılan</th>
+        </tr>
       </thead>
       <tbody>
-        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Planlama periyodunun başlangıcı (geçmiş tarih seçilemez)</td><td>Haftanın Pazartesi'si</td></tr>
-        <tr><td><strong>Bitiş Tarihi</strong></td><td>Planlama periyodunun bitişi (min 90 gün)</td><td>3 ay sonra</td></tr>
-        <tr><td><strong>Kapasite Dengeleme</strong></td><td>Kapasite sınırlı dengeleme algoritmasını aktif eder</td><td>Açık ✓</td></tr>
-        <tr><td><strong>Ramp-up</strong></td><td>Gelecek haftaların yükünü önceki haftalara yayar</td><td>Kapalı</td></tr>
-        <tr><td><strong>Ramp-up Süresi</strong></td><td>Ramp-up aktifken artış hızını belirler (hafta)</td><td>3</td></tr>
-        <tr><td><strong>Müşteri Grubu</strong></td><td>Belirli bir KTA müşteri grubuna filtreleme</td><td>(Hepsi)</td></tr>
-        <tr><td><strong>Ürün Grubu</strong></td><td>Belirli bir ürün grubuna filtreleme</td><td>(Hepsi)</td></tr>
+        <tr>
+          <td><strong>Başlangıç Tarihi</strong></td>
+          <td>Planlama periyodunun başlangıcı (geçmiş tarih seçilemez)</td>
+          <td>Haftanın Pazartesi'si</td>
+        </tr>
+        <tr>
+          <td><strong>Bitiş Tarihi</strong></td>
+          <td>Planlama periyodunun bitişi (min 90 gün)</td>
+          <td>3 ay sonra</td>
+        </tr>
+        <tr>
+          <td><strong>Kapasite Dengeleme</strong></td>
+          <td>Kapasite sınırlı dengeleme algoritmasını aktif eder (Pass 1, 2, 3)</td>
+          <td>Açık ✓</td>
+        </tr>
+        <tr>
+          <td><strong>Ramp-up</strong></td>
+          <td>Backward Fill ve Ramp-up aşamalarını aktif eder (Pass 2 & 3)</td>
+          <td>Kapalı</td>
+        </tr>
+        <tr>
+          <td><strong>Ramp-up Süresi</strong></td>
+          <td>Backward Fill ve Ramp-up referansı (hafta)</td>
+          <td>3</td>
+        </tr>
+        <tr>
+          <td><strong>Müşteri Grubu</strong></td>
+          <td>Belirli bir KTA müşteri grubuna filtreleme</td>
+          <td>(Hepsi)</td>
+        </tr>
+        <tr>
+          <td><strong>Ürün Grubu</strong></td>
+          <td>Belirli bir ürün grubuna filtreleme</td>
+          <td>(Hepsi)</td>
+        </tr>
       </tbody>
     </table>
   </div>
 </div>
 
 <div class="kta-doc-section">
-  <h2>4. Renk Kodlaması</h2>
+  <h2>5. Renk Kodlaması</h2>
   <p>Her hücre, üretim miktarının kapasiteye oranına göre renklendirilir:</p>
   <div class="kta-doc-color-row">
     <div class="kta-doc-color-swatch" style="background: #90EE90;"></div>
@@ -85,11 +146,18 @@
 </div>
 
 <div class="kta-doc-section">
-  <h2>5. Grafik ve Özet</h2>
+  <h2>6. Özet Kartları</h2>
+  <p>Raporun üst kısmında modern özet kartları ile temel metrikler gösterilir:</p>
   <ul>
-    <li><strong>📈 Çizgi Grafik:</strong> Hafta bazında toplam planlanan üretim miktarı.</li>
     <li><span class="kta-doc-badge green">Toplam Planlanan</span> Tüm zaman aralığındaki planlanan üretim toplamı.</li>
     <li><span class="kta-doc-badge blue">Ürün Sayısı</span> Rapordaki benzersiz ürün kalemi sayısı.</li>
+  </ul>
+</div>
+
+<div class="kta-doc-section">
+  <h2>7. Grafik</h2>
+  <ul>
+    <li><strong>📈 Çizgi Grafik:</strong> Hafta bazında toplam planlanan üretim miktarı.</li>
   </ul>
 </div>
 {% endblock %}
