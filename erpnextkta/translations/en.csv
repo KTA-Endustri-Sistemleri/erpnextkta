@@ -752,3 +752,4 @@ Ambalaj Bakiye Raporu,Packaging Balance Report
 Tedarikçi Ambalaj Bakiyesi: {0},Supplier Packaging Balance: {0}
 Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj sayısı: {0},Packaging count calculated from the items of the selected receipt: {0}
 Lütfen Adet alanına bu değeri veya fiziki sayım sonucunuzu girin.,Please enter this value or your physical count result in the Quantity field.
+Bu Giriş fişi iptal edilemez çünkü tedarikçiye yapılmış çıkışlar bulunmaktadır. Kalan bakiye: {0},This Receipt entry cannot be cancelled because packaging issues have been made to the supplier. Remaining balance: {0}

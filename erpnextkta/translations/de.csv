@@ -741,3 +741,4 @@ Ambalaj Bakiye Raporu,Verpackungssaldo-Bericht
 Tedarikçi Ambalaj Bakiyesi: {0},Verpackungssaldo Des Lieferanten: {0}
 Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj sayısı: {0},Anhand der Positionen des ausgewählten Wareneingangs berechnete Verpackungsanzahl: {0}
 Lütfen Adet alanına bu değeri veya fiziki sayım sonucunuzu girin.,Bitte geben Sie diesen Wert oder Ihr Zählergebnis in das Feld Menge ein.
+Bu Giriş fişi iptal edilemez çünkü tedarikçiye yapılmış çıkışlar bulunmaktadır. Kalan bakiye: {0},"Dieser Eingangsbeleg kann nicht storniert werden, da bereits Ausgänge an den Lieferanten erfolgt sind. Verbleibender Saldo: {0}"
