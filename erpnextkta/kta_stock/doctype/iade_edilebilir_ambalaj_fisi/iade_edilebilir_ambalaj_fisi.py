@@ -25,11 +25,11 @@ class IadeEdilebilirAmbalajFisi(Document):
 
 	def on_submit(self):
 		if self.type == TYPE_OUT:
-			self.validate_balance(self.qty)
+			self.validate_balance_on_submit()
 
 	def on_cancel(self):
 		if self.type == TYPE_IN:
-			self.validate_balance(self.qty)
+			self.validate_balance_on_cancel()
 
 	def set_defaults(self):
 		if not self.posting_date:
@@ -92,12 +92,32 @@ class IadeEdilebilirAmbalajFisi(Document):
 				indicator="orange",
 			)
 
-	def validate_balance(self, qty_to_deduct):
-		balance = get_supplier_balance(self.supplier, exclude=self.name)
-		if qty_to_deduct > balance:
+	def validate_balance_on_submit(self):
+		balance = get_supplier_balance(self.supplier)
+		if balance < 0:
+			available = balance + self.qty
 			frappe.throw(
 				_("Tedarikçi {0} için yeterli ambalaj bakiyesi yok. Mevcut bakiye: {1}, düşülecek adet: {2}").format(
-					self.supplier, balance, qty_to_deduct
+					self.supplier, available, self.qty
+				)
+			)
+
+	def validate_balance_on_cancel(self):
+		remaining_balance = get_supplier_balance(self.supplier)
+		if remaining_balance < 0:
+			frappe.throw(
+				_(
+					"Bu Giriş fişi iptal edilemez çünkü tedarikçiye yapılmış çıkışlar bulunmaktadır. Kalan bakiye: {0}"
+				).format(remaining_balance)
+			)
+
+	def validate_balance(self, qty_to_deduct):
+		balance = get_supplier_balance(self.supplier)
+		if balance < 0:
+			available = balance + qty_to_deduct
+			frappe.throw(
+				_("Tedarikçi {0} için yeterli ambalaj bakiyesi yok. Mevcut bakiye: {1}, düşülecek adet: {2}").format(
+					self.supplier, available, qty_to_deduct
 				)
 			)
 

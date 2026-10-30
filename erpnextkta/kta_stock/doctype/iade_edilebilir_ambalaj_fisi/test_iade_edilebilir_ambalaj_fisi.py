@@ -72,6 +72,22 @@ class TestIadeEdilebilirAmbalajFisi(FrappeTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			giris.cancel()
 
+	def test_cancel_giris_allowed_when_no_cikis(self):
+		giris = insert_giris_without_receipt(10)
+		giris.reload()
+		giris.cancel()
+		self.assertEqual(get_supplier_balance(TEST_SUPPLIER), 0)
+
+	def test_cancel_giris_after_cikis_cancelled(self):
+		giris = insert_giris_without_receipt(108)
+		cikis = make_fisi("Çıkış", 1)
+		self.assertEqual(get_supplier_balance(TEST_SUPPLIER), 107)
+		cikis.cancel()
+		self.assertEqual(get_supplier_balance(TEST_SUPPLIER), 108)
+		giris.reload()
+		giris.cancel()
+		self.assertEqual(get_supplier_balance(TEST_SUPPLIER), 0)
+
 	def test_report_balance(self):
 		insert_giris_without_receipt(8)
 		make_fisi("Çıkış", 3)
