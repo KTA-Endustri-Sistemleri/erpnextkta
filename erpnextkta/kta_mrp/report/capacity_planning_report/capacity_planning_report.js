@@ -21,7 +21,7 @@ frappe.query_reports["Capacity Planning Report"] = {
 			"fieldname": "dengeleme_yapilsin",
 			"label": __("Kapasite Dengeleme Yapılsın mı?"),
 			"fieldtype": "Check",
-			"default": 1
+			"default": 0
 		},
 		{
 			"fieldname": "ramp_up_aktif",
@@ -71,5 +71,11 @@ frappe.query_reports["Capacity Planning Report"] = {
 			return kta.report_utils.std_formatter(value, row, column, data, default_formatter);
 		}
 		return default_formatter(value, row, column, data);
+	}
+,
+	after_datatable_render: function(datatable_obj) {
+		if (window.kta && kta.report_utils && kta.report_utils.inject_summary) {
+			kta.report_utils.inject_summary(frappe.query_report);
+		}
 	}
 };
