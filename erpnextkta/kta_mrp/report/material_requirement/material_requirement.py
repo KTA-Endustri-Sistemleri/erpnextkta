@@ -19,7 +19,19 @@ def execute(filters=None):
         from_date = datetime.strptime(from_date, "%Y-%m-%d")
 
     from erpnextkta.kta_mrp.report.capacity_planning_report.capacity_planning_report import execute as capacity_execute
-    capacity_cols, capacity_data, *_ = capacity_execute(filters)
+    cap_res = capacity_execute(filters)
+    capacity_cols, capacity_data = cap_res[0], cap_res[1]
+    
+    extra_data = cap_res[5] if len(cap_res) > 5 else None
+    if isinstance(extra_data, tuple) and len(extra_data) >= 3:
+        kanban_plan, raw_mr_demands, wo_plan = extra_data[:3]
+    elif isinstance(extra_data, tuple) and len(extra_data) == 2:
+        kanban_plan, raw_mr_demands = extra_data
+        wo_plan = {}
+    else:
+        kanban_plan = extra_data if extra_data else {}
+        wo_plan = {}
+        raw_mr_demands = cap_res[2]
 
     week_fields = []
     week_labels = {}
@@ -81,11 +93,20 @@ def execute(filters=None):
         bom_items = exploded_items_map.get(bom_name, [])
 
         for week in week_fields:
-            planned_qty = row.get(week)
-            if not planned_qty: continue
+            planned_qty = row.get(week) or 0
+            if planned_qty <= 0: continue
+            
+            wo_qty = wo_plan.get(finished_item, {}).get(week, 0) if wo_plan else 0
+            
+            # İş emirleri (WO) capacity tablosunda (planned_qty içinde) görünür.
+            # Ancak material requirement'ta bu WOnun hammaddeleri zaten reserved_qty olarak stoktan
+            # düşüleceği için, planned_qty içindeki WO miktarını tekrar hammadde talebi olarak YANSITMAMALIYIZ.
+            # (Çift sayımı engellemek için). Ayrıca kanban_plan (MR) da artık planned_qty içinde!
+            total_planned_production = max(0, planned_qty - wo_qty)
+            
             for bom_item in bom_items:
                 week_label = week_labels[week]
-                qty = round(bom_item.stock_qty * planned_qty, 2)
+                qty = round(bom_item.stock_qty * total_planned_production, 2)
                 material_key = (bom_item.item_code, bom_item.stock_uom)
                 detailed_key = (bom_item.item_code, bom_item.stock_uom, finished_item, bom_name)
                 material_totals[material_key][week_label] += qty
@@ -106,21 +127,23 @@ def execute(filters=None):
             if default_supplier:
                 default_supplier_map[item_code] = default_supplier
                 
-                # Item Price üzerinden lojistik verileri çek (Buying = 1)
-                item_price = frappe.get_value("Item Price", {
+                # Item Price üzerinden en güncel lojistik verileri çek (Buying = 1)
+                item_prices = frappe.get_all("Item Price", filters={
                     "item_code": item_code,
                     "supplier": default_supplier,
                     "buying": 1
-                }, ["custom_minimum_order_quantity", "custom_minimum_paketleme_miktari"], as_dict=True)
+                }, fields=["custom_minimum_order_quantity", "custom_minimum_paketleme_miktari"], order_by="valid_from desc", limit=1)
                 
-                if item_price:
+                if item_prices:
+                    item_price = item_prices[0]
                     item_moq_map[item_code] = {
-                        "moq": float(item_price.custom_minimum_order_quantity or 0),
-                        "paket": float(item_price.custom_minimum_paketleme_miktari or 1)
+                        "moq": float(item_price.get("custom_minimum_order_quantity") or 0),
+                        "paket": float(item_price.get("custom_minimum_paketleme_miktari") or 1)
                     }
 
     remaining_stock_map = {}
     stock_map = {}
+    reserved_stock_map = {}
     future_po_map = defaultdict(list)
     po_surplus_map = defaultdict(float)
 
@@ -128,16 +151,17 @@ def execute(filters=None):
         item_codes = list({key[0] for key in material_totals.keys()})
         if item_codes:
             stock_data = frappe.db.sql("""
-                SELECT bin.item_code, bin.stock_uom, SUM(bin.actual_qty) as total_qty
+                SELECT bin.item_code, bin.stock_uom, SUM(bin.actual_qty) as total_qty, SUM(bin.reserved_qty_for_production) as reserved_qty
                 FROM `tabBin` bin
-                INNER JOIN `tabWarehouse` wh ON bin.warehouse = wh.name
-                WHERE bin.item_code IN %s AND wh.warehouse_type = 'Kullanılabilir Stok'
+                JOIN `tabWarehouse` w ON w.name = bin.warehouse
+                WHERE bin.item_code IN %s AND w.is_rejected_warehouse = 0
                 GROUP BY bin.item_code, bin.stock_uom
             """, [tuple(item_codes)], as_dict=True)
             for d in stock_data:
                 key = (d.item_code, d.stock_uom)
                 remaining_stock_map[key] = d.total_qty
                 stock_map[key] = d.total_qty
+                reserved_stock_map[key] = d.reserved_qty or 0
 
         if include_po and item_codes:
             po_items = frappe.db.sql("""
@@ -165,10 +189,31 @@ def execute(filters=None):
 
         for key in material_totals:
             item_code = key[0]
+            stock_uom = key[1]
             logistic_data = item_moq_map.get(item_code, {"moq": 0, "paket": 1})
             moq = logistic_data["moq"]
             paket = logistic_data["paket"]
-            balance = stock_map.get(key, 0)
+            
+            actual_stock = stock_map.get(key, 0)
+            reserved = reserved_stock_map.get(key, 0)
+            
+            shortfall = 0
+            if reserved > actual_stock:
+                shortfall = reserved - actual_stock
+                balance = 0
+            else:
+                balance = actual_stock - reserved
+                
+            if shortfall > 0 and sorted_week_labels:
+                first_week = sorted_week_labels[0]
+                material_totals[key][first_week] += shortfall
+                if not group_only_material:
+                    matching_keys = [dk for dk in detailed_data.keys() if dk[0] == item_code]
+                    if matching_keys:
+                        detailed_data[matching_keys[0]][first_week] += shortfall
+                    else:
+                        detailed_key = (item_code, stock_uom, "Mevcut Eksik", "Açık İş Emirleri")
+                        detailed_data[detailed_key][first_week] += shortfall
             
             # Haftalık PO teslimatlarını kolay erişim için grupla
             week_pos = defaultdict(float)
@@ -217,6 +262,8 @@ def execute(filters=None):
     if include_stock or include_po:
         columns += [
             {"label": "Stok", "fieldname": "stok", "fieldtype": "Float", "width": 100},
+            {"label": "Rezerve Stok", "fieldname": "rezerve_stok", "fieldtype": "Float", "width": 100},
+            {"label": "Serbest Stok", "fieldname": "serbest_stok", "fieldtype": "Float", "width": 100},
             {"label": "PO Teslimat", "fieldname": "po_teslimat", "fieldtype": "Float", "width": 100},
             {"label": "Net İhtiyaç", "fieldname": "net_ihtiyac", "fieldtype": "Float", "width": 120},
             {"label": "Fazla PO Miktarı", "fieldname": "fazla_po_miktari", "fieldtype": "Float", "width": 120},
@@ -224,7 +271,7 @@ def execute(filters=None):
 
     data = []
     column_totals = {week_label: 0 for week_label in sorted_week_labels}
-    column_totals.update({"satir_toplami": 0, "toplam_ihtiyac": 0, "stok": 0, "po_teslimat": 0, "net_ihtiyac": 0, "fazla_po_miktari": 0})
+    column_totals.update({"satir_toplami": 0, "toplam_ihtiyac": 0, "stok": 0, "rezerve_stok": 0, "serbest_stok": 0, "po_teslimat": 0, "net_ihtiyac": 0, "fazla_po_miktari": 0})
     
     summary_total_demand = 0
     summary_net_demand = 0
@@ -248,8 +295,15 @@ def execute(filters=None):
             
             if include_stock or include_po:
                 stok_value = stock_map.get((raw_material, uom), 0)
+                rezerve_stok_value = reserved_stock_map.get((raw_material, uom), 0)
+                serbest_stok_value = max(stok_value - rezerve_stok_value, 0)
+                
                 row["stok"] = stok_value
+                row["rezerve_stok"] = rezerve_stok_value
+                row["serbest_stok"] = serbest_stok_value
                 column_totals["stok"] += stok_value
+                column_totals["rezerve_stok"] += rezerve_stok_value
+                column_totals["serbest_stok"] += serbest_stok_value
                 if include_po:
                     po_teslimat_value = sum(q for w, q in future_po_map[(raw_material, uom)])
                     fazla_po_value = po_surplus_map.get((raw_material, uom), 0)
@@ -290,8 +344,15 @@ def execute(filters=None):
             summary_total_demand += toplam
             if include_stock or include_po:
                 stok_value = stock_map.get(key, 0)
+                rezerve_stok_value = reserved_stock_map.get(key, 0)
+                serbest_stok_value = max(stok_value - rezerve_stok_value, 0)
+                
                 row["stok"] = stok_value
+                row["rezerve_stok"] = rezerve_stok_value
+                row["serbest_stok"] = serbest_stok_value
                 column_totals["stok"] += stok_value
+                column_totals["rezerve_stok"] += rezerve_stok_value
+                column_totals["serbest_stok"] += serbest_stok_value
                 if include_po:
                     po_teslimat_value = sum(q for w, q in future_po_map[key])
                     fazla_po_value = po_surplus_map.get(key, 0)
@@ -312,6 +373,7 @@ def execute(filters=None):
     total_row["toplam_ihtiyac"] = round(column_totals["toplam_ihtiyac"], 2)
     if include_stock or include_po:
         total_row["stok"] = round(column_totals["stok"], 2)
+        total_row["rezerve_stok"] = round(column_totals["rezerve_stok"], 2)
         total_row["po_teslimat"] = round(column_totals["po_teslimat"], 2)
         total_row["net_ihtiyac"] = round(column_totals["net_ihtiyac"], 2)
         total_row["fazla_po_miktari"] = round(column_totals["fazla_po_miktari"], 2)
@@ -322,7 +384,10 @@ def execute(filters=None):
         {"value": summary_net_demand, "label": "Toplam Net İhtiyaç", "indicator": "Red"}
     ]
 
-    return columns, data, None, None, report_summary
+    from erpnextkta.kta_mrp.report.report_utils import get_modern_summary_html
+    html_summary = get_modern_summary_html(report_summary)
+
+    return columns, data, html_summary, None, None
 
 def get_base_columns():
     return [

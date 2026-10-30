@@ -141,6 +141,7 @@ after_migrate = [
 # Override standard doctype classes
 
 override_doctype_class = {
+    "Material Request": "erpnextkta.overrides.KTAMaterialRequest.KTAMaterialRequest",
     "Purchase Receipt": "erpnextkta.overrides.KTAPurchaseReceipt.KTAPurchaseReceipt",
     "Quality Inspection": "erpnextkta.overrides.KTAQualityInspection.KTAQualityInspection",
     "BOM": "erpnextkta.overrides.KTAbom.KTAbom",

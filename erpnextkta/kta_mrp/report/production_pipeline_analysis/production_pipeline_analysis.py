@@ -282,7 +282,7 @@ def get_physical_stock_total(filters):
         conditions.append(f"bin.warehouse IN ({wh_placeholders})")
         params.extend(warehouse_list)
     where_clause = " AND ".join(conditions)
-    res = frappe.db.sql(f"SELECT SUM(bin.actual_qty) FROM `tabBin` bin JOIN `tabItem` item ON bin.item_code = item.name WHERE {where_clause}", tuple(params))
+    res = frappe.db.sql(f"SELECT SUM(bin.actual_qty) FROM `tabBin` bin JOIN `tabItem` item ON bin.item_code = item.name JOIN `tabWarehouse` w ON w.name = bin.warehouse WHERE {where_clause} AND w.is_rejected_warehouse = 0", tuple(params))
     return flt(res[0][0]) if res else 0
 
 def get_sevk_parametreleri_map():
