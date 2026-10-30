@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.11.1 (2026-10-30)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **stock**: fix returnable packaging receipt balance validation on cancel
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.11.0 (2026-10-28)
 
 
