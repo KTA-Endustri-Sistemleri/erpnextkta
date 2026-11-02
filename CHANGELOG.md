@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v2.11.2 (2026-11-02)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **calisma-karti**: translate static labels and measurement options
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.11.1 (2026-10-30)
 
 
