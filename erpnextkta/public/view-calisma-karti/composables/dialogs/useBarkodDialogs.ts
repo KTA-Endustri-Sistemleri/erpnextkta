@@ -11,7 +11,7 @@ export function useBarkodDialogs(props: any) {
         await props.onAddBarkod({ barcode: v.barcode });
         frappe.show_alert({ message: __("Barkod kaydı eklendi"), indicator: "green" });
       },
-      "Barkod Kaydı Ekle",
+      __("Barkod Kaydı Ekle"),
       __("Kaydet")
     );
   }
@@ -24,7 +24,7 @@ export function useBarkodDialogs(props: any) {
         await props.onUpdateBarkod({ rowname: row.name, barcode: v.barcode });
         frappe.show_alert({ message: __("Barkod kaydı güncellendi"), indicator: "green" });
       },
-      "Barkod Kaydı Düzenle",
+      __("Barkod Kaydı Düzenle"),
       __("Kaydet")
     );
   }

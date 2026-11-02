@@ -27,7 +27,7 @@ function toggleAccordion(rowName: string) {
   openedRowIds.value = newSet;
 }
 
-const __ = (...args: any[]) => window.__(...args);
+const __ = (...args: any[]) => (window as any).__(...args);
 
 function getAltOpRow(r: any) {
   if (!props.doc.alt_operasyon_bazli_kalite) return null;
@@ -111,7 +111,7 @@ function actions(r: any) {
   </div>
 
   <div v-if="(props.rows||[]).length===0" class="ck-muted" style="margin-top: 14px;padding: 0px 6px;">
-    Krimp ölçüm kaydı yok.
+    {{ __('Krimp ölçüm kaydı yok.') }}
   </div>
 
   <div v-else class="ck-mini-list" style="margin-top:8px;">
@@ -150,7 +150,7 @@ function actions(r: any) {
                {{ __("KALİTE ONAYI VER") }}
              </button>
              <span v-else :class="['ck-badge', getThemeClass(getAltOpRow(r).quality_inspection_status)]" style="font-size:10px; padding:4px 8px; margin-right: 6px; border-radius: 6px; font-weight: bold; opacity: 1; text-transform: uppercase;">
-               {{ getAltOpRow(r).quality_inspection_status || "Onay Bekliyor" }}
+               {{ getAltOpRow(r).quality_inspection_status ? __(getAltOpRow(r).quality_inspection_status) : __("Onay Bekliyor") }}
              </span>
            </template>
            <span v-if="r.olcum_tarihi" style="text-align:right; opacity:0.6;">{{ fmtDt(r.olcum_tarihi) }}<br><span style="font-size:9px;">{{ r.operator }}</span></span>

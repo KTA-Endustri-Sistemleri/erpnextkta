@@ -11,7 +11,7 @@ const props = defineProps<{
   onDelete: (row: any) => void;
 }>();
 
-const __ = (...args: any[]) => window.__(...args);
+const __ = (...args: any[]) => (window as any).__(...args);
 
 function actions(r: any) {
   const opts = [__("Kopyala")];
@@ -63,7 +63,7 @@ function actions(r: any) {
 
         <div style="display:flex; justify-content:flex-end;">
           <button v-if="props.canEditData" class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            {{ __('İŞLEMLER ▾') }}
+            {{ __('İŞLEMLER') }} ▾
           </button>
         </div>
       </div>

@@ -59,7 +59,7 @@ function minMaxClass(val: number, min: number, max: number) {
   </div>
 
   <div v-if="(props.rows||[]).length===0" class="ck-muted" style="margin-top: 14px;padding: 0px 6px;">
-    Enjeksiyon ölçüm kaydı yok.
+    {{ __('Enjeksiyon ölçüm kaydı yok.') }}
   </div>
 
   <div v-else class="ck-mini-list" style="margin-top:8px;">
@@ -68,7 +68,7 @@ function minMaxClass(val: number, min: number, max: number) {
         <div class="ck-enjeksiyon-header-info">
            <div class="ck-header-row">
              <span class="ck-label">{{ __("PERİYOT:") }}</span>
-             <span class="ck-val">{{ r.kontrol_periyodu || '-' }}</span>
+             <span class="ck-val">{{ r.kontrol_periyodu ? __(r.kontrol_periyodu) : '-' }}</span>
            </div>
            <div class="ck-header-row">
              <span class="ck-label">{{ __("HAMMADDE:") }}</span>
@@ -80,48 +80,48 @@ function minMaxClass(val: number, min: number, max: number) {
           <div :class="['ck-enjeksiyon-box', sapmaClass(r.hammadde_kazan_isisi, r.hedef_hammadde_kazan_isisi_merkez, r.hedef_hammadde_kazan_isisi_tolerans)]">
              <span>{{ __('Hammadde Kazan Isısı') }}</span>
              <div><b>{{ r.hammadde_kazan_isisi }}</b> <small>°C</small></div>
-             <span v-if="r.hedef_hammadde_kazan_isisi_merkez > 0" class="ck-target-val">Hedef: {{ r.hedef_hammadde_kazan_isisi_merkez }}±{{ r.hedef_hammadde_kazan_isisi_tolerans }}</span>
+             <span v-if="r.hedef_hammadde_kazan_isisi_merkez > 0" class="ck-target-val">{{ __('Hedef:') }} {{ r.hedef_hammadde_kazan_isisi_merkez }}±{{ r.hedef_hammadde_kazan_isisi_tolerans }}</span>
           </div>
           <div :class="['ck-enjeksiyon-box', sapmaClass(r.ara_hortum_isisi, r.hedef_ara_hortum_isisi_merkez, r.hedef_ara_hortum_isisi_tolerans)]">
              <span>{{ __('Ara Hortum Isısı') }}</span>
              <div><b>{{ r.ara_hortum_isisi }}</b> <small>°C</small></div>
-             <span v-if="r.hedef_ara_hortum_isisi_merkez > 0" class="ck-target-val">Hedef: {{ r.hedef_ara_hortum_isisi_merkez }}±{{ r.hedef_ara_hortum_isisi_tolerans }}</span>
+             <span v-if="r.hedef_ara_hortum_isisi_merkez > 0" class="ck-target-val">{{ __('Hedef:') }} {{ r.hedef_ara_hortum_isisi_merkez }}±{{ r.hedef_ara_hortum_isisi_tolerans }}</span>
           </div>
           <div :class="['ck-enjeksiyon-box', sapmaClass(r.kafa_meme_isisi, r.hedef_kafa_meme_isisi_merkez, r.hedef_kafa_meme_isisi_tolerans)]">
              <span>{{ __('Kafa (Meme) Isısı') }}</span>
              <div><b>{{ r.kafa_meme_isisi }}</b> <small>°C</small></div>
-             <span v-if="r.hedef_kafa_meme_isisi_merkez > 0" class="ck-target-val">Hedef: {{ r.hedef_kafa_meme_isisi_merkez }}±{{ r.hedef_kafa_meme_isisi_tolerans }}</span>
+             <span v-if="r.hedef_kafa_meme_isisi_merkez > 0" class="ck-target-val">{{ __('Hedef:') }} {{ r.hedef_kafa_meme_isisi_merkez }}±{{ r.hedef_kafa_meme_isisi_tolerans }}</span>
           </div>
           <div :class="['ck-enjeksiyon-box', minMaxClass(r.soguk_su_isisi, r.hedef_soguk_su_isisi_min, r.hedef_soguk_su_isisi_maks)]">
              <span>{{ __('Soğuk Su Isısı') }}</span>
              <div><b>{{ r.soguk_su_isisi }}</b> <small>°C</small></div>
-             <span v-if="r.hedef_soguk_su_isisi_min > 0 || r.hedef_soguk_su_isisi_maks > 0" class="ck-target-val">Hedef: {{ r.hedef_soguk_su_isisi_min||'' }}-{{ r.hedef_soguk_su_isisi_maks||'' }}</span>
+             <span v-if="r.hedef_soguk_su_isisi_min > 0 || r.hedef_soguk_su_isisi_maks > 0" class="ck-target-val">{{ __('Hedef:') }} {{ r.hedef_soguk_su_isisi_min||'' }}-{{ r.hedef_soguk_su_isisi_maks||'' }}</span>
           </div>
           <div :class="['ck-enjeksiyon-box', minMaxClass(r.motor_devir, r.hedef_motor_devir_min, r.hedef_motor_devir_maks)]">
              <span>{{ __('Motor Devir') }}</span>
              <div><b>{{ r.motor_devir }}</b></div>
-             <span v-if="r.hedef_motor_devir_min > 0 || r.hedef_motor_devir_maks > 0" class="ck-target-val">Hedef: {{ r.hedef_motor_devir_min||'' }}-{{ r.hedef_motor_devir_maks||'' }}</span>
+             <span v-if="r.hedef_motor_devir_min > 0 || r.hedef_motor_devir_maks > 0" class="ck-target-val">{{ __('Hedef:') }} {{ r.hedef_motor_devir_min||'' }}-{{ r.hedef_motor_devir_maks||'' }}</span>
           </div>
           <div :class="['ck-enjeksiyon-box', minMaxClass(r.hammadde_enjeksiyon_zamani, r.hedef_enjeksiyon_zamani_min, r.hedef_enjeksiyon_zamani_maks)]">
              <span>{{ __('Enjeksiyon Zamanı') }}</span>
              <div><b>{{ r.hammadde_enjeksiyon_zamani }}</b> <small>sn</small></div>
-             <span v-if="r.hedef_enjeksiyon_zamani_min > 0 || r.hedef_enjeksiyon_zamani_maks > 0" class="ck-target-val">Hedef: {{ r.hedef_enjeksiyon_zamani_min||'' }}-{{ r.hedef_enjeksiyon_zamani_maks||'' }}</span>
+             <span v-if="r.hedef_enjeksiyon_zamani_min > 0 || r.hedef_enjeksiyon_zamani_maks > 0" class="ck-target-val">{{ __('Hedef:') }} {{ r.hedef_enjeksiyon_zamani_min||'' }}-{{ r.hedef_enjeksiyon_zamani_maks||'' }}</span>
           </div>
           <div :class="['ck-enjeksiyon-box', minMaxClass(r.sogutma_zamani, r.hedef_sogutma_zamani_min, r.hedef_sogutma_zamani_maks)]">
              <span>{{ __('Soğutma Zamanı') }}</span>
              <div><b>{{ r.sogutma_zamani }}</b> <small>sn</small></div>
-             <span v-if="r.hedef_sogutma_zamani_min > 0 || r.hedef_sogutma_zamani_maks > 0" class="ck-target-val">Hedef: {{ r.hedef_sogutma_zamani_min||'' }}-{{ r.hedef_sogutma_zamani_maks||'' }}</span>
+             <span v-if="r.hedef_sogutma_zamani_min > 0 || r.hedef_sogutma_zamani_maks > 0" class="ck-target-val">{{ __('Hedef:') }} {{ r.hedef_sogutma_zamani_min||'' }}-{{ r.hedef_sogutma_zamani_maks||'' }}</span>
           </div>
           <div :class="['ck-enjeksiyon-box', minMaxClass(r.cekme_kuvveti_olculen, r.hedef_cekme_kuvveti_min, 0)]">
              <span>{{ __('Çekme Kuvveti') }}</span>
              <div><b>{{ r.cekme_kuvveti_olculen }}</b> <small>N</small></div>
-             <span v-if="r.hedef_cekme_kuvveti_min > 0" class="ck-target-val">Min: {{ r.hedef_cekme_kuvveti_min }}</span>
+             <span v-if="r.hedef_cekme_kuvveti_min > 0" class="ck-target-val">{{ __('Min:') }} {{ r.hedef_cekme_kuvveti_min }}</span>
           </div>
         </div>
 
         <div class="ck-status-grid">
             <div :class="['ck-status-box', r.goz_kontrol ? 'ck-status--success' : 'ck-status--danger']">
-                Göz Kontrol {{ r.goz_kontrol ? '✓' : '✕' }}
+                {{ __('Göz Kontrol') }} {{ r.goz_kontrol ? '✓' : '✕' }}
             </div>
         </div>
 

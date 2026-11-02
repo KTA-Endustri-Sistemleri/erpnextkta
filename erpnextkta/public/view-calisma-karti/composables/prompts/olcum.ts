@@ -271,7 +271,11 @@ export function enjeksiyonOlcumFields(defaults: any = {}) {
             fieldtype: "Select",
             label: __("Kontrol Periyodu"),
             fieldname: "kontrol_periyodu",
-            options: "Başlangıç\nAra\nBitiş",
+            options: [
+                { label: __("Başlangıç"), value: "Başlangıç" },
+                { label: __("Ara"), value: "Ara" },
+                { label: __("Bitiş"), value: "Bitiş" },
+            ],
             reqd: 1,
             default: defaults.kontrol_periyodu || "Başlangıç",
         },

@@ -46,7 +46,7 @@ async function onKaliteOnayiVer(row: any) {
           </div>
           <div class="ck-mini-actions">
             <span :class="['ck-badge', getThemeClass(h.quality_inspection_status)]">
-              {{ h.quality_inspection_status || "Onay Bekliyor" }}
+              {{ h.quality_inspection_status ? __(h.quality_inspection_status) : __("Onay Bekliyor") }}
             </span>
             <button 
               v-if="props.canEditQC && h.quality_inspection_status !== 'Onaylandı'" 

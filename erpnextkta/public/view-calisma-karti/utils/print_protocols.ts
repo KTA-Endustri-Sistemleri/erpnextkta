@@ -40,10 +40,10 @@ export function getHeaderHtml(doc: any, title: string, today: string, is_sub_op_
       </div>
       <div class="header-right">
         <b>${doc.name}</b><br>
-        İş Emri: ${doc.custom_work_order || "-"}<br>
-        Ürün: ${doc.urun_kodu || "-"}<br>
-        ${!is_sub_op_based ? `Kalite Belgesi: ${doc.quality_inspection || "-"}<br>` : ''}
-        Tarih: ${today}
+        ${__("İş Emri")}: ${doc.custom_work_order || "-"}<br>
+        ${__("Ürün")}: ${doc.urun_kodu || "-"}<br>
+        ${!is_sub_op_based ? `${__("Kalite Belgesi")}: ${doc.quality_inspection || "-"}<br>` : ''}
+        ${__("Tarih")}: ${today}
       </div>
     </div>
   `;
@@ -69,7 +69,7 @@ export function getSignaturesHtml(doc: any, today: string, qisList: string[] = [
           ${doc.operator_name || doc.operator || "-"}
         </div>
         <div class="name-line"></div>
-        <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">${__("İmza / Tarih")}</div>
       </div>
       <div class="sig-box">
         <div class="title">${__("Kalite Belgeleri")}</div>
@@ -78,7 +78,7 @@ export function getSignaturesHtml(doc: any, today: string, qisList: string[] = [
           ${qisHtml}
         </div>
         <div class="name-line"></div>
-        <div style="margin-top:4px;font-size:9px;color:#555;">İmza / Tarih</div>
+        <div style="margin-top:4px;font-size:9px;color:#555;">${__("İmza / Tarih")}</div>
       </div>
       <div class="sig-box">
         <div class="title">${__("Onaylayanlar")}</div>
@@ -91,7 +91,7 @@ export function getSignaturesHtml(doc: any, today: string, qisList: string[] = [
       </div>
     </div>
     <div class="footer">
-      Bu belge KTA Endüstri Sistemleri kalite takip sistemi tarafından otomatik oluşturulmuştur. • ${today}
+      ${__("Bu belge KTA Endüstri Sistemleri kalite takip sistemi tarafından otomatik oluşturulmuştur.")} • ${today}
     </div>
   `;
 }
@@ -144,12 +144,12 @@ export function printIdcProtocol(doc: any) {
   `).join("");
 
   const bodyHtml = `
-    ${getHeaderHtml(doc, "IDC Ölçüm Protokol Belgesi", today)}
+    ${getHeaderHtml(doc, __("IDC Ölçüm Protokol Belgesi"), today)}
     <table>
       <thead>
         <tr>
           <th>#</th>
-          <th>${__('Item Code')}</th>
+          <th>${__('Ürün Kodu')}</th>
           <th>${__('Yükseklik')}</th>
           <th>${__('Çekme')}</th>
           <th>${__('Ölçüm Tarihi')}</th>
@@ -161,7 +161,7 @@ export function printIdcProtocol(doc: any) {
     ${getSignaturesHtml(doc, today)}
   `;
 
-  printHtml("IDC Protokol Belgesi", doc.name, bodyHtml);
+  printHtml(__("IDC Protokol Belgesi"), doc.name, bodyHtml);
 }
 
 export async function printKrimpProtocol(doc: any) {
@@ -265,7 +265,7 @@ export async function printKrimpProtocol(doc: any) {
       <td class="${sapmaClass(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği)}">${sapmaTxt(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği)}</td>
       <td>${r.siyirma_boyu ?? "-"} mm</td>
       <td>${r.capak_boyu ?? "-"} mm</td>
-      <td>${r.olculen_cekme_kuvveti_n ?? "-"} N (Hedef: ${r.hedef_cekme_kuvveti_n ?? "-"})</td>
+      <td>${r.olculen_cekme_kuvveti_n ?? "-"} N (${__("Hedef:")} ${r.hedef_cekme_kuvveti_n ?? "-"})</td>
       <td class="${t1_radus ? 'ok' : 'low'}">${t1_radus ? "✔" : "✘"}</td>
       <td class="${!t1_tel_kesme ? 'ok' : 'low'}">${!t1_tel_kesme ? "✔" : "✘"}</td>
       <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${r.operator || "-"}</td>
@@ -284,7 +284,7 @@ export async function printKrimpProtocol(doc: any) {
       <td class="${sapmaClass(r.yon_2_olculen_iletken_krimp_yuksekligi, r.yon_2_hedef_iletken_krimp_yuksekligi)}">${sapmaTxt(r.yon_2_olculen_iletken_krimp_yuksekligi, r.yon_2_hedef_iletken_krimp_yuksekligi)}</td>
       <td>${r.yon_2_siyirma_boyu ?? "-"} mm</td>
       <td>${r.yon_2_capak_boyu ?? "-"} mm</td>
-      <td>${r.yon_2_olculen_cekme_kuvveti_n ?? "-"} N (Hedef: ${r.yon_2_hedef_cekme_kuvveti_n ?? "-"})</td>
+      <td>${r.yon_2_olculen_cekme_kuvveti_n ?? "-"} N (${__("Hedef:")} ${r.yon_2_hedef_cekme_kuvveti_n ?? "-"})</td>
       <td class="${t2_radus ? 'ok' : 'low'}">${t2_radus ? "✔" : "✘"}</td>
       <td class="${!t2_tel_kesme ? 'ok' : 'low'}">${!t2_tel_kesme ? "✔" : "✘"}</td>
     </tr>
@@ -296,7 +296,7 @@ export async function printKrimpProtocol(doc: any) {
   }).join("");
 
   const bodyHtml = `
-    ${getHeaderHtml(doc, "Krimp Ölçüm Protokol Belgesi", today, is_sub_op_based)}
+    ${getHeaderHtml(doc, __("Krimp Ölçüm Protokol Belgesi"), today, is_sub_op_based)}
     <table>
       <thead>
         <tr>
@@ -326,7 +326,7 @@ export async function printKrimpProtocol(doc: any) {
     ${getSignaturesHtml(doc, today, qisList, approversList)}
   `;
 
-  printHtml("Krimp Protokol Belgesi", doc.name, bodyHtml);
+  printHtml(__("Krimp Protokol Belgesi"), doc.name, bodyHtml);
 }
 
 export function printEnjeksiyonProtocol(doc: any) {
@@ -364,7 +364,7 @@ export function printEnjeksiyonProtocol(doc: any) {
   const rows_html = rows.map((r: any, i: number) => `
     <tr class="row-${i % 2 === 0 ? 'even' : 'odd'}">
       <td>${i + 1}</td>
-      <td>${r.kontrol_periyodu || "-"}</td>
+      <td>${r.kontrol_periyodu ? __(r.kontrol_periyodu) : "-"}</td>
       <td>${r.hammadde_no || "-"}</td>
       <td class="${sapmaClass(r.hammadde_kazan_isisi, r.hedef_hammadde_kazan_isisi_merkez, r.hedef_hammadde_kazan_isisi_tolerans)}">${formatMerkez(r.hammadde_kazan_isisi, r.hedef_hammadde_kazan_isisi_merkez, r.hedef_hammadde_kazan_isisi_tolerans)}</td>
       <td class="${sapmaClass(r.ara_hortum_isisi, r.hedef_ara_hortum_isisi_merkez, r.hedef_ara_hortum_isisi_tolerans)}">${formatMerkez(r.ara_hortum_isisi, r.hedef_ara_hortum_isisi_merkez, r.hedef_ara_hortum_isisi_tolerans)}</td>
@@ -380,7 +380,7 @@ export function printEnjeksiyonProtocol(doc: any) {
   `).join("");
 
   const bodyHtml = `
-    ${getHeaderHtml(doc, "Enjeksiyon Ölçüm Protokol Belgesi", today)}
+    ${getHeaderHtml(doc, __("Enjeksiyon Ölçüm Protokol Belgesi"), today)}
     <table>
       <thead>
         <tr>
@@ -404,5 +404,5 @@ export function printEnjeksiyonProtocol(doc: any) {
     ${getSignaturesHtml(doc, today)}
   `;
 
-  printHtml("Enjeksiyon Protokol Belgesi", doc.name, bodyHtml);
+  printHtml(__("Enjeksiyon Protokol Belgesi"), doc.name, bodyHtml);
 }

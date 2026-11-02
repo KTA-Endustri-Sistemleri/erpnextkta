@@ -12,7 +12,7 @@ const props = defineProps<{
   onPrint: () => void;
 }>();
 
-const __ = (...args: any[]) => window.__(...args);
+const __ = (...args: any[]) => (window as any).__(...args);
 
 function actions(r: any) {
   const items = props.canEditData
@@ -45,7 +45,7 @@ function actions(r: any) {
   </div>
 
   <div v-if="(props.rows||[]).length===0" class="ck-muted" style="margin-top: 14px;padding: 0px 6px;">
-    IDC ölçüm kaydı yok.
+    {{ __('IDC ölçüm kaydı yok.') }}
   </div>
 
   <div v-else class="ck-mini-list" style="margin-top:8px;">
@@ -58,10 +58,10 @@ function actions(r: any) {
 
         <div style="display:flex; flex-direction:column; gap:6px;">
           <div class="ck-muted" style="border: 1px solid var(--btn-default-hover-bg);border-radius: 10px;padding: 6px 10px;">
-            Yükseklik: <b style="font-weight:800;">{{ r.yukseklik_mm ?? "-" }}</b> mm
+            {{ __('Yükseklik') }}: <b style="font-weight:800;">{{ r.yukseklik_mm ?? "-" }}</b> mm
           </div>
           <div class="ck-muted" style="border: 1px solid var(--btn-default-hover-bg);border-radius: 10px;padding: 6px 10px;">
-            Çekme: <b style="font-weight:800;">{{ r.cekme_n ?? "-" }}</b> N
+            {{ __('Çekme') }}: <b style="font-weight:800;">{{ r.cekme_n ?? "-" }}</b> N
           </div>
         </div>
 
