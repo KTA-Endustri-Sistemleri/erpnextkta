@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v3.0.0 (2026-11-02)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **mrp**: implement multi-pass capacity planning and dynamic mr assignment workflow
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v2.11.2 (2026-11-02)
 
 
