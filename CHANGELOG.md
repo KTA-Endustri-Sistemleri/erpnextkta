@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v3.0.1 (2026-11-03)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **stock**: add manual delivery note field for packaging dispatch
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v3.0.0 (2026-11-02)
 
 
