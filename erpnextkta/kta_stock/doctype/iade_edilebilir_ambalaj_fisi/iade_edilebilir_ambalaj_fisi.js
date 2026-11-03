@@ -18,8 +18,22 @@ frappe.ui.form.on("Iade Edilebilir Ambalaj Fisi", {
 	},
 
 	type(frm) {
+		const is_giris = frm.doc.type === "Giriş";
 		// Giriş yapılıyorsa Mal Alım İrsaliyesi seçmek zorunlu olsun
-		frm.toggle_reqd("purchase_receipt", frm.doc.type === "Giriş");
+		frm.toggle_reqd("purchase_receipt", is_giris);
+		if (!is_giris) {
+			if (frm.doc.purchase_receipt) frm.set_value("purchase_receipt", null);
+			if (frm.doc.calculated_qty) frm.set_value("calculated_qty", 0);
+			if (frm.doc.sevk_irsaliye_no) frm.set_value("irsaliye_no", frm.doc.sevk_irsaliye_no);
+		} else {
+			if (frm.doc.sevk_irsaliye_no) frm.set_value("sevk_irsaliye_no", null);
+		}
+	},
+
+	sevk_irsaliye_no(frm) {
+		if (frm.doc.type === "Çıkış") {
+			frm.set_value("irsaliye_no", frm.doc.sevk_irsaliye_no || null);
+		}
 	},
 
 	supplier(frm) {

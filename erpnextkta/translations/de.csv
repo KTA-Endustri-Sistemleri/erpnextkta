@@ -710,6 +710,7 @@ Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj/konipak sayısı: <b>{0
 Mal Alım İrsaliyesi,Wareneingang
 Tedarikçi,Lieferant
 İrsaliye No,Lieferschein-Nr
+Sevk İrsaliye No,Versand-Lieferschein-Nr
 Hesaplanan Adet,Berechnete Menge
 Adet,Menge
 Giriş,Eingang
