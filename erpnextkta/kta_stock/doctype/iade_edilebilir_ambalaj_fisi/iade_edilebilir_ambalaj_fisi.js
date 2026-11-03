@@ -1,4 +1,4 @@
-// Copyright (c) 2026, Framras AS and contributors
+// Copyright (c) 2026, KTA Endüstri Sistemleri and contributors
 // For license information, please see license.txt
 
 const AMBALAJ_METHOD = "erpnextkta.kta_stock.doctype.iade_edilebilir_ambalaj_fisi.iade_edilebilir_ambalaj_fisi";

@@ -2,7 +2,7 @@
 name = "erpnextkta"
 version = "3.0.1"
 authors = [
-    { name = "Framras AS", email = "bilgi@framras.com.tr" }
+    { name = "KTA Endüstri Sistemleri", email = "info@kta-endustri.com.tr" }
 ]
 description = "KTA Endustri ozellestirmeleri CERKEZKOY TURKIYE"
 requires-python = ">=3.10"

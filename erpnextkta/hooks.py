@@ -1,9 +1,9 @@
 from . import __version__ as app_version
 app_name = "erpnextkta"
 app_title = "erpnextkta"
-app_publisher = "Framras AS"
+app_publisher = "KTA Endüstri Sistemleri"
 app_description = "KTA Endustri ozellestirmeleri CERKEZKOY TURKIYE"
-app_email = "bilgi@framras.com.tr"
+app_email = "info@kta-endustri.com.tr"
 app_license = "mit"
 
 # Apps

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Framras AS and contributors
+# Copyright (c) 2025, KTA Endüstri Sistemleri and contributors
 # For license information, please see license.txt
 
 # import frappe
