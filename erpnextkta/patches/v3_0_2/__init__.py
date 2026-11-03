@@ -1,2 +1,2 @@
-# Copyright (c) 2026, Framras AS and Contributors
+# Copyright (c) 2026, KTA Endüstri Sistemleri and contributors
 # See license.txt
