@@ -3,6 +3,61 @@
 
 
 
+## 🚀 v3.0.2 (2026-11-03)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **stock**: remove mandatory customer packaging qty and reset invalid quantities
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- clean up IDE configurations and refine gitignore patterns
+      
+      
+    
+      
+      
+        
+- update publisher and copyright to KTA Endüstri Sistemleri
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v3.0.1 (2026-11-03)
 
 
