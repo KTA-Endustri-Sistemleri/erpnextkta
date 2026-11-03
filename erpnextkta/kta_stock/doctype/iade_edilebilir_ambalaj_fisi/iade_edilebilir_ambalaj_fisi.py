@@ -20,6 +20,7 @@ class IadeEdilebilirAmbalajFisi(Document):
 		self.validate_qty()
 		self.validate_purchase_receipt()
 		self.set_calculated_qty()
+		self.set_dispatch_delivery_note()
 		self.validate_count_difference()
 		self.warn_duplicate_purchase_receipt()
 
@@ -60,6 +61,15 @@ class IadeEdilebilirAmbalajFisi(Document):
 			self.calculated_qty = calculate_packaging_qty(self.purchase_receipt)["total"]
 		else:
 			self.calculated_qty = 0
+
+	def set_dispatch_delivery_note(self):
+		if self.type == TYPE_OUT:
+			self.purchase_receipt = None
+			self.calculated_qty = 0
+			if self.sevk_irsaliye_no:
+				self.irsaliye_no = self.sevk_irsaliye_no
+		elif self.type == TYPE_IN:
+			self.sevk_irsaliye_no = None
 
 	def validate_count_difference(self):
 		if not self.calculated_qty or (self.remarks or "").strip():

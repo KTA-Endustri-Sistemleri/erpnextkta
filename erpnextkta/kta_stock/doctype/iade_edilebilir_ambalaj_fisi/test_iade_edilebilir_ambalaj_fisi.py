@@ -94,3 +94,11 @@ class TestIadeEdilebilirAmbalajFisi(FrappeTestCase):
 		_, data = execute({"supplier": TEST_SUPPLIER})
 		self.assertEqual(len(data), 1)
 		self.assertEqual(data[0]["balance"], 5)
+
+	def test_cikis_with_sevk_irsaliye_no(self):
+		insert_giris_without_receipt(10)
+		cikis = make_fisi("Çıkış", 2, sevk_irsaliye_no="IRS-2026-999")
+		self.assertEqual(cikis.sevk_irsaliye_no, "IRS-2026-999")
+		self.assertEqual(cikis.irsaliye_no, "IRS-2026-999")
+		self.assertIsNone(cikis.purchase_receipt)
+		self.assertEqual(cikis.calculated_qty, 0)

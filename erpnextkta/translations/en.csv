@@ -721,6 +721,7 @@ Seçilen irsaliyedeki kalemlere göre hesaplanan ambalaj/konipak sayısı: <b>{0
 Mal Alım İrsaliyesi,Purchase Receipt
 Tedarikçi,Supplier
 İrsaliye No,Delivery Note No
+Sevk İrsaliye No,Dispatch Delivery Note No
 Hesaplanan Adet,Calculated Qty
 Adet,Quantity
 Giriş,Receipt

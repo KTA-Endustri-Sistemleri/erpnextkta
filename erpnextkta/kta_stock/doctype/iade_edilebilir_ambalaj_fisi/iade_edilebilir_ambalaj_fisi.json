@@ -9,9 +9,10 @@
  "field_order": [
   "naming_series",
   "type",
-  "purchase_receipt",
   "supplier",
+  "purchase_receipt",
   "irsaliye_no",
+  "sevk_irsaliye_no",
   "column_break_1",
   "posting_date",
   "calculated_qty",
@@ -48,6 +49,7 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:doc.type=='Giri\u015f'",
    "fieldname": "purchase_receipt",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -55,12 +57,19 @@
    "options": "Purchase Receipt"
   },
   {
+   "depends_on": "eval:doc.type=='Giri\u015f'",
    "fetch_from": "purchase_receipt.supplier_delivery_note",
    "fieldname": "irsaliye_no",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "\u0130rsaliye No",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.type=='\u00c7\u0131k\u0131\u015f'",
+   "fieldname": "sevk_irsaliye_no",
+   "fieldtype": "Data",
+   "label": "Sevk \u0130rsaliye No"
   },
   {
    "fieldname": "column_break_1",
@@ -75,6 +84,7 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:doc.type=='Giri\u015f'",
    "fieldname": "calculated_qty",
    "fieldtype": "Int",
    "in_list_view": 1,
