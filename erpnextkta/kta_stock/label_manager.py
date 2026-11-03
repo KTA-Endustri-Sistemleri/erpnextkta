@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.utils import flt
 from kta_system_utils.kta_zebra_utils.printer_manager import ZebraPrinterManager
 from erpnextkta.kta_stock.batch_manager import BatchSplitManager
 
@@ -160,9 +161,7 @@ class LabelPrinter:
             fieldname=["max(custom_musteri_paketleme_miktari) as musteri_paketleme_miktari"]
         )
 
-        if not musteri_paketleme_miktari:
-            frappe.throw(_("Ürün için müşteri paketleme miktarı bulunamadı: {0}").format(work_order_doc.production_item))
-            return None
+        paket_miktari = flt(musteri_paketleme_miktari or 0)
 
         return {
             "work_order": work_order_doc.name,
@@ -170,7 +169,7 @@ class LabelPrinter:
             "stock_uom": work_order_doc.stock_uom,
             "production_item": work_order_doc.production_item,
             "material_index": material_index,
-            "musteri_paketleme_miktari": musteri_paketleme_miktari
+            "musteri_paketleme_miktari": paket_miktari
         }
 
     @staticmethod
@@ -235,9 +234,14 @@ class LabelPrinter:
 
     @staticmethod
     def _print_calculated_packs(stock_entry_detail_doc, work_order_details, stock_entry_name, stock_entry_doc, destination_warehouse, base_batch_no, zebra_printer, label_template):
-        musteri_paketleme_miktari = work_order_details.get("musteri_paketleme_miktari")
-        num_packs = frappe.cint(stock_entry_detail_doc.qty // musteri_paketleme_miktari)
-        remainder_qty = stock_entry_detail_doc.qty % musteri_paketleme_miktari
+        entry_qty = flt(stock_entry_detail_doc.qty)
+        musteri_paketleme_miktari = flt(work_order_details.get("musteri_paketleme_miktari") or 0)
+        
+        if musteri_paketleme_miktari <= 0:
+            musteri_paketleme_miktari = entry_qty
+
+        num_packs = frappe.cint(entry_qty // musteri_paketleme_miktari)
+        remainder_qty = entry_qty % musteri_paketleme_miktari
 
         if num_packs >= 1:
             for pack in range(1, num_packs + 1):
