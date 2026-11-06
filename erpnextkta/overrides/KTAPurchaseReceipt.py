@@ -13,8 +13,34 @@ class KTAPurchaseReceipt(PurchaseReceipt):
 
     def validate(self):
         self.update_rates_logic()
+        self._validate_eta_mandatory()
+        self._set_clearance_started_date()
         super().validate()
         self._validate_item_rates()
+
+    def _validate_eta_mandatory(self):
+        """
+        Yoldaki (In Transit) sevkiyatlar için:
+        Tahmini Varış Tarihi (tahmini_varis_tarihi) zorunludur.
+        Gemi veya karayolu gerçek varış tarihinin dış ticaret personeli tarafından
+        konşimento / acente ETA'sına göre girilmesini garanti altına alır.
+        """
+        state = (self.get("workflow_state") or "").lower()
+        if "yol" in state and not self.get("tahmini_varis_tarihi"):
+            frappe.throw(
+                _("Yolda durumundaki irsaliyeler için 'Tahmini Varış Tarihi (ETA)' alanı zorunludur. Lütfen İthalat sekmesinden tahmini varış tarihini giriniz."),
+                title=_("Eksik Bilgi: Tahmini Varış Tarihi")
+            )
+
+    def _set_clearance_started_date(self):
+        """
+        Durum 'Gümrüklemede' (İşlem Başlatıldı) yapıldığında:
+        Gümrükleme başlama tarihini (custom_gumruk_islem_baslama_tarihi) otomatik bugün yapar.
+        """
+        state = (self.get("workflow_state") or "").lower()
+        if ("gümrükleme" in state or "gumrukleme" in state) and not self.get("custom_gumruk_islem_baslama_tarihi"):
+            from frappe.utils import today
+            self.custom_gumruk_islem_baslama_tarihi = today()
 
     def validate_with_previous_doc(self):
         try:

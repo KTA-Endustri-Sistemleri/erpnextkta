@@ -729,6 +729,15 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
         self.assertIn("henüz Kalite Kontrol (GKK) onayı almadığı", str(exc.exception), 
                       "Should block transfer to rejected warehouse if GKK is still pending/draft")
 
+    def test_eta_mandatory_when_in_transit(self):
+        """Yolda (In Transit) durumundaki irsaliye kaydedilirken tahmini_varis_tarihi zorunlu olmalıdır."""
+        pr = frappe.new_doc("Purchase Receipt")
+        pr.workflow_state = "Yolda"
+        pr.tahmini_varis_tarihi = None
 
+        with self.assertRaises(frappe.ValidationError):
+            pr._validate_eta_mandatory()
 
-
+        pr.tahmini_varis_tarihi = "2026-11-25"
+        # Should not raise when ETA is provided
+        pr._validate_eta_mandatory()

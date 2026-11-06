@@ -434,6 +434,14 @@ fixtures = [
         "filters": [
             ["document_type", "=", "Item"]
         ]
+    },
+    "Workflow State",
+    "Workflow Action Master",
+    {
+        "doctype": "Workflow",
+        "filters": [
+            ["name", "in", ["KTA Mal Giris Sureci", "8D Formu Süreci"]]
+        ]
     }
 ]
 doctype_js = {

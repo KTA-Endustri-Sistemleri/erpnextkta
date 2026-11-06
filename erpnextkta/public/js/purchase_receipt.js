@@ -26,11 +26,38 @@ frappe.ui.form.on("Purchase Receipt", {
         };
     },
 
+    refresh: function (frm) {
+        toggle_eta_mandatory(frm);
+    },
+
     posting_date: function (frm) {
         // frappe.ui.form.on handler'ı da override et (ek güvenlik).
         if (frm.doc.posting_date) {
             frm.posting_date = frm.doc.posting_date;
         }
         // currency() tetiklemesini YAPMA.
+    },
+
+    workflow_state: function (frm) {
+        toggle_eta_mandatory(frm);
+        set_clearance_start_date(frm);
+    },
+
+    is_import_purchase_receipt: function (frm) {
+        toggle_eta_mandatory(frm);
     }
 });
+
+function toggle_eta_mandatory(frm) {
+    const state = (frm.doc.workflow_state || "").toLowerCase();
+    const is_yolda = state.includes("yol");
+    frm.set_df_property("tahmini_varis_tarihi", "reqd", is_yolda ? 1 : 0);
+}
+
+function set_clearance_start_date(frm) {
+    const state = (frm.doc.workflow_state || "").toLowerCase();
+    if ((state.includes("gümrükleme") || state.includes("gumrukleme")) && !frm.doc.custom_gumruk_islem_baslama_tarihi) {
+        // Gümrükleme başlatıldığında işlem başlama tarihini bugün yap
+        frm.set_value("custom_gumruk_islem_baslama_tarihi", frappe.datetime.get_today());
+    }
+}

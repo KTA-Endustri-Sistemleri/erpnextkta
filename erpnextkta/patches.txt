@@ -21,3 +21,4 @@ erpnextkta.patches.v1_4_1.rename_downtime_reasons
 erpnextkta.patches.v1_4_1.update_ariza_sonrasi_bekleme
 erpnextkta.patches.v1_4_1.remove_stock_entry_kta_custom_fields
 erpnextkta.patches.v3_0_2.reset_invalid_customer_packaging_qty
+erpnextkta.patches.v3_0_3.backfill_pr_transit_eta
