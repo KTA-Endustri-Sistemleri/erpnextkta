@@ -24,7 +24,19 @@
 
 <div class="kta-doc-section">
   <h2>2. Hesaplama Mantığı</h2>
-  <div class="kta-doc-code">Sevkiyat Tarihi = Teslimat Haftasının Son Günü − Sevkiyat Süresi (gün)</div>
+  <div class="kta-formula-grid">
+    <div class="kta-formula-card primary">
+      <div class="kta-formula-header">
+        <span>SEVKİYAT TARİHİ FORMÜLÜ</span>
+        <span>Nakliye Süresi Hesabı</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Sevkiyat Tarihi</span>
+        <span>= Teslimat Haftasının Son Günü − Sevkiyat Süresi (gün)</span>
+      </div>
+      <div class="kta-formula-desc">Müşteri siparişinin teslimat haftasının Cuma gününden, KTA Sevk Parametreleri kaydındaki delivery_time nakliye süresi düşülerek yükleme günü bulunur.</div>
+    </div>
+  </div>
   <p><strong>Sevkiyat Süresi</strong>, müşteri ve sevkiyat adresine göre <strong>KTA Sevk Parametreleri</strong> DocType'ından <code>delivery_time</code> alanı olarak alınır. Önce müşteri + adres eşleşmesi denenir, bulunamazsa sadece müşteri adına bakılır.</p>
 </div>
 

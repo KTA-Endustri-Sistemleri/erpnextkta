@@ -22,7 +22,7 @@ Bu ekran sayesinde:
 ## 2. Veri Kaynağı ve Hesaplama Mantığı
 
 ### 📦 Veri Kaynağı
-Rapor, arka planda **Malzeme İhtiyaç Raporu**'nu `stage = "1 - Temel Hammadde İhtiyacı"` ve `group_by = "Bitmiş Ürün + Hammadde"` modunda çalıştırır. Bu sayede her hammaddenin hangi bitmiş üründen ve hangi müşteri grubundan tüketildiğini bilir.
+Rapor, **Malzeme İhtiyaç Raporu** ile aynı ortak MRP motorunu (`kta_mrp/mrp_engine`) kullanır ve `get_gross_requirements` servisinden brüt hammadde ihtiyacını, bitmiş ürün ve müşteri grubu kırılımıyla (pegging) birlikte alır. Bu sayede her hammaddenin hangi bitmiş üründen ve hangi müşteri grubundan tüketildiğini bilir.
 
 ### 🧮 Müşteri Grubu Kırılımı
 1. Her bitmiş ürünün `custom_musteri_grubu` alanından müşteri grubu belirlenir.

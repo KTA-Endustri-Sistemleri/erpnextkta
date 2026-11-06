@@ -31,7 +31,7 @@ Her sipariş kalemi için teslim tarihinden geriye doğru gidilir:
 ```
 
 - **Üretim Süresi** ve **Sevkiyat Süresi** değerleri, her müşteri/sevk adresi için ayrı ayrı tanımlanan **KTA Sevk Parametreleri** DocType'ından alınır.
-- Eşleşme bulunamazsa, teslimat tarihi olduğu gibi kullanılır ve rapor sonunda eşleşmeyen müşteriler listesi bildirilir.
+- Müşteri eşleşmesi bulunamazsa, **KTA MRP Settings** altındaki `default_production_time_days` (varsayılan 14 gün) kullanılır. Hiçbir parametre yoksa teslimat tarihi olduğu gibi kullanılır ve rapor sonunda eşleşmeyen müşteriler listesi bildirilir.
 
 ### 📊 Stok Düşme Mantığı
 Bitmiş ürünlerin deposundaki (`warehouse_type = "Kullanılabilir Stok"`) mevcut stok, haftalara kronolojik sırayla dağıtılır:

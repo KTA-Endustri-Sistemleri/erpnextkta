@@ -24,7 +24,7 @@
 <div class="kta-doc-section">
   <h2>2. Hesaplama Mantığı</h2>
   <h3>📦 Veri Kaynağı</h3>
-  <p>Arka planda <strong>Malzeme İhtiyaç Raporu</strong>'nu <code>stage = "1 - Temel Hammadde İhtiyacı"</code> ve <code>group_by = "Bitmiş Ürün + Hammadde"</code> modunda çalıştırır.</p>
+  <p><strong>Malzeme İhtiyaç Raporu</strong> ile aynı ortak MRP motorunu kullanır; brüt hammadde ihtiyacını bitmiş ürün ve müşteri grubu kırılımıyla (pegging) birlikte <code>get_gross_requirements</code> servisinden alır.</p>
 
   <h3>🧮 Müşteri Grubu Kırılımı</h3>
   <p>Her bitmiş ürünün <code>custom_musteri_grubu</code> alanından müşteri grubu belirlenir. Hammadde tüketimi bu gruplara göre dağıtılarak, her KTA Customer Group için ayrı bir sütun oluşturulur.</p>
@@ -44,7 +44,7 @@
         <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
       </thead>
       <tbody>
-        <tr><td><strong>Periyot</strong></td><td>Yıllık, 3 Aylık, 6 Aylık, Süresiz</td><td>Yıllık</td></tr>
+        <tr><td><strong>Periyot</strong></td><td>Bugünden itibaren: Yıllık (12 ay), 3 Aylık, 6 Aylık, Süresiz (tüm açık talepler), Özel (tarih aralığı)</td><td>Yıllık</td></tr>
         <tr><td><strong>Ürün Grubu</strong></td><td>Belirli bir ürün grubuna göre filtreleme</td><td>(Hepsi)</td></tr>
         <tr><td><strong>Ara Malzeme Grubu</strong></td><td>Hammaddeleri ara malzeme grubuna göre filtreleme</td><td>(Hepsi)</td></tr>
         <tr><td><strong>Müşteri Grubu</strong></td><td>Birden fazla müşteri grubu seçilebilir (MultiSelect)</td><td>(Hepsi)</td></tr>

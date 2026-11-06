@@ -30,11 +30,23 @@
 <div class="kta-doc-section">
   <h2>2. Hesaplama Mantığı</h2>
   <h3>⏳ Üretime Başlama Tarihi</h3>
-  <div class="kta-doc-code">Üretime Başlama Tarihi = Teslimat Tarihi − (Üretim Süresi + Sevkiyat Süresi)</div>
+  <div class="kta-formula-grid">
+    <div class="kta-formula-card primary">
+      <div class="kta-formula-header">
+        <span>ZAMANLAMA FORMÜLÜ</span>
+        <span>Üretim & Sevkiyat Lead Time</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Üretime Başlama Tarihi</span>
+        <span>= Teslimat Tarihi − ( Üretim Süresi + Sevkiyat Süresi )</span>
+      </div>
+      <div class="kta-formula-desc">Müşteri siparişinin teslim tarihinden, sevk adresi ve rotaya ait nakliye süresi ile fabrikadaki standart üretim süresi geriye düşülerek üretime başlanması gereken hafta bulunur.</div>
+    </div>
+  </div>
   <p><strong>Satış Siparişleri:</strong> Üretim Süresi ve Sevkiyat Süresi değerleri, her müşteri/sevk adresi için ayrı ayrı tanımlanan <strong>KTA Sevk Parametreleri</strong> DocType'ından alınır.</p>
-  <p><strong>Dahili Üretim Talepleri (MR):</strong> Talebe bağlı ürünün <code>Item Customer</code> tablosundaki varsayılan müşterisinden üretim süresi çekilir. Müşteri bulunamazsa varsayılan olarak <strong>14 Gün</strong> üretim süresi kullanılarak gerekli tarihten (Schedule Date) geriye sayılır.</p>
+  <p><strong>Dahili Üretim Talepleri (MR):</strong> Talebe bağlı ürünün <code>Item Customer</code> tablosundaki varsayılan müşterisinden üretim süresi çekilir. Müşteri bulunamazsa, <strong>KTA MRP Settings</strong> altındaki <code>default_production_time_days</code> parametresi (varsayılan <strong>14 Gün</strong>) kullanılarak gerekli tarihten (Schedule Date) geriye sayılır.</p>
   <div class="kta-doc-info warning">
-    <strong>⚠️ Eşleşme Bulunamazsa:</strong> Teslimat tarihi olduğu gibi kullanılır ve rapor sonunda eşleşmeyen müşteriler listesi bildirilir.
+    <strong>⚠️ Eşleşme Bulunamazsa:</strong> Müşteri sevk parametresi bulunamadığında teslimat tarihi olduğu gibi kullanılır ve rapor sonunda eşleşmeyen müşteriler listesi bildirilir.
   </div>
 
   <h3>📊 Stok ve İş Emri (WIP) Düşme Mantığı</h3>

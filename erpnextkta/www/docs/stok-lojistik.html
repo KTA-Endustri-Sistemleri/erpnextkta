@@ -16,24 +16,91 @@
 
 <hr />
 
-<h2>📥 1. Mal Kabul (Purchase Receipt) İşlemleri</h2>
+<h2>📥 1. Mal Kabul (Purchase Receipt) İşlemleri ve KTA Mal Giriş Süreci</h2>
 
-<p>Tedarikçilerden gelen hammaddelerin fabrikaya alınması ve sisteme kaydedilmesi sürecidir.</p>
+<p>Tedarikçilerden gelen hammaddelerin fabrikaya alınması, uluslararası lojistik aşamaları, antrepo bekleme havuzu ve gümrük millileştirme süreçlerinin uçtan uca takip edildiği resmi iş akışıdır (Workflow).</p>
 
-<h3>Lojistik Takip İş Akışı (Workflow)</h3>
+<h3>🗺️ Lojistik ve İthalat İş Akışı (KTA Mal Giriş Süreci)</h3>
 
-<p>Sistem, malzemenin fiziksel yolculuğunu takip etmeniz için bir iş akışı sunar. İlgili belge üzerinden şu statüleri seçerek ilerleyebilirsiniz:</p>
-<ol>
-  <li><strong>Yolda:</strong> Tedarikçi ürünü kargoladı.</li>
-  <li><strong>Antrepoda:</strong> Ürün gümrükte/antrepoda bekliyor.</li>
-  <li><strong>Mal Girişe Hazır:</strong> Ürün yola çıktı, fabrikaya geliyor.</li>
-  <li><strong>Mal Giriş:</strong> Ürün fiziksel olarak deponun kapısına yanaştı.</li>
-  <li><strong>[Kabul Et (Submit)]:</strong> Depo personeli sayımı yapar ve belgeyi onaylar.</li>
-</ol>
+<div class="kta-doc-flow" style="flex-wrap: wrap; margin-bottom: 20px;">
+  <div class="kta-doc-flow-step">Mal Girişe Hazır</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step">🚢 Yolda (ETA Zorunlu)</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step">🏛️ Antrepoda (Havuz)</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step">⚡ Gümrüklemede (+2 Gün)</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step">🏭 Mal Giriş</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step active">✅ Kabul Edildi (GKK)</div>
+</div>
 
-<blockquote>
-  <p><strong>Önemli Not:</strong> "Kabul Et" (Submit) butonuna basılana kadar sistem stokları artırmaz ve etiket basmaz.</p>
-</blockquote>
+<div class="kta-doc-table-wrap">
+  <table class="kta-doc-table">
+    <thead>
+      <tr>
+        <th style="width: 140px;">Aşama (State)</th>
+        <th style="width: 130px;">Tetikleyici / Buton</th>
+        <th style="width: 130px;">Yetkili Rol</th>
+        <th>Açıklama, Zorunlu Alanlar ve MRP/Planlama Etkisi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Mal Girişe Hazır</strong></td>
+        <td>İrsaliye Açılışı</td>
+        <td>Purchase User</td>
+        <td>Yurtiçi satınalmalar veya tedarikçiye iade irsaliyeleri (<code>is_return = 1</code>) için başlangıç aşamasıdır. Doğrudan fabrika girişine aktarılabilir.</td>
+      </tr>
+      <tr>
+        <td><strong>Yolda (In Transit)</strong></td>
+        <td><code>İthalat Başlat</code></td>
+        <td>Purchase User</td>
+        <td>
+          Yurtdışından sevk edilen malzemeler için kullanılır. 
+          <br><strong>⚠️ Zorunlu Alan (ETA):</strong> İthalat sekmesindeki <code>tahmini_varis_tarihi</code> (ETA) alanı zorunludur; lojistik moduna göre (karayolu, denizyolu, havayolu) kesin varış tarihi girilmeden belge bu duruma alınamaz. MRP motoru bu tarihi baz alır.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Antrepoda</strong></td>
+        <td><code>Antrepoya Al</code></td>
+        <td>Purchase User</td>
+        <td>
+          Malzeme gümrük sahasına/antrepoya ulaşmış ve <code>gumruge_gelis_tarihi</code> işlenmiştir. 
+          <br><strong>Bekleme Havuzu Prensibi:</strong> Bazı malzemeler antrepoda bekletildiği için, henüz çekim kararı verilmemiş ürünler haftalık teslimat takvimine yapay olarak yığılmaz; MRP ekranlarında <em>"Antrepoda Bekliyor (İşlem Başlatılmadı)"</em> rezervi olarak gösterilir.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Gümrüklemede</strong></td>
+        <td><code>İşlem Başlat</code></td>
+        <td>Purchase User</td>
+        <td>
+          Gümrük müşaviri veya satınalma birimi millileştirme/çekim sürecini fiilen başlattığında bu aksiyon tetiklenir.
+          <br><strong>+2 Gün Tampon:</strong> Sistem, işlem başlama tarihine KTA MRP Ayarlarındaki <code>antrepo_clearance_days</code> (2 gün) tamponunu ekleyerek malzemenin fabrikaya kesin varış gününü netleştirir.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Mal Giriş</strong></td>
+        <td><code>Antrepodan Çek</code></td>
+        <td>Stock User</td>
+        <td>Gümrük ve nakliye işlemleri tamamlanmış, kamyon fabrikanın fiziki mal kabul kapısına yanaşmıştır. Belge üzerinde ambar sayım ve kontrol hazırlıkları yapılır.</td>
+      </tr>
+      <tr>
+        <td><strong>Kabul Edildi (Submit)</strong></td>
+        <td><code>Onayla (Submit)</code></td>
+        <td>Quality Manager / Stock User</td>
+        <td>
+          Fiziki sayım tamamlanıp belge onaylandığında stoklar ambar bakiyesine işlenir, Smart Batch Splitting çalışır, Zebra SUT barkodları basılır ve Giriş Kalite Kontrol (GKK) karantina süreci başlar.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="kta-doc-info warning">
+  <strong>⚠️ Önemli Not:</strong> Belge "Onayla" (Submit) edilene kadar sistem stokları artırmaz ve ambar etiketleri basılmaz. Ancak onay öncesindeki tüm aşamalar (Yolda, Antrepoda, Gümrüklemede) MRP Malzeme İhtiyaç Raporunda açık teslimat arzı olarak anlık izlenir.
+</div>
 
 <hr />
 

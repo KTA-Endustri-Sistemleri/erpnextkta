@@ -13,19 +13,24 @@ Bu kılavuz, depo personelinin ve lojistik yöneticilerinin günlük işlemlerde
 
 ---
 
-## 📥 1. Mal Kabul (Purchase Receipt) İşlemleri
+## 📥 1. Mal Kabul (Purchase Receipt) İşlemleri ve KTA Mal Giriş Süreci
 
-Tedarikçilerden gelen hammaddelerin fabrikaya alınması ve sisteme kaydedilmesi sürecidir.
+Tedarikçilerden gelen hammaddelerin fabrikaya alınması, uluslararası lojistik aşamaları, antrepo bekleme havuzu ve gümrük millileştirme süreçlerinin uçtan uca takip edildiği resmi iş akışıdır (Workflow).
 
-### Lojistik Takip İş Akışı (Workflow)
-Sistem, malzemenin fiziksel yolculuğunu takip etmeniz için bir iş akışı sunar. İlgili belge üzerinden şu statüleri seçerek ilerleyebilirsiniz:
-1. **Yolda:** Tedarikçi ürünü kargoladı.
-2. **Antrepoda:** Ürün gümrükte/antrepoda bekliyor.
-3. **Mal Girişe Hazır:** Ürün yola çıktı, fabrikaya geliyor.
-4. **Mal Giriş:** Ürün fiziksel olarak deponun kapısına yanaştı.
-5. **[Kabul Et (Submit)]:** Depo personeli sayımı yapar ve belgeyi onaylar.
+### 🗺️ Lojistik ve İthalat İş Akışı (KTA Mal Giriş Süreci)
 
-> **Önemli Not:** "Kabul Et" (Submit) butonuna basılana kadar sistem stokları artırmaz ve etiket basmaz.
+`Mal Girişe Hazır` ➔ `🚢 Yolda (ETA Zorunlu)` ➔ `🏛️ Antrepoda (Bekleme Havuzu)` ➔ `⚡ Gümrüklemede (+2 Gün)` ➔ `🏭 Mal Giriş` ➔ `✅ Kabul Edildi (GKK)`
+
+| Aşama (State) | Tetikleyici / Buton | Yetkili Rol | Açıklama, Zorunlu Alanlar ve Planlama Etkisi |
+| :--- | :--- | :--- | :--- |
+| **Mal Girişe Hazır** | İrsaliye Açılışı | Purchase User | Yurtiçi satınalmalar veya tedarikçiye iade irsaliyeleri (`is_return = 1`) için başlangıç aşamasıdır. |
+| **Yolda (In Transit)** | `İthalat Başlat` | Purchase User | Yurtdışından sevk edilen malzemeler içindir. **İthalat sekmesindeki `tahmini_varis_tarihi` (ETA) zorunludur.** Moduna göre (gemi, tır, uçak) gerçekçi ETA girilir. |
+| **Antrepoda** | `Antrepoya Al` | Purchase User | Malzeme gümrük sahasına/antrepoya ulaşmış ve `gumruge_gelis_tarihi` işlenmiştir. Henüz çekim kararı verilmediği için MRP'de takvime yığılmaz, **"Antrepoda Bekliyor"** rezervi olarak izlenir. |
+| **Gümrüklemede** | `İşlem Başlat` | Purchase User | Gümrük müşaviri/satınalma çekim işlemini başlattığında tetiklenir. `antrepo_clearance_days` (2 gün tampon) eklenerek fabrikaya kesin varış tarihi hesaplanır. |
+| **Mal Giriş** | `Antrepodan Çek` | Stock User | İthalat tamamlanmış, kamyon fabrika mal kabul kapısına yanaşmıştır. Sayım hazırlığı yapılır. |
+| **Kabul Edildi (Submit)** | `Onayla (Submit)` | Quality / Stock User | Sayım tamamlanıp onaylandığında stoklar artar, Smart Batch Splitting ile partilenir, Zebra SUT barkodları basılır ve GKK karantinası başlar. |
+
+> **⚠️ Önemli Not:** "Onayla" (Submit) butonuna basılana kadar sistem stokları artırmaz ve etiket basmaz. Ancak onay öncesindeki tüm aşamalar (Yolda, Antrepoda, Gümrüklemede) MRP Malzeme İhtiyaç Raporunda açık teslimat arzı olarak anlık izlenir.
 
 ---
 

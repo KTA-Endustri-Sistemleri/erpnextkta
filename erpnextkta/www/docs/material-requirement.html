@@ -5,15 +5,15 @@
 <div class="kta-doc-hero">
   <span class="kta-doc-hero-icon">🧱</span>
   <h1>Malzeme İhtiyaç Raporu</h1>
-  <p>Kapasite planından gelen haftalık üretim miktarlarını BOM ile çarparak "Hangi hafta, hangi hammaddeden ne kadar tüketilecek?" sorusunu cevaplar.</p>
+  <p>Kapasite planından gelen haftalık üretim miktarlarını BOM ile çarpar; stok ve açık PO'larla netleştirerek "Hangi hammaddeden, hangi hafta, ne kadar sipariş vermeliyim?" sorusunu cevaplar.</p>
 </div>
 
 <div class="kta-doc-section">
   <h2>1. Raporun Temel Amacı</h2>
   <ul>
-    <li>Her hammaddenin haftalık brüt tüketim miktarını gösterir.</li>
-    <li>Stok ve PO teslimatlarını düşerek <strong>net hammadde ihtiyacını</strong> hesaplar.</li>
-    <li>Bitmiş ürün + hammadde kırılımı veya sadece hammadde bazında gruplama yapabilirsiniz.</li>
+    <li>Her hammaddenin haftalık <strong>brüt ihtiyacını</strong>, <strong>net ihtiyacını</strong> ve MOQ/paket katına yuvarlanmış <strong>önerilen siparişini</strong> gösterir.</li>
+    <li>Stoğun hangi hafta biteceğini (<strong>İlk Eksik Hafta</strong>, <strong>Kapsama</strong>) ve önerilen siparişlerin tutarını gösterir.</li>
+    <li>Hammaddenin hangi bitmiş ürünler tarafından tüketildiğini ağaç yapısında açıp inceleyebilirsiniz.</li>
   </ul>
   <div class="kta-doc-flow">
     <div class="kta-doc-flow-step">📈 Satış Siparişleri</div>
@@ -23,80 +23,557 @@
     <div class="kta-doc-flow-step">⚙️ Kapasite Planlama</div>
     <span class="kta-doc-flow-arrow">→</span>
     <div class="kta-doc-flow-step active">🧱 Malzeme İhtiyaç</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">🛒 Önerilen PO</div>
   </div>
 </div>
 
 <div class="kta-doc-section">
   <h2>2. Hesaplama Mantığı</h2>
-  <h3>🧮 Hammadde İhtiyaç Hesaplaması</h3>
-  <p>Her bitmiş ürün için aktif ve varsayılan BOM'un <strong>Explosion Items</strong> (patlatılmış malzeme listesi) tablosu okunur. Bu, alt-BOM'ları da içeren en uç hammaddelere kadar iner.</p>
-  <div class="kta-doc-code">Hammadde Miktarı = BOM'daki stock_qty × Planlanan Üretim Adedi</div>
+  <h3>🧮 Brüt İhtiyaç</h3>
+  <p>Her bitmiş ürün için aktif ve varsayılan BOM'un <strong>Explosion Items</strong> tablosu okunur (alt BOM'lar dahil en uç hammaddeler).</p>
+  <div class="kta-formula-grid">
+    <div class="kta-formula-card primary">
+      <div class="kta-formula-header">
+        <span>BRÜT İHTİYAÇ FORMÜLÜ</span>
+        <span>BOM Patlatma</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Brüt İhtiyaç</span>
+        <span>= BOM stock_qty × ( Planlanan Üretim − Açık İş Emri Miktarı )</span>
+      </div>
+      <div class="kta-formula-desc">Açık iş emirlerinin hammaddeleri ambarda zaten rezerve edildiği için tekrar brüt talep olarak sayılmaz ve mükerrerlik önlenir.</div>
+    </div>
+  </div>
 
-  <h3>📉 Aşamalar</h3>
+  <h3>📦 Tedarik Hattı ve Stok Kaynakları (Supply Pipeline Breakdown)</h3>
+  <p>MRP motoru açık arz kaynaklarını tek bir kaba havuz olarak görmek yerine, 4 kademeli gerçek lojistik akışına göre ayrıştırır:</p>
+  <ul>
+    <li><strong>Stok / Rezerve Stok:</strong> Sadece <code>Kullanılabilir Stok</code> tipindeki depolardan okunur. Serbest Stok = Stok − Rezerve Stok (negatif olabilir).</li>
+    <li><strong>Açık Satınalma Siparişi (PO):</strong> Henüz yola çıkmamış onaylı satınalma siparişleridir. Planlanan teslimat tarihine göre ilgili haftaya işlenir. Vadesi geçmiş siparişler acil tedarik sayılarak ilk haftaya yazılır.</li>
+    <li><strong>Yolda (In Transit):</strong> Tedarikçiden çıkmış, <code>Purchase Receipt</code> belgesi oluşturulmuş sevkiyatlar. Belgedeki zorunlu <strong>Tahmini Varış Tarihi (tahmini_varis_tarihi / ETA)</strong> baz alınarak doğrudan varış haftasına yerleştirilir.</li>
+    <li><strong>Antrepoda (In Bonded Warehouse):</strong> Liman veya antrepoya ulaşmış, millileştirilmeyi bekleyen stok havuzudur. Depoda acil açık oluştuğunda öncelikle antrepodaki partiler "İşlem Başlat" eylemiyle gümrüklemeye çekilebilir.</li>
+    <li><strong>Gümrüklemede (In Customs Clearance):</strong> Gümrükleme işlemleri başlatılmış sevkiyatlar. Sistem, <code>KTA MRP Settings</code> altındaki <strong>antrepo_clearance_days</strong> (+2 iş günü) süresini ekleyerek malzemenin ana ambar stokuna fiilen gireceği haftayı hesaplar.</li>
+  </ul>
+
+  <h3>🤝 Tedarikçi Dağıtımı ve Kotalı Satınalma (Item Sourcing Strategy)</h3>
+  <p>Hammadde tedariğinde tek bir satıcıya bağımlılığı önlemek veya maliyet/hız optimizasyonu sağlamak için her hammaddeye özel <strong>Item Sourcing Strategy</strong> tanımlanabilir:</p>
+  <ul>
+    <li><strong>Default (%100 Tek Tedarikçi):</strong> İhtiyacın tamamı kalemin varsayılan tedarikçisine yönlendirilir.</li>
+    <li><strong>Quota Share (Kotalı Paylaşım):</strong> Net ihtiyaç, tedarikçiler arasında belirlenen yüzdelere göre (örneğin %60 Tedarikçi A, %40 Tedarikçi B) otomatik paylaştırılır. Her tedarikçinin kendi MOQ ve paket katı bağımsız işletilir.</li>
+    <li><strong>Lowest Price (En Düşük Fiyat):</strong> Aktif tedarikçiler arasında en ucuz birim fiyatı sunan satıcı tercih edilir.</li>
+    <li><strong>Shortest Lead Time (En Kısa Temin Süresi):</strong> En hızlı teslimat yapabilen tedarikçi seçilerek acil duruşların önüne geçilir.</li>
+  </ul>
   <div class="kta-doc-info">
-    <strong>Aşama 1 — Temel Hammadde İhtiyacı:</strong> Sadece brüt ihtiyaç hesaplanır. Stok ve PO dikkate alınmaz.
+    <strong>💰 Ağırlıklı Ortalama Alış Fiyatı (Weighted Average):</strong> Kotalı dağıtımda kalem farklı tedarikçilerden temin edildiğinde, rapordaki Birim Fiyat kotalarla ağırlıklandırılmış ortalama fiyat (Weighted Average Unit Price) olarak hesaplanır ve çoklu para birimi kur dönüşümleriyle raporlanır.
   </div>
+
+  <h3>📉 Netleştirme Mantığı ve Formülasyon</h3>
+  <div class="kta-formula-grid">
+    <div class="kta-formula-card purple">
+      <div class="kta-formula-header">
+        <span>SERBEST STOK (FREE STOCK)</span>
+        <span>Kullanılabilir Net Bakiye</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Serbest Stok</span>
+        <span>= Fiili Stok − Rezerve Stok</span>
+      </div>
+      <div class="kta-formula-desc">Depodaki fiziksel mevcuttan açık iş emirlerine tahsis edilmiş miktar düşülür. Negatif çıkarsa rezerve açığı var demektir.</div>
+    </div>
+
+    <div class="kta-formula-card warning">
+      <div class="kta-formula-header">
+        <span>NET İHTİYAÇ (NET REQUIREMENT)</span>
+        <span>Haftalık Gerçek Eksik</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Net İhtiyaç</span>
+        <span>= max( 0, Brüt İhtiyaç − ( Önceki Bakiye + PO Girişi ) )</span>
+      </div>
+      <div class="kta-formula-desc">İlk hafta için 'Önceki Bakiye' yerine doğrudan Serbest Stok kullanılır (negatifse 1. haftanın açığına eklenir).</div>
+    </div>
+
+    <div class="kta-formula-card success">
+      <div class="kta-formula-header">
+        <span>ÖNERİLEN SİPARİŞ (SUGGESTED ORDER)</span>
+        <span>Lot Sizing (MOQ & Paket Katı)</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Önerilen Sipariş</span>
+        <span>= max( MOQ, ceil( Net İhtiyaç / Paket Katı ) × Paket Katı )</span>
+      </div>
+      <div class="kta-formula-desc">Tedarikçi kartında tanımlı minimum sipariş (MOQ) ve paket katına yukarı yuvarlanır.</div>
+    </div>
+
+    <div class="kta-formula-card">
+      <div class="kta-formula-header">
+        <span>PROJEKSİYON BAKİYE (PROJECTED BALANCE)</span>
+        <span>Siparişsiz Kalan Tahmini</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Projeksiyon Bakiye</span>
+        <span>= Önceki Bakiye + PO Girişi − Brüt İhtiyaç</span>
+      </div>
+      <div class="kta-formula-desc">Yeni bir satınalma siparişi açılmadığı takdirde haftalık dönem sonu teorik stok bakiyesidir.</div>
+    </div>
+  </div>
+
   <div class="kta-doc-info warning">
-    <strong>Aşama 2 — Stokları Düş:</strong> Depolardaki <strong>serbest stok</strong> (toplam stok − üretim için rezerve edilmiş stok) haftalara kronolojik sırayla dağıtılır. Stokun yettiği haftaların ihtiyacı sıfırlanır.
-  </div>
-  <div class="kta-doc-info success">
-    <strong>Aşama 3 — PO Teslimatlarını Düş:</strong> Stok düşmeye ek olarak, onaylanmış (Submitted) durumdaki Satınalma Siparişlerinin (PO) henüz teslim alınmamış (bekleyen) kısımları haftalara dağıtılır.
-    <ul style="margin-top: 10px; margin-bottom: 0; padding-left: 20px;">
-      <li>Sadece onaylanmış PO'lar dikkate alınır. Teslim alınan miktar (<code>received_qty</code>) sipariş miktarından düşülerek kalan "açık" miktar hesaplanır.</li>
-      <li>Mal yola çıktığında veya antrepoya geldiğinde oluşturulan <strong>Taslak (Draft) Mal Kabul (Purchase Receipt)</strong> fişleri stoğa girmediği için PO'yu kapatmaz; dolayısıyla bu yoldaki mallar da mükerrer siparişi önlemek amacıyla "gelecek teslimat" olarak kabul edilir.</li>
-      <li>Net ihtiyaç kalması durumunda, miktar MOQ ve paketleme katına yuvarlanarak önerilir.</li>
-    </ul>
+    <strong>⚠️ Negatif Serbest Stok Kuralı (Rezerve Açığı):</strong> Açık iş emirlerinin talep ettiği malzeme miktarı ambardaki fiili stoktan fazlaysa serbest stok negatif çıkar. Bu miktar üretimin durmaması için <strong>en geç 1. hafta kapatılması gereken acil açık</strong> olarak kabul edilir ve 1. haftanın net ihtiyacına eklenir.
   </div>
 </div>
 
 <div class="kta-doc-section">
-  <h2>3. Filtreler</h2>
+  <h2>3. Uygulamalı Sayısal Örnek Senaryoları</h2>
+  
+  <!-- Senaryo 1 Card -->
+  <div class="kta-example-container">
+    <div class="kta-example-header">
+      <div class="kta-example-title">
+        <span class="kta-example-title-icon">⚡</span>
+        <span>Senaryo 1: Rezerve Açığı ve Tedarikçi MOQ Yuvarlaması (10023299 - AWG22 Tinned Kablo)</span>
+      </div>
+      <span class="kta-example-tag">Gerçek Veri Simülasyonu</span>
+    </div>
+    
+    <div class="kta-example-body">
+      <!-- Stat Tiles -->
+      <div class="kta-stat-grid">
+        <div class="kta-stat-tile primary">
+          <span class="kta-stat-label">Fiili Stok</span>
+          <span class="kta-stat-value">1.920,20 m</span>
+          <span class="kta-stat-sub">Kullanılabilir Depolar</span>
+        </div>
+        <div class="kta-stat-tile purple">
+          <span class="kta-stat-label">Rezerve Stok</span>
+          <span class="kta-stat-value">2.552,20 m</span>
+          <span class="kta-stat-sub">2 Açık İş Emri (MFG)</span>
+        </div>
+        <div class="kta-stat-tile danger">
+          <span class="kta-stat-label">Serbest Stok</span>
+          <span class="kta-stat-value">-632,00 m</span>
+          <span class="kta-stat-sub danger">⚠️ Rezerve Açığı Var!</span>
+        </div>
+        <div class="kta-stat-tile warning">
+          <span class="kta-stat-label">Brüt İhtiyaç</span>
+          <span class="kta-stat-value">330,70 m</span>
+          <span class="kta-stat-sub">W45: 4,7 m + W50: 326 m</span>
+        </div>
+        <div class="kta-stat-tile warning">
+          <span class="kta-stat-label">Tedarikçi MOQ & Paket</span>
+          <span class="kta-stat-value">5.000,00 m</span>
+          <span class="kta-stat-sub">Başoğlu Kablo (EUR)</span>
+        </div>
+        <div class="kta-stat-tile success">
+          <span class="kta-stat-label">Önerilen Sipariş</span>
+          <span class="kta-stat-value">5.000,00 m</span>
+          <span class="kta-stat-sub success">✓ Lot Sizing Yuvarlama</span>
+        </div>
+      </div>
+
+      <!-- Simulation Table -->
+      <div class="kta-sim-table-wrap">
+        <table class="kta-sim-table">
+          <thead>
+            <tr>
+              <th>Hafta</th>
+              <th class="num">Brüt İhtiyaç</th>
+              <th class="num">Mevcut/Devreden Bakiye</th>
+              <th class="num">Net İhtiyaç</th>
+              <th class="num">Önerilen Sipariş</th>
+              <th class="num">Devreden Bakiye</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Başlangıç</strong></td>
+              <td class="num">-</td>
+              <td class="num" style="color: #dc2626; font-weight: 700;">-632,00 m</td>
+              <td class="num">-</td>
+              <td class="num">-</td>
+              <td class="num" style="color: #dc2626; font-weight: 700;">-632,00 m</td>
+              <td><span class="kta-pill red">Rezerve Açığı</span></td>
+            </tr>
+            <tr class="highlight-week">
+              <td><strong>2026-W45</strong> <small>(1. Hafta)</small></td>
+              <td class="num">4,70 m</td>
+              <td class="num">-632,00 m</td>
+              <td class="num"><strong>636,70 m</strong></td>
+              <td class="num"><strong style="color: #16a34a;">5.000,00 m</strong></td>
+              <td class="num" style="color: #16a34a; font-weight: 700;">+4.363,30 m</td>
+              <td><span class="kta-pill red">Acil Eksik</span> <span class="kta-pill green">MOQ Siparişi</span></td>
+            </tr>
+            <tr>
+              <td><strong>2026-W50</strong> <small>(6. Hafta)</small></td>
+              <td class="num">326,00 m</td>
+              <td class="num" style="color: #16a34a;">+4.363,30 m</td>
+              <td class="num">0,00 m</td>
+              <td class="num">0,00 m</td>
+              <td class="num" style="color: #16a34a; font-weight: 700;">+4.037,30 m</td>
+              <td><span class="kta-pill green">Devirden Karşılandı</span></td>
+            </tr>
+            <tr class="total-row">
+              <td><strong>TOPLAM</strong></td>
+              <td class="num"><strong>330,70 m</strong></td>
+              <td class="num">-</td>
+              <td class="num"><strong>636,70 m</strong></td>
+              <td class="num"><strong style="color: #16a34a;">5.000,00 m</strong></td>
+              <td class="num" style="color: #16a34a;"><strong>+4.037,30 m</strong></td>
+              <td><span class="kta-pill blue">1 Yıl Güvende</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Insights Q&A Box -->
+      <div class="kta-insights-box">
+        <div class="kta-insights-header">
+          <span>💡</span>
+          <span>Kritik Çıkarımlar & Sıkça Sorulan Sorular</span>
+        </div>
+        <div class="kta-insight-item">
+          <span class="kta-insight-q">❓ Soru: "Brüt ihtiyaç 330,70 m iken 1. haftanın net ihtiyacı neden 636,70 m çıktı?"</span>
+          <span class="kta-insight-a"><strong>Cevap:</strong> 1. haftanın brüt ihtiyacı sadece 4,70 m'dir. Ancak geçmiş açık iş emirlerinden sarkan <strong>632 m rezerve açığı</strong>, üretimin aksamaması için 1. haftaya acil kapatılması gereken bir açık olarak eklenir: <code>4,70 − (−632,00) = 636,70 m</code>.</span>
+        </div>
+        <div class="kta-insight-item">
+          <span class="kta-insight-q">❓ Soru: "Net ihtiyaç 636,70 m iken önerilen sipariş neden 5.000 m oldu?"</span>
+          <span class="kta-insight-a"><strong>Cevap:</strong> Tedarikçi kartında Minimum Sipariş (MOQ) ve Paketleme Katı <strong>5.000 m</strong> olarak tanımlıdır. Sistem net ihtiyacı tedarikçinin paket katına yukarı yuvarlar: <code>ceil(636,70 / 5000) × 5000 = 5.000 m</code>.</span>
+        </div>
+        <div class="kta-insight-item">
+          <span class="kta-insight-q">❓ Soru: "50. haftada 326 m talep varken neden önerilen sipariş 0 gözüküyor?"</span>
+          <span class="kta-insight-a"><strong>Cevap:</strong> 1. haftada verilen 5.000 m siparişten geriye <code>5.000 − 636,70 = 4.363,30 m</code> fazlalık bakiye devretmiştir. 50. haftadaki 326 m ihtiyaç bu devreden stoktan tamamen karşılandığı için ek siparişe gerek kalmaz.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Senaryo 2 Card -->
+  <div class="kta-example-container">
+    <div class="kta-example-header">
+      <div class="kta-example-title">
+        <span class="kta-example-title-icon">📅</span>
+        <span>Senaryo 2: Planlama Ufkunun (Tarih Aralığı) Etkisi: 90 Gün vs 1 Yıl Karşılaştırması</span>
+      </div>
+      <span class="kta-example-tag">Ufuk Analizi</span>
+    </div>
+
+    <div class="kta-example-body">
+      <p style="margin-top: 0;">Rapor filtrelerinde bitiş tarihi <strong>3 aydan 1 yıla</strong> genişletildiğinde meydana gelen dinamik değişim:</p>
+      
+      <div class="kta-stat-grid">
+        <div class="kta-stat-tile primary">
+          <span class="kta-stat-label">90 Günlük Ufuk (13 Hafta)</span>
+          <span class="kta-stat-value">330,70 m</span>
+          <span class="kta-stat-sub">W45 (4,7 m) + W50 (326 m)</span>
+        </div>
+        <div class="kta-stat-tile purple">
+          <span class="kta-stat-label">1 Yıllık Ufuk (52 Hafta)</span>
+          <span class="kta-stat-value">493,70 m</span>
+          <span class="kta-stat-sub">+163 m (Mayıs 2027 Siparişi)</span>
+        </div>
+        <div class="kta-stat-tile success">
+          <span class="kta-stat-label">1 Yıllık Net İhtiyaç</span>
+          <span class="kta-stat-value">636,70 m</span>
+          <span class="kta-stat-sub success">✓ Değişmedi!</span>
+        </div>
+        <div class="kta-stat-tile success">
+          <span class="kta-stat-label">1 Yıllık Önerilen Sipariş</span>
+          <span class="kta-stat-value">5.000,00 m</span>
+          <span class="kta-stat-sub success">✓ Değişmedi!</span>
+        </div>
+      </div>
+
+      <div class="kta-insights-box" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #93c5fd;">
+        <div class="kta-insights-header" style="color: #1e40af;">
+          <span>🎯</span>
+          <span>Neden Brüt Arttığı Halde Net İhtiyaç ve Önerilen Sipariş Değişmedi?</span>
+        </div>
+        <div class="kta-insight-a" style="color: #1e3a8a; padding-left: 0;">
+          1. haftada zorunlu olarak verilen <strong>5.000 metrelik tek sipariş</strong>; hem 632 metrelik rezerve açığını, hem W45 (4,70 m) ve W50 (326 m) ihtiyaçlarını, hem de Mayıs 2027'deki 163 m siparişi kapatıp üzerine yıl sonunda hala <strong>3.874,30 Metre</strong> stok bıraktığı için tüm yıl boyunca başka sipariş gerekmemektedir!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Senaryo 3 Card -->
+  <div class="kta-example-container">
+    <div class="kta-example-header">
+      <div class="kta-example-title">
+        <span class="kta-example-title-icon">📦</span>
+        <span>Senaryo 3: Açık Satın Alma Siparişlerinin (PO) Netleştirmeye Etkisi ve Haftalık Drill-Down (10023109 - Kauçuk/Silikon Burç)</span>
+      </div>
+      <span class="kta-example-tag">Açık PO & Netleştirme</span>
+    </div>
+
+    <div class="kta-example-body">
+      <!-- Stat Tiles -->
+      <div class="kta-stat-grid">
+        <div class="kta-stat-tile primary">
+          <span class="kta-stat-label">Fiili Stok</span>
+          <span class="kta-stat-value">2.217 Adet</span>
+          <span class="kta-stat-sub">Kullanılabilir Depolar</span>
+        </div>
+        <div class="kta-stat-tile purple">
+          <span class="kta-stat-label">Rezerve Stok</span>
+          <span class="kta-stat-value">3.040 Adet</span>
+          <span class="kta-stat-sub">3 Açık İş Emri (MFG)</span>
+        </div>
+        <div class="kta-stat-tile danger">
+          <span class="kta-stat-label">Serbest Stok</span>
+          <span class="kta-stat-value">-823 Adet</span>
+          <span class="kta-stat-sub danger">⚠️ Rezerve Açığı Var!</span>
+        </div>
+        <div class="kta-stat-tile primary">
+          <span class="kta-stat-label">W46 PO Girişi</span>
+          <span class="kta-stat-value">+2.000 Adet</span>
+          <span class="kta-stat-sub">PUR-ORD-2026-05850</span>
+        </div>
+        <div class="kta-stat-tile warning">
+          <span class="kta-stat-label">W46 Brüt İhtiyaç</span>
+          <span class="kta-stat-value">1.800 Adet</span>
+          <span class="kta-stat-sub">87172080640 Mamulü</span>
+        </div>
+        <div class="kta-stat-tile success">
+          <span class="kta-stat-label">Önerilen Sipariş</span>
+          <span class="kta-stat-value">2.000 Adet</span>
+          <span class="kta-stat-sub success">✓ MOQ: 2.000 / Paket: 500</span>
+        </div>
+      </div>
+
+      <!-- Simulation Table -->
+      <div class="kta-sim-table-wrap">
+        <table class="kta-sim-table">
+          <thead>
+            <tr>
+              <th>Hafta</th>
+              <th class="num">Planlı PO Girişi</th>
+              <th class="num">Kullanılabilir Bakiye</th>
+              <th class="num">Brüt İhtiyaç</th>
+              <th class="num">Net İhtiyaç</th>
+              <th class="num">Önerilen Sipariş</th>
+              <th class="num">Devreden Bakiye</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Başlangıç</strong></td>
+              <td class="num">-</td>
+              <td class="num" style="color: #dc2626; font-weight: 700;">-823 Adet</td>
+              <td class="num">-</td>
+              <td class="num">-</td>
+              <td class="num">-</td>
+              <td class="num" style="color: #dc2626; font-weight: 700;">-823 Adet</td>
+              <td><span class="kta-pill red">Rezerve Açığı</span></td>
+            </tr>
+            <tr class="highlight-week">
+              <td><strong>2026-W46</strong></td>
+              <td class="num" style="color: #2563eb; font-weight: 600;">+2.000 Adet</td>
+              <td class="num">+1.177 Adet</td>
+              <td class="num">1.800 Adet</td>
+              <td class="num"><strong>623 Adet</strong></td>
+              <td class="num"><strong style="color: #16a34a;">2.000 Adet</strong></td>
+              <td class="num" style="color: #16a34a; font-weight: 700;">+1.377 Adet</td>
+              <td><span class="kta-pill blue">PO Girişi</span> <span class="kta-pill green">MOQ Siparişi</span></td>
+            </tr>
+            <tr>
+              <td><strong>2026-W47</strong></td>
+              <td class="num" style="color: #2563eb;">+3.500 Adet</td>
+              <td class="num">+4.877 Adet</td>
+              <td class="num">0 Adet</td>
+              <td class="num">0 Adet</td>
+              <td class="num">0 Adet</td>
+              <td class="num" style="color: #16a34a; font-weight: 700;">+4.877 Adet</td>
+              <td><span class="kta-pill blue">PO Girişi</span></td>
+            </tr>
+            <tr>
+              <td><strong>2026-W48</strong></td>
+              <td class="num" style="color: #2563eb;">+5.000 Adet</td>
+              <td class="num">+9.877 Adet</td>
+              <td class="num">960 Adet</td>
+              <td class="num">0 Adet</td>
+              <td class="num">0 Adet</td>
+              <td class="num" style="color: #16a34a; font-weight: 700;">+8.917 Adet</td>
+              <td><span class="kta-pill green">Stoktan Karşılandı</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Insights Q&A Box -->
+      <div class="kta-insights-box">
+        <div class="kta-insights-header">
+          <span>💡</span>
+          <span>Açık PO ve Drill-Down İpuçları</span>
+        </div>
+        <div class="kta-insight-item">
+          <span class="kta-insight-q">❓ Soru: "Açık PO girişi netleştirmeyi ve sipariş önerisini nasıl etkiledi?"</span>
+          <span class="kta-insight-a"><strong>Cevap:</strong> 1. haftaya gelen <strong>PUR-ORD-2026-05850</strong> nolu 2.000 adetlik sipariş; önce geçmişten sarkan -823 adetlik rezerve açığını kapatmış, geriye <code>+1.177 Adet</code> net bakiye bırakmıştır. 1.800 adetlik brüt talebin 1.177 adedi bu bakiyeden karşılanmış ve kalan net açık sadece <code>623 Adet</code> olmuştur. MOQ 2.000 olduğu için öneri 2.000 adet çıkmıştır. Açık PO olmasaydı net ihtiyaç 2.623 adet, öneri ise 3.000 adet olacaktı!</span>
+        </div>
+        <div class="kta-insight-item">
+          <span class="kta-insight-q">❓ Soru: "Vadesi geçmiş (gecikmiş) açık PO'lar raporda nerede görünür?"</span>
+          <span class="kta-insight-a"><strong>Cevap:</strong> Planlı teslim tarihi bugünden veya ilk haftadan önce kalmış, henüz ambara girmemiş tüm açık siparişler acil tedarik kabul edilir ve <strong>ilk planlama haftasının</strong> PO girişine dahil edilir.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Filtreler</h2>
   <div class="kta-doc-table-wrap">
     <table class="kta-doc-table">
       <thead>
         <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
       </thead>
       <tbody>
-        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Planlama periyodunun başlangıcı</td><td>Bugün</td></tr>
-        <tr><td><strong>Bitiş Tarihi</strong></td><td>Planlama periyodunun bitişi</td><td>3 ay sonra</td></tr>
-        <tr><td><strong>Aşama</strong></td><td>Hesaplama derinliği: Brüt / Stok Düş / Stok+PO Düş</td><td>1 - Temel Hammadde İhtiyacı</td></tr>
-        <tr><td><strong>Gruplama Şekli</strong></td><td>"Bitmiş Ürün + Hammadde" veya "Sadece Hammadde"</td><td>Bitmiş Ürün + Hammadde</td></tr>
+        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Sistem tarafından otomatik olarak <strong>bulunulan haftanın Pazartesi gününe</strong> kilitlenir. Kullanıcı geçmişe dönük tarih seçemez.</td><td>Bu Haftanın Pazartesi Günü</td></tr>
+        <tr><td><strong>Bitiş Tarihi (Planlama Ufku)</strong></td><td>Planlama periyodunun bitişi. Varsayılan <code>KTA MRP Settings</code> (90 gün) ayarından gelir, 1 yıla kadar genişletilebilir.</td><td>Bugün + 90 gün</td></tr>
+        <tr><td><strong>Haftalık Gösterim</strong></td><td>Hafta kolonlarında gösterilecek ölçü: Önerilen Sipariş, Net İhtiyaç, Brüt İhtiyaç, Projeksiyon Bakiye.</td><td>Önerilen Sipariş</td></tr>
+        <tr><td><strong>Gruplama Şekli</strong></td><td>"Bitmiş Ürün + Hammadde" (ağaç) veya "Sadece Hammadde" (düz liste)</td><td>Bitmiş Ürün + Hammadde</td></tr>
+        <tr><td><strong>PO Teslimatlarını Dahil Et</strong></td><td>Kapalıysa yoldaki ve antrepodaki açık arz kaynakları hesap dışı bırakılır (stok ihtiyacı brüte eşitlenir)</td><td>Açık</td></tr>
+        <tr><td><strong>Sadece Eksik Olanlar</strong></td><td>Net ihtiyacı olmayan hammaddeleri gizler</td><td>Kapalı</td></tr>
+        <tr><td><strong>Tedarikçi / Hammadde</strong></td><td>Hammadde tarafında filtre</td><td>(Hepsi)</td></tr>
+        <tr><td><strong>Müşteri Grubu / Ürün Grubu</strong></td><td>Bitmiş ürün (talep) tarafında filtre</td><td>(Hepsi)</td></tr>
       </tbody>
     </table>
+  </div>
+  <div class="kta-doc-info">
+    <strong>📅 Akıllı Başlangıç Tarihi Kuralı:</strong> Kullanıcıların geçmiş tarihlere yönelik rapor çekip hatalı netleştirme yapmasını önlemek için başlangıç tarihi filtresi arayüzden kaldırılmış; hesaplamanın her daim bulunulan ISO haftasının Pazartesi gününden başlatılması kurala bağlanmıştır.
+  </div>
+  <div class="kta-doc-info">
+    <strong>⚙️ Kapasite Parametreleri:</strong> Kapasite dengeleme ve ramp-up parametreleri artık rapor filtrelerinde değil, merkezi <strong>KTA MRP Settings</strong> ekranında yapılandırılmaktadır.
   </div>
 </div>
 
 <div class="kta-doc-section">
-  <h2>4. Tablo Kolonları</h2>
+  <h2>5. Tablo Yapısı ve Hiyerarşik Ağaç Mantığı</h2>
+  <p><strong>Bitmiş Ürün + Hammadde</strong> modunda hammadde satırının (Ana Satır) altında, o hammaddeyi tüketen bitmiş ürünler listelenir.</p>
+  <ul>
+    <li><strong>Hammadde Satırı (Ana Satır):</strong> Stok, Rezerve Stok, Açık PO, Net İhtiyaç ve Önerilen Sipariş verileri bu satırda gösterilir.</li>
+    <li><strong>Bitmiş Ürün Satırları (Alt Satırlar):</strong> Sadece o mamulün haftalık brüt tüketimini gösterir. Stok ve sipariş bilgileri mükerrerliği önlemek adına alt satırlarda bilinçli olarak boş bırakılmıştır.</li>
+  </ul>
   <div class="kta-doc-table-wrap">
     <table class="kta-doc-table">
       <thead>
         <tr><th>Kolon</th><th>Açıklama</th></tr>
       </thead>
       <tbody>
-        <tr><td><strong>Ürün / BOM</strong></td><td>Bitmiş ürün kodu ve kullanılan Reçete</td></tr>
-        <tr><td><strong>Müşteri Grubu</strong></td><td>Bitmiş ürünün tanımlı müşteri grubu</td></tr>
-        <tr><td><strong>Hammadde</strong></td><td>Hammadde kodu ve açıklaması</td></tr>
-        <tr><td><strong>Birim</strong></td><td>Stok birimi (Metre, Kg, Adet vb.)</td></tr>
-        <tr><td><strong>Varsayılan Tedarikçi</strong></td><td>Hammaddenin varsayılan tedarikçisi</td></tr>
-        <tr><td><strong>Haftalık Sütunlar</strong></td><td>O hafta tüketilecek hammadde miktarı</td></tr>
-        <tr><td><strong>Satır Toplamı</strong></td><td>Stok/PO düşülmüş net ihtiyaç toplamı</td></tr>
-        <tr><td><strong>Toplam İhtiyaç</strong></td><td>Brüt toplam ihtiyaç</td></tr>
-        <tr><td><strong>Stok</strong></td><td>Depodaki toplam hammadde stoku (Stok düşme aktifken görünür)</td></tr>
-        <tr><td><strong>Rezerve Stok</strong></td><td>Açık iş emirleri için rezerve edilmiş hammadde miktarı</td></tr>
-        <tr><td><strong>Serbest Stok</strong></td><td>Herhangi bir iş emrine bağlı olmayan, kullanılabilir stok (Stok − Rezerve Stok)</td></tr>
-        <tr><td><strong>PO Teslimat / Net İhtiyaç</strong></td><td>Stok/PO düşme aktifken görünür</td></tr>
+        <tr><td><strong>Stok / Rezerve Stok / Serbest Stok</strong></td><td>Kullanılabilir Stok depolarındaki miktarlar</td></tr>
+        <tr><td><strong>Açık PO</strong></td><td>Dönem içinde gelecek PO miktarı (stok biriminde)</td></tr>
+        <tr><td><strong>Brüt İhtiyaç / Net İhtiyaç</strong></td><td>Dönem toplamları</td></tr>
+        <tr><td><strong>Önerilen Sipariş</strong></td><td>MOQ ve paket katına yuvarlanmış toplam sipariş miktarı</td></tr>
+        <tr><td><strong>İlk Eksik Hafta</strong></td><td>Stok + PO'nun yetmediği ilk hafta (ilk 4 hafta kırmızı, sonrası turuncu rozet)</td></tr>
+        <tr><td><strong>Kapsama (Hafta)</strong></td><td>Yeni sipariş gerekmeden karşılanan hafta sayısı</td></tr>
+        <tr><td><strong>Fazla PO Miktarı</strong></td><td>Dönem ihtiyacını aşan PO miktarı</td></tr>
+        <tr><td><strong>Birim Fiyat / Para Birimi / Önerilen Sipariş Tutarı</strong></td><td>Varsayılan tedarikçinin en güncel Item Price alış fiyatı ve kendi para birimi</td></tr>
+        <tr><td><strong>Haftalık Sütunlar</strong></td><td>Haftalık Gösterim filtresinde seçilen ölçü (Sipariş, Net, Brüt, Bakiye)</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
 <div class="kta-doc-section">
-  <h2>5. Özet Kartları</h2>
-  <p>Raporun üst kısmında modern özet kartları ile temel metrikler gösterilir:</p>
+  <h2>6. Özet Kartları ve Grafik</h2>
   <ul>
-    <li><span class="kta-doc-badge blue">Toplam Brüt İhtiyaç</span> Stok ve PO düşülmeden önceki toplam hammadde ihtiyacı.</li>
-    <li><span class="kta-doc-badge red">Toplam Net İhtiyaç</span> Stok ve PO düşüldükten sonraki gerçek ihtiyaç.</li>
+    <li><span class="kta-doc-badge blue">Toplam Kalem</span> Rapordaki hammadde sayısı.</li>
+    <li><span class="kta-doc-badge red">Eksik Kalem</span> Net ihtiyacı olan hammadde sayısı.</li>
+    <li><span class="kta-doc-badge orange">4 Hafta İçinde Eksik</span> İlk eksik haftası acil eşik (urgent_shortage_weeks) içinde olanlar.</li>
+    <li><span class="kta-doc-badge green">Önerilen Sipariş Tutarı (EUR / USD / TRY …)</span> Para birimi bazında toplam sipariş maliyeti.</li>
+    <li><span class="kta-doc-badge">Fiyatı Olmayan Kalem</span> Sipariş önerilen ama alış fiyatı bulunmayan kalem sayısı.</li>
+  </ul>
+  <p>Grafik, her hafta için net ihtiyacı olan hammadde sayısını gösterir.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>7. Haftalık Netleştirme Detay Penceresi (Drill-Down Modal)</h2>
+  <p>Rapor tablosundaki herhangi bir hammadde satırında, ilgili haftanın hücresine tıklandığında açılan <strong>interaktif drill-down penceresidir</strong>. Malzemenin haftalık netleştirme adımlarını, o haftaya gelen açık PO'ları ve o hafta malzemeyi tüketen bitmiş ürün reçetelerini tek ekranda detaylandırır.</p>
+
+  <div class="kta-formula-grid" style="margin-bottom: 24px;">
+    <div class="kta-formula-card primary">
+      <div class="kta-formula-header">
+        <span>⚡ SIFIR GECİKMELİ MİMARİ (0MS RENDERING)</span>
+        <span>Performans & Önbellek</span>
+      </div>
+      <div class="kta-formula-desc" style="font-size: 13.5px; line-height: 1.6; color: #334155;">
+        <strong>1. Kademede Anında Gösterim (0ms):</strong> İstemci tarafında satırla birlikte gelen <code>row._week_details</code> verisiyle Malzeme Künyesi ve 6 Adımlı Netleştirme Özeti beklemesiz açılır.<br>
+        <strong>2. Kademede Arka Plan Yükleme (~80ms):</strong> Sunucudaki Redis önbelleğinden tek hamlede o haftanın açık PO'ları ve tüketen mamul reçeteleri çekilip listelere yerleştirilir.
+      </div>
+    </div>
+  </div>
+
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr><th style="width: 80px;">Adım</th><th style="width: 240px;">Hesaplama Adımı</th><th>Açıklama & Formül Mantığı</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="kta-pill purple">Adım 1</span></td>
+          <td><strong>Önceki Devir / Rezerve Açığı</strong></td>
+          <td>Önceki haftadan devreden teorik stok. İlk haftada ise depodaki rezerve açığıdır (Fiili Stok − Rezerve Stok, negatifse açık).</td>
+        </tr>
+        <tr>
+          <td><span class="kta-pill blue">Adım 2</span></td>
+          <td><strong>Açık PO Girişi</strong></td>
+          <td>İlgili haftada depoya girmesi planlanan onaylı satınalma siparişlerinin toplamı.</td>
+        </tr>
+        <tr>
+          <td><span class="kta-pill">Adım 3</span></td>
+          <td><strong>Kullanılabilir Bakiye</strong></td>
+          <td>Netleştirme öncesi toplam arz: <code>Adım 1 + Adım 2</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="kta-pill orange">Adım 4</span></td>
+          <td><strong>Brüt İhtiyaç</strong></td>
+          <td>O hafta üretimi planlanan bitmiş ürünlerin BOM reçetelerine göre talep ettiği hammadde miktarı.</td>
+        </tr>
+        <tr>
+          <td><span class="kta-pill red">Adım 5</span></td>
+          <td><strong>Net İhtiyaç (Eksik)</strong></td>
+          <td>Stok ve PO'nun yetmediği açık miktar: <code>max(0, Brüt İhtiyaç − Kullanılabilir Bakiye)</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="kta-pill green">Adım 6</span></td>
+          <td><strong>Önerilen Sipariş</strong></td>
+          <td>Tedarikçi kartındaki Minimum Sipariş (MOQ) ve Paketleme Katına yukarı yuvarlanmış sipariş adedi.</td>
+        </tr>
+        <tr>
+          <td><span class="kta-pill">Dipnot</span></td>
+          <td><strong>Dönem Sonu Projeksiyon Bakiye</strong></td>
+          <td>Yeni sipariş verilmezse dönem sonunda kalacak teorik bakiye: <code>Kullanılabilir Bakiye − Brüt İhtiyaç</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin-top: 28px;">🔗 Açık Satın Alma Siparişleri ve Mamul Kırılımı Tabloları</h3>
+  <ul>
+    <li><strong>Açık PO ve Tedarik Hattı Tablosu:</strong> O haftaya ait açık satınalma siparişlerini ve lojistik aşamalarını (Onaylı PO, Yolda ETA, Antrepoda, Gümrüklemede) listeler. Sipariş numarası (<code>PUR-ORD-...</code>) veya irsaliye numarası (<code>MAT-PRE-...</code>) doğrudan tıklanabilir bağlantıdır; tıklandığında ilgili ERPNext belgesini açar. Tedarikçi, bekleyen miktar, tahmini varış tarihi (ETA) ve aşama durumu şeffafça sunulur.</li>
+    <li><strong>Tüketen Bitmiş Ürünler Tablosu:</strong> O hafta bu hammaddeye neden ihtiyaç duyulduğunu açıklar. Hangi mamulün üretildiği, aktif BOM reçetesi bağlantısı, mamulün planlanan üretim adedi ve hammadde birim çarpanı listelenir.</li>
+    <li><strong>Çok Dilli Başlık Standartı:</strong> Pencere içindeki tüm alanlar, butonlar, terimler ve ölçü birimleri (Adet, Metre, Kg, vb.) Türkçe, İngilizce ve Almanca (TR/EN/DE) dillerinde Title Case kurallarına uygun dinamik çeviri altyapısına sahiptir.</li>
+  </ul>
+</div>
+
+<div class="kta-doc-section">
+  <h2>8. Bu Raporun Bağlantıları</h2>
+  <div class="kta-doc-flow">
+    <div class="kta-doc-flow-step">📈 Satış Siparişleri</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">🏭 Üretime Başlama</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">⚙️ Kapasite Planlama</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step active">🧱 Malzeme İhtiyaç</div>
+    <span class="kta-doc-flow-arrow">→</span>
+    <div class="kta-doc-flow-step">🛒 Önerilen PO</div>
+  </div>
+  <ul>
+    <li><strong>Girdi:</strong> Kapasite Planlama raporunun haftalık üretim planı (<code>build_capacity_plan</code>).</li>
+    <li><strong>MRP Analiz:</strong> Aynı servisten brüt ihtiyacı müşteri grubu kırılımıyla alarak analiz eder.</li>
+    <li><strong>Önerilen PO:</strong> Bu raporun önerilen siparişlerini tedarikçi temin süresi (Lead Time) kadar geriye/öne çekerek satın alma aksiyon listesi üretir.</li>
   </ul>
 </div>
 {% endblock %}

@@ -84,7 +84,8 @@ Aşağıdaki tablo, her raporun hangi raporu çağırdığını ve hangi soruyu 
 Tüm raporların beslediği ortak DocType'lar ve alanlar:
 
 | DocType | Alan | Kullanım |
-|---------|------|----------|
+|---|---|---|
+| **KTA MRP Settings** | `enable_capacity_leveling`, `enable_ramp_up`, `planning_horizon_days`, `available_warehouse_type` vb. | Tüm MRP zincirinin merkezi konfigürasyon ve parametre odası |
 | **Sales Order / Sales Order Item** | `qty`, `delivered_qty`, `delivery_date` | Açık sipariş talebi |
 | **KTA Sevk Parametreleri** | `production_time`, `delivery_time` | Müşteriye özel üretim ve sevk süreleri |
 | **Item** | `custom_weekly_production`, `custom_ara_malzeme_grubu`, `custom_musteri_grubu` | Kapasite, gruplama |
