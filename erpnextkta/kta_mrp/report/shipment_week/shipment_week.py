@@ -6,8 +6,11 @@ def execute(filters=None):
     filters = filters or {}
     today = date.today()
 
+    from erpnextkta.kta_mrp.mrp_engine.settings import get_mrp_settings
+    horizon_days = get_mrp_settings().planning_horizon_days
+
     from_date = getdate(filters.get("from_date")) if filters.get("from_date") else today - timedelta(days=30)
-    to_date = getdate(filters.get("to_date")) if filters.get("to_date") else today + timedelta(days=60)
+    to_date = getdate(filters.get("to_date")) if filters.get("to_date") else today + timedelta(days=horizon_days)
 
     periodic_filters = {
         "from_date": from_date, "to_date": to_date, "range": "Weekly",

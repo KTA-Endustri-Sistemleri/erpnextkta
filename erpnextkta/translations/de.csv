@@ -484,7 +484,7 @@ Yükseklik (mm),Höhe (mm)
 Kontak No,Terminal-Nr
 KESİT:,QUERSCHNITT:
 İzokrimp Yüksekliği (mm),Isocrimphöhe (mm)
-Adet,Menge
+Adet,Stk.
 KALIP:,FORM:
 Kafa (Meme) Isısı (°C),Kopf- (Düsen-) Temperatur (°C)
 Kopyala,Kopieren
@@ -680,8 +680,8 @@ DURUŞTA (ARIZA),ANGEHALTEN (STÖRUNG)
 "Arıza giderildi, operatör onayı bekleniyor.","Störung behoben, warte auf Bestätigung des Bedieners."
 "Arıza iptal edildi, operatör bekleniyor.","Störung storniert, warte auf Bediener."
 "Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Wartungsteam fertig, warte auf Bediener, um Produktion fortzusetzen."
-"[Bakım Sonucu: Tamamlandı.]","[Wartungsergebnis: Abgeschlossen.]"
-"[Bakım Sonucu: İptal Edildi.]","[Wartungsergebnis: Storniert.]"
+[Bakım Sonucu: Tamamlandı.],[Wartungsergebnis: Abgeschlossen.]
+[Bakım Sonucu: İptal Edildi.],[Wartungsergebnis: Storniert.]
 Kullanıcı için varsayılan yazıcı bulunamadı,Standarddrucker für Benutzer nicht gefunden
 Kullanıcı için varsayılan yazıcı bulunamadı: {0},Standarddrucker für Benutzer nicht gefunden: {0}
 ⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ Diese Karte hat {0} Minuten überschritten! Bitte prüfen Sie das Formular (beenden oder anhalten).
@@ -763,3 +763,213 @@ Krimp Ölçüm Protokol Belgesi,Crimp-Messprotokolldokument
 Krimp Protokol Belgesi,Crimp-Protokolldokument
 Enjeksiyon Ölçüm Protokol Belgesi,Spritzguss-Messprotokolldokument
 Enjeksiyon Protokol Belgesi,Spritzguss-Protokolldokument
+Hammadde / Ürün,Rohstoff / Produkt
+Ürün Açıklaması,Artikelbeschreibung
+BOM,Stückliste
+Stok,Bestand
+Rezerve Stok,Reservierter Bestand
+Serbest Stok,Freier Bestand
+Açık PO,Offene Bestellung
+Brüt İhtiyaç,Bruttobedarf
+Net İhtiyaç,Nettobedarf
+Önerilen Sipariş,Bestellvorschlag
+İlk Eksik Hafta,Erste Fehlwoche
+Kapsama (Hafta),Reichweite (Wochen)
+Fazla PO Miktarı,Überschüssige Bestellmenge
+Birim Fiyat,Stückpreis
+Para Birimi,Währung
+Önerilen Sipariş Tutarı,Bestellvorschlagswert
+Önerilen Sipariş Tutarı ({0}),Bestellvorschlagswert ({0})
+Toplam Kalem,Artikel Gesamt
+Eksik Kalem,Fehlartikel
+{0} Hafta İçinde Eksik,Fehlend Innerhalb Von {0} Wochen
+Fiyatı Olmayan Kalem,Artikel Ohne Preis
+Eksik Kalem Sayısı,Anzahl Fehlartikel
+Projeksiyon Bakiye,Projizierter Bestand
+Bitmiş Ürün + Hammadde,Fertigprodukt + Rohstoff
+Sadece Hammadde,Nur Rohstoff
+Haftalık Gösterim,Wochenansicht
+PO Teslimatlarını Dahil Et,Bestelllieferungen Einbeziehen
+Sadece Eksik Olanlar,Nur Fehlmengen
+Kapasite Dengeleme,Kapazitätsabgleich
+Ramp-up (Önden Üretim),Ramp-up (Vorproduktion)
+Lead Time (Gün),Lieferzeit (Tage)
+MOQ,MOQ
+Paket Miktarı,Verpackungsmenge
+Satır Toplamı,Zeilensumme
+Önerilen PO Sayısı,Anzahl Bestellvorschläge
+Toplam Önerilen Miktar,Vorgeschlagene Gesamtmenge
+PO Teslimatları,Bestelllieferungen
+Açık PO Girişleri,Offene Bestelleingänge
+Tedarikçiden beklenen açık siparişler,Vom Lieferanten erwartete offene Bestellungen
+Açık PO Teslimatları (Ham İhtiyaç Modu),Offene Bestelllieferungen (Rohbedarfsmodus)
+Dahil Değil,Nicht enthalten
+Kapalı,Deaktiviert
+Gelen PO,Eingehende Bestellung
+Öneri,Bestellvorschlag
+Bakiye,Saldo
+Brüt,Brutto
+Net,Netto
+Haftalık Netleştirme Detayı,Wöchentliche Nettobedarfsdetails
+Hesaplama detayları yükleniyor...,Berechnungsdetails werden geladen...
+Netleştirme Detayı,Nettobedarfsdetails
+Netleştirme Detayını Gör,Nettobedarfsdetails anzeigen
+Bu Haftaya Düşen Açık Satınalma Siparişleri (PO),Für diese Woche geplante offene Bestellungen (PO)
+Bu Haftadaki Brüt İhtiyaç Kaynakları (Mamul Talepleri),Bruttobedarfsquellen für diese Woche (Fertigwarenbedarfe)
+Bu hafta için beklenen açık satınalma siparişi (PO) bulunmamaktadır.,Keine offenen Bestellungen für diese Woche erwartet.
+Açık PO filtresi kapalı olduğu için siparişler hesaba katılmamıştır.,"Bestellungen wurden nicht berücksichtigt, da PO-Filter deaktiviert ist."
+Önceki Haftadan Devreden Bakiye,Übertrag aus Vorwoche
+Gelen Açık Satınalma Siparişi (PO),Offene Bestellungen (PO)
+Brüt Üretim İhtiyacı,Brutto-Produktionsbedarf
+Net Eksik / İhtiyaç,Netto-Bedarf
+Önerilen Sipariş (MOQ & Paket Katı Uygulanmış),Bestellvorschlag (MOQ & Packung angewendet)
+Sipariş Sonrası Dönem Sonu Bakiye,Endbestand nach Bestellung
+Termin Tarihi,Liefertermin
+Bekleyen Miktar,Offene Menge
+Gereken Miktar,Benötigte Menge
+Detaylar alınamadı.,Details konnten nicht abgerufen werden.
+Sipariş No,Bestellnummer
+Netleştirme Hesabı,Nettobedarfsberechnung
+Dönem Sonu Projeksiyon Bakiye,Projizierter Endbestand
+Açık PO ve Mamul detayları yükleniyor...,Offene Bestellungen und Fertigprodukt-Details werden geladen...
+Bitmiş Ürün,Fertigware
+Temin Süresi,Wiederbeschaffungszeit
+Gün,Tage
+Min. Sipariş Miktarı (MOQ),Mindestbestellmenge (MOQ)
+Paketleme Katı,Verpackungseinheit
+Paket Katı,Verpackungseinheit
+Eksik,Fehlbestand
+Açık Bakiye,Fehlbestand
+Kapat,Schließen
+Nos,Stk.
+Box,Karton
+Pair,Paar
+Set,Satz
+Modern Matris,Moderne Matrix
+Klasik Tablo,Klassische Tabelle
+"Hammadde, açıklama veya tedarikçi ara...","Nach Material, Beschreibung oder Lieferant suchen..."
+Acil Eksikler,Dringende Engpässe
+Tüm Eksikler,Alle Engpässe
+Açık PO'su Olanlar,Mit Offener Bestellung
+Yeterli Stok,Ausreichender Bestand
+Tümünü Aç,Alle Erweitern
+Tümünü Kapat,Alle Zuklappen
+Gösterilen,Angezeigt
+Hammadde / Malzeme Bilgisi,Materialinformationen
+Stok Durumu,Bestandsstatus
+Özet İhtiyaç,Bedarfsübersicht
+Bu Hafta,Diese Woche
+Detayı Aç,Details Erweitern
+Detayı Kapat,Details Zuklappen
+Teslimat Takvimi,Lieferplan
+Brüt İhtiyaç Kaynakları (Mamul Talepleri),Bruttobedarfsquellen (Fertigerzeugnisse)
+Mamul,Fertigerzeugnis
+Toplam Brüt,Gesamtbrutto
+Detayları görmek için tıklayın,Klicken Sie hier, um Details anzuzeigen
+Seçilen filtrelere veya arama kriterlerine uygun hammadde bulunamadı.,Kein Material gefunden, das den ausgewählten Filtern oder Suchkriterien entspricht.
+Hammadde İhtiyaç Planlama,Materialbedarfsplanung
+Filtreleri Göster,Filter anzeigen
+Filtreleri Gizle,Filter ausblenden
+Raporu Yenile,Bericht aktualisieren
+Tedarikçi Filtrele...,Lieferant filtern...
+Hammadde Kodu...,Artikelcode...
+Müşteri Grubu...,Kundengruppe...
+Ürün Grubu...,Artikelgruppe...
+Aktif Haftalık Gösterim Modu,Aktiver Wochenansichtsmodus
+İhtiyaç Yaratan Bitmiş Ürünler (Talep Dağılımı),Bedarfstreibende Fertigprodukte (Bedarfsaufschlüsselung)
+Açık Satınalma Siparişleri (Giriş Dağılımı),Offene Bestellungen (Wareneingangsaufteilung)
+Bu malzeme için bekleyen açık PO veya mamul kırılımı bulunmamaktadır.,Für dieses Material liegen keine offenen Bestellungen oder Fertigproduktaufschlüsselungen vor.
+Excel Olarak İndir,Als Excel herunterladen
+CSV Olarak İndir,Als CSV herunterladen
+Sayfayı Yazdır veya PDF Al,Seite drucken oder als PDF speichern
+Yazdır,Drucken
+Ufka Sıfırla,Auf Planungshorizont zurücksetzen
+Gün,Tage
+MRP Ayarlarındaki planlama ufkuna göre sıfırla,Auf den Planungshorizont aus den MRP-Einstellungen zurücksetzen
+Sıralama,Sortierung
+En Acil Eksikler (Varsayılan),Dringendste Engpässe (Standard)
+En Yüksek Sipariş Tutarı,Höchster Bestellbetrag
+En Yüksek Net Eksik,Höchster Nettobedarf
+Hammadde Kodu (A-Z),Artikelcode (A-Z)
+Sıralamayı varsayılana sıfırla,Sortierung auf Standard zurücksetzen
+Artan,Aufsteigend
+Azalan,Absteigend
+Hammadde koduna göre sırala,Nach Artikelcode sortieren
+Sipariş Tutarı,Bestellbetrag
+Net Eksik,Nettobedarf
+Kapsama Haftası,Reichweite in Wochen
+Gümrüklemede,In Verzollung
+İşlem Başlat,Verzollung Starten
+Gümrükleme Başlama Tarihi,Verzollungsbeginn Datum
+Gümrükte,Im Zoll
+Antrepoda Bekleyen,Ausstehend im Zolllager
+İşlem Başlama,Verzollungsbeginn
+Açık Teslimatlar & İrsaliye Dağılımı (Antrepo / Yolda / PO),Offene Lieferungen & Wareneingangsverteilung (Zolllager / Transit / PO)
+Gümrüklü Antrepoda Bekleyen Teslimatlar (İşlem Bekleyen Stok Havuzu),Im Zolllager wartende Lieferungen (Verzollungspool)
+Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık timeline'a dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.,Materialien im Zolllager werden erst bei Beginn der Verzollung im wöchentlichen Zeitplan berücksichtigt. Nach Verzollungsbeginn (+2 Tage) erfolgt die Lieferung ans Werk.
+Haftalık Açık Siparişler ve Sevkiyatlar (PO / Yolda / Gümrükte),Wöchentliche offene Bestellungen & Sendungen (PO / Transit / Zoll)
+{0} haftasında bekleyen açık teslimat veya sipariş bulunmamaktadır.,In Woche {0} liegen keine offenen Lieferungen oder Bestellungen vor.
+Haftalık planlanmış açık sipariş veya teslimat bulunmamaktadır.,Es liegen keine geplanten offenen Bestellungen oder Lieferungen vor.
+Tüm açık siparişleri göster,Alle offenen Bestellungen anzeigen
+Antrepoda Bekliyor (İşlem Başlatılmadı),Im Zolllager wartend (Verzollung nicht gestartet)
+Gümrüklemede (+2g),In Zollabfertigung (+2T)
+Fabrika Mal Girişi,Werkswarenumschlag
+Tahmini Varış (+7g Transit),Geschätzte Ankunft (+7T Transit)
+Tahmini Varış (ETA),Geschätzte Ankunft (ETA)
+PO Termini (ETA Eksik),PO-Liefertermin (Fehlende ETA)
+Gümrüğe Geliş,Zollankunft
+Gümrüğe Geliş Tarihi,Zollankunftsdatum
+Fabrikaya Sevkiyat Koşulu,Werksversandbedingung
+İşlem başlatıldığında (+2 gün) fabrikaya ulaşacaktır,Erreicht das Werk (+2 Tage) nach Einleitung der Zollabfertigung
+Tedarik,Beschaffung
+Tedarik Boru Hattı,Beschaffungspipeline
+Tedarik Boru Hattı (Geliş Aşamaları),Beschaffungspipeline (Eingangsstufen)
+Henüz Sevk Edilmemiş Açık PO,Nicht versandte offene PO
+Sevkiyatta / Yolda Olan Açık Teslimat,Unterwegs befindliche offene Lieferung
+Gümrüklü Antrepoda Bekleyen Açık Teslimat (Bekleme Havuzu),Offene Lieferung im Zolllager (Wartepool)
+Gümrükleme / Çekim İşlemi Başlatılmış Açık Teslimat (+2 Gün),Zollabfertigung gestartete offene Lieferung (+2 Tage)
+Devreden Bakiye,Anfangsbestand
+Açık Teslimat,Offene Lieferung
+{0} Netleştirme Hesabı Özeti,{0} Nettoberechnungsübersicht
+Hafta Filtresini Kaldır,Wochenfilter aufheben
+Hafta filtresini kaldır,Wochenfilter aufheben
+Temizle,Löschen
+Belge,Dokument
+Belge No,Beleg-Nr.
+Durum,Status
+Termin / Varış,Termin / Ankunft
+Hafta,Woche
+Sipariş,Bestellung
+Açık Sipariş,Offene Bestellung
+Tahmini,Geschätzt
+Yükleme,Verladung
+Tedarikçi Bazlı Planlanan Sipariş Dağılımı,Lieferantenbezogene Bestellverteilung
+Kotalı Dağılım (% Paylaşım),Quotenverteilung (% Aufteilung)
+Varsayılan Tedarikçi (%100),Standardlieferant (%100)
+En Ucuz Tedarikçi (%100),Günstigster Lieferant (%100)
+Kotalı Satınalma Dağılımı,Quoten-Einkaufsverteilung
+Tedarik Stratejisi,Beschaffungsstrategie
+Kota,Quote
+Paket,Packungsgröße
+Toplam Sipariş,Gesamtbestellung
+Tahmini Tutar,Geschätzter Betrag
+Toplam İhtiyaç,Gesamtbedarf
+Veriler hesaplanıyor...,Daten werden berechnet...
+Kayıt Bulunamadı,Kein Datensatz gefunden
+Seçilen filtrelere uygun hammadde bulunamadı.,Kein passendes Rohmaterial für die gewählten Filter gefunden.
+Hammadde Bilgisi,Rohmaterialinfo
+"Stok, İhtiyaç ve Kapsama","Bestand, Bedarf & Reichweite"
+{0} haftasına göre sırala (Eksik / Sipariş),Nach Woche {0} sortieren (Fehlmenge / Bestellung)
+Bu malzeme için bekleyen açık teslimat veya mamul kırılımı bulunmamaktadır.,Für dieses Material liegen keine offenen Lieferungen oder Fertigproduktaufschlüsselungen vor.
+ETA girilmediği için yükleme tarihine varsayılan nakliye süresi eklendi,"Standard-Transitdauer zum Ladedatum addiert, da keine ETA eingegeben wurde"
+Gümrüklü antrepoda bekleyen hammaddeleri göster,Im Zolllager wartende Rohmaterialien anzeigen
+Gümrükleme / çekim işlemi başlatılmış teslimatları göster (+2 gün),Lieferungen mit eingeleiteter Verzollung anzeigen (+2 Tage)
+Sevkiyatta / Yolda olan hammaddeleri göster,Rohmaterialien auf dem Transportweg / Transit anzeigen
+Haftalık açık sipariş ve detayları görmek için tıklayın,"Klicken, um wöchentliche offene Bestellungen und Details anzuzeigen"
+Filtreler,Filter
+Sıfırla,Zurücksetzen
+Hammadde Kodu,Artikelcode
+Detayı Aç / Kapat,Details auf-/zuklappen
+Beklenen PO,Erwartete PO
+Antrepo,Zolllager
+PO,PO

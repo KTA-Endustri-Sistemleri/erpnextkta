@@ -1,6 +1,54 @@
 frappe.provide("kta.report_utils");
 
 kta.report_utils = {
+    get_planning_horizon_days: function() {
+        return (frappe.boot && frappe.boot.kta_mrp_settings && frappe.boot.kta_mrp_settings.planning_horizon_days) || 90;
+    },
+
+    get_monday_of_current_week: function() {
+        if (window.moment) {
+            return window.moment().startOf("isoWeek").format("YYYY-MM-DD");
+        }
+        let now = new Date();
+        let day = now.getDay();
+        let diff = now.getDate() - day + (day === 0 ? -6 : 1);
+        let monday = new Date(now.setDate(diff));
+        return monday.toISOString().split("T")[0];
+    },
+
+    get_default_to_date: function(from_date) {
+        let monday = kta.report_utils.get_monday_of_current_week();
+        let start = from_date || monday;
+        let days = kta.report_utils.get_planning_horizon_days();
+        return frappe.datetime.add_days(start, days);
+    },
+
+    sync_mrp_date_filters: function(report) {
+        if (!report) return;
+        frappe.db.get_single_value("KTA MRP Settings", "planning_horizon_days").then((days) => {
+            if (!days) return;
+            days = parseInt(days, 10);
+            if (frappe.boot) {
+                frappe.boot.kta_mrp_settings = frappe.boot.kta_mrp_settings || {};
+                frappe.boot.kta_mrp_settings.planning_horizon_days = days;
+            }
+            let monday = kta.report_utils.get_monday_of_current_week();
+            let from_filter = report.get_filter("from_date");
+            if (from_filter && from_filter.get_value() !== monday) {
+                from_filter.set_value(monday);
+            }
+            let to_filter = report.get_filter("to_date");
+            if (to_filter) {
+                let from_val = (from_filter && from_filter.get_value()) || monday;
+                let target_to_date = frappe.datetime.add_days(from_val, days);
+                let current_to_val = to_filter.get_value();
+                if (current_to_val !== target_to_date) {
+                    to_filter.set_value(target_to_date);
+                }
+            }
+        });
+    },
+
     load_filters: function(report, report_name) {
         frappe.call({
             method: "erpnextkta.kta_mrp.report_utils.get_report_filters",

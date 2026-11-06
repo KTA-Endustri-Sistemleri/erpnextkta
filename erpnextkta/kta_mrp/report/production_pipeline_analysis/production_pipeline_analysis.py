@@ -8,9 +8,10 @@ def execute(filters=None):
     filters = frappe._dict(filters or {})
     
     # 1. Tarih Aralığı
-    today = date.today()
-    from_date = getdate(filters.get("from_date")) or today
-    to_date = getdate(filters.get("to_date")) or add_days(today, 90)
+    from erpnextkta.kta_mrp.mrp_engine.capacity import get_monday_of_current_week
+    monday = get_monday_of_current_week()
+    from_date = getdate(filters.get("from_date")) if filters.get("from_date") else monday
+    to_date = getdate(filters.get("to_date")) or add_days(monday, 90)
     
     first_week_label = normalize_week_label(get_week_label(from_date))
 

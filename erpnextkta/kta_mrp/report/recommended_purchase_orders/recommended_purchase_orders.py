@@ -1,160 +1,78 @@
-import frappe
-from datetime import date, timedelta
 from collections import defaultdict
-import math
+from datetime import timedelta
+
+import frappe
+from frappe import _
+
+from erpnextkta.kta_mrp.mrp_engine.service import get_material_requirements
+from erpnextkta.kta_mrp.mrp_engine.weeks import sort_weeks, week_key, week_label, week_start
+
 
 def execute(filters=None):
-    if not filters:
-        filters = {}
+	filters = dict(filters or {})
+	if not filters.get("from_date"):
+		from erpnextkta.kta_mrp.mrp_engine.capacity import get_monday_of_current_week
+		filters["from_date"] = str(get_monday_of_current_week())
+	demand_filters = {key: filters.get(key) for key in ("from_date", "to_date", "item_group") if filters.get(key)}
+	result = get_material_requirements(demand_filters, include_po=True)
+	orders = [m for m in result.materials.values() if m.netting.planned_order_total > 0]
+	order_weeks = {m.item_code: shift_by_lead_time(m) for m in orders}
+	all_weeks = sort_weeks(w for weeks in order_weeks.values() for w in weeks)
 
-    from erpnextkta.kta_mrp.report.material_requirement import material_requirement
+	data = [get_row(m, order_weeks[m.item_code], all_weeks) for m in sorted(orders, key=lambda m: m.item_code)]
+	grand_total = sum(row["row_total"] for row in data)
+	data.append(get_total_row(data, all_weeks, grand_total))
 
-    _, raw_data, *_ = material_requirement.execute({
-        "stage": "Stokları Düş + PO Teslimatlarını Düş",
-        "group_by": "Sadece Hammadde",
-        "from_date": filters.get("from_date"),
-        "to_date": filters.get("to_date")
-    })
+	report_summary = [
+		{"value": len(data) - 1, "label": _("Önerilen PO Sayısı"), "indicator": "Blue"},
+		{"value": frappe.format(grand_total, "Float"), "label": _("Toplam Önerilen Miktar"), "indicator": "Green"},
+	]
+	return get_columns(all_weeks), data, None, None, report_summary
 
-    item_needs_by_week = defaultdict(lambda: defaultdict(float))
 
-    for row in raw_data:
-        item = row["hammadde"]
-        uom = row["uom"]
-        for key, val in row.items():
-            if key.startswith("W") and isinstance(val, (int, float)):
-                item_needs_by_week[(item, uom)][key] += val
+def shift_by_lead_time(material):
+	"""Önerilen siparişleri (MOQ/paket MR'da uygulanmış) lead time kadar öne alır."""
+	order_weeks = defaultdict(float)
+	for week, qty in material.netting.planned_orders.items():
+		if qty > 0:
+			order_date = week_start(week) - timedelta(days=material.lead_time_days or 0)
+			order_weeks[week_key(order_date)] += qty
+	return order_weeks
 
-    result_map = defaultdict(lambda: defaultdict(float))
-    metadata_map = {}
 
-    for (item_code, uom), weekly_needs in item_needs_by_week.items():
-        default_supplier = frappe.db.get_value("Item Default", {"parent": item_code}, "default_supplier")
-        if not default_supplier:
-            continue
+def get_row(material, order_weeks, all_weeks):
+	row = {
+		"hammadde": material.item_code,
+		"uom": material.uom,
+		"supplier": material.supplier,
+		"lead_time_days": material.lead_time_days,
+		"moq": material.moq,
+		"paket": material.pack,
+	}
+	for week in all_weeks:
+		row[week] = round(order_weeks.get(week, 0), 2)
+	row["row_total"] = round(sum(order_weeks.values()), 2)
+	return row
 
-        item_price = frappe.get_value("Item Price", {
-            "item_code": item_code,
-            "supplier": default_supplier,
-            "buying": 1
-        }, [
-            "lead_time_days",
-            "custom_minimum_order_quantity",
-            "custom_minimum_paketleme_miktari"
-        ], as_dict=True)
 
-        if not item_price:
-            continue
+def get_total_row(data, all_weeks, grand_total):
+	total_row = {"hammadde": "<b>TOPLAM</b>", "supplier": "", "uom": "", "lead_time_days": "", "moq": "", "paket": ""}
+	for week in all_weeks:
+		total_row[week] = round(sum(row[week] for row in data), 2)
+	total_row["row_total"] = round(grand_total, 2)
+	return total_row
 
-        lead_time = item_price.lead_time_days or 0
-        moq = item_price.custom_minimum_order_quantity or 1
-        paket = item_price.custom_minimum_paketleme_miktari or 1
 
-        metadata_map[(item_code, uom, default_supplier)] = {
-            "lead_time_days": lead_time,
-            "moq": moq,
-            "paket": paket
-        }
-
-        weeks = sorted(weekly_needs.keys(), key=week_sort_key)
-        remaining = dict(weekly_needs)
-        last_week_in_scope = weeks[-1]
-
-        i = 0
-        while i < len(weeks):
-            w = weeks[i]
-            qty = remaining.get(w, 0)
-            if qty <= 0:
-                i += 1
-                continue
-
-            if qty < moq and w != last_week_in_scope:
-                j = i + 1
-                while qty < moq and j < len(weeks):
-                    next_w = weeks[j]
-                    next_qty = remaining.get(next_w, 0)
-                    ek = min(next_qty, moq - qty)
-                    qty += ek
-                    remaining[next_w] = max(0, next_qty - ek)
-                    j += 1
-
-            order_qty = max(moq, math.ceil(qty / paket) * paket)
-
-            if order_qty > qty and w != last_week_in_scope:
-                difference = order_qty - qty
-                j = i + 1
-                while difference > 0 and j < len(weeks):
-                    next_w = weeks[j]
-                    next_qty = remaining.get(next_w, 0)
-                    ek = min(next_qty, difference)
-                    difference -= ek
-                    remaining[next_w] = max(0, next_qty - ek)
-                    j += 1
-
-            if qty < moq and order_qty == qty and w != last_week_in_scope:
-                order_qty = moq
-
-            y_part, w_part = w.split("-W")
-            need_week = date.fromisocalendar(int(y_part), int(w_part), 1)
-            order_date = need_week - timedelta(days=lead_time)
-            iso_year, iso_week, _ = order_date.isocalendar()
-            order_week = f"{iso_year}-W{iso_week:02d}"
-
-            result_map[(item_code, uom, default_supplier)][order_week] += order_qty
-            remaining[w] = 0
-            i += 1
-
-    all_weeks = sorted({week for item in result_map for week in result_map[item]}, key=week_sort_key)
-
-    columns = [
-        {"label": "Hammadde", "fieldname": "hammadde", "fieldtype": "Link", "options": "Item", "width": 140},
-        {"label": "Tedarikçi", "fieldname": "supplier", "fieldtype": "Link", "options": "Supplier", "width": 140},
-        {"label": "Birim", "fieldname": "uom", "fieldtype": "Data", "width": 80},
-        {"label": "Lead Time (Gün)", "fieldname": "lead_time_days", "fieldtype": "Int", "width": 100},
-        {"label": "MOQ", "fieldname": "moq", "fieldtype": "Float", "width": 80},
-        {"label": "Paket Miktarı", "fieldname": "paket", "fieldtype": "Float", "width": 100},
-    ] + [
-        {"label": week, "fieldname": week, "fieldtype": "Float", "width": 100}
-        for week in all_weeks
-    ] + [
-        {"label": "Satır Toplamı", "fieldname": "row_total", "fieldtype": "Float", "width": 120}
-    ]
-
-    week_totals = {week: 0 for week in all_weeks}
-    grand_total = 0
-    data = []
-    for (item, uom, supplier), week_map in result_map.items():
-        meta = metadata_map.get((item, uom, supplier), {})
-        row = {
-            "hammadde": item, "uom": uom, "supplier": supplier,
-            "lead_time_days": meta.get("lead_time_days", 0),
-            "moq": meta.get("moq", 0), "paket": meta.get("paket", 0)
-        }
-        row_total = 0
-        for week in all_weeks:
-            week_value = round(week_map.get(week, 0), 2)
-            row[week] = week_value
-            row_total += week_value
-            week_totals[week] += week_value
-        row["row_total"] = round(row_total, 2)
-        grand_total += row_total
-        data.append(row)
-
-    total_row = {"hammadde": "<b>TOPLAM</b>", "supplier": "", "uom": "", "lead_time_days": "", "moq": "", "paket": ""}
-    for week in all_weeks: total_row[week] = round(week_totals[week], 2)
-    total_row["row_total"] = round(grand_total, 2)
-    data.append(total_row)
-
-    report_summary = [
-        {"value": len(data) - 1, "label": "Önerilen PO Sayısı", "indicator": "Blue"},
-        {"value": frappe.format(grand_total, "Float"), "label": "Toplam Önerilen Miktar", "indicator": "Green"}
-    ]
-
-    return columns, data, None, None, report_summary
-
-def week_sort_key(week_str):
-    try:
-        parts = week_str.split("-W")
-        return (int(parts[0]), int(parts[1]))
-    except:
-        return (9999, 9999)
+def get_columns(all_weeks):
+	return (
+		[
+			{"label": _("Hammadde"), "fieldname": "hammadde", "fieldtype": "Link", "options": "Item", "width": 140},
+			{"label": _("Tedarikçi"), "fieldname": "supplier", "fieldtype": "Link", "options": "Supplier", "width": 140},
+			{"label": _("Birim"), "fieldname": "uom", "fieldtype": "Data", "width": 80},
+			{"label": _("Lead Time (Gün)"), "fieldname": "lead_time_days", "fieldtype": "Int", "width": 100},
+			{"label": _("MOQ"), "fieldname": "moq", "fieldtype": "Float", "width": 80},
+			{"label": _("Paket Miktarı"), "fieldname": "paket", "fieldtype": "Float", "width": 100},
+		]
+		+ [{"label": week_label(week), "fieldname": week, "fieldtype": "Float", "width": 100} for week in all_weeks]
+		+ [{"label": _("Satır Toplamı"), "fieldname": "row_total", "fieldtype": "Float", "width": 120}]
+	)

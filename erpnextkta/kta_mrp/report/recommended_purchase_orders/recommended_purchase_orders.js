@@ -1,20 +1,18 @@
 frappe.query_reports["Recommended Purchase Orders"] = {
 	onload: function (report) {
+		if (window.kta && kta.report_utils && kta.report_utils.sync_mrp_date_filters) {
+			kta.report_utils.sync_mrp_date_filters(report);
+		}
 	},
 
 	filters: [
 		{
-			"fieldname": "from_date",
-			"label": __("Başlangıç Tarihi"),
-			"fieldtype": "Date",
-			"default": frappe.datetime.get_today(),
-			"reqd": 1
-		},
-		{
 			"fieldname": "to_date",
 			"label": __("Bitiş Tarihi"),
 			"fieldtype": "Date",
-			"default": frappe.datetime.add_months(frappe.datetime.get_today(), 3),
+			"default": (window.kta && kta.report_utils && kta.report_utils.get_default_to_date)
+				? kta.report_utils.get_default_to_date()
+				: frappe.datetime.add_days(frappe.datetime.get_today(), 90),
 			"reqd": 1
 		},
 		{

@@ -53,7 +53,7 @@ Bildir,Report
 Bilgiler,Information
 Bilinmeyen change_type: {0},Unknown change_type: {0}
 Bilinmiyor,Unknown
-Birim,Unit
+Birim,UOM
 Birim ve Depo bilgileri İş Emri üzerinden otomatik atanacaktır.,Unit and Warehouse information will be automatically assigned via the Work Order.
 Bitir,Finish
 Bitiş Tarihi,End Date
@@ -484,7 +484,7 @@ Yükseklik (mm),Height (mm)
 Kontak No,Terminal No
 KESİT:,CROSS-SECTION:
 İzokrimp Yüksekliği (mm),Isocrimp Height (mm)
-Adet,Quantity
+Adet,Pcs
 KALIP:,MOLD:
 Kafa (Meme) Isısı (°C),Head (Nozzle) Temp (°C)
 Kopyala, Copy
@@ -691,8 +691,8 @@ DURUŞTA (ARIZA),ON HOLD (BREAKDOWN)
 "Arıza giderildi, operatör onayı bekleniyor.","Breakdown fixed, waiting for operator confirmation."
 "Arıza iptal edildi, operatör bekleniyor.","Breakdown cancelled, waiting for operator."
 "Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Maintenance team finished, waiting for operator to resume production."
-"[Bakım Sonucu: Tamamlandı.]","[Maintenance Result: Completed.]"
-"[Bakım Sonucu: İptal Edildi.]","[Maintenance Result: Cancelled.]"
+[Bakım Sonucu: Tamamlandı.],[Maintenance Result: Completed.]
+[Bakım Sonucu: İptal Edildi.],[Maintenance Result: Cancelled.]
 Kullanıcı için varsayılan yazıcı bulunamadı,Default printer for user not found
 Kullanıcı için varsayılan yazıcı bulunamadı: {0},Default printer for user not found: {0}
 ⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ This card has exceeded {0} minutes! Please check the form (finish or pause).
@@ -773,3 +773,213 @@ Krimp Ölçüm Protokol Belgesi,Crimping Measurement Protocol Document
 Krimp Protokol Belgesi,Crimping Protocol Document
 Enjeksiyon Ölçüm Protokol Belgesi,Injection Measurement Protocol Document
 Enjeksiyon Protokol Belgesi,Injection Protocol Document
+Hammadde / Ürün,Raw Material / Product
+Ürün Açıklaması,Item Description
+BOM,BOM
+Stok,Stock
+Rezerve Stok,Reserved Stock
+Serbest Stok,Free Stock
+Açık PO,Open PO
+Brüt İhtiyaç,Gross Requirement
+Net İhtiyaç,Net Requirement
+Önerilen Sipariş,Suggested Order
+İlk Eksik Hafta,First Shortage Week
+Kapsama (Hafta),Coverage (Weeks)
+Fazla PO Miktarı,Excess PO Quantity
+Birim Fiyat,Unit Price
+Para Birimi,Currency
+Önerilen Sipariş Tutarı,Suggested Order Amount
+Önerilen Sipariş Tutarı ({0}),Suggested Order Amount ({0})
+Toplam Kalem,Total Items
+Eksik Kalem,Short Items
+{0} Hafta İçinde Eksik,Short Within {0} Weeks
+Fiyatı Olmayan Kalem,Items Without Price
+Eksik Kalem Sayısı,Short Item Count
+Projeksiyon Bakiye,Projected Balance
+Bitmiş Ürün + Hammadde,Finished Product + Raw Material
+Sadece Hammadde,Raw Material Only
+Haftalık Gösterim,Weekly View
+PO Teslimatlarını Dahil Et,Include PO Deliveries
+Sadece Eksik Olanlar,Shortages Only
+Kapasite Dengeleme,Capacity Leveling
+Ramp-up (Önden Üretim),Ramp-up (Pre-production)
+Lead Time (Gün),Lead Time (Days)
+MOQ,MOQ
+Paket Miktarı,Package Quantity
+Satır Toplamı,Row Total
+Önerilen PO Sayısı,Suggested PO Count
+Toplam Önerilen Miktar,Total Suggested Quantity
+PO Teslimatları,PO Deliveries
+Açık PO Girişleri,Open PO Receipts
+Tedarikçiden beklenen açık siparişler,Open purchase orders expected from supplier
+Açık PO Teslimatları (Ham İhtiyaç Modu),Open PO Deliveries (Raw Requirement Mode)
+Dahil Değil,Not Included
+Kapalı,Disabled
+Gelen PO,Incoming PO
+Öneri,Suggested Order
+Bakiye,Balance
+Brüt,Gross
+Net,Net
+Haftalık Netleştirme Detayı,Weekly Netting Details
+Hesaplama detayları yükleniyor...,Loading Calculation Details...
+Netleştirme Detayı,Netting Details
+Netleştirme Detayını Gör,View Netting Details
+Bu Haftaya Düşen Açık Satınalma Siparişleri (PO),Open Purchase Orders (PO) Scheduled for this Week
+Bu Haftadaki Brüt İhtiyaç Kaynakları (Mamul Talepleri),Gross Demand Sources for this Week (Finished Goods Demands)
+Bu hafta için beklenen açık satınalma siparişi (PO) bulunmamaktadır.,No Open Purchase Orders Expected for this Week.
+Açık PO filtresi kapalı olduğu için siparişler hesaba katılmamıştır.,Orders Were Not Included as Open PO Filter is Disabled.
+Önceki Haftadan Devreden Bakiye,Balance Carried Forward from Previous Week
+Gelen Açık Satınalma Siparişi (PO),Incoming Open Purchase Order (PO)
+Brüt Üretim İhtiyacı,Gross Production Demand
+Net Eksik / İhtiyaç,Net Shortage / Requirement
+Önerilen Sipariş (MOQ & Paket Katı Uygulanmış),Suggested Order (MOQ & Pack Multiple Applied)
+Sipariş Sonrası Dönem Sonu Bakiye,Ending Balance After Order
+Termin Tarihi,Schedule Date
+Bekleyen Miktar,Pending Qty
+Gereken Miktar,Required Qty
+Detaylar alınamadı.,Failed to Fetch Details.
+Sipariş No,Order No
+Netleştirme Hesabı,Netting Calculation
+Dönem Sonu Projeksiyon Bakiye,Projected Ending Balance
+Açık PO ve Mamul detayları yükleniyor...,Loading Open PO and Finished Goods Details...
+Bitmiş Ürün,Finished Good
+Temin Süresi,Lead Time
+Gün,Days
+Min. Sipariş Miktarı (MOQ),Min. Order Qty (MOQ)
+Paketleme Katı,Pack Multiple
+Paket Katı,Pack Multiple
+Eksik,Shortage
+Açık Bakiye,Deficit
+Kapat,Close
+Nos,Nos
+Box,Box
+Pair,Pair
+Set,Set
+Modern Matris,Modern Matrix
+Klasik Tablo,Classic Table
+"Hammadde, açıklama veya tedarikçi ara...","Search by item, description, or supplier..."
+Acil Eksikler,Urgent Shortages
+Tüm Eksikler,All Shortages
+Açık PO'su Olanlar,With Open PO
+Yeterli Stok,Sufficient Stock
+Tümünü Aç,Expand All
+Tümünü Kapat,Collapse All
+Gösterilen,Showing
+Hammadde / Malzeme Bilgisi,Material Information
+Stok Durumu,Stock Status
+Özet İhtiyaç,Requirement Summary
+Bu Hafta,This Week
+Detayı Aç,Expand Details
+Detayı Kapat,Collapse Details
+Teslimat Takvimi,Delivery Schedule
+Brüt İhtiyaç Kaynakları (Mamul Talepleri),Gross Requirement Sources (Finished Goods)
+Mamul,Finished Good
+Toplam Brüt,Total Gross
+Detayları görmek için tıklayın,Click to view details
+Seçilen filtrelere veya arama kriterlerine uygun hammadde bulunamadı.,No material found matching the selected filters or search criteria.
+Hammadde İhtiyaç Planlama,Material Requirement Planning
+Filtreleri Göster,Show Filters
+Filtreleri Gizle,Hide Filters
+Raporu Yenile,Refresh Report
+Tedarikçi Filtrele...,Filter Supplier...
+Hammadde Kodu...,Item Code...
+Müşteri Grubu...,Customer Group...
+Ürün Grubu...,Item Group...
+Aktif Haftalık Gösterim Modu,Active Weekly View Mode
+İhtiyaç Yaratan Bitmiş Ürünler (Talep Dağılımı),Finished Goods Driving Demand (Demand Breakdown)
+Açık Satınalma Siparişleri (Giriş Dağılımı),Open Purchase Orders (Receipt Breakdown)
+Bu malzeme için bekleyen açık PO veya mamul kırılımı bulunmamaktadır.,There are no pending open POs or finished item breakdowns for this material.
+Excel Olarak İndir,Download as Excel
+CSV Olarak İndir,Download as CSV
+Sayfayı Yazdır veya PDF Al,Print Page or Save as PDF
+Yazdır,Print
+Ufka Sıfırla,Reset to Horizon
+Gün,Days
+MRP Ayarlarındaki planlama ufkuna göre sıfırla,Reset to planning horizon from MRP settings
+Sıralama,Sort
+En Acil Eksikler (Varsayılan),Most Urgent Shortages (Default)
+En Yüksek Sipariş Tutarı,Highest Order Amount
+En Yüksek Net Eksik,Highest Net Shortage
+Hammadde Kodu (A-Z),Item Code (A-Z)
+Sıralamayı varsayılana sıfırla,Reset sort to default
+Artan,Ascending
+Azalan,Descending
+Hammadde koduna göre sırala,Sort by item code
+Sipariş Tutarı,Order Amount
+Net Eksik,Net Shortage
+Kapsama Haftası,Coverage Weeks
+Gümrüklemede,In Customs Clearance
+İşlem Başlat,Start Clearance
+Gümrükleme Başlama Tarihi,Clearance Start Date
+Gümrükte,In Customs
+Antrepoda Bekleyen,Pending in Bonded Warehouse
+İşlem Başlama,Clearance Start
+Açık Teslimatlar & İrsaliye Dağılımı (Antrepo / Yolda / PO),Open Deliveries & Receipt Distribution (Bonded / Transit / PO)
+Gümrüklü Antrepoda Bekleyen Teslimatlar (İşlem Bekleyen Stok Havuzu),Deliveries Pending in Bonded Warehouse (Pending Clearance Stock Pool)
+Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık timeline'a dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.,"Materials pending in bonded warehouse are not included in the weekly timeline until clearance starts. Once clearance begins (+2 days), they are dispatched to factory."
+Haftalık Açık Siparişler ve Sevkiyatlar (PO / Yolda / Gümrükte),Weekly Open Orders & Shipments (PO / Transit / Customs)
+{0} haftasında bekleyen açık teslimat veya sipariş bulunmamaktadır.,There are no pending open deliveries or orders in week {0}.
+Haftalık planlanmış açık sipariş veya teslimat bulunmamaktadır.,There are no scheduled open orders or deliveries.
+Tüm açık siparişleri göster,Show All Open Orders
+Antrepoda Bekliyor (İşlem Başlatılmadı),Pending in Bonded Warehouse (Clearance Not Started)
+Gümrüklemede (+2g),In Customs Clearance (+2d)
+Fabrika Mal Girişi,Factory Goods Receipt
+Tahmini Varış (+7g Transit),Estimated Arrival (+7d Transit)
+Tahmini Varış (ETA),Estimated Arrival (ETA)
+PO Termini (ETA Eksik),PO Schedule Date (Missing ETA)
+Gümrüğe Geliş,Customs Arrival
+Gümrüğe Geliş Tarihi,Customs Arrival Date
+Fabrikaya Sevkiyat Koşulu,Factory Shipment Condition
+İşlem başlatıldığında (+2 gün) fabrikaya ulaşacaktır,Will arrive at factory (+2 days) once clearance process is initiated
+Tedarik,Supply
+Tedarik Boru Hattı,Supply Pipeline
+Tedarik Boru Hattı (Geliş Aşamaları),Supply Pipeline (Inbound Stages)
+Henüz Sevk Edilmemiş Açık PO,Unshipped Open PO
+Sevkiyatta / Yolda Olan Açık Teslimat,In-Transit Open Delivery
+Gümrüklü Antrepoda Bekleyen Açık Teslimat (Bekleme Havuzu),Open Delivery in Bonded Warehouse (Waiting Pool)
+Gümrükleme / Çekim İşlemi Başlatılmış Açık Teslimat (+2 Gün),Clearance Initiated Open Delivery (+2 Days)
+Devreden Bakiye,Initial Balance
+Açık Teslimat,Open Delivery
+{0} Netleştirme Hesabı Özeti,{0} Net Calculation Summary
+Hafta Filtresini Kaldır,Clear Week Filter
+Hafta filtresini kaldır,Clear week filter
+Temizle,Clear
+Belge,Document
+Belge No,Document No
+Durum,Status
+Termin / Varış,Schedule / Arrival
+Hafta,Week
+Sipariş,Order
+Açık Sipariş,Open Order
+Tahmini,Estimated
+Yükleme,Loading
+Tedarikçi Bazlı Planlanan Sipariş Dağılımı,Supplier Planned Order Distribution
+Kotalı Dağılım (% Paylaşım),Quota Distribution (% Share)
+Varsayılan Tedarikçi (%100),Default Supplier (%100)
+En Ucuz Tedarikçi (%100),Lowest Cost Supplier (%100)
+Kotalı Satınalma Dağılımı,Quota Purchasing Distribution
+Tedarik Stratejisi,Sourcing Strategy
+Kota,Quota
+Paket,Pack
+Toplam Sipariş,Total Order
+Tahmini Tutar,Estimated Amount
+Toplam İhtiyaç,Total Demand
+Veriler hesaplanıyor...,Calculating data...
+Kayıt Bulunamadı,No Record Found
+Seçilen filtrelere uygun hammadde bulunamadı.,No raw material found matching selected filters.
+Hammadde Bilgisi,Raw Material Info
+"Stok, İhtiyaç ve Kapsama","Stock, Demand & Coverage"
+{0} haftasına göre sırala (Eksik / Sipariş),Sort by week {0} (Shortage / Order)
+Bu malzeme için bekleyen açık teslimat veya mamul kırılımı bulunmamaktadır.,There are no pending open deliveries or finished item breakdowns for this material.
+ETA girilmediği için yükleme tarihine varsayılan nakliye süresi eklendi,Default transit duration added to loading date because ETA was not entered
+Gümrüklü antrepoda bekleyen hammaddeleri göster,Show raw materials pending in bonded warehouse
+Gümrükleme / çekim işlemi başlatılmış teslimatları göster (+2 gün),Show deliveries with customs clearance initiated (+2 days)
+Sevkiyatta / Yolda olan hammaddeleri göster,Show raw materials in transit / on shipment
+Haftalık açık sipariş ve detayları görmek için tıklayın,Click to view weekly open orders and details
+Filtreler,Filters
+Sıfırla,Reset
+Hammadde Kodu,Item Code
+Detayı Aç / Kapat,Toggle Details
+Beklenen PO,Expected PO
+Antrepo,Bonded Warehouse
+PO,PO
