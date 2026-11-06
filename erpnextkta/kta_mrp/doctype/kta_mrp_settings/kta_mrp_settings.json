@@ -20,7 +20,8 @@
   "urgent_shortage_weeks",
   "sb_supply",
   "available_warehouse_type",
-  "default_include_po"
+  "default_include_po",
+  "antrepo_clearance_days"
  ],
  "fields": [
   {
@@ -124,6 +125,13 @@
    "fieldname": "default_include_po",
    "fieldtype": "Check",
    "label": "Açık PO Teslimatlarını Varsayılan Dahil Et"
+  },
+  {
+   "default": "2",
+   "description": "Antrepoya gelmiş malzemeler için millileştirme ve hatta çekilme tampon süresi.",
+   "fieldname": "antrepo_clearance_days",
+   "fieldtype": "Int",
+   "label": "Antrepo Millileştirme Süresi (Gün)"
   }
  ],
  "issingle": 1,
