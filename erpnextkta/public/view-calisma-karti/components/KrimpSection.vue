@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { fmtDt, openActionSheet } from "../utils/kalite_ui";
+import { fmtDt, getQcBadgeClass, isQcPending, openActionSheet } from "../utils/kalite_ui";
 import MeasureGauge from "./MeasureGauge.vue";
 
 const props = defineProps<{
@@ -13,7 +13,7 @@ const props = defineProps<{
   onDelete: (row: any) => void;
   onClone: (row: any) => void;
   onPrint: () => void;
-  onSubmitQC?: (rowname: string, item_code: string) => void;
+  onSubmitQC?: (rowname: string, item_code: string, intent?: "approve" | "reject") => void;
 }>();
 
 const openedRowIds = ref(new Set<string>());
@@ -36,12 +36,7 @@ function getAltOpRow(r: any) {
   return (props.doc.alt_operasyon_kayitlari || []).find((x: any) => x.name === aoId);
 }
 
-function getThemeClass(status: string) {
-  const val = (status || '').toLowerCase();
-  if (val === 'accepted' || val === 'onaylandı') return 'ck-badge--success';
-  if (val === 'rejected' || val === 'reddedildi' || val === 'red') return 'ck-badge--danger';
-  return 'ck-badge--info';
-}
+const getThemeClass = getQcBadgeClass;
 
 function isQCLocked(r: any): boolean {
   if (!props.doc.alt_operasyon_bazli_kalite) return false;
@@ -51,7 +46,7 @@ function isQCLocked(r: any): boolean {
   const ao = (props.doc.alt_operasyon_kayitlari || []).find((x: any) => x.name === aoId);
   if (!ao) return false;
   
-  return (ao.quality_inspection_status || "").trim() === "Onaylandı" && !!(ao.quality_inspection || "").trim();
+  return !!(ao.quality_inspection || "").trim();
 }
 
 function actions(r: any) {
@@ -74,14 +69,10 @@ function actions(r: any) {
     if (a === __("Düzenle")) props.onEdit(r);
     if (a === __("Kopyala")) props.onClone(r);
     if (a === __("Sil")) {
-      if (locked && isQcUser) {
-        frappe.confirm(
-          __("Bu kayda bağlı kalite kontrol belgesi de iptal edilecektir. Devam etmek istiyor musunuz?"),
-          () => props.onDelete(r)
-        );
-      } else {
-        props.onDelete(r);
-      }
+      frappe.confirm(
+        __("Bu ölçüm kaydı silinecek. Emin misiniz?"),
+        () => props.onDelete(r)
+      );
     }
   });
 }
@@ -116,24 +107,33 @@ function actions(r: any) {
 
   <div v-else class="ck-mini-list" style="margin-top:8px;">
     <div v-for="(r, i) in props.rows" :key="r.name || i" class="ck-mini-item ck-accordion" :class="{'is-open': openedRowIds.has(r.name)}">
-      <div class="ck-accordion-header" @click="toggleAccordion(r.name)">
+      <div
+        class="ck-accordion-header"
+        role="button"
+        tabindex="0"
+        :aria-expanded="openedRowIds.has(r.name)"
+        :aria-controls="'ck-accordion-body-krimp-' + (r.name || i)"
+        @click="toggleAccordion(r.name)"
+        @keydown.enter.self.prevent="toggleAccordion(r.name)"
+        @keydown.space.self.prevent="toggleAccordion(r.name)"
+      >
         <div style="display: flex; gap: 12px; align-items: stretch; flex: 1; min-width: 0;">
             <div v-if="getAltOpRow(r) && getAltOpRow(r).satir_no" style="display: flex; align-items: center; justify-content: center; padding-right: 12px; border-right: 2px solid var(--ck-glass-border-soft); margin-right: 4px;">
                 <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">{{ getAltOpRow(r).satir_no }}</span>
             </div>
             <div style="display:flex; flex-direction:column; gap:4px; flex:1; min-width: 0;">
                <div v-if="getAltOpRow(r)" style="font-size:13px; font-weight:800; color:var(--ck-text); margin-bottom: 2px;">
-                 {{ getAltOpRow(r).alt_operasyon_title || getAltOpRow(r).alt_operasyon }}
+                 {{ __(getAltOpRow(r).alt_operasyon_title || getAltOpRow(r).alt_operasyon) }}
                </div>
                <div style="display:flex; align-items:center; gap:8px;">
-                 <span class="ck-label">{{ __('KABLO:') }}</span>
+                 <span class="ck-label">{{ __('Kablo') }}:</span>
                  <span class="ck-val" style="font-size:14px;">{{ r.kablo_no || '-' }}</span>
                </div>
                <div style="display:flex; align-items:center; gap:8px; opacity:0.8; flex-wrap:wrap;">
-                 <span class="ck-label" style="margin-right:2px;">{{ __('T1 TERMİNAL:') }}</span>
+                 <span class="ck-label" style="margin-right:2px;">{{ __('T1 Terminal') }}:</span>
                  <span class="ck-val" style="font-size:11px;">{{ r.kontak_no || '-' }}</span>
                  <template v-if="r.is_cift_tarafli">
-                     <span class="ck-label" style="margin-right:2px; margin-left:6px;">{{ __('T2 TERMİNAL:') }}</span>
+                     <span class="ck-label" style="margin-right:2px; margin-left:6px;">{{ __('T2 Terminal') }}:</span>
                      <span class="ck-val" style="font-size:11px;">{{ r.yon_2_kontak_no || '-' }}</span>
                  </template>
                </div>
@@ -141,24 +141,45 @@ function actions(r: any) {
         </div>
         <div class="ck-accordion-right" style="display:flex; align-items:center; gap:8px; opacity:1; font-size:11px;">
            <template v-if="getAltOpRow(r)">
-             <button 
-               v-if="props.canEditQC && getAltOpRow(r).quality_inspection_status !== 'Onaylandı' && props.onSubmitQC" 
-               class="ck-btn ck-btn--success ck-btn-small" 
-               style="font-size:10px; padding:4px 8px; margin-right: 6px; border-radius: 6px;"
-               @click.stop="props.onSubmitQC(getAltOpRow(r).name, getAltOpRow(r).hammadde || '')"
-             >
-               {{ __("KALİTE ONAYI VER") }}
-             </button>
+             <template v-if="props.canEditQC && isQcPending(getAltOpRow(r).quality_inspection_status) && props.onSubmitQC">
+               <button 
+                 class="ck-btn ck-btn--success ck-btn-small" 
+                 style="font-size:10px; padding:4px 8px; margin-right: 4px; border-radius: 6px;"
+                 @click.stop="props.onSubmitQC(getAltOpRow(r).name, getAltOpRow(r).hammadde || '', 'approve')"
+               >
+                 {{ __("Kalite Onayı Ver") }}
+               </button>
+               <button 
+                 class="ck-btn ck-btn--danger ck-btn-small" 
+                 style="font-size:10px; padding:4px 8px; margin-right: 6px; border-radius: 6px;"
+                 @click.stop="props.onSubmitQC(getAltOpRow(r).name, getAltOpRow(r).hammadde || '', 'reject')"
+               >
+                 {{ __("Reddet") }}
+               </button>
+             </template>
              <span v-else :class="['ck-badge', getThemeClass(getAltOpRow(r).quality_inspection_status)]" style="font-size:10px; padding:4px 8px; margin-right: 6px; border-radius: 6px; font-weight: bold; opacity: 1; text-transform: uppercase;">
                {{ getAltOpRow(r).quality_inspection_status ? __(getAltOpRow(r).quality_inspection_status) : __("Onay Bekliyor") }}
              </span>
            </template>
            <span v-if="r.olcum_tarihi" style="text-align:right; opacity:0.6;">{{ fmtDt(r.olcum_tarihi) }}<br><span style="font-size:9px;">{{ r.operator }}</span></span>
-           <span class="ck-chevron" style="opacity:0.6;">▼</span>
+           <button
+             type="button"
+             class="ck-accordion-toggle-btn"
+             :aria-expanded="openedRowIds.has(r.name)"
+             :aria-controls="'ck-accordion-body-krimp-' + (r.name || i)"
+             :aria-label="__('Detayları Göster/Gizle')"
+             tabindex="-1"
+             @click.stop="toggleAccordion(r.name)"
+           >
+             <span class="ck-chevron" style="opacity:0.6;">▼</span>
+           </button>
         </div>
       </div>
 
-      <div class="ck-accordion-body-wrapper">
+      <div
+        :id="'ck-accordion-body-krimp-' + (r.name || i)"
+        class="ck-accordion-body-wrapper"
+      >
         <div class="ck-accordion-body-inner">
           <div class="ck-accordion-body" style="display:flex; flex-direction:column; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--btn-default-hover-bg);">
             <div class="ck-krimp-header-info" style="border-bottom:none; padding-bottom:0;">
@@ -166,8 +187,8 @@ function actions(r: any) {
               <span class="ck-badge" style="background:#eee;color:#333;" v-if="r.is_cift_tarafli">T1</span>
               <div style="flex:1; display:flex; flex-direction:column; gap:4px;" :style="r.is_cift_tarafli ? 'margin-left:6px;' : ''">
                 <div class="ck-header-row" style="opacity:0.8;">
-                  <span class="ck-label">{{ __('KESİT:') }} <span style="color:var(--text-color);">{{ r.kablo_kesiti || '-' }}</span></span>
-                  <span class="ck-label">{{ __('MK/KL:') }} <span style="color:var(--text-color);">{{ r.makine_pres_no || '-' }} / {{ r.kalip_no || '-' }}</span></span>
+                  <span class="ck-label">{{ __('Kesit') }}: <span style="color:var(--text-color);">{{ r.kablo_kesiti || '-' }}</span></span>
+                  <span class="ck-label">{{ __('Makine / Kalıp') }}: <span style="color:var(--text-color);">{{ r.makine_pres_no || '-' }} / {{ r.kalip_no || '-' }}</span></span>
                 </div>
               </div>
             </div>
@@ -176,8 +197,8 @@ function actions(r: any) {
              <span class="ck-badge" style="background:#eee;color:#333;">T2</span>
              <div style="flex:1; display:flex; flex-direction:column; gap:4px; margin-left:6px;">
                <div class="ck-header-row" style="opacity:0.8;">
-                 <span class="ck-label">{{ __('KESİT:') }} <span style="color:var(--text-color);">{{ r.yon_2_kablo_kesiti || '-' }}</span></span>
-                 <span class="ck-label">{{ __('MK/KL:') }} <span style="color:var(--text-color);">{{ r.yon_2_makine_pres_no || '-' }} / {{ r.yon_2_kalip_no || '-' }}</span></span>
+                 <span class="ck-label">{{ __('Kesit') }}: <span style="color:var(--text-color);">{{ r.yon_2_kablo_kesiti || '-' }}</span></span>
+                 <span class="ck-label">{{ __('Makine / Kalıp') }}: <span style="color:var(--text-color);">{{ r.yon_2_makine_pres_no || '-' }} / {{ r.yon_2_kalip_no || '-' }}</span></span>
                </div>
              </div>
            </div>
@@ -231,8 +252,8 @@ function actions(r: any) {
                  :target="r.hedef_iletken_krimp_yuksekliği"
                  :tolerance="0.05"
                  :segment-step="0.01"
-                 text-low="düşük"
-                 text-high="yüksek"
+                 :text-low="__('Düşük')"
+                 :text-high="__('Yüksek')"
                  unit="mm"
                />
             </div>
@@ -279,8 +300,8 @@ function actions(r: any) {
                    :target="r.yon_2_hedef_iletken_krimp_yuksekligi"
                    :tolerance="0.05"
                    :segment-step="0.01"
-                   text-low="düşük"
-                   text-high="yüksek"
+                   :text-low="__('Düşük')"
+                   :text-high="__('Yüksek')"
                    unit="mm"
                  />
               </div>
@@ -318,7 +339,7 @@ function actions(r: any) {
 
         <div style="display:flex; justify-content:flex-end;">
           <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            {{ __('İŞLEMLER') }} ▾
+            {{ __('İşlemler') }} ▾
           </button>
         </div>
       </div>
@@ -535,5 +556,20 @@ details.ck-accordion[open] summary .ck-chevron {
 }
 .ck-chevron {
     transition: transform 0.2s ease;
+}
+.ck-accordion-header:focus-visible {
+    outline: 2px solid var(--ck-primary, #2563eb);
+    outline-offset: -2px;
+}
+.ck-accordion-toggle-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
 }
 </style>

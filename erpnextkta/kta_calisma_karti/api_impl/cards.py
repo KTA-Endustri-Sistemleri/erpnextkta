@@ -8,9 +8,10 @@ from collections import defaultdict
 
 from ._helpers import (
     first_child_table,
+    format_alt_op_label,
     has_admin_roles,
-    require_my_employee,
     has_qc_role,
+    require_my_employee,
 )
 
 
@@ -173,6 +174,7 @@ def _attach_alt_operasyon_titles(rows):
         master = meta_by_name.get(r.get("alt_operasyon"), {})
         r["alt_operasyon_title"] = master.get("title") or r.get("alt_operasyon")
         r["alt_operasyon_sequence"] = master.get("sequence") or 0
+        r["alt_operasyon_display"] = format_alt_op_label(master.get("title"), r.get("alt_operasyon"))
 
     return rows
 
@@ -547,10 +549,13 @@ def _handle_durus(doc, now, durus_nedeni, aciklama):
     )
 
 def _handle_bitis(doc, now, aciklama, qty):
+    if doc.bitis_saati or doc.docstatus == 1:
+        frappe.throw(_("Bu kart zaten bitmiş."))
+
     durum = doc.get_durum()
     if durum == "hazir":
         frappe.throw(_("Başlamamış işlem bitirilemez."))
-    if durum == "bitmis":
+    if durum in ("bitmis", "reddedildi"):
         frappe.throw(_("Bu kart zaten bitmiş."))
 
     # 1. Close active durus if any
@@ -566,7 +571,17 @@ def _handle_bitis(doc, now, aciklama, qty):
     doc.tamamlanan_miktar = (doc.tamamlanan_miktar or 0.0) + qty
 
     # 3. Check amount constraint (Tamamlanan miktar artık zorunlu değil, alt operasyon zorunlu)
-    if not doc.get("alt_operasyon_kayitlari"):
+    op_meta = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari",
+        doc.operasyon,
+        ["alt_operasyon_bazli_kalite", "yuzde_yuz_kalite_kontrol"],
+        as_dict=1,
+    ) or {}
+    alt_op_qc = bool(op_meta.get("alt_operasyon_bazli_kalite"))
+
+    if hasattr(doc, "validate_sub_op_qc_for_submission"):
+        doc.validate_sub_op_qc_for_submission()
+    elif not doc.get("alt_operasyon_kayitlari"):
         frappe.throw(_("İşlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır."))
 
     doc.bitis_saati = now
@@ -581,6 +596,11 @@ def _handle_bitis(doc, now, aciklama, qty):
     # 4. Submit linked Quality Inspection (if draft)
     _submit_linked_quality_inspection(doc)
 
+    # 4.1 Update parent QC status if sub-op QC is active
+    if alt_op_qc:
+        from erpnextkta.kta_calisma_karti.api_impl.qc import _update_parent_qc_status_from_alt_ops
+        _update_parent_qc_status_from_alt_ops(doc)
+
     # 5. Reload and Auto-submit the card if it is still a Draft
     # Reload is CRITICAL here because _submit_linked_quality_inspection triggers a hook
     # that updates the document in the database (quality_inspection link and kalite_kontrol status).
@@ -590,34 +610,45 @@ def _handle_bitis(doc, now, aciklama, qty):
 
 
 def _submit_linked_quality_inspection(doc):
-    """Submit the Quality Inspection linked to this Calisma Karti if it is still a Draft.
+    """Submit the Quality Inspection(s) linked to this Calisma Karti if still in Draft.
 
+    Supports both classical (card-level) and modular (sub-operation) quality inspections.
     Called when the card is finished (Bitis). Safe — any error is logged but does not
     block the card from being finished.
     """
-    qi_name = (getattr(doc, "quality_inspection", None) or "").strip()
-    if not qi_name:
+    qi_names = []
+    main_qi = (getattr(doc, "quality_inspection", None) or "").strip()
+    if main_qi:
+        qi_names.append(main_qi)
+
+    for row in (doc.get("alt_operasyon_kayitlari") or []):
+        row_qi = (getattr(row, "quality_inspection", None) or "").strip()
+        if row_qi and row_qi not in qi_names:
+            qi_names.append(row_qi)
+
+    if not qi_names:
         return
 
-    try:
-        qi_docstatus = frappe.db.get_value("Quality Inspection", qi_name, "docstatus")
-        if qi_docstatus == 0:  # Draft → submit
-            qi_doc = frappe.get_doc("Quality Inspection", qi_name)
-            # Submit as the owner (quality person) to avoid permission/ownership errors for operators
-            original_user = frappe.session.user
-            try:
-                frappe.set_user(qi_doc.owner)
-                qi_doc.submit()
-            finally:
-                frappe.set_user(original_user)
-            frappe.logger().info(
-                f"[kta] Quality Inspection {qi_name} submitted on Bitis of {doc.name} as user {qi_doc.owner}"
+    for qi_name in qi_names:
+        try:
+            qi_docstatus = frappe.db.get_value("Quality Inspection", qi_name, "docstatus")
+            if qi_docstatus == 0:  # Draft → submit
+                qi_doc = frappe.get_doc("Quality Inspection", qi_name)
+                # Submit as the owner (quality person) to avoid permission/ownership errors for operators
+                original_user = frappe.session.user
+                try:
+                    frappe.set_user(qi_doc.owner)
+                    qi_doc.submit()
+                finally:
+                    frappe.set_user(original_user)
+                frappe.logger().info(
+                    f"[kta] Quality Inspection {qi_name} submitted on Bitis of {doc.name} as user {qi_doc.owner}"
+                )
+        except Exception:
+            frappe.log_error(
+                frappe.get_traceback(),
+                f"[kta] QI submit failed for {qi_name} (Calisma Karti: {doc.name})"
             )
-    except Exception:
-        frappe.log_error(
-            frappe.get_traceback(),
-            f"[kta] QI submit failed for {qi_name} (Calisma Karti: {doc.name})"
-        )
 def _auto_pause_other_active_cards(hedef_doc, now_dt):
     if not hedef_doc.operator:
         return
@@ -680,8 +711,11 @@ def islem_yap(docname, islem_tipi, durus_nedeni=None, aciklama=None, tamamlanan_
         frappe.throw(_("İptal edilmiş kartta işlem yapılamaz."))
 
     durum = doc.get_durum()
-    if (doc.kalite_kontrol or '').strip() == 'Reddedildi' and islem_tipi != "Bitis":
-        frappe.throw(_('Reddedilmiş çalışma kartında işlem yapılamaz.'))
+    if islem_tipi == "Bitis" and (doc.bitis_saati or doc.docstatus == 1 or durum in ("bitmis", "reddedildi")):
+        frappe.throw(_("Bu kart zaten bitmiş."))
+
+    if (durum == "reddedildi" or doc.bitis_saati or doc.docstatus == 1) and islem_tipi != "Bitis":
+        frappe.throw(_("Reddedilmiş çalışma kartında işlem yapılamaz."))
 
     from frappe.utils import now_datetime
     now = now_datetime()

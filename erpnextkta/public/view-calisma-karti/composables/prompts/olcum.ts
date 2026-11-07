@@ -266,18 +266,30 @@ export function krimpOlcumFields(defaults: any = {}) {
 }
 
 export function enjeksiyonOlcumFields(defaults: any = {}) {
+    const allowedPeriods: string[] = defaults.allowed_periods && defaults.allowed_periods.length > 0
+        ? defaults.allowed_periods
+        : ["Başlangıç", "Ara", "Bitiş"];
+    const periodOptions = allowedPeriods.map((p: string) => ({ label: __(p), value: p }));
+    const defaultPeriod = defaults.kontrol_periyodu && allowedPeriods.includes(defaults.kontrol_periyodu)
+        ? defaults.kontrol_periyodu
+        : (allowedPeriods[0] || "Başlangıç");
+
     return applyDecimalInputMode([
         {
             fieldtype: "Select",
             label: __("Kontrol Periyodu"),
             fieldname: "kontrol_periyodu",
-            options: [
-                { label: __("Başlangıç"), value: "Başlangıç" },
-                { label: __("Ara"), value: "Ara" },
-                { label: __("Bitiş"), value: "Bitiş" },
-            ],
+            options: periodOptions,
             reqd: 1,
-            default: defaults.kontrol_periyodu || "Başlangıç",
+            default: defaultPeriod,
+        },
+        {
+            fieldtype: "Data",
+            label: __("Kalıp No"),
+            fieldname: "kalip_no",
+            reqd: 1,
+            default: defaults.kalip_no || "",
+            read_only: defaults.alt_operasyon_kaydi ? 1 : 0,
         },
         {
             fieldtype: "Link",
@@ -286,6 +298,7 @@ export function enjeksiyonOlcumFields(defaults: any = {}) {
             options: "Item",
             reqd: 1,
             default: defaults.hammadde_no || "",
+            read_only: defaults.alt_operasyon_kaydi ? 1 : 0,
             get_query: () => ({
                 query: "erpnextkta.kta_calisma_karti.api.search_enjeksiyon_allowed_items",
                 filters: { calisma_karti: defaults.calisma_karti_name }
@@ -295,60 +308,76 @@ export function enjeksiyonOlcumFields(defaults: any = {}) {
             fieldtype: "Column Break"
         },
         {
+            fieldtype: "Data",
+            fieldname: "alt_operasyon_kaydi",
+            hidden: 1,
+            default: defaults.alt_operasyon_kaydi || "",
+        },
+        {
             fieldtype: "Check",
             label: __("Göz Kontrol"),
             fieldname: "goz_kontrol",
+            reqd: 1,
             default: defaults.goz_kontrol ?? 0,
         },
         {
             fieldtype: "Float",
             label: __("Çekme Kuvveti (N)"),
             fieldname: "cekme_kuvveti_olculen",
-            default: defaults.cekme_kuvveti_olculen ?? 0,
+            description: __("Min: 100 N"),
+            reqd: 1,
+            default: defaults.cekme_kuvveti_olculen ? defaults.cekme_kuvveti_olculen : undefined,
         },
         { fieldtype: "Section Break", label: __("Proses Parametreleri") },
         {
             fieldtype: "Float",
             label: __("Hammadde Kazan Isısı (°C)"),
             fieldname: "hammadde_kazan_isisi",
-            default: defaults.hammadde_kazan_isisi ?? 0,
+            reqd: 1,
+            default: defaults.hammadde_kazan_isisi ? defaults.hammadde_kazan_isisi : undefined,
         },
         {
             fieldtype: "Float",
             label: __("Ara Hortum Isısı (°C)"),
             fieldname: "ara_hortum_isisi",
-            default: defaults.ara_hortum_isisi ?? 0,
+            reqd: 1,
+            default: defaults.ara_hortum_isisi ? defaults.ara_hortum_isisi : undefined,
         },
         {
             fieldtype: "Float",
             label: __("Kafa (Meme) Isısı (°C)"),
             fieldname: "kafa_meme_isisi",
-            default: defaults.kafa_meme_isisi ?? 0,
+            reqd: 1,
+            default: defaults.kafa_meme_isisi ? defaults.kafa_meme_isisi : undefined,
         },
         {
             fieldtype: "Float",
             label: __("Soğuk Su Isısı (°C)"),
             fieldname: "soguk_su_isisi",
-            default: defaults.soguk_su_isisi ?? 0,
+            reqd: 1,
+            default: defaults.soguk_su_isisi ? defaults.soguk_su_isisi : undefined,
         },
         { fieldtype: "Column Break" },
         {
             fieldtype: "Float",
             label: __("Motor Devir"),
             fieldname: "motor_devir",
-            default: defaults.motor_devir ?? 0,
+            reqd: 1,
+            default: defaults.motor_devir ? defaults.motor_devir : undefined,
         },
         {
             fieldtype: "Float",
             label: __("Hammadde Enjeksiyon Zamanı (sn)"),
             fieldname: "hammadde_enjeksiyon_zamani",
-            default: defaults.hammadde_enjeksiyon_zamani ?? 0,
+            reqd: 1,
+            default: defaults.hammadde_enjeksiyon_zamani ? defaults.hammadde_enjeksiyon_zamani : undefined,
         },
         {
             fieldtype: "Float",
             label: __("Soğutma Zamanı (sn)"),
             fieldname: "sogutma_zamani",
-            default: defaults.sogutma_zamani ?? 0,
+            reqd: 1,
+            default: defaults.sogutma_zamani ? defaults.sogutma_zamani : undefined,
         }
     ]);
 }

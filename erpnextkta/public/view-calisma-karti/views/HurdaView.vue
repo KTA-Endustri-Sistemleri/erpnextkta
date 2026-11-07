@@ -75,9 +75,9 @@ function openStockEntry() {
     <div v-else class="ck-mini-list">
       <div v-for="(h, i) in doc.hurdalar" :key="h.name || i" class="ck-mini-item">
         <div class="ck-mini-content">
-            <b class="ck-mini-title">{{ h.parca_no || ('Hurda #' + (Number(i) + 1)) }}</b>
-            <div class="ck-muted ck-mini-sub"><b>{{ __("Neden:") }} </b> {{ h.hurda_nedeni || "-" }}</div>
-            <div class="ck-muted ck-mini-sub"><b>{{ __("Miktar:") }} </b> {{ h.miktar ?? "-" }} {{ h.birim || "" }}</div>
+            <b class="ck-mini-title">{{ h.parca_no || __('Hurda #{0}', [Number(i) + 1]) }}</b>
+            <div class="ck-muted ck-mini-sub"><b>{{ __("Neden") }}: </b> {{ h.hurda_nedeni ? __(h.hurda_nedeni) : "-" }}</div>
+            <div class="ck-muted ck-mini-sub"><b>{{ __("Miktar") }}: </b> {{ h.miktar ?? "-" }} {{ h.birim || "" }}</div>
             <div v-if="h.aciklama" class="ck-muted ck-mini-sub italic">"{{ h.aciklama }}"</div>
         </div>
 

@@ -77,9 +77,16 @@ def auto_close_timed_out_cards():
             if get_datetime(doc.baslangic_saati) >= target_dt:
                 continue
 
-            # QC reddedildiyse dokunma
-            if (doc.kalite_kontrol or "").strip() == "Reddedildi":
+            # Klasik kart bazlı kalite reddi olan kartlara dokunma (erken kapanış yapılmıştır).
+            # Alt operasyon bazlı açık kartlar (tüm satırları ret alsa dahi) vardiya sonunda kapatılmalıdır.
+            op_meta = frappe.db.get_value(
+                "KTA Calisma Karti Operasyonlari", doc.operasyon,
+                ["alt_operasyon_bazli_kalite"], as_dict=1
+            ) or {}
+            is_sub_op_qc = bool(op_meta.get("alt_operasyon_bazli_kalite"))
+            if not is_sub_op_qc and (doc.kalite_kontrol or "").strip() == "Reddedildi":
                 continue
+
 
             # Duruma göre bitiş saatini belirle
             if doc.aktif_durus_var_mi():

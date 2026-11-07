@@ -69,6 +69,13 @@ def add_krimp_olcumu(name: str, payload: str | dict):
         "operator": _session_employee_name_or_throw(),
     }
 
+    ao_row_id = (payload.get("alt_operasyon_kaydi") or "").strip()
+    if ao_row_id:
+        ao_row = next((r for r in doc.get("alt_operasyon_kayitlari", []) if r.name == ao_row_id), None)
+        if not ao_row:
+            frappe.throw(_("Alt operasyon kaydı bulunamadı ({0}).").format(ao_row_id))
+        _assert_qc_unlocked(doc, ao_row)
+
     doc.append(KRIMP_CHILD_FIELDNAME, row)
     doc.flags.ignore_validate_update_after_submit = True
     doc.save()
@@ -110,6 +117,12 @@ def update_krimp_olcumu(name: str, rowname: str, payload: str | dict):
     target.tel_kesme_mevcut = 1 if payload.get("tel_kesme_mevcut") else 0
 
     if "alt_operasyon_kaydi" in payload:
+        new_ao_id = (payload.get("alt_operasyon_kaydi") or "").strip()
+        if new_ao_id and new_ao_id != (target.alt_operasyon_kaydi or "").strip():
+            new_ao = next((r for r in doc.get("alt_operasyon_kayitlari", []) if r.name == new_ao_id), None)
+            if not new_ao:
+                frappe.throw(_("Alt operasyon kaydı bulunamadı ({0}).").format(new_ao_id))
+            _assert_qc_unlocked(doc, new_ao)
         target.alt_operasyon_kaydi = payload.get("alt_operasyon_kaydi")
     
     target.is_cift_tarafli = 1 if payload.get("is_cift_tarafli") else 0

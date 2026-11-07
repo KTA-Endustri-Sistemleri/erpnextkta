@@ -1,0 +1,699 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "calisma-karti-mimarisi" %}
+
+{% block doc_content %}
+<style>
+  .arch-container {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+  
+  /* Tab Navigation */
+  .arch-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 6px;
+    border-radius: 14px;
+    margin: 20px 0 28px 0;
+    border: 1px solid #e2e8f0;
+  }
+  .arch-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #475569;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .arch-tab-btn:hover {
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.6);
+  }
+  .arch-tab-btn.active {
+    color: #1d4ed8;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  
+  /* Tab Panes */
+  .arch-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .arch-pane.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Diagram Card Container */
+  .diagram-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+  }
+  .diagram-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .diagram-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .diagram-desc {
+    font-size: 13.5px;
+    color: #64748b;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  
+  /* Focused Diagram Viewports */
+  .focused-diagram {
+    overflow-x: auto;
+    padding: 12px 0;
+    text-align: center;
+  }
+  .mermaid-diagram-target {
+    min-height: 240px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .mermaid-diagram-target svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Panzoom Container */
+  .panzoom-viewport {
+    width: 100%;
+    min-height: 540px;
+    max-height: 780px;
+    background: #fafafa;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+  }
+  .panzoom-viewport:active {
+    cursor: grabbing;
+  }
+  .panzoom-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform-origin: 0 0;
+    transition: transform 0.08s ease-out;
+    min-width: 100%;
+    min-height: 100%;
+  }
+
+  /* Control Floating Toolbar */
+  .panzoom-controls {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    z-index: 10;
+  }
+  .panzoom-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .panzoom-btn:hover {
+    background: #f1f5f9;
+    color: #2563eb;
+    border-color: #93c5fd;
+  }
+</style>
+
+<div class="arch-container">
+  <div class="kta-doc-hero">
+    <span class="kta-doc-hero-icon">📐</span>
+    <h1>KTA Çalışma Kartı Algoritma & Mimari Kılavuzu</h1>
+    <p>Operasyon ve alt operasyon yapılandırmalarından ERPNext entegrasyonlarına kadar tüm süreçlerin aşama aşama okunaklı şemaları.</p>
+  </div>
+
+  <!-- Sekme Butonları -->
+  <div class="arch-tabs">
+    <button class="arch-tab-btn active" onclick="switchTab('tab-creation', this)">
+      <span>1️⃣ Kart Yaratma & JC Eşleştirme</span>
+    </button>
+    <button class="arch-tab-btn" onclick="switchTab('tab-lifecycle', this)">
+      <span>2️⃣ Döngü, Duruş & Arıza</span>
+    </button>
+    <button class="arch-tab-btn" onclick="switchTab('tab-subop', this)">
+      <span>3️⃣ Alt Operasyon & Malzeme Mirası</span>
+    </button>
+    <button class="arch-tab-btn" onclick="switchTab('tab-qc', this)">
+      <span>4️⃣ Kalite Kontrol & Kısmi Kabul</span>
+    </button>
+    <button class="arch-tab-btn" onclick="switchTab('tab-finish', this)">
+      <span>5️⃣ Kart Bitirme & ERP</span>
+    </button>
+    <button class="arch-tab-btn" onclick="switchTab('tab-full', this)">
+      <span>🌐 Uçtan Uca Tam Akış (Zoom & Pan)</span>
+    </button>
+  </div>
+
+  <!-- SEKME 1: KART YARATMA -->
+  <div class="arch-pane active" id="tab-creation">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <h3 class="diagram-title"><span>1️⃣</span> Kart Yaratma ve ERPNext Operasyon Eşleştirme Akışı</h3>
+      </div>
+      <p class="diagram-desc">
+        Operatör Job Card seçtiğinde sistem <code>erpnext_operations</code> tablosunu tarayarak 3 aşamalı öncelik sırasıyla KTA operasyonlarını belirler; mükerrerlik ve İş Emri fazla üretim toleranslarını denetler.
+      </p>
+
+      <div class="focused-diagram">
+        <div id="target-tab-creation" class="mermaid-diagram-target"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEKME 2: ÇALIŞMA DÖNGÜSÜ & ARIZA -->
+  <div class="arch-pane" id="tab-lifecycle">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <h3 class="diagram-title"><span>2️⃣</span> Çalışma Döngüsü, Duruş Yönetimi ve Arıza Ayrımı</h3>
+      </div>
+      <p class="diagram-desc">
+        Kart başlatıldığında operatörün diğer kartları otomatik duraklatılır (Auto-pause). Arıza duruşunda ise koyu mercan alarm rozeti verilir ve bakım tamamlanana kadar katı modda üretim durdurulur.
+      </p>
+
+      <div class="focused-diagram">
+        <div id="target-tab-lifecycle" class="mermaid-diagram-target"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEKME 3: ALT OPERASYON & MALZEME MİRASI -->
+  <div class="arch-pane" id="tab-subop">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <h3 class="diagram-title"><span>3️⃣</span> Malzeme Grubu Miras Zinciri, Doğal Sıralama ve Özel Formlar</h3>
+      </div>
+      <p class="diagram-desc">
+        Hammadde listesi oluşturulurken alt operasyonun kendi grupları kontrol edilir; boşsa önceki sıralı alt operasyonlar ve ana operasyonun grupları kademeli olarak miras alınır. Alt operasyon satırları sayısal/doğal sıralama (Natural Sort: 1, 2, 10 ve 1,2,3 çoklu kesim formatları) ve Enjeksiyon operasyonlarında Kalıp No'ya göre sıralanır.
+      </p>
+
+      <div class="focused-diagram">
+        <div id="target-tab-subop" class="mermaid-diagram-target"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEKME 4: KALİTE KONTROL & KISMİ KABUL -->
+  <div class="arch-pane" id="tab-qc">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <h3 class="diagram-title"><span>4️⃣</span> Kalite Kontrol, Karar Mekanizması ve Kısmi Kabul Döngüsü</h3>
+      </div>
+      <p class="diagram-desc">
+        Alt operasyon retlerinde kart erken kilitlenmez; operatör çalışmaya devam edebilir. Hem onay hem ret içeren veya örnekleme kontrolünde en az 1 satırı onaylanarak bitirilen kartlar <b>Kısmi Kabul Edildi</b> (#7c3aed Mor/İndigo) statüsü alarak başarıyla tamamlanır.
+      </p>
+
+      <div class="focused-diagram">
+        <div id="target-tab-qc" class="mermaid-diagram-target"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEKME 5: BİTİRME & ERP -->
+  <div class="arch-pane" id="tab-finish">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <h3 class="diagram-title"><span>5️⃣</span> Kart Bitirme, %100 / Örnekleme Kontrolleri ve ERP Entegrasyonu</h3>
+      </div>
+      <p class="diagram-desc">
+        Kart bitirilirken %100 kalite kontrolü açıksa açıkta bekleyen satır kalmamalı ve en az 1 onay bulunmalıdır. %100 kontrol kapalıysa (örnekleme muayenesi) onaysız kapatmayı önlemek için minimum 1 onay zorunludur ve kart <b>Kısmi Kabul Edildi</b> olarak tamamlanır. Taslak kalan QI belgeleri otomatik submit edilir ve süreler Job Card'a aktarılır.
+      </p>
+
+      <div class="focused-diagram">
+        <div id="target-tab-finish" class="mermaid-diagram-target"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEKME 6: UÇTAN UCA TAM AKIŞ (PAN & ZOOM DESTEKLİ) -->
+  <div class="arch-pane" id="tab-full">
+    <div class="diagram-card">
+      <div class="diagram-card-header">
+        <h3 class="diagram-title"><span>🌐</span> Uçtan Uca Birleşik Akış Şeması (İnteraktif Zoom & Pan)</h3>
+        <span style="font-size: 12px; color: #64748b;">💡 Fare tekerleğiyle yakınlaştırabilir, sürükleyerek gezinebilirsiniz.</span>
+      </div>
+      <p class="diagram-desc">
+        Tüm master ayarları, kart yaratma, çalışma döngüsü, alt operasyon, kalite kontrol ve bitiş adımlarını birleştiren eksiksiz dev şemadır.
+      </p>
+
+      <!-- Zoom & Pan Görüntüleme Penceresi -->
+      <div class="panzoom-viewport" id="pz-viewport">
+        <div class="panzoom-content" id="pz-target">
+          <div id="target-tab-full" class="mermaid-diagram-target" style="width: 100%;"></div>
+        </div>
+
+        <!-- Yüzen Kontrol Butonları -->
+        <div class="panzoom-controls">
+          <button class="panzoom-btn" onclick="zoomIn()" title="Yakınlaştır">+</button>
+          <button class="panzoom-btn" onclick="zoomOut()" title="Uzaklaştır">-</button>
+          <button class="panzoom-btn" onclick="resetZoom()" title="Sıfırla">↺</button>
+          <button class="panzoom-btn" onclick="toggleFullscreen()" title="Tam Ekran">⛶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= RAW MERMAID SOURCES (Protected from DOM HTML Parser) ================= -->
+<script type="text/mermaid" id="src-tab-creation">
+flowchart TD
+    UI_Start(["Operator Girisi ve Sihirbaz"]) --> Select_JC["Is Karti Secimi"]
+    Select_JC --> Match_Engine{"ERPNext Operasyon Eslestirme Motoru"}
+    Match_Engine -- "Oncelik 1: Tam Eslesme" --> Match_P1["Operasyon ve Urun Birebir Eslesmesi"]
+    Match_Engine -- "Oncelik 2: Genel Operasyon" --> Match_P2["Operasyon Eslesmesi - Urun Alani Bos"]
+    Match_Engine -- "Oncelik 3: Eslemesiz Genel" --> Match_P3["Eslestirme Tablosu Bos Olan Genel Operasyonlar"]
+
+    Match_P1 --> Filtered_Op_List["KTA Operasyon Secim Listesi"]
+    Match_P2 --> Filtered_Op_List
+    Match_P3 --> Filtered_Op_List
+
+    Filtered_Op_List --> Input_Select["Istasyon ve Operator Secimi"]
+    Input_Select --> Chk_Dup{"Mukerrer Koruma: Ayni JC, Op ve Operator icin acik kart var mi?"}
+    
+    Chk_Dup -- "Evet" --> Ret_Existing["Mevcut Acik Karti Yukle"]
+    Ret_Existing --> UI_LoadCard(["Kart Detay Ekranini Yukle"])
+
+    Chk_Dup -- "Hayir" --> Val_Req{"Zorunlu Alanlar Dolu mu?"}
+    Val_Req -- "Hayir" --> Err_Req["Hata: Eksik Zorunlu Alan"]
+    Val_Req -- "Evet" --> Chk_WO_Status{"Is Emri Durumu Nedir?"}
+    
+    Chk_WO_Status -- "Gecersiz" --> Err_WO_Status["Hata: Is Emri Gecersiz"]
+    Chk_WO_Status -- "Devam Ediyor" --> Val_WO_Tolerance{"Fazla Uretim Toleransi Uygun mu?"}
+    Chk_WO_Status -- "Tamamlandi" --> Chk_Completed_Tol{"Settings tolerans_saat Asildi mi?"}
+    
+    Chk_Completed_Tol -- "Tolerans Asildi" --> Err_WO_Tol["Hata: Tolerans Suresi Doldu"]
+    Chk_Completed_Tol -- "Tolerans Ici" --> Val_WO_Tolerance
+    
+    Val_WO_Tolerance -- "Asildi" --> Err_Tolerance["Hata: Tolerans Miktari Asildi"]
+    Val_WO_Tolerance -- "Uygun" --> Calc_Shift["Vardiya Hesapla: find_shift_for_time"]
+    Calc_Shift --> Ins_CK["Calisma Karti Olustur: durum Hazir"]
+    Ins_CK --> Pub_Create["Realtime Event Yayinla"]
+    Pub_Create --> UI_LoadCard
+</script>
+
+<script type="text/mermaid" id="src-tab-lifecycle">
+flowchart TD
+    UI_LoadCard(["Kart Detay Ekrani"]) --> State_Check{"Kart Durumu Nedir?"}
+
+    State_Check -- "Hazir" --> Btn_Baslat["UI: Baslat Butonu"]
+    Btn_Baslat --> Act_Baslat["islem_yap Baslat"]
+    Act_Baslat --> Check_Gecis_Modu{"Settings kart_gecis_modu Siki Hard mi?"}
+    
+    Check_Gecis_Modu -- "Evet" --> Chk_Incomplete{"Operatorun Baska Acik Kartinda Eksik Veri Var mi?"}
+    Chk_Incomplete -- "Eksik Var" --> Err_Hard1["Hata: Onceki karttaki eksik verileri tamamlayin"]
+    Chk_Incomplete -- "Eksik Yok" --> Set_Start["baslangic_saati ata ve Diger Kartlari Auto-Pause Yap"]
+    Check_Gecis_Modu -- "Esnek Soft" --> Set_Start
+    Set_Start --> Durum_Calisiyor["durum: Calisiyor - Yesil Rozet"]
+
+    Durum_Calisiyor --> Timer_Warn{"Gecen Sure Uyari Sinirini Asti mi?"}
+    Timer_Warn -- "Evet" --> Show_Warn["UI: Proaktif Turuncu Ikaz"]
+    Timer_Warn -- "Hayir" --> Operator_Actions{"Operator Aksiyonlari"}
+
+    Operator_Actions -- "Durusa Gec" --> Btn_Durus["UI: Durus Butonu"]
+    Btn_Durus --> Modal_Durus["Durus Nedeni Secimi: Ariza, Mola, Ayar, Diger"]
+    Modal_Durus --> Act_Durus["islem_yap Durus"]
+    Act_Durus --> Val_Durus_Diger{"Neden Diger mi?"}
+    Val_Durus_Diger -- "Evet ve Aciklama Yok" --> Err_Durus["Hata: Diger secildiginde aciklama zorunludur"]
+    Val_Durus_Diger -- "Uygun" --> App_Durus["duruslar tablosuna satir ekle"]
+    App_Durus --> Check_Ariza{"Durus Nedeni Ariza mi?"}
+    
+    Check_Ariza -- "Evet" --> Handle_Ariza["Ariza Bakimi Baslat: Bakim Logu ve Takvim - UI: DURUSTA ARIZA (Koyu Mercan Alarm)"]
+    Check_Ariza -- "Hayir" --> Handle_NormalDurus["UI: DURUSTA - Amber Rozet"]
+    Handle_Ariza --> Durum_Durusta["durum: Durusta"]
+    Handle_NormalDurus --> Durum_Durusta
+
+    Durum_Durusta --> Btn_Devam["UI: Devam Et Butonu"]
+    Btn_Devam --> Act_Devam["islem_yap DevamEt"]
+    Act_Devam --> Check_Ariza_Resume{"Durus Nedeni Ariza mi?"}
+    
+    Check_Ariza_Resume -- "Evet" --> Check_Ariza_Modu{"Settings ariza_devam_modu Kati Hard mi?"}
+    Check_Ariza_Modu -- "Kati Hard" --> Check_AML_Open{"Bakim Ekibi Arizayi Kapatti mi?"}
+    Check_AML_Open -- "Hayir" --> Err_Ariza_Block["Hata: Bakim ekibi arizayi kapatmadan devam edilemez"]
+    Check_AML_Open -- "Evet" --> Close_Durus_Row["Son durus satirini kapat"]
+    Check_Ariza_Modu -- "Esnek Soft" --> Close_Durus_Row
+    Check_Ariza_Resume -- "Normal Durus" --> Close_Durus_Row
+    Close_Durus_Row --> Durum_Calisiyor
+</script>
+
+<script type="text/mermaid" id="src-tab-subop">
+flowchart TD
+    Select_SubOp["Alt Operasyon Secimi"] --> Resolve_Groups{"Malzeme Grubu Miras Motoru: get_allowed_items_with_groups"}
+    
+    Resolve_Groups -- "Alt Operasyonda Grup Tanimli" --> Use_SubOp_Only["Yalnizca Alt Operasyon Gruplarini Kullan"]
+    Resolve_Groups -- "Alt Operasyonda Grup Bos" --> Cascade_Inheritance["Kademeli Miras Al: Onceki Alt Operasyonlar ve Ana Operasyon Gruplari"]
+    
+    Use_SubOp_Only --> Filter_WO_Items["Is Emri BOM Kalemlerini Filtrele"]
+    Cascade_Inheritance --> Filter_WO_Items
+    
+    Filter_WO_Items --> Check_SubOp_Type{"Alt Operasyon Tipi?"}
+    Check_SubOp_Type -- "Blunt" --> SubOp_Blunt["Ucsuz Duz Kesim"]
+    Check_SubOp_Type -- "Tek Taraf" --> SubOp_Single["Tek Yon Terminal ve Krimp"]
+    Check_SubOp_Type -- "Cift Taraf" --> SubOp_Double["Cift Yon Terminal ve Krimp: Yon 2 Aktif"]
+    
+    SubOp_Blunt --> Check_Ekran_Tipi{"Ekran Tipi?"}
+    SubOp_Single --> Check_Ekran_Tipi
+    SubOp_Double --> Check_Ekran_Tipi
+
+    Check_Ekran_Tipi -- "Tekli Hammadde" --> Form_Single["Tek Hammadde ve Adet Girisi"]
+    Check_Ekran_Tipi -- "Coklu Hammadde" --> Form_Multi["3 Hammaddeye Kadar Matris Girisi"]
+    
+    Form_Single --> Check_Tuketim_Bayrak{"is_tuketim_hesaplanir Acik mi?"}
+    Form_Multi --> Check_Tuketim_Bayrak
+    
+    Check_Tuketim_Bayrak -- "Evet ve Birim Metre" --> Val_Boyut["boyut_1_mm Zorunlu: Tuketim formulu isletilir"]
+    Check_Tuketim_Bayrak -- "Hayir veya Adet Birimi" --> Val_Tuketim_Limit_Bayrak{"tuketim_limiti_aktif Acik mi?"}
+    Val_Boyut --> Val_Tuketim_Limit_Bayrak
+
+    Val_Tuketim_Limit_Bayrak -- "Acik" --> Val_WO_Limits{"Toplam Sarfiyat Is Emri Limitini Asiyor mu?"}
+    Val_WO_Limits -- "Limit Asildi" --> Err_WO_Limits["Hata: Is Emri tuketim limiti asiliyor"]
+    Val_WO_Limits -- "Limit Ici" --> Save_SubOp_Row["Alt operasyon satiri ekle: QC Durumu Onay Bekliyor"]
+    Val_Tuketim_Limit_Bayrak -- "Kapali" --> Bypass_Limit["Limit Kontrolu Atlandi: Bypass"]
+    Bypass_Limit --> Save_SubOp_Row
+
+    Save_SubOp_Row --> Natural_Sort["Dogal Siralama Motoru (natural_sort_key):<br/>• Satir No (1, 2, 10 ve 1,2,3 coklu kesim formatlari)<br/>• Enjeksiyon Operasyonlarinda Kalip No Siralamasi"]
+    Natural_Sort --> Special_Forms{"Ozel Operasyon Formlari"}
+    Special_Forms -- "Krimp Formu Aktif" --> Form_Krimp["Krimp Formu: Iletken ve Izo yukseklik, cekme testi"]
+    Special_Forms -- "IDC Formu Aktif" --> Form_IDC["IDC Formu: 120, 110, 190 grubu soket olcumleri"]
+    Special_Forms -- "Enjeksiyon Formu Aktif" --> Form_Enj["Enjeksiyon Formu: Kalip no, isi ve tolerans cetveli"]
+    Special_Forms -- "Barkod Formu Aktif" --> Form_Barcode["Barkod Kaydi: Makara barkod dogrulama"]
+</script>
+
+<script type="text/mermaid" id="src-tab-qc">
+flowchart TD
+    Check_Op_QC_Mode{"alt_operasyon_bazli_kalite Acik mi?"}
+
+    Check_Op_QC_Mode -- "Kapali: Kart Bazli Kalite" --> Card_QC_Flow["submit_standard_qc (Kart Duzeyinde)"]
+    Card_QC_Flow --> Card_QC_Decision{"Kalite Karari?"}
+    Card_QC_Decision -- "Kabul" --> Card_Approve["kalite_kontrol: Onaylandi - QI Taslak Olarak Baglanir"]
+    Card_QC_Decision -- "Ret" --> Card_Reject["finalize_rejected_card: QI submit edilir ve kart erken kapanir"]
+
+    Check_Op_QC_Mode -- "Acik: Alt Operasyon Kalite" --> SubOp_QC_UI["UI: Her Satirda Bagimsiz Karar Butonlari"]
+    SubOp_QC_UI --> SubOp_Decision{"Denetci Karari?"}
+    
+    SubOp_Decision -- "Onayla Butonu" --> Sub_Approve["Satir: Onaylandi - QI Taslak Olarak Baglanir"]
+    SubOp_Decision -- "Reddet Butonu" --> Sub_Reject["Satir: Reddedildi - QI Hemen Submit Edilir (Kart Acik Kalir)"]
+    
+    Sub_Approve --> Rollup_Logic["qc.py: _update_parent_qc_status_from_alt_ops"]
+    Sub_Reject --> Rollup_Logic
+    
+    Rollup_Logic --> Check_All_Rows{"Karttaki Tum Alt Operasyonlarin Durumu?"}
+    Check_All_Rows -- "Tumu onaylandi" --> QC_Roll_Approved["Genel QC: Onaylandi - Zumrut Yesili"]
+    Check_All_Rows -- "Tumu reddedildi" --> QC_Roll_Rejected["Genel QC: Reddedildi - Kirmizi"]
+    Check_All_Rows -- "Hem onay hem ret var" --> QC_Roll_Partial["Genel QC: Kismi Kabul Edildi - Mor Indigo"]
+    Check_All_Rows -- "Acikta bekleyen var (Kart Calisiyor/Durusta)" --> QC_Roll_Pending["Genel QC: Onay Bekliyor - Mavi"]
+    Check_All_Rows -- "Acikta bekleyen var + En az 1 onay (Kart Bittiginde)" --> QC_Roll_Finish_Partial["Genel QC: Kismi Kabul Edildi (Ornekleme Muayenesi Tamamlandi)"]
+</script>
+
+<script type="text/mermaid" id="src-tab-finish">
+flowchart TD
+    Btn_Finish["UI: Bitir Butonu"] --> Check_Finish_Pre{"Bitirme On Kosullari"}
+    
+    Check_Finish_Pre --> Chk_Already_Finished{"Kart Zaten Bitmis mi?<br/>(bitis_saati, docstatus=1 veya durum bitmis/reddedildi)"}
+    Chk_Already_Finished -- "Evet" --> Err_Already_Finished["Hata: Bu kart zaten bitmis!"]
+    Chk_Already_Finished -- "Hayir" --> Chk_Has_SubOp{"En az bir alt operasyon var mi?"}
+    Chk_Has_SubOp -- "Hayir" --> Err_Finish_NoSubOp["Hata: En az bir alt operasyon kaydi gereklidir"]
+    Chk_Has_SubOp -- "Evet" --> Chk_QC_Mode{"yuzde_yuz_kalite_kontrol Modu?"}
+    
+    Chk_QC_Mode -- "1: %100 Kalite Kontrol" --> Val_QC_100{"Acikta 'Onay Bekliyor' Satir Var mi?"}
+    Val_QC_100 -- "Evet (Bekleyen Var)" --> Err_QC100_Pending["Hata: %100 kontrolde acikta onay bekleyen varken kart bitirilemez!"]
+    Val_QC_100 -- "Hayir (Tumu Denetlenmis)" --> Val_QC_100_Approved{"En az 1 satir Onayli mi?"}
+    Val_QC_100_Approved -- "Hayir (Tumu Ret)" --> Err_QC100_NoApprove["Hata: Kartin bitirilebilmesi icin en az bir alt islem onay almalidir!"]
+    Val_QC_100_Approved -- "Evet" --> Chk_Mukerrer_QC
+    
+    Chk_QC_Mode -- "0: Ornekleme Muayenesi" --> Val_QC_Sample{"En az 1 satir Kalite Onayi almis mi?"}
+    Val_QC_Sample -- "Hayir (Hic Onay Yok)" --> Err_Sample_NoApprove["Hata: Onaysiz kart kapatilamaz! En az bir alt islem onaylanmalidir."]
+    Val_QC_Sample -- "Evet (Minimum 1 Onay Var)" --> Set_Partial_Accept["Kalan satirlar beklese bile kart bitirilebilir -> Kart QC: Kismi Kabul Edildi"]
+    Set_Partial_Accept --> Chk_Mukerrer_QC
+    
+    Chk_Mukerrer_QC{"Settings mukerrer_kalite_kontrolu_yap?"}
+    Chk_Mukerrer_QC -- "Mukerrer Belge Var" --> Err_Mukerrer["Hata: Kalite belgesi baska kartta kullanilmis"]
+    Chk_Mukerrer_QC -- "Uygun" --> Exec_Finish_Process["_handle_bitis Calistirilir: Durus kapatma, bitis_saati atama ve net sure hesabi"]
+
+    Exec_Finish_Process --> Auto_Submit_All_QIs["Otomatik QI Kapatma: Tum taslak QI belgeleri submit edilir"]
+    Auto_Submit_All_QIs --> Update_Parent_QC["_update_parent_qc_status_from_alt_ops: Bitis ile Kismi Kabul Edildi / Onaylandi kesinlesir"]
+    Update_Parent_QC --> Submit_CK_Doc["Calisma Karti Submit Edilir: durum Bitmis (docstatus=1)"]
+    
+    Submit_CK_Doc --> Hook_Submit["calisma_karti.py: on_submit"]
+    Hook_Submit --> Chk_JC_Sync_Modu{"job_card_time_log_sync_modu?"}
+    
+    Chk_JC_Sync_Modu -- "Kapali" --> Skip_JC_Sync["Süre Senkronizasyonu Atlandi"]
+    Chk_JC_Sync_Modu -- "Esnek veya Siki" --> Sync_JC_TimeLog["Job Card Time Log Satiri Ekle ve Miktari Guncelle"]
+</script>
+
+<script type="text/mermaid" id="src-tab-full">
+flowchart TD
+    subgraph S0 ["0. SISTEM VE MASTER AYARLAR"]
+        Set_General["KTA Settings: max_kart_suresi, kart_uyari_suresi, tolerans_saat, kart_gecis_modu, ariza_devam_modu, mukerrer_kontrol, job_card_sync"]
+        Op_Master["KTA Operasyonlari: erpnext_operations, allowed_material_groups, board_dogrulamasi, miktar_zorunlu, ekran_tipi, formlar, alt_op_kalite, qc_100, tuketim_limiti"]
+        SubOp_Master["KTA Alt Operasyonlari: parent_op, title, sequence, operasyon_tipi, is_tuketim_hesaplanir, allowed_material_groups"]
+    end
+
+    subgraph S1 ["1. KART YARATMA VE JC ESLESTIRME"]
+        UI_Start(["Operator Girisi"]) --> Select_JC["Is Karti Secimi"]
+        Select_JC --> Match_Engine{"ERPNext Operasyon Eslestirme Motoru"}
+        Match_Engine -- "P1: Tam Eslesme" --> Match_P1["Op ve Urun Eslesmesi"]
+        Match_Engine -- "P2: Genel Eslesme" --> Match_P2["Op Eslesmesi - Urun Bos"]
+        Match_Engine -- "P3: Fallback" --> Match_P3["Genel Operasyonlar"]
+        Match_P1 --> Filtered_Op_List["KTA Operasyon Listesi"]
+        Match_P2 --> Filtered_Op_List
+        Match_P3 --> Filtered_Op_List
+        Filtered_Op_List --> Chk_Dup{"Mukerrer Kart Var mi?"}
+        Chk_Dup -- "Evet" --> Ret_Existing["Mevcut Acik Karti Ac"]
+        Chk_Dup -- "Hayir" --> Ins_CK["Calisma Karti Olustur: durum Hazir"]
+    end
+
+    subgraph S2 ["2. DÖNGÜ VE DURUS"]
+        Ins_CK --> Act_Baslat["Baslat"]
+        Act_Baslat --> Durum_Calisiyor["durum: Calisiyor"]
+        Durum_Calisiyor -- "Durusa Gec" --> Act_Durus["Durus"]
+        Act_Durus --> Check_Ariza{"Ariza mi?"}
+        Check_Ariza -- "Evet" --> Handle_Ariza["Durusta Ariza - Koyu Mercan Alarm"]
+        Check_Ariza -- "Hayir" --> Handle_NormalDurus["Durusta - Amber"]
+        Handle_Ariza --> Act_Devam["Devam Et"]
+        Act_Devam --> Durum_Calisiyor
+        Handle_NormalDurus --> Act_Devam
+    end
+
+    subgraph S3 ["3. ALT OPERASYON VE MIRAS"]
+        Durum_Calisiyor -- "Alt Op Ekle" --> Resolve_Groups{"Malzeme Grubu Mirasi"}
+        Resolve_Groups -- "Alt Op Tanimli" --> Use_SubOp_Only["Alt Op Gruplari"]
+        Resolve_Groups -- "Alt Op Bos" --> Cascade_Inheritance["Onceki Alt Oplar ve Ana Op Gruplari"]
+        Use_SubOp_Only --> Check_Tuketim_Limiti{"tuketim_limiti_aktif?"}
+        Cascade_Inheritance --> Check_Tuketim_Limiti
+        Check_Tuketim_Limiti -- "Acik" --> Val_WO_Limits{"BOM ve Hurda Limiti?"}
+        Val_WO_Limits -- "Limit Ici" --> Save_SubOp_Row["Satir Ekle: Onay Bekliyor"]
+        Check_Tuketim_Limiti -- "Kapali" --> Save_SubOp_Row
+        Save_SubOp_Row --> Natural_Sort["Dogal Siralama (Satir No & Kalip No)"]
+    end
+
+    subgraph S4 ["4. KALİTE KONTROL VE KISMI KABUL"]
+        Natural_Sort --> Check_Op_QC_Mode{"alt_operasyon_bazli_kalite?"}
+        Check_Op_QC_Mode -- "Kapali" --> Standart_QC["Kart Kalite: Onay veya Ret ile Erken Kapanis"]
+        Check_Op_QC_Mode -- "Acik" --> SubOp_QC_UI["Satir Kalite Onay ve Ret Butonlari"]
+        SubOp_QC_UI -- "Onayla" --> Sub_Approve["Satir Onaylandi"]
+        SubOp_QC_UI -- "Reddet" --> Sub_Reject["Satir Reddedildi: Kart Acik Kalir"]
+        Sub_Approve --> Rollup_Logic["Toplama Mantigi"]
+        Sub_Reject --> Rollup_Logic
+        Rollup_Logic --> Check_All_Rows{"Satir Durumlari?"}
+        Check_All_Rows -- "Tumu Onayli" --> QC_Approved["QC: Onaylandi"]
+        Check_All_Rows -- "Hem Onay Hem Ret" --> QC_Partial["QC: Kismi Kabul Edildi - Mor Indigo"]
+        Check_All_Rows -- "Bitis + Minimum 1 Onay" --> QC_Partial
+    end
+
+    subgraph S5 ["5. BİTİRME VE ERP"]
+        QC_Approved --> Btn_Finish["Bitis"]
+        QC_Partial --> Btn_Finish
+        Btn_Finish --> Chk_QC_Rule{"yuzde_yuz_kalite_kontrol?"}
+        Chk_QC_Rule -- "1: %100 Kontrol" --> Rule_100["Bekleyen Yok + En az 1 Onay"]
+        Chk_QC_Rule -- "0: Ornekleme" --> Rule_Sample["Minimum 1 Onay (Kalanlar bekleyebilir)"]
+        Rule_100 --> Auto_Submit_All_QIs["Tum Taslak QI Belgelerini Submit Et"]
+        Rule_Sample --> Auto_Submit_All_QIs
+        Auto_Submit_All_QIs --> Submit_CK["Karti Submit Et: Bitmis (Kismi Kabul)"]
+        Submit_CK --> Sync_JC["Job Card Time Log Senkronizasyonu"]
+    end
+</script>
+
+<!-- Mermaid JS Script -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.8/dist/mermaid.min.js" integrity="sha384-N3QqR/7q+xm3BGX+CBbNI8AUmRRqcsDzToy+0z1NLDI0QmTKW8zvwLvqulJgk3dP" crossorigin="anonymous"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'neutral',
+    securityLevel: 'strict',
+    flowchart: {
+      useMaxWidth: false,
+      htmlLabels: true
+    }
+  });
+
+  const renderedPanes = new Set();
+
+  async function renderTabDiagram(tabId) {
+    if (renderedPanes.has(tabId)) return;
+    const srcEl = document.getElementById('src-' + tabId);
+    const targetEl = document.getElementById('target-' + tabId);
+    if (!srcEl || !targetEl) return;
+
+    targetEl.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b; font-size: 14px;">⏳ Şema derleniyor ve yükleniyor...</div>';
+
+    const code = srcEl.textContent.trim();
+    try {
+      const renderId = 'svg_' + tabId.replace(/-/g, '_') + '_' + Date.now();
+      const { svg } = await mermaid.render(renderId, code);
+      targetEl.innerHTML = svg;
+      renderedPanes.add(tabId);
+    } catch (err) {
+      console.error('Mermaid render error (' + tabId + '):', err);
+      targetEl.innerHTML = '<div style="padding: 24px; color: #e11d48; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px;"><b>Şema oluşturulamadı:</b> ' + (err.str || err.message || err) + '</div>';
+    }
+  }
+
+  // Tab Switching
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.arch-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.arch-tab-btn').forEach(el => el.classList.remove('active'));
+    
+    const targetPane = document.getElementById(tabId);
+    if (targetPane) targetPane.classList.add('active');
+    
+    if (btn) btn.classList.add('active');
+
+    // Panelin aktif olmasını bekleyip Mermaid render motorunu tetikle
+    requestAnimationFrame(() => {
+      renderTabDiagram(tabId);
+      if (tabId === 'tab-full') {
+        resetZoom();
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    // Ilk aktif sekmeyi render et
+    renderTabDiagram('tab-creation');
+  });
+
+  // Panzoom Vanilla JS Motoru
+  let scale = 1, translateX = 0, translateY = 0, isDragging = false, startX = 0, startY = 0;
+  const viewport = document.getElementById('pz-viewport');
+  const target = document.getElementById('pz-target');
+
+  function updateTransform() {
+    if (target) {
+      target.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    }
+  }
+
+  function zoomIn() {
+    scale = Math.min(scale * 1.25, 4);
+    updateTransform();
+  }
+
+  function zoomOut() {
+    scale = Math.max(scale / 1.25, 0.35);
+    updateTransform();
+  }
+
+  function resetZoom() {
+    scale = 1;
+    translateX = 0;
+    translateY = 0;
+    updateTransform();
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      viewport.requestFullscreen().catch(err => alert(`Tam ekran hatasi: ${err.message}`));
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  // Mouse drag & drop pan
+  if (viewport) {
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.panzoom-controls')) return;
+      isDragging = true;
+      startX = e.clientX - translateX;
+      startY = e.clientY - translateY;
+      viewport.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      translateX = e.clientX - startX;
+      translateY = e.clientY - startY;
+      updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      if (viewport) viewport.style.cursor = 'grab';
+    });
+
+    // Wheel zoom
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 1.15 : 0.85;
+      scale = Math.min(Math.max(scale * delta, 0.35), 4);
+      updateTransform();
+    }, { passive: false });
+  }
+</script>
+{% endblock %}

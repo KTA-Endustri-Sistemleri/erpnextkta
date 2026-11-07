@@ -46,7 +46,6 @@ const isVisible = computed(() => {
 
     <button
       v-if="props.showFinish"
-      :disabled="!props.qcApproved && !props.qcBypass"
       class="ck-btn ck-btn--danger ck-btn--wide"
       @click="props.onBitir"
     >

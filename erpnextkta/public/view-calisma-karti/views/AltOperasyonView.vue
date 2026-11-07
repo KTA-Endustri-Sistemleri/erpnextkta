@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
 import { altOperasyonFieldsMulti, altOperasyonFieldsSingle } from "../composables/prompts";
+import { isQcApproved, isQcRejected, extractAltOpCode, sortAltOperasyonRows } from "../utils/kalite_ui";
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
@@ -14,7 +15,16 @@ const props = defineProps<{
 
 function isQCLocked(h: any): boolean {
   if (!props.doc.alt_operasyon_bazli_kalite) return false;
-  return (h.quality_inspection_status || "").trim() === "Onaylandı" && !!(h.quality_inspection || "").trim();
+  return !!(h.quality_inspection || "").trim();
+}
+
+function isApprovedEnjeksiyon(h: any): boolean {
+  return Boolean(
+    props.doc.has_enjeksiyon &&
+    isQCLocked(h) &&
+    !props.doc.is_qc_user &&
+    isQcApproved(h.quality_inspection_status)
+  );
 }
 
 function getIsTuketimHesaplanir(h: any) {
@@ -22,14 +32,23 @@ function getIsTuketimHesaplanir(h: any) {
   return op && op.is_tuketim_hesaplanir !== undefined ? op.is_tuketim_hesaplanir : 1;
 }
 
-// Sort rows by sequence from master doctype (populated by backend), then by idx
+function formatSingleQty(h: any) {
+  if (props.doc.has_enjeksiyon) {
+    const islem = (h.islem_adedi_1 !== undefined && h.islem_adedi_1 !== null && h.islem_adedi_1 > 0) ? h.islem_adedi_1 : (h.adet || 0);
+    const uom = (h.uom || "").toLowerCase();
+    if (uom && uom !== "adet" && h.adet) {
+      return `${islem} ${__("Adet")} (${h.adet} ${h.uom})`;
+    }
+    return `${islem} ${__("Adet")}`;
+  }
+  const qty = getIsTuketimHesaplanir(h) ? (h.adet || 0) : (h.islem_adedi_1 !== undefined ? h.islem_adedi_1 : (h.adet || 0));
+  const uom = getIsTuketimHesaplanir(h) ? (h.uom || "") : __("Adet");
+  return `${qty} ${uom}`.trim();
+}
+
+// Sort rows by satir_no (natural), then kalip_no (natural), then sequence, then idx
 const sortedRows = computed(() => {
-  const rows: any[] = props.doc?.alt_operasyon_kayitlari ?? [];
-  return [...rows].sort((a, b) => {
-    const seqDiff = (a.alt_operasyon_sequence ?? 0) - (b.alt_operasyon_sequence ?? 0);
-    if (seqDiff !== 0) return seqDiff;
-    return (a.idx ?? 0) - (b.idx ?? 0);
-  });
+  return sortAltOperasyonRows(props.doc?.alt_operasyon_kayitlari ?? []);
 });
 
 const altOpOptions = ref<any[]>([]);
@@ -57,7 +76,11 @@ onMounted(() => {
 function onAltOperasyonEkle() {
   let d: any;
   const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
-  const defaults = { alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite };
+  const defaults = {
+    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite,
+    has_enjeksiyon: props.doc.has_enjeksiyon,
+    has_krimp: props.doc.has_krimp,
+  };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = new frappe.ui.Dialog({
     title: __("Alt İşlem Ekle"),
@@ -77,12 +100,32 @@ function onAltOperasyonEkle() {
         }
       }
 
+      if (props.doc.has_enjeksiyon && v.kalip_no) {
+        const kalip = String(v.kalip_no).trim().toLowerCase();
+        const mat = String(v.hammadde || "").trim().toLowerCase();
+        const existing = (props.doc.alt_operasyon_kayitlari || []).find((r: any) => {
+          const rKalip = String(r.kalip_no || "").trim().toLowerCase();
+          const rMat = String(r.hammadde || "").trim().toLowerCase();
+          return rKalip === kalip && rMat === mat && !isQcRejected(r.quality_inspection_status);
+        });
+        if (existing) {
+          frappe.msgprint({
+            title: __("Mükerrer Alt İşlem"),
+            message: __("Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.", [v.kalip_no, v.hammadde || "-"]),
+            indicator: "orange"
+          });
+          return;
+        }
+      }
+
       let islem_1 = typeof v.islem_adedi_1 !== 'undefined' ? v.islem_adedi_1 : (v.adet || 1);
       let islem_3 = v.islem_adedi_3 || 1;
+      const cleanAltOp = extractAltOpCode(v.alt_operasyon);
 
       await props.onAdd({
-        alt_operasyon: v.alt_operasyon,
+        alt_operasyon: cleanAltOp,
         satir_no: v.satir_no || "",
+        kalip_no: v.kalip_no || "",
         hammadde: v.hammadde || null,
         boyut_1_mm: v.boyut_1_mm || 0,
         islem_adedi_1: islem_1, // fallback to adet for single mode handled above
@@ -93,7 +136,7 @@ function onAltOperasyonEkle() {
         boyut_3_mm: v.boyut_3_mm || 0,
         islem_adedi_3: islem_3,
         note: v.note || null,
-        uom: v.uom || null, // Capture UOM from old mode
+        uom: props.doc.has_enjeksiyon ? "Adet" : (v.uom || null), // For injection always use Adet
       });
       d.hide();
       frappe.show_alert({ message: __("Alt İşlem eklendi"), indicator: "green" });
@@ -104,25 +147,36 @@ function onAltOperasyonEkle() {
 
 function onAltOperasyonDuzenle(h: any) {
   if (!h?.name) {
-    frappe.msgprint("Satır kimliği (row name) bulunamadı.");
+    frappe.msgprint(__("Satır kimliği (row name) bulunamadı."));
     return;
   }
 
+  const isEnjApproved = isApprovedEnjeksiyon(h);
   let d: any;
   const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
   const defaults = {
     ...h,
-    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite
+    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite,
+    has_enjeksiyon: props.doc.has_enjeksiyon,
+    has_krimp: props.doc.has_krimp,
+    is_qc_locked_enjeksiyon: isEnjApproved,
   };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = new frappe.ui.Dialog({
-    title: __("Alt İşlem Düzenle"),
+    title: isEnjApproved ? __("İşlem Adedi Güncelle") : __("Alt İşlem Düzenle"),
     fields: fields,
     primary_action_label: __("Kaydet"),
     primary_action: async (v: any) => {
+      const rawAltOp = isEnjApproved ? h.alt_operasyon : (v.alt_operasyon || h.alt_operasyon);
+      const finalAltOp = extractAltOpCode(rawAltOp);
+      const finalKalip = v.kalip_no || h.kalip_no || "";
+      const finalHammadde = v.hammadde || h.hammadde || null;
+      const finalSatir = v.satir_no || h.satir_no || "";
+      const finalUom = v.uom || h.uom || null;
+
       if (ekranTipi.value === "Tekli Hammadde") {
-        const uom = (v.uom || "").toLowerCase();
-        const selectedOp = altOpOptions.value.find((o: any) => o.value === v.alt_operasyon || o.label === v.alt_operasyon);
+        const uom = (finalUom || "").toLowerCase();
+        const selectedOp = altOpOptions.value.find((o: any) => o.value === finalAltOp || o.label === finalAltOp || o.value === rawAltOp || o.label === rawAltOp);
         const isTuketim = selectedOp && selectedOp.is_tuketim_hesaplanir !== undefined ? selectedOp.is_tuketim_hesaplanir : 1;
 
         if (isTuketim && (uom === "metre" || uom === "m" || uom === "meter")) {
@@ -133,15 +187,35 @@ function onAltOperasyonDuzenle(h: any) {
         }
       }
 
+      if (props.doc.has_enjeksiyon && finalKalip) {
+        const kalip = String(finalKalip).trim().toLowerCase();
+        const mat = String(finalHammadde || "").trim().toLowerCase();
+        const existing = (props.doc.alt_operasyon_kayitlari || []).find((r: any) => {
+          if (r.name === h.name) return false;
+          const rKalip = String(r.kalip_no || "").trim().toLowerCase();
+          const rMat = String(r.hammadde || "").trim().toLowerCase();
+          return rKalip === kalip && rMat === mat && !isQcRejected(r.quality_inspection_status);
+        });
+        if (existing) {
+          frappe.msgprint({
+            title: __("Mükerrer Alt İşlem"),
+            message: __("Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.", [finalKalip, finalHammadde || "-"]),
+            indicator: "orange"
+          });
+          return;
+        }
+      }
+
       let islem_1 = typeof v.islem_adedi_1 !== 'undefined' ? v.islem_adedi_1 : (v.adet || 1);
       let islem_3 = v.islem_adedi_3 || 1;
 
       await props.onUpdate({
         row_id: h.name,
-        alt_operasyon: v.alt_operasyon,
-        satir_no: v.satir_no || "",
-        hammadde: v.hammadde || null,
-        boyut_1_mm: v.boyut_1_mm || 0,
+        alt_operasyon: finalAltOp,
+        satir_no: finalSatir,
+        kalip_no: finalKalip,
+        hammadde: finalHammadde,
+        boyut_1_mm: v.boyut_1_mm || h.boyut_1_mm || 0,
         islem_adedi_1: islem_1,
         hammadde_2: v.hammadde_2 || null,
         boyut_2_mm: v.boyut_2_mm || 0,
@@ -150,7 +224,7 @@ function onAltOperasyonDuzenle(h: any) {
         boyut_3_mm: v.boyut_3_mm || 0,
         islem_adedi_3: islem_3,
         note: v.note || null,
-        uom: v.uom || null,
+        uom: props.doc.has_enjeksiyon ? "Adet" : (finalUom || null),
       });
       d.hide();
       frappe.show_alert({ message: __("Alt İşlem güncellendi"), indicator: "green" });
@@ -161,7 +235,7 @@ function onAltOperasyonDuzenle(h: any) {
 
 function onAltOperasyonSil(h: any) {
   if (!h?.name) {
-    frappe.msgprint("Satır kimliği (row name) bulunamadı.");
+    frappe.msgprint(__("Satır kimliği (row name) bulunamadı."));
     return;
   }
 
@@ -191,12 +265,16 @@ function onAltOperasyonSil(h: any) {
     <div v-else class="ck-mini-list">
       <div v-for="(h, i) in sortedRows" :key="h.name || i" class="ck-mini-item">
         <div style="display: flex; gap: 12px; align-items: stretch; flex: 1; min-width: 0;">
-            <div v-if="h.satir_no" style="display: flex; align-items: center; justify-content: center; padding-right: 12px; border-right: 2px solid var(--ck-glass-border-soft); margin-right: 4px;">
-                <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">{{ h.satir_no }}</span>
+            <div v-if="h.satir_no || h.kalip_no" style="display: flex; align-items: center; justify-content: center; padding-right: 12px; border-right: 2px solid var(--ck-glass-border-soft); margin-right: 4px;">
+                <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">{{ h.satir_no || h.kalip_no }}</span>
             </div>
             <div class="ck-mini-content">
-                <b class="ck-mini-title">{{ h.alt_operasyon_title || h.alt_operasyon }}</b>
+                <b class="ck-mini-title">{{ __(h.alt_operasyon_title || h.alt_operasyon) }}</b>
             
+              <div class="ck-muted ck-mini-sub" v-if="h.kalip_no && h.satir_no">
+                <b>{{ __("Kalıp No") }}:</b> {{ h.kalip_no }}
+              </div>
+
             <template v-if="ekranTipi === 'Çoklu Hammadde'">
               <div class="ck-muted ck-mini-sub" v-if="h.hammadde_2 || h.boyut_2_mm || h.hammadde_3">
                 <b>{{ __("T1") }}:</b> 
@@ -207,7 +285,7 @@ function onAltOperasyonSil(h: any) {
                 </template>
                 <template v-else>
                     <template v-if="h.boyut_2_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm</template>
-                    <template v-else>{{ __("SIYIRMASIZ") }}</template>
+                    <template v-else>{{ __("Sıyırmasız") }}</template>
                 </template>
               </div>
 
@@ -228,7 +306,7 @@ function onAltOperasyonSil(h: any) {
                 </template>
                 <template v-else>
                     <template v-if="h.boyut_3_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm</template>
-                    <template v-else>{{ __("SIYIRMASIZ") }}</template>
+                    <template v-else>{{ __("Sıyırmasız") }}</template>
                 </template>
               </div>
             </template>
@@ -236,11 +314,11 @@ function onAltOperasyonSil(h: any) {
               <div class="ck-muted ck-mini-sub" v-if="h.hammadde">
                 {{ h.hammadde }} 
                 <template v-if="h.boyut_1_mm">({{ __("Boy") }}: {{ h.boyut_1_mm }}mm) </template>
-                [{{ getIsTuketimHesaplanir(h) ? (h.adet || 0) : (h.islem_adedi_1 !== undefined ? h.islem_adedi_1 : (h.adet || 0)) }} {{ getIsTuketimHesaplanir(h) ? (h.uom || '') : 'Adet' }}]
+                [{{ formatSingleQty(h) }}]
               </div>
               <div class="ck-muted ck-mini-sub" v-else-if="h.islem_adedi_1 !== undefined || h.adet || h.uom">
                 <template v-if="h.boyut_1_mm">{{ __("Boy") }}: {{ h.boyut_1_mm }}mm </template>
-                [{{ getIsTuketimHesaplanir(h) ? (h.adet || 0) : (h.islem_adedi_1 !== undefined ? h.islem_adedi_1 : (h.adet || 0)) }} {{ getIsTuketimHesaplanir(h) ? (h.uom || '') : 'Adet' }}]
+                [{{ formatSingleQty(h) }}]
               </div>
             </template>
             
@@ -253,8 +331,17 @@ function onAltOperasyonSil(h: any) {
             <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onAltOperasyonDuzenle(h)">{{ __("Düzenle") }}</button>
             <button class="ck-btn ck-btn--danger ck-btn-small" @click="onAltOperasyonSil(h)">{{ __("Sil") }}</button>
           </template>
-          <template v-else>
+          <template v-else-if="isApprovedEnjeksiyon(h)">
+            <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onAltOperasyonDuzenle(h)">{{ __("Düzenle") }}</button>
             <span class="ck-badge ck-badge--success ck-badge--small" style="font-size: 10px; padding: 2px 6px;">
+              🔒 {{ __("Kalite Onaylı") }}
+            </span>
+          </template>
+          <template v-else>
+            <span v-if="isQcRejected(h.quality_inspection_status)" class="ck-badge ck-badge--danger ck-badge--small" style="font-size: 10px; padding: 2px 6px;">
+              🔒 {{ __("Kalite Reddi") }}
+            </span>
+            <span v-else class="ck-badge ck-badge--success ck-badge--small" style="font-size: 10px; padding: 2px 6px;">
               🔒 {{ __("Kalite Onaylı") }}
             </span>
           </template>
@@ -325,6 +412,7 @@ function onAltOperasyonSil(h: any) {
 .ck-mini-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
   flex-shrink: 0;
 }
 .ck-btn-small {

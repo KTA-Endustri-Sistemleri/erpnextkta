@@ -54,9 +54,16 @@ Bir operasyonun içine girdiğinizde arayüzde hangi sekmelerin görüneceğini 
 - **Enjeksiyon Formu Aktif:** Plastik *Enjeksiyon* ölçüm formunu aktif eder.
 - **Ekran Tipi (`ekran_tipi`):** Operatörün hammadde giriş tarzını belirler. *Çoklu Hammadde* seçilirse, alt operasyon ekranında tek işlemde birden fazla hammadde kullanılmasına izin veren geniş form açılır.
 
-### 🧪 Yeni Özellik: Modüler Kalite (Alt Operasyon Bazlı Kalite Onayı)
+### 🧪 Kalite ve Kontrol Mekanizmaları
 - **Alt Operasyon Bazlı Kalite Onayı (`alt_operasyon_bazli_kalite`):** Bu kutucuk işaretlenirse, kalite kontrol birimi "Bütün Kart" yerine, kart içindeki her bir alt operasyona (Küt, Çift Taraf vb.) satır satır onay verir. Formlar (Krimp formu vb.) bu alt operasyonların içeriğine göre sihirli şekilde (Auto-fill) dolar.
-  - **Sistem Davranışı:** Bu modda ana Çalışma Kartının (parent) `quality_inspection` (Kalite Belgesi) alanı hiçbir zaman doldurulmaz; yalnızca belgenin genel durumu (`kalite_kontrol` alanı) içindeki satırların durumlarına bakılarak dinamik olarak "Onaylandı" ya da "Onay Bekliyor" olarak hesaplanır. Böylelikle klasik kalite süreciyle modüler süreç birbirine karışmaz.
+  - **Sistem Davranışı:** Bu modda ana Çalışma Kartının (parent) `quality_inspection` (Kalite Belgesi) alanı hiçbir zaman doldurulmaz; yalnızca belgenin genel durumu (`kalite_kontrol` alanı) içindeki satırların durumlarına bakılarak dinamik olarak hesaplanır.
+- **%100 Kalite Kontrol Zorunluluğu (`yuzde_yuz_kalite_kontrol`):**
+  - **İşaretli (1 - %100 Denetim):** Kartın bitirilebilmesi için açıkta hiçbir "Onay Bekliyor" satır kalamaz. Tüm satırlar denetlenmiş olmalı ve en az 1 onay bulunmalıdır (tümü ret ise kart bitirilemez).
+  - **İşaretsiz (0 - Örnekleme / Numune Modu):** Kartın onaysız kapatılmasını önlemek için **minimum 1 alt işlemin onaylı olması zorunludur**. Diğer satırlar onay beklese dahi kart başarıyla bitirilebilir. Kart bitirildiğinde genel statü otomatik olarak **Kısmi Kabul Edildi** (#7c3aed Mor/İndigo) olur.
+- **Alt Operasyon Doğal Sıralaması (Natural Sort):**
+  - Alt operasyon listesi metinsel değil sayısal doğal sıralama (`natural_sort_key`) ile dizilir (`1, 2, ..., 10`).
+  - Virgüllü satır numaraları (örn: `1,2,3`) ilk sayıya göre sıralanır.
+  - Satır numarası kullanılmayan **Enjeksiyon** operasyonlarında ise sıralama `kalip_no` doğal sıralaması üzerinden yürütülür.
 
 > **Önemli:** Modüler kalitenin ve krimp testlerinin aktif olması için o operasyonun **Quality Inspection Template** alanında ERPNext'te tanımlanmış bir Kalite Şablonunun seçili olması şarttır!
 

@@ -25,7 +25,10 @@ def _get_pivot_data(work_order_filter: str = None, operator_filter: str = None, 
         ("hammadde_3", "adet_3", "uom_3"),
     ]
 
-    conditions = []
+    conditions = [
+        "ck.docstatus != 2",
+        "IFNULL(aok.quality_inspection_status, '') NOT IN ('Reddedildi', 'Rejected', 'Red')",
+    ]
     query_params = []
 
     if work_order_filter:
@@ -36,7 +39,7 @@ def _get_pivot_data(work_order_filter: str = None, operator_filter: str = None, 
         conditions.append("ck.operator = %s")
         query_params.append(operator_filter)
 
-    where_clause = " AND ".join(conditions) if conditions else "1=1"
+    where_clause = " AND ".join(conditions)
 
     rows = frappe.db.sql(
         f"""
@@ -128,7 +131,7 @@ def _get_pivot_data(work_order_filter: str = None, operator_filter: str = None, 
         # Add a visual spacer (will be empty)
         data.append({"is_spacer": 1})
         
-        total_row = {"operator": None, "operator_name": frappe.bold(_("GENEL TOPLAM")), "is_spacer": 1}
+        total_row = {"operator": None, "operator_name": frappe.bold(_("Genel Toplam")), "is_spacer": 1}
         for item_code in unique_items:
             total_row[item_code] = sum(flt(d.get(item_code)) for d in data if not d.get("is_spacer"))
         

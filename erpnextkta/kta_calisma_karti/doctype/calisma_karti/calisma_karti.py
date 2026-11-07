@@ -85,7 +85,8 @@ def _parse_minsec(value: str) -> int:
             # M:SS
             m, sec = parts
             return int(m) * 60 + int(sec)
-    except Exception:
+    except (ValueError, TypeError):
+        # Return 0 if string parsing fails due to invalid numeric components
         pass
     return 0
 
@@ -284,6 +285,51 @@ class CalismaKarti(Document):
                 title=frappe._("Gönderim Engellendi")
             )
 
+        self.validate_sub_op_qc_for_submission()
+
+    def validate_sub_op_qc_for_submission(self):
+        """Validate sub-operation quality checks prior to finishing or submitting."""
+        op_meta = frappe.db.get_value(
+            "KTA Calisma Karti Operasyonlari",
+            self.operasyon,
+            ["alt_operasyon_bazli_kalite", "yuzde_yuz_kalite_kontrol"],
+            as_dict=1,
+        ) or {}
+        if not bool(op_meta.get("alt_operasyon_bazli_kalite")):
+            return
+
+        alt_ops = self.get("alt_operasyon_kayitlari") or []
+        if not alt_ops:
+            frappe.throw(frappe._("İşlemin bitirilebilmesi için en az bir alt operasyon kaydı bulunmalıdır."))
+
+        from erpnextkta.kta_calisma_karti.api_impl._helpers import (
+            is_qc_approved,
+            is_qc_pending,
+            is_qc_rejected,
+        )
+
+        has_approved = any(is_qc_approved(r.get("quality_inspection_status")) for r in alt_ops)
+        all_rejected = all(is_qc_rejected(r.get("quality_inspection_status")) for r in alt_ops)
+        has_pending = any(is_qc_pending(r.get("quality_inspection_status")) for r in alt_ops)
+
+        if not all_rejected:
+            yuzde_yuz_qc = bool(op_meta.get("yuzde_yuz_kalite_kontrol", 1))
+            if yuzde_yuz_qc:
+                if has_pending:
+                    frappe.throw(
+                        frappe._("%100 kalite kontrolü seçili operasyonlarda açıkta onay bekleyen alt işlem varken kart bitirilemez.")
+                    )
+                if not has_approved:
+                    frappe.throw(
+                        frappe._("Kartın bitirilebilmesi için en az bir alt işlemin kalite onayı almış olması gerekir.")
+                    )
+            else:
+                if not has_approved:
+                    frappe.throw(
+                        frappe._("Kartın bitirilebilmesi için en az bir alt işlemin kalite onayı almış olması gerekir.")
+                    )
+
+
     def check_duplicate_quality_docs(self):
         # Ayarlar üzerinden kontrolün aktif olup olmadığını denetle
         check_enabled = frappe.db.get_single_value("KTA Calisma Karti Settings", "mukerrer_kalite_kontrolu_yap")
@@ -381,9 +427,21 @@ class CalismaKarti(Document):
     def get_durum(self):
         if self.docstatus == 2:
             return 'iptal_edildi'
-        # If QC rejected, lock the card status.
-        if (self.kalite_kontrol or '').strip() == 'Reddedildi':
-            return 'reddedildi'
+
+        is_alt_op = False
+        if self.operasyon:
+            is_alt_op = frappe.get_cached_value("KTA Calisma Karti Operasyonlari", self.operasyon, "alt_operasyon_bazli_kalite")
+
+        # Klasik kartlarda kalite reddi kartı doğrudan kilitler.
+        # Alt operasyonlu kartlarda ise kart açıkken (bitiş saati yokken) tekil satır retleri
+        # kartın operasyonel durumunu kilitlemez; ancak kart bitirilmişse ve tüm işlemler ret ise 'reddedildi' olur.
+        if not is_alt_op:
+            if (self.kalite_kontrol or '').strip() == 'Reddedildi':
+                return 'reddedildi'
+        else:
+            if self.bitis_saati and (self.kalite_kontrol or '').strip() == 'Reddedildi':
+                return 'reddedildi'
+
         if self.bitis_saati:
             return 'bitmis'
         elif not self.baslangic_saati:

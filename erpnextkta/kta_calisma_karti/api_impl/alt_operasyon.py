@@ -3,7 +3,17 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
-from ._helpers import require_my_employee, has_admin_roles, get_allowed_items_with_groups, get_my_employee_or_none, has_qc_role
+from ._helpers import (
+    extract_alt_op_code,
+    format_alt_op_label,
+    get_allowed_items_with_groups,
+    get_my_employee_or_none,
+    has_admin_roles,
+    has_qc_role,
+    is_qc_approved,
+    is_qc_rejected,
+    require_my_employee,
+)
 from erpnextkta.kta_calisma_karti.realtime import publish_calisma_karti_changed
 
 
@@ -58,8 +68,9 @@ def _get_existing_consumption(
             FROM `tabCalisma Karti Alt Operasyon Kayitlari` aok
             JOIN `tabCalisma Karti` ck ON ck.name = aok.parent
             WHERE ck.custom_work_order = %s
+              AND ck.docstatus != 2
               AND IFNULL(aok.{h_col}, '') != ''
-              AND IFNULL(aok.quality_inspection_status, '') != 'Reddedildi'
+              AND IFNULL(aok.quality_inspection_status, '') NOT IN ('Reddedildi', 'Rejected', 'Red')
               {exclude_condition}
             GROUP BY aok.{h_col}
             """,
@@ -105,9 +116,6 @@ def _assert_within_wo_limits(
         new_items: List of (item_code, consumption_qty) for the new/updated row.
         exclude_row: Row name to exclude from existing totals (update scenario).
     """
-    if not _is_coklu_hammadde(calisma_karti):
-        return
-
     ck_data = frappe.db.get_value(
         "Calisma Karti", calisma_karti, ["custom_work_order", "operasyon"], as_dict=True
     )
@@ -214,6 +222,70 @@ def _calculate_tuketim(hammadde, boyut, islem_adedi):
     return float(islem_adedi or 0), uom
 
 
+def _calculate_enjeksiyon_tuketim(
+    work_order: str, hammadde: str, islem_adedi: float
+) -> tuple[float, str]:
+    """Calculate raw material consumption for injection based on Work Order / BOM recipe."""
+    islem_qty = float(islem_adedi or 0)
+    if not hammadde:
+        return islem_qty, "Adet"
+
+    item_uom = frappe.db.get_value("Item", hammadde, "stock_uom") or "Adet"
+    if not work_order:
+        return islem_qty, item_uom
+
+    wo_qty = frappe.db.get_value("Work Order", work_order, "qty")
+    if wo_qty and float(wo_qty) > 0:
+        wo_items = frappe.get_all(
+            "Work Order Item",
+            filters={"parent": work_order, "item_code": hammadde},
+            fields=["required_qty", "stock_uom"],
+        )
+        if wo_items:
+            total_req = sum(flt(x.required_qty) for x in wo_items)
+            uom = wo_items[0].stock_uom or item_uom
+            rate = total_req / float(wo_qty)
+            return round(islem_qty * rate, 4), uom
+
+        bom_no = frappe.db.get_value("Work Order", work_order, "bom_no")
+        if bom_no:
+            bom_qty = frappe.db.get_value("BOM", bom_no, "quantity")
+            if bom_qty and float(bom_qty) > 0:
+                bom_items = frappe.get_all(
+                    "BOM Item",
+                    filters={"parent": bom_no, "item_code": hammadde},
+                    fields=["qty", "stock_uom"],
+                )
+                if bom_items:
+                    total_bom_qty = sum(flt(b.qty) for b in bom_items)
+                    uom = bom_items[0].stock_uom or item_uom
+                    rate = total_bom_qty / float(bom_qty)
+                    return round(islem_qty * rate, 4), uom
+
+    return islem_qty, item_uom
+
+
+def _assert_enjeksiyon_kalip_hammadde_unique(doc, kalip_no: str, hammadde: str, exclude_row_id: str = None):
+    """Enforce unique kalip_no + hammadde combination among active (non-rejected) sub-operations."""
+    kalip = (kalip_no or "").strip().lower()
+    if not kalip:
+        return
+    mat = (hammadde or "").strip().lower()
+    for r in doc.get("alt_operasyon_kayitlari", []):
+        if exclude_row_id and r.name == exclude_row_id:
+            continue
+        r_kalip = (r.kalip_no or "").strip().lower()
+        r_mat = (r.hammadde or "").strip().lower()
+        if r_kalip == kalip and r_mat == mat:
+            if not is_qc_rejected(r.quality_inspection_status):
+                frappe.throw(
+                    _("Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.").format(
+                        kalip_no, hammadde or "-"
+                    ),
+                    frappe.ValidationError
+                )
+
+
 @frappe.whitelist()
 def add_alt_operasyon_kaydi(
     calisma_karti: str,
@@ -223,11 +295,23 @@ def add_alt_operasyon_kaydi(
     hammadde_3: str = None, boyut_3_mm: float = 0, islem_adedi_3: float = 0,
     note: str = None,
     satir_no: str = None,
+    kalip_no: str = None,
 ):
     doc = frappe.get_doc("Calisma Karti", calisma_karti)
     doc.check_permission("write")
     _assert_can_write(doc)
+    alt_operasyon = extract_alt_op_code(alt_operasyon)
     
+    op_meta = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", doc.operasyon,
+        ["has_krimp", "alt_operasyon_bazli_kalite", "has_enjeksiyon"], as_dict=True
+    ) or {}
+
+    if op_meta.get("has_enjeksiyon"):
+        if not (kalip_no or "").strip():
+            frappe.throw(_("Kalıp No zorunludur."), frappe.ValidationError)
+        _assert_enjeksiyon_kalip_hammadde_unique(doc, kalip_no, hammadde)
+
     if hammadde: _assert_hammadde_allowed(calisma_karti, hammadde, alt_operasyon)
     if hammadde_2: _assert_hammadde_allowed(calisma_karti, hammadde_2, alt_operasyon)
     if hammadde_3: _assert_hammadde_allowed(calisma_karti, hammadde_3, alt_operasyon)
@@ -258,6 +342,16 @@ def add_alt_operasyon_kaydi(
     adet_2, uom_2 = _calculate_tuketim(hammadde_2, boyut_2_mm, islem_adedi_2)
     adet_3, uom_3 = _calculate_tuketim(hammadde_3, boyut_3_mm, islem_adedi_3)
 
+    if op_meta.get("has_enjeksiyon"):
+        is_tuketim = getattr(ao_doc, "is_tuketim_hesaplanir", 1)
+        if is_tuketim:
+            adet_1, uom_1 = _calculate_enjeksiyon_tuketim(
+                doc.custom_work_order, hammadde, islem_adedi_1
+            )
+        else:
+            uom_1 = "Adet"
+            adet_1 = float(islem_adedi_1 or 0)
+
     _assert_within_wo_limits(
         calisma_karti,
         [(hammadde, adet_1), (hammadde_2, adet_2), (hammadde_3, adet_3)],
@@ -268,6 +362,8 @@ def add_alt_operasyon_kaydi(
         {
             "alt_operasyon": alt_operasyon,
             "title": ao_doc.title,
+            "satir_no": satir_no,
+            "kalip_no": (kalip_no or "").strip(),
             "hammadde": hammadde,
             "boyut_1_mm": boyut_1_mm,
             "islem_adedi_1": islem_adedi_1,
@@ -284,16 +380,11 @@ def add_alt_operasyon_kaydi(
             "adet_3": adet_3,
             "uom_3": uom_3,
             "note": note,
-            "satir_no": satir_no,
         },
     )
     
     # Otomatik Krimp Formu Ekleme
     new_krimp = None
-    op_meta = frappe.db.get_value(
-        "KTA Calisma Karti Operasyonlari", doc.operasyon,
-        ["has_krimp", "alt_operasyon_bazli_kalite"], as_dict=True
-    )
 
     if op_meta and op_meta.get("has_krimp") and op_meta.get("alt_operasyon_bazli_kalite"):
         # Zeki Logic: Gelen verilere göre T1 ve T2'yi belirle (Sabit Eşleştirme)
@@ -353,7 +444,7 @@ def add_alt_operasyon_kaydi(
 @frappe.validate_and_sanitize_search_inputs
 def search_allowed_hammadde_items(doctype, txt, searchfield, start, page_len, filters):
     calisma_karti = (filters or {}).get("calisma_karti")
-    alt_operasyon = (filters or {}).get("alt_operasyon")
+    alt_operasyon = extract_alt_op_code((filters or {}).get("alt_operasyon"))
     hammadde_sira = (filters or {}).get("hammadde_sira") or "Tümü"
     txt = (txt or "").strip()
     like = f"%{txt}%"
@@ -404,9 +495,9 @@ def _assert_qc_unlocked(doc, row):
     
     Rules:
     - Only applies when alt_operasyon_bazli_kalite is active on the operation
-    - Row is locked when quality_inspection_status == "Onaylandı" AND quality_inspection is set
-    - QC-allowed roles can always bypass (but will be warned about linked QI in frontend)
-    - Normal users are blocked with a descriptive error message
+    - Row is locked when quality_inspection is set (whether Onaylandı or Reddedildi)
+    - QC-allowed roles can always bypass (and will cancel linked QI on delete)
+    - Normal operators are blocked once a Quality Inspection document is attached
     """
     op_has_qc = frappe.db.get_value(
         "KTA Calisma Karti Operasyonlari", doc.operasyon, 
@@ -415,19 +506,52 @@ def _assert_qc_unlocked(doc, row):
     if not op_has_qc:
         return
 
-    qi_status = (row.quality_inspection_status or "").strip()
     qi_name = (row.quality_inspection or "").strip()
-
-    if qi_status != "Onaylandı" or not qi_name:
+    if not qi_name:
         return
 
     if has_qc_role():
         return
 
+    status_text = row.quality_inspection_status or _("Kalite Kontrol")
     frappe.throw(
-        _("Bu alt operasyon kaydı kalite tarafından onaylanmıştır ({0}). "
-          "Değişiklik için kalite birimini bilgilendirin.").format(qi_name)
+        _("Bu alt operasyon kaydına kalite belgesi bağlanmıştır ({0} - {1}). "
+          "Değişiklik veya silme işlemi için kalite birimini bilgilendirin.").format(
+            qi_name, status_text
+        )
     )
+
+def _assert_can_update_alt_operasyon(doc, row_doc, op_meta, alt_operasyon, kalip_no, hammadde):
+    """Enforce QC lock on sub-operation update with injection shift quantity allowance."""
+    is_enjeksiyon = bool((op_meta or {}).get("has_enjeksiyon"))
+    is_qc_appr = bool(
+        (row_doc.quality_inspection or "").strip()
+        and is_qc_approved(row_doc.quality_inspection_status)
+    )
+
+    if is_enjeksiyon and is_qc_appr and not has_qc_role():
+        _assert_injection_approved_specs_unchanged(row_doc, alt_operasyon, kalip_no, hammadde)
+        return
+
+    _assert_qc_unlocked(doc, row_doc)
+
+def _assert_injection_approved_specs_unchanged(row_doc, alt_operasyon, kalip_no, hammadde):
+    """Prevent operators from modifying technical specs of an approved injection sub-op."""
+    if (alt_operasyon or "").strip() != (row_doc.alt_operasyon or "").strip():
+        frappe.throw(
+            _("Kalite onayı almış enjeksiyon alt operasyonunun işlem türü değiştirilemez."),
+            frappe.ValidationError,
+        )
+    if (kalip_no or "").strip() != (row_doc.kalip_no or "").strip():
+        frappe.throw(
+            _("Kalite onayı almış enjeksiyon alt operasyonunun kalıp numarası değiştirilemez."),
+            frappe.ValidationError,
+        )
+    if (hammadde or "").strip() != (row_doc.hammadde or "").strip():
+        frappe.throw(
+            _("Kalite onayı almış enjeksiyon alt operasyonunun hammaddesi değiştirilemez."),
+            frappe.ValidationError,
+        )
 
 def _cancel_linked_quality_inspection(qi_name: str):
     """Cancel and delete the linked Quality Inspection document."""
@@ -435,6 +559,7 @@ def _cancel_linked_quality_inspection(qi_name: str):
         return
 
     qi = frappe.get_doc("Quality Inspection", qi_name)
+    qi.flags.ignore_permissions = True
 
     if qi.docstatus == 1:
         qi.cancel()
@@ -453,14 +578,28 @@ def update_alt_operasyon_kaydi(
     hammadde_3: str = None, boyut_3_mm: float = 0, islem_adedi_3: float = 0,
     note: str = None,
     satir_no: str = None,
+    kalip_no: str = None,
 ):
     doc = frappe.get_doc("Calisma Karti", calisma_karti)
     doc.check_permission("write")
     _assert_can_write(doc)
+    alt_operasyon = extract_alt_op_code(alt_operasyon)
     
+    op_meta = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", doc.operasyon,
+        ["has_krimp", "alt_operasyon_bazli_kalite", "has_enjeksiyon"], as_dict=True
+    ) or {}
+
+    if op_meta.get("has_enjeksiyon"):
+        if not (kalip_no or "").strip():
+            frappe.throw(_("Kalıp No zorunludur."), frappe.ValidationError)
+        _assert_enjeksiyon_kalip_hammadde_unique(doc, kalip_no, hammadde, exclude_row_id=row_id)
+
     row = doc.get("alt_operasyon_kayitlari", {"name": row_id})
     if row:
-        _assert_qc_unlocked(doc, row[0])
+        _assert_can_update_alt_operasyon(
+            doc, row[0], op_meta, alt_operasyon, kalip_no, hammadde
+        )
     
     if hammadde: _assert_hammadde_allowed(calisma_karti, hammadde, alt_operasyon)
     if hammadde_2: _assert_hammadde_allowed(calisma_karti, hammadde_2, alt_operasyon)
@@ -495,6 +634,16 @@ def update_alt_operasyon_kaydi(
     adet_2, uom_2 = _calculate_tuketim(hammadde_2, boyut_2_mm, islem_adedi_2)
     adet_3, uom_3 = _calculate_tuketim(hammadde_3, boyut_3_mm, islem_adedi_3)
 
+    if op_meta.get("has_enjeksiyon"):
+        is_tuketim = getattr(ao_doc, "is_tuketim_hesaplanir", 1)
+        if is_tuketim:
+            adet_1, uom_1 = _calculate_enjeksiyon_tuketim(
+                doc.custom_work_order, hammadde, islem_adedi_1
+            )
+        else:
+            uom_1 = "Adet"
+            adet_1 = float(islem_adedi_1 or 0)
+
     _assert_within_wo_limits(
         calisma_karti,
         [(hammadde, adet_1), (hammadde_2, adet_2), (hammadde_3, adet_3)],
@@ -502,6 +651,7 @@ def update_alt_operasyon_kaydi(
     )
 
     row.alt_operasyon = alt_operasyon
+    row.kalip_no = (kalip_no or "").strip()
     row.hammadde = hammadde
     row.boyut_1_mm = boyut_1_mm
     row.islem_adedi_1 = islem_adedi_1
@@ -595,6 +745,10 @@ def delete_alt_operasyon_kaydi(calisma_karti: str, row_id: str):
     for r in krimp_to_remove:
         doc.remove(r)
 
+    enjeksiyon_to_remove = [r for r in doc.get("enjeksiyon_olcumleri", []) if r.alt_operasyon_kaydi == row_id]
+    for r in enjeksiyon_to_remove:
+        doc.remove(r)
+
     doc.flags.ignore_validate_update_after_submit = True
     doc.save(ignore_permissions=True)
     frappe.db.commit()
@@ -641,8 +795,19 @@ def get_alt_operasyon_options(parent_operation: str):
             o["hammadde_sayisi"] = str(count) if count > 0 else "1"
 
     return {
-        "options": [{"label": o.title, "value": o.name, "hammadde_sayisi": o.get("hammadde_sayisi") or "1", "operasyon_tipi": o.get("operasyon_tipi") or "", "is_tuketim_hesaplanir": o.get("is_tuketim_hesaplanir", 1)} for o in ops],
-        "ekran_tipi": parent_ekran_tipi
+        "options": [
+            {
+                "label": format_alt_op_label(o.title, o.name),
+                "value": o.name,
+                "title": o.title,
+                "name": o.name,
+                "hammadde_sayisi": o.get("hammadde_sayisi") or "1",
+                "operasyon_tipi": o.get("operasyon_tipi") or "",
+                "is_tuketim_hesaplanir": o.get("is_tuketim_hesaplanir", 1),
+            }
+            for o in ops
+        ],
+        "ekran_tipi": parent_ekran_tipi,
     }
 
 
@@ -655,6 +820,9 @@ def get_item_uom(item_code: str) -> str:
 
 @frappe.whitelist()
 def is_kut_kablo_operation(operasyon_name: str) -> bool:
+    operasyon_name = extract_alt_op_code(operasyon_name)
+    if not operasyon_name:
+        return False
     allowed = frappe.db.get_all(
         "KTA Sub Operation Allowed Material Groups",
         filters={

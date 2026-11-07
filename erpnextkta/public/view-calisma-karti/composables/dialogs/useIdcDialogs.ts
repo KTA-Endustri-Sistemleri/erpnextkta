@@ -6,7 +6,7 @@ export function useIdcDialogs(props: any) {
   const frappe = (window as any).frappe;
 
   function addIdc() {
-    frappe.prompt(
+    const dialog = frappe.prompt(
       idcOlcumFields(props.doc.name),
       async (v: any) => {
         await props.onAddIdc({
@@ -19,11 +19,17 @@ export function useIdcDialogs(props: any) {
       __("IDC Ölçümü Ekle"),
       __("Kaydet")
     );
+    if (dialog?.fields_dict?.item_code) {
+      dialog.fields_dict.item_code.get_query = () => ({
+        query: "erpnextkta.kta_calisma_karti.api.search_allowed_idc_items",
+        filters: { calisma_karti: props.doc.name },
+      });
+    }
   }
 
   function editIdc(row: any) {
     if (!row?.name) return frappe.msgprint(__("IDC satır kimliği (row name) bulunamadı."));
-    frappe.prompt(
+    const dialog = frappe.prompt(
       idcOlcumFields(props.doc.name, row),
       async (v: any) => {
         await props.onUpdateIdc({
@@ -37,6 +43,12 @@ export function useIdcDialogs(props: any) {
       __("IDC Ölçümü Düzenle"),
       __("Kaydet")
     );
+    if (dialog?.fields_dict?.item_code) {
+      dialog.fields_dict.item_code.get_query = () => ({
+        query: "erpnextkta.kta_calisma_karti.api.search_allowed_idc_items",
+        filters: { calisma_karti: props.doc.name },
+      });
+    }
   }
 
   function deleteIdc(row: any) {
@@ -48,7 +60,7 @@ export function useIdcDialogs(props: any) {
   }
 
   function cloneIdc(row: any) {
-    frappe.prompt(
+    const dialog = frappe.prompt(
       idcOlcumFields(props.doc.name, row),
       async (v: any) => {
         await props.onAddIdc({
@@ -61,6 +73,12 @@ export function useIdcDialogs(props: any) {
       __("IDC Ölçümü Kopyala"),
       __("Kaydet")
     );
+    if (dialog?.fields_dict?.item_code) {
+      dialog.fields_dict.item_code.get_query = () => ({
+        query: "erpnextkta.kta_calisma_karti.api.search_allowed_idc_items",
+        filters: { calisma_karti: props.doc.name },
+      });
+    }
   }
 
   function printIdcProtocol() { 

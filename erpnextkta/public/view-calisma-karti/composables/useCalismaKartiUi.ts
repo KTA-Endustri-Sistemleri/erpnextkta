@@ -1,4 +1,5 @@
 import { computed, ref, watch } from "vue";
+import { isQcApproved, isQcPending, isQcRejected } from "../utils/kalite_ui";
 const __ = (...args: any[]) => (window as any).__(...args);
 
 export type CKState = "ready" | "running" | "paused" | "finished" | "rejected" | "cancelled";
@@ -10,12 +11,15 @@ export function useCalismaKartiUi(docRef: any) {
         // Cancelled status takes absolute precedence
         if (Number(d.docstatus) === 2 || (d.durum || "").toString().toLowerCase().includes("iptal")) return "cancelled";
 
-        // If QC rejected, lock UI state
-        if ((d.kalite_kontrol || "").trim() === "Reddedildi" || (d.durum || "").toString().includes("Reddedildi")) return "rejected";
-
-        if (Number(d.alt_operasyon_bazli_kalite) === 1) {
+        // Classic QC rejection:
+        if (Number(d.alt_operasyon_bazli_kalite) !== 1) {
+            if ((d.kalite_kontrol || "").trim() === "Reddedildi" || (d.durum || "").toString().includes("Reddedildi")) return "rejected";
+        } else {
+            // In sub-op mode: Only reject state if card is finished AND all sub-ops are rejected
             const altOps = d.alt_operasyon_kayitlari || [];
-            if (altOps.some((r: any) => r.quality_inspection_status === "Reddedildi")) return "rejected";
+            if ((d.bitis_saati || d.durum === "Bitmiş") && altOps.length > 0 && altOps.every((r: any) => isQcRejected(r.quality_inspection_status))) {
+                return "rejected";
+            }
         }
 
         const duruslar = d.duruslar || [];
@@ -34,7 +38,7 @@ export function useCalismaKartiUi(docRef: any) {
             const duruslar = docRef.value?.duruslar || [];
             const lastDurus = duruslar[duruslar.length - 1];
             if (lastDurus && !lastDurus.durus_bitis && lastDurus.durus_nedeni === "Arıza") {
-                return __("DURUŞTA (ARIZA)");
+                return __("Duruşta (Arıza)");
             }
         }
         return {
@@ -48,6 +52,13 @@ export function useCalismaKartiUi(docRef: any) {
     });
 
     const statusClass = computed(() => {
+        if (state.value === "paused") {
+            const duruslar = docRef.value?.duruslar || [];
+            const lastDurus = duruslar[duruslar.length - 1];
+            if (lastDurus && !lastDurus.durus_bitis && lastDurus.durus_nedeni === "Arıza") {
+                return "ck-status--ariza";
+            }
+        }
         return {
             ready: "ck-status--ready",
             running: "ck-status--running",
@@ -59,11 +70,29 @@ export function useCalismaKartiUi(docRef: any) {
     });
 
     const qcValue = computed(() => {
+        const isFinished = !!(docRef.value?.bitis_saati || docRef.value?.durum === "Bitmiş" || docRef.value?.docstatus === 1);
+        if (isFinished && docRef.value?.kalite_kontrol) {
+            return docRef.value.kalite_kontrol.trim();
+        }
+
         if (Number(docRef.value?.alt_operasyon_bazli_kalite) === 1) {
             const altOps = docRef.value?.alt_operasyon_kayitlari || [];
             if (altOps.length === 0) return "Onay Bekliyor";
-            if (altOps.some((r: any) => r.quality_inspection_status === "Reddedildi")) return "Reddedildi";
-            if (altOps.every((r: any) => r.quality_inspection_status === "Onaylandı")) return "Onaylandı";
+
+            const hasPending = altOps.some((r: any) => isQcPending(r.quality_inspection_status));
+            const hasApproved = altOps.some((r: any) => isQcApproved(r.quality_inspection_status));
+            const hasRejected = altOps.some((r: any) => isQcRejected(r.quality_inspection_status));
+            const allApproved = altOps.every((r: any) => isQcApproved(r.quality_inspection_status));
+            const allRejected = altOps.every((r: any) => isQcRejected(r.quality_inspection_status));
+
+            if (allApproved) return "Onaylandı";
+            if (allRejected) return "Reddedildi";
+
+            // Kart bitmişse ve en az 1 onaylı satır varsa (kalanlar bekleyen veya ret):
+            if (isFinished && hasApproved) return "Kısmi Kabul Edildi";
+
+            if (hasPending) return "Onay Bekliyor";
+            if (hasApproved && hasRejected) return "Kısmi Kabul Edildi";
             return "Onay Bekliyor";
         }
         return (docRef.value?.kalite_kontrol || "Onay Bekliyor").trim();
@@ -76,6 +105,7 @@ export function useCalismaKartiUi(docRef: any) {
         if (qcValue.value === "Onaylandı") return "ck-status-qc--running"; // green
         if (qcValue.value === "Onay Bekliyor") return "ck-status-qc--pending"; // blue
         if (qcValue.value === "Reddedildi") return "ck-status-qc--rejected"; // red
+        if (qcValue.value === "Kısmi Kabul Edildi") return "ck-status-qc--partial"; // purple / indigo
         return "ck-status--paused";
     });
 
@@ -123,9 +153,35 @@ export function useCalismaKartiUi(docRef: any) {
         Number(docRef.value?.alt_operasyon_bazli_kalite) === 1 &&
         Number(docRef.value?.yuzde_yuz_kalite_kontrol) === 0
     );
-    const showFinish = computed(
-        () => !isCancelled.value && (state.value === "running" || state.value === "paused" || (qcBypass.value && state.value === "rejected")) && (qcApproved.value || qcBypass.value)
-    );
+
+    const showFinish = computed(() => {
+        if (isCancelled.value) return false;
+        if (state.value !== "running" && state.value !== "paused") return false;
+
+        // Sub-op mode:
+        if (Number(docRef.value?.alt_operasyon_bazli_kalite) === 1) {
+            const altOps = docRef.value?.alt_operasyon_kayitlari || [];
+            if (altOps.length === 0) return false;
+
+            const hasApproved = altOps.some((r: any) => isQcApproved(r.quality_inspection_status));
+            const allRejected = altOps.every((r: any) => isQcRejected(r.quality_inspection_status));
+            const hasPending = altOps.some((r: any) => isQcPending(r.quality_inspection_status));
+
+            // Eğer tüm alt işlemler reddedilmişse kart "Reddedildi" olarak kapatılabilir
+            if (allRejected) return true;
+
+            // %100 Kalite Kontrol seçili: Açıkta "Onay Bekliyor" satır kalmamış olmalı (ret satır olsa dahi Kısmi Kabul ile kapatılabilir)
+            if (Number(docRef.value?.yuzde_yuz_kalite_kontrol) === 1) {
+                return !hasPending && hasApproved;
+            }
+
+            // %100 Kalite Kontrol seçili değil: Minimum 1 alt işlem onaylı olmalı ki onaysız kapatılamasın
+            return hasApproved;
+        }
+
+        // Klasik mod:
+        return qcApproved.value;
+    });
 
     return {
         state,

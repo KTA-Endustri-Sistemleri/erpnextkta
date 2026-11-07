@@ -268,3 +268,46 @@ def has_qc_role() -> bool:
         return True
     user_roles = set(frappe.get_roles(frappe.session.user) or [])
     return bool(user_roles & get_qc_allowed_roles())
+
+
+QC_APPROVED_STATUSES = ("Onaylandı", "Accepted")
+QC_REJECTED_STATUSES = ("Reddedildi", "Rejected", "Red")
+
+
+def is_qc_approved(status: str | None) -> bool:
+    """Check if quality inspection status is approved in TR or EN."""
+    if not status:
+        return False
+    return status.strip().lower() in ("onaylandı", "accepted")
+
+
+def is_qc_rejected(status: str | None) -> bool:
+    """Check if quality inspection status is rejected in TR or EN."""
+    if not status:
+        return False
+    return status.strip().lower() in ("reddedildi", "rejected", "red")
+
+
+def is_qc_pending(status: str | None) -> bool:
+    """Check if quality inspection status is pending approval."""
+    if not status:
+        return True
+    return status.strip().lower() in ("onay bekliyor", "pending")
+
+
+def format_alt_op_label(title: str | None, name: str | None) -> str:
+    """Format sub-operation display string as 'Title [Name]'."""
+    t = (title or "").strip()
+    n = (name or "").strip()
+    if t and n and t != n:
+        return f"{t} [{n}]"
+    return t or n or ""
+
+
+def extract_alt_op_code(val: str | None) -> str:
+    """Extract technical alt_operasyon code if string is in 'Title [Code]' format."""
+    s = (val or "").strip()
+    if "[" in s and s.endswith("]"):
+        return s.split("[")[-1][:-1].strip()
+    return s
+

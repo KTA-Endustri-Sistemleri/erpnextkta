@@ -6,7 +6,7 @@ from erpnextkta.kta_calisma_karti.api_impl.create import create_calisma_karti
 from erpnextkta.kta_calisma_karti.api_impl.cards import islem_yap
 from erpnextkta.kta_calisma_karti.api_impl.qc import submit_kta_quality_inspection
 from erpnextkta.kta_calisma_karti.api_impl.hurda import add_hurda, delete_hurda
-from erpnextkta.kta_calisma_karti.api_impl.alt_operasyon import add_alt_operasyon_kaydi
+from erpnextkta.kta_calisma_karti.api_impl.alt_operasyon import add_alt_operasyon_kaydi, delete_alt_operasyon_kaydi
 
 class TestCalismaKartiAPI(KTATestCase):
 	def setUp(self):
@@ -343,3 +343,410 @@ class TestCalismaKartiAPI(KTATestCase):
 				ck_link = il
 				break
 		self.assertIsNotNone(ck_link, "Calisma Karti should be returned in get_open_count internal links")
+
+	def test_sub_op_reject_and_partial_accept(self):
+		"""Alt operasyonlu operasyonda bir satır onaylanıp bir satır reddedildiğinde
+		kartın 'Kısmi Kabul Edildi' olduğunu, kartın kapatılmadığını ve bitirilebildiğini doğrular.
+		"""
+		op_name = "TEST-SUB-QC-OP"
+		if not frappe.db.exists("KTA Calisma Karti Operasyonlari", op_name):
+			frappe.get_doc({
+				"doctype": "KTA Calisma Karti Operasyonlari",
+				"name": op_name,
+				"calisma_karti_op": op_name,
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 1,
+				"plant_floor": "L-1"
+			}).insert(ignore_permissions=True, ignore_mandatory=True)
+		else:
+			frappe.db.set_value("KTA Calisma Karti Operasyonlari", op_name, {
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 1,
+				"plant_floor": "L-1"
+			})
+
+		template_name = "TEST-SUB-QC-TEMPLATE"
+		if not frappe.db.exists("Quality Inspection Template", template_name):
+			frappe.get_doc({
+				"doctype": "Quality Inspection Template",
+				"quality_inspection_template_name": template_name,
+				"item_quality_inspection_parameter": [
+					{"specification": "Görsel Kontrol", "numeric": 0, "value": "OK"}
+				]
+			}).insert(ignore_permissions=True)
+
+		from erpnextkta.tests.test_utils import create_test_operator
+		create_test_operator("sub_qc@kta.com", "Sub QC Operator")
+		frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": "sub_qc@kta.com"})
+		frappe.db.commit()
+
+		doc = create_calisma_karti(
+			is_karti=self.jc_name, operasyon=op_name,
+			is_istasyonu=self.ws_name, operator="sub_qc@kta.com"
+		)
+		docname = doc.get("name")
+
+		# Alt operasyon master oluştur
+		master_doc = frappe.get_doc({
+			"doctype": "KTA Calisma Karti Alt Operasyonlari",
+			"title": "SubOp Master 1",
+			"parent_operation": op_name,
+			"sequence": 10
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		# 2 alt operasyon satırı ekle
+		row1_id = add_alt_operasyon_kaydi(docname, master_doc.name)
+		row2_id = add_alt_operasyon_kaydi(docname, master_doc.name)
+
+		# Kartı Başlat
+		islem_yap(docname, "Baslat")
+
+		# Row 1 Onayla
+		readings_ok = [{"specification": "Görsel Kontrol", "numeric": 0, "reading_value": "OK", "status": "Accepted"}]
+		res1 = submit_kta_quality_inspection(docname, template_name, readings_ok, intent="approve", rowname=row1_id)
+		qi1_name = res1["quality_inspection"]
+
+		# Row 1 onaylandı, Row 2 henüz onay bekliyor -> Kart genel QC: Onay Bekliyor
+		ck = frappe.get_doc("Calisma Karti", docname)
+		self.assertEqual(ck.kalite_kontrol, "Onay Bekliyor")
+		self.assertEqual(ck.docstatus, 0)
+		self.assertEqual(ck.get_durum(), "calisiyor")
+
+		# Row 2 Reddet
+		readings_nok = [{"specification": "Görsel Kontrol", "numeric": 0, "reading_value": "NOK", "status": "Rejected"}]
+		res2 = submit_kta_quality_inspection(docname, template_name, readings_nok, intent="reject", rowname=row2_id)
+		qi2_name = res2["quality_inspection"]
+
+		# Row 2 reddedildi, QI hemen submit edilmiş olmalı ama KART AÇIK KALMALI
+		qi2_docstatus = frappe.db.get_value("Quality Inspection", qi2_name, "docstatus")
+		self.assertEqual(qi2_docstatus, 1)
+
+		ck.reload()
+		self.assertEqual(ck.docstatus, 0, "Alt operasyon reddinde kart otomatik submit edilmemeli!")
+		self.assertEqual(ck.kalite_kontrol, "Kısmi Kabul Edildi")
+		self.assertEqual(ck.get_durum(), "calisiyor", "Alt operasyon reddinde kart durumu reddedildi kilitlenmemeli!")
+		self.assertIsNone(ck.bitis_saati)
+
+		# Kartı Bitir
+		islem_yap(docname, "Bitis")
+
+		ck.reload()
+		self.assertEqual(ck.docstatus, 1)
+		self.assertEqual(ck.durum, "Bitmiş")
+		self.assertEqual(ck.kalite_kontrol, "Kısmi Kabul Edildi")
+
+		# Row 1'in draft QI'si de bitiş anında submit edilmiş olmalı
+		qi1_docstatus = frappe.db.get_value("Quality Inspection", qi1_name, "docstatus")
+		self.assertEqual(qi1_docstatus, 1, "Bitiş anında taslak alt operasyon QI'si submit edilmiş olmalı")
+
+	def test_sub_op_qc_locked_for_operator(self):
+		"""Operatörün kalite belgesi bağlanmış (onaylı veya redli) alt operasyonu silemediğini,
+		kalite yetkilisinin ise silebildiğini ve bağlı QI'nin iptal edildiğini doğrular."""
+		from erpnextkta.tests.test_utils import create_test_operator
+
+		op_name = "TEST-LOCK-QC-OP"
+		if not frappe.db.exists("KTA Calisma Karti Operasyonlari", op_name):
+			frappe.get_doc({
+				"doctype": "KTA Calisma Karti Operasyonlari",
+				"name": op_name,
+				"calisma_karti_op": op_name,
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 1,
+				"plant_floor": "L-1"
+			}).insert(ignore_permissions=True, ignore_mandatory=True)
+
+		template_name = "TEST-LOCK-QC-TEMPLATE"
+		if not frappe.db.exists("Quality Inspection Template", template_name):
+			frappe.get_doc({
+				"doctype": "Quality Inspection Template",
+				"quality_inspection_template_name": template_name,
+				"item_quality_inspection_parameter": [
+					{"specification": "Görsel Kontrol", "numeric": 0, "value": "OK"}
+				]
+			}).insert(ignore_permissions=True)
+
+		operator_email = "lock_op@kta.com"
+		if not frappe.db.exists("User", operator_email):
+			frappe.get_doc({
+				"doctype": "User",
+				"email": operator_email,
+				"first_name": "Lock",
+				"last_name": "Operator",
+				"enabled": 1,
+				"roles": [
+					{"role": "Manufacturing User"},
+					{"role": "KTA Çalışma Kartı Kullanıcısı"}
+				]
+			}).insert(ignore_permissions=True)
+		else:
+			frappe.get_doc("User", operator_email).add_roles("Manufacturing User", "KTA Çalışma Kartı Kullanıcısı")
+
+		create_test_operator(operator_email, "Lock Operator")
+		frappe.db.set_value("Employee", operator_email, "user_id", operator_email)
+		frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": operator_email})
+		frappe.db.commit()
+
+		doc = create_calisma_karti(
+			is_karti=self.jc_name, operasyon=op_name,
+			is_istasyonu=self.ws_name, operator=operator_email
+		)
+		docname = doc.get("name")
+
+		master_doc = frappe.get_doc({
+			"doctype": "KTA Calisma Karti Alt Operasyonlari",
+			"title": "SubOp Lock Master",
+			"parent_operation": op_name,
+			"sequence": 10
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		# 2 satır ekle: 1'ine QI bağlanacak, diğeri serbest kalacak
+		row1_id = add_alt_operasyon_kaydi(docname, master_doc.name)
+		row2_id = add_alt_operasyon_kaydi(docname, master_doc.name)
+
+		# Serbest olan row2 operatör tarafından silinebilmeli
+		delete_alt_operasyon_kaydi(docname, row2_id)
+		ck = frappe.get_doc("Calisma Karti", docname)
+		self.assertEqual(len(ck.alt_operasyon_kayitlari), 1)
+
+		# Row 1'e kalite onayı ver (QI bağla)
+		readings = [{"specification": "Görsel Kontrol", "numeric": 0, "reading_value": "OK", "status": "Accepted"}]
+		res = submit_kta_quality_inspection(docname, template_name, readings, intent="approve", rowname=row1_id)
+		qi_name = res["quality_inspection"]
+
+		# Operatör olarak silmeye çalış -> Hata fırlatmalı
+		orig_user = frappe.session.user
+		try:
+			frappe.set_user(operator_email)
+			with self.assertRaises(frappe.ValidationError):
+				delete_alt_operasyon_kaydi(docname, row1_id)
+		finally:
+			frappe.set_user(orig_user)
+
+		# Kalite yetkilisi (Administrator) olarak sil -> Silinebilmeli ve QI iptal edilmeli
+		delete_alt_operasyon_kaydi(docname, row1_id)
+
+		ck.reload()
+		self.assertEqual(len(ck.alt_operasyon_kayitlari), 0)
+		self.assertFalse(frappe.db.exists("Quality Inspection", qi_name))
+
+	def test_sub_op_all_rejected_allows_durus_and_devam_et(self):
+		"""Alt operasyonlu açık kartta tüm satırlar reddedilse bile (kalite_kontrol=Reddedildi),
+		kartın açık kalıp Duruş/Devam işlemlerine devam edebildiğini doğrular."""
+		from erpnextkta.tests.test_utils import create_test_operator
+
+		op_name = "TEST-RESUME-QC-OP"
+		if not frappe.db.exists("KTA Calisma Karti Operasyonlari", op_name):
+			frappe.get_doc({
+				"doctype": "KTA Calisma Karti Operasyonlari",
+				"name": op_name,
+				"calisma_karti_op": op_name,
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 1,
+				"plant_floor": "L-1"
+			}).insert(ignore_permissions=True, ignore_mandatory=True)
+
+		template_name = "TEST-RESUME-QC-TEMPLATE"
+		if not frappe.db.exists("Quality Inspection Template", template_name):
+			frappe.get_doc({
+				"doctype": "Quality Inspection Template",
+				"quality_inspection_template_name": template_name,
+				"item_quality_inspection_parameter": [
+					{"specification": "Görsel Kontrol", "numeric": 0, "value": "OK"}
+				]
+			}).insert(ignore_permissions=True)
+
+		operator_email = "resume_op@kta.com"
+		if not frappe.db.exists("User", operator_email):
+			frappe.get_doc({
+				"doctype": "User",
+				"email": operator_email,
+				"first_name": "Resume",
+				"last_name": "Operator",
+				"enabled": 1,
+				"roles": [
+					{"role": "Manufacturing User"},
+					{"role": "KTA Çalışma Kartı Kullanıcısı"}
+				]
+			}).insert(ignore_permissions=True)
+		else:
+			frappe.get_doc("User", operator_email).add_roles("Manufacturing User", "KTA Çalışma Kartı Kullanıcısı")
+
+		create_test_operator(operator_email, "Resume Operator")
+		frappe.db.set_value("Employee", operator_email, "user_id", operator_email)
+		frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": operator_email})
+		frappe.db.commit()
+
+		doc = create_calisma_karti(
+			is_karti=self.jc_name, operasyon=op_name,
+			is_istasyonu=self.ws_name, operator=operator_email
+		)
+		docname = doc.get("name")
+
+		master_doc = frappe.get_doc({
+			"doctype": "KTA Calisma Karti Alt Operasyonlari",
+			"title": "SubOp Resume Master",
+			"parent_operation": op_name,
+			"sequence": 10
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		row_id = add_alt_operasyon_kaydi(docname, master_doc.name)
+
+		# Kartı Başlat
+		islem_yap(docname, "Baslat")
+
+		# Kartı Duruşa al
+		islem_yap(docname, "Durus", durus_nedeni="Diğer", aciklama="Yemek Molası")
+		ck = frappe.get_doc("Calisma Karti", docname)
+		self.assertEqual(ck.get_durum(), "durusta")
+
+		# Tek satırı Reddet -> kartın kalite_kontrol değeri 'Reddedildi' olur
+		readings_nok = [{"specification": "Görsel Kontrol", "numeric": 0, "reading_value": "NOK", "status": "Rejected"}]
+		submit_kta_quality_inspection(docname, template_name, readings_nok, intent="reject", rowname=row_id)
+
+		ck.reload()
+		self.assertEqual(ck.kalite_kontrol, "Reddedildi")
+		# Kart açık olduğu için durumu hâlâ 'durusta' olmalı
+		self.assertEqual(ck.get_durum(), "durusta")
+
+		# Duruştaki kart 'DevamEt' yapabilmeli (kalite_kontrol=Reddedildi olmasına rağmen kart açık olduğu için izin verilmeli)
+		islem_yap(docname, "DevamEt")
+
+		ck.reload()
+		self.assertEqual(ck.get_durum(), "calisiyor")
+
+		# Tekrar Duruşa alabilmeli
+		islem_yap(docname, "Durus", durus_nedeni="Diğer", aciklama="Çay Molası")
+		ck.reload()
+		self.assertEqual(ck.get_durum(), "durusta")
+
+		# Bitiş yapılabilmeli -> Bitiş yapıldığında tüm satırlar ret olduğu için durum 'reddedildi' olmalı
+		islem_yap(docname, "Bitis")
+		ck.reload()
+		self.assertEqual(ck.docstatus, 1)
+		self.assertEqual(ck.durum, "Reddedildi")
+		self.assertEqual(ck.get_durum(), "reddedildi")
+
+		# Bitmiş ve reddedilmiş kartta artık DevamEt yapılamamalı
+		with self.assertRaises(frappe.ValidationError):
+			islem_yap(docname, "DevamEt")
+
+	def test_sub_op_finish_qc_rules(self):
+		"""%100 kalite kontrolü seçili olduğunda açıkta onay bekleyen varken kartın bitirilemediğini,
+		seçili olmadığında ise en az 1 onay olmadan kartın bitirilemediğini doğrular."""
+		from erpnextkta.tests.test_utils import create_test_operator
+		op_no_100 = "TEST-QC-NO-100-OP"
+		if not frappe.db.exists("KTA Calisma Karti Operasyonlari", op_no_100):
+			frappe.get_doc({
+				"doctype": "KTA Calisma Karti Operasyonlari",
+				"name": op_no_100,
+				"calisma_karti_op": op_no_100,
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 0,
+				"plant_floor": "L-1"
+			}).insert(ignore_permissions=True, ignore_mandatory=True)
+		else:
+			frappe.db.set_value("KTA Calisma Karti Operasyonlari", op_no_100, {
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 0
+			})
+
+		template_name = "TEST-RULES-QC-TEMPLATE"
+		if not frappe.db.exists("Quality Inspection Template", template_name):
+			frappe.get_doc({
+				"doctype": "Quality Inspection Template",
+				"quality_inspection_template_name": template_name,
+				"item_quality_inspection_parameter": [
+					{"specification": "Görsel Kontrol", "numeric": 0, "value": "OK"}
+				]
+			}).insert(ignore_permissions=True)
+
+		operator_email = "rules_op@kta.com"
+		create_test_operator(operator_email, "Rules Operator")
+		frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": operator_email})
+		frappe.db.commit()
+
+		# ─── CASE 1: yuzde_yuz_kalite_kontrol = 0 ───
+		doc1 = create_calisma_karti(
+			is_karti=self.jc_name, operasyon=op_no_100,
+			is_istasyonu=self.ws_name, operator=operator_email
+		)
+		docname1 = doc1.get("name")
+		master_doc = frappe.get_doc({
+			"doctype": "KTA Calisma Karti Alt Operasyonlari",
+			"title": "SubOp Rules Master",
+			"parent_operation": op_no_100,
+			"sequence": 10
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		row1 = add_alt_operasyon_kaydi(docname1, master_doc.name)
+		add_alt_operasyon_kaydi(docname1, master_doc.name)
+		islem_yap(docname1, "Baslat")
+
+		# 0 onay varken bitirmeye çalış -> ValidationError
+		with self.assertRaises(frappe.ValidationError):
+			islem_yap(docname1, "Bitis")
+
+		# 1 onay ver (row1)
+		readings_ok = [{"specification": "Görsel Kontrol", "numeric": 0, "reading_value": "OK", "status": "Accepted"}]
+		submit_kta_quality_inspection(docname1, template_name, readings_ok, intent="approve", rowname=row1)
+
+		# 2. satır hâlâ bekliyor olsa da yuzde_yuz_kalite_kontrol=0 olduğu için artık bitirilebilmeli
+		islem_yap(docname1, "Bitis")
+		ck1 = frappe.get_doc("Calisma Karti", docname1)
+		self.assertEqual(ck1.durum, "Bitmiş")
+		self.assertEqual(ck1.kalite_kontrol, "Kısmi Kabul Edildi")
+		self.assertEqual(ck1.docstatus, 1)
+
+		# ─── CASE 2: yuzde_yuz_kalite_kontrol = 1 ───
+		op_100 = "TEST-QC-100-OP"
+		if not frappe.db.exists("KTA Calisma Karti Operasyonlari", op_100):
+			frappe.get_doc({
+				"doctype": "KTA Calisma Karti Operasyonlari",
+				"name": op_100,
+				"calisma_karti_op": op_100,
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 1,
+				"plant_floor": "L-1"
+			}).insert(ignore_permissions=True, ignore_mandatory=True)
+		else:
+			frappe.db.set_value("KTA Calisma Karti Operasyonlari", op_100, {
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 1
+			})
+
+		master_doc2 = frappe.get_doc({
+			"doctype": "KTA Calisma Karti Alt Operasyonlari",
+			"title": "SubOp Rules Master 2",
+			"parent_operation": op_100,
+			"sequence": 10
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		doc2 = create_calisma_karti(
+			is_karti=self.jc_name, operasyon=op_100,
+			is_istasyonu=self.ws_name, operator=operator_email
+		)
+		docname2 = doc2.get("name")
+		r1 = add_alt_operasyon_kaydi(docname2, master_doc2.name)
+		r2 = add_alt_operasyon_kaydi(docname2, master_doc2.name)
+		islem_yap(docname2, "Baslat")
+
+		# r1'i onayla
+		submit_kta_quality_inspection(docname2, template_name, readings_ok, intent="approve", rowname=r1)
+
+		# r2 hâlâ bekliyor -> yuzde_yuz_kalite_kontrol=1 olduğu için bitirilememeli
+		with self.assertRaises(frappe.ValidationError):
+			islem_yap(docname2, "Bitis")
+
+		# r2'ye ret kararı ver (açıkta bekleyen satır kalmadı, kısmi kabul durumu)
+		readings_nok = [{"specification": "Görsel Kontrol", "numeric": 0, "reading_value": "NOK", "status": "Rejected"}]
+		submit_kta_quality_inspection(docname2, template_name, readings_nok, intent="reject", rowname=r2)
+
+		# Açıkta bekleyen kalmadığı için artık Kısmi Kabul ile bitirilebilmeli
+		islem_yap(docname2, "Bitis")
+		ck2 = frappe.get_doc("Calisma Karti", docname2)
+		self.assertEqual(ck2.durum, "Bitmiş")
+		self.assertEqual(ck2.kalite_kontrol, "Kısmi Kabul Edildi")
+		self.assertEqual(ck2.docstatus, 1)
+
+
+

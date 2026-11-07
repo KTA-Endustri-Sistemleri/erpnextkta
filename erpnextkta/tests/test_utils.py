@@ -519,6 +519,8 @@ def make_mock_calisma_karti(**kwargs):
 	doc.net_calisma_suresi = kwargs.get("net_calisma_suresi", None)
 	doc.durum = kwargs.get("durum", None)
 	doc.is_karti = kwargs.get("is_karti", None)
+	doc.alt_operasyon_kayitlari = kwargs.get("alt_operasyon_kayitlari", [])
+	doc.docstatus = kwargs.get("docstatus", 0)
 	return doc
 
 

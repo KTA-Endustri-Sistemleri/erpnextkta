@@ -72,4 +72,30 @@
     }
   })();
 </script>
+
+<!-- Mermaid JS Support for Jekyll Documentation Flowcharts -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.8/dist/mermaid.min.js" integrity="sha384-N3QqR/7q+xm3BGX+CBbNI8AUmRRqcsDzToy+0z1NLDI0QmTKW8zvwLvqulJgk3dP" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const codeBlocks = document.querySelectorAll("pre code.language-mermaid, pre.mermaid, div.mermaid");
+    if (codeBlocks.length > 0 && typeof mermaid !== "undefined") {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "neutral",
+        securityLevel: "strict"
+      });
+      codeBlocks.forEach(function (el) {
+        let parent = el;
+        if (el.tagName.toLowerCase() === "code") {
+          parent = el.parentElement;
+        }
+        const div = document.createElement("div");
+        div.className = "mermaid";
+        div.textContent = el.textContent;
+        parent.parentNode.replaceChild(div, parent);
+      });
+      mermaid.run();
+    }
+  });
+</script>
 </html>

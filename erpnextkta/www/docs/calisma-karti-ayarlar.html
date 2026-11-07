@@ -75,13 +75,19 @@
 - <strong>Enjeksiyon Formu Aktif:</strong> Plastik <em>Enjeksiyon</em> ölçüm formunu aktif eder.
 - <strong>Ekran Tipi (<code>ekran_tipi</code>):</strong> Operatörün hammadde giriş tarzını belirler. <em>Çoklu Hammadde</em> seçilirse, alt operasyon ekranında tek işlemde birden fazla hammadde kullanılmasına izin veren geniş form açılır.</p>
 
-<h3>🧪 Yeni Özellik: Modüler Kalite (Alt Operasyon Bazlı Kalite Onayı)</h3>
+<h3>🧪 Kalite ve Kontrol Mekanizmaları</h3>
 
 <ul>
-<li><strong>Alt Operasyon Bazlı Kalite Onayı (<code>alt_operasyon_bazli_kalite</code>):</strong> Bu kutucuk işaretlenirse, kalite kontrol birimi "Bütün Kart" yerine, kart içindeki her bir alt operasyona (Küt, Çift Taraf vb.) satır satır onay verir. Formlar (Krimp formu vb.) bu alt operasyonların içeriğine göre sihirli şekilde (Auto-fill) dolar.
+<li><strong>Alt Operasyon Bazlı Kalite Onayı (<code>alt_operasyon_bazli_kalite</code>):</strong> Bu kutucuk işaretlenirse, kalite kontrol birimi "Bütün Kart" yerine, kart içindeki her bir alt operasyona (Küt, Çift Taraf vb.) satır satır onay verir. Formlar (Krimp formu vb.) bu alt operasyonların içeriğine göre otomatik (Auto-fill) dolar.
 <ul>
-<li><strong>Sistem Davranışı:</strong> Bu modda ana Çalışma Kartının (parent) <code>quality_inspection</code> (Kalite Belgesi) alanı hiçbir zaman doldurulmaz; yalnızca belgenin genel durumu (<code>kalite_kontrol</code> alanı) içindeki satırların durumlarına bakılarak dinamik olarak "Onaylandı" ya da "Onay Bekliyor" olarak hesaplanır. Böylelikle klasik kalite süreciyle modüler süreç birbirine karışmaz.</li>
+<li><strong>Sistem Davranışı:</strong> Bu modda ana Çalışma Kartının (parent) <code>quality_inspection</code> (Kalite Belgesi) alanı hiçbir zaman doldurulmaz; yalnızca belgenin genel durumu (<code>kalite_kontrol</code> alanı) içindeki satırların durumlarına bakılarak dinamik olarak hesaplanır.</li>
 </ul></li>
+<li><strong>%100 Kalite Kontrol Zorunluluğu (<code>yuzde_yuz_kalite_kontrol</code>):</strong>
+<ul>
+<li><strong>İşaretli (1 - %100 Denetim):</strong> Kartın bitirilebilmesi için açıkta hiçbir "Onay Bekliyor" satır kalamaz. Tüm satırlar denetlenmiş olmalı ve en az 1 onay bulunmalıdır (tümü ret ise kart bitirilemez).</li>
+<li><strong>İşaretsiz (0 - Örnekleme / Numune Modu):</strong> Kartın onaysız kapatılmasını önlemek için <strong>minimum 1 alt işlemin onaylı olması zorunludur</strong>. Diğer satırlar onay beklese dahi kart başarıyla bitirilebilir ve kart statüsü otomatik olarak <strong>Kısmi Kabul Edildi</strong> (#7c3aed Mor/İndigo) olur.</li>
+</ul></li>
+<li><strong>Alt Operasyon Doğal Sıralaması (Natural Sort):</strong> Alt operasyon satırları metinsel değil sayısal doğal sıralama (<code>1, 2, ..., 10</code>) ile listelenir. Virgüllü çoklu kesim satırları (örn: <code>1,2,3</code>) ilk rakamına göre sıralanır; Enjeksiyon operasyonlarında ise sıralama <code>kalip_no</code> doğal sıralaması üzerinden yürütülür.</li>
 </ul>
 
 <blockquote>
