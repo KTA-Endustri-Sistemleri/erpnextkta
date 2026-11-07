@@ -217,7 +217,7 @@
             "fieldtype": "Select",
             "in_standard_filter": 1,
             "label": "Kalite Kontrol",
-            "options": "Onay Bekliyor\nOnayland\u0131\nReddedildi",
+            "options": "Onay Bekliyor\nOnayland\u0131\nK\u0131smi Kabul Edildi\nReddedildi",
             "permlevel": 1
         },
         {

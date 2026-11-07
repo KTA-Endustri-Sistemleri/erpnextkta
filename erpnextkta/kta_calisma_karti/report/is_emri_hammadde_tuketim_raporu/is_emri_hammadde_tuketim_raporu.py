@@ -128,7 +128,7 @@ def _get_pivot_data(work_order_filter: str = None, operator_filter: str = None, 
         # Add a visual spacer (will be empty)
         data.append({"is_spacer": 1})
         
-        total_row = {"operator": None, "operator_name": frappe.bold(_("GENEL TOPLAM")), "is_spacer": 1}
+        total_row = {"operator": None, "operator_name": frappe.bold(_("Genel Toplam")), "is_spacer": 1}
         for item_code in unique_items:
             total_row[item_code] = sum(flt(d.get(item_code)) for d in data if not d.get("is_spacer"))
         

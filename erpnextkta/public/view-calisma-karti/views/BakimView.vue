@@ -225,8 +225,8 @@ watch(() => props.doc?.name, (newVal) => {
               {{ record.docstatus === 1 ? __('Onaylandı') : __('Taslak') }}
             </span>
           </div>
-          <div class="ck-muted ck-mini-sub">{{ __("Makine:") }} <strong style="color:var(--ck-text);">{{ record.makine }}</strong></div>
-          <div class="ck-muted ck-mini-sub">{{ __("Tarih:") }} {{ record.tarih || '---' }}</div>
+          <div class="ck-muted ck-mini-sub">{{ __("Makine") }}: <strong style="color:var(--ck-text);">{{ record.makine }}</strong></div>
+          <div class="ck-muted ck-mini-sub">{{ __("Tarih") }}: {{ record.tarih || '---' }}</div>
         </div>
       </div>
     </div>
@@ -257,9 +257,9 @@ watch(() => props.doc?.name, (newVal) => {
               {{ record.maintenance_status === "Arıza Bildirimi" ? __("Arıza Bildirimi") : __(record.maintenance_status || "Açık") }}
             </span>
           </div>
-          <div class="ck-muted ck-mini-sub">{{ __("Makine:") }} <strong>{{ record.asset_name || '---' }}</strong></div>
+          <div class="ck-muted ck-mini-sub">{{ __("Makine") }}: <strong>{{ record.asset_name || '---' }}</strong></div>
           <div class="ck-muted ck-mini-sub" style="margin-top: 4px; font-style: italic;">"{{ record.custom_ariza_aciklamasi || __('Açıklama yok') }}"</div>
-          <div class="ck-muted ck-mini-sub" style="margin-top: 4px;">{{ __("Tarih:") }} {{ record.due_date || (record.creation ? record.creation.split(' ')[0] : '---') }}</div>
+          <div class="ck-muted ck-mini-sub" style="margin-top: 4px;">{{ __("Tarih") }}: {{ record.due_date || (record.creation ? record.creation.split(' ')[0] : '---') }}</div>
         </div>
       </div>
     </div>

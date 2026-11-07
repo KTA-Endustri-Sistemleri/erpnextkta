@@ -59,13 +59,13 @@ function openFile(url: string) {
     <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col">
       <div class="ck-info-cell">
         <span>{{ __("Operasyon") }}</span>
-        <b>{{ props.doc.operasyon || "-" }}</b>
+        <b>{{ props.doc.operasyon ? __(props.doc.operasyon) : "-" }}</b>
       </div>
     </div>
     <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col">
       <div class="ck-info-cell">
         <span>{{ __("İstasyon") }}</span>
-        <b>{{ props.doc.is_istasyonu || "-" }}</b>
+        <b>{{ props.doc.is_istasyonu ? __(props.doc.is_istasyonu) : "-" }}</b>
       </div>
     </div>
     <div class="col-xs-6 col-sm-4 col-lg-2 ck-info-col">

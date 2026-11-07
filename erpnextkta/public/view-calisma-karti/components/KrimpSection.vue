@@ -13,7 +13,7 @@ const props = defineProps<{
   onDelete: (row: any) => void;
   onClone: (row: any) => void;
   onPrint: () => void;
-  onSubmitQC?: (rowname: string, item_code: string) => void;
+  onSubmitQC?: (rowname: string, item_code: string, intent?: "approve" | "reject") => void;
 }>();
 
 const openedRowIds = ref(new Set<string>());
@@ -123,17 +123,17 @@ function actions(r: any) {
             </div>
             <div style="display:flex; flex-direction:column; gap:4px; flex:1; min-width: 0;">
                <div v-if="getAltOpRow(r)" style="font-size:13px; font-weight:800; color:var(--ck-text); margin-bottom: 2px;">
-                 {{ getAltOpRow(r).alt_operasyon_title || getAltOpRow(r).alt_operasyon }}
+                 {{ __(getAltOpRow(r).alt_operasyon_title || getAltOpRow(r).alt_operasyon) }}
                </div>
                <div style="display:flex; align-items:center; gap:8px;">
-                 <span class="ck-label">{{ __('KABLO:') }}</span>
+                 <span class="ck-label">{{ __('Kablo') }}:</span>
                  <span class="ck-val" style="font-size:14px;">{{ r.kablo_no || '-' }}</span>
                </div>
                <div style="display:flex; align-items:center; gap:8px; opacity:0.8; flex-wrap:wrap;">
-                 <span class="ck-label" style="margin-right:2px;">{{ __('T1 TERMİNAL:') }}</span>
+                 <span class="ck-label" style="margin-right:2px;">{{ __('T1 Terminal') }}:</span>
                  <span class="ck-val" style="font-size:11px;">{{ r.kontak_no || '-' }}</span>
                  <template v-if="r.is_cift_tarafli">
-                     <span class="ck-label" style="margin-right:2px; margin-left:6px;">{{ __('T2 TERMİNAL:') }}</span>
+                     <span class="ck-label" style="margin-right:2px; margin-left:6px;">{{ __('T2 Terminal') }}:</span>
                      <span class="ck-val" style="font-size:11px;">{{ r.yon_2_kontak_no || '-' }}</span>
                  </template>
                </div>
@@ -141,14 +141,22 @@ function actions(r: any) {
         </div>
         <div class="ck-accordion-right" style="display:flex; align-items:center; gap:8px; opacity:1; font-size:11px;">
            <template v-if="getAltOpRow(r)">
-             <button 
-               v-if="props.canEditQC && getAltOpRow(r).quality_inspection_status !== 'Onaylandı' && props.onSubmitQC" 
-               class="ck-btn ck-btn--success ck-btn-small" 
-               style="font-size:10px; padding:4px 8px; margin-right: 6px; border-radius: 6px;"
-               @click.stop="props.onSubmitQC(getAltOpRow(r).name, getAltOpRow(r).hammadde || '')"
-             >
-               {{ __("KALİTE ONAYI VER") }}
-             </button>
+             <template v-if="props.canEditQC && (!getAltOpRow(r).quality_inspection_status || getAltOpRow(r).quality_inspection_status === 'Onay Bekliyor') && props.onSubmitQC">
+               <button 
+                 class="ck-btn ck-btn--success ck-btn-small" 
+                 style="font-size:10px; padding:4px 8px; margin-right: 4px; border-radius: 6px;"
+                 @click.stop="props.onSubmitQC(getAltOpRow(r).name, getAltOpRow(r).hammadde || '', 'approve')"
+               >
+                 {{ __("Kalite Onayı Ver") }}
+               </button>
+               <button 
+                 class="ck-btn ck-btn--danger ck-btn-small" 
+                 style="font-size:10px; padding:4px 8px; margin-right: 6px; border-radius: 6px;"
+                 @click.stop="props.onSubmitQC(getAltOpRow(r).name, getAltOpRow(r).hammadde || '', 'reject')"
+               >
+                 {{ __("Reddet") }}
+               </button>
+             </template>
              <span v-else :class="['ck-badge', getThemeClass(getAltOpRow(r).quality_inspection_status)]" style="font-size:10px; padding:4px 8px; margin-right: 6px; border-radius: 6px; font-weight: bold; opacity: 1; text-transform: uppercase;">
                {{ getAltOpRow(r).quality_inspection_status ? __(getAltOpRow(r).quality_inspection_status) : __("Onay Bekliyor") }}
              </span>
@@ -166,8 +174,8 @@ function actions(r: any) {
               <span class="ck-badge" style="background:#eee;color:#333;" v-if="r.is_cift_tarafli">T1</span>
               <div style="flex:1; display:flex; flex-direction:column; gap:4px;" :style="r.is_cift_tarafli ? 'margin-left:6px;' : ''">
                 <div class="ck-header-row" style="opacity:0.8;">
-                  <span class="ck-label">{{ __('KESİT:') }} <span style="color:var(--text-color);">{{ r.kablo_kesiti || '-' }}</span></span>
-                  <span class="ck-label">{{ __('MK/KL:') }} <span style="color:var(--text-color);">{{ r.makine_pres_no || '-' }} / {{ r.kalip_no || '-' }}</span></span>
+                  <span class="ck-label">{{ __('Kesit') }}: <span style="color:var(--text-color);">{{ r.kablo_kesiti || '-' }}</span></span>
+                  <span class="ck-label">{{ __('Makine / Kalıp') }}: <span style="color:var(--text-color);">{{ r.makine_pres_no || '-' }} / {{ r.kalip_no || '-' }}</span></span>
                 </div>
               </div>
             </div>
@@ -176,8 +184,8 @@ function actions(r: any) {
              <span class="ck-badge" style="background:#eee;color:#333;">T2</span>
              <div style="flex:1; display:flex; flex-direction:column; gap:4px; margin-left:6px;">
                <div class="ck-header-row" style="opacity:0.8;">
-                 <span class="ck-label">{{ __('KESİT:') }} <span style="color:var(--text-color);">{{ r.yon_2_kablo_kesiti || '-' }}</span></span>
-                 <span class="ck-label">{{ __('MK/KL:') }} <span style="color:var(--text-color);">{{ r.yon_2_makine_pres_no || '-' }} / {{ r.yon_2_kalip_no || '-' }}</span></span>
+                 <span class="ck-label">{{ __('Kesit') }}: <span style="color:var(--text-color);">{{ r.yon_2_kablo_kesiti || '-' }}</span></span>
+                 <span class="ck-label">{{ __('Makine / Kalıp') }}: <span style="color:var(--text-color);">{{ r.yon_2_makine_pres_no || '-' }} / {{ r.yon_2_kalip_no || '-' }}</span></span>
                </div>
              </div>
            </div>
@@ -231,8 +239,8 @@ function actions(r: any) {
                  :target="r.hedef_iletken_krimp_yuksekliği"
                  :tolerance="0.05"
                  :segment-step="0.01"
-                 text-low="düşük"
-                 text-high="yüksek"
+                 :text-low="__('Düşük')"
+                 :text-high="__('Yüksek')"
                  unit="mm"
                />
             </div>
@@ -279,8 +287,8 @@ function actions(r: any) {
                    :target="r.yon_2_hedef_iletken_krimp_yuksekligi"
                    :tolerance="0.05"
                    :segment-step="0.01"
-                   text-low="düşük"
-                   text-high="yüksek"
+                   :text-low="__('Düşük')"
+                   :text-high="__('Yüksek')"
                    unit="mm"
                  />
               </div>
@@ -318,7 +326,7 @@ function actions(r: any) {
 
         <div style="display:flex; justify-content:flex-end;">
           <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            {{ __('İŞLEMLER') }} ▾
+            {{ __('İşlemler') }} ▾
           </button>
         </div>
       </div>

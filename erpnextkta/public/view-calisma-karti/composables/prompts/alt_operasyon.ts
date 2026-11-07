@@ -68,12 +68,19 @@ export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKar
         return getOperasyonTipi(doc) !== "Blunt";
     };
 
+    const isSatirNoRequired = Boolean(
+        defaults.alt_operasyon_bazli_kalite &&
+        (parentOperationLabel === "OP10" || parentOperationLabel === "OP11" || defaults.has_krimp) &&
+        parentOperationLabel !== "OP40" &&
+        !defaults.has_enjeksiyon
+    );
+
     return applyDecimalInputMode([
         {
             fieldtype: "Select",
             label: __("Alt İşlem"),
             fieldname: "alt_operasyon",
-            options: altOpOptions.map((o: any) => ({ label: o.label, value: o.value })),
+            options: altOpOptions.map((o: any) => ({ label: __(o.label), value: o.value })),
             reqd: 1,
             default: defaults.alt_operasyon || "",
         },
@@ -82,8 +89,8 @@ export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKar
             label: __("Satır No"),
             description: __("Teknik resimdeki kablo numarasını giriniz."),
             fieldname: "satir_no",
-            reqd: defaults.alt_operasyon_bazli_kalite ? 1 : 0,
-            depends_on: () => !!defaults.alt_operasyon_bazli_kalite,
+            reqd: isSatirNoRequired ? 1 : 0,
+            depends_on: () => isSatirNoRequired || Boolean(defaults.alt_operasyon_bazli_kalite && parentOperationLabel !== "OP40" && !defaults.has_enjeksiyon && defaults.satir_no),
             default: defaults.satir_no || "",
         },
         {
@@ -197,12 +204,19 @@ export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKar
 }
 
 export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKartiName: string, defaults: any = {}, getAltOpValue?: () => string, altOpOptions: any[] = []) {
+    const isSatirNoRequired = Boolean(
+        defaults.alt_operasyon_bazli_kalite &&
+        (parentOperationLabel === "OP10" || parentOperationLabel === "OP11" || defaults.has_krimp) &&
+        parentOperationLabel !== "OP40" &&
+        !defaults.has_enjeksiyon
+    );
+
     return applyDecimalInputMode([
         {
             fieldtype: "Select",
             label: __("Alt İşlem"),
             fieldname: "alt_operasyon",
-            options: altOpOptions.map((o: any) => ({ label: o.label, value: o.value })),
+            options: altOpOptions.map((o: any) => ({ label: __(o.label), value: o.value })),
             reqd: 1,
             default: defaults.alt_operasyon || "",
         },
@@ -211,8 +225,8 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             label: __("Satır No"),
             description: __("Teknik resimdeki kablo numarasını giriniz."),
             fieldname: "satir_no",
-            reqd: defaults.alt_operasyon_bazli_kalite ? 1 : 0,
-            depends_on: () => !!defaults.alt_operasyon_bazli_kalite,
+            reqd: isSatirNoRequired ? 1 : 0,
+            depends_on: () => isSatirNoRequired || Boolean(defaults.alt_operasyon_bazli_kalite && parentOperationLabel !== "OP40" && !defaults.has_enjeksiyon && defaults.satir_no),
             default: defaults.satir_no || "",
         },
         {

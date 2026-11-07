@@ -381,9 +381,21 @@ class CalismaKarti(Document):
     def get_durum(self):
         if self.docstatus == 2:
             return 'iptal_edildi'
-        # If QC rejected, lock the card status.
-        if (self.kalite_kontrol or '').strip() == 'Reddedildi':
-            return 'reddedildi'
+
+        is_alt_op = False
+        if self.operasyon:
+            is_alt_op = frappe.get_cached_value("KTA Calisma Karti Operasyonlari", self.operasyon, "alt_operasyon_bazli_kalite")
+
+        # Klasik kartlarda kalite reddi kartı doğrudan kilitler.
+        # Alt operasyonlu kartlarda ise kart açıkken (bitiş saati yokken) tekil satır retleri
+        # kartın operasyonel durumunu kilitlemez; ancak kart bitirilmişse ve tüm işlemler ret ise 'reddedildi' olur.
+        if not is_alt_op:
+            if (self.kalite_kontrol or '').strip() == 'Reddedildi':
+                return 'reddedildi'
+        else:
+            if self.bitis_saati and (self.kalite_kontrol or '').strip() == 'Reddedildi':
+                return 'reddedildi'
+
         if self.bitis_saati:
             return 'bitmis'
         elif not self.baslangic_saati:

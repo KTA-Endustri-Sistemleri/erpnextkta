@@ -619,18 +619,19 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
         finally:
             frappe.set_user(original_user)
             
-        # FAZ 3: Auto-submit the card itself on rejection
-        # Reload to get the latest state (db_set calls above changed the DB)
-        try:
-            ck.reload()
-            from erpnextkta.kta_calisma_karti.api_impl._helpers import finalize_rejected_card
-            finalize_rejected_card(ck, now=frappe.utils.now_datetime())
-        except Exception:
-            # Log but don't block — QI is already submitted, rejection is recorded
-            frappe.log_error(
-                frappe.get_traceback(),
-                f"[kta] Rejected card finalization failed for {ck_name}"
-            )
+        # FAZ 3: Auto-submit the card itself on rejection (SADECE klasik kart bazlı onayda; alt operasyonda kart submit edilmez)
+        if not rowname:
+            # Reload to get the latest state (db_set calls above changed the DB)
+            try:
+                ck.reload()
+                from erpnextkta.kta_calisma_karti.api_impl._helpers import finalize_rejected_card
+                finalize_rejected_card(ck, now=frappe.utils.now_datetime())
+            except Exception:
+                # Log but don't block — QI is already submitted, rejection is recorded
+                frappe.log_error(
+                    frappe.get_traceback(),
+                    f"[kta] Rejected card finalization failed for {ck_name}"
+                )
 
     # Determine temporary kalite_kontrol status for Calisma Karti:
     #   intent=reject  → "Reddedildi"
@@ -681,10 +682,18 @@ def _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=None):
 
     statuses = [(r.get("quality_inspection_status") or "Onay Bekliyor").strip() for r in ck.get("alt_operasyon_kayitlari")]
     
-    if "Reddedildi" in statuses:
-        final_status = "Reddedildi"
-    elif all(s == "Onaylandı" for s in statuses):
+    has_pending = any(s == "Onay Bekliyor" for s in statuses)
+    has_approved = any(s == "Onaylandı" for s in statuses)
+    has_rejected = any(s == "Reddedildi" for s in statuses)
+
+    if has_pending:
+        final_status = "Onay Bekliyor"
+    elif has_approved and has_rejected:
+        final_status = "Kısmi Kabul Edildi"
+    elif has_approved and not has_rejected:
         final_status = "Onaylandı"
+    elif not has_approved and has_rejected:
+        final_status = "Reddedildi"
     else:
         final_status = "Onay Bekliyor"
         
@@ -693,8 +702,19 @@ def _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=None):
     # Alt operasyon bazlı yapıda, ana karta hiçbir zaman belge işlenmemeli, sadece durum güncellenmeli.
     ck.db_set("quality_inspection", None, update_modified=True)
 
-    if final_status == "Reddedildi":
+    # Durum güncellemesi:
+    # Alt operasyonlu kart açıkken (bitiş saati yokken) tekil retler ck.durum'u 'Reddedildi' yapmaz.
+    # Kart ancak bitirilmişse ve tüm işlemler ret ise 'Reddedildi' olur.
+    if ck.bitis_saati and final_status == "Reddedildi":
         ck.db_set("durum", "Reddedildi", update_modified=True)
+    elif ck.durum == "Reddedildi" and (not ck.bitis_saati or final_status != "Reddedildi"):
+        try:
+            from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import STATU_HARITASI
+            durum_key = ck.get_durum()
+            label = STATU_HARITASI.get(durum_key, "Hazır")
+            ck.db_set("durum", label, update_modified=True)
+        except Exception:
+            pass
 
 @frappe.whitelist()
 def sync_qi_to_calisma_karti(doc, method=None):

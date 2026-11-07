@@ -601,7 +601,7 @@ def delete_alt_operasyon_kaydi(calisma_karti: str, row_id: str):
     _assert_qc_unlocked(doc, row)
 
     qi_name = (row.quality_inspection or "").strip()
-    if qi_name and has_qc_role():
+    if qi_name and (has_qc_role() or row.quality_inspection_status == "Reddedildi"):
         _cancel_linked_quality_inspection(qi_name)
 
     for r in to_remove:

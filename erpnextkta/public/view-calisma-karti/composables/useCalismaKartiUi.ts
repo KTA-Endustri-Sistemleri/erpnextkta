@@ -10,12 +10,15 @@ export function useCalismaKartiUi(docRef: any) {
         // Cancelled status takes absolute precedence
         if (Number(d.docstatus) === 2 || (d.durum || "").toString().toLowerCase().includes("iptal")) return "cancelled";
 
-        // If QC rejected, lock UI state
-        if ((d.kalite_kontrol || "").trim() === "Reddedildi" || (d.durum || "").toString().includes("Reddedildi")) return "rejected";
-
-        if (Number(d.alt_operasyon_bazli_kalite) === 1) {
+        // Classic QC rejection:
+        if (Number(d.alt_operasyon_bazli_kalite) !== 1) {
+            if ((d.kalite_kontrol || "").trim() === "Reddedildi" || (d.durum || "").toString().includes("Reddedildi")) return "rejected";
+        } else {
+            // In sub-op mode: Only reject state if card is finished AND all sub-ops are rejected
             const altOps = d.alt_operasyon_kayitlari || [];
-            if (altOps.some((r: any) => r.quality_inspection_status === "Reddedildi")) return "rejected";
+            if ((d.bitis_saati || d.durum === "Bitmiş") && altOps.length > 0 && altOps.every((r: any) => r.quality_inspection_status === "Reddedildi")) {
+                return "rejected";
+            }
         }
 
         const duruslar = d.duruslar || [];
@@ -34,7 +37,7 @@ export function useCalismaKartiUi(docRef: any) {
             const duruslar = docRef.value?.duruslar || [];
             const lastDurus = duruslar[duruslar.length - 1];
             if (lastDurus && !lastDurus.durus_bitis && lastDurus.durus_nedeni === "Arıza") {
-                return __("DURUŞTA (ARIZA)");
+                return __("Duruşta (Arıza)");
             }
         }
         return {
@@ -48,6 +51,13 @@ export function useCalismaKartiUi(docRef: any) {
     });
 
     const statusClass = computed(() => {
+        if (state.value === "paused") {
+            const duruslar = docRef.value?.duruslar || [];
+            const lastDurus = duruslar[duruslar.length - 1];
+            if (lastDurus && !lastDurus.durus_bitis && lastDurus.durus_nedeni === "Arıza") {
+                return "ck-status--ariza";
+            }
+        }
         return {
             ready: "ck-status--ready",
             running: "ck-status--running",
@@ -62,8 +72,15 @@ export function useCalismaKartiUi(docRef: any) {
         if (Number(docRef.value?.alt_operasyon_bazli_kalite) === 1) {
             const altOps = docRef.value?.alt_operasyon_kayitlari || [];
             if (altOps.length === 0) return "Onay Bekliyor";
-            if (altOps.some((r: any) => r.quality_inspection_status === "Reddedildi")) return "Reddedildi";
-            if (altOps.every((r: any) => r.quality_inspection_status === "Onaylandı")) return "Onaylandı";
+
+            const hasPending = altOps.some((r: any) => !r.quality_inspection_status || r.quality_inspection_status === "Onay Bekliyor");
+            const hasApproved = altOps.some((r: any) => r.quality_inspection_status === "Onaylandı");
+            const hasRejected = altOps.some((r: any) => r.quality_inspection_status === "Reddedildi");
+
+            if (hasPending) return "Onay Bekliyor";
+            if (hasApproved && hasRejected) return "Kısmi Kabul Edildi";
+            if (hasApproved && !hasRejected) return "Onaylandı";
+            if (!hasApproved && hasRejected) return "Reddedildi";
             return "Onay Bekliyor";
         }
         return (docRef.value?.kalite_kontrol || "Onay Bekliyor").trim();
@@ -76,10 +93,11 @@ export function useCalismaKartiUi(docRef: any) {
         if (qcValue.value === "Onaylandı") return "ck-status-qc--running"; // green
         if (qcValue.value === "Onay Bekliyor") return "ck-status-qc--pending"; // blue
         if (qcValue.value === "Reddedildi") return "ck-status-qc--rejected"; // red
+        if (qcValue.value === "Kısmi Kabul Edildi") return "ck-status-qc--partial"; // purple / indigo
         return "ck-status--paused";
     });
 
-    const qcOptions = ["Onay Bekliyor", "Onaylandı", "Reddedildi"];
+    const qcOptions = ["Onay Bekliyor", "Onaylandı", "Kısmi Kabul Edildi", "Reddedildi"];
 
     const canEditQC = computed(() => {
         // [STRATEGY] Locked if a QI document is already linked. 
@@ -123,9 +141,29 @@ export function useCalismaKartiUi(docRef: any) {
         Number(docRef.value?.alt_operasyon_bazli_kalite) === 1 &&
         Number(docRef.value?.yuzde_yuz_kalite_kontrol) === 0
     );
-    const showFinish = computed(
-        () => !isCancelled.value && (state.value === "running" || state.value === "paused" || (qcBypass.value && state.value === "rejected")) && (qcApproved.value || qcBypass.value)
-    );
+
+    const showFinish = computed(() => {
+        if (isCancelled.value) return false;
+        if (state.value !== "running" && state.value !== "paused") return false;
+
+        // Sub-op mode:
+        if (Number(docRef.value?.alt_operasyon_bazli_kalite) === 1) {
+            const altOps = docRef.value?.alt_operasyon_kayitlari || [];
+            if (altOps.length === 0) return false;
+
+            // %100 Kalite Kontrol açıksa: açıkta 'Onay Bekliyor' satır kalmamış olmalı
+            if (Number(docRef.value?.yuzde_yuz_kalite_kontrol) === 1) {
+                const hasPending = altOps.some((r: any) => !r.quality_inspection_status || r.quality_inspection_status === "Onay Bekliyor");
+                return !hasPending;
+            }
+
+            // %100 Kalite Kontrol kapalıysa (isteğe bağlı): operatör serbestçe bitirebilir
+            return true;
+        }
+
+        // Klasik mod:
+        return qcApproved.value;
+    });
 
     return {
         state,

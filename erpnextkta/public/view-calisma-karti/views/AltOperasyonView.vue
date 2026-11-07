@@ -60,6 +60,7 @@ function onAltOperasyonEkle() {
   const defaults = {
     alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite,
     has_enjeksiyon: props.doc.has_enjeksiyon,
+    has_krimp: props.doc.has_krimp,
   };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = new frappe.ui.Dialog({
@@ -108,7 +109,7 @@ function onAltOperasyonEkle() {
 
 function onAltOperasyonDuzenle(h: any) {
   if (!h?.name) {
-    frappe.msgprint("Satır kimliği (row name) bulunamadı.");
+    frappe.msgprint(__("Satır kimliği (row name) bulunamadı."));
     return;
   }
 
@@ -118,6 +119,7 @@ function onAltOperasyonDuzenle(h: any) {
     ...h,
     alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite,
     has_enjeksiyon: props.doc.has_enjeksiyon,
+    has_krimp: props.doc.has_krimp,
   };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = new frappe.ui.Dialog({
@@ -167,7 +169,7 @@ function onAltOperasyonDuzenle(h: any) {
 
 function onAltOperasyonSil(h: any) {
   if (!h?.name) {
-    frappe.msgprint("Satır kimliği (row name) bulunamadı.");
+    frappe.msgprint(__("Satır kimliği (row name) bulunamadı."));
     return;
   }
 
@@ -201,10 +203,10 @@ function onAltOperasyonSil(h: any) {
                 <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">{{ h.satir_no }}</span>
             </div>
             <div class="ck-mini-content">
-                <b class="ck-mini-title">{{ h.alt_operasyon_title || h.alt_operasyon }}</b>
+                <b class="ck-mini-title">{{ __(h.alt_operasyon_title || h.alt_operasyon) }}</b>
             
               <div class="ck-muted ck-mini-sub" v-if="h.kalip_no">
-                <b>{{ __("KALIP NO:") }}</b> {{ h.kalip_no }}
+                <b>{{ __("Kalıp No") }}:</b> {{ h.kalip_no }}
               </div>
 
             <template v-if="ekranTipi === 'Çoklu Hammadde'">
@@ -217,7 +219,7 @@ function onAltOperasyonSil(h: any) {
                 </template>
                 <template v-else>
                     <template v-if="h.boyut_2_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_2_mm }}mm</template>
-                    <template v-else>{{ __("SIYIRMASIZ") }}</template>
+                    <template v-else>{{ __("Sıyırmasız") }}</template>
                 </template>
               </div>
 
@@ -238,7 +240,7 @@ function onAltOperasyonSil(h: any) {
                 </template>
                 <template v-else>
                     <template v-if="h.boyut_3_mm > 0">{{ __("Sıyırma") }}: {{ h.boyut_3_mm }}mm</template>
-                    <template v-else>{{ __("SIYIRMASIZ") }}</template>
+                    <template v-else>{{ __("Sıyırmasız") }}</template>
                 </template>
               </div>
             </template>

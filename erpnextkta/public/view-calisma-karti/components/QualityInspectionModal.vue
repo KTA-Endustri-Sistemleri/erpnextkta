@@ -164,7 +164,7 @@ async function handleSubmit() {
           <!-- Ürün & Sample Size -->
           <div class="ck-form-row">
             <div class="ck-form-group" style="flex:1">
-              <label>{{ __("Ürün:") }} <b>{{ props.itemCode }}</b></label>
+              <label>{{ __("Ürün") }}: <b>{{ props.itemCode }}</b></label>
             </div>
             <div class="ck-form-group" style="width:100px">
               <label>{{ __("Numune Sayısı") }}</label>
@@ -233,7 +233,7 @@ async function handleSubmit() {
                   class="ck-param-chip"
                   @click="addParam(p)"
                 >
-                  + {{ p.specification }}
+                  + {{ __(p.specification) }}
                   <span v-if="p.numeric" class="ck-chip-limits">
                     ({{ p.min_value }}–{{ p.max_value }})
                   </span>
@@ -250,7 +250,7 @@ async function handleSubmit() {
             <div v-if="readings.length > 0" class="ck-reading-list">
               <div v-for="(r, i) in readings" :key="i" class="ck-reading-item">
                 <div class="ck-reading-info">
-                  <span class="ck-reading-spec">{{ r.specification }}</span>
+                  <span class="ck-reading-spec">{{ __(r.specification) }}</span>
                   <div style="display:flex; align-items:center; gap:6px;">
                     <span v-if="r.numeric" class="ck-reading-limits">
                       ({{ r.min_value }} – {{ r.max_value }})

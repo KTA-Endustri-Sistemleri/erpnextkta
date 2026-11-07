@@ -20,9 +20,9 @@ export function useEnjeksiyonDialogs(props: any) {
               dialog.enjeksiyon_tolerans = r.message;
               const t = r.message;
               
-              const desc = (val: number, tol?: number) => val ? `${__("İstenen:")} ${val}${tol ? ` ±${tol}` : ''}` : '';
-              const descRange = (min: number, max: number) => min || max ? `${__("İstenen:")} ${min} - ${max}` : '';
-              const descMin = (min: number) => min ? `${__("Minimum:")} ${min}` : '';
+              const desc = (val: number, tol?: number) => val ? `${__("İstenen")}: ${val}${tol ? ` ±${tol}` : ''}` : '';
+              const descRange = (min: number, max: number) => min || max ? `${__("İstenen")}: ${min} - ${max}` : '';
+              const descMin = (min: number) => min ? `${__("Minimum")}: ${min}` : '';
 
               dialog.set_df_property("hammadde_kazan_isisi", "description", desc(t.hammadde_kazan_isisi_merkez, t.hammadde_kazan_isisi_tolerans));
               dialog.set_df_property("ara_hortum_isisi", "description", desc(t.ara_hortum_isisi_merkez, t.ara_hortum_isisi_tolerans));

@@ -590,34 +590,45 @@ def _handle_bitis(doc, now, aciklama, qty):
 
 
 def _submit_linked_quality_inspection(doc):
-    """Submit the Quality Inspection linked to this Calisma Karti if it is still a Draft.
+    """Submit the Quality Inspection(s) linked to this Calisma Karti if still in Draft.
 
+    Supports both classical (card-level) and modular (sub-operation) quality inspections.
     Called when the card is finished (Bitis). Safe — any error is logged but does not
     block the card from being finished.
     """
-    qi_name = (getattr(doc, "quality_inspection", None) or "").strip()
-    if not qi_name:
+    qi_names = []
+    main_qi = (getattr(doc, "quality_inspection", None) or "").strip()
+    if main_qi:
+        qi_names.append(main_qi)
+
+    for row in (doc.get("alt_operasyon_kayitlari") or []):
+        row_qi = (getattr(row, "quality_inspection", None) or "").strip()
+        if row_qi and row_qi not in qi_names:
+            qi_names.append(row_qi)
+
+    if not qi_names:
         return
 
-    try:
-        qi_docstatus = frappe.db.get_value("Quality Inspection", qi_name, "docstatus")
-        if qi_docstatus == 0:  # Draft → submit
-            qi_doc = frappe.get_doc("Quality Inspection", qi_name)
-            # Submit as the owner (quality person) to avoid permission/ownership errors for operators
-            original_user = frappe.session.user
-            try:
-                frappe.set_user(qi_doc.owner)
-                qi_doc.submit()
-            finally:
-                frappe.set_user(original_user)
-            frappe.logger().info(
-                f"[kta] Quality Inspection {qi_name} submitted on Bitis of {doc.name} as user {qi_doc.owner}"
+    for qi_name in qi_names:
+        try:
+            qi_docstatus = frappe.db.get_value("Quality Inspection", qi_name, "docstatus")
+            if qi_docstatus == 0:  # Draft → submit
+                qi_doc = frappe.get_doc("Quality Inspection", qi_name)
+                # Submit as the owner (quality person) to avoid permission/ownership errors for operators
+                original_user = frappe.session.user
+                try:
+                    frappe.set_user(qi_doc.owner)
+                    qi_doc.submit()
+                finally:
+                    frappe.set_user(original_user)
+                frappe.logger().info(
+                    f"[kta] Quality Inspection {qi_name} submitted on Bitis of {doc.name} as user {qi_doc.owner}"
+                )
+        except Exception:
+            frappe.log_error(
+                frappe.get_traceback(),
+                f"[kta] QI submit failed for {qi_name} (Calisma Karti: {doc.name})"
             )
-    except Exception:
-        frappe.log_error(
-            frappe.get_traceback(),
-            f"[kta] QI submit failed for {qi_name} (Calisma Karti: {doc.name})"
-        )
 def _auto_pause_other_active_cards(hedef_doc, now_dt):
     if not hedef_doc.operator:
         return

@@ -2,6 +2,8 @@
 import { computed } from "vue";
 import { barcodeBars, barX, barOpacity } from "../utils/kalite_ui";
 
+const __ = (...args: any[]) => (window as any).__(...args);
+
 const props = defineProps<{
   value: string;
   width?: number; // optional
@@ -13,7 +15,7 @@ const svgWidth = computed(() => Number(props.width || 140));
 
 <template>
   <div
-    aria-label="Barkod görseli"
+    :aria-label="__('Barkod Görseli')"
     style="height: 34px;border: 1px solid rgba(0, 0, 0, 0.08);border-radius: 10px;padding: 6px 10px;background: rgb(255, 255, 255);display: flex;align-items: center;justify-content: center;"
   >
     <svg :width="svgWidth" :height="22" :viewBox="`0 0 ${svgWidth} 22`" role="img" aria-hidden="true">

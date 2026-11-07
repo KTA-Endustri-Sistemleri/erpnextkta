@@ -76,7 +76,7 @@ function actions(r: any) {
 
         <div v-if="props.canEditData" style="display:flex; justify-content:flex-end;">
           <button class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            {{ __('İŞLEMLER') }} ▾
+            {{ __('İşlemler') }} ▾
           </button>
         </div>
       </div>

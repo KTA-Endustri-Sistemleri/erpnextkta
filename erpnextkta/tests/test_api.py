@@ -343,3 +343,99 @@ class TestCalismaKartiAPI(KTATestCase):
 				ck_link = il
 				break
 		self.assertIsNotNone(ck_link, "Calisma Karti should be returned in get_open_count internal links")
+
+	def test_sub_op_reject_and_partial_accept(self):
+		"""Alt operasyonlu operasyonda bir satır onaylanıp bir satır reddedildiğinde
+		kartın 'Kısmi Kabul Edildi' olduğunu, kartın kapatılmadığını ve bitirilebildiğini doğrular.
+		"""
+		op_name = "TEST-SUB-QC-OP"
+		if not frappe.db.exists("KTA Calisma Karti Operasyonlari", op_name):
+			frappe.get_doc({
+				"doctype": "KTA Calisma Karti Operasyonlari",
+				"name": op_name,
+				"calisma_karti_op": op_name,
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 1,
+				"plant_floor": "L-1"
+			}).insert(ignore_permissions=True, ignore_mandatory=True)
+		else:
+			frappe.db.set_value("KTA Calisma Karti Operasyonlari", op_name, {
+				"alt_operasyon_bazli_kalite": 1,
+				"yuzde_yuz_kalite_kontrol": 1,
+				"plant_floor": "L-1"
+			})
+
+		template_name = "TEST-SUB-QC-TEMPLATE"
+		if not frappe.db.exists("Quality Inspection Template", template_name):
+			frappe.get_doc({
+				"doctype": "Quality Inspection Template",
+				"quality_inspection_template_name": template_name,
+				"item_quality_inspection_parameter": [
+					{"specification": "Görsel Kontrol", "numeric": 0, "value": "OK"}
+				]
+			}).insert(ignore_permissions=True)
+
+		from erpnextkta.tests.test_utils import create_test_operator
+		create_test_operator("sub_qc@kta.com", "Sub QC Operator")
+		frappe.db.delete("Calisma Karti", {"is_karti": self.jc_name, "operator": "sub_qc@kta.com"})
+		frappe.db.commit()
+
+		doc = create_calisma_karti(
+			is_karti=self.jc_name, operasyon=op_name,
+			is_istasyonu=self.ws_name, operator="sub_qc@kta.com"
+		)
+		docname = doc.get("name")
+
+		# Alt operasyon master oluştur
+		master_doc = frappe.get_doc({
+			"doctype": "KTA Calisma Karti Alt Operasyonlari",
+			"title": "SubOp Master 1",
+			"parent_operation": op_name,
+			"sequence": 10
+		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		# 2 alt operasyon satırı ekle
+		row1_id = add_alt_operasyon_kaydi(docname, master_doc.name)
+		row2_id = add_alt_operasyon_kaydi(docname, master_doc.name)
+
+		# Kartı Başlat
+		islem_yap(docname, "Baslat")
+
+		# Row 1 Onayla
+		readings_ok = [{"specification": "Görsel Kontrol", "numeric": 0, "reading_value": "OK", "status": "Accepted"}]
+		res1 = submit_kta_quality_inspection(docname, template_name, readings_ok, intent="approve", rowname=row1_id)
+		qi1_name = res1["quality_inspection"]
+
+		# Row 1 onaylandı, Row 2 henüz onay bekliyor -> Kart genel QC: Onay Bekliyor
+		ck = frappe.get_doc("Calisma Karti", docname)
+		self.assertEqual(ck.kalite_kontrol, "Onay Bekliyor")
+		self.assertEqual(ck.docstatus, 0)
+		self.assertEqual(ck.get_durum(), "calisiyor")
+
+		# Row 2 Reddet
+		readings_nok = [{"specification": "Görsel Kontrol", "numeric": 0, "reading_value": "NOK", "status": "Rejected"}]
+		res2 = submit_kta_quality_inspection(docname, template_name, readings_nok, intent="reject", rowname=row2_id)
+		qi2_name = res2["quality_inspection"]
+
+		# Row 2 reddedildi, QI hemen submit edilmiş olmalı ama KART AÇIK KALMALI
+		qi2_docstatus = frappe.db.get_value("Quality Inspection", qi2_name, "docstatus")
+		self.assertEqual(qi2_docstatus, 1)
+
+		ck.reload()
+		self.assertEqual(ck.docstatus, 0, "Alt operasyon reddinde kart otomatik submit edilmemeli!")
+		self.assertEqual(ck.kalite_kontrol, "Kısmi Kabul Edildi")
+		self.assertEqual(ck.get_durum(), "calisiyor", "Alt operasyon reddinde kart durumu reddedildi kilitlenmemeli!")
+		self.assertIsNone(ck.bitis_saati)
+
+		# Kartı Bitir
+		islem_yap(docname, "Bitis")
+
+		ck.reload()
+		self.assertEqual(ck.docstatus, 1)
+		self.assertEqual(ck.durum, "Bitmiş")
+		self.assertEqual(ck.kalite_kontrol, "Kısmi Kabul Edildi")
+
+		# Row 1'in draft QI'si de bitiş anında submit edilmiş olmalı
+		qi1_docstatus = frappe.db.get_value("Quality Inspection", qi1_name, "docstatus")
+		self.assertEqual(qi1_docstatus, 1, "Bitiş anında taslak alt operasyon QI'si submit edilmiş olmalı")
+

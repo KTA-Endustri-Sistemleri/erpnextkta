@@ -9,6 +9,7 @@ import IdcSection from "../components/IdcSection.vue";
 import KrimpSection from "../components/KrimpSection.vue";
 import EnjeksiyonSection from "../components/EnjeksiyonSection.vue";
 import BarkodSection from "../components/BarkodSection.vue";
+import AltOperasyonKaliteSection from "../components/AltOperasyonKaliteSection.vue";
 
 import { useIdcDialogs } from "../composables/dialogs/useIdcDialogs";
 import { useKrimpDialogs } from "../composables/dialogs/useKrimpDialogs";
@@ -29,7 +30,7 @@ const props = defineProps<{
   canEditData: boolean;
   qcSaving: boolean;
   onSetQC: (next: string) => void;
-  onSetSubOpQC: (rowname: string, item_code: string) => void;
+  onSetSubOpQC: (rowname: string, item_code: string, intent?: "approve" | "reject") => void;
 
   // IDC CRUD
   onAddIdc: (payload: any) => Promise<void>;
@@ -93,6 +94,14 @@ onMounted(() => {});
       </div>
     </template>
 
+    <!-- Alt operasyon bazlı kalite: Krimp bölümü olmayan operasyonlarda (örn. OP40) alt operasyon onay listesi -->
+    <AltOperasyonKaliteSection
+      v-if="props.doc.alt_operasyon_bazli_kalite && !props.doc.has_krimp"
+      :doc="props.doc"
+      :canEditQC="props.canEditQC"
+      :onSubmitQC="(rowname, item_code, intent) => props.onSetSubOpQC(rowname, item_code, intent)"
+    />
+
     <!-- IdcSection & BarkodSection automatically match since they exist within the flow -->
     <KrimpSection
       v-if="props.doc.has_krimp"
@@ -105,7 +114,7 @@ onMounted(() => {});
       :onDelete="deleteKrimp"
       :onClone="cloneKrimp"
       :onPrint="printKrimpProtocol"
-      :onSubmitQC="(rowname, item_code) => props.onSetSubOpQC(rowname, item_code)"
+      :onSubmitQC="(rowname, item_code, intent) => props.onSetSubOpQC(rowname, item_code, intent)"
     />
 
     <IdcSection

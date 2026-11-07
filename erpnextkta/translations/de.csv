@@ -765,3 +765,130 @@ Krimp Ölçüm Protokol Belgesi,Crimp-Messprotokolldokument
 Krimp Protokol Belgesi,Crimp-Protokolldokument
 Enjeksiyon Ölçüm Protokol Belgesi,Spritzguss-Messprotokolldokument
 Enjeksiyon Protokol Belgesi,Spritzguss-Protokolldokument
+
+Kısmi Kabul Edildi,Teilweise akzeptiert
+<b>⚠️ Dikkat:</b> Bu kart <b>{0} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.,"<b>⚠️ Achtung:</b> Diese Karte hat <b>{0} Minuten</b> überschritten! Bitte beenden, falls die Arbeit abgeschlossen ist."
+Alt Operasyon Kalite Onayları,Qualitätsfreigaben für Untervorgänge
+Alt operasyon kaydı bulunamadı.,Untervorgangsdatensatz nicht gefunden.
+Bakım ekibi bildirilen arızayı tamamlamadan (kapatmadan) üretime devam edemezsiniz.,"Sie können die Produktion nicht fortsetzen, bevor das Instandhaltungsteam die gemeldete Störung behoben hat."
+Bakım ekibinin takvimine görev düştü. Kayıt: {0},Eine Aufgabe wurde zum Wartungsplan hinzugefügt. Datensatz: {0}
+Barkod Görseli,Barcode-Bild
+Barkod Protokol Belgesi,Barcode-Protokolldokument
+Başlangıç: {0},Start: {0}
+Bekleyen Çalışma Kartınız Var!,Sie haben eine ausstehende Arbeitskarte!
+Birim 'Metre' seçildiğinde tüketimi hesaplamak için doldurunuz.,"Ausfüllen, um den Verbrauch zu berechnen, wenn die Einheit 'Meter' ist."
+Birim 'Metre' seçildiğinde tüketimin hesaplanabilmesi için 'Parça Boyu (mm)' alanı doldurulmalıdır.,"Wenn die Einheit 'Meter' ist, muss 'Teillänge (mm)' ausgefüllt werden, um den Verbrauch zu berechnen."
+Boy,Länge
+Bu alt operasyon kaydı kalite tarafından onaylanmıştır ({0}).,Dieser Untervorgangsdatensatz wurde von der Qualitätssicherung freigegeben ({0}).
+Bu alt operasyona ait zaten bir kalite belgesi ({0}) bulunmaktadır. Yeni bir tane oluşturulamaz.,Für diesen Untervorgang existiert bereits ein Qualitätsdokument ({0}). Ein neues kann nicht erstellt werden.
+Bu kayda bağlı kalite kontrol belgesi de iptal edilecektir. Devam etmek istiyor musunuz?,Das mit diesem Datensatz verknüpfte Qualitätsprüfdokument wird ebenfalls storniert. Möchten Sie fortfahren?
+Bu operasyon için kalite kontrol şablonu bulunamadı.,Keine Qualitätsprüfvorlage für diesen Vorgang gefunden.
+C,C
+Durum: {0},Status: {0}
+Duruş #{0},Stillstand #{0}
+Duruş başlatıldı: {0},Stillstand gestartet: {0}
+Duruş nedeni 'Diğer' olduğunda açıklama girmek zorunludur.,"Eine Erklärung ist erforderlich, wenn der Stillstandsgrund 'Sonstiges' ist."
+Duruşta (Arıza),Stillstand (Störung)
+Düşük,Niedrig
+Genel Toplam,Gesamtsumme
+Hurda #{0},Ausschuss #{0}
+Kablo,Kabel
+Kablo Bilgileri,Kabelinformationen
+Kablo Boyu (mm),Kabellänge (mm)
+Kablo Seçimi,Kabelauswahl
+Kablo Uç İşlemleri (Sıyırma & Çapak),Kabelendbearbeitung (Abisolieren & Grat)
+Kalite Belgeleri,Qualitätsdokumente
+Kalite Onaylı,Qualitätsgeprüft
+Kalite Onayı Ver,Qualität freigeben
+Kalite belgesi oluşturuluyor...,Qualitätsdokument wird erstellt...
+Kart başarıyla kapatıldı.,Karte erfolgreich geschlossen.
+Kesim Formu,Schnittformular
+"Lütfen İş Emri, Operatör veya Hammadde seçiniz.","Bitte Arbeitsauftrag, Bediener oder Rohmaterial auswählen."
+Makine / Kalıp,Maschine / Werkzeug
+Makine Bilgileri,Maschineninformationen
+Mevcut çalışan kartınızda ({0}) eksik veri var.,Ihre derzeit aktive Karte ({0}) enthält unvollständige Daten.
+Min,Min
+Minimum,Minimum
+Neden,Grund
+Net Süre: {0},Netto-Dauer: {0}
+Onaylayanlar,Genehmiger
+Operatör Adı,Bedienername
+Parça Boyu (mm),Teillänge (mm)
+Radüs Var,Radius vorhanden
+Reddet,Ablehnen
+Sadece stok birimi Metre olan hammaddelerde doldurun.,Nur für Rohstoffe mit Lagereinheit Meter ausfüllen.
+Satır kimliği (row name) bulunamadı.,Zeilen-ID (row name) nicht gefunden.
+Sağ Sıyırma (mm),Rechtes Abisolieren (mm)
+Sağ Uç (Terminal),Rechtes Ende (Terminal)
+Sağ uca terminal seçildiğinde Sağ Sıyırma (mm) girilemez.,"Rechtes Abisolieren (mm) kann nicht eingegeben werden, wenn ein Terminal für das rechte Ende ausgewählt ist."
+Seçili Kartı Bitir,Ausgewählte Karte beenden
+Seçili kartı tamamen bitirmek istediğinizden emin misiniz?,"Sind Sie sicher, dass Sie die ausgewählte Karte vollständig beenden möchten?"
+Sol Sıyırma (mm),Linkes Abisolieren (mm)
+Sol Uç (Terminal),Linkes Ende (Terminal)
+Sol uca terminal seçildiğinde Sol Sıyırma (mm) girilemez.,"Linkes Abisolieren (mm) kann nicht eingegeben werden, wenn ein Terminal für das linke Ende ausgewählt ist."
+Süre,Dauer
+Sıyırmasız,Ohne Abisolierung
+T1,T1
+T1 - Görsel Kontroller,T1 - Sichtprüfungen
+T1 - Kalıp Bilgileri,T1 - Werkzeuginformationen
+T1 - Terminal Bilgileri,T1 - Terminalinformationen
+T1 - Ölçümler,T1 - Messungen
+T1 Hedef Çekme Kuvveti (N),T1 Soll-Zugkraft (N)
+T1 Hedef İletken Krimp Yük. (mm),T1 Soll-Leiter-Crimphöhe (mm)
+T1 Kablo Kesiti (Rehberden),T1 Kabelquerschnitt (Leitfaden)
+T1 Kalıp No,T1 Werkzeug-Nr.
+T1 Radüs Mevcut,T1 Radius vorhanden
+T1 Sıyırma Boyu (mm),T1 Abisolierlänge (mm)
+T1 Tel Kesme Mevcut,T1 Drahtschnitt vorhanden
+T1 Terminal,T1 Terminal
+T1 Terminal No,T1 Terminal-Nr.
+T1 Çapak Boyu (mm),T1 Gratlänge (mm)
+T1 Ölçülen Çekme Kuvveti (N),T1 Gemessene Zugkraft (N)
+T1 Ölçülen İletken Krimp Yük. (mm),T1 Gemessene Leiter-Crimphöhe (mm)
+T1 İzokrimp Yüksekliği (mm),T1 Isolations-Crimphöhe (mm)
+T2,T2
+T2 - Görsel Kontroller,T2 - Sichtprüfungen
+T2 - Kalıp Bilgileri,T2 - Werkzeuginformationen
+T2 - Terminal Bilgileri,T2 - Terminalinformationen
+T2 - Ölçümler,T2 - Messungen
+T2 Hedef Çekme Kuvveti (N),T2 Soll-Zugkraft (N)
+T2 Hedef İletken Krimp Yük. (mm),T2 Soll-Leiter-Crimphöhe (mm)
+T2 Kablo Kesiti (Rehberden),T2 Kabelquerschnitt (Leitfaden)
+T2 Kalıp No,T2 Werkzeug-Nr.
+T2 Krimp Book değerleri yüklendi,T2 Crimp-Book-Werte geladen
+T2 Radüs Mevcut,T2 Radius vorhanden
+T2 Sıyırma Boyu (mm),T2 Abisolierlänge (mm)
+T2 Tel Kesme Mevcut,T2 Drahtschnitt vorhanden
+T2 Terminal,T2 Terminal
+T2 Terminal No,T2 Terminal-Nr.
+T2 Çapak Boyu (mm),T2 Gratlänge (mm)
+T2 Ölçülen Çekme Kuvveti (N),T2 Gemessene Zugkraft (N)
+T2 Ölçülen İletken Krimp Yük. (mm),T2 Gemessene Leiter-Crimphöhe (mm)
+T2 İzokrimp Yüksekliği (mm),T2 Isolations-Crimphöhe (mm)
+Tek Taraflı operasyonda Sol veya Sağ uca mutlaka bir terminal seçilmelidir.,Bei einseitigen Vorgängen muss entweder für das linke oder das rechte Ende ein Terminal ausgewählt werden.
+Tek Taraflı operasyonda her iki uca birden terminal seçilemez.,Bei einseitigen Vorgängen können nicht für beide Enden Terminals ausgewählt werden.
+Tel Kesme Yok,Kein Drahtschnitt
+Terminal No,Terminal-Nr.
+Toplam Duruş: {0},Gesamter Stillstand: {0}
+Toplu Protokol Belgesi,Sammelprotokolldokument
+Tüketim Limiti Aşıldı,Verbrauchslimit überschritten
+Yüksek,Hoch
+Çift Taraflı operasyonlarda hem Sol hem de Sağ uca terminal seçilmesi zorunludur.,Bei beidseitigen Vorgängen müssen für beide Enden (links und rechts) Terminals ausgewählt werden.
+Çift Taraflı İşlem,Beidseitiger Vorgang
+Ölçümü Giren,Gemessen von
+İlgili Alt İşlem,Zugehöriger Untervorgang
+İstenen,Sollwert
+İşlem Adedi,Vorgangsmenge
+İşlem Adedi (Kablo),Vorgangsmenge (Kabel)
+İşlem Yapılacak Kart,Zu bearbeitende Karte
+İşlem başarısız.,Vorgang fehlgeschlagen.
+İşlem başarıyla devam ettirildi.,Vorgang erfolgreich fortgesetzt.
+Görüntüle,Anzeigen
+Admin Hata Ayıklama,Admin-Debug
+"Seçilen İş Kartı, seçilen İş Emri'ne ait değil.",Die ausgewählte Arbeitskarte gehört nicht zum ausgewählten Arbeitsauftrag.
+İş Kartının bağlı olduğu bir İş Emri bulunamadı.,Kein mit der Arbeitskarte verknüpfter Arbeitsauftrag gefunden.
+Bu hurda parçası bu operasyon için izinli değil.,Dieser Ausschussartikel ist für diesen Vorgang nicht zulässig.
+Kablo Kesme ve Kontak Basma,Kabelschneiden und Crimpen
+Tek Taraf,Einseitig
+Çift Taraf,Beidseitig
+Blunt,Blunt
