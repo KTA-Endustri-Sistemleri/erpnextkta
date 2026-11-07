@@ -4,20 +4,23 @@
       <div class="col-2 p-0 ck-pill" :data-tone="statusTone">
         <span style="text-align: center; line-height: 1.15; width: max-content;">
           <template v-if="statusTone === 'cancelled'">{{ __('İptal Edildi') }}</template>
-          <template v-else-if="statusTone === 'paused' || statusTone === 'breakdown'">
-            {{ __('DURUŞTA') }}
-            <template v-if="statusTone === 'breakdown' && row.aktif_durus_nedeni">
+          <template v-else-if="statusTone === 'breakdown'">
+            {{ __('DURUŞTA (ARIZA)') }}
+            <template v-if="row.aktif_durus_nedeni">
               <br/>
               <div class="ck-ariza-badge ck-blink-text">
                 ⚠ {{ __(row.aktif_durus_nedeni).toUpperCase() }}
               </div>
             </template>
           </template>
+          <template v-else-if="statusTone === 'paused'">
+            {{ __('DURUŞTA') }}
+          </template>
           <template v-else>{{ __(row.durum || "-").toUpperCase() }}</template>
         </span>
       </div>
       <div class="col-9 py-2 pl-2">
-        <div class="ck-name">{{ row.operator }}</div>
+        <div class="ck-name">{{ row.operator_name || row.operator }}</div>
         <div class="ck-kv">
           <div class="ck-kv-item" style="display:flex; align-items:flex-start;">
             <div>
@@ -42,7 +45,7 @@
           </div>
           <div class="ck-kv-item">
             <span>{{ __("Operasyon") }}</span>
-            <b>{{ row.operasyon || "-" }}</b>
+            <b>{{ row.operasyon ? __(row.operasyon) : "-" }}</b>
           </div>
         </div>
       </div>
@@ -74,6 +77,7 @@ const qcStyle = computed(() => {
     const status = props.row.kalite_kontrol;
     if (status === "Onaylandı") return { background: "linear-gradient(270deg, var(--ck-success-bg), transparent, transparent)" };
     if (status === "Reddedildi") return { background: "linear-gradient(270deg, var(--ck-danger-bg), transparent, transparent)" };
+    if (status === "Kısmi Kabul Edildi") return { background: "linear-gradient(270deg, var(--ck-partial-bg), transparent, transparent)" };
     if (status === "Onay Bekliyor") return { background: "linear-gradient(270deg, rgba(59, 130, 246, 0.55), transparent, transparent)" };
     return {};
   }
@@ -81,6 +85,7 @@ const qcStyle = computed(() => {
   const colors = qcList.map(s => {
     if (s === "Onaylandı") return "var(--ck-success-bg)";
     if (s === "Reddedildi") return "var(--ck-danger-bg)";
+    if (s === "Kısmi Kabul Edildi") return "var(--ck-partial-bg)";
     if (s === "Onay Bekliyor") return "rgba(59, 130, 246, 0.55)";
     return "transparent";
   });
@@ -106,8 +111,9 @@ const statusTone = computed(() => {
   if (Number(props.row.docstatus) === 2 || v.includes("iptal")) return "cancelled";
   if (v.includes("redd")) return "rejected";
   if (v.includes("bit")) return "finished";
-  if (v.includes("duru") || v.includes("paused")) {
-    if ((props.row.aktif_durus_nedeni || "").toLowerCase().includes("arıza")) return "breakdown";
+  if (v.includes("duru") || v.includes("paused") || v.includes("arıza") || v.includes("ariza")) {
+    const ned = (props.row.aktif_durus_nedeni || "").toLowerCase();
+    if (ned.includes("arıza") || ned.includes("ariza") || v.includes("arıza") || v.includes("ariza")) return "breakdown";
     return "paused";
   }
   if (v.includes("çalı") || v.includes("calis")) return "running";
@@ -181,7 +187,7 @@ const statusTone = computed(() => {
 .ck-pill[data-tone="ready"] { background: var(--blue); color: var(--white-overlay-900); }
 .ck-pill[data-tone="running"] { background: var(--yellow-500); color: var(--dark); } /* better contrast for yellow */
 .ck-pill[data-tone="paused"] { background: var(--orange-500); color: var(--white-overlay-900); }
-.ck-pill[data-tone="breakdown"] { background: var(--orange-500); color: var(--white-overlay-900); }
+.ck-pill[data-tone="breakdown"] { background: #e11d48; color: var(--white-overlay-900, #ffffff); }
 .ck-pill[data-tone="finished"] { background: var(--green); color: var(--white-overlay-900); }
 .ck-pill[data-tone="rejected"] { background: var(--red); color: var(--white-overlay-900); }
 .ck-pill[data-tone="cancelled"] { background: var(--gray-500); color: var(--white-overlay-900); }
@@ -227,7 +233,7 @@ const statusTone = computed(() => {
   margin-top: 6px;
   padding: 4px 10px;
   background-color: #ffffff;
-  color: var(--red, #ef4444);
+  color: #e11d48;
   border-radius: 12px;
   font-size: 11px;
   font-weight: 900;

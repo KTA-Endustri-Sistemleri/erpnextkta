@@ -40,7 +40,7 @@
 
     <div class="ck-filters-toggle-row">
       <button class="ck-filters-toggle-btn" @click="isFiltersOpen = !isFiltersOpen">
-        Filtreler
+        {{ __("Filtreler") }}
         <div class="ck-active-labels" v-if="activeFilterLabels.length > 0">
           <span v-for="l in activeFilterLabels" :key="l" class="ck-filter-label-badge">{{ l }}</span>
         </div>
@@ -182,6 +182,7 @@ const qcFilters = [
   { key: "all", label: __("Tüm Kalite Kontroller") },
   { key: "waiting", label: __("Onay Bekliyor") },
   { key: "approved", label: __("Onaylandı") },
+  { key: "partial", label: __("Kısmi Kabul Edildi") },
   { key: "rejected", label: __("Reddedildi") },
 ];
 

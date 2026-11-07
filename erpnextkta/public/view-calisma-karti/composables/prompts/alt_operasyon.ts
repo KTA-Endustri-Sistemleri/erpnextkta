@@ -1,4 +1,7 @@
 import { applyDecimalInputMode } from "./common";
+import { formatAltOpLabel } from "../../utils/kalite_ui";
+
+declare const __: any;
 
 export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKartiName: string, defaults: any = {}, getAltOpValue?: () => string, altOpOptions: any[] = []) {
     // Generate depends_on expressions using JS functions for robustness in Frappe Dialogs
@@ -66,23 +69,45 @@ export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKar
         return getOperasyonTipi(doc) !== "Blunt";
     };
 
+    const isSatirNoRequired = Boolean(
+        defaults.alt_operasyon_bazli_kalite &&
+        (parentOperationLabel === "OP10" || parentOperationLabel === "OP11" || defaults.has_krimp) &&
+        parentOperationLabel !== "OP40" &&
+        !defaults.has_enjeksiyon
+    );
+
+    const isTechLocked = Boolean(defaults.is_qc_locked_enjeksiyon);
+
     return applyDecimalInputMode([
         {
-            fieldtype: "Select",
+            fieldtype: isTechLocked ? "Data" : "Select",
             label: __("Alt İşlem"),
             fieldname: "alt_operasyon",
-            options: altOpOptions.map((o: any) => ({ label: o.label, value: o.value })),
+            options: isTechLocked ? undefined : altOpOptions.map((o: any) => ({ label: __(o.label), value: o.value })),
             reqd: 1,
-            default: defaults.alt_operasyon || "",
+            read_only: isTechLocked ? 1 : 0,
+            default: isTechLocked
+                ? formatAltOpLabel(defaults.alt_operasyon_title || defaults.title, defaults.alt_operasyon)
+                : (defaults.alt_operasyon || ""),
         },
         {
             fieldtype: "Data",
             label: __("Satır No"),
             description: __("Teknik resimdeki kablo numarasını giriniz."),
             fieldname: "satir_no",
-            reqd: defaults.alt_operasyon_bazli_kalite ? 1 : 0,
-            depends_on: () => !!defaults.alt_operasyon_bazli_kalite,
+            reqd: isSatirNoRequired ? 1 : 0,
+            read_only: isTechLocked ? 1 : 0,
+            depends_on: () => isSatirNoRequired || Boolean(defaults.alt_operasyon_bazli_kalite && parentOperationLabel !== "OP40" && !defaults.has_enjeksiyon && defaults.satir_no),
             default: defaults.satir_no || "",
+        },
+        {
+            fieldtype: "Data",
+            label: __("Kalıp No"),
+            fieldname: "kalip_no",
+            reqd: (parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon) ? 1 : 0,
+            read_only: isTechLocked ? 1 : 0,
+            depends_on: () => parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon,
+            default: defaults.kalip_no || "",
         },
         { fieldtype: "Section Break" },
 
@@ -187,23 +212,45 @@ export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKar
 }
 
 export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKartiName: string, defaults: any = {}, getAltOpValue?: () => string, altOpOptions: any[] = []) {
+    const isSatirNoRequired = Boolean(
+        defaults.alt_operasyon_bazli_kalite &&
+        (parentOperationLabel === "OP10" || parentOperationLabel === "OP11" || defaults.has_krimp) &&
+        parentOperationLabel !== "OP40" &&
+        !defaults.has_enjeksiyon
+    );
+    const isTechLocked = Boolean(defaults.is_qc_locked_enjeksiyon);
+    const isEnjeksiyon = Boolean(defaults.has_enjeksiyon || parentOperationLabel === "OP40");
+
     return applyDecimalInputMode([
         {
-            fieldtype: "Select",
+            fieldtype: isTechLocked ? "Data" : "Select",
             label: __("Alt İşlem"),
             fieldname: "alt_operasyon",
-            options: altOpOptions.map((o: any) => ({ label: o.label, value: o.value })),
+            options: isTechLocked ? undefined : altOpOptions.map((o: any) => ({ label: __(o.label), value: o.value })),
             reqd: 1,
-            default: defaults.alt_operasyon || "",
+            read_only: isTechLocked ? 1 : 0,
+            default: isTechLocked
+                ? formatAltOpLabel(defaults.alt_operasyon_title || defaults.title, defaults.alt_operasyon)
+                : (defaults.alt_operasyon || ""),
         },
         {
             fieldtype: "Data",
             label: __("Satır No"),
             description: __("Teknik resimdeki kablo numarasını giriniz."),
             fieldname: "satir_no",
-            reqd: defaults.alt_operasyon_bazli_kalite ? 1 : 0,
-            depends_on: () => !!defaults.alt_operasyon_bazli_kalite,
+            reqd: isSatirNoRequired ? 1 : 0,
+            read_only: isTechLocked ? 1 : 0,
+            depends_on: () => isSatirNoRequired || Boolean(defaults.alt_operasyon_bazli_kalite && parentOperationLabel !== "OP40" && !defaults.has_enjeksiyon && defaults.satir_no),
             default: defaults.satir_no || "",
+        },
+        {
+            fieldtype: "Data",
+            label: __("Kalıp No"),
+            fieldname: "kalip_no",
+            reqd: (parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon) ? 1 : 0,
+            read_only: isTechLocked ? 1 : 0,
+            depends_on: () => parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon,
+            default: defaults.kalip_no || "",
         },
         { fieldtype: "Section Break" },
         {
@@ -212,6 +259,7 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             fieldname: "hammadde",
             options: "Item",
             reqd: 0,
+            read_only: isTechLocked ? 1 : 0,
             default: defaults.hammadde || "",
             get_query: () => {
                 const currentOp = getAltOpValue ? getAltOpValue() : defaults.alt_operasyon;
@@ -223,6 +271,12 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             onchange: function(this: any) {
                 const itemCode = this.get_value();
                 if (itemCode) {
+                    if (isEnjeksiyon) {
+                        if (this.layout && this.layout.fields_dict.uom) {
+                            this.layout.fields_dict.uom.set_value("Adet");
+                        }
+                        return;
+                    }
                     frappe.call({
                         method: "erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.get_item_uom",
                         args: { item_code: itemCode },
@@ -233,7 +287,7 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
                         }
                     });
                 } else if (this.layout && this.layout.fields_dict.uom) {
-                    this.layout.fields_dict.uom.set_value("");
+                    this.layout.fields_dict.uom.set_value(isEnjeksiyon ? "Adet" : "");
                 }
             }
         },
@@ -243,6 +297,7 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             label: __("Parça Boyu (mm)"),
             description: __("Birim 'Metre' seçildiğinde tüketimi hesaplamak için doldurunuz."),
             fieldname: "boyut_1_mm",
+            read_only: isTechLocked ? 1 : 0,
             depends_on: (doc: any) => {
                 if (!doc) return false;
                 const selectedOp = altOpOptions.find((o: any) => o.value === doc.alt_operasyon || o.label === doc.alt_operasyon);
@@ -259,6 +314,7 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             fieldtype: "Float",
             label: __("İşlem Adedi"),
             fieldname: "islem_adedi_1",
+            description: isTechLocked ? __("Vardiya sonu üretilen adedi giriniz.") : undefined,
             reqd: 0,
             default: defaults.islem_adedi_1 !== undefined ? defaults.islem_adedi_1 : (defaults.adet ?? 1),
         },
@@ -267,8 +323,9 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             label: __("Birim"),
             fieldname: "uom",
             options: "UOM",
+            read_only: (isTechLocked || isEnjeksiyon) ? 1 : 0,
             reqd: 0,
-            default: defaults.uom || "",
+            default: isEnjeksiyon ? "Adet" : (defaults.uom || ""),
         },
         {
             fieldtype: "Small Text",

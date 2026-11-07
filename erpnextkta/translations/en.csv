@@ -158,6 +158,7 @@ Gönderim Engellendi,Submission Blocked
 Görsel Kontroller,Visual Controls
 Gösterilecek Operatör Sayısı,Number of Operators to Show
 Göz Kontrol,Eye Check
+Göz Kontrol zorunludur.,Eye Check is required.
 Güncelle,Update
 Güncelleme hatası: {0},Update error: {0}
 Güncellenen SO,Updated SO
@@ -322,7 +323,7 @@ Senkronizasyon Sonucu,Synchronization Result
 Senkronizasyon Tamamlandı,Synchronization Completed
 Senkronizasyon kuyruğa alındı,Sync queued
 Seç,Select
-"Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector veya 110-Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)","The selected IDC code is not appropriate. (item_group=120-IDC Connector or 110-Connector, custom_ara_malzeme_grubu=RAW MATERIAL)"
+"Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector, 110-Connector veya 190-Connection Systems olmalı)","The selected IDC code is not appropriate. (item_group must be 120-IDC Connector, 110-Connector or 190-Connection Systems)"
 Seçilen depo bir grup olmalıdır,The selected repository must be a group
 Seçilen hammadde ({0}) iş emri BOM'unda bu aşama için izin verilmiyor.,The selected raw material ({0}) is not allowed for this stage in the work order BOM.
 Seçilen varlığın Makine No alanı dolu değil.,The Machine ID field of the selected entity is not filled.
@@ -486,6 +487,8 @@ KESİT:,CROSS-SECTION:
 İzokrimp Yüksekliği (mm),Isocrimp Height (mm)
 Adet,Quantity
 KALIP:,MOLD:
+KALIP NO:,MOLD NO.:
+Kalıp No zorunludur.,Mold No. is required.
 Kafa (Meme) Isısı (°C),Head (Nozzle) Temp (°C)
 Kopyala, Copy
 Hedef karşılandı,Target met
@@ -773,3 +776,175 @@ Krimp Ölçüm Protokol Belgesi,Crimping Measurement Protocol Document
 Krimp Protokol Belgesi,Crimping Protocol Document
 Enjeksiyon Ölçüm Protokol Belgesi,Injection Measurement Protocol Document
 Enjeksiyon Protokol Belgesi,Injection Protocol Document
+
+Kısmi Kabul Edildi,Partially Accepted
+<b>⚠️ Dikkat:</b> Bu kart <b>{0} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.,<b>⚠️ Warning:</b> This card has exceeded <b>{0} minutes</b>! Please finish if work is done.
+Alt Operasyon Kalite Onayları,Sub-Operation Quality Approvals
+Alt operasyon kaydı bulunamadı.,Sub-operation record not found.
+Bakım ekibi bildirilen arızayı tamamlamadan (kapatmadan) üretime devam edemezsiniz.,You cannot resume production before the maintenance team resolves the reported breakdown.
+Bakım ekibinin takvimine görev düştü. Kayıt: {0},A task has been added to the maintenance schedule. Record: {0}
+Barkod Görseli,Barcode Image
+Barkod Protokol Belgesi,Barcode Protocol Document
+Başlangıç: {0},Start: {0}
+Bekleyen Çalışma Kartınız Var!,You Have a Pending Work Card!
+Birim 'Metre' seçildiğinde tüketimi hesaplamak için doldurunuz.,Fill in to calculate consumption when unit is 'Meter'.
+Birim 'Metre' seçildiğinde tüketimin hesaplanabilmesi için 'Parça Boyu (mm)' alanı doldurulmalıdır.,"When unit is 'Meter', 'Part Length (mm)' must be specified to calculate consumption."
+Boy,Length
+Bu alt operasyon kaydı kalite tarafından onaylanmıştır ({0}).,This sub-operation record has been approved by quality ({0}).
+Bu alt operasyona ait zaten bir kalite belgesi ({0}) bulunmaktadır. Yeni bir tane oluşturulamaz.,A quality document ({0}) already exists for this sub-operation. A new one cannot be created.
+Bu kayda bağlı kalite kontrol belgesi de iptal edilecektir. Devam etmek istiyor musunuz?,The quality inspection document linked to this record will also be cancelled. Do you want to proceed?
+Bu operasyon için kalite kontrol şablonu bulunamadı.,Quality inspection template not found for this operation.
+C,C
+Durum: {0},Status: {0}
+Duruş #{0},Downtime #{0}
+Duruş başlatıldı: {0},Downtime started: {0}
+Duruş nedeni 'Diğer' olduğunda açıklama girmek zorunludur.,Explanation is mandatory when downtime reason is 'Other'.
+Duruşta (Arıza),Stopped (Breakdown)
+Düşük,Low
+Genel Toplam,Grand Total
+Hurda #{0},Scrap #{0}
+Kablo,Cable
+Kablo Bilgileri,Cable Information
+Kablo Boyu (mm),Cable Length (mm)
+Kablo Seçimi,Cable Selection
+Kablo Uç İşlemleri (Sıyırma & Çapak),Cable End Operations (Stripping & Burr)
+Kalite Belgeleri,Quality Documents
+Kalite Onaylı,Quality Approved
+Kalite Onayı Ver,Approve Quality
+Kalite belgesi oluşturuluyor...,Creating quality document...
+Kart başarıyla kapatıldı.,Card successfully closed.
+Kesim Formu,Cutting Form
+"Lütfen İş Emri, Operatör veya Hammadde seçiniz.","Please select Work Order, Operator or Raw Material."
+Makine / Kalıp,Machine / Mold
+Makine Bilgileri,Machine Information
+Mevcut çalışan kartınızda ({0}) eksik veri var.,Your currently active card ({0}) has missing data.
+Min,Min
+Minimum,Minimum
+Neden,Reason
+Net Süre: {0},Net Duration: {0}
+Onaylayanlar,Approvers
+Operatör Adı,Operator Name
+Parça Boyu (mm),Part Length (mm)
+Radüs Var,Radius Present
+Reddet,Reject
+Sadece stok birimi Metre olan hammaddelerde doldurun.,Only fill in for raw materials with stock unit Meter.
+Satır kimliği (row name) bulunamadı.,Row ID (row name) not found.
+Sağ Sıyırma (mm),Right Stripping (mm)
+Sağ Uç (Terminal),Right End (Terminal)
+Sağ uca terminal seçildiğinde Sağ Sıyırma (mm) girilemez.,Right Stripping (mm) cannot be entered when terminal is selected for right end.
+Seçili Kartı Bitir,Finish Selected Card
+Seçili kartı tamamen bitirmek istediğinizden emin misiniz?,Are you sure you want to completely finish the selected card?
+Sol Sıyırma (mm),Left Stripping (mm)
+Sol Uç (Terminal),Left End (Terminal)
+Sol uca terminal seçildiğinde Sol Sıyırma (mm) girilemez.,Left Stripping (mm) cannot be entered when terminal is selected for left end.
+Süre,Duration
+Sıyırmasız,Without Stripping
+T1,T1
+T1 - Görsel Kontroller,T1 - Visual Checks
+T1 - Kalıp Bilgileri,T1 - Mold Information
+T1 - Terminal Bilgileri,T1 - Terminal Information
+T1 - Ölçümler,T1 - Measurements
+T1 Hedef Çekme Kuvveti (N),T1 Target Pull Force (N)
+T1 Hedef İletken Krimp Yük. (mm),T1 Target Conductor Crimp Height (mm)
+T1 Kablo Kesiti (Rehberden),T1 Cable Cross Section (Guide)
+T1 Kalıp No,T1 Mold No
+T1 Radüs Mevcut,T1 Radius Present
+T1 Sıyırma Boyu (mm),T1 Stripping Length (mm)
+T1 Tel Kesme Mevcut,T1 Wire Cut Present
+T1 Terminal,T1 Terminal
+T1 Terminal No,T1 Terminal No
+T1 Çapak Boyu (mm),T1 Burr Length (mm)
+T1 Ölçülen Çekme Kuvveti (N),T1 Measured Pull Force (N)
+T1 Ölçülen İletken Krimp Yük. (mm),T1 Measured Conductor Crimp Height (mm)
+T1 İzokrimp Yüksekliği (mm),T1 Insulation Crimp Height (mm)
+T2,T2
+T2 - Görsel Kontroller,T2 - Visual Checks
+T2 - Kalıp Bilgileri,T2 - Mold Information
+T2 - Terminal Bilgileri,T2 - Terminal Information
+T2 - Ölçümler,T2 - Measurements
+T2 Hedef Çekme Kuvveti (N),T2 Target Pull Force (N)
+T2 Hedef İletken Krimp Yük. (mm),T2 Target Conductor Crimp Height (mm)
+T2 Kablo Kesiti (Rehberden),T2 Cable Cross Section (Guide)
+T2 Kalıp No,T2 Mold No
+T2 Krimp Book değerleri yüklendi,T2 Crimp Book values loaded
+T2 Radüs Mevcut,T2 Radius Present
+T2 Sıyırma Boyu (mm),T2 Stripping Length (mm)
+T2 Tel Kesme Mevcut,T2 Wire Cut Present
+T2 Terminal,T2 Terminal
+T2 Terminal No,T2 Terminal No
+T2 Çapak Boyu (mm),T2 Burr Length (mm)
+T2 Ölçülen Çekme Kuvveti (N),T2 Measured Pull Force (N)
+T2 Ölçülen İletken Krimp Yük. (mm),T2 Measured Conductor Crimp Height (mm)
+T2 İzokrimp Yüksekliği (mm),T2 Insulation Crimp Height (mm)
+Tek Taraflı operasyonda Sol veya Sağ uca mutlaka bir terminal seçilmelidir.,"In single-ended operations, a terminal must be selected for either left or right end."
+Tek Taraflı operasyonda her iki uca birden terminal seçilemez.,"In single-ended operations, terminals cannot be selected for both ends."
+Tel Kesme Yok,No Wire Cut
+Terminal No,Terminal No
+Toplam Duruş: {0},Total Downtime: {0}
+Toplu Protokol Belgesi,Batch Protocol Document
+Tüketim Limiti Aşıldı,Consumption Limit Exceeded
+Yüksek,High
+Çift Taraflı operasyonlarda hem Sol hem de Sağ uca terminal seçilmesi zorunludur.,"In double-ended operations, terminals must be selected for both left and right ends."
+Çift Taraflı İşlem,Double-Ended Operation
+Ölçümü Giren,Measured By
+İlgili Alt İşlem,Related Sub-Operation
+İstenen,Target
+İşlem Adedi,Operation Quantity
+İşlem Adedi (Kablo),Operation Quantity (Cable)
+İşlem Yapılacak Kart,Card to Process
+İşlem başarısız.,Operation failed.
+İşlem başarıyla devam ettirildi.,Operation resumed successfully.
+İşlemler,Actions
+Görüntüle,View
+Admin Hata Ayıklama,Admin Debug
+"Seçilen İş Kartı, seçilen İş Emri'ne ait değil.",Selected Job Card does not belong to the selected Work Order.
+İş Kartının bağlı olduğu bir İş Emri bulunamadı.,No Work Order found linked to the Job Card.
+Bu hurda parçası bu operasyon için izinli değil.,This scrap item is not permitted for this operation.
+Kablo Kesme ve Kontak Basma,Cable Cutting and Crimping
+Tek Taraf,Single End
+Çift Taraf,Double End
+Blunt,Blunt
+Bu alt operasyon için henüz ölçüm girilmedi.,No measurements entered for this sub-operation yet.
+Ölçüm Ekle,Add Measurement
+Filtreler,Filters
+Tekrar Dene,Try Again
+Hepsi Bu Kadar.,That's all.
+Kalite Reddi,Quality Rejected
+"Bu alt operasyon kaydına kalite belgesi bağlanmıştır ({0} - {1}). Değişiklik veya silme işlemi için kalite birimini bilgilendirin.","A quality inspection document is linked to this sub-operation record ({0} - {1}). Please contact the quality department for modification or deletion."
+"Bu ölçüm kaydı silinecek. Emin misiniz?","This measurement record will be deleted. Are you sure?"
+Detayları Göster/Gizle,Show/Hide Details
+"Alt operasyon kaydı bulunamadı ({0}).","Sub-operation record not found ({0})."
+"%100 kalite kontrolü seçili operasyonlarda açıkta onay bekleyen alt işlem varken kart bitirilemez.","In operations with 100% quality inspection, cards cannot be finished while sub-operations are pending approval."
+"Kartın bitirilebilmesi için en az bir alt işlemin kalite onayı almış olması gerekir.","At least one sub-operation must have quality approval before finishing the card."
+Atanmamış / Geçmiş Ölçümler,Unassigned / Legacy Measurements
+"Bu ölçüm kaydı kalite kontrolü tamamlanmış bir karta aittir. Değişiklik veya silme işlemi için kalite birimini bilgilendirin.","This measurement record belongs to a card with completed quality control. Please notify the quality unit for modification or deletion."
+"İlk enjeksiyon ölçümü 'Başlangıç' periyodunda olmak zorundadır.","The first injection measurement must be in the 'Başlangıç' period."
+"Bir alt operasyon için en fazla 3 ölçüm (Başlangıç, Ara, Bitiş) girilebilir.","A maximum of 3 measurements (Başlangıç, Ara, Bitiş) can be entered for a sub-operation."
+"'{0}' periyodu için zaten bir ölçüm kaydedilmiş.","A measurement has already been recorded for the '{0}' period."
+"Bu alt operasyon kaydı kalite birimi tarafından reddedilmiştir. Yeni ölçüm eklenemez.","This sub-operation record has been rejected by the quality department. New measurements cannot be added."
+"Tüm Periyot Ölçümleri Tamamlandı (3/3)","All Period Measurements Completed (3/3)"
+"Bu alt operasyon için tüm periyot ölçümleri (Başlangıç, Ara, Bitiş) tamamlanmıştır.","All period measurements (Başlangıç, Ara, Bitiş) have been completed for this sub-operation."
+Alt Operasyon Kalite Tarafından Reddedildi,Sub-operation Rejected by Quality
+Ölçüm Limiti,Measurement Limit
+"Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.","An active sub-operation already exists on this work card for mold '{0}' and raw material '{1}'."
+Mükerrer Alt İşlem,Duplicate Sub-Operation
+"Çekme Kuvveti en az 100 N olmalıdır.","Tensile force must be at least 100 N."
+"'{0}' alanı boş veya 0 bırakılamaz.","'{0}' cannot be empty or 0."
+Min: 100 N,Min: 100 N
+"'{0}' hammaddesi için enjeksiyon proses toleransları tanımlanmamış. Tolerans kaydı olmadan ölçüm girilemez.","Injection process tolerances are not defined for raw material '{0}'. Measurements cannot be entered without tolerance records."
+"'{0}' hammaddesi için enjeksiyon tolerans parametresi bulunamadı. Ölçüm kaydedilemez.","No injection tolerance parameters found for raw material '{0}'. Measurement cannot be saved."
+"'{0}' ({1} {2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4} {2}","'{0}' ({1} {2}) is outside the tolerance limits. Accepted range: {3} - {4} {2}"
+"'{0}' ({1}{2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4}{2}","'{0}' ({1}{2}) is outside the tolerance limits. Accepted range: {3} - {4}{2}"
+"Çekme Kuvveti ({0} N) kabul edilen minimum değerin ({1} N) altındadır.","Tensile force ({0} N) is below the accepted minimum ({1} N)."
+Tolerans Tanımı Eksik,Missing Tolerance Definition
+Tolerans Dışı Değer,Out of Tolerance Value
+Seçili hammadde için enjeksiyon toleransları tanımlanmadığından ölçüm kaydedilemez.,Measurement cannot be saved because injection tolerances are not defined for the selected raw material.
+Hammadde seçimi zorunludur.,Raw material selection is required.
+İşlem Adedi Güncelle,Update Process Quantity
+"Kalite onayı almış enjeksiyon alt operasyonunun işlem türü değiştirilemez.","Operation type of a quality approved injection sub-operation cannot be changed."
+"Kalite onayı almış enjeksiyon alt operasyonunun kalıp numarası değiştirilemez.","Mold number of a quality approved injection sub-operation cannot be changed."
+"Kalite onayı almış enjeksiyon alt operasyonunun hammaddesi değiştirilemez.","Raw material of a quality approved injection sub-operation cannot be changed."
+Vardiya sonu üretilen adedi giriniz.,Enter produced quantity at the end of the shift.
+"Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟","Congratulations! You completed all 3/3 measurements and earned {0} Energy Points! 🌟"
+"Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}]","Completing all 3/3 period measurements for injection sub-operation. [{0}]"
+Enjeksiyon 3/3 Ölçüm Tamamlama,Injection 3/3 Measurement Completion

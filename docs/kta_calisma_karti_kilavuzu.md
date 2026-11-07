@@ -63,7 +63,11 @@ Bir çalışma kartı içinde, daha spesifik alt işlemler veya malzeme kullanı
 2. Sağ üstteki **"Alt İşlem Ekle"** butonuna basın. *(Bu buton yalnızca kart "Çalışıyor" veya "Duruşta" ise görünür).*
 3. **İşlem Tipi:** Uygulanan spesifik alt operasyonu listeden seçin. (Sistem karmaşık kodlar yerine kolay anlaşılır **Başlıklar** üzerinden seçim yapmanızı sağlar).
 4. **Hammadde (Opsiyonel):** Eğer bu adımda spesifik bir malzeme girilecekse, sistem sadece bu operasyon için izin verilen malzemelerin (Örn: terminal, kablo vb.) listesini sunacaktır.
-5. Kullanılan miktarı girin ve kaydedin. Her yeni eklenen alt işlem, geçmişte eklenenlere göre ve operasyon tanımlarındaki master sıralamaya (sequence) göre dizilir.
+5. Kullanılan miktarı girin ve kaydedin.
+6. **Doğal Sayısal Sıralama (Natural Sort):** Eklenen satırlar metinsel değil sayısal doğal sıralama ile listelenir:
+   - Kesim formundaki satır numaraları `1, 2, ..., 10` şeklinde sıralanır.
+   - Kullanıcıların aynı ürün için girdiği `1,2,3` gibi birleşik kesim formatları ilk rakama göre doğru konuma yerleşir.
+   - Satır numarası bulunmayan **Enjeksiyon** işlemlerinde ise liste `Kalıp No` doğal sıralaması ile dizilir.
 
 ---
 
@@ -87,7 +91,10 @@ Bir çalışma kartı içinde, daha spesifik alt işlemler veya malzeme kullanı
 2. **Liste Arayüzünde Degrade Geçişler:** Bir kartın alt operasyonlarının bazıları onaylanıp, bazıları red yemiş veya bekliyor olabilir. Bu çoklu durumu liste görünümünde (CkCard.vue) sağ kenardaki dinamik parçalı/degrade renk bloklarından anlık olarak görebilirsiniz. Örneğin 3 alt operasyon varsa sağ kenarda üst üste Yeşil (Onaylı), Kırmızı (Red) ve Mavi (Bekleyen) renk blokları görünür.
 3. **Onaylama ve Belge Entegrasyonu:** Her satırdaki "Kalite Onayı Ver" butonuna basıldığında arka planda sadece o satıra özel bir Kalite Kontrol Belgesi (Quality Inspection) oluşturulur ve o satıra bağlanır.
    - **Önemli Not:** Alt operasyonların tamamı onaylansa dahi, ana çalışma kartının sadece "Durum" (Kalite Kontrol) alanı "Onaylandı" olarak güncellenir. Ancak ana karta **herhangi bir kalite belgesi (Quality Inspection ID) işlenmez**. Bu sayede, UI tarafında kartın "Klasik" bir QC belgesine sahip olduğu yanılgısı yaratılmaz ve her bir belgenin kendi satırında kalması sağlanır.
-
+4. **Kısmi Kabul Edildi (#7c3aed Mor/İndigo) Statüsü:**
+   - Kartta hem onaylı hem de reddedilmiş satırlar varsa;
+   - Veya örnekleme muayenesi modunda (%100 kontrol kapalıyken) en az 1 satır onaylanıp kalan satırlar denetlenmeden kart bitirildiğinde;
+   - Kartın genel kalite kontrol statüsü **Kısmi Kabul Edildi** olarak kesinleşir ve üst başlık çipinde mor renkte gösterilir.
 
 ### Akıllı Krimp Formu ve Çift Taraf Mantığı
 Özellikle "Kablo Kesme ve Kontak Basma" gibi krimp işlemlerinde kalite onayı verilirken sistem, girilen alt operasyon verisine bakarak form ekranını akıllı bir şekilde yapılandırır:
@@ -105,7 +112,6 @@ Bir çalışma kartı içinde, daha spesifik alt işlemler veya malzeme kullanı
 
 ---
 
----
 ## 🛠️ 6. Makine Günlük Bakım Onayı
 
 Operatörlerin işe başlamadan önce veya vardiya sırasında kullandıkları makinenin (Asset) bakım kontrollerini yapmalarını sağlar.
@@ -120,10 +126,13 @@ Operatörlerin işe başlamadan önce veya vardiya sırasında kullandıkları m
 
 Üretim tamamlandığında veya vardiya sona erdiğinde işi kapatmak için kullanılır.
 
-### Manuel Bitirme:
+### Manuel Bitirme ve Kalite Kısıtları:
 1. **"Bitir" Butonu:** İşlem bittiğinde **Bitir** butonuna tıklayın.
-2. **Miktar Bildirimi:** Üretilen miktarı girin. Operasyon tanımına göre miktar girişi zorunlu olabilir. 0 girerek kapatma izni operasyon ayarına bağlıdır.
-3. **Bekleyen Kartlar Uyarı Ekranı (Modal):** Bir kartı bitirdiğinizde, sistem arka planda sizin daha önceden başlattığınız ancak sistem tarafından otomatik olarak "Duruşta" bekletilen (askıda kalmış) başka kartlarınız olup olmadığını kontrol eder.
+2. **Kalite Kontrol Bitirme Kuralı:**
+   - **%100 Kalite Kontrolü Açık İse:** Kartta açıkta hiçbir "Onay Bekliyor" satır kalamaz ve en az 1 onay bulunmalıdır. Tüm satırlar denetlenmeden kart bitirilemez.
+   - **%100 Kalite Kontrolü Kapalı İse (Örnekleme Muayenesi):** Açıkta onay bekleyen satırlar kalsa bile kart bitirilebilir, ancak kart tamamen onaysız kapatılamaz (**minimum 1 alt işlemin kalite onayı almış olması zorunludur**). Kart kapatıldığında genel statü **Kısmi Kabul Edildi** olur.
+3. **Miktar Bildirimi:** Üretilen miktarı girin. Operasyon tanımına göre miktar girişi zorunlu olabilir. 0 girerek kapatma izni operasyon ayarına bağlıdır.
+4. **Bekleyen Kartlar Uyarı Ekranı (Modal):** Bir kartı bitirdiğinizde, sistem arka planda sizin daha önceden başlattığınız ancak sistem tarafından otomatik olarak "Duruşta" bekletilen (askıda kalmış) başka kartlarınız olup olmadığını kontrol eder.
     - Eğer bekleyen kartlarınız varsa, işlemi tamamladıktan hemen sonra modern bir **uyarı ekranı (Modal)** açılır.
     - Bu ekranda bekleyen tüm kartlarınız liste halinde sunulur. Kartın yanındaki **"GİT"** butonuna basarak o karta hızlıca geçiş yapabilir ve işinize kaldığınız yerden devam edebilirsiniz.
     - Dilerseniz sağ üst köşedeki **Çarpı (X)** butonuyla uyarı ekranını kapatarak bulunduğunuz ekranda kalabilirsiniz.

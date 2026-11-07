@@ -6,6 +6,7 @@ def setup():
     setup_permissions()
     cleanup_duplicate_custom_fields()
     setup_system_downtime_reasons()
+    setup_enjeksiyon_energy_point_rule()
     add_custom_fields()
 
 def add_custom_fields():
@@ -96,6 +97,20 @@ def setup_scrap_stock_entry_type():
             "purpose": "Material Issue"
         })
         doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+def setup_enjeksiyon_energy_point_rule():
+    """Create 'Enjeksiyon 3/3 Ölçüm Tamamlama' Energy Point Rule if it doesn't exist."""
+    rule_name = "Enjeksiyon 3/3 Ölçüm Tamamlama"
+    if not frappe.db.exists("Energy Point Rule", rule_name):
+        rule = frappe.new_doc("Energy Point Rule")
+        rule.rule_name = rule_name
+        rule.reference_doctype = "Calisma Karti"
+        rule.for_doc_event = "Custom"
+        rule.points = 3
+        rule.enabled = 1
+        rule.flags.ignore_permissions = True
+        rule.insert()
         frappe.db.commit()
 
 def create_kta_roles():

@@ -456,7 +456,10 @@ class TestCalismaKartiIntegration(KTATestCase):
 			with self.assertRaises(frappe.exceptions.ValidationError) as cm:
 				islem_yap(doc.name, "DevamEt")
 			
-			self.assertTrue("Bakım ekibi bildirilen arızayı tamamlamadan" in str(cm.exception))
+			self.assertTrue(
+				"Bakım ekibi bildirilen arızayı tamamlamadan" in str(cm.exception)
+				or "maintenance team" in str(cm.exception).lower()
+			)
 
 	def test_ariza_bildirimi_blocks_duplicate(self):
 		"""Zaten açık bir arıza kaydı varken yeni bir kayıt açılmasının engellendiğini doğrular."""

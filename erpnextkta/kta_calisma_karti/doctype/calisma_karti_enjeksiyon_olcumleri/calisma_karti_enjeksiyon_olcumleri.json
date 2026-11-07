@@ -7,6 +7,7 @@
     "engine": "InnoDB",
     "field_order": [
         "kontrol_periyodu",
+        "kalip_no",
         "hammadde_no",
         "column_break_kriter",
         "goz_kontrol",
@@ -26,6 +27,7 @@
         "column_break_auto",
         "olcum_tarihi",
         "operator",
+        "alt_operasyon_kaydi",
         "hedef_hammadde_kazan_isisi_merkez",
         "hedef_hammadde_kazan_isisi_tolerans",
         "hedef_ara_hortum_isisi_merkez",
@@ -50,6 +52,13 @@
             "in_list_view": 1,
             "label": "Kontrol Periyodu",
             "options": "Ba\u015flang\u0131\u00e7\nAra\nBiti\u015f"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "kalip_no",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Kal\u0131p No"
         },
         {
             "allow_on_submit": 1,
@@ -167,6 +176,13 @@
             "options": "Employee"
         },
         {
+            "allow_on_submit": 1,
+            "fieldname": "alt_operasyon_kaydi",
+            "fieldtype": "Data",
+            "label": "Alt Operasyon Kayd\u0131",
+            "options": "Calisma Karti Alt Operasyon Kayitlari"
+        },
+        {
             "fieldname": "hedef_hammadde_kazan_isisi_merkez",
             "fieldtype": "Float",
             "hidden": 1,
@@ -259,7 +275,7 @@
     ],
     "index_web_pages_for_search": 1,
     "istable": 1,
-    "modified": "2026-05-20 12:00:00.000000",
+    "modified": "2026-11-07 16:15:00.000000",
     "modified_by": "Administrator",
     "module": "kta_calisma_karti",
     "name": "Calisma Karti Enjeksiyon Olcumleri",

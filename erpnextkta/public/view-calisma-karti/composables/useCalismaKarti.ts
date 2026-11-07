@@ -129,7 +129,7 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
                     tamamlanan_miktar,
                 },
                 freeze: true,
-                freeze_message: "İşlem yapılıyor...",
+                freeze_message: __("İşlem yapılıyor..."),
             })
         );
     }
@@ -352,7 +352,7 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
                     ...payload,
                 },
                 freeze: true,
-                freeze_message: "Kalite belgesi oluşturuluyor...",
+                freeze_message: __("Kalite belgesi oluşturuluyor..."),
             })
         );
     }
@@ -390,7 +390,7 @@ export function useCalismaKarti(docname: ReturnType<typeof computed<string | nul
                     if (r.message && r.message.status === 'success') {
                         resolve();
                     } else {
-                        reject(new Error("İşlem Başarısız"));
+                        reject(new Error(__("İşlem başarısız.")));
                     }
                 }
             });

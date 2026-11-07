@@ -11,7 +11,7 @@ const props = defineProps<{
   <div class="ck-chips-bar" :class="props.statusClass">
     <!-- Left Section: Status -->
     <div class="ck-bar-section ck-status-section">
-      <div v-if="props.statusClass.includes('running')" class="ck-pulse-dot"></div>
+      <div v-if="props.statusClass.includes('running') || props.statusClass.includes('ariza')" class="ck-pulse-dot"></div>
       <span class="ck-status-text">{{ props.durumLabel }}</span>
     </div>
 
@@ -128,6 +128,12 @@ const props = defineProps<{
   border-color: rgba(217, 119, 6, 0.3);
 }
 
+.ck-status--ariza {
+  color: #e11d48;
+  border-color: rgba(225, 29, 72, 0.4);
+  box-shadow: 0 0 25px rgba(225, 29, 72, 0.12), var(--ck-glass-highlight);
+}
+
 .ck-status--finished {
   color: #059669;
 }
@@ -155,6 +161,10 @@ const props = defineProps<{
   color: #2563eb;
 }
 
+.ck-qc-section.ck-status-qc--partial {
+  color: #7c3aed;
+}
+
 /* Dark Mode Intensity Adjustments */
 [data-theme="dark"] .ck-chips-bar {
   background: rgba(255, 255, 255, 0.03);
@@ -163,8 +173,10 @@ const props = defineProps<{
 [data-theme="dark"] .ck-status--ready { color: #60a5fa; }
 [data-theme="dark"] .ck-status--running { color: #34d399; }
 [data-theme="dark"] .ck-status--paused { color: #fbbf24; }
+[data-theme="dark"] .ck-status--ariza { color: #fb7185; }
 [data-theme="dark"] .ck-status--finished { color: #34d399; }
 [data-theme="dark"] .ck-status--rejected { color: #f87171; }
+[data-theme="dark"] .ck-qc-section.ck-status-qc--partial { color: #a78bfa; }
 
 /* Responsive adjustments for mobile */
 @media screen and (max-width: 767px) {

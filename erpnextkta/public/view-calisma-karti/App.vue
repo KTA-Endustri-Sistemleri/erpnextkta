@@ -322,7 +322,7 @@ async function handleStandardQcSubmit(payload: any) {
     }
 }
 
-async function setSubOpQC(rowname: string, item_code: string) {
+async function setSubOpQC(rowname: string, item_code: string, intent: "approve" | "reject" = "approve") {
   if (!canEditQC.value) {
     frappe.msgprint(__("QC güncelleme yetkiniz yok."));
     return;
@@ -336,7 +336,7 @@ async function setSubOpQC(rowname: string, item_code: string) {
       qcTemplates.value = res.message.templates;
       qcDefaultTemplate.value = res.message.default_template;
       qcItemCode.value = item_code || res.message.item_code;
-      qcIntent.value = "approve"; // Alt operasyonlarda hep onay kullanıyoruz
+      qcIntent.value = intent;
       qcTargetRow.value = rowname;
       showQcModal.value = true;
     } else {

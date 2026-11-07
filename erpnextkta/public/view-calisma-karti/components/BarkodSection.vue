@@ -29,7 +29,7 @@ function actions(r: any) {
   <div class="ck-qc-header">
     <b>{{ __('Barkod Kayıtları') }}</b>
     <button v-if="props.canEditData" class="ck-btn ck-btn--primary" style="background: var(--btn-default-hover-bg);padding: 8px 10px;" @click="props.onAdd">
-      {{ __('+ Ekle') }}
+      + {{ __('Ekle') }}
     </button>
   </div>
 
@@ -63,7 +63,7 @@ function actions(r: any) {
 
         <div style="display:flex; justify-content:flex-end;">
           <button v-if="props.canEditData" class="ck-btn ck-btn--ghost" style="padding:8px 10px; width:100%;" @click="actions(r)">
-            {{ __('İŞLEMLER') }} ▾
+            {{ __('İşlemler') }} ▾
           </button>
         </div>
       </div>

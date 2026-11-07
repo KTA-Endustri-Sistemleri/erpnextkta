@@ -65,6 +65,7 @@ async function load(opts = {}) {
     const qcMap = {
       "waiting": "Onay Bekliyor",
       "approved": "Onaylandı",
+      "partial": "Kısmi Kabul Edildi",
       "rejected": "Reddedildi"
     };
 
@@ -209,7 +210,7 @@ function statusKeyFromDurumText(durum) {
   if (v.includes("iptal")) return "cancelled";
   if (v.includes("redd")) return "rejected";
   if (v.includes("bit")) return "finished";
-  if (v.includes("duru")) return "paused";
+  if (v.includes("duru") || v.includes("arıza") || v.includes("ariza")) return "paused";
   if (v.includes("çalı") || v.includes("calis")) return "running";
   if (v.includes("haz")) return "ready";
   return "ready";
@@ -218,6 +219,7 @@ function statusKeyFromDurumText(durum) {
 function qcKeyFromText(qc) {
   const v = normalizeTR(qc);
 
+  if (v.includes("kism")) return "partial";
   if (v === "onaylandi" || v === "onaylandı") return "approved";
   if (v === "onay bekliyor") return "waiting";
   if (v === "reddedildi") return "rejected";
@@ -325,9 +327,12 @@ const statusCounts = computed(() => {
 });
 
 const qcCounts = computed(() => {
-  const c = { all: rows.value.length, waiting: 0, approved: 0, rejected: 0 };
+  const c = { all: rows.value.length, waiting: 0, approved: 0, partial: 0, rejected: 0 };
   for (const r of rows.value || []) {
-    c[qcKeyFromText(r?.kalite_kontrol)]++;
+    const k = qcKeyFromText(r?.kalite_kontrol);
+    if (c[k] !== undefined) {
+      c[k]++;
+    }
   }
   return c;
 });
@@ -406,9 +411,9 @@ onUnmounted(() => {
         <CkSkeleton v-if="loading" :count="6" key="skeleton" />
 
         <div v-else-if="errorMsg" class="ck-error" key="error">
-          <div class="ck-error-title">Hata</div>
+          <div class="ck-error-title">{{ __("Hata") }}</div>
           <div class="ck-error-msg">{{ errorMsg }}</div>
-          <button class="ck-btn" @click="load">Tekrar dene</button>
+          <button class="ck-btn" @click="load">{{ __("Tekrar Dene") }}</button>
         </div>
 
         <div v-else-if="rows.length === 0" class="ck-empty" key="empty">
@@ -452,7 +457,7 @@ onUnmounted(() => {
         >{{ __("Daha fazla yükle") }}</button>
 
         <div v-else class="ck-muted" style="text-align:center; padding:10px 0;">
-          Hepsi bu kadar.
+          {{ __("Hepsi Bu Kadar.") }}
         </div>
       </div>
     </div>
@@ -690,6 +695,7 @@ onUnmounted(() => {
   --ck-skeleton-shine: rgba(255, 255, 255, 0.85); /* Much more visible light shine */
   --ck-success-bg: rgba(34, 197, 94, 0.55);
   --ck-danger-bg: rgba(239, 68, 68, 0.55);
+  --ck-partial-bg: rgba(124, 58, 237, 0.55);
 }
 
 [data-theme="dark"] {
@@ -702,5 +708,6 @@ onUnmounted(() => {
   --ck-skeleton-shine: rgba(255, 255, 255, 0.18); /* Clearly visible shimmer in dark mode */
   --ck-success-bg: rgba(34, 197, 94, 0.55);
   --ck-danger-bg: rgba(239, 68, 68, 0.55);
+  --ck-partial-bg: rgba(124, 58, 237, 0.55);
 }
 </style>

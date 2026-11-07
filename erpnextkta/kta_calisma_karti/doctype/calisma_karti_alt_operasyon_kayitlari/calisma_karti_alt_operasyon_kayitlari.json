@@ -7,6 +7,7 @@
  "field_order": [
   "alt_operasyon",
   "satir_no",
+  "kalip_no",
   "hammadde",
   "adet",
   "uom",
@@ -48,6 +49,13 @@
   },
   {
    "allow_on_submit": 1,
+   "fieldname": "kalip_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Kalıp No"
+  },
+  {
+   "allow_on_submit": 1,
    "fieldname": "hammadde",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -59,7 +67,7 @@
    "default": "1",
    "fieldname": "adet",
    "fieldtype": "Float",
-   "label": "Toplam T\u00fcketim 1"
+   "label": "Toplam Tüketim 1"
   },
   {
    "allow_on_submit": 1,
@@ -85,7 +93,7 @@
    "default": "1",
    "fieldname": "islem_adedi_1",
    "fieldtype": "Float",
-   "label": "\u0130\u015flem Adedi 1"
+   "label": "İşlem Adedi 1"
   },
   {
    "fieldname": "cb_2",
@@ -109,14 +117,14 @@
    "default": "1",
    "fieldname": "islem_adedi_2",
    "fieldtype": "Float",
-   "label": "\u0130\u015flem Adedi 2"
+   "label": "İşlem Adedi 2"
   },
   {
    "allow_on_submit": 1,
    "default": "1",
    "fieldname": "adet_2",
    "fieldtype": "Float",
-   "label": "Toplam T\u00fcketim 2"
+   "label": "Toplam Tüketim 2"
   },
   {
    "allow_on_submit": 1,
@@ -147,14 +155,14 @@
    "default": "1",
    "fieldname": "islem_adedi_3",
    "fieldtype": "Float",
-   "label": "\u0130\u015flem Adedi 3"
+   "label": "İşlem Adedi 3"
   },
   {
    "allow_on_submit": 1,
    "default": "1",
    "fieldname": "adet_3",
    "fieldtype": "Float",
-   "label": "Toplam T\u00fcketim 3"
+   "label": "Toplam Tüketim 3"
   },
   {
    "allow_on_submit": 1,
@@ -172,7 +180,7 @@
    "fieldname": "quality_inspection_status",
    "fieldtype": "Select",
    "label": "Kalite Kontrol",
-   "options": "Onay Bekliyor\nOnayland\u0131\nReddedildi",
+   "options": "Onay Bekliyor\nOnaylandı\nReddedildi",
    "permlevel": 1
   },
   {

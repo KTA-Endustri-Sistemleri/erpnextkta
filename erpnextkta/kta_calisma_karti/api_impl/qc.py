@@ -205,14 +205,14 @@ def _assert_idc_item_allowed_for_work_order(doc, item_code: str):
         "Item",
         {
             "name": code,
-            "item_group": ["in", ["120-IDC Connector", "110-Connector"]],
-            "custom_ara_malzeme_grubu": "HAMMADDE",
+            "item_group": ["in", ["120-IDC Connector", "110-Connector", "190-Connection Systems"]],
+            "custom_ara_malzeme_grubu": ["not in", ["ÜRÜN"]],
         },
         "name"
     )
     if not ok_item:
         frappe.throw(
-            _("Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector veya 110-Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)"),
+            _("Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector, 110-Connector veya 190-Connection Systems olmalı)"),
             frappe.ValidationError,
         )
 
@@ -243,6 +243,12 @@ def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters
     filters expected:
       - calisma_karti: Calisma Karti name
     """
+    if isinstance(filters, str):
+        try:
+            filters = json.loads(filters)
+        except Exception:
+            filters = {}
+
     calisma_karti = (filters or {}).get("calisma_karti")
     if not calisma_karti:
         return []
@@ -258,15 +264,15 @@ def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters
     # Join BOM Item -> Item and apply constraints + BOM scope
     return frappe.db.sql(
         """
-        select i.name, i.item_name
+        select distinct i.name, i.item_name
         from `tabBOM Item` bi
         inner join `tabItem` i on i.name = bi.item_code
         where
             bi.parent = %(bom_no)s
             and bi.parenttype = 'BOM'
             and bi.parentfield = 'items'
-            and i.item_group in ('120-IDC Connector', '110-Connector')
-            and ifnull(i.custom_ara_malzeme_grubu, '') = 'HAMMADDE'
+            and i.item_group in ('120-IDC Connector', '110-Connector', '190-Connection Systems')
+            and ifnull(i.custom_ara_malzeme_grubu, '') != 'ÜRÜN'
             and (
                 i.name like %(like)s
                 or i.item_name like %(like)s
@@ -612,18 +618,19 @@ def submit_kta_quality_inspection(ck_name, template_name, readings, sample_size=
         finally:
             frappe.set_user(original_user)
             
-        # FAZ 3: Auto-submit the card itself on rejection
-        # Reload to get the latest state (db_set calls above changed the DB)
-        try:
-            ck.reload()
-            from erpnextkta.kta_calisma_karti.api_impl._helpers import finalize_rejected_card
-            finalize_rejected_card(ck, now=frappe.utils.now_datetime())
-        except Exception:
-            # Log but don't block — QI is already submitted, rejection is recorded
-            frappe.log_error(
-                frappe.get_traceback(),
-                f"[kta] Rejected card finalization failed for {ck_name}"
-            )
+        # FAZ 3: Auto-submit the card itself on rejection (SADECE klasik kart bazlı onayda; alt operasyonda kart submit edilmez)
+        if not rowname:
+            # Reload to get the latest state (db_set calls above changed the DB)
+            try:
+                ck.reload()
+                from erpnextkta.kta_calisma_karti.api_impl._helpers import finalize_rejected_card
+                finalize_rejected_card(ck, now=frappe.utils.now_datetime())
+            except Exception:
+                # Log but don't block — QI is already submitted, rejection is recorded
+                frappe.log_error(
+                    frappe.get_traceback(),
+                    f"[kta] Rejected card finalization failed for {ck_name}"
+                )
 
     # Determine temporary kalite_kontrol status for Calisma Karti:
     #   intent=reject  → "Reddedildi"
@@ -674,10 +681,25 @@ def _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=None):
 
     statuses = [(r.get("quality_inspection_status") or "Onay Bekliyor").strip() for r in ck.get("alt_operasyon_kayitlari")]
     
-    if "Reddedildi" in statuses:
-        final_status = "Reddedildi"
-    elif all(s == "Onaylandı" for s in statuses):
+    has_pending = any(s == "Onay Bekliyor" for s in statuses)
+    has_approved = any(s in ["Onaylandı", "Accepted"] for s in statuses)
+    has_rejected = any(s in ["Reddedildi", "Rejected"] for s in statuses)
+    all_approved = all(s in ["Onaylandı", "Accepted"] for s in statuses)
+    all_rejected = all(s in ["Reddedildi", "Rejected"] for s in statuses)
+
+    is_finished = bool(ck.bitis_saati or ck.durum == "Bitmiş" or ck.docstatus == 1)
+
+    if all_approved:
         final_status = "Onaylandı"
+    elif all_rejected:
+        final_status = "Reddedildi"
+    elif is_finished and has_approved:
+        # Kart bittiğinde ve en az 1 onay varken (kalanlar bekliyor veya ret ise) durum Kısmi Kabul Edildi'dir:
+        final_status = "Kısmi Kabul Edildi"
+    elif has_pending:
+        final_status = "Onay Bekliyor"
+    elif has_approved and has_rejected:
+        final_status = "Kısmi Kabul Edildi"
     else:
         final_status = "Onay Bekliyor"
         
@@ -686,8 +708,20 @@ def _update_parent_qc_status_from_alt_ops(ck, latest_qa_name=None):
     # Alt operasyon bazlı yapıda, ana karta hiçbir zaman belge işlenmemeli, sadece durum güncellenmeli.
     ck.db_set("quality_inspection", None, update_modified=True)
 
-    if final_status == "Reddedildi":
+    # Durum güncellemesi:
+    # Alt operasyonlu kart açıkken (bitiş saati yokken) tekil retler ck.durum'u 'Reddedildi' yapmaz.
+    # Kart ancak bitirilmişse ve tüm işlemler ret ise 'Reddedildi' olur.
+    if ck.bitis_saati and final_status == "Reddedildi":
         ck.db_set("durum", "Reddedildi", update_modified=True)
+    elif ck.durum == "Reddedildi" and (not ck.bitis_saati or final_status != "Reddedildi"):
+        try:
+            from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import STATU_HARITASI
+            durum_key = ck.get_durum()
+            label = STATU_HARITASI.get(durum_key, "Hazır")
+            ck.db_set("durum", label, update_modified=True)
+        except Exception:
+            # Silently retain existing status if natural status calculation fails
+            pass
 
 @frappe.whitelist()
 def sync_qi_to_calisma_karti(doc, method=None):

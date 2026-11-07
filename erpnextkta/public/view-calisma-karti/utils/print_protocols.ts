@@ -1,6 +1,16 @@
 const __ = (...args: any[]) => (window as any).__(...args);
 const frappe = (window as any).frappe;
 
+export function escapeHtml(str: any): string {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export function getBaseStyle() {
   return `
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,19 +41,26 @@ export function getBaseStyle() {
   `;
 }
 
-export function getHeaderHtml(doc: any, title: string, today: string, is_sub_op_based: boolean = false) {
+export function getHeaderHtml(
+  doc: any,
+  title: string,
+  today: string,
+  is_sub_op_based: boolean = false,
+  qiSummary: string = ""
+) {
+  const displayQi = qiSummary && qiSummary !== "-" ? qiSummary : (doc.quality_inspection || "-");
   return `
     <div class="header">
       <div class="header-left">
         <h1>KTA Endüstri Sistemleri</h1>
-        <h2>${title}</h2>
+        <h2>${escapeHtml(title)}</h2>
       </div>
       <div class="header-right">
-        <b>${doc.name}</b><br>
-        ${__("İş Emri")}: ${doc.custom_work_order || "-"}<br>
-        ${__("Ürün")}: ${doc.urun_kodu || "-"}<br>
-        ${!is_sub_op_based ? `${__("Kalite Belgesi")}: ${doc.quality_inspection || "-"}<br>` : ''}
-        ${__("Tarih")}: ${today}
+        <b>${escapeHtml(doc.name)}</b><br>
+        ${__("İş Emri")}: ${escapeHtml(doc.custom_work_order || "-")}<br>
+        ${__("Ürün")}: ${escapeHtml(doc.urun_kodu || "-")}<br>
+        ${__("Kalite Belgesi")}: ${escapeHtml(displayQi)}<br>
+        ${__("Tarih")}: ${escapeHtml(today)}
       </div>
     </div>
   `;
@@ -52,12 +69,12 @@ export function getHeaderHtml(doc: any, title: string, today: string, is_sub_op_
 export function getSignaturesHtml(doc: any, today: string, qisList: string[] = [], approversList: string[] = []) {
   let qisHtml = "-";
   if (qisList && qisList.length > 0) {
-    qisHtml = qisList.join("<br>");
+    qisHtml = qisList.map((x) => escapeHtml(x)).join("<br>");
   }
 
   let approversHtml = "-";
   if (approversList && approversList.length > 0) {
-    approversHtml = approversList.join("<br>");
+    approversHtml = approversList.map((x) => escapeHtml(x)).join("<br>");
   }
 
   return `
@@ -66,7 +83,7 @@ export function getSignaturesHtml(doc: any, today: string, qisList: string[] = [
         <div class="title">${__("Hazırlayan Operatör")}</div>
         <div class="space"></div>
         <div class="name-line" style="border-bottom:none; font-weight:bold; font-size:10px; height:auto;">
-          ${doc.operator_name || doc.operator || "-"}
+          ${escapeHtml(doc.operator_name || doc.operator || "-")}
         </div>
         <div class="name-line"></div>
         <div style="margin-top:4px;font-size:9px;color:#555;">${__("İmza / Tarih")}</div>
@@ -91,7 +108,7 @@ export function getSignaturesHtml(doc: any, today: string, qisList: string[] = [
       </div>
     </div>
     <div class="footer">
-      ${__("Bu belge KTA Endüstri Sistemleri kalite takip sistemi tarafından otomatik oluşturulmuştur.")} • ${today}
+      ${__("Bu belge KTA Endüstri Sistemleri kalite takip sistemi tarafından otomatik oluşturulmuştur.")} • ${escapeHtml(today)}
     </div>
   `;
 }
@@ -102,7 +119,7 @@ export function printHtml(title: string, docName: string, bodyHtml: string) {
   <html lang="tr">
   <head>
     <meta charset="UTF-8">
-    <title>${title} - ${docName}</title>
+    <title>${escapeHtml(title)} - ${escapeHtml(docName)}</title>
     <style>${getBaseStyle()}</style>
   </head>
   <body>
@@ -121,11 +138,104 @@ export function printHtml(title: string, docName: string, bodyHtml: string) {
   }
 }
 
-export function printIdcProtocol(doc: any) {
+export async function resolveQisAndApprovers(doc: any): Promise<{ qisList: string[]; approversList: string[]; qiSummary: string }> {
+  const altOps = doc.alt_operasyon_kayitlari || [];
+  const qisFromAltOps: string[] = altOps
+    .map((a: any) => a.quality_inspection)
+    .filter((q: any) => q && typeof q === "string" && q.trim());
+
+  const allQis: string[] = [];
+  const addQi = (q: string) => {
+    if (q && !allQis.includes(q)) allQis.push(q);
+  };
+
+  qisFromAltOps.forEach(addQi);
+  if (doc.quality_inspection) addQi(doc.quality_inspection);
+
+  if (allQis.length === 0 && doc.name) {
+    try {
+      const dbQis = await frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+          doctype: "Quality Inspection",
+          filters: { custom_calisma_karti: doc.name, docstatus: ["<", 2] },
+          fields: ["name"]
+        }
+      });
+      (dbQis.message || []).forEach((m: any) => addQi(m.name));
+    } catch (e) {
+      console.error("Failed to query Quality Inspection for card", e);
+    }
+  }
+
+  const qisList: string[] = [];
+  const approversList: string[] = [];
+
+  if (allQis.length > 0) {
+    try {
+      const res = await frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+          doctype: "Quality Inspection",
+          filters: { name: ["in", allQis] },
+          fields: ["name", "owner", "inspected_by"]
+        }
+      });
+      const qiDocs = res.message || [];
+      const userEmails = Array.from(new Set(
+        qiDocs.map((m: any) => m.inspected_by || m.owner).filter(Boolean)
+      ));
+
+      let userMap: Record<string, string> = {};
+      if (userEmails.length > 0) {
+        const usersRes = await frappe.call({
+          method: "frappe.client.get_list",
+          args: {
+            doctype: "User",
+            filters: { name: ["in", userEmails] },
+            fields: ["name", "full_name"]
+          }
+        });
+        (usersRes.message || []).forEach((u: any) => {
+          userMap[u.name] = u.full_name || u.name;
+        });
+      }
+
+      const qiToApprover: Record<string, string> = {};
+      qiDocs.forEach((m: any) => {
+        const approverEmail = m.inspected_by || m.owner;
+        qiToApprover[m.name] = userMap[approverEmail] || approverEmail || "-";
+      });
+
+      if (allQis.length === 1) {
+        const q = allQis[0];
+        qisList.push(q);
+        approversList.push(qiToApprover[q] || "-");
+      } else {
+        allQis.forEach((q, idx) => {
+          qisList.push(`${idx + 1}. ${q}`);
+          approversList.push(`${idx + 1}. ${qiToApprover[q] || "-"}`);
+        });
+      }
+    } catch (e) {
+      console.error("Failed to resolve QI approvers", e);
+      allQis.forEach((q, idx) => {
+        qisList.push(allQis.length === 1 ? q : `${idx + 1}. ${q}`);
+        approversList.push(allQis.length === 1 ? "-" : `${idx + 1}. -`);
+      });
+    }
+  }
+
+  const qiSummary = allQis.join(", ") || (doc.quality_inspection || "-");
+  return { qisList, approversList, qiSummary };
+}
+
+export async function printIdcProtocol(doc: any) {
   const rows: any[] = doc.idc_olcumleri || [];
   if (rows.length === 0) return frappe.msgprint(__("Yazdırılacak IDC ölçümü yok."));
 
   const today = frappe.datetime.get_today();
+  const { qisList, approversList, qiSummary } = await resolveQisAndApprovers(doc);
 
   const fmt = (val: string) => {
     if (!val) return "-";
@@ -135,16 +245,16 @@ export function printIdcProtocol(doc: any) {
   const rows_html = rows.map((r: any, i: number) => `
     <tr class="row-${i % 2 === 0 ? 'even' : 'odd'}">
       <td>${i + 1}</td>
-      <td>${r.item_code || "-"}</td>
+      <td>${escapeHtml(r.item_code || "-")}</td>
       <td>${r.yukseklik_mm ?? "-"} mm</td>
       <td>${r.cekme_n ?? "-"} N</td>
-      <td>${fmt(r.olcum_tarihi)}</td>
-      <td>${r.olcumu_giren || "-"}</td>
+      <td>${escapeHtml(fmt(r.olcum_tarihi))}</td>
+      <td>${escapeHtml(r.olcumu_giren || "-")}</td>
     </tr>
   `).join("");
 
   const bodyHtml = `
-    ${getHeaderHtml(doc, __("IDC Ölçüm Protokol Belgesi"), today)}
+    ${getHeaderHtml(doc, __("IDC Ölçüm Protokol Belgesi"), today, false, qiSummary)}
     <table>
       <thead>
         <tr>
@@ -158,7 +268,7 @@ export function printIdcProtocol(doc: any) {
       </thead>
       <tbody>${rows_html}</tbody>
     </table>
-    ${getSignaturesHtml(doc, today)}
+    ${getSignaturesHtml(doc, today, qisList, approversList)}
   `;
 
   printHtml(__("IDC Protokol Belgesi"), doc.name, bodyHtml);
@@ -184,59 +294,8 @@ export async function printKrimpProtocol(doc: any) {
   };
 
   const altOps = doc.alt_operasyon_kayitlari || [];
-  const qis = altOps.map((a: any) => a.quality_inspection).filter(Boolean);
-  const is_sub_op_based = qis.length > 0;
-
-  let qisList: string[] = [];
-  let approversList: string[] = [];
-
-  if (is_sub_op_based) {
-    try {
-      const res = await frappe.call({
-        method: "frappe.client.get_list",
-        args: {
-          doctype: "Quality Inspection",
-          filters: { name: ["in", qis] },
-          fields: ["name", "owner"]
-        }
-      });
-      const userEmails = res.message.map((m: any) => m.owner);
-      if (userEmails.length > 0) {
-        const usersRes = await frappe.call({
-          method: "frappe.client.get_list",
-          args: {
-            doctype: "User",
-            filters: { name: ["in", userEmails] },
-            fields: ["name", "full_name"]
-          }
-        });
-        const users = usersRes.message || [];
-        const userMap = users.reduce((acc: any, u: any) => { acc[u.name] = u.full_name; return acc; }, {});
-        
-        const ownerMap = res.message.reduce((acc: any, m: any) => { acc[m.name] = userMap[m.owner] || m.owner; return acc; }, {});
-        
-        rows.forEach((r: any, i: number) => {
-          const altOp = altOps.find((a: any) => a.name === r.alt_operasyon_kaydi);
-          const qiName = altOp?.quality_inspection;
-          if (qiName) {
-            const qStr = `${i + 1}. ${qiName}`;
-            const aStr = `${i + 1}. ${ownerMap[qiName] || "-"}`;
-            if (!qisList.includes(qStr)) {
-              qisList.push(qStr);
-              approversList.push(aStr);
-            }
-          }
-        });
-      }
-    } catch (e) {
-      console.error("Failed to fetch QI owners", e);
-    }
-  } else {
-    if (doc.quality_inspection) {
-      qisList.push(doc.quality_inspection);
-      approversList.push(doc.qi_details?.owner_name || doc.qi_owner_name || "-");
-    }
-  }
+  const { qisList, approversList, qiSummary } = await resolveQisAndApprovers(doc);
+  const is_sub_op_based = qisList.length > 0;
 
   const rows_html = rows.map((r: any, i: number) => {
     const t1_radus = !r.kontak_no && (r.siyirma_boyu || 0) > 0 && r.yon_2_kontak_no ? r.yon_2_radus_mevcut : (!r.kontak_no ? 1 : r.radus_mevcut);
@@ -251,37 +310,37 @@ export async function printKrimpProtocol(doc: any) {
     let row1 = `
     <tr class="row-${i % 2 === 0 ? 'even' : 'odd'}">
       <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${i + 1}</td>
-      <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${satir_no}</td>
-      <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${r.kablo_no || "-"}</td>
-      <td>${r.is_cift_tarafli ? '(T1) ' : ''}${r.kontak_no || "-"}</td>
-      <td>${r.kablo_kesiti || "-"}</td>
-      <td>${r.makine_pres_no || "-"}</td>
-      <td>${r.kalip_no || "-"}</td>
+      <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${escapeHtml(satir_no)}</td>
+      <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${escapeHtml(r.kablo_no || "-")}</td>
+      <td>${r.is_cift_tarafli ? '(T1) ' : ''}${escapeHtml(r.kontak_no || "-")}</td>
+      <td>${escapeHtml(r.kablo_kesiti || "-")}</td>
+      <td>${escapeHtml(r.makine_pres_no || "-")}</td>
+      <td>${escapeHtml(r.kalip_no || "-")}</td>
       <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${r.hedef_kablo_boyu ?? "-"}</td>
       <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${r.olculen_kablo_boyu ?? "-"}</td>
-      <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''} class="${sapmaClass(r.olculen_kablo_boyu, r.hedef_kablo_boyu)}">${sapmaTxt(r.olculen_kablo_boyu, r.hedef_kablo_boyu)}</td>
+      <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''} class="${sapmaClass(r.olculen_kablo_boyu, r.hedef_kablo_boyu)}">${escapeHtml(sapmaTxt(r.olculen_kablo_boyu, r.hedef_kablo_boyu))}</td>
       <td>${r.hedef_iletken_krimp_yuksekliği ?? "-"}</td>
       <td>${r.olculen_iletken_krimp_yuksekliği ?? "-"}</td>
-      <td class="${sapmaClass(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği)}">${sapmaTxt(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği)}</td>
+      <td class="${sapmaClass(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği)}">${escapeHtml(sapmaTxt(r.olculen_iletken_krimp_yuksekliği, r.hedef_iletken_krimp_yuksekliği))}</td>
       <td>${r.siyirma_boyu ?? "-"} mm</td>
       <td>${r.capak_boyu ?? "-"} mm</td>
       <td>${r.olculen_cekme_kuvveti_n ?? "-"} N (${__("Hedef:")} ${r.hedef_cekme_kuvveti_n ?? "-"})</td>
       <td class="${t1_radus ? 'ok' : 'low'}">${t1_radus ? "✔" : "✘"}</td>
       <td class="${!t1_tel_kesme ? 'ok' : 'low'}">${!t1_tel_kesme ? "✔" : "✘"}</td>
-      <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${r.operator || "-"}</td>
+      <td ${r.is_cift_tarafli ? 'rowspan="2"' : ''}>${escapeHtml(r.operator || "-")}</td>
     </tr>
     `;
 
     if (r.is_cift_tarafli) {
       let row2 = `
     <tr class="row-${i % 2 === 0 ? 'even' : 'odd'}">
-      <td>(T2) ${r.yon_2_kontak_no || "-"}</td>
-      <td>${r.yon_2_kablo_kesiti || "-"}</td>
-      <td>${r.yon_2_makine_pres_no || "-"}</td>
-      <td>${r.yon_2_kalip_no || "-"}</td>
+      <td>(T2) ${escapeHtml(r.yon_2_kontak_no || "-")}</td>
+      <td>${escapeHtml(r.yon_2_kablo_kesiti || "-")}</td>
+      <td>${escapeHtml(r.yon_2_makine_pres_no || "-")}</td>
+      <td>${escapeHtml(r.yon_2_kalip_no || "-")}</td>
       <td>${r.yon_2_hedef_iletken_krimp_yuksekligi ?? "-"}</td>
       <td>${r.yon_2_olculen_iletken_krimp_yuksekligi ?? "-"}</td>
-      <td class="${sapmaClass(r.yon_2_olculen_iletken_krimp_yuksekligi, r.yon_2_hedef_iletken_krimp_yuksekligi)}">${sapmaTxt(r.yon_2_olculen_iletken_krimp_yuksekligi, r.yon_2_hedef_iletken_krimp_yuksekligi)}</td>
+      <td class="${sapmaClass(r.yon_2_olculen_iletken_krimp_yuksekligi, r.yon_2_hedef_iletken_krimp_yuksekligi)}">${escapeHtml(sapmaTxt(r.yon_2_olculen_iletken_krimp_yuksekligi, r.yon_2_hedef_iletken_krimp_yuksekligi))}</td>
       <td>${r.yon_2_siyirma_boyu ?? "-"} mm</td>
       <td>${r.yon_2_capak_boyu ?? "-"} mm</td>
       <td>${r.yon_2_olculen_cekme_kuvveti_n ?? "-"} N (${__("Hedef:")} ${r.yon_2_hedef_cekme_kuvveti_n ?? "-"})</td>
@@ -296,7 +355,7 @@ export async function printKrimpProtocol(doc: any) {
   }).join("");
 
   const bodyHtml = `
-    ${getHeaderHtml(doc, __("Krimp Ölçüm Protokol Belgesi"), today, is_sub_op_based)}
+    ${getHeaderHtml(doc, __("Krimp Ölçüm Protokol Belgesi"), today, is_sub_op_based, qiSummary)}
     <table>
       <thead>
         <tr>
@@ -329,11 +388,12 @@ export async function printKrimpProtocol(doc: any) {
   printHtml(__("Krimp Protokol Belgesi"), doc.name, bodyHtml);
 }
 
-export function printEnjeksiyonProtocol(doc: any) {
+export async function printEnjeksiyonProtocol(doc: any) {
   const rows: any[] = doc.enjeksiyon_olcumleri || [];
   if (rows.length === 0) return frappe.msgprint(__("Yazdırılacak enjeksiyon ölçümü yok."));
 
   const today = frappe.datetime.get_today();
+  const { qisList, approversList, qiSummary } = await resolveQisAndApprovers(doc);
 
   const sapmaClass = (val: number, merkez: number, tolerans: number) => {
       if (!val || !merkez) return "";
@@ -364,8 +424,9 @@ export function printEnjeksiyonProtocol(doc: any) {
   const rows_html = rows.map((r: any, i: number) => `
     <tr class="row-${i % 2 === 0 ? 'even' : 'odd'}">
       <td>${i + 1}</td>
-      <td>${r.kontrol_periyodu ? __(r.kontrol_periyodu) : "-"}</td>
-      <td>${r.hammadde_no || "-"}</td>
+      <td>${r.kontrol_periyodu ? escapeHtml(__(r.kontrol_periyodu)) : "-"}</td>
+      <td>${escapeHtml(r.kalip_no || "-")}</td>
+      <td>${escapeHtml(r.hammadde_no || "-")}</td>
       <td class="${sapmaClass(r.hammadde_kazan_isisi, r.hedef_hammadde_kazan_isisi_merkez, r.hedef_hammadde_kazan_isisi_tolerans)}">${formatMerkez(r.hammadde_kazan_isisi, r.hedef_hammadde_kazan_isisi_merkez, r.hedef_hammadde_kazan_isisi_tolerans)}</td>
       <td class="${sapmaClass(r.ara_hortum_isisi, r.hedef_ara_hortum_isisi_merkez, r.hedef_ara_hortum_isisi_tolerans)}">${formatMerkez(r.ara_hortum_isisi, r.hedef_ara_hortum_isisi_merkez, r.hedef_ara_hortum_isisi_tolerans)}</td>
       <td class="${sapmaClass(r.kafa_meme_isisi, r.hedef_kafa_meme_isisi_merkez, r.hedef_kafa_meme_isisi_tolerans)}">${formatMerkez(r.kafa_meme_isisi, r.hedef_kafa_meme_isisi_merkez, r.hedef_kafa_meme_isisi_tolerans)}</td>
@@ -375,17 +436,18 @@ export function printEnjeksiyonProtocol(doc: any) {
       <td class="${minMaxClass(r.sogutma_zamani, r.hedef_sogutma_zamani_min, r.hedef_sogutma_zamani_maks)}">${formatMinMax(r.sogutma_zamani, r.hedef_sogutma_zamani_min, r.hedef_sogutma_zamani_maks)}</td>
       <td class="${minMaxClass(r.cekme_kuvveti_olculen, r.hedef_cekme_kuvveti_min, 0)}">${formatMinMax(r.cekme_kuvveti_olculen, r.hedef_cekme_kuvveti_min, 0)}</td>
       <td class="${r.goz_kontrol ? 'ok' : 'low'}">${r.goz_kontrol ? "✔" : "✘"}</td>
-      <td>${r.operator || "-"}</td>
+      <td>${escapeHtml(r.operator || "-")}</td>
     </tr>
   `).join("");
 
   const bodyHtml = `
-    ${getHeaderHtml(doc, __("Enjeksiyon Ölçüm Protokol Belgesi"), today)}
+    ${getHeaderHtml(doc, __("Enjeksiyon Ölçüm Protokol Belgesi"), today, false, qiSummary)}
     <table>
       <thead>
         <tr>
           <th>#</th>
           <th>${__('Periyot')}</th>
+          <th>${__('Kalıp No')}</th>
           <th>${__('Hammadde')}</th>
           <th>${__('Kazan Isısı')}</th>
           <th>${__('Hortum Isısı')}</th>
@@ -401,7 +463,7 @@ export function printEnjeksiyonProtocol(doc: any) {
       </thead>
       <tbody>${rows_html}</tbody>
     </table>
-    ${getSignaturesHtml(doc, today)}
+    ${getSignaturesHtml(doc, today, qisList, approversList)}
   `;
 
   printHtml(__("Enjeksiyon Protokol Belgesi"), doc.name, bodyHtml);

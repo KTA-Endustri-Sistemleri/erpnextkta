@@ -1,5 +1,6 @@
 import { krimpOlcumFields } from "../prompts";
 import { printKrimpProtocol as printKrimpProtocolUtil } from "../../utils/print_protocols";
+import { formatAltOpRowLabel } from "../../utils/kalite_ui";
 
 export function useKrimpDialogs(props: any) {
   const __ = (...args: any[]) => (window as any).__(...args);
@@ -301,7 +302,7 @@ export function useKrimpDialogs(props: any) {
       "",
       ...(props.doc.alt_operasyon_kayitlari || [])
         .map((r: any) => ({
-          label: r.alt_operasyon_title || r.alt_operasyon,
+          label: formatAltOpRowLabel(r),
           value: r.name
         }))
     ];
@@ -415,7 +416,7 @@ export function useKrimpDialogs(props: any) {
       "",
       ...(props.doc.alt_operasyon_kayitlari || [])
         .map((r: any) => ({
-          label: r.alt_operasyon_title || r.alt_operasyon,
+          label: formatAltOpRowLabel(r),
           value: r.name
         }))
     ];
@@ -519,7 +520,7 @@ export function useKrimpDialogs(props: any) {
       "",
       ...(props.doc.alt_operasyon_kayitlari || [])
         .map((r: any) => ({
-          label: r.alt_operasyon_title || r.alt_operasyon,
+          label: formatAltOpRowLabel(r),
           value: r.name
         }))
     ];
