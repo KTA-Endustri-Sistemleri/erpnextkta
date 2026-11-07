@@ -255,6 +255,7 @@
         <tr>
           <th>#</th>
           <th>{{ _('Periyot') }}</th>
+          <th>{{ _('Kalıp No') }}</th>
           <th>{{ _('Hammadde') }}</th>
           <th>{{ _('Kazan Isısı') }}</th>
           <th>{{ _('Hortum Isısı') }}</th>
@@ -272,17 +273,18 @@
         {% for r in doc.get("enjeksiyon_olcumleri") %}
         <tr class="row-{{ loop.cycle('odd', 'even') }}">
           <td>{{ loop.index }}</td>
-          <td>{{ r.periyot or "-" }}</td>
+          <td>{{ r.kontrol_periyodu or r.periyot or "-" }}</td>
+          <td>{{ r.kalip_no or "-" }}</td>
           <td>{{ r.hammadde_no or "-" }}</td>
-          <td>{{ r.kazan_isisi if r.kazan_isisi is not none else "-" }}</td>
-          <td>{{ r.hortum_isisi if r.hortum_isisi is not none else "-" }}</td>
-          <td>{{ r.meme_isisi if r.meme_isisi is not none else "-" }}</td>
+          <td>{{ r.hammadde_kazan_isisi if r.hammadde_kazan_isisi is not none else (r.kazan_isisi if r.kazan_isisi is not none else "-") }}</td>
+          <td>{{ r.ara_hortum_isisi if r.ara_hortum_isisi is not none else (r.hortum_isisi if r.hortum_isisi is not none else "-") }}</td>
+          <td>{{ r.kafa_meme_isisi if r.kafa_meme_isisi is not none else (r.meme_isisi if r.meme_isisi is not none else "-") }}</td>
           <td>{{ r.soguk_su_isisi if r.soguk_su_isisi is not none else "-" }}</td>
-          <td>{{ r.motor_devri if r.motor_devri is not none else "-" }}</td>
-          <td>{{ r.enjeksiyon_zamani if r.enjeksiyon_zamani is not none else "-" }}</td>
+          <td>{{ r.motor_devir if r.motor_devir is not none else (r.motor_devri if r.motor_devri is not none else "-") }}</td>
+          <td>{{ r.hammadde_enjeksiyon_zamani if r.hammadde_enjeksiyon_zamani is not none else (r.enjeksiyon_zamani if r.enjeksiyon_zamani is not none else "-") }}</td>
           <td>{{ r.sogutma_zamani if r.sogutma_zamani is not none else "-" }}</td>
-          <td>{{ r.olculen_cekme_kuvveti_n if r.olculen_cekme_kuvveti_n is not none else "-" }} N (Hedef: {{ r.hedef_cekme_kuvveti_n if r.hedef_cekme_kuvveti_n is not none else "-" }})</td>
-          <td class="{{ 'ok' if r.goz_kontrolu_ok else 'low' }}">{{ "✔" if r.goz_kontrolu_ok else "✘" }}</td>
+          <td>{{ r.cekme_kuvveti_olculen if r.cekme_kuvveti_olculen is not none else (r.olculen_cekme_kuvveti_n if r.olculen_cekme_kuvveti_n is not none else "-") }} N (Hedef: {{ r.hedef_cekme_kuvveti_min if r.hedef_cekme_kuvveti_min is not none else (r.hedef_cekme_kuvveti_n if r.hedef_cekme_kuvveti_n is not none else "-") }})</td>
+          <td class="{{ 'ok' if (r.goz_kontrol or r.goz_kontrolu_ok) else 'low' }}">{{ "✔" if (r.goz_kontrol or r.goz_kontrolu_ok) else "✘" }}</td>
           <td>{{ r.operator or "-" }}</td>
         </tr>
         {% endfor %}

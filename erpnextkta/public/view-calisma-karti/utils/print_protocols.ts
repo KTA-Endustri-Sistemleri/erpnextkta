@@ -365,6 +365,7 @@ export function printEnjeksiyonProtocol(doc: any) {
     <tr class="row-${i % 2 === 0 ? 'even' : 'odd'}">
       <td>${i + 1}</td>
       <td>${r.kontrol_periyodu ? __(r.kontrol_periyodu) : "-"}</td>
+      <td>${r.kalip_no || "-"}</td>
       <td>${r.hammadde_no || "-"}</td>
       <td class="${sapmaClass(r.hammadde_kazan_isisi, r.hedef_hammadde_kazan_isisi_merkez, r.hedef_hammadde_kazan_isisi_tolerans)}">${formatMerkez(r.hammadde_kazan_isisi, r.hedef_hammadde_kazan_isisi_merkez, r.hedef_hammadde_kazan_isisi_tolerans)}</td>
       <td class="${sapmaClass(r.ara_hortum_isisi, r.hedef_ara_hortum_isisi_merkez, r.hedef_ara_hortum_isisi_tolerans)}">${formatMerkez(r.ara_hortum_isisi, r.hedef_ara_hortum_isisi_merkez, r.hedef_ara_hortum_isisi_tolerans)}</td>
@@ -386,6 +387,7 @@ export function printEnjeksiyonProtocol(doc: any) {
         <tr>
           <th>#</th>
           <th>${__('Periyot')}</th>
+          <th>${__('Kalıp No')}</th>
           <th>${__('Hammadde')}</th>
           <th>${__('Kazan Isısı')}</th>
           <th>${__('Hortum Isısı')}</th>

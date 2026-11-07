@@ -486,6 +486,8 @@ KESİT:,CROSS-SECTION:
 İzokrimp Yüksekliği (mm),Isocrimp Height (mm)
 Adet,Quantity
 KALIP:,MOLD:
+KALIP NO:,MOLD NO.:
+Kalıp No zorunludur.,Mold No. is required.
 Kafa (Meme) Isısı (°C),Head (Nozzle) Temp (°C)
 Kopyala, Copy
 Hedef karşılandı,Target met

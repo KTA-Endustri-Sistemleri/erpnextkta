@@ -51,8 +51,9 @@ export function useEnjeksiyonDialogs(props: any) {
   }
 
   function addEnjeksiyon() {
+    const lastKalipNo = props.doc.alt_operasyon_kayitlari?.slice().reverse().find((r: any) => r.kalip_no)?.kalip_no || "";
     const dialog = frappe.prompt(
-      enjeksiyonOlcumFields({ calisma_karti_name: props.doc.name }),
+      enjeksiyonOlcumFields({ calisma_karti_name: props.doc.name, kalip_no: lastKalipNo }),
       async (v: any) => {
         const payload = { ...v };
         if (dialog.enjeksiyon_tolerans) {

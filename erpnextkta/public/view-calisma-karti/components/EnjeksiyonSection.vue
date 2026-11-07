@@ -13,7 +13,7 @@ const props = defineProps<{
   onPrint: () => void;
 }>();
 
-const __ = (...args: any[]) => window.__(...args);
+const __ = (...args: any[]) => (window as any).__(...args);
 
 function actions(r: any) {
   const items = props.canEditData
@@ -69,6 +69,10 @@ function minMaxClass(val: number, min: number, max: number) {
            <div class="ck-header-row">
              <span class="ck-label">{{ __("PERİYOT:") }}</span>
              <span class="ck-val">{{ r.kontrol_periyodu ? __(r.kontrol_periyodu) : '-' }}</span>
+           </div>
+           <div class="ck-header-row">
+             <span class="ck-label">{{ __("KALIP NO:") }}</span>
+             <span class="ck-val">{{ r.kalip_no || '-' }}</span>
            </div>
            <div class="ck-header-row">
              <span class="ck-label">{{ __("HAMMADDE:") }}</span>

@@ -486,6 +486,8 @@ KESİT:,QUERSCHNITT:
 İzokrimp Yüksekliği (mm),Isocrimphöhe (mm)
 Adet,Menge
 KALIP:,FORM:
+KALIP NO:,FORM-NR.:
+Kalıp No zorunludur.,Form-Nr. ist erforderlich.
 Kafa (Meme) Isısı (°C),Kopf- (Düsen-) Temperatur (°C)
 Kopyala,Kopieren
 Hedef karşılandı,Ziel erreicht

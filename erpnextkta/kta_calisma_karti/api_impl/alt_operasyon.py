@@ -223,11 +223,20 @@ def add_alt_operasyon_kaydi(
     hammadde_3: str = None, boyut_3_mm: float = 0, islem_adedi_3: float = 0,
     note: str = None,
     satir_no: str = None,
+    kalip_no: str = None,
 ):
     doc = frappe.get_doc("Calisma Karti", calisma_karti)
     doc.check_permission("write")
     _assert_can_write(doc)
     
+    op_meta = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", doc.operasyon,
+        ["has_krimp", "alt_operasyon_bazli_kalite", "has_enjeksiyon"], as_dict=True
+    ) or {}
+
+    if (doc.operasyon == "OP40" or op_meta.get("has_enjeksiyon")) and not (kalip_no or "").strip():
+        frappe.throw(_("Kalıp No zorunludur."), frappe.ValidationError)
+
     if hammadde: _assert_hammadde_allowed(calisma_karti, hammadde, alt_operasyon)
     if hammadde_2: _assert_hammadde_allowed(calisma_karti, hammadde_2, alt_operasyon)
     if hammadde_3: _assert_hammadde_allowed(calisma_karti, hammadde_3, alt_operasyon)
@@ -268,6 +277,8 @@ def add_alt_operasyon_kaydi(
         {
             "alt_operasyon": alt_operasyon,
             "title": ao_doc.title,
+            "satir_no": satir_no,
+            "kalip_no": (kalip_no or "").strip(),
             "hammadde": hammadde,
             "boyut_1_mm": boyut_1_mm,
             "islem_adedi_1": islem_adedi_1,
@@ -284,16 +295,11 @@ def add_alt_operasyon_kaydi(
             "adet_3": adet_3,
             "uom_3": uom_3,
             "note": note,
-            "satir_no": satir_no,
         },
     )
     
     # Otomatik Krimp Formu Ekleme
     new_krimp = None
-    op_meta = frappe.db.get_value(
-        "KTA Calisma Karti Operasyonlari", doc.operasyon,
-        ["has_krimp", "alt_operasyon_bazli_kalite"], as_dict=True
-    )
 
     if op_meta and op_meta.get("has_krimp") and op_meta.get("alt_operasyon_bazli_kalite"):
         # Zeki Logic: Gelen verilere göre T1 ve T2'yi belirle (Sabit Eşleştirme)
@@ -453,11 +459,20 @@ def update_alt_operasyon_kaydi(
     hammadde_3: str = None, boyut_3_mm: float = 0, islem_adedi_3: float = 0,
     note: str = None,
     satir_no: str = None,
+    kalip_no: str = None,
 ):
     doc = frappe.get_doc("Calisma Karti", calisma_karti)
     doc.check_permission("write")
     _assert_can_write(doc)
     
+    op_meta = frappe.db.get_value(
+        "KTA Calisma Karti Operasyonlari", doc.operasyon,
+        ["has_krimp", "alt_operasyon_bazli_kalite", "has_enjeksiyon"], as_dict=True
+    ) or {}
+
+    if (doc.operasyon == "OP40" or op_meta.get("has_enjeksiyon")) and not (kalip_no or "").strip():
+        frappe.throw(_("Kalıp No zorunludur."), frappe.ValidationError)
+
     row = doc.get("alt_operasyon_kayitlari", {"name": row_id})
     if row:
         _assert_qc_unlocked(doc, row[0])
@@ -502,6 +517,7 @@ def update_alt_operasyon_kaydi(
     )
 
     row.alt_operasyon = alt_operasyon
+    row.kalip_no = (kalip_no or "").strip()
     row.hammadde = hammadde
     row.boyut_1_mm = boyut_1_mm
     row.islem_adedi_1 = islem_adedi_1

@@ -280,6 +280,13 @@ export function enjeksiyonOlcumFields(defaults: any = {}) {
             default: defaults.kontrol_periyodu || "Başlangıç",
         },
         {
+            fieldtype: "Data",
+            label: __("Kalıp No"),
+            fieldname: "kalip_no",
+            reqd: 1,
+            default: defaults.kalip_no || "",
+        },
+        {
             fieldtype: "Link",
             label: __("Hammadde No"),
             fieldname: "hammadde_no",

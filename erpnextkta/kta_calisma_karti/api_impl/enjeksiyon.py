@@ -47,8 +47,13 @@ def add_enjeksiyon_olcumu(name: str, payload: str | dict):
         import json
         payload = json.loads(payload)
 
+    kalip_no = (payload.get("kalip_no") or "").strip()
+    if not kalip_no:
+        frappe.throw(_("Kalıp No zorunludur."))
+
     row = {
         "kontrol_periyodu": payload.get("kontrol_periyodu"),
+        "kalip_no": kalip_no,
         "hammadde_no": payload.get("hammadde_no"),
         "goz_kontrol": 1 if payload.get("goz_kontrol") else 0,
         "cekme_kuvveti_olculen": float(payload.get("cekme_kuvveti_olculen") or 0),
@@ -103,7 +108,12 @@ def update_enjeksiyon_olcumu(name: str, rowname: str, payload: str | dict):
     if not target:
         frappe.throw(_("Enjeksiyon ölçüm satırı bulunamadı (rowname: {0}).").format(rowname))
 
+    kalip_no = (payload.get("kalip_no") or "").strip()
+    if not kalip_no:
+        frappe.throw(_("Kalıp No zorunludur."))
+
     target.kontrol_periyodu = payload.get("kontrol_periyodu")
+    target.kalip_no = kalip_no
     target.hammadde_no = payload.get("hammadde_no")
     target.goz_kontrol = 1 if payload.get("goz_kontrol") else 0
     target.cekme_kuvveti_olculen = float(payload.get("cekme_kuvveti_olculen") or 0)

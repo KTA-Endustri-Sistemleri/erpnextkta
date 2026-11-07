@@ -57,7 +57,10 @@ onMounted(() => {
 function onAltOperasyonEkle() {
   let d: any;
   const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
-  const defaults = { alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite };
+  const defaults = {
+    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite,
+    has_enjeksiyon: props.doc.has_enjeksiyon,
+  };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = new frappe.ui.Dialog({
     title: __("Alt İşlem Ekle"),
@@ -83,6 +86,7 @@ function onAltOperasyonEkle() {
       await props.onAdd({
         alt_operasyon: v.alt_operasyon,
         satir_no: v.satir_no || "",
+        kalip_no: v.kalip_no || "",
         hammadde: v.hammadde || null,
         boyut_1_mm: v.boyut_1_mm || 0,
         islem_adedi_1: islem_1, // fallback to adet for single mode handled above
@@ -112,7 +116,8 @@ function onAltOperasyonDuzenle(h: any) {
   const fieldsFn = ekranTipi.value === "Çoklu Hammadde" ? altOperasyonFieldsMulti : altOperasyonFieldsSingle;
   const defaults = {
     ...h,
-    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite
+    alt_operasyon_bazli_kalite: props.doc.alt_operasyon_bazli_kalite,
+    has_enjeksiyon: props.doc.has_enjeksiyon,
   };
   const fields = fieldsFn(props.doc.operasyon, props.doc.name, defaults, () => d?.get_value("alt_operasyon"), altOpOptions.value);
   d = new frappe.ui.Dialog({
@@ -140,6 +145,7 @@ function onAltOperasyonDuzenle(h: any) {
         row_id: h.name,
         alt_operasyon: v.alt_operasyon,
         satir_no: v.satir_no || "",
+        kalip_no: v.kalip_no || "",
         hammadde: v.hammadde || null,
         boyut_1_mm: v.boyut_1_mm || 0,
         islem_adedi_1: islem_1,
@@ -197,6 +203,10 @@ function onAltOperasyonSil(h: any) {
             <div class="ck-mini-content">
                 <b class="ck-mini-title">{{ h.alt_operasyon_title || h.alt_operasyon }}</b>
             
+              <div class="ck-muted ck-mini-sub" v-if="h.kalip_no">
+                <b>{{ __("KALIP NO:") }}</b> {{ h.kalip_no }}
+              </div>
+
             <template v-if="ekranTipi === 'Çoklu Hammadde'">
               <div class="ck-muted ck-mini-sub" v-if="h.hammadde_2 || h.boyut_2_mm || h.hammadde_3">
                 <b>{{ __("T1") }}:</b> 

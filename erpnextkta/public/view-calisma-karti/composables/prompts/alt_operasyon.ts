@@ -1,5 +1,7 @@
 import { applyDecimalInputMode } from "./common";
 
+declare const __: any;
+
 export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKartiName: string, defaults: any = {}, getAltOpValue?: () => string, altOpOptions: any[] = []) {
     // Generate depends_on expressions using JS functions for robustness in Frappe Dialogs
     const opsWith2OrMoreValues = altOpOptions.filter((o: any) => parseInt(o.hammadde_sayisi || "1") >= 2).map((o: any) => o.value);
@@ -83,6 +85,14 @@ export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKar
             reqd: defaults.alt_operasyon_bazli_kalite ? 1 : 0,
             depends_on: () => !!defaults.alt_operasyon_bazli_kalite,
             default: defaults.satir_no || "",
+        },
+        {
+            fieldtype: "Data",
+            label: __("Kalıp No"),
+            fieldname: "kalip_no",
+            reqd: (parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon) ? 1 : 0,
+            depends_on: () => parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon,
+            default: defaults.kalip_no || "",
         },
         { fieldtype: "Section Break" },
 
@@ -204,6 +214,14 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             reqd: defaults.alt_operasyon_bazli_kalite ? 1 : 0,
             depends_on: () => !!defaults.alt_operasyon_bazli_kalite,
             default: defaults.satir_no || "",
+        },
+        {
+            fieldtype: "Data",
+            label: __("Kalıp No"),
+            fieldname: "kalip_no",
+            reqd: (parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon) ? 1 : 0,
+            depends_on: () => parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon,
+            default: defaults.kalip_no || "",
         },
         { fieldtype: "Section Break" },
         {
