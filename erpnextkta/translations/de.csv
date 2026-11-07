@@ -322,7 +322,7 @@ Senkronizasyon Sonucu,Synchronisierungsergebnis
 Senkronizasyon Tamamlandı,Synchronisierung abgeschlossen
 Senkronizasyon kuyruğa alındı,Synchronisierung in der Warteschlange
 Seç,Auswählen
-"Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector veya 110-Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)","Der ausgewählte IDC-Code ist nicht geeignet. (item_group=120-IDC Connector oder 110-Connector, custom_ara_malzeme_grubu=ROHMATERIAL)"
+"Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector, 110-Connector veya 190-Connection Systems olmalı)","Der ausgewählte IDC-Code ist nicht geeignet. (item_group muss 120-IDC Connector, 110-Connector oder 190-Connection Systems sein)"
 Seçilen depo bir grup olmalıdır,Das ausgewählte Repository muss eine Gruppe sein
 Seçilen hammadde ({0}) iş emri BOM'unda bu aşama için izin verilmiyor.,Der ausgewählte Rohstoff ({0}) ist für diese Phase in der Arbeitsauftragsstückliste nicht zulässig.
 Seçilen varlığın Makine No alanı dolu değil.,Das Feld „Maschinen-ID“ der ausgewählten Entität ist nicht ausgefüllt.

@@ -205,14 +205,14 @@ def _assert_idc_item_allowed_for_work_order(doc, item_code: str):
         "Item",
         {
             "name": code,
-            "item_group": ["in", ["120-IDC Connector", "110-Connector"]],
-            "custom_ara_malzeme_grubu": "HAMMADDE",
+            "item_group": ["in", ["120-IDC Connector", "110-Connector", "190-Connection Systems"]],
+            "custom_ara_malzeme_grubu": ["not in", ["ÜRÜN"]],
         },
         "name"
     )
     if not ok_item:
         frappe.throw(
-            _("Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector veya 110-Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)"),
+            _("Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector, 110-Connector veya 190-Connection Systems olmalı)"),
             frappe.ValidationError,
         )
 
@@ -243,6 +243,13 @@ def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters
     filters expected:
       - calisma_karti: Calisma Karti name
     """
+    if isinstance(filters, str):
+        import json
+        try:
+            filters = json.loads(filters)
+        except Exception:
+            filters = {}
+
     calisma_karti = (filters or {}).get("calisma_karti")
     if not calisma_karti:
         return []
@@ -258,15 +265,15 @@ def search_allowed_idc_items(doctype, txt, searchfield, start, page_len, filters
     # Join BOM Item -> Item and apply constraints + BOM scope
     return frappe.db.sql(
         """
-        select i.name, i.item_name
+        select distinct i.name, i.item_name
         from `tabBOM Item` bi
         inner join `tabItem` i on i.name = bi.item_code
         where
             bi.parent = %(bom_no)s
             and bi.parenttype = 'BOM'
             and bi.parentfield = 'items'
-            and i.item_group in ('120-IDC Connector', '110-Connector')
-            and ifnull(i.custom_ara_malzeme_grubu, '') = 'HAMMADDE'
+            and i.item_group in ('120-IDC Connector', '110-Connector', '190-Connection Systems')
+            and ifnull(i.custom_ara_malzeme_grubu, '') != 'ÜRÜN'
             and (
                 i.name like %(like)s
                 or i.item_name like %(like)s
