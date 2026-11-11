@@ -9,6 +9,7 @@ These rules apply specifically to contributing to the `erpnextkta` repository on
   * **Test Cases:** Every fix or feature must include automated test cases to ensure stability and prevent regressions.
   * **UI Changes:** If changes affect the user interface, you must provide screenshots or a GIF demonstrating the visual differences.
   * **Documentation:** Ensure related documentation is updated if new APIs, fields, or configurations are introduced.
+* **PR Description Output Rule:** Whenever asked to write or update a PR description, always output the complete PR description in directly copy-pasteable Markdown format (enclosed in a ```markdown code block).
 
 ## 2. Commit Message Conventions (Conventional Commits)
 All commit messages must follow the Conventional Commits specification. They are validated via `commitlint.config.js`.
