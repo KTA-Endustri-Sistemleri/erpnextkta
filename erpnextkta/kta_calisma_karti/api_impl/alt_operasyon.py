@@ -7,7 +7,6 @@ from ._helpers import (
     extract_alt_op_code,
     format_alt_op_label,
     get_allowed_items_with_groups,
-    get_my_employee_or_none,
     has_admin_roles,
     has_qc_role,
     is_qc_approved,

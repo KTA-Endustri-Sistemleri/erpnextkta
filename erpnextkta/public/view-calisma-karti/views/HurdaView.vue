@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import CkHurdaModal from "../components/CkHurdaModal.vue";
+import { useHurdaDialogs } from "../composables/dialogs/useHurdaDialogs";
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
@@ -12,44 +11,11 @@ const props = defineProps<{
   onDelete: (rowname: string) => Promise<void>;
 }>();
 
-const showModal = ref(false);
-const editItem = ref<any>(null);
-
-function onHurdaEkle() {
-  editItem.value = null;
-  showModal.value = true;
-}
-
-function onHurdaDuzenle(h: any) {
-  editItem.value = h;
-  showModal.value = true;
-}
-
-async function handleModalSubmit(payload: any) {
-  if (payload.rowname) {
-    await props.onUpdate(payload);
-    frappe.show_alert({ message: __("Hurda güncellendi"), indicator: "green" });
-  } else {
-    await props.onAdd(payload);
-    frappe.show_alert({ message: __("Hurda eklendi"), indicator: "green" });
-  }
-}
-
-function onHurdaSil(h: any) {
-  if (!h?.name) {
-    frappe.msgprint(__("Hurda satır kimliği (row name) bulunamadı."));
-    return;
-  }
-
-  frappe.confirm(__("Bu hurda satırı silinecek. Emin misiniz?"), async () => {
-    await props.onDelete(h.name);
-    frappe.show_alert({ message: __("Hurda silindi"), indicator: "green" });
-  });
-}
+const { addHurda, editHurda, deleteHurda } = useHurdaDialogs(props);
 
 function openStockEntry() {
   if (props.doc.scrap_stock_entry) {
-    frappe.set_route("Form", "Stock Entry", props.doc.scrap_stock_entry);
+    (window as any).frappe.set_route("Form", "Stock Entry", props.doc.scrap_stock_entry);
   }
 }
 </script>
@@ -57,7 +23,7 @@ function openStockEntry() {
 <template>
   <div class="ck-card">
     <div class="ck-view-action" v-if="props.canEditData">
-      <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="onHurdaEkle">{{ __("Hurda Ekle") }}</button>
+      <button class="ck-btn ck-btn--ghost ck-btn--wide" @click="addHurda">{{ __("Hurda Ekle") }}</button>
     </div>
 
     <!-- Stock Entry Link -->
@@ -82,20 +48,11 @@ function openStockEntry() {
         </div>
 
         <div class="ck-mini-actions" v-if="props.canEditData">
-          <button class="ck-btn ck-btn--ghost ck-btn-small" @click="onHurdaDuzenle(h)">{{ __("Düzenle") }}</button>
-          <button class="ck-btn ck-btn--danger ck-btn-small" @click="onHurdaSil(h)">{{ __("Sil") }}</button>
+          <button class="ck-btn ck-btn--ghost ck-btn-small" @click="editHurda(h)">{{ __("Düzenle") }}</button>
+          <button class="ck-btn ck-btn--danger ck-btn-small" @click="deleteHurda(h)">{{ __("Sil") }}</button>
         </div>
       </div>
     </div>
-
-    <!-- Modal -->
-    <CkHurdaModal
-      :show="showModal"
-      :doc="doc"
-      :editData="editItem"
-      @close="showModal = false"
-      @submit="handleModalSubmit"
-    />
   </div>
 </template>
 

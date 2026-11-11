@@ -1,25 +1,16 @@
 import { applyDecimalInputMode } from "./common";
 
-const HURDA_PARENT_COST_CENTER = "Malzeme Sarfları - KTA";
-
-export function hurdaNedeniLinkField(defaultValue = "") {
-    return {
-        fieldtype: "Link",
-        label: __("Hurda Nedeni"),
-        fieldname: "hurda_nedeni",
-        options: "Cost Center",
-        reqd: 1,
-        default: defaultValue,
-        get_query: () => ({
-            filters: {
-                parent_cost_center: HURDA_PARENT_COST_CENTER,
-                is_group: 0,
-            },
-        }),
-    };
-}
+declare const __: any;
 
 export function hurdaFields(defaults: any = {}) {
+    const rawNedenleri: any[] = defaults.hurda_nedenleri || [];
+    const nedenOptions = [
+        "",
+        ...rawNedenleri.map((n: any) =>
+            typeof n === "string" ? { label: __(n), value: n } : { label: __(n.label || n.value), value: n.value }
+        ),
+    ];
+
     return applyDecimalInputMode([
         {
             fieldtype: "Link",
@@ -28,6 +19,7 @@ export function hurdaFields(defaults: any = {}) {
             options: "Item",
             reqd: 1,
             default: defaults.parca_no || "",
+            description: __("Mevcut ve önceki operasyonlara ait izinli BOM hammaddeleri"),
             get_query: () => ({
                 query: "erpnextkta.kta_calisma_karti.api.search_allowed_hurda_items",
                 filters: {
@@ -35,46 +27,27 @@ export function hurdaFields(defaults: any = {}) {
                 },
             }),
         },
-        hurdaNedeniLinkField(defaults.hurda_nedeni || ""),
+        {
+            fieldtype: "Select",
+            label: __("Hurda Nedeni"),
+            fieldname: "hurda_nedeni",
+            options: nedenOptions,
+            reqd: 1,
+            default: defaults.hurda_nedeni || "",
+        },
         {
             fieldtype: "Float",
             label: __("Miktar"),
             fieldname: "miktar",
             reqd: 1,
-            default: defaults.miktar ?? 0,
+            default: defaults.miktar ?? "",
         },
         {
-            fieldtype: "Link",
-            label: __("Birim"),
-            fieldname: "birim",
-            options: "UOM",
-            reqd: 1,
-            default: defaults.birim || "",
-        },
-        {
-            fieldtype: "Link",
-            label: __("Depo"),
-            fieldname: "depo",
-            options: "Warehouse",
-            default: defaults.depo || "",
+            fieldtype: "Small Text",
+            label: __("Açıklama"),
+            fieldname: "aciklama",
+            reqd: 0,
+            default: defaults.aciklama || "",
         },
     ]);
-}
-
-// Hurda için: sadece ilgili operasyonun BOM item'larını göster
-export function hurdaParcaNoField(calismaKartiName: string, defaultValue?: string) {
-    return {
-        fieldtype: "Link",
-        label: __("Parça Numarası"),
-        fieldname: "parca_no",
-        options: "Item",
-        reqd: 1,
-        default: defaultValue || "",
-        get_query: () => ({
-            query: "erpnextkta.kta_calisma_karti.api.get_allowed_hurda_items",
-            filters: {
-                name: calismaKartiName,
-            },
-        }),
-    };
 }

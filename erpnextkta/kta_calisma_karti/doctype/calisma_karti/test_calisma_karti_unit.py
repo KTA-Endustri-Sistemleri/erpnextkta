@@ -243,7 +243,7 @@ class TestShiftAutoCloseRejectedCards(unittest.TestCase):
 		orig_get_doc = frappe.get_doc
 		with patch("frappe.logger"), \
 		     patch("erpnextkta.tasks.now_datetime", return_value=datetime(2024, 1, 15, 16, 15)), \
-		     patch("erpnextkta.tasks.get_datetime", side_effect=lambda x: str(x)), \
+		     patch("erpnextkta.tasks.get_datetime", side_effect=str), \
 		     patch("frappe.get_all", return_value=[frappe._dict(name="CK-CLASSIC-REJ")]), \
 		     patch("frappe.get_doc", side_effect=lambda *a, **k: doc if a and a[0] == "Calisma Karti" else orig_get_doc(*a, **k)), \
 		     patch("frappe.db.get_value", return_value={"alt_operasyon_bazli_kalite": 0}):
@@ -268,7 +268,7 @@ class TestShiftAutoCloseRejectedCards(unittest.TestCase):
 		orig_get_doc = frappe.get_doc
 		with patch("frappe.logger"), \
 		     patch("erpnextkta.tasks.now_datetime", return_value=datetime(2024, 1, 15, 16, 15)), \
-		     patch("erpnextkta.tasks.get_datetime", side_effect=lambda x: str(x)), \
+		     patch("erpnextkta.tasks.get_datetime", side_effect=str), \
 		     patch("frappe.get_all", return_value=[frappe._dict(name="CK-SUBOP-REJ")]), \
 		     patch("frappe.get_doc", side_effect=lambda *a, **k: doc if a and a[0] == "Calisma Karti" else orig_get_doc(*a, **k)), \
 		     patch("frappe.db.get_value", return_value={"alt_operasyon_bazli_kalite": 1}), \
