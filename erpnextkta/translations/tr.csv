@@ -88,3 +88,8 @@ Bu Giriş fişi iptal edilemez çünkü tedarikçiye yapılmış çıkışlar bu
 Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟,Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟
 Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}],Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}]
 Enjeksiyon 3/3 Ölçüm Tamamlama,Enjeksiyon 3/3 Ölçüm Tamamlama
+KTA Enjeksiyon Kalibi,KTA Enjeksiyon Kalıbı
+Kalıp Adı,Kalıp Adı
+Mevcut Kalıp Adedi,Mevcut Kalıp Adedi
+Varsayılan Kalite Şablonu,Varsayılan Kalite Şablonu
+"Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı."

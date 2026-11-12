@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:kalip_no",
+ "creation": "2026-11-12 11:50:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "kalip_no",
+  "kalip_adi",
+  "column_break_1",
+  "varsayilan_kalite_sablonu",
+  "mevcut_adet",
+  "section_break_1",
+  "aciklama",
+  "column_break_2",
+  "disabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "kalip_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Kalıp No",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "kalip_adi",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Kalıp Adı",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "varsayilan_kalite_sablonu",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Varsayılan Kalite Şablonu",
+   "options": "Quality Inspection Template"
+  },
+  {
+   "default": "1",
+   "fieldname": "mevcut_adet",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Mevcut Kalıp Adedi"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Detaylar"
+  },
+  {
+   "fieldname": "aciklama",
+   "fieldtype": "Small Text",
+   "label": "Açıklama"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Devre Dışı"
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-12 11:50:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_calisma_karti",
+ "name": "KTA Enjeksiyon Kalibi",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "KTA Çalışma Kartı Yöneticisi",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "KTA Çalışma Kartı Kullanıcısı"
+  }
+ ],
+ "search_fields": "kalip_adi",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "kalip_adi"
+}

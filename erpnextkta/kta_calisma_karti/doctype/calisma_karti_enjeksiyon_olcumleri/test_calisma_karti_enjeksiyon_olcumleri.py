@@ -36,6 +36,23 @@ class TestCalismaKartiEnjeksiyonOlcumleri(FrappeTestCase):
             doc.flags.ignore_mandatory = True
             doc.insert()
 
+        test_molds = [
+            "KLP-101", "KLP-102", "KLP-DUP", "KLP-FIRST", "KLP-INITIAL",
+            "KLP-LOCK-01", "KLP-LOCK-CHANGED", "KLP-LOCKED", "KLP-MAX",
+            "KLP-OP40-01", "KLP-OP40-02", "KLP-POINTS-01", "KLP-RECIPE-01",
+            "KLP-REJ-01", "KLP-SHIFT-01", "KLP-TAMPERED", "KLP-TAMPERED-AGAIN",
+            "KLP-UNIQ-01", "KLP-UPDATED"
+        ]
+        for m in test_molds:
+            if not frappe.db.exists("KTA Enjeksiyon Kalibi", m):
+                mold = frappe.new_doc("KTA Enjeksiyon Kalibi")
+                mold.kalip_no = m
+                mold.kalip_adi = f"Test Mold {m}"
+                mold.disabled = 0
+                mold.flags.ignore_permissions = True
+                mold.flags.ignore_mandatory = True
+                mold.insert()
+
         frappe.db.commit()
 
     def setUp(self):

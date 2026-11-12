@@ -265,15 +265,14 @@ function onAltOperasyonSil(h: any) {
     <div v-else class="ck-mini-list">
       <div v-for="(h, i) in sortedRows" :key="h.name || i" class="ck-mini-item">
         <div style="display: flex; gap: 12px; align-items: stretch; flex: 1; min-width: 0;">
-            <div v-if="h.satir_no || h.kalip_no" style="display: flex; align-items: center; justify-content: center; padding-right: 12px; border-right: 2px solid var(--ck-glass-border-soft); margin-right: 4px;">
-                <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">{{ h.satir_no || h.kalip_no }}</span>
+            <div v-if="h.satir_no" class="ck-satir-badge">
+                <span>{{ h.satir_no }}</span>
             </div>
             <div class="ck-mini-content">
-                <b class="ck-mini-title">{{ __(h.alt_operasyon_title || h.alt_operasyon) }}</b>
-            
-              <div class="ck-muted ck-mini-sub" v-if="h.kalip_no && h.satir_no">
-                <b>{{ __("Kalıp No") }}:</b> {{ h.kalip_no }}
-              </div>
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                    <b class="ck-mini-title">{{ __(h.alt_operasyon_title || h.alt_operasyon) }}</b>
+                    <span v-if="h.kalip_no" class="ck-mold-pill">🏷️ {{ h.kalip_no }}</span>
+                </div>
 
             <template v-if="ekranTipi === 'Çoklu Hammadde'">
               <div class="ck-muted ck-mini-sub" v-if="h.hammadde_2 || h.boyut_2_mm || h.hammadde_3">
@@ -385,10 +384,56 @@ function onAltOperasyonSil(h: any) {
   transform: translateY(-2px);
   box-shadow: var(--ck-glass-highlight), 0 6px 16px rgba(0,0,0,0.06);
 }
+.ck-satir-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 12px;
+  border-right: 2px solid var(--ck-glass-border-soft);
+  margin-right: 4px;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ck-text);
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+.ck-mold-pill {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--ck-glass-bg);
+  border: 1px solid var(--ck-glass-border-soft);
+  padding: 1px 6px;
+  border-radius: 6px;
+  color: var(--ck-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 @media (max-width: 480px) {
   .ck-mini-item {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    padding: 12px 10px;
+    gap: 10px;
+  }
+  .ck-mini-actions {
+    width: 100%;
+    display: flex;
+    gap: 6px;
+  }
+  .ck-mini-actions > * {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+}
+@media (max-width: 340px) {
+  .ck-mini-item {
+    padding: 10px 8px;
+  }
+  .ck-btn-small {
+    padding: 6px 8px;
+    font-size: 12px;
   }
 }
 .ck-mini-content {
@@ -408,6 +453,7 @@ function onAltOperasyonSil(h: any) {
 .ck-mini-sub {
   font-size: 12px;
   opacity: 0.8;
+  word-break: break-word;
 }
 .ck-mini-actions {
   display: flex;
@@ -422,3 +468,4 @@ function onAltOperasyonSil(h: any) {
   font-weight: 700;
 }
 </style>
+

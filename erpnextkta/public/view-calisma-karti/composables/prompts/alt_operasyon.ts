@@ -101,13 +101,17 @@ export function altOperasyonFieldsMulti(parentOperationLabel: string, calismaKar
             default: defaults.satir_no || "",
         },
         {
-            fieldtype: "Data",
+            fieldtype: "Link",
             label: __("Kalıp No"),
             fieldname: "kalip_no",
+            options: "KTA Enjeksiyon Kalibi",
             reqd: (parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon) ? 1 : 0,
             read_only: isTechLocked ? 1 : 0,
             depends_on: () => parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon,
             default: defaults.kalip_no || "",
+            get_query: () => ({
+                filters: { disabled: 0 }
+            }),
         },
         { fieldtype: "Section Break" },
 
@@ -244,13 +248,17 @@ export function altOperasyonFieldsSingle(parentOperationLabel: string, calismaKa
             default: defaults.satir_no || "",
         },
         {
-            fieldtype: "Data",
+            fieldtype: "Link",
             label: __("Kalıp No"),
             fieldname: "kalip_no",
+            options: "KTA Enjeksiyon Kalibi",
             reqd: (parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon) ? 1 : 0,
             read_only: isTechLocked ? 1 : 0,
             depends_on: () => parentOperationLabel === "OP40" || !!defaults.has_enjeksiyon,
             default: defaults.kalip_no || "",
+            get_query: () => ({
+                filters: { disabled: 0 }
+            }),
         },
         { fieldtype: "Section Break" },
         {
