@@ -2,16 +2,17 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Kurumsal **KTA Tooling** (Enjeksiyon Kalıpları ve Krimp Aplikasyon Kalıpları) yönetimini devreye almak; `930-Tools` hiyerarşisi altında `933-Injection Molds` ve `934-Crimp Applicators` Item senkronizasyonu ile takım yatırımı, mülkiyet ve geri ödeme takibini kurmak; kalıphane kritik yedek parça tablosunu eklemek; ürün reçetelerine (BOM) ve İş Kartlarına (Job Card) takım eşlemesi yapmak; tek Çalışma Kartı altında çift makine (tandem) çalışma ve kısmi arıza yönetimini (Senaryo B) devreye almak; takım tipine göre (enjeksiyonda göz sayısı oranlı, krimpte parça adedi oranlı) kümülatif vuruş sayacı (`total_stroke_count`) ve canlı darboğaz kilidini (Concurrency Guard Seçenek C) kurmak.
+**Goal:** Kurumsal **KTA Tooling** (Enjeksiyon Kalıpları ve Krimp Aplikasyon Kalıpları) yönetimini devreye almak; `930-Tools` hiyerarşisi altında `933-Injection Molds` ve `934-Crimp Applicators` Item senkronizasyonu ile takım yatırımı, mülkiyet ve geri ödeme takibini kurmak; kalıphane kritik yedek parça tablosunu eklemek; krimp parametreleri setup föyü (`KTA Tooling Crimp Parameters`) ve makine uyumluluk tablosunu (`KTA Tooling Compatible Workstation`) devreye almak; Yaklaşım B ile mevcut 4.619 BOM'a dokunmadan terminalleri tarayarak İş Kartlarına (`Job Card Required Tooling`) otomatik takım havuzu bağlamak; tek Çalışma Kartı altında çift makine (tandem) çalışma ve kısmi arıza yönetimini (Senaryo B) devreye almak; otomatik tezgahlarda T1/T2 çift aplikatör kilidi ve manuel preslerde `OP11-0001` doppelkrimp akışını otomatikleştirmek; takım aşınma dengeleme (wear balancing) algoritmasını ve kalıphane statü/karantina kilidini kurmak; takım tipine göre (enjeksiyonda göz sayısı oranlı, krimpte parça adedi oranlı) kümülatif vuruş sayacı (`total_stroke_count`) ve canlı darboğaz kilidini (Concurrency Guard Seçenek C) kurmak.
 
 **Architecture:**
 - ERPNext `930-Tools` hiyerarşisi altına `933-Injection Molds` ve `934-Crimp Applicators` Item Group'ları eklenir.
-- `KTA Tooling` ve `KTA Tooling Spare Part` DocType'ları oluşturulur. `tool_type` (`Injection Mold`, `Crimp Applicator`, vb.), mülkiyet ve yatırım/amortisman alanları tanımlanır. Faz 1'deki 46 `KTA Enjeksiyon Kalibi` kaydı `KTA Tooling`'e taşınır. Kayıt anında `Item` kaydı otomatik senkronize edilir.
-- `BOM Operation` ve `Job Card` üzerine `custom_tool_code` ve `custom_tool_code_2` eklenerek varsayılan aktif BOM'lara (`is_default: 1, docstatus: 1`) otomatik eşleme yapılır.
+- `KTA Tooling`, `KTA Tooling Spare Part`, `KTA Tooling Crimp Parameters` ve `KTA Tooling Compatible Workstation` DocType'ları oluşturulur. `tool_type` (`Injection Mold`, `Crimp Applicator`, vb.), `status` (`Kullanıma Hazır`, `Kalıphanede / Bakımda`, `Bilemede`, `Karantinada / Arızalı`, `Hurda / Devre Dışı`), mülkiyet ve yatırım/amortisman alanları tanımlanır. Faz 1'deki 46 `KTA Enjeksiyon Kalibi` ve `KTA Krimp Book`'taki 1.372 satır `KTA Tooling`'e taşınır. Kayıt anında `Item` kaydı otomatik senkronize edilir.
+- `BOM Operation` üzerine `custom_tool_code` ve `custom_tool_code_2` eklenir (enjeksiyon için). `Job Card` üzerine `Job Card Required Tooling` alt tablosu eklenerek `before_insert` hook'u ile BOM malzemelerindeki terminaller taranıp takımlar otomatik doldurulur (Yaklaşım B).
 - `create-calisma-karti` sihirbazında 2. makine (`is_istasyonu_2`) toggle'ı sunulur ve alt işlemler makine bazlı izlenir.
+- `Calisma Karti Alt Operasyon Kayitlari` tablosunda `kalip_no` (T1 / 1. Takım) ve `kalip_no_2` (T2 / 2. Takım) doğrudan seçilir (Seçenek B); kalite ölçüm modalı bu değerleri otomatik devralır.
 - Çift makinede kısmi arıza durumunda (Senaryo B) `release_machine_from_card` ile 2. makine serbest bırakılarak takım boşa çıkarılır, önceki üretim ve ölçüm kayıtları korunur.
-- Takım vuruş sayacı enjeksiyonda `ceil(delta_qty / cavity_count)`, krimpte `delta_qty` formülüyle güncellenir.
-- Açık kartlardaki takım meşguliyeti Seçenek C mantığıyla (sihirbazda soft uyarı rozeti, alt işlem kaydında hard kilit, amirler için loglu zorla serbest bırakma) yönetilir.
+- Takım vuruş sayacı enjeksiyonda `ceil(delta_qty / cavity_count)`, krimpte T1 ve T2 kalıpları için `delta_qty` formülüyle güncellenir.
+- Açık kartlardaki takım meşguliyeti Seçenek C mantığıyla (sihirbazda soft uyarı rozeti, alt işlem kaydında hard kilit, amirler için loglu zorla serbest bırakma) yönetilir. Alternatif kalıplarda `total_stroke_count` en düşük olan önerilerek aşınma dengelenir.
 
 **Tech Stack:** Frappe Framework v15, MariaDB, Python 3.12, Vue 3, TypeScript, Vite.
 
@@ -36,23 +37,32 @@
 
 ---
 
-### Task 1: `933-Injection Molds` & `934-Crimp Applicators` Item Groups, `KTA Tooling` Master & Item Sync
+### Task 1: `kta_tooling` Module, `933/934` Item Groups, `KTA Tooling` Master, Crimp Parameters, Compatible Workstations & Item Sync
 
 **Files:**
+- Modify: `erpnextkta/modules.txt` (add `kta_tooling`)
 - Create: `erpnextkta/patches/v3_0_3/create_933_and_934_tooling_groups.py`
 - Modify: `erpnextkta/patches.txt`
-- Create: `erpnextkta/kta_calisma_karti/doctype/kta_tooling/__init__.py`
-- Create: `erpnextkta/kta_calisma_karti/doctype/kta_tooling/kta_tooling.py`
-- Create: `erpnextkta/kta_calisma_karti/doctype/kta_tooling/kta_tooling.json`
-- Create: `erpnextkta/kta_calisma_karti/doctype/kta_tooling_spare_part/__init__.py`
-- Create: `erpnextkta/kta_calisma_karti/doctype/kta_tooling_spare_part/kta_tooling_spare_part.py`
-- Create: `erpnextkta/kta_calisma_karti/doctype/kta_tooling_spare_part/kta_tooling_spare_part.json`
+- Create: `erpnextkta/kta_tooling/__init__.py`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling/__init__.py`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling/kta_tooling.py`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling/kta_tooling.json`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling_spare_part/__init__.py`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling_spare_part/kta_tooling_spare_part.py`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling_spare_part/kta_tooling_spare_part.json`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling_crimp_parameters/__init__.py`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling_crimp_parameters/kta_tooling_crimp_parameters.py`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling_crimp_parameters/kta_tooling_crimp_parameters.json`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling_compatible_workstation/__init__.py`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling_compatible_workstation/kta_tooling_compatible_workstation.py`
+- Create: `erpnextkta/kta_tooling/doctype/kta_tooling_compatible_workstation/kta_tooling_compatible_workstation.json`
 - Create: `erpnextkta/patches/v3_0_3/migrate_enjeksiyon_kalip_to_kta_tooling.py`
+- Create: `erpnextkta/patches/v3_0_3/migrate_krimp_book_to_kta_tooling.py`
 - Test: `erpnextkta/tests/test_kta_tooling_sync.py`
 
 **Interfaces:**
-- Consumes: `KTA Tooling` document events (`after_insert`, `on_update`), `KTA Enjeksiyon Kalibi` existing records
-- Produces: Synced `Item` record (`item_code == tool_code`, `item_group in ["933-Injection Molds", "934-Crimp Applicators"]`), migrated `KTA Tooling` records
+- Consumes: `KTA Tooling` document events (`after_insert`, `on_update`), `KTA Enjeksiyon Kalibi` existing records, `KTA Krimp Book` existing records
+- Produces: Synced `Item` record (`item_code == tool_code`, `item_group in ["933-Injection Molds", "934-Crimp Applicators"]`), migrated `KTA Tooling` records with crimp parameter sheets
 
 - [ ] **Step 1: Write failing test for 933/934 Item Groups, KTA Tooling and Item synchronization**
 
@@ -64,6 +74,7 @@ class TestKTAToolingSync(FrappeTestCase):
             "tool_code": "TEST-INJ-01",
             "tool_name": "Test Injection Mold",
             "tool_type": "Injection Mold",
+            "status": "Kullanıma Hazır",
             "cavity_count": 2,
             "ownership_type": "Müşteri Mülkiyeti (Doğrudan)",
             "available_qty": 1,
@@ -83,14 +94,30 @@ class TestKTAToolingSync(FrappeTestCase):
             "tool_code": "TEST-CRIMP-01",
             "tool_name": "Test Crimp Applicator",
             "tool_type": "Crimp Applicator",
+            "status": "Kullanıma Hazır",
             "feed_type": "Yandan Besleme (Side-feed)",
             "ownership_type": "KTA Özkaynağı",
             "available_qty": 2,
+            "crimp_parameters": [
+                {
+                    "wire_cross_section": "0.50 mm²",
+                    "crimp_height_target": 1.15,
+                    "crimp_height_tolerance": 0.03,
+                    "min_pull_force_n": 70,
+                },
+                {
+                    "wire_cross_section": "2 x 0.50 mm²",
+                    "crimp_height_target": 1.28,
+                    "crimp_height_tolerance": 0.03,
+                    "min_pull_force_n": 85,
+                }
+            ]
         }).insert(ignore_permissions=True)
 
         item = frappe.get_doc("Item", "TEST-CRIMP-01")
         self.assertEqual(item.item_group, "934-Crimp Applicators")
         self.assertEqual(item.is_stock_item, 1)
+        self.assertEqual(len(doc.crimp_parameters), 2)
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -100,14 +127,15 @@ Expected: FAIL.
 - [ ] **Step 3: Implement patch `create_933_and_934_tooling_groups.py`**
 Ensure `933-Injection Molds` and `934-Crimp Applicators` are created under parent `930-Tools`.
 
-- [ ] **Step 4: Create `KTA Tooling` and `KTA Tooling Spare Part` DocTypes**
-Define fields: `tool_code`, `tool_name`, `tool_type`, `available_qty`, `ownership_type`, `customer`, `linked_item_code`, `total_investment_amount`, `reimbursement_status`, `total_stroke_count`, `maintenance_stroke_period`, `cavity_count`, `default_quality_template`, `linked_terminal`, `wire_cross_section_range`, `feed_type`, `spare_parts` (Table: `KTA Tooling Spare Part`), `disabled`, `description`.
+- [ ] **Step 4: Create `KTA Tooling`, `KTA Tooling Spare Part`, `KTA Tooling Crimp Parameters`, and `KTA Tooling Compatible Workstation` DocTypes**
+Define fields: `tool_code`, `tool_name`, `tool_type`, `status` (`Kullanıma Hazır`, `Kalıphanede / Bakımda`, `Bilemede`, `Karantinada / Arızalı`, `Hurda / Devre Dışı`), `available_qty`, `ownership_type`, `customer`, `linked_item_code`, `total_investment_amount`, `reimbursement_status`, `total_stroke_count`, `maintenance_stroke_period`, `cavity_count`, `default_quality_template`, `linked_terminal`, `wire_cross_section_range`, `feed_type`, `is_primary_mold`, `spare_parts` (Table: `KTA Tooling Spare Part`), `crimp_parameters` (Table: `KTA Tooling Crimp Parameters`), `compatible_workstations` (Table: `KTA Tooling Compatible Workstation`), `disabled`, `description`.
 
 - [ ] **Step 5: Implement `sync_item` in `kta_tooling.py`**
 In `after_insert` and `on_update`, create or update matching Item in `933-Injection Molds` or `934-Crimp Applicators`. Set `is_stock_item = 0` if customer-owned, `1` if KTA-owned.
 
-- [ ] **Step 6: Implement migration patch `migrate_enjeksiyon_kalip_to_kta_tooling.py`**
-Copy all existing `KTA Enjeksiyon Kalibi` records to `KTA Tooling` (`tool_type = "Injection Mold"`, `available_qty = mevcut_adet`, `cavity_count = 1`). Update child table `kalip_no` options to `KTA Tooling`.
+- [ ] **Step 6: Implement migration patches**
+1. `migrate_enjeksiyon_kalip_to_kta_tooling.py`: Copy all existing `KTA Enjeksiyon Kalibi` records to `KTA Tooling` (`tool_type = "Injection Mold"`, `available_qty = mevcut_adet`, `cavity_count = 1`, `status = "Kullanıma Hazır"`).
+2. `migrate_krimp_book_to_kta_tooling.py`: Parse `tabKTA Krimp Book` (1,372 records), create unique `KTA Tooling` applicators with their cross-sections and C/H, pull force parameters in `crimp_parameters` child table.
 
 - [ ] **Step 7: Run test to verify it passes**
 Run test suite command.
@@ -116,14 +144,17 @@ Expected: PASS.
 - [ ] **Step 8: Commit**
 ```bash
 git add erpnextkta/patches/v3_0_3/ erpnextkta/patches.txt erpnextkta/kta_calisma_karti/doctype/kta_tooling* erpnextkta/tests/test_kta_tooling_sync.py
-git commit -m "feat(calisma-karti): add KTA Tooling master data model and item sync"
+git commit -m "feat(calisma-karti): add KTA Tooling master data model, crimp parameters and item sync"
 ```
 
 ---
 
-### Task 2: BOM Operation & Job Card Tooling Custom Fields & Default BOM Auto-Mapping
+### Task 2: BOM Operation Tooling Fields, `Job Card Required Tooling` Table & Smart Terminal Scanner (Yaklaşım B)
 
 **Files:**
+- Create: `erpnextkta/kta_calisma_karti/doctype/job_card_required_tooling/__init__.py`
+- Create: `erpnextkta/kta_calisma_karti/doctype/job_card_required_tooling/job_card_required_tooling.py`
+- Create: `erpnextkta/kta_calisma_karti/doctype/job_card_required_tooling/job_card_required_tooling.json`
 - Create: `erpnextkta/patches/v3_0_3/add_tooling_fields_to_bom_and_job_card.py`
 - Create: `erpnextkta/patches/v3_0_3/map_tooling_to_default_boms.py`
 - Modify: `erpnextkta/patches.txt`
@@ -131,27 +162,34 @@ git commit -m "feat(calisma-karti): add KTA Tooling master data model and item s
 - Test: `erpnextkta/tests/test_bom_tooling_mapping.py`
 
 **Interfaces:**
-- Consumes: Active default BOMs (`is_default = 1, docstatus = 1`)
-- Produces: `custom_tool_code`, `custom_tool_code_2` on `BOM Operation` & `Job Card`, auto-copy logic in `KTAJobCard`
+- Consumes: Active default BOMs (`is_default = 1, docstatus = 1`), `BOM Item` terminals, `KTA Tooling.linked_terminal`
+- Produces: `custom_tool_code`, `custom_tool_code_2` on `BOM Operation` (enjeksiyon için); `required_tooling` child table on `Job Card` (krimp havuzu için)
 
-- [ ] **Step 1: Write failing test for BOM and Job Card tooling mapping**
+- [ ] **Step 1: Write failing test for BOM and Job Card tooling mapping and smart terminal scan**
 
 ```python
 class TestBomToolingMapping(FrappeTestCase):
-    def test_job_card_copies_tool_from_bom_operation(self):
-        # Create test BOM with custom_tool_code
+    def test_job_card_copies_injection_tool_from_bom_operation(self):
+        # Create test BOM with custom_tool_code on OP40
         # Create Job Card and verify custom_tool_code is populated
+
+    def test_job_card_scans_bom_terminals_into_required_tooling(self):
+        # Create test BOM with OP10 and items in 150-Terminals
+        # Create Job Card and verify required_tooling child table is populated with matching KTA Tooling applicators
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 Run test command.
 Expected: FAIL.
 
-- [ ] **Step 3: Implement custom fields patch & `map_tooling_to_default_boms.py`**
-Add `custom_tool_code` and `custom_tool_code_2` (Link: `KTA Tooling`) to `BOM Operation` and `Job Card` via Frappe Custom Field API. Run auto-match for default BOMs with `30-0800` (Injection) and `30-0100`/`30-0200` (Crimping).
+- [ ] **Step 3: Create `Job Card Required Tooling` DocType & implement custom fields patch**
+Create child DocType `Job Card Required Tooling` with fields: `tool_code` (Link: `KTA Tooling`), `tool_name`, `terminal_code` (Link: `Item`), `is_primary`, `status`.
+Add `custom_tool_code` and `custom_tool_code_2` (Link: `KTA Tooling`) to `BOM Operation` and `Job Card` via Frappe Custom Field API. Run auto-match for default injection BOMs (`30-0800`).
 
-- [ ] **Step 4: Implement auto-copy hook in `KTAJobCard.before_insert`**
-If `custom_tool_code` is not set on Job Card, copy from corresponding `BOM Operation`.
+- [ ] **Step 4: Implement auto-copy and smart terminal scanner in `KTAJobCard.before_insert`**
+In `KTAJobCard.before_insert`:
+1. If `custom_tool_code` is not set on Job Card, copy from corresponding `BOM Operation` (Enjeksiyon).
+2. For crimp/wire processing (`OP10-0000`): scan `BOM Item` records for terminals (`item_group == "150-Terminals"` or linked items), find matching `KTA Tooling` records where `linked_terminal == item_code`, and append them to `doc.required_tooling` (Yaklaşım B - Sıfır BOM Yükü).
 
 - [ ] **Step 5: Run test to verify it passes**
 Run test command.
@@ -159,13 +197,13 @@ Expected: PASS.
 
 - [ ] **Step 6: Commit**
 ```bash
-git add erpnextkta/patches/v3_0_3/ erpnextkta/patches.txt erpnextkta/overrides/job_card.py erpnextkta/tests/test_bom_tooling_mapping.py
-git commit -m "feat(calisma-karti): link tooling to BOM operations and job cards"
+git add erpnextkta/kta_calisma_karti/doctype/job_card_required_tooling/ erpnextkta/patches/v3_0_3/ erpnextkta/patches.txt erpnextkta/overrides/job_card.py erpnextkta/tests/test_bom_tooling_mapping.py
+git commit -m "feat(calisma-karti): link tooling to BOM operations and job cards with smart terminal scanner"
 ```
 
 ---
 
-### Task 3: Dual Workstation Data Model (`is_istasyonu_2`) & Sub-Operation Machine Assignment
+### Task 3: Dual Workstation & Dual Tooling Data Model (`kalip_no_2`, `is_istasyonu_2`) & Sub-Operation Assignment (Seçenek B)
 
 **Files:**
 - Modify: `erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.json`
@@ -175,10 +213,10 @@ git commit -m "feat(calisma-karti): link tooling to BOM operations and job cards
 - Test: `erpnextkta/tests/test_dual_workstation_card.py`
 
 **Interfaces:**
-- Consumes: `create_calisma_karti(is_istasyonu, is_istasyonu_2, ...)`
-- Produces: Sub-operation row with assigned `is_istasyonu` (`Makine 1` or `Makine 2`)
+- Consumes: `create_calisma_karti(is_istasyonu, is_istasyonu_2, ...)`, `add_alt_operasyon_kaydi(kalip_no, kalip_no_2, ...)`
+- Produces: Sub-operation row with assigned `is_istasyonu` (`Makine 1` or `Makine 2`) and mounted tools (`kalip_no` T1, `kalip_no_2` T2)
 
-- [ ] **Step 1: Write failing test for dual workstation card creation and sub-operation assignment**
+- [ ] **Step 1: Write failing test for dual workstation and dual tooling card creation**
 
 ```python
 class TestDualWorkstationCard(FrappeTestCase):
@@ -191,6 +229,10 @@ class TestDualWorkstationCard(FrappeTestCase):
         card = create_calisma_karti(..., is_istasyonu="30-0801", is_istasyonu_2="30-0802")
         self.assertEqual(card.is_istasyonu, "30-0801")
         self.assertEqual(card.is_istasyonu_2, "30-0802")
+
+    def test_sub_operation_stores_dual_tools_t1_and_t2(self):
+        # Sub-op on OP10 records kalip_no (T1) and kalip_no_2 (T2)
+        # Verify both tools are saved and point to KTA Tooling
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -198,10 +240,10 @@ Run test command.
 Expected: FAIL.
 
 - [ ] **Step 3: Update `calisma_karti.json` and `calisma_karti_alt_operasyon_kayitlari.json`**
-Add `is_istasyonu_2` to `Calisma Karti` and `is_istasyonu` to `Calisma Karti Alt Operasyon Kayitlari`. Ensure `kalip_no` option points to `KTA Tooling`.
+Add `is_istasyonu_2` to `Calisma Karti`. In `Calisma Karti Alt Operasyon Kayitlari`, add `is_istasyonu`, `kalip_no_2` (Link: `KTA Tooling`), and ensure `kalip_no` option points to `KTA Tooling`.
 
 - [ ] **Step 4: Update `create.py` and `alt_operasyon.py`**
-Validate `is_istasyonu != is_istasyonu_2`. When adding sub-op on dual-station card, validate selected machine is either `is_istasyonu` or `is_istasyonu_2`. If single station card, auto-assign `is_istasyonu`.
+Validate `is_istasyonu != is_istasyonu_2`. When adding sub-op on dual-station card, validate selected machine is either `is_istasyonu` or `is_istasyonu_2`. If single station card, auto-assign `is_istasyonu`. Save both `kalip_no` and `kalip_no_2`.
 
 - [ ] **Step 5: Run test to verify it passes**
 Run test command.
@@ -210,12 +252,12 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 ```bash
 git add erpnextkta/kta_calisma_karti/doctype/ erpnextkta/kta_calisma_karti/api_impl/ erpnextkta/tests/test_dual_workstation_card.py
-git commit -m "feat(calisma-karti): add dual workstation support and sub-op machine assignment"
+git commit -m "feat(calisma-karti): add dual workstation and dual tooling support on sub-operations"
 ```
 
 ---
 
-### Task 4: Concurrency Guard (Option C) & Admin Force Release API
+### Task 4: Concurrency Guard (Option C), Maintenance Status Lock & Wear Balancing
 
 **Files:**
 - Create: `erpnextkta/kta_calisma_karti/api_impl/concurrency.py`
@@ -224,8 +266,8 @@ git commit -m "feat(calisma-karti): add dual workstation support and sub-op mach
 - Test: `erpnextkta/tests/test_tooling_concurrency_guard.py`
 
 **Interfaces:**
-- Consumes: `KTA Tooling.available_qty`, active cards in `tabCalisma Karti Alt Operasyon Kayitlari`
-- Produces: `assert_tooling_concurrency(tool_code, current_card_name, workstation)`, `check_tool_availability`, `admin_force_release_tool`
+- Consumes: `KTA Tooling.available_qty`, `KTA Tooling.status`, `KTA Tooling.total_stroke_count`, active cards in `tabCalisma Karti Alt Operasyon Kayitlari`
+- Produces: `assert_tooling_concurrency(tool_code, current_card_name, workstation)`, `check_tool_availability`, `get_wear_balanced_tool_recommendation`, `admin_force_release_tool`
 
 - [ ] **Step 1: Write failing test for concurrency guard and admin force release**
 
@@ -355,12 +397,13 @@ git commit -m "feat(calisma-karti): add partial machine release API preserving l
 - Modify: `erpnextkta/public/create-calisma-karti/components/StepWorkstation.vue`
 - Modify: `erpnextkta/public/create-calisma-karti/App.vue`
 - Modify: `erpnextkta/public/view-calisma-karti/composables/prompts/alt_operasyon.ts`
+- Modify: `erpnextkta/public/view-calisma-karti/composables/dialogs/useKrimpDialogs.ts`
 - Modify: `erpnextkta/public/view-calisma-karti/composables/dialogs/useHurdaDialogs.ts`
 - Modify: `erpnextkta/public/view-calisma-karti/views/AltOperasyonView.vue`
 
 **Interfaces:**
-- Consumes: `check_tool_availability`, `release_machine_from_card`
-- Produces: Dual workstation selector in wizard with soft warning badge, machine selection in sub-op and scrap prompts, release button in header
+- Consumes: `check_tool_availability`, `release_machine_from_card`, `get_kta_tooling_crimp_details`, `get_wear_balanced_tool_recommendation`
+- Produces: Dual workstation selector in wizard with soft warning badge, machine and T1/T2 tool selection in sub-op dialog, auto-prefilled krimp dialog with color badges, scrap machine attribution, release button in header
 
 - [ ] **Step 1: Update `StepWorkstation.vue` in `create-calisma-karti`**
 Add toggle for second machine, filter dropdown for workstations (excluding 1st machine). Show soft warning badge if suggested tool is currently active in another card.
@@ -368,20 +411,29 @@ Add toggle for second machine, filter dropdown for workstations (excluding 1st m
 - [ ] **Step 2: Update `App.vue` in `create-calisma-karti`**
 Send `is_istasyonu_2` in payload to `create_calisma_karti`.
 
-- [ ] **Step 3: Update `alt_operasyon.ts` in `view-calisma-karti`**
-If card has `is_istasyonu_2`, add `is_istasyonu` field to dialog options (`[Makine 1, Makine 2]`). Filter tool lookup by operation (Injection -> `Injection Mold`, Crimping -> `Crimp Applicator`).
+- [ ] **Step 3: Update `alt_operasyon.ts` in `view-calisma-karti` (Seçenek B)**
+1. If card has `is_istasyonu_2`, add `is_istasyonu` field to dialog options (`[Makine 1, Makine 2]`).
+2. Expose `kalip_no` (T1 / 1. Takım) and `kalip_no_2` (T2 / 2. Takım) fields with contextual labels:
+   - For OP40: "1. Makine Kalıp No" and "2. Makine Kalıp No" (filtered by `tool_type == 'Injection Mold'`).
+   - For OP10: "T1 Kalıp No (Sol Uç)" and "T2 Kalıp No (Sağ Uç)" (filtered by `tool_type == 'Crimp Applicator'`).
+   - For OP11: "Manuel Pres Kalıp No" (filtered by `tool_type == 'Crimp Applicator'`).
 
-- [ ] **Step 4: Update `useHurdaDialogs.ts` and `AltOperasyonView.vue`**
+- [ ] **Step 4: Update `useKrimpDialogs.ts` in `view-calisma-karti`**
+1. When krimp measurement dialog opens, prefill `kalip_no` and `yon_2_kalip_no` directly from the parent alt operation row (`satir.kalip_no`, `satir.kalip_no_2`).
+2. Populate kalıp options with color-coded status badges: `🟢 {kalip_no} (Boşta - Önerilen)`, `🟡 {kalip_no} (Alternatif)`, `🔴 {kalip_no} (Meşgul: {makine})`.
+3. Fetch setup parameters from `KTA Tooling Crimp Parameters` via `get_kta_tooling_crimp_details`, auto-filling C/H, tolerance, pull force, and dial step.
+
+- [ ] **Step 5: Update `useHurdaDialogs.ts` and `AltOperasyonView.vue`**
 In `useHurdaDialogs.ts`, add machine selection if dual workstation. In `AltOperasyonView.vue`, add "2. Makineyi Serbest Bırak" action in header for dual machine cards.
 
-- [ ] **Step 5: Run production build check**
+- [ ] **Step 6: Run production build check**
 Run: `bench build --app erpnextkta --production`
 Expected: Exit code 0, 0 build errors.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 ```bash
 git add erpnextkta/public/create-calisma-karti/ erpnextkta/public/view-calisma-karti/
-git commit -m "feat(calisma-karti): add dual machine UI controls and scrap machine attribution"
+git commit -m "feat(calisma-karti): add dual machine UI controls, sub-op tooling fields and krimp setup prefill"
 ```
 
 ---
