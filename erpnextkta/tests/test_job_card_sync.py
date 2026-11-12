@@ -295,13 +295,18 @@ class TestJobCardSync(KTATestCase):
         # Orijinal side_effect'i saklayalım
         original_side_effect = self.mock_get_single_value.side_effect
         
-        # Operatör
-        emp_email = "test_overlap@kta.com"
-        create_test_operator(emp_email, "Test Overlap")
-        
+        # İki farklı operatör oluşturalım (Aynı iş istasyonunda aynı anda çalışan iki operatör)
+        emp_email_1 = "test_overlap1@kta.com"
+        emp_email_2 = "test_overlap2@kta.com"
+        create_test_operator(emp_email_1, "Test Overlap 1")
+        create_test_operator(emp_email_2, "Test Overlap 2")
+
         # Eski verileri temizleyelim ki OverlapError çakışmasın
-        frappe.db.sql("DELETE FROM `tabJob Card Time Log` WHERE employee=%s", emp_email)
-        
+        frappe.db.sql(
+            "DELETE FROM `tabJob Card Time Log` WHERE employee IN (%s, %s)",
+            (emp_email_1, emp_email_2),
+        )
+
         # Workstation'ları oluşturalım
         ws1 = "Test WS Overlap 1"
         ws2 = "Test WS Overlap 1"  # Aynı istasyonu kullanalım ki çakışma olsun!
@@ -317,7 +322,7 @@ class TestJobCardSync(KTATestCase):
             "from_time": "2026-05-01 08:00:00",
             "to_time": "2026-05-01 09:00:00",
             "completed_qty": 10,
-            "employee": emp_email
+            "employee": emp_email_1,
         })
         jc1.insert(ignore_permissions=True, ignore_mandatory=True)
 
@@ -329,7 +334,7 @@ class TestJobCardSync(KTATestCase):
             "from_time": "2026-05-01 08:30:00",
             "to_time": "2026-05-01 09:30:00",
             "completed_qty": 10,
-            "employee": emp_email
+            "employee": emp_email_2,
         })
         
         # 1. Kapasite planlama devredeyken (disable_capacity_planning=0) hata fırlatmasını bekliyoruz.
