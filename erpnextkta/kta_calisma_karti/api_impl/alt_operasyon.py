@@ -4,6 +4,7 @@ from frappe import _
 from frappe.utils import flt
 
 from ._helpers import (
+    _assert_enjeksiyon_kalip_valid,
     extract_alt_op_code,
     format_alt_op_label,
     get_allowed_items_with_groups,
@@ -309,6 +310,7 @@ def add_alt_operasyon_kaydi(
     if op_meta.get("has_enjeksiyon"):
         if not (kalip_no or "").strip():
             frappe.throw(_("Kalıp No zorunludur."), frappe.ValidationError)
+        _assert_enjeksiyon_kalip_valid(kalip_no)
         _assert_enjeksiyon_kalip_hammadde_unique(doc, kalip_no, hammadde)
 
     if hammadde: _assert_hammadde_allowed(calisma_karti, hammadde, alt_operasyon)
@@ -592,6 +594,7 @@ def update_alt_operasyon_kaydi(
     if op_meta.get("has_enjeksiyon"):
         if not (kalip_no or "").strip():
             frappe.throw(_("Kalıp No zorunludur."), frappe.ValidationError)
+        _assert_enjeksiyon_kalip_valid(kalip_no)
         _assert_enjeksiyon_kalip_hammadde_unique(doc, kalip_no, hammadde, exclude_row_id=row_id)
 
     row = doc.get("alt_operasyon_kayitlari", {"name": row_id})

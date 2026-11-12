@@ -937,3 +937,8 @@ Vardiya sonu üretilen adedi giriniz.,Geben Sie die am Schichtende produzierte M
 "Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟","Herzlichen Glückwunsch! Sie haben alle 3/3 Messungen abgeschlossen und {0} Energiepunkte verdient! 🌟"
 "Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}]","Vollständiger Abschluss aller 3/3 Periodenmessungen für den Spritzguss-Teilvorgang. [{0}]"
 Enjeksiyon 3/3 Ölçüm Tamamlama,Spritzguss 3/3 Messungsabschluss
+KTA Enjeksiyon Kalibi,KTA-Spritzgussform
+Kalıp Adı,Formname
+Mevcut Kalıp Adedi,Verfügbare Formmenge
+Varsayılan Kalite Şablonu,Standard-Qualitätsvorlage
+"Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Die ausgewählte Formnummer ({0}) ist im System nicht definiert oder deaktiviert."

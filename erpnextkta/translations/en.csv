@@ -948,3 +948,8 @@ Vardiya sonu üretilen adedi giriniz.,Enter produced quantity at the end of the 
 "Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟","Congratulations! You completed all 3/3 measurements and earned {0} Energy Points! 🌟"
 "Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}]","Completing all 3/3 period measurements for injection sub-operation. [{0}]"
 Enjeksiyon 3/3 Ölçüm Tamamlama,Injection 3/3 Measurement Completion
+KTA Enjeksiyon Kalibi,KTA Injection Mold
+Kalıp Adı,Mold Name
+Mevcut Kalıp Adedi,Available Mold Quantity
+Varsayılan Kalite Şablonu,Default Quality Template
+"Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Selected mold number ({0}) is not defined in the system or is disabled."

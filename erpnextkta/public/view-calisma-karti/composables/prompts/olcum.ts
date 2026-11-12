@@ -284,12 +284,16 @@ export function enjeksiyonOlcumFields(defaults: any = {}) {
             default: defaultPeriod,
         },
         {
-            fieldtype: "Data",
+            fieldtype: "Link",
             label: __("Kalıp No"),
             fieldname: "kalip_no",
+            options: "KTA Enjeksiyon Kalibi",
             reqd: 1,
             default: defaults.kalip_no || "",
             read_only: defaults.alt_operasyon_kaydi ? 1 : 0,
+            get_query: () => ({
+                filters: { disabled: 0 }
+            }),
         },
         {
             fieldtype: "Link",

@@ -2,6 +2,7 @@ from __future__ import annotations
 import frappe
 from frappe import _
 from .qc import _get_doc_for_idc_write, _assert_child_table_exists, _session_employee_name_or_throw
+from ._helpers import _assert_enjeksiyon_kalip_valid
 
 ENJEKSIYON_CHILD_FIELDNAME = "enjeksiyon_olcumleri"
 
@@ -67,6 +68,7 @@ def add_enjeksiyon_olcumu(name: str, payload: str | dict):
             hammadde_no = (ao_row.hammadde or "").strip()
         _validate_enjeksiyon_period_and_qc(doc, ao_row, (payload.get("kontrol_periyodu") or "").strip())
 
+    _assert_enjeksiyon_kalip_valid(kalip_no)
     tolerans_doc = _validate_enjeksiyon_parameters(payload, hammadde_no)
 
     row = {
@@ -397,6 +399,7 @@ def update_enjeksiyon_olcumu(name: str, rowname: str, payload: str | dict):
             if ao_row.hammadde:
                 hammadde_no = (ao_row.hammadde or "").strip()
 
+    _assert_enjeksiyon_kalip_valid(kalip_no)
     tolerans_doc = _validate_enjeksiyon_parameters(payload, hammadde_no)
 
     target.kontrol_periyodu = payload.get("kontrol_periyodu")

@@ -46,16 +46,16 @@ async function onKaliteReddet(row: any) {
         <div v-for="(h, i) in rows" :key="h.name || i" class="ck-mini-item">
           <div style="display: flex; gap: 12px; align-items: stretch; flex: 1; min-width: 0;">
             <div
-              v-if="h.satir_no || h.kalip_no"
-              style="display: flex; align-items: center; justify-content: center; padding-right: 12px; border-right: 2px solid var(--ck-glass-border-soft); margin-right: 4px;"
+              v-if="h.satir_no"
+              class="ck-satir-badge"
             >
-              <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">
-                {{ h.satir_no || h.kalip_no }}
-              </span>
+              <span>{{ h.satir_no }}</span>
             </div>
             <div class="ck-mini-content">
-              <b class="ck-mini-title">{{ __(h.title || h.alt_operasyon_title || h.alt_operasyon) }}</b>
-              <div class="ck-muted ck-mini-sub" v-if="h.kalip_no && h.satir_no"><b>{{ __("Kalıp No") }}:</b> {{ h.kalip_no }}</div>
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <b class="ck-mini-title">{{ __(h.title || h.alt_operasyon_title || h.alt_operasyon) }}</b>
+                <span v-if="h.kalip_no" class="ck-mold-pill">🏷️ {{ h.kalip_no }}</span>
+              </div>
               <div class="ck-muted ck-mini-sub" v-if="h.hammadde"><b>{{ __("Hammadde") }}:</b> {{ h.hammadde }}</div>
             </div>
           </div>
@@ -129,6 +129,31 @@ async function onKaliteReddet(row: any) {
   flex-direction: column;
   gap: 10px;
 }
+.ck-satir-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 12px;
+  border-right: 2px solid var(--ck-glass-border-soft);
+  margin-right: 4px;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ck-text);
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+.ck-mold-pill {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--ck-glass-bg);
+  border: 1px solid var(--ck-glass-border-soft);
+  padding: 1px 6px;
+  border-radius: 6px;
+  color: var(--ck-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 .ck-mini-item {
   background: var(--ck-bg);
   border: 1px solid var(--ck-glass-border-soft);
@@ -138,7 +163,43 @@ async function onKaliteReddet(row: any) {
   justify-content: space-between;
   align-items: center;
 }
+@media (max-width: 480px) {
+  .ck-mini-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 10px;
+    gap: 10px;
+  }
+  .ck-mini-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .ck-mini-actions .ck-badge {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .ck-mini-actions .ck-btn {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    justify-content: center;
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+}
+@media (max-width: 340px) {
+  .ck-mini-item {
+    padding: 10px 8px;
+  }
+  .ck-mini-actions .ck-btn {
+    font-size: 11px;
+    padding: 6px 4px;
+  }
+}
 .ck-mini-content {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -150,6 +211,7 @@ async function onKaliteReddet(row: any) {
 .ck-mini-sub {
   font-size: 12px;
   opacity: 0.8;
+  word-break: break-word;
 }
 .ck-mini-actions {
   display: flex;
@@ -175,3 +237,4 @@ async function onKaliteReddet(row: any) {
   font-weight: 700;
 }
 </style>
+

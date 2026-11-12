@@ -243,19 +243,20 @@ function minMaxClass(val: number, min: number, max: number) {
           @keydown.space.self.prevent="toggleAccordion(ao.name)"
         >
           <div style="display: flex; gap: 12px; align-items: stretch; flex: 1; min-width: 0;">
-            <!-- Büyük Kalıp No veya Satır No kutusu (Krimp'teki 270 kutusu ile birebir aynı) -->
+            <!-- Büyük Satır No kutusu (Varsa) -->
             <div
-              v-if="ao.kalip_no || ao.satir_no"
-              style="display: flex; align-items: center; justify-content: center; padding-right: 12px; border-right: 2px solid var(--ck-glass-border-soft); margin-right: 4px;"
+              v-if="ao.satir_no"
+              class="ck-satir-badge"
             >
-              <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">
-                {{ ao.kalip_no || ao.satir_no }}
-              </span>
+              <span>{{ ao.satir_no }}</span>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:4px; flex:1; min-width: 0;">
-              <div style="font-size:13px; font-weight:800; color:var(--ck-text); margin-bottom: 2px;">
-                {{ __(ao.title || ao.alt_operasyon_title || ao.alt_operasyon) }}
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom: 2px;">
+                <span style="font-size:13px; font-weight:800; color:var(--ck-text);">
+                  {{ __(ao.title || ao.alt_operasyon_title || ao.alt_operasyon) }}
+                </span>
+                <span v-if="ao.kalip_no" class="ck-mold-pill">🏷️ {{ ao.kalip_no }}</span>
               </div>
               <div v-if="getLatestMeasurement(ao)?.kontrol_periyodu" style="display:flex; align-items:center; gap:8px;">
                 <span class="ck-label">{{ __('Periyot') }}:</span>
@@ -727,6 +728,31 @@ function minMaxClass(val: number, min: number, max: number) {
     transition: transform 0.3s ease;
     display: inline-block;
 }
+.ck-satir-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 12px;
+    border-right: 2px solid var(--ck-glass-border-soft);
+    margin-right: 4px;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--ck-text);
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+.ck-mold-pill {
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--ck-glass-bg);
+    border: 1px solid var(--ck-glass-border-soft);
+    padding: 1px 6px;
+    border-radius: 6px;
+    color: var(--ck-text);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
 .ck-accordion-header {
     cursor: pointer;
     display: flex;
@@ -748,6 +774,62 @@ function minMaxClass(val: number, min: number, max: number) {
     justify-content: center;
     color: inherit;
 }
+@media (max-width: 480px) {
+    .ck-accordion-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        position: relative !important;
+        padding-right: 28px !important;
+        gap: 8px !important;
+    }
+    .ck-accordion-toggle-btn {
+        position: absolute !important;
+        right: 0 !important;
+        top: 0 !important;
+        padding: 6px !important;
+    }
+    .ck-accordion-right {
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-top: 4px !important;
+        border-top: 1px dashed var(--ck-glass-border-soft) !important;
+        padding-top: 8px !important;
+    }
+    .ck-accordion-right .ck-btn {
+        flex: 1 1 calc(50% - 6px) !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
+    .ck-accordion-right .ck-badge {
+        flex: 1 1 100% !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+        margin-right: 0 !important;
+    }
+}
+@media (max-width: 340px) {
+    .ck-enjeksiyon-grid {
+        gap: 6px;
+    }
+    .ck-enjeksiyon-box {
+        padding: 4px 6px;
+        min-width: 0;
+    }
+    .ck-enjeksiyon-box span {
+        font-size: 9px;
+        word-break: break-word;
+    }
+    .ck-enjeksiyon-box b {
+        font-size: 13px;
+    }
+    .ck-target-val {
+        font-size: 8.5px !important;
+    }
+}
 .ck-accordion-body-wrapper {
     display: grid;
     grid-template-rows: 0fr;
@@ -760,3 +842,4 @@ function minMaxClass(val: number, min: number, max: number) {
     overflow: hidden;
 }
 </style>
+

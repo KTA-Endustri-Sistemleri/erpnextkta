@@ -311,3 +311,19 @@ def extract_alt_op_code(val: str | None) -> str:
         return s.split("[")[-1][:-1].strip()
     return s
 
+
+def _assert_enjeksiyon_kalip_valid(kalip_no: str | None) -> None:
+    """Validate that kalip_no refers to an active KTA Enjeksiyon Kalibi record."""
+    if not kalip_no or not str(kalip_no).strip():
+        return
+
+    clean_kalip = str(kalip_no).strip()
+    if not frappe.db.table_exists("KTA Enjeksiyon Kalibi"):
+        return
+
+    if not frappe.db.exists("KTA Enjeksiyon Kalibi", {"name": clean_kalip, "disabled": 0}):
+        frappe.throw(
+            _("Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.").format(clean_kalip),
+            frappe.ValidationError,
+        )
+

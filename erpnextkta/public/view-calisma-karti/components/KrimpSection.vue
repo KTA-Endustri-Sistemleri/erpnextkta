@@ -118,8 +118,8 @@ function actions(r: any) {
         @keydown.space.self.prevent="toggleAccordion(r.name)"
       >
         <div style="display: flex; gap: 12px; align-items: stretch; flex: 1; min-width: 0;">
-            <div v-if="getAltOpRow(r) && getAltOpRow(r).satir_no" style="display: flex; align-items: center; justify-content: center; padding-right: 12px; border-right: 2px solid var(--ck-glass-border-soft); margin-right: 4px;">
-                <span style="font-size: 22px; font-weight: 900; color: var(--ck-text); opacity: 0.9;">{{ getAltOpRow(r).satir_no }}</span>
+            <div v-if="getAltOpRow(r) && getAltOpRow(r).satir_no" class="ck-satir-badge">
+                <span>{{ getAltOpRow(r).satir_no }}</span>
             </div>
             <div style="display:flex; flex-direction:column; gap:4px; flex:1; min-width: 0;">
                <div v-if="getAltOpRow(r)" style="font-size:13px; font-weight:800; color:var(--ck-text); margin-bottom: 2px;">
@@ -557,6 +557,19 @@ details.ck-accordion[open] summary .ck-chevron {
 .ck-chevron {
     transition: transform 0.2s ease;
 }
+.ck-satir-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 12px;
+    border-right: 2px solid var(--ck-glass-border-soft);
+    margin-right: 4px;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--ck-text);
+    opacity: 0.9;
+    flex-shrink: 0;
+}
 .ck-accordion-header:focus-visible {
     outline: 2px solid var(--ck-primary, #2563eb);
     outline-offset: -2px;
@@ -572,4 +585,48 @@ details.ck-accordion[open] summary .ck-chevron {
     justify-content: center;
     color: inherit;
 }
+@media (max-width: 480px) {
+    .ck-accordion-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        position: relative !important;
+        padding-right: 28px !important;
+        gap: 8px !important;
+    }
+    .ck-accordion-toggle-btn {
+        position: absolute !important;
+        right: 0 !important;
+        top: 0 !important;
+        padding: 6px !important;
+    }
+    .ck-accordion-right {
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-top: 4px !important;
+        border-top: 1px dashed var(--ck-glass-border-soft, rgba(0, 0, 0, 0.08)) !important;
+        padding-top: 8px !important;
+    }
+    .ck-accordion-right .ck-btn {
+        flex: 1 1 calc(50% - 6px) !important;
+        text-align: center !important;
+        justify-content: center !important;
+    }
+    .ck-accordion-right .ck-badge {
+        flex: 1 1 100% !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+        margin-right: 0 !important;
+    }
+}
+@media (max-width: 340px) {
+    .ck-accordion-right .ck-btn {
+        font-size: 11px !important;
+        padding: 6px 4px !important;
+    }
+}
 </style>
+

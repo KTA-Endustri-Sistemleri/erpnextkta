@@ -50,9 +50,10 @@
   {
    "allow_on_submit": 1,
    "fieldname": "kalip_no",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Kalıp No"
+   "label": "Kalıp No",
+   "options": "KTA Enjeksiyon Kalibi"
   },
   {
    "allow_on_submit": 1,
