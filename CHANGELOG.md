@@ -3,6 +3,99 @@
 
 
 
+## 🚀 v4.0.0 (2026-11-12)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Continuous integration
+
+    
+      
+      
+        
+- **tests**: fix container networking, dns resolution and seed test fixtures
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- **tooling**: update architecture spec and Faz 2 implementation plan
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **calisma-karti**: implement injection mold master data and 320px mobile UI
+      
+      
+    
+      
+      
+        
+- **calisma-karti**: overhaul sub-op qc flow, injection mold tracking and UI architecture
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **calisma-karti**: standardize hurda dialog architecture and remove custom modal
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v3.0.2 (2026-11-03)
 
 

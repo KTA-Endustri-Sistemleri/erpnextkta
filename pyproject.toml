@@ -1,6 +1,6 @@
 [project]
 name = "erpnextkta"
-version = "3.0.2"
+version = "4.0.0"
 authors = [
     { name = "KTA Endüstri Sistemleri", email = "info@kta-endustri.com.tr" }
 ]
