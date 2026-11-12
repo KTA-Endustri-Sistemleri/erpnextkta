@@ -276,6 +276,16 @@ def before_tests():
 					insert_after='custom_calisma_karti'
 			))
 
+	# Seed baseline injection molds if needed
+	try:
+		from erpnextkta.patches.v3_0_3.extract_enjeksiyon_kaliplari import (
+			execute as seed_molds,
+		)
+
+		seed_molds()
+	except (frappe.DuplicateEntryError, frappe.ValidationError) as e:
+		frappe.logger("tests").debug(f"seed_molds atlandı: {e}")
+
 	frappe.db.commit()
 	frappe.clear_cache()
 
@@ -338,7 +348,16 @@ class KTATestCase(FrappeTestCase):
 			"TEST-JC-KTA-001", self.wo_name, self.wip_warehouse, 
 			self.erpnext_op, self.ws_name, self.item, self.company
 		)
-		
+		# Seed baseline injection molds if needed
+		try:
+			from erpnextkta.patches.v3_0_3.extract_enjeksiyon_kaliplari import (
+				execute as seed_molds,
+			)
+
+			seed_molds()
+		except (frappe.DuplicateEntryError, frappe.ValidationError) as e:
+			frappe.logger("tests").debug(f"seed_molds atlandı: {e}")
+
 		frappe.db.commit()
 
 
