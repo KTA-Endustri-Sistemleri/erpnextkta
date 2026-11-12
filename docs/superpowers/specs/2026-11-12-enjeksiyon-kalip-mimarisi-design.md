@@ -81,7 +81,18 @@ Bu nedenlerle mimari, yalnızca enjeksiyonla sınırlı kalmayıp global endüst
 | **Bakım & Geliştirme Maliyeti** | **Düşük (Tek ortak çekirdek mantık)** | Yüksek (İki ayrı modül bakımı) | Orta |
 | **Darboğaz Takibi** | **Canlı ve Net (Seçenek C)** | Dağınık | Zor |
 
-**Karar:** Hem otomotiv küresel standartlarına hem KTA ERPNext altyapısına tam uyum sağlayan **Yaklaşım 1 (KTA Tooling)** seçilmiştir.
+**Karar 1 (Ana Varlık):** Hem otomotiv küresel standartlarına hem KTA ERPNext altyapısına tam uyum sağlayan **Yaklaşım 1 (KTA Tooling)** seçilmiştir.
+
+#### BOM Operasyon Ayrıştırması ve Krimp Takımları Kararı (OP10 vs OP11)
+
+| Kriter | Yaklaşım B (Seçilen: Takım Kartından Akıllı Filtre) | Yaklaşım A (Reddedilen: 4.619 BOM'u Bölerek OP10/OP11 Ayırmak) |
+| :--- | :--- | :--- |
+| **Mühendislik Revizyon Yükü** | **Sıfır Yük (Mevcut 4.619 BOM olduğu gibi korunur)** | Çok Yüksek (Aylar sürecek binlerce BOM revizyonu) |
+| **Hata Payı** | **Sıfır (Mevcut reçeteler riske atılmaz)** | Yüksek (Manuel satır taşıma riskleri) |
+| **Sahada Uygulama** | **Tam Uyumlu (Tek Job Card altında OP10 + OP11 paralel kartlar)** | Katı ve hantal |
+| **Ayrıştırma Noktası** | **Takım kartı (`tool_category` / `compatible_workstations`) + Açılan Çalışma Kartı** | BOM satırı |
+
+**Karar 2 (BOM & Operasyon Ayrıştırması):** Fabrikadaki mevcut 4.619 BOM'da `OP10-0000 Kablo kesme ve terminal basma` operasyonu şemsiye olarak korunur (`KTA Operation ERPNext Mappings` ile hem OP10 hem OP11'e bağlıdır). Ayrıştırma BOM'u bölerek değil; operatörün açtığı karta (`OP10` vs `OP11`) ve takımın uyumluluk kriterlerine göre dinamik filtreleyen **Yaklaşım B** ile çözülür.
 
 ---
 
@@ -149,6 +160,18 @@ flowchart TD
     end
 ```
 
+#### 0. Modüler Mimari: Bağımsız `kta_tooling` Modülü
+
+`KTA Tooling` sistemi sadece üretim sahasına değil; kalıphane, finans ve proses mühendisliğine hizmet veren kurumsal bir modüldür. Tek Sorumluluk Prensibi (Single Responsibility) uyarınca `erpnextkta` uygulaması içinde bağımsız bir modül olarak yapılandırılmıştır:
+
+* **Modül Kaydı (`modules.txt`):** `kta_tooling` listeye eklenir.
+* **Dizin Yapısı (`erpnextkta/kta_tooling/`):**
+  - `doctype/kta_tooling/` (Ana takım / kalıp varlığı)
+  - `doctype/kta_tooling_crimp_parameters/` (Krimp setup limitleri)
+  - `doctype/kta_tooling_compatible_workstation/` (Pres uyumluluk matrisi)
+  - `doctype/kta_tooling_spare_part/` (Kalıphane kritik yedek parçaları)
+* **İlişki Mantığı:** `kta_tooling` bağımsız bir domain'dir; `kta_calisma_karti` ise bu takımları tezgâhta kullanan, vuruş üreten ve kilitleyen **hafif bir istemci (client)** olarak Link ve API'lerle haberleşir.
+
 #### 1. Veri Modeli Genişletmeleri
 
 ##### a. `Item Group` ve `Item` Entegrasyonu
@@ -169,6 +192,7 @@ flowchart TD
   - `tool_code` (Data, Unique, Mandatory, Title Case: "Takım / Kalıp Kodu")
   - `tool_name` (Data, Mandatory, Title Case: "Takım / Kalıp Adı")
   - `tool_type` (Select: `Injection Mold`, `Crimp Applicator`, `Cutting Die`, `Assembly Fixture`, Title Case: "Takım Tipi", Mandatory)
+  - `status` (Select: `Kullanıma Hazır`, `Kalıphanede / Bakımda`, `Bilemede`, `Karantinada / Arızalı`, `Hurda / Devre Dışı`, Default: "Kullanıma Hazır", Title Case: "Takım Statüsü", Mandatory)
   - `available_qty` (Int, Default: 1, Title Case: "Mevcut Takım Adedi")
   - `disabled` (Check, Default: 0, Title Case: "Devre Dışı")
   - `description` (Small Text, Title Case: "Açıklama")
@@ -189,6 +213,17 @@ flowchart TD
     - `linked_terminal` (Link: `Item`, Title Case: "Bağlı Terminal / Kontak No")
     - `wire_cross_section_range` (Data, Title Case: "Kablo Kesit Aralığı (mm²)", örn: `0.50 - 1.00 mm²`)
     - `feed_type` (Select: `Yandan Besleme (Side-feed)`, `Arkadan Besleme (End-feed)`, Title Case: "Besleme Tipi")
+    - `is_primary_mold` (Check, Default: 1, Title Case: "Birincil Kalıp")
+* **Krimp Kalite Parametreleri Child Table (`KTA Tooling Crimp Parameters`):**
+  - `wire_cross_section` (Data, Title Case: "Kablo Kesiti", reqd: 1, örn: `0.50 mm²`)
+  - `crimp_height_target` (Float, Title Case: "Hedef İletken Krimp Yüksekliği (mm)", reqd: 1)
+  - `crimp_height_tolerance` (Float, Default: 0.03, Title Case: "Krimp Yükseklik Toleransı (± mm)")
+  - `insulation_crimp_height` (Float, Title Case: "Hedef İzokrimp Yüksekliği (mm)")
+  - `min_pull_force_n` (Float, Title Case: "Min. Çekme Kuvveti (N)", reqd: 1)
+  - `dial_step` (Data, Title Case: "Ayar Diski Pozisyonu / Kademe")
+* **Uyumlu Makineler Child Table (`KTA Tooling Compatible Workstation`):**
+  - `workstation` (Link: `Workstation`, Title Case: "Uyumlu İş İstasyonu")
+  *(Boş bırakılırsa tüm standart krimp/kesme istasyonlarına takılabilir; doluysa sadece listedeki tezgâhlara bağlanabilir).*
 * **Kritik Bileşenler & Yedek Parçalar Child Table (`KTA Tooling Spare Part`):**
   - `spare_part` (Link: `Item`, Title Case: "Yedek Parça")
   - `qty_in_tool` (Int, Default: 1, Title Case: "Takımdaki Adet")
@@ -198,6 +233,8 @@ flowchart TD
 ##### c. `tabBOM Operation` & `tabJob Card`
 * `custom_tool_code` (Link: `KTA Tooling`, Title Case: "1. Takım / Kalıp Kodu")
 * `custom_tool_code_2` (Link: `KTA Tooling`, Title Case: "2. Takım / Kalıp Kodu")
+* `tabJob Card` Alt Tablosu:
+  - `required_tooling` (`Job Card Required Tooling`): BOM malzemelerindeki terminaller taranarak gereken tüm aplikatörlerin ve kalıpların otomatik listelendiği kapasite rezervasyon tablosu.
 
 ##### d. `tabCalisma Karti` & Child Tables
 * `tabCalisma Karti`:
@@ -207,6 +244,9 @@ flowchart TD
   - `is_istasyonu` (Link: `Workstation`, Title Case: "İş İstasyonu")
 * `tabCalisma Karti Enjeksiyon Olcumleri`:
   - `kalip_no` -> Link: `KTA Tooling`
+* `tabCalisma Karti Krimp Olcumleri`:
+  - `kalip_no` -> Link: `KTA Tooling` (Title Case: "T1 Kalıp No / Aplikatör")
+  - `yon_2_kalip_no` -> Link: `KTA Tooling` (Title Case: "T2 Kalıp No / Aplikatör")
 
 ---
 
@@ -314,6 +354,86 @@ def admin_force_release_tool(card_name: str, tool_code: str) -> dict:
   - Mevcut 46 `KTA Enjeksiyon Kalibi` kaydı `KTA Tooling` (`tool_type: "Injection Mold"`) tablosuna kopyalanır.
   - Alt operasyon ve ölçüm child table tanımlarındaki `options` değeri `KTA Tooling` olarak güncellenir.
   - Veri kaybı veya yabancı anahtar uyumsuzluğu riski sıfırlanır.
+
+---
+
+### C. Krimp Aplikasyon Kalıpları Özel Mimarisi ve Çift İstasyon / Çift Takım Yönetimi
+
+Kablo gruplama (wire harness) operasyonlarında krimp aplikatörlerinin çalışma dinamiği, enjeksiyon kalıplarından farklı olarak yüksek oranda çeşitlilik, çoklu terminal kullanımı ve çift taraflı eşzamanlı tezgah montajı içerir. Bu bölümde krimp operasyonlarına özel mimari kurallar tanımlanmıştır:
+
+#### 1. Kablo Ağacı (BOM) Mantığı & Akıllı Terminal Eşleme (Zero BOM Burden)
+* **Kablo Demeti ve Şemsiye BOM Gerçeği:** 
+  - KTA veritabanındaki 4.619 aktif kablo ağacı BOM'unun tamamında krimp operasyonu tek bir şemsiye satırla temsil edilir: `OP10-0000 Kablo kesme ve terminal basma`.
+  - `KTA Operation ERPNext Mappings` altyapısı sayesinde bu tek BOM operasyonu hem `OP10` (Otomatik) hem de `OP11` (Manuel) Çalışma Kartı operasyonlarına eşlenmiştir.
+  - Bu tek Job Card altında sahadaki işleyişte hem otomatik Komax kesim kartı (`OP10`), hem de manuel masaüstü pres ve doppel kartları (`OP11`) eşzamanlı olarak açılabilmektedir (Örn: `PO-JOB24128` altında 1 adet OP10, 5 adet OP11 kartı paralel çalışmaktadır).
+* **Akıllı Eşleme Mimarisi (Yaklaşım B):**
+  - BOM'ları bölüp mühendisliğe binlerce reçete revizyonu yaptırmak yerine (Reddedilen Yaklaşım A); `KTA Tooling` kartında `linked_terminal` (Item) ve `tool_category` / `compatible_workstations` (Otomatik Komax vs Manuel Masaüstü Pres) tanımlanır.
+  - Bir üretim emri (`Work Order`) açılıp `Job Card` türetildiğinde; sistem ilgili BOM'un malzeme listesindeki (`BOM Item`) tüm terminal kodlarını otomatik olarak tarar.
+  - Eşleşen tüm krimp aplikatörlerini Job Card üzerindeki **`Job Card Required Tooling` (`required_tooling`)** alt tablosuna havuz olarak ekler.
+  - Operatör `create-calisma-karti` sihirbazında `OP10` seçtiğinde sistem sadece otomatik tezgahlara uygun kalıpları; `OP11` seçtiğinde ise manuel pres ve doppel kalıplarını filtreler.
+  - **Kazanım:** Ürün mühendislerinin yüzlerce karmaşık kablo ağacı BOM'una tek tek krimp kalıbı bağlamasına gerek kalmaz (Sıfır BOM İş Yükü, Sıfır Operasyonel Risk).
+
+#### 2. Makine / Pres Uyumluluğu (`compatible_workstations`)
+* Bazı özel aplikatörler sadece belirli krimp preslerine (örn. 5 tonluk ağır hizmet presleri, Komax Gamma 333 / Schleuniger otomatik transfer hatları) monte edilebilir; standart manuel masaüstü preslere takılamaz.
+* `KTA Tooling` kartında `compatible_workstations` child tablosu bulunur:
+  - **Boş ise:** Üniversal kabul edilir; fabrikadaki tüm standart krimp ve kesme tezgahlarına bağlanabilir.
+  - **Dolu ise:** Sıkı kontrol uygulanır; operatör yalnızca listede belirtilen tezgahlarda bu aplikatörü seçebilir.
+
+#### 3. Çift Taraflı Otomatik Çakım (T1 / T2) ve Eşzamanlı Takım Kilidi
+* Otomatik tezgahlarda (`OP10-0003 Otomatik Çift Taraflı Kontak Basma` vb.) makinenin solunda T1 presi, sağında T2 presi olmak üzere **iki bağımsız aplikatör aynı anda takılıdır**.
+* Canlı kilit havuzunda (Concurrency Guard):
+  - Kart açılıp T1 ve T2 kalıpları seçildiğinde, sistem her iki kalıbın `available_qty` kotasından 1'er adet kilitler.
+  - T1 kalıbı ve T2 kalıbı birbirinden bağımsızdır (örn: T1: Kalıp 183, T2: Kalıp 174).
+  - **Vuruş Sayacı:** Çift taraflı makinede tamamlanan her 1 adet kablo için T1 kalıbının `total_stroke_count` sayacı +1, T2 kalıbının sayacı +1 artırılır.
+
+#### 4. Planlama Darboğaz / Kapasite Kontrolü & Alternatif Kalıp Dağıtımı
+* **Planlama Kapasite Kontrolü:** Planlama departmanı veya ERPNext çizelgeleme modülü, açılan Job Card'ların `required_tooling` tablosundaki kalıpların `available_qty` miktarını ve o tarihteki çakışan iş emirlerini kontrol eder. Kalıp yetersizse iş emri çizelgesi darboğaz uyarısı verir.
+* **Alternatif Kalıp Önerisi (Eşdeğer Kalıplar):**
+  - KTA Krimp Kitabında görüldüğü üzere aynı terminali basabilen alternatif kalıplar mevcuttur (örn: `131` ve `213` nolu kalıplar aynı kontağa basabilmektedir).
+  - Planlama aşamasında: 1. Hat birincil kalıbı (`131`) rezerve ettiğinde; aynı anda üretime girecek 2. Hatta sistem otomatik olarak boşta olan alternatif kalıbı (`213`) önerir ve atar. Böylece kalıp bekleme darboğazı engellenir.
+  - Üretim aşamasında (Çalışma Kartı): Operatör terminal seçtiğinde boştaki alternatif kalıp yeşil/aktif gösterilir, meşgul olan kalıbın yanında ise meşguliyet rozeti ve hangi hatta olduğu gösterilir.
+
+#### 5. Aşınma Dengeleme Algoritması (Wear Balancing)
+* Bir terminal için fabrikada birden fazla alternatif kalıp varsa ve her ikisi de o anda rafta/boştaysa:
+  - Sistem operatöre ve planlamacıya toplam vuruş adedi (`total_stroke_count`) **en düşük olan** kalıbı öncelikli olarak önerir.
+  - **Fayda:** Kalıphanedeki kalıplardan birinin sürekli kullanılıp erken yıpranması, diğerinin ise rafta atıl beklemesi önlenir; takım yıpranması ve bakım maliyetleri hatlar arasında homojen dağıtılır.
+
+#### 6. Krimp Ayar & Kurulum Kartı (Setup Sheet) Entegrasyonu
+* `KTA Tooling Crimp Parameters` alt tablosu ile her aplikatörün kablo kesitine göre:
+  - Hedef iletken krimp yüksekliği (C/H) ve toleransı (±0.03 mm)
+  - Hedef izokrimp yüksekliği
+  - Minimum çekme kuvveti (N)
+  - Mikrometre ayar diski (dial step) pozisyonu
+* Operatör krimp ölçüm ekranına girdiğinde bu değerler otomatik olarak gelir; operatörün kağıt föy aramasına gerek kalmadan doğrudan kumpas/mikrometre ve çekme testi sonuçlarını doğrulaması sağlanır.
+
+#### 7. Doppelkrimp (Çift Kablo / Köprü Krimp) Desteği
+* **Saha Gerçeği:** Kablo ağaçlarında (özellikle şasi ve köprü hatlarında) tek bir kontağa iki kablo birden çakılır (örn: `2 x 0,50 mm²`, `2 x 0,75 mm²`, `DOPPEL: 0,35+0,50 mm`). Krimp yüksekliği ve çekme kuvveti tekli kesitten tamamen farklıdır.
+* **Mimari Entegrasyon:**
+  - `KTA Tooling Crimp Parameters` tablosunda `wire_cross_section` alanı hem tekli kesitleri (`0.50 mm²`) hem de doppel formatlarını (`2 x 0.50 mm²`, `DOPPEL: 0.35+0.50 mm`) doğrudan kabul eder.
+  - Ölçüm ekranında operatör veya kart kesiti seçtiğinde sistem doğrudan ilgili doppel satırındaki C/H, tolerans ve çekme kuvveti limitlerini getirir.
+
+#### 8. Kalıphane Statüsü & Kilit Yönetimi (Bakım, Bileme, Karantina)
+* Bir takım/aplikatör fiziksel olarak fabrikada olsa dahi her zaman üretime hazır olmayabilir.
+* `KTA Tooling.status` alanı:
+  - `Kullanıma Hazır` (Varsayılan): Normal üretime açık.
+  - `Kalıphanede / Bakımda`: Rutin revizyonda, seçilemez.
+  - `Bilemede`: Bıçak/örs bilemesinde, seçilemez.
+  - `Karantinada / Arızalı`: Kalite şüphesi veya mekanik arıza, kırmızı kilit.
+  - `Hurda / Devre Dışı`: Emekliye ayrılmış takım.
+* **Sert Güvenlik Kilidi:**
+  - `status != "Kullanıma Hazır"` olan takımlar Concurrency Guard tarafından `available_qty = 0` muamelesi görür.
+  - Çalışma Kartı arama listesinde listelenmez; doğrudan barkod okutulsa bile `"Bu takım şu anda {status} durumundadır ve üretime verilemez!"` hatasıyla engellenir.
+  - Planlama çizelgeleme motoru bu takımları otomatik olarak bloke kabul eder.
+
+#### 9. Kalıp Değişim Süresi (SMED) ve Sıralı Planlama (Tooling Clustering)
+* Otomatik kesme-krimp hatlarında aplikatör değişimi ve ayarı ortalama 10–15 dakika sürer. Günde 8–10 kez rastgele kalıp değiştirmek ciddi kapasite kaybı yaratır.
+* **Sıralı Kümeleme (Clustering):**
+  - ERPNext Job Card liste görünümünde ve planlama panosunda **"Takım / Kalıba Göre Grupla"** filtresi sunulur.
+  - Aynı aplikatörü kullanan iş emirleri ardışık sıralanarak operatörün kalıp değiştirmeden seri üretim yapması sağlanır (Setup optimizasyonu).
+
+#### 10. Kapsam Dışı Bırakılan Maddeler
+* **Su Geçirmezlik Contası (Single Wire Seal):** KTA üretim sahasında contalı krimp otomatik hatta değil, ayrı bir manuel montaj operasyonunda yapıldığından bu fazda otomatik aplikatör kartı kapsamı dışındadır.
+* **Sabah Numune / İlk Parça Sert Kilidi:** Operatörün sabah ayar vuruşları için seri üretim adet girişinin dijital olarak kilitlenmesi şu an için operatör iş akışını zorlaştırmamak adına bu faza dahil edilmemiştir.
 
 ---
 
