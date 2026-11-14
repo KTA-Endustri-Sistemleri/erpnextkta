@@ -22,3 +22,9 @@ erpnextkta.patches.v1_4_1.update_ariza_sonrasi_bekleme
 erpnextkta.patches.v1_4_1.remove_stock_entry_kta_custom_fields
 erpnextkta.patches.v3_0_2.reset_invalid_customer_packaging_qty
 erpnextkta.patches.v3_0_3.extract_enjeksiyon_kaliplari
+erpnextkta.patches.v3_0_3.disable_mrp_analysis_prepared_report
+erpnextkta.patches.v3_0_3.backfill_pr_transit_eta
+erpnextkta.patches.v3_0_3.add_kta_gumruk_sorumlusu_role
+erpnextkta.patches.v3_0_3.migrate_kta_sevk_parametreleri
+
+

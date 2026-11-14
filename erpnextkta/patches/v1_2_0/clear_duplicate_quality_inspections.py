@@ -8,6 +8,9 @@ def execute():
     
     Rule: Keep the earliest (first created) record, clear the link for all others.
     """
+    if not frappe.db.table_exists("Calisma Karti") or not frappe.db.has_column("Calisma Karti", "quality_inspection"):
+        return
+
     # Find all duplicate quality_inspection values
     duplicates = frappe.db.sql("""
         SELECT quality_inspection, COUNT(*) as count

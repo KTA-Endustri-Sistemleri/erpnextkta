@@ -32,7 +32,7 @@ class KTAMaterialRequest(MaterialRequest):
         if hasattr(super(), "on_update"):
             super().on_update()
         if self.material_request_type == "Manufacture" and self.docstatus == 1:
-            if self.per_ordered >= 100:
+            if (self.per_ordered or 0) >= 100:
                 self._close_open_todos()
 
     def update_completed_qty(self, mr_items=None, update_modified=True):
