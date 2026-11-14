@@ -50,7 +50,7 @@
     Talepleri haftadan haftaya ileriye doğru işler. Her hafta için önce geçmiş haftalardan sarkan
     <strong>backlog</strong> miktarı (en yüksek öncelikli) üretilir, ardından o haftanın kendi talebi işlenir. Eğer
     toplam yük haftalık kapasiteyi aşarsa, karşılanamayan miktar otomatik olarak <strong>sonraki haftaya
-      (carry-over)</strong> devredilir. Bu aşamada hiçbir hafta kapasite limitini aşamaz.
+      (carry-over)</strong> devredilir. Açık iş emirleri (Work Orders) de taleple birlikte sonraki haftaya eksiksiz devredilir (<code>item_carry_over_wo</code>); böylece kapasite dolduğunda açık iş emirleri kaybolmaz ve MRP motorunda mükerrer hammadde ihtiyacı oluşması kesin olarak engellenir. Bu aşamada hiçbir hafta kapasite limitini aşamaz.
   </div>
   <div class="kta-doc-info warning">
     <strong>Pass 2 — Geriye Doldurma (Backward Fill):</strong>
@@ -69,10 +69,150 @@
 </div>
 
 <div class="kta-doc-section">
-  <h2>3. Dengeleme Kapalıyken</h2>
+  <h2>3. Çok Aşamalı (Multi-Pass) Dengeleme Sayısal Senaryosu</h2>
+  <p>Haftalık tavan kapasitesi <strong>1.000 Adet</strong> olan bir ürün grubu için motorun 3 aşamalı dinamik yük dağıtım akışı:</p>
+
+  <div class="kta-example-container">
+    <div class="kta-example-header">
+      <div class="kta-example-title">
+        <span class="kta-example-title-icon">⚡</span>
+        <span>Kapasite Dengeleme Simülasyonu (Tavan Kapasite: 1.000 Adet / Hafta)</span>
+      </div>
+      <span class="kta-example-tag">Multi-Pass Dağıtım</span>
+    </div>
+
+    <div class="kta-example-body">
+      <!-- Stat Tiles -->
+      <div class="kta-stat-grid">
+        <div class="kta-stat-tile primary">
+          <span class="kta-stat-label">Haftalık Tavan Kapasite</span>
+          <span class="kta-stat-value">1.000 ad.</span>
+          <span class="kta-stat-sub">Maksimum Üretim Limiti</span>
+        </div>
+        <div class="kta-stat-tile danger">
+          <span class="kta-stat-label">Geçmiş Backlog (W45)</span>
+          <span class="kta-stat-value">400 ad.</span>
+          <span class="kta-stat-sub danger">⚠️ Geciken Sipariş Yükü</span>
+        </div>
+        <div class="kta-stat-tile purple">
+          <span class="kta-stat-label">Toplam Ham Talep</span>
+          <span class="kta-stat-value">2.100 ad.</span>
+          <span class="kta-stat-sub">W45 Devir + W46-W48</span>
+        </div>
+        <div class="kta-stat-tile success">
+          <span class="kta-stat-label">Planlanan Toplam</span>
+          <span class="kta-stat-value">2.100 ad.</span>
+          <span class="kta-stat-sub success">✓ 0 Kayıp — %100 Karşılandı</span>
+        </div>
+      </div>
+
+      <!-- Simulation Table -->
+      <div class="kta-sim-table-wrap">
+        <table class="kta-sim-table">
+          <thead>
+            <tr>
+              <th>Hafta</th>
+              <th class="num">Ham Talep</th>
+              <th class="num">Pass 1 (Forward)</th>
+              <th class="num">Pass 2 (Backward Fill)</th>
+              <th class="num">Pass 3 (Ramp-up)</th>
+              <th>Son Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>2026-W45</strong> <small>(Geçmiş)</small></td>
+              <td class="num" style="color: #dc2626; font-weight: 700;">400 ad.</td>
+              <td class="num">0 ad.</td>
+              <td class="num">0 ad.</td>
+              <td class="num">0 ad.</td>
+              <td><span class="kta-pill red">W46'ya Devredildi</span></td>
+            </tr>
+            <tr class="highlight-week">
+              <td><strong>2026-W46</strong> <small>(1. Hafta)</small></td>
+              <td class="num">1.200 ad.</td>
+              <td class="num" style="font-weight: 700; color: #1e3a8a;">1.000 ad.</td>
+              <td class="num" style="font-weight: 700; color: #1e3a8a;">1.000 ad.</td>
+              <td class="num" style="font-weight: 700; color: #1e3a8a;">1.000 ad.</td>
+              <td><span class="kta-pill blue">Kapasite Tam Dolu (%100)</span></td>
+            </tr>
+            <tr>
+              <td><strong>2026-W47</strong> <small>(2. Hafta)</small></td>
+              <td class="num">300 ad.</td>
+              <td class="num">900 ad.</td>
+              <td class="num">800 ad.</td>
+              <td class="num" style="font-weight: 700; color: #15803d;">850 ad.</td>
+              <td><span class="kta-pill green">Akıllı Yumuşatma</span></td>
+            </tr>
+            <tr>
+              <td><strong>2026-W48</strong> <small>(3. Hafta)</small></td>
+              <td class="num">200 ad.</td>
+              <td class="num">200 ad.</td>
+              <td class="num">300 ad.</td>
+              <td class="num" style="font-weight: 700; color: #15803d;">250 ad.</td>
+              <td><span class="kta-pill green">Dengeli Üretim Eğrisi</span></td>
+            </tr>
+            <tr class="total-row">
+              <td><strong>TOPLAM</strong></td>
+              <td class="num"><strong>2.100 ad.</strong></td>
+              <td class="num"><strong>2.100 ad.</strong></td>
+              <td class="num"><strong>2.100 ad.</strong></td>
+              <td class="num" style="color: #16a34a;"><strong>2.100 ad.</strong></td>
+              <td><span class="kta-pill blue">✓ Kusursuz Dengeleme</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 3-Pass Step Cards -->
+      <div class="kta-step-card-grid">
+        <div class="kta-step-card step-1">
+          <div class="kta-step-card-top">
+            <div class="kta-step-number">1</div>
+            <div>
+              <div class="kta-step-title">Pass 1: Forward Scheduling</div>
+              <div class="kta-step-subtitle">İleriye Taşırma</div>
+            </div>
+          </div>
+          <div class="kta-step-body">
+            W45'ten devreden 400 adetlik backlog ve W46'nın 1.200 adetlik talebi (toplam 1.600 ad.) işlenir. Tavan 1.000 olduğu için taşan <strong>600 adet W47'ye ötelenir</strong>.
+          </div>
+          <div class="kta-step-badge">→ Taşan Yük İleriye Ötelenir</div>
+        </div>
+
+        <div class="kta-step-card step-2">
+          <div class="kta-step-card-top">
+            <div class="kta-step-number">2</div>
+            <div>
+              <div class="kta-step-title">Pass 2: Backward Fill</div>
+              <div class="kta-step-subtitle">Geriye Doldurma</div>
+            </div>
+          </div>
+          <div class="kta-step-body">
+            Sondan geriye doğru taranır; yoğun haftalardaki yükün bir kısmı teslimat gecikmesini önlemek adına daha dengeli bir eğri için önceki haftaların boş kapasitesine yayılır.
+          </div>
+          <div class="kta-step-badge">← Boş Kapasiteye Geri Yayma</div>
+        </div>
+
+        <div class="kta-step-card step-3">
+          <div class="kta-step-card-top">
+            <div class="kta-step-number">3</div>
+            <div>
+              <div class="kta-step-title">Pass 3: Ramp-up</div>
+              <div class="kta-step-subtitle">Akıllı Yumuşatma</div>
+            </div>
+          </div>
+          <div class="kta-step-body">
+            Ani üretim sıçramaları hat tıkanıklığı yaratmasın diye pürüzsüzleştirilir. Üretim toplamı (2.100 adet) hiçbir aşamada 1 adet bile kaybolmaz veya artmaz.
+          </div>
+          <div class="kta-step-badge">✓ Pürüzsüz Üretim Profili</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="kta-doc-info">
-    <strong>💡 Dengeleme kapatılırsa:</strong> Backlog sadece ilk haftaya eklenir ve kapasite aşımları olduğu gibi
-    gösterilir. Ramp-up ve Backward Fill bu modda çalışmaz.
+    <strong>⚙️ Merkezi Yönetim:</strong> Kapasite dengeleme motorunun açık/kapalı durumu ve ramp-up parametreleri artık kullanıcı rapor filtrelerinde değil, merkezi <strong>KTA MRP Settings</strong> ekranından yönetilir.
   </div>
 </div>
 
@@ -90,28 +230,13 @@
       <tbody>
         <tr>
           <td><strong>Başlangıç Tarihi</strong></td>
-          <td>Planlama periyodunun başlangıcı (geçmiş tarih seçilemez)</td>
-          <td>Haftanın Pazartesi'si</td>
+          <td>Sistem tarafından otomatik olarak <strong>bulunulan haftanın Pazartesi gününe</strong> kilitlenir. Geçmiş tarih seçimi engellenmiştir.</td>
+          <td>Bu Haftanın Pazartesi Günü</td>
         </tr>
         <tr>
-          <td><strong>Bitiş Tarihi</strong></td>
-          <td>Planlama periyodunun bitişi (min 90 gün)</td>
-          <td>3 ay sonra</td>
-        </tr>
-        <tr>
-          <td><strong>Kapasite Dengeleme</strong></td>
-          <td>Kapasite sınırlı dengeleme algoritmasını aktif eder (Pass 1, 2, 3)</td>
-          <td>Açık ✓</td>
-        </tr>
-        <tr>
-          <td><strong>Ramp-up</strong></td>
-          <td>Backward Fill ve Ramp-up aşamalarını aktif eder (Pass 2 & 3)</td>
-          <td>Kapalı</td>
-        </tr>
-        <tr>
-          <td><strong>Ramp-up Süresi</strong></td>
-          <td>Backward Fill ve Ramp-up referansı (hafta)</td>
-          <td>3</td>
+          <td><strong>Bitiş Tarihi (Planlama Ufku)</strong></td>
+          <td>Planlama periyodunun bitişi. Varsayılan <code>KTA MRP Settings</code> (90 gün) ayarından gelir, 1 yıla kadar genişletilebilir.</td>
+          <td>Bugün + 90 gün</td>
         </tr>
         <tr>
           <td><strong>Müşteri Grubu</strong></td>

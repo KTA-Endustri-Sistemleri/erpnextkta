@@ -51,7 +51,7 @@
       </div>
       <div class="kta-doc-flow-vcontent">
         <h4>🧱 Malzeme İhtiyaç</h4>
-        <p>Üretim planını BOM ile çarparak hammadde ihtiyacını hesaplar. Serbest stok ve PO düşebilir.</p>
+        <p>Üretim planını BOM ile çarparak brüt ihtiyacı bulur; serbest stok ve açık PO ile netleştirip MOQ/paketlemeye göre önerilen siparişi hesaplar.</p>
       </div>
     </div>
     <div class="kta-doc-flow-vitem">
@@ -68,8 +68,14 @@
 
 <!-- Report Cards -->
 <div class="kta-doc-section">
-  <h2>MRP Zinciri Raporları</h2>
+  <h2>MRP Zinciri Raporları ve Yönetim</h2>
   <div class="kta-doc-cards">
+    <a href="/docs/mrp-settings" class="kta-doc-card" style="border: 2px solid var(--primary, #2563eb);">
+      <span class="kta-doc-card-icon">🛠️</span>
+      <h3>KTA MRP Ayarları</h3>
+      <p>Kapasite dengeleme, ramp-up, planlama ufku ve stok depolarının merkezi yönetim paneli.</p>
+      <span class="kta-doc-badge purple">Sistem Kontrolü</span>
+    </a>
     <a href="/docs/periodic-sales-orders" class="kta-doc-card">
       <span class="kta-doc-card-icon">📈</span>
       <h3>Periyodik Satış Siparişleri</h3>
@@ -91,7 +97,7 @@
     <a href="/docs/material-requirement" class="kta-doc-card">
       <span class="kta-doc-card-icon">🧱</span>
       <h3>Malzeme İhtiyaç</h3>
-      <p>BOM bazlı haftalık hammadde tüketim ihtiyaçları (serbest stok/PO düşülebilir).</p>
+      <p>Haftalık brüt ihtiyaç, net ihtiyaç, önerilen sipariş, kotalı tedarikçi dağıtımı ve 4 kademeli tedarik hattı analizi.</p>
       <span class="kta-doc-badge blue">İşleme</span>
     </a>
     <a href="/docs/mrp-analysis" class="kta-doc-card">
@@ -103,7 +109,7 @@
     <a href="/docs/recommended-purchase-orders" class="kta-doc-card">
       <span class="kta-doc-card-icon">🛒</span>
       <h3>Önerilen Satın Alma Siparişleri</h3>
-      <p>MOQ, paketleme ve temin süresine göre otomatik PO önerileri.</p>
+      <p>Kotalı tedarikçi paylaşımı, MOQ, paketleme ve temin sürelerine (Lead Time) göre otomatik PO zamanlaması.</p>
       <span class="kta-doc-badge green">Çıktı</span>
     </a>
     <a href="/docs/work-order-planning" class="kta-doc-card">
@@ -144,7 +150,9 @@
       </thead>
       <tbody>
         <tr><td><strong>Sales Order Item</strong></td><td>qty, delivered_qty, delivery_date</td><td>Açık sipariş talebi</td></tr>
-        <tr><td><strong>KTA Sevk Parametreleri</strong></td><td>production_time, delivery_time</td><td>Müşteriye özel üretim ve sevk süreleri</td></tr>
+        <tr><td><strong>Address / Customer</strong></td><td>custom_shipping_lead_days</td><td>Sevk / Transit süresi ($T_{\text{transit}}$) &mdash; Tesis veya müşteri bazlı nakliye gün sayısı</td></tr>
+        <tr><td><strong>Item / Item Customer Detail</strong></td><td>custom_manufacturing_lead_days, custom_production_time_days</td><td>Dahili Üretim süresi ($T_{\text{prod}}$) &mdash; Fabrika içi imalat süresi</td></tr>
+        <tr><td><strong>KTA MRP Settings</strong></td><td>default_production_time_days, default_delivery_time_days</td><td>Merkezi güvenlik ağı ve küresel varsayılan süreler</td></tr>
         <tr><td><strong>Item</strong></td><td>custom_weekly_production, custom_musteri_grubu</td><td>Kapasite, gruplama</td></tr>
         <tr><td><strong>BOM Explosion Item</strong></td><td>stock_qty, stock_uom</td><td>Hammadde çarpanları (patlatılmış BOM)</td></tr>
         <tr><td><strong>Bin / Warehouse</strong></td><td>actual_qty, stock_value</td><td>Mevcut stok (Kullanılabilir Stok depoları)</td></tr>

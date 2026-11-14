@@ -30,8 +30,12 @@ Her sipariş kalemi için teslim tarihinden geriye doğru gidilir:
 Üretime Başlama Tarihi = Teslimat Tarihi − (Üretim Süresi + Sevkiyat Süresi)
 ```
 
-- **Üretim Süresi** ve **Sevkiyat Süresi** değerleri, her müşteri/sevk adresi için ayrı ayrı tanımlanan **KTA Sevk Parametreleri** DocType'ından alınır.
-- Eşleşme bulunamazsa, teslimat tarihi olduğu gibi kullanılır ve rapor sonunda eşleşmeyen müşteriler listesi bildirilir.
+**İki Eksenli SAP Standardı Lead Time Kademeli Hiyerarşisi:**
+- **Sevk / Transit Süresi ($T_{\text{transit}}$):** `Address (Plant).custom_shipping_lead_days` &rarr; `Customer.custom_shipping_lead_days` &rarr; `Customer Group.custom_shipping_lead_days` &rarr; `KTA MRP Settings.default_delivery_time_days` (2 gün).
+- **Dahili Üretim Süresi ($T_{\text{prod}}$):** `Item Customer Detail.custom_production_time_days` &rarr; `Item.custom_manufacturing_lead_days` &rarr; `KTA MRP Settings.default_production_time_days` (14 gün).
+- *(Önemli Not: `Item.lead_time_days` ERPNext Purchasing sekmesinde olup hammadde tedarik süresidir; dahili üretim süresi olarak asla kullanılmaz).*
+- **Güvenlik Ağı:** Sistem hiçbir zaman 0 gün süresine düşmez; merkezi `KTA MRP Settings` parametrelerini fallback olarak devreye alır.
+- **Çekirdek Motor:** Bu hesaplama `erpnextkta/kta_mrp/mrp_engine/psw.py` saf Python motor servisi tarafından yürütülür.
 
 ### 📊 Stok Düşme Mantığı
 Bitmiş ürünlerin deposundaki (`warehouse_type = "Kullanılabilir Stok"`) mevcut stok, haftalara kronolojik sırayla dağıtılır:

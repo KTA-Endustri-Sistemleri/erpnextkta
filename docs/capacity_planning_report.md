@@ -44,15 +44,38 @@ Her ürünün `Item` kaydındaki `custom_weekly_production` alanı, o ürünün 
 
 ---
 
+### ⚡ Çok Aşamalı Dengeleme Sayısal Senaryosu (Multi-Pass)
+
+Haftalık kapasitesi **1.000 Adet** olan bir ürün grubu için motorun 3 aşamalı yük dağıtım akışı:
+
+### 📊 Sayısal Senaryo: Haftalık Tavan Kapasite = 1.000 Adet
+
+| Hafta | Ham Talep | Pass 1 (Forward) | Pass 2 (Backward Fill) | Pass 3 (Ramp-up) | Sonuç Durumu |
+|:------|:---------:|:----------------:|:---------------------:|:----------------:|:-------------|
+| **2026-W45 (Geçmiş)** | 400 ad. | 0 ad. | 0 ad. | 0 ad. | `Backlog W46'ya Aktarıldı` |
+| **2026-W46 (1. Hafta)** | 1.200 ad. | **1.000 ad.** (Dolu) | **1.000 ad.** (Dolu) | **1.000 ad.** (Dolu) | `Kapasite Tam Dolu (%100)` |
+| **2026-W47 (2. Hafta)** | 300 ad. | 900 ad. (Taşan+Talep) | 800 ad. | **850 ad.** (Yumuşatıldı) | `Akıllı Yumuşatma` |
+| **2026-W48 (3. Hafta)** | 200 ad. | 200 ad. | 300 ad. (Öne çekildi) | **250 ad.** | `Dengeli Üretim Eğrisi` |
+| **TOPLAM** | **2.100 ad.** | **2.100 ad.** | **2.100 ad.** | **2.100 ad.** | `✓ %100 Karşılandı (0 Kayıp)` |
+
+#### Adımların Çalışma Mantığı:
+1. **Pass 1 — İleriye Taşırma (Forward Scheduling):**
+   W45'ten devreden 400 adetlik geçmiş gecikme (backlog) ve W46'nın 1.200 adetlik talebi (toplam 1.600 ad.) W46'ya yüklenir. Kapasite tavanı 1.000 olduğu için taşan **600 adet W47'ye ötelenir**. W47 toplam yükü: 300 kendi talebi + 600 devir = 900 ad. üretilir (kapasite içi).
+2. **Pass 2 — Geriye Doldurma (Backward Fill):**
+   Sondan geriye doğru taranır; W47'deki yükün bir kısmı daha dengeli bir üretim eğrisi için önceki/sonraki haftaların boş kapasitesine yayılır.
+3. **Pass 3 — Ramp-up (Akıllı Yumuşatma):**
+   Ani talep sıçramaları pürüzsüzleştirilir. Üretim toplamı (2.100 adet) hiçbir aşamada 1 adet bile kaybolmaz.
+
+> **⚙️ Merkezi Yönetim:** Kapasite dengeleme ve ramp-up parametreleri artık rapor filtrelerinde değil, merkezi **KTA MRP Settings** ekranında yapılandırılmaktadır.
+
+---
+
 ## 3. Filtreler
 
 | Filtre | Açıklama | Varsayılan |
 |--------|----------|------------|
-| **Başlangıç Tarihi** | Planlama periyodunun başlangıcı (geçmiş tarih seçilemez) | Bugün (haftanın Pazartesi'si) |
-| **Bitiş Tarihi** | Planlama periyodunun bitişi (min 90 gün) | Bugünden 3 ay sonra |
-| **Kapasite Dengeleme Yapılsın mı?** | Açıkken kapasite sınırlı dengeleme algoritmasını aktif eder | Açık |
-| **Ramp-up (Önden Üretim) Yapılsın mı?** | Gelecek haftaların yükünü önceki haftalara yayar | Kapalı |
-| **Ramp-up Süresi (Hafta)** | Ramp-up aktifken artış hızını belirler | 3 |
+| **Başlangıç Tarihi** | Sistem tarafından otomatik olarak **bulunulan haftanın Pazartesi gününe** kilitlenir. Geçmiş tarih seçimi engellenmiştir. | Bu Haftanın Pazartesi Günü |
+| **Bitiş Tarihi (Planlama Ufku)** | Planlama periyodunun bitişi. Varsayılan `KTA MRP Settings` (90 gün) ayarından gelir, 1 yıla kadar genişletilebilir. | Bugün + 90 gün |
 | **Müşteri Grubu** | Belirli bir KTA müşteri grubuna filtreleme | (Hepsi) |
 | **Ürün Grubu** | Belirli bir ürün grubuna filtreleme | (Hepsi) |
 

@@ -16,24 +16,122 @@
 
 <hr />
 
-<h2>📥 1. Mal Kabul (Purchase Receipt) İşlemleri</h2>
+<h2>📥 1. Mal Kabul (Purchase Receipt) İşlemleri ve KTA Mal Giriş Süreci</h2>
 
-<p>Tedarikçilerden gelen hammaddelerin fabrikaya alınması ve sisteme kaydedilmesi sürecidir.</p>
+<p>Tedarikçilerden gelen hammaddelerin fabrikaya alınması, uluslararası lojistik aşamaları, antrepo bekleme havuzu ve gümrük millileştirme süreçlerinin uçtan uca takip edildiği resmi iş akışıdır (Workflow).</p>
 
-<h3>Lojistik Takip İş Akışı (Workflow)</h3>
+<h3>🗺️ Lojistik ve İthalat İş Akışı (KTA Mal Giriş Süreci)</h3>
 
-<p>Sistem, malzemenin fiziksel yolculuğunu takip etmeniz için bir iş akışı sunar. İlgili belge üzerinden şu statüleri seçerek ilerleyebilirsiniz:</p>
-<ol>
-  <li><strong>Yolda:</strong> Tedarikçi ürünü kargoladı.</li>
-  <li><strong>Antrepoda:</strong> Ürün gümrükte/antrepoda bekliyor.</li>
-  <li><strong>Mal Girişe Hazır:</strong> Ürün yola çıktı, fabrikaya geliyor.</li>
-  <li><strong>Mal Giriş:</strong> Ürün fiziksel olarak deponun kapısına yanaştı.</li>
-  <li><strong>[Kabul Et (Submit)]:</strong> Depo personeli sayımı yapar ve belgeyi onaylar.</li>
-</ol>
+<div class="kta-doc-flow" style="flex-wrap: wrap; margin-bottom: 20px;">
+  <div class="kta-doc-flow-step">Mal Girişe Hazır</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step">🚢 Yolda (ETA Zorunlu)</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step">🏛️ Antrepoda (Havuz)</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step">⚡ Gümrüklemede (+2 Gün)</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step">🏭 Mal Giriş</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step active">✅ Kabul Edildi (GKK)</div>
+</div>
+<div class="kta-doc-flow" style="flex-wrap: wrap; margin-bottom: 20px; background: #fff5f5; border: 1px dashed #fca5a5; padding: 10px 14px; border-radius: 8px;">
+  <span style="font-weight: 700; color: #991b1b; margin-right: 10px;">Kapıda Ret / Uyuşmazlık Hattı:</span>
+  <div class="kta-doc-flow-step">🏭 Mal Giriş</div>
+  <span class="kta-doc-flow-arrow">⇄</span>
+  <div class="kta-doc-flow-step" style="border-color: #ef4444; color: #b91c1c; font-weight: bold; background: #fee2e2;">⚠️ Mal Kabul Uyuşmazlığı</div>
+  <span class="kta-doc-flow-arrow">→</span>
+  <div class="kta-doc-flow-step">Gümrüğe İade / İptal</div>
+</div>
 
-<blockquote>
-  <p><strong>Önemli Not:</strong> "Kabul Et" (Submit) butonuna basılana kadar sistem stokları artırmaz ve etiket basmaz.</p>
-</blockquote>
+<div class="kta-doc-table-wrap">
+  <table class="kta-doc-table">
+    <thead>
+      <tr>
+        <th style="width: 140px;">Aşama (State)</th>
+        <th style="width: 130px;">Tetikleyici / Buton</th>
+        <th style="width: 150px;">Yetkili Rol</th>
+        <th>Açıklama, Zorunlu Alanlar ve MRP/Planlama Etkisi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Mal Girişe Hazır</strong></td>
+        <td>İrsaliye Açılışı</td>
+        <td>Purchase User</td>
+        <td>Yurtiçi satınalmalar veya tedarikçiye iade irsaliyeleri (<code>is_return = 1</code>) için başlangıç aşamasıdır. Doğrudan fabrika girişine aktarılabilir.</td>
+      </tr>
+      <tr>
+        <td><strong>Yolda (In Transit)</strong></td>
+        <td><code>İthalat Başlat</code></td>
+        <td><strong>KTA Gümrük Sorumlusu</strong></td>
+        <td>
+          Yurtdışından sevk edilen malzemeler için kullanılır. Yalnızca Ceren Keçici ve Ömür Muslu tarafından başlatılabilir.
+          <br><strong>⚠️ Zorunlu Alan (ETA):</strong> İthalat sekmesindeki <code>tahmini_varis_tarihi</code> (ETA) alanı zorunludur; lojistik moduna göre (karayolu, denizyolu, havayolu) kesin varış tarihi girilmeden belge bu duruma alınamaz. MRP motoru bu tarihi baz alır.
+          <br><strong>Geri Dönüş:</strong> Ret (<code>Reject</code>) verilirse bir önceki aşama olan <code>Mal Girişe Hazır</code>a döner.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Antrepoda</strong></td>
+        <td><code>Antrepoya Al</code></td>
+        <td><strong>KTA Gümrük Sorumlusu</strong></td>
+        <td>
+          Malzeme gümrük sahasına/antrepoya ulaşmış ve <code>gumruge_gelis_tarihi</code> işlenmiştir. 
+          <br><strong>Bekleme Havuzu Prensibi:</strong> Bazı malzemeler antrepoda bekletildiği için, henüz çekim kararı verilmemiş ürünler haftalık teslimat takvimine yapay olarak yığılmaz; MRP ekranlarında <em>"Antrepoda Bekliyor (İşlem Başlatılmadı)"</em> rezervi olarak gösterilir.
+          <br><strong>Geri Dönüş:</strong> Ret (<code>Reject</code>) verilirse doğrudan bir önceki adım olan <code>Yolda</code> durumuna döner.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Gümrüklemede</strong></td>
+        <td><code>İşlem Başlat</code></td>
+        <td><strong>KTA Gümrük Sorumlusu</strong></td>
+        <td>
+          Gümrükleme / millileştirme süreci fiilen başlatıldığında bu aksiyon tetiklenir.
+          <br><strong>+2 Gün Tampon:</strong> Sistem, işlem başlama tarihine KTA MRP Ayarlarındaki <code>antrepo_clearance_days</code> (2 gün) tamponunu ekleyerek malzemenin fabrikaya kesin varış gününü netleştirir.
+          <br><strong>Geri Dönüş (Rollback):</strong> Ret (<code>Reject</code>) işlemi asla Yolda durumuna atlamaz; tam bir önceki adım olan <code>Antrepoda</code> statüsüne geri döndürür.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Mal Giriş</strong></td>
+        <td><code>Antrepodan Çek</code> / <code>İthalatı Gerçekleştir</code></td>
+        <td><strong>KTA Gümrük Sorumlusu</strong></td>
+        <td>Gümrük ve nakliye işlemleri tamamlanmış, kamyon fabrikanın fiziki mal kabul kapısına yanaşmıştır. Depocu fiziki sayım ve kontrol hazırlıklarını yapar.</td>
+      </tr>
+      <tr>
+        <td><strong>Mal Kabul Uyuşmazlığı</strong></td>
+        <td><code>Uyuşmazlık Bildir</code></td>
+        <td><strong>Stock User</strong> (Depocu)</td>
+        <td>
+          Kapıda fiziki sayımda evrak, miktar veya hasar uyuşmazlığı tespit edildiğinde tetiklenir.
+          <br><strong>⚠️ Zorunlu Bilgi Girişi:</strong> Butona basıldığında açılan diyalogdan <em>Uyuşmazlık Nedeni</em> (Evrak/İrsaliye Uyuşmazlığı, Fiziki Hasar/Kalite Problemi, Eksik/Yanlış Malzeme) ve <em>Uyuşmazlık Açıklaması</em> girilmeden belge bu statüye geçirilemez.
+          <br><strong>MRP Güvenlik Netleştirmesi:</strong> Karantinaya alınan bu malzeme şüpheli olduğundan MRP motorunda haftalık arz kesinlikle <strong>0 (receipts = 0)</strong> kabul edilir; üretime dahil edilmez.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Kabul Edildi (Submit)</strong></td>
+        <td><code>Onayla (Submit)</code></td>
+        <td>Quality Manager / Stock User</td>
+        <td>
+          Fiziki sayım tamamlanıp belge onaylandığında stoklar ambar bakiyesine işlenir, Smart Batch Splitting çalışır, Zebra SUT barkodları basılır ve Giriş Kalite Kontrol (GKK) karantina süreci başlar.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="kta-doc-info">
+  <h4>🔒 Görevler Ayrılığı (Segregation of Duties) ve Çözüm Rotası</h4>
+  <ul>
+    <li><strong>Gümrük Yetki İzolasyonu:</strong> Depo personeli (<code>Stock User</code>), sistemde <code>Purchase User</code> veya <code>Purchase Manager</code> yetkisine sahip olsa dahi <code>Yolda</code>, <code>Antrepoda</code> ve <code>Gümrüklemede</code> aşamalarındaki butonları göremez ve geri alamaz.</li>
+    <li><strong>Sıralı Geri Dönüş Zinciri:</strong> <code>Gümrüklemede ➔ Antrepoda ➔ Yolda ➔ Mal Girişe Hazır</code> hiyerarşisi korunur; hiçbir lojistik aşaması atlanamaz.</li>
+    <li><strong>İthalat Uyuşmazlık Çözümü (is_import = 1):</strong> Yalnızca <strong>KTA Gümrük Sorumlusu</strong> (Ceren Keçici, Ömür Muslu) tarafından yönetilir. Sorun çözüldüğünde <code>Sorun Çözüldü</code> ile <code>Mal Giriş</code>e düşürülür veya gümrük sahasına geri çekmek için <code>Gümrüğe İade</code> yapılır.</li>
+    <li><strong>Yurtiçi Uyuşmazlık Çözümü (is_import = 0):</strong> Satınalma personeli (<code>Purchase User</code>) tarafından yönetilir. Tedarikçi mutabakatı sonrası <code>Sorun Çözüldü</code> ile mal kabule geri verilir.</li>
+  </ul>
+</div>
+
+<div class="kta-doc-info warning">
+  <strong>⚠️ Önemli Not:</strong> Belge "Onayla" (Submit) edilene kadar sistem stokları artırmaz ve ambar etiketleri basılmaz. Açık aşamalar (Yolda, Antrepoda, Gümrüklemede) MRP'de izlenirken, <code>Mal Kabul Uyuşmazlığı</code>ndaki irsaliyeler güvenli tarafta kalmak adına arz kabul edilmez.
+</div>
 
 <hr />
 

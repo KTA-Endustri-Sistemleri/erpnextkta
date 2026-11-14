@@ -68,14 +68,14 @@ Aşağıdaki tablo, her raporun hangi raporu çağırdığını ve hangi soruyu 
 | # | Rapor | Beslediği Kaynak | Cevapladığı Soru |
 |---|-------|-----------------|------------------|
 | 1 | **Periyodik Satış Siparişleri** | Doğrudan `Sales Order` tablosu | "Hangi müşteriye, ne zaman, ne kadar teslim edeceğiz?" |
-| 2 | **Üretime Başlama Haftası** | Rapor #1 + KTA Sevk Parametreleri + Bitmiş Ürün Stoku | "Bu ürünün üretimine en geç hangi hafta başlamalıyız?" |
+| 2 | **Üretime Başlama Haftası** | Çekirdek `psw.py` + `lead_time.py` (Item & Address/Customer Lead Times) + Bitmiş Ürün Stoku | "Bu ürünün üretimine en geç hangi hafta başlamalıyız?" |
 | 3 | **Kapasite Planlama** | Rapor #2 + Item.custom_weekly_production | "Fabrika kapasitesine göre haftalık üretim planı nasıl olmalı?" |
 | 4 | **Malzeme İhtiyaç** | Rapor #3 + BOM Explosion Items + Stok + PO | "Hangi hafta, hangi hammaddeden ne kadar lazım?" |
 | 5 | **MRP Analiz** | Rapor #4 + Item bilgileri + Fiyat + Stok | "Hammadde portföyümüzün genel durumu nedir?" |
 | 6 | **Önerilen PO** | Rapor #4 + Item Price (lead time, MOQ, paket) | "Tedarikçiye hangi hafta, ne kadar sipariş vermeliyiz?" |
 | 7 | **İş Emri Planlama** | Rapor #3 + Mevcut Work Order'lar | "Hangi hafta için yeni iş emri açmalıyız?" |
-| 8 | **Sevkiyat Haftası** | Rapor #1 + KTA Sevk Parametreleri | "Ürün fabrikadan hangi hafta çıkmalı?" |
-| 9 | **Üretim Pipeline Analizi** | Doğrudan SO + WO + Stok + Sevk Param. | "Tüm pipeline'ı aşama aşama nasıl görürüm?" |
+| 8 | **Sevkiyat Haftası** | Çekirdek `lead_time.py` (Address/Customer Lead Times) | "Ürün fabrikadan hangi hafta çıkmalı?" |
+| 9 | **Üretim Pipeline Analizi** | Doğrudan SO + WO + Stok + Çekirdek `lead_time.py` | "Tüm pipeline'ı aşama aşama nasıl görürüm?" |
 
 ---
 
@@ -84,9 +84,11 @@ Aşağıdaki tablo, her raporun hangi raporu çağırdığını ve hangi soruyu 
 Tüm raporların beslediği ortak DocType'lar ve alanlar:
 
 | DocType | Alan | Kullanım |
-|---------|------|----------|
+|---|---|---|
+| **KTA MRP Settings** | `enable_capacity_leveling`, `enable_ramp_up`, `planning_horizon_days`, `available_warehouse_type` vb. | Tüm MRP zincirinin merkezi konfigürasyon ve parametre odası |
 | **Sales Order / Sales Order Item** | `qty`, `delivered_qty`, `delivery_date` | Açık sipariş talebi |
-| **KTA Sevk Parametreleri** | `production_time`, `delivery_time` | Müşteriye özel üretim ve sevk süreleri |
+| **Address / Customer / Customer Group** | `custom_shipping_lead_days` | Sevk / Transit süresi ($T_{\text{transit}}$) |
+| **Item / Item Customer Detail** | `custom_manufacturing_lead_days`, `custom_production_time_days` | Dahili fabrika üretim süresi ($T_{\text{prod}}$) |
 | **Item** | `custom_weekly_production`, `custom_ara_malzeme_grubu`, `custom_musteri_grubu` | Kapasite, gruplama |
 | **Item Customer** | `custom_musteri_paketleme_miktari` | Müşteriye özel paketleme yuvarlaması |
 | **BOM / BOM Explosion Item** | `stock_qty`, `stock_uom` | Hammadde çarpanları |

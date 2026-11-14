@@ -1,0 +1,153 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "mrp-settings" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🛠️</span>
+  <h1>KTA MRP Ayarları (KTA MRP Settings)</h1>
+  <p>Tüm KTA MRP motorunun, kapasite dengeleme matematiğinin, planlama ufkunun ve stok kurallarının tek bir merkezden yönetildiği sistem kontrol paneli.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>1. Neden Merkezi Ayarlar?</h2>
+  <p>Eski sistemde kapasite dengeleme ve ramp-up gibi ayarlar her kullanıcının rapor ekranındaki filtre çubuğunda ayrı ayrı yer almaktaydı. Bu durum şu kritik sorunlara yol açıyordu:</p>
+  <ul>
+    <li>Kullanıcılar farklı filtre kombinasyonları seçtiğinde raporlar arasında tutarsız sonuçlar oluşabiliyordu.</li>
+    <li>Arka planda çalışan veya otomatik tetiklenen motor servisleri hangi parametreyi baz alacağını bilemiyordu.</li>
+    <li>Kapasite kuralı gibi fabrika geneli stratejik bir karar son kullanıcının anlık inisiyatifine bırakılmıştı.</li>
+  </ul>
+  <div class="kta-doc-info success">
+    <strong>🎯 Çözüm:</strong> <code>KTA MRP Settings</code> (Single DocType) oluşturularak tüm matematiksel parametreler merkezi bir yönetim odasına taşınmıştır. Rapor filtrelerinden gereksiz teknik kutular temizlenmiş ve tüm MRP ekosisteminin aynı kurallarla tek bir gerçeklik (Single Source of Truth) üzerinden çalışması sağlanmıştır.
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>2. Ayar Parametreleri Sözlüğü</h2>
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr>
+          <th style="width: 220px;">Parametre</th>
+          <th style="width: 100px;">Tip / Varsayılan</th>
+          <th>Açıklama ve Üretim Üzerindeki Etkisi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>enable_capacity_leveling</strong><br><small>Kapasite Dengeleme Aktif</small></td>
+          <td><code>Check</code><br><strong>Açık (1)</strong></td>
+          <td>Kapasite aşımı olan haftalardaki fazla üretim yükünün (Over-capacity), sonraki haftaların boş kapasitesine ileriye doğru (Forward Scheduling) aktarılmasını sağlar. Kapalıyken haftalık kapasite aşımı olduğu gibi bırakılır.</td>
+        </tr>
+        <tr>
+          <td><strong>enable_ramp_up</strong><br><small>Ramp-up (Önden Üretim) Aktif</small></td>
+          <td><code>Check</code><br><strong>Kapalı (0)</strong></td>
+          <td>Geriye Doldurma (Backward Fill) ve Ramp-up (Akıllı Yumuşatma) aşamalarını devreye alır. Yoğun haftalardaki yükü önceki boş haftalara çekerek ani talep dalgalanmalarını pürüzsüzleştirir.</td>
+        </tr>
+        <tr>
+          <td><strong>default_rampup_weeks</strong><br><small>Ramp-up Süresi (Hafta)</small></td>
+          <td><code>Int</code><br><strong>3 Hafta</strong></td>
+          <td>Ramp-up algoritmasının yoğun bir haftanın yükünü en fazla kaç hafta öncesine kadar yayabileceğini belirler.</td>
+        </tr>
+        <tr>
+          <td><strong>rampup_trigger_utilization</strong><br><small>Tetikleme Doluluk Oranı (%)</small></td>
+          <td><code>Percent</code><br><strong>%85</strong></td>
+          <td>Bir haftanın kapasite doluluğu bu oranın üzerine çıktığında ramp-up yumuşatma mekanizması devreye girer. Doluluğu düşük haftaların siparişleri bölünmez.</td>
+        </tr>
+        <tr>
+          <td><strong>rampup_max_capacity_limit</strong><br><small>Maksimum Kapasite Limiti (%)</small></td>
+          <td><code>Percent</code><br><strong>%95</strong></td>
+          <td>Geriye çekilen yükün, hedef önceki haftayı en fazla ne kadar doldurabileceğini belirler. Güvenlik marjı bırakarak hattın %100 tıkanmasını önler.</td>
+        </tr>
+        <tr>
+          <td><strong>min_smoothing_qty</strong><br><small>Minimum Yumuşatma Miktarı</small></td>
+          <td><code>Int</code><br><strong>10 Adet</strong></td>
+          <td>Geriye yayma yapılırken taşınacak miktarın alt sınırıdır. Çok küçük adetlerin parçalanıp gereksiz ek iş emri oluşturmasını engeller.</td>
+        </tr>
+        <tr>
+          <td><strong>planning_horizon_days</strong><br><small>Planlama Ufku (Gün)</small></td>
+          <td><code>Int</code><br><strong>90 Gün</strong></td>
+          <td>Rapor filtrelerindeki Bitiş Tarihi (to_date), açılışta doğrudan bu parametredeki gün sayısı eklenerek otomatik getirilir (Örn: 180 gün seçildiğinde raporlar 6 aylık aralıkla açılır). Kullanıcı ekranda dilediğinde tarihi 1 yıla kadar değiştirebilir.</td>
+        </tr>
+        <tr>
+          <td><strong>backlog_lookback_days</strong><br><small>Geriye Dönük Backlog Gün</small></td>
+          <td><code>Int</code><br><strong>270 Gün</strong></td>
+          <td>Geçmişten sarkan, teslimatı gecikmiş açık satış siparişlerinin geriye doğru kaç gün boyunca taranıp ilk haftaya devredileceğini belirler.</td>
+        </tr>
+        <tr>
+          <td><strong>default_production_time_days</strong><br><small>Varsayılan Üretim Süresi</small></td>
+          <td><code>Int</code><br><strong>14 Gün</strong></td>
+          <td>Müşteri veya mamul bazında tanımlı özel bir üretim süresi (Lead Time) bulunamadığında, teslimat tarihinden geriye düşülecek standart üretim süresidir.</td>
+        </tr>
+        <tr>
+          <td><strong>urgent_shortage_weeks</strong><br><small>Acil Eksik Hafta Eşiği</small></td>
+          <td><code>Int</code><br><strong>4 Hafta</strong></td>
+          <td>Malzeme İhtiyaç Raporunda "İlk Eksik Hafta" için kırmızı alarm rozetinin verileceği hafta sınırıdır (1-4 hafta kırmızı, 5+ hafta turuncu gösterilir).</td>
+        </tr>
+        <tr>
+          <td><strong>available_warehouse_type</strong><br><small>Kullanılabilir Depo Tipi</small></td>
+          <td><code>Link (Warehouse Type)</code><br><strong>Kullanılabilir Stok</strong></td>
+          <td>MRP motorunun fiziksel ve rezerve stok hesaplarken dikkate alacağı depoların tipidir. Hurda, karantina veya transit depoları bu tipte olmadıkça hesaba katılmaz.</td>
+        </tr>
+        <tr>
+          <td><strong>default_include_po</strong><br><small>PO Teslimatlarını Dahil Et</small></td>
+          <td><code>Check</code><br><strong>Açık (1)</strong></td>
+          <td>Malzeme İhtiyaç netleştirmesinde onaylı açık Satınalma Siparişlerinin (Open PO) varsayılan olarak arz kaynağı sayılıp sayılmayacağını belirler.</td>
+        </tr>
+        <tr>
+          <td><strong>antrepo_clearance_days</strong><br><small>Antrepo Millileştirme Süresi (Gün)</small></td>
+          <td><code>Int</code><br><strong>2 Gün</strong></td>
+          <td>Antrepodaki mallar gümrükleme işlemine alındığında (Gümrüklemede aşaması), millileşip ana depoya girene kadar gereken operasyonel tampon süredir. MRP motoru gümrükleme başlangıç tarihine bu süreyi ekleyerek malzemenin hangi hafta serbest stoka katılacağını belirler.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>3. Nasıl Erişilir ve Yetkiler</h2>
+  <p>ERPNext arama çubuğuna <strong>KTA MRP Settings</strong> yazılarak ayarlara ulaşılabilir.</p>
+  <div class="kta-doc-info warning">
+    <strong>🔒 Yetkilendirme Kuralı:</strong> Bu sayfadaki parametreler tüm fabrikanın üretim ve satınalma planını doğrudan etkilediği için sadece <strong>Manufacturing Manager</strong> ve <strong>System Manager</strong> rolleri tarafından düzenlenebilir.
+  </div>
+</div>
+
+<div class="kta-doc-section">
+  <h2>4. Raporlar Arası Entegrasyon Mimarisi</h2>
+  <p>Tüm MRP raporları artık parametreleri kullanıcı arayüzünden tek tek değil, ortak çekirdek motor ve merkezi ayarlar üzerinden tüketir:</p>
+
+  <div class="kta-arch-diagram">
+    <div class="kta-arch-node root">
+      <span class="kta-arch-node-title">🛠️ KTA MRP SETTINGS</span>
+      <span class="kta-arch-node-sub">Merkezi Parametre & Kural Odası (Single Source of Truth)</span>
+    </div>
+
+    <div class="kta-arch-arrow-down">
+      <span>↓</span>
+    </div>
+
+    <div class="kta-arch-node core">
+      <span class="kta-arch-node-title">⚡ mrp_engine (Ortak Hesaplama Çekirdeği)</span>
+      <span class="kta-arch-node-sub">settings.py • capacity_leveling.py • service.py</span>
+    </div>
+
+    <div class="kta-arch-arrow-down">
+      <span>↓</span>
+    </div>
+
+    <div class="kta-arch-branches">
+      <a href="/docs/capacity-planning" class="kta-arch-leaf">
+        <span class="kta-arch-leaf-title">⚙️ Kapasite Planlama</span>
+        <span class="kta-arch-leaf-tag">Pass 1-2-3 Dengeleme</span>
+      </a>
+      <a href="/docs/material-requirement" class="kta-arch-leaf">
+        <span class="kta-arch-leaf-title">🧱 Malzeme İhtiyaç</span>
+        <span class="kta-arch-leaf-tag">BOM & Netting & MOQ</span>
+      </a>
+      <a href="/docs/work-order-planning" class="kta-arch-leaf">
+        <span class="kta-arch-leaf-title">📋 İş Emri Planlama</span>
+        <span class="kta-arch-leaf-tag">WIP & Net İş Emri</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
