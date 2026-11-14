@@ -47,23 +47,36 @@ frappe.query_reports["MRP Analysis"] = {
 			"fieldname": "sifir_tuketimi_goster",
 			"label": __("Sıfır Tüketimi Göster"),
 			"fieldtype": "Check",
-			"default": 0,
-		},
-		{
-			"fieldname": "fiyat_varsayilan_tedarikci",
-			"label": __("Fiyatı Varsayılan Tedarikçiden Al"),
-			"fieldtype": "Check",
 			"default": 0
 		}
 	],
 
 	formatter: function(value, row, column, data, default_formatter) {
+		if (data && (data.is_total_row || data.hammadde_kodu === "TOPLAM" || data.hammadde_kodu === __("TOPLAM"))) {
+			if (column.fieldname === "hammadde_kodu") {
+				return `<strong>${value || __("TOPLAM")}</strong>`;
+			}
+			if (column.fieldtype === "Float") {
+				let formatted = (value || value === 0) ? parseFloat(value).toLocaleString("tr-TR", {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2,
+				}) : "";
+				return `<strong>${formatted}</strong>`;
+			}
+			if (column.fieldtype === "Percent") {
+				let formatted = (value || value === 0) ? parseFloat(value).toLocaleString("tr-TR", {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 4,
+				}) + "%" : "";
+				return `<strong>${formatted}</strong>`;
+			}
+		}
+
 		if (window.kta && kta.report_utils && kta.report_utils.std_formatter) {
 			return kta.report_utils.std_formatter(value, row, column, data, default_formatter);
 		}
 		return default_formatter(value, row, column, data);
-	}
-,
+	},
 	after_datatable_render: function(datatable_obj) {
 		if (window.kta && kta.report_utils && kta.report_utils.inject_summary) {
 			kta.report_utils.inject_summary(frappe.query_report);
