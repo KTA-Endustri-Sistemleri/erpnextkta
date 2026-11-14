@@ -53,8 +53,8 @@ frappe.query_reports["MRP Analysis"] = {
 
 	formatter: function(value, row, column, data, default_formatter) {
 		if (data && (data.is_total_row || data.hammadde_kodu === "TOPLAM" || data.hammadde_kodu === __("TOPLAM"))) {
-			if (column.fieldname === "hammadde_kodu") {
-				return `<strong>${value || __("TOPLAM")}</strong>`;
+			if (column.fieldname === "hammadde_kodu" || column.fieldname === "birim") {
+				return `<strong>${value || ""}</strong>`;
 			}
 			if (column.fieldtype === "Float") {
 				let formatted = (value || value === 0) ? parseFloat(value).toLocaleString("tr-TR", {
