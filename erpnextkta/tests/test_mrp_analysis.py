@@ -49,10 +49,9 @@ class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
 		cls.warehouse = wh_name
 
 		# 2. UOM ve Item Group
-		uom = frappe.db.get_value("UOM", {}, "name")
-		if not uom:
-			frappe.get_doc({"doctype": "UOM", "uom_name": "Nos"}).insert(ignore_permissions=True)
-			uom = "Nos"
+		for u_name in ["Nos", "Metre", "Adet"]:
+			if not frappe.db.exists("UOM", u_name):
+				frappe.get_doc({"doctype": "UOM", "uom_name": u_name}).insert(ignore_permissions=True)
 
 		ig = "Raw Material" if frappe.db.exists("Item Group", "Raw Material") else (
 			frappe.db.get_value("Item Group", {}, "name")
@@ -82,27 +81,28 @@ class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
 
 		# 5. Test Kalemleri (Hammadde, Bakım ve Ürün)
 		items_def = [
-			("_TEST_MRP_RAW", "HAMMADDE", "Test Raw Material"),
-			("_TEST_MRP_MAINT", "BAKIM", "Test Maintenance Part"),
-			("_TEST_MRP_FG", "ÜRÜN", "Test Finished Good"),
+			("_TEST_MRP_RAW", "HAMMADDE", "Test Raw Material", "Nos"),
+			("_TEST_MRP_CABLE", "HAMMADDE", "Test Cable", "Metre"),
+			("_TEST_MRP_MAINT", "BAKIM", "Test Maintenance Part", "Nos"),
+			("_TEST_MRP_FG", "ÜRÜN", "Test Finished Good", "Nos"),
 		]
-		for code, grp, desc in items_def:
+		for code, grp, desc, itm_uom in items_def:
 			if not frappe.db.exists("Item", code):
 				frappe.get_doc({
 					"doctype": "Item",
 					"item_code": code,
 					"item_name": desc,
 					"item_group": ig,
-					"stock_uom": uom,
+					"stock_uom": itm_uom,
 					"is_stock_item": 1,
 					"custom_ara_malzeme_grubu": grp,
 				}).insert(ignore_permissions=True)
 			else:
 				frappe.db.set_value(
-					"Item", code, {"custom_ara_malzeme_grubu": grp, "disabled": 0}
+					"Item", code, {"custom_ara_malzeme_grubu": grp, "stock_uom": itm_uom, "disabled": 0}
 				)
 
-		# 5. Tedarikçi
+		# 6. Tedarikçi
 		cls.supplier_name = "_Test MRP Supplier"
 		if not frappe.db.exists("Supplier", cls.supplier_name):
 			sup_grp = frappe.db.get_value("Supplier Group", {}, "name")
@@ -118,18 +118,19 @@ class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
 				"supplier_group": sup_grp,
 			}).insert(ignore_permissions=True)
 
-		# 6. Varsayılan Tedarikçi (Item Default)
-		frappe.db.delete("Item Default", {"parent": "_TEST_MRP_RAW"})
-		frappe.get_doc({
-			"doctype": "Item Default",
-			"parent": "_TEST_MRP_RAW",
-			"parenttype": "Item",
-			"parentfield": "item_defaults",
-			"company": company,
-			"default_supplier": cls.supplier_name,
-		}).insert(ignore_permissions=True)
+		# 7. Varsayılan Tedarikçi (Item Default)
+		for rm_code in ["_TEST_MRP_RAW", "_TEST_MRP_CABLE"]:
+			frappe.db.delete("Item Default", {"parent": rm_code})
+			frappe.get_doc({
+				"doctype": "Item Default",
+				"parent": rm_code,
+				"parenttype": "Item",
+				"parentfield": "item_defaults",
+				"company": company,
+				"default_supplier": cls.supplier_name,
+			}).insert(ignore_permissions=True)
 
-		# 7. Fiyat Listesi ve Fiyat (Item Price)
+		# 8. Fiyat Listesi ve Fiyat (Item Price)
 		price_list = frappe.db.get_value("Price List", {"buying": 1}, "name")
 		if not price_list:
 			pl = frappe.get_doc({
@@ -140,20 +141,22 @@ class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
 			}).insert(ignore_permissions=True)
 			price_list = pl.name
 
-		if not frappe.db.exists("Item Price", {"item_code": "_TEST_MRP_RAW", "supplier": cls.supplier_name}):
-			frappe.get_doc({
-				"doctype": "Item Price",
-				"item_code": "_TEST_MRP_RAW",
-				"price_list": price_list,
-				"buying": 1,
-				"supplier": cls.supplier_name,
-				"price_list_rate": 25.50,
-				"currency": "EUR",
-			}).insert(ignore_permissions=True)
+		for rm_code, rate in [("_TEST_MRP_RAW", 25.50), ("_TEST_MRP_CABLE", 15.00)]:
+			if not frappe.db.exists("Item Price", {"item_code": rm_code, "supplier": cls.supplier_name}):
+				frappe.get_doc({
+					"doctype": "Item Price",
+					"item_code": rm_code,
+					"price_list": price_list,
+					"buying": 1,
+					"supplier": cls.supplier_name,
+					"price_list_rate": rate,
+					"currency": "EUR",
+				}).insert(ignore_permissions=True)
 
-		# 8. Stok (Bin) Kayıtları
+		# 9. Stok (Bin) Kayıtları
 		bins_def = [
 			("_TEST_MRP_RAW", 100.0, 20.0),
+			("_TEST_MRP_CABLE", 200.0, 50.0),
 			("_TEST_MRP_MAINT", 50.0, 0.0),
 			("_TEST_MRP_FG", 10.0, 0.0),
 		]
@@ -203,12 +206,30 @@ class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
 		self.assertEqual(col_map["serbest_stok"]["label"], "Serbest Stok")
 		self.assertEqual(col_map["bakiye_degeri"]["label"], "Bakiye Değeri (TL)")
 
+	def test_birim_column_and_item_uom_mapping(self):
+		"""Birim (stock_uom) kolonunun varlığı ve satırlara doğru atanması."""
+		cols, data, *_ = mrp_analysis.execute({"sifir_tuketimi_goster": 1})
+		fieldnames = [c["fieldname"] for c in cols]
+		col_map = {c["fieldname"]: c for c in cols}
+
+		self.assertIn("birim", fieldnames, "'birim' kolonu kolon listesinde bulunamadı")
+		self.assertIn(col_map["birim"]["label"], ["Birim", "Unit"])
+
+		idx_adi = fieldnames.index("hammadde_adi")
+		idx_birim = fieldnames.index("birim")
+		self.assertEqual(idx_birim, idx_adi + 1, "birim kolonu hammadde_adi'nin hemen ardından gelmeli")
+
+		data_rows = [d for d in data if not d.get("is_total_row")]
+		self.assertGreater(len(data_rows), 0, "Raporda en az bir veri satırı bulunmalı")
+		for row in data_rows:
+			self.assertTrue(row.get("birim"), f"{row.get('hammadde_kodu')} için birim boş olamaz")
+
 	def test_data_row_net_available_stock_calculation(self):
 		"""Her veri satırında serbest_stok == round(depo_stok - rezerve_stok, 2) olmalı."""
 		_, data, *_ = mrp_analysis.execute({"sifir_tuketimi_goster": 1})
 		data_rows = [d for d in data if not d.get("is_total_row")]
 
-		self.assertTrue(len(data_rows) > 0, "Raporda en az bir veri satırı bulunmalı")
+		self.assertGreater(len(data_rows), 0, "Raporda en az bir veri satırı bulunmalı")
 
 		for row in data_rows:
 			depo = row.get("depo_stok", 0) or 0
@@ -221,26 +242,34 @@ class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
 				msg=f"Hammadde {row.get('hammadde_kodu')} için serbest stok hesabı hatalı: {serbest} != {depo} - {rezerve}",
 			)
 
-	def test_total_row_contains_all_stock_totals(self):
-		"""TOPLAM satırında depo_stok, rezerve_stok, serbest_stok ve bakiye_degeri sayısal olmalı, hammadde_kodu HTML içermemeli."""
+	def test_uom_grouped_subtotals_and_grand_value(self):
+		"""Alt toplam satırlarının birim bazında ayrıştığı ve en altta genel bakiye değeri satırı olduğunu doğrular."""
 		_, data, *_ = mrp_analysis.execute({"sifir_tuketimi_goster": 1})
 		total_rows = [d for d in data if d.get("is_total_row") == 1]
-		self.assertEqual(len(total_rows), 1, "Yalnızca bir adet TOPLAM satırı olmalı")
 
-		total_row = total_rows[0]
-		self.assertEqual(total_row.get("hammadde_kodu"), "TOPLAM", "hammadde_kodu alanında ham HTML tag'i (örn. <b>) olmamalı, düz TOPLAM olmalı")
-		for field in ("depo_stok", "rezerve_stok", "serbest_stok", "bakiye_degeri"):
-			self.assertIn(field, total_row, f"TOPLAM satırında {field} eksik")
-			val = total_row[field]
-			self.assertIsInstance(val, (int, float), f"TOPLAM satırında {field} sayısal olmalı, gelen: {val}")
+		# 1. En az bir adet TOPLAM (<Birim>) satırı olmalı
+		uom_rows = [r for r in total_rows if str(r.get("hammadde_kodu", "")).startswith("TOPLAM (")]
+		self.assertGreaterEqual(len(uom_rows), 1, "En az bir adet TOPLAM (<Birim>) satırı bulunmalı")
 
-		# Toplam satırındaki serbest stok formülü doğrulaması
-		self.assertAlmostEqual(
-			total_row["serbest_stok"],
-			round(total_row["depo_stok"] - total_row["rezerve_stok"], 2),
-			places=2,
-			msg="TOPLAM satırında serbest stok toplamı tutarsız",
-		)
+		# 2. Her birim satırında birim alanı ve serbest stok hesabı doğru olmalı
+		for r in uom_rows:
+			self.assertTrue(r.get("birim"), "Birim toplam satırında 'birim' alanı dolu olmalı")
+			depo = r.get("depo_stok", 0) or 0
+			rezerve = r.get("rezerve_stok", 0) or 0
+			serbest = r.get("serbest_stok", 0) or 0
+			self.assertAlmostEqual(
+				serbest,
+				round(depo - rezerve, 2),
+				places=2,
+				msg=f"{r.get('hammadde_kodu')} için serbest stok hesabı tutarsız",
+			)
+
+		# 3. En altta tek bir GENEL BAKİYE DEĞERİ satırı olmalı
+		grand_rows = [r for r in total_rows if r.get("hammadde_kodu") == "GENEL BAKİYE DEĞERİ"]
+		self.assertEqual(len(grand_rows), 1, "Yalnızca bir adet GENEL BAKİYE DEĞERİ satırı olmalı")
+		grand_val = grand_rows[0].get("bakiye_degeri")
+		self.assertIsInstance(grand_val, (int, float), "GENEL BAKİYE DEĞERİ satırında bakiye_degeri sayısal olmalı")
+		self.assertGreater(grand_val, 0, "GENEL BAKİYE DEĞERİ pozitif bir sayı olmalı")
 
 	def test_zero_consumption_items_excludes_finished_goods_and_maintenance(self):
 		"""get_zero_consumption_items yalnızca HAMMADDE ve OBS* gruplarını getirmeli; BAKIM/AMBALAJ/ÜRÜN getirmemeli."""
@@ -249,7 +278,7 @@ class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
 			"mrp_analysis modülünde get_zero_consumption_items fonksiyonu tanımlı olmalı",
 		)
 		items = mrp_analysis.get_zero_consumption_items()
-		self.assertTrue(len(items) > 0, "Sıfır tüketim kalem listesi boş dönmemeli")
+		self.assertGreater(len(items), 0, "Sıfır tüketim kalem listesi boş dönmemeli")
 
 		# Deterministik fikstür doğrulaması
 		self.assertIn("_TEST_MRP_RAW", items, "HAMMADDE grubundaki kalem sıfır tüketim listesinde olmalı")

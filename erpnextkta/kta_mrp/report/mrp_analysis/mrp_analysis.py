@@ -77,7 +77,7 @@ def execute(filters=None):
 		items = frappe.db.get_all(
 			"Item",
 			filters={"name": ["in", raw_materials]},
-			fields=["name", "item_name", "item_group", "custom_ara_malzeme_grubu", "custom_musteri_grubu"],
+			fields=["name", "item_name", "item_group", "stock_uom", "custom_ara_malzeme_grubu", "custom_musteri_grubu"],
 		)
 		item_info_map = {i.name: i for i in items}
 
@@ -142,6 +142,7 @@ def execute(filters=None):
 		{"label": _("Hammadde Kodu"), "fieldname": "hammadde_kodu", "fieldtype": "Link", "options": "Item", "width": 130},
 		{"label": _("Grup"), "fieldname": "grup", "fieldtype": "Data", "width": 140},
 		{"label": _("Hammadde Adı"), "fieldname": "hammadde_adi", "fieldtype": "Data", "width": 200},
+		{"label": _("Birim"), "fieldname": "birim", "fieldtype": "Data", "width": 80},
 		{"label": _("Varsayılan Tedarikçi"), "fieldname": "varsayilan_tedarikci", "fieldtype": "Link", "options": "Supplier", "width": 180},
 		{"label": _("Fiyat"), "fieldname": "fiyat", "fieldtype": "Float", "width": 100},
 		{"label": _("Para Birimi"), "fieldname": "para_birimi", "fieldtype": "Data", "width": 80},
@@ -168,7 +169,8 @@ def execute(filters=None):
 
 	# Veriler
 	data = []
-	column_totals = defaultdict(float)
+	uom_totals = defaultdict(lambda: defaultdict(float))
+	total_bakiye_degeri = 0.0
 	summary_shortage_count = 0
 	summary_total_value = 0
 
@@ -209,11 +211,13 @@ def execute(filters=None):
 		rezerve_stok = reserved_map.get(hammadde, 0)
 		serbest_stok = round(depo_stok - rezerve_stok, 2)
 		bakiye_degeri = stock_value_map.get(hammadde, 0)
+		uom = item_info.stock_uom if item_info and item_info.stock_uom else _("Adet")
 
 		row = {
 			"hammadde_kodu": hammadde,
 			"grup": item_group,
 			"hammadde_adi": item_info.item_name if item_info else "",
+			"birim": uom,
 			"varsayilan_tedarikci": supplier,
 			"fiyat": price_map.get(hammadde, 0),
 			"para_birimi": currency_map.get(hammadde, ""),
@@ -224,18 +228,18 @@ def execute(filters=None):
 			"ara_malzeme_grubu": ara_malzeme,
 		}
 
-		column_totals["depo_stok"] += depo_stok
-		column_totals["rezerve_stok"] += rezerve_stok
-		column_totals["serbest_stok"] += serbest_stok
-		column_totals["bakiye_degeri"] += bakiye_degeri
+		uom_totals[uom]["depo_stok"] += depo_stok
+		uom_totals[uom]["rezerve_stok"] += rezerve_stok
+		uom_totals[uom]["serbest_stok"] += serbest_stok
+		total_bakiye_degeri += bakiye_degeri
 
 		for cg in cg_names:
 			fieldname = cg_fieldnames[cg]
 			row[fieldname] = cg_values[fieldname]
-			column_totals[fieldname] += cg_values[fieldname]
+			uom_totals[uom][fieldname] += cg_values[fieldname]
 
 		row["genel_toplam"] = round(genel_toplam, 2)
-		column_totals["genel_toplam"] += genel_toplam
+		uom_totals[uom]["genel_toplam"] += genel_toplam
 
 		if genel_toplam > 0:
 			dist_parts = [f"{cg}%{(cg_data.get(cg,0)/genel_toplam)*100:,.1f}" for cg in cg_names if cg_data.get(cg,0) > 0]
@@ -245,7 +249,7 @@ def execute(filters=None):
 
 		row["musteri_grubu"] = item_info.custom_musteri_grubu if item_info and item_info.custom_musteri_grubu else "-"
 		row["toplam_tuketim"] = toplam_tuketim
-		column_totals["toplam_tuketim"] += toplam_tuketim
+		uom_totals[uom]["toplam_tuketim"] += toplam_tuketim
 		row["fark_oran"] = round(((toplam_tuketim - genel_toplam) / genel_toplam * 100), 6) if genel_toplam > 0 else 0
 
 		data.append(row)
@@ -257,29 +261,47 @@ def execute(filters=None):
 
 	data.sort(key=lambda x: x.get("bakiye_degeri", 0), reverse=True)
 
-	# Toplam satırı
-	total_depo = round(column_totals["depo_stok"], 2)
-	total_rezerve = round(column_totals["rezerve_stok"], 2)
+	# Birim Bazlı Alt Toplam Satırları
+	sorted_uoms = sorted(
+		uom_totals.keys(),
+		key=lambda u: (0 if u == "Metre" else 1 if u == "Adet" else 2, str(u)),
+	)
 
-	total_row = {
-		"hammadde_kodu": _("TOPLAM"),
+	for u in sorted_uoms:
+		t_depo = round(uom_totals[u]["depo_stok"], 2)
+		t_rezerve = round(uom_totals[u]["rezerve_stok"], 2)
+		t_serbest = round(t_depo - t_rezerve, 2)
+		t_genel = round(uom_totals[u]["genel_toplam"], 2)
+		t_tuketim = round(uom_totals[u]["toplam_tuketim"], 2)
+
+		uom_row = {
+			"hammadde_kodu": f"{_('TOPLAM')} ({u})",
+			"birim": u,
+			"is_total_row": 1,
+			"depo_stok": t_depo,
+			"rezerve_stok": t_rezerve,
+			"serbest_stok": t_serbest,
+			"genel_toplam": t_genel,
+			"toplam_tuketim": t_tuketim,
+			"fark_oran": round(((t_tuketim - t_genel) / t_genel * 100), 6) if t_genel > 0 else 0,
+		}
+		for cg in cg_names:
+			fn = cg_fieldnames[cg]
+			uom_row[fn] = round(uom_totals[u][fn], 2)
+		data.append(uom_row)
+
+	# Genel Bakiye Değeri Satırı
+	data.append({
+		"hammadde_kodu": _("GENEL BAKİYE DEĞERİ"),
 		"is_total_row": 1,
-		"depo_stok": total_depo,
-		"rezerve_stok": total_rezerve,
-		"serbest_stok": round(total_depo - total_rezerve, 2),
-		"bakiye_degeri": round(column_totals["bakiye_degeri"], 2),
-	}
-	for cg in cg_names:
-		fn = cg_fieldnames[cg]
-		total_row[fn] = round(column_totals[fn], 2)
-	total_row["genel_toplam"] = round(column_totals["genel_toplam"], 2)
-	total_row["toplam_tuketim"] = round(column_totals["toplam_tuketim"], 2)
-	total_row["fark_oran"] = round(((column_totals["toplam_tuketim"] - column_totals["genel_toplam"]) / column_totals["genel_toplam"] * 100), 6) if column_totals["genel_toplam"] > 0 else 0
-	data.append(total_row)
+		"bakiye_degeri": round(total_bakiye_degeri, 2),
+	})
+
+	total_rows_count = len(sorted_uoms) + 1
 
 	# Summary Cards
 	report_summary = [
-		{"value": len(data) - 1, "label": _("Toplam Kalem"), "indicator": "Blue"},
+		{"value": len(data) - total_rows_count, "label": _("Toplam Kalem"), "indicator": "Blue"},
 		{"value": summary_shortage_count, "label": _("Eksik Kalem"), "indicator": "Red"},
 		{"value": frappe.format(summary_total_value, "Currency"), "label": _("Toplam Stok Değeri"), "indicator": "Green"}
 	]
