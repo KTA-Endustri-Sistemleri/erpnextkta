@@ -8,14 +8,14 @@ def execute(filters=None):
     filters = frappe._dict(filters or {})
     
     # 1. Tarih Aralığı
-    today = date.today()
-    from_date = getdate(filters.get("from_date")) or today
-    to_date = getdate(filters.get("to_date")) or add_days(today, 90)
+    from erpnextkta.kta_mrp.mrp_engine.capacity import get_monday_of_current_week
+    monday = get_monday_of_current_week()
+    from_date = getdate(filters.get("from_date")) if filters.get("from_date") else monday
+    to_date = getdate(filters.get("to_date")) or add_days(monday, 90)
     
     first_week_label = normalize_week_label(get_week_label(from_date))
 
-    # 2. Sevk Parametreleri ve Fiziksel Stok
-    sevk_map = get_sevk_parametreleri_map()
+    # 2. Fiziksel Stok
     physical_stock = get_physical_stock_total(filters)
 
     # 3. DİNAMİK KAPASİTE TESPİTİ
@@ -60,7 +60,7 @@ def execute(filters=None):
         
         cache_key = (item_code, customer)
         if cache_key not in packing_cache:
-            p_val = frappe.db.get_value("Item Customer", 
+            p_val = frappe.db.get_value("Item Customer Detail", 
                 {"parent": item_code, "customer_name": customer}, 
                 "custom_musteri_paketleme_miktari")
             packing_cache[cache_key] = flt(p_val)
@@ -72,10 +72,16 @@ def execute(filters=None):
         
         delivery_date = getdate(item.delivery_date)
         address = item.shipping_address_name
-        params = sevk_map.get((customer, address)) or sevk_map.get((customer, None)) or {"prod": 0, "del": 0}
         
-        ship_date = add_days(delivery_date, -params["del"])
-        prod_date = add_days(delivery_date, -(params["del"] + params["prod"]))
+        from erpnextkta.kta_mrp.mrp_engine.lead_time import resolve_lead_time
+        lt = resolve_lead_time(
+            delivery_date=delivery_date,
+            item_code=item_code,
+            customer=customer,
+            address=address,
+        )
+        ship_date = lt.ship_date
+        prod_date = lt.prod_start_date
         
         target_delivery = delivery_date if delivery_date >= from_date else from_date
         target_ship = ship_date if ship_date >= from_date else from_date
@@ -284,14 +290,6 @@ def get_physical_stock_total(filters):
     where_clause = " AND ".join(conditions)
     res = frappe.db.sql(f"SELECT SUM(bin.actual_qty) FROM `tabBin` bin JOIN `tabItem` item ON bin.item_code = item.name JOIN `tabWarehouse` w ON w.name = bin.warehouse WHERE {where_clause} AND w.is_rejected_warehouse = 0", tuple(params))
     return flt(res[0][0]) if res else 0
-
-def get_sevk_parametreleri_map():
-    records = frappe.get_all("KTA Sevk Parametreleri", fields=["customer_name", "customer_address", "production_time", "delivery_time"])
-    sevk_map = {}
-    for r in records:
-        key = (r.customer_name, r.customer_address)
-        sevk_map[key] = {"prod": r.production_time or 0, "del": r.delivery_time or 0}
-    return sevk_map
 
 def normalize_week_label(label):
     if not label: return label

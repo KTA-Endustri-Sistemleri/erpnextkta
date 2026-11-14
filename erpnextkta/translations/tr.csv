@@ -93,3 +93,163 @@ Kalıp Adı,Kalıp Adı
 Mevcut Kalıp Adedi,Mevcut Kalıp Adedi
 Varsayılan Kalite Şablonu,Varsayılan Kalite Şablonu
 "Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı."
+Bu Giriş fişi iptal edilemez çünkü tedarikçiye yapılmış çıkışlar bulunmaktadır. Kalan bakiye: {0},Bu Giriş fişi iptal edilemez çünkü tedarikçiye yapılmış çıkışlar bulunmaktadır. Kalan bakiye: {0}
+Haftalık Netleştirme Detayı,Haftalık Netleştirme Detayı
+Hesaplama detayları yükleniyor...,Hesaplama detayları yükleniyor...
+Detaylar alınamadı.,Detaylar alınamadı.
+Açık PO ve Mamul detayları yükleniyor...,Açık PO ve Mamul detayları yükleniyor...
+Bu Haftaya Düşen Açık Satınalma Siparişleri (PO),Bu Haftaya Düşen Açık Satınalma Siparişleri (PO)
+Sipariş No,Sipariş No
+Termin Tarihi,Termin Tarihi
+Bekleyen Miktar,Bekleyen Miktar
+Bu hafta için beklenen açık satınalma siparişi (PO) bulunmamaktadır.,Bu hafta için beklenen açık satınalma siparişi (PO) bulunmamaktadır.
+Açık PO filtresi kapalı olduğu için siparişler hesaba katılmamıştır.,Açık PO filtresi kapalı olduğu için siparişler hesaba katılmamıştır.
+Bu Haftadaki Brüt İhtiyaç Kaynakları (Mamul Talepleri),Bu Haftadaki Brüt İhtiyaç Kaynakları (Mamul Talepleri)
+Bitmiş Ürün,Bitmiş Ürün
+Ürün Açıklaması,Ürün Açıklaması
+BOM,BOM
+Müşteri Grubu,Müşteri Grubu
+Gereken Miktar,Gereken Miktar
+Birim,Birim
+Temin Süresi,Temin Süresi
+Gün,Gün
+Min. Sipariş Miktarı (MOQ),Min. Sipariş Miktarı (MOQ)
+Paketleme Katı,Paketleme Katı
+Paket Katı,Paketleme Katı
+Netleştirme Hesabı,Netleştirme Hesabı
+Önceki Haftadan Devreden Bakiye,Önceki Haftadan Devreden Bakiye
+Eksik,Eksik
+Açık Bakiye,Açık Bakiye
+Gelen Açık Satınalma Siparişi (PO),Gelen Açık Satınalma Siparişi (PO)
+Brüt Üretim İhtiyacı,Brüt Üretim İhtiyacı
+Net Eksik / İhtiyaç,Net Eksik / İhtiyaç
+Önerilen Sipariş (MOQ & Paket Katı Uygulanmış),Önerilen Sipariş (MOQ & Paket Katı Uygulanmış)
+Dönem Sonu Projeksiyon Bakiye,Dönem Sonu Projeksiyon Bakiye
+Kapat,Kapat
+Netleştirme Detayını Gör,Netleştirme Detayını Gör
+Nos,Adet
+Box,Kutu
+Pair,Çift
+Set,Set
+Hammadde İhtiyaç Planlama,Hammadde İhtiyaç Planlama
+Filtreleri Göster,Filtreleri Göster
+Filtreleri Gizle,Filtreleri Gizle
+Raporu Yenile,Raporu Yenile
+Tedarikçi Filtrele...,Tedarikçi Filtrele...
+Hammadde Kodu...,Hammadde Kodu...
+Müşteri Grubu...,Müşteri Grubu...
+Ürün Grubu...,Ürün Grubu...
+Aktif Haftalık Gösterim Modu,Aktif Haftalık Gösterim Modu
+İhtiyaç Yaratan Bitmiş Ürünler (Talep Dağılımı),İhtiyaç Yaratan Bitmiş Ürünler (Talep Dağılımı)
+Açık Satınalma Siparişleri (Giriş Dağılımı),Açık Satınalma Siparişleri (Giriş Dağılımı)
+Bu malzeme için bekleyen açık PO veya mamul kırılımı bulunmamaktadır.,Bu malzeme için bekleyen açık PO veya mamul kırılımı bulunmamaktadır.
+Excel Olarak İndir,Excel Olarak İndir
+CSV Olarak İndir,CSV Olarak İndir
+Sayfayı Yazdır veya PDF Al,Sayfayı Yazdır veya PDF Al
+Yazdır,Yazdır
+Ufka Sıfırla,Ufka Sıfırla
+Gün,Gün
+MRP Ayarlarındaki planlama ufkuna göre sıfırla,MRP Ayarlarındaki planlama ufkuna göre sıfırla
+Sıralama,Sıralama
+En Acil Eksikler (Varsayılan),En Acil Eksikler (Varsayılan)
+En Yüksek Sipariş Tutarı,En Yüksek Sipariş Tutarı
+En Yüksek Net Eksik,En Yüksek Net Eksik
+Hammadde Kodu (A-Z),Hammadde Kodu (A-Z)
+Sıralamayı varsayılana sıfırla,Sıralamayı varsayılana sıfırla
+Artan,Artan
+Azalan,Azalan
+Hammadde koduna göre sırala,Hammadde koduna göre sırala
+Sipariş Tutarı,Sipariş Tutarı
+Net Eksik,Net Eksik
+Kapsama Haftası,Kapsama Haftası
+Gümrüklemede,Gümrüklemede
+İşlem Başlat,İşlem Başlat
+Gümrükleme Başlama Tarihi,Gümrükleme Başlama Tarihi
+Gümrükte,Gümrükte
+Antrepoda Bekleyen,Antrepoda Bekleyen
+İşlem Başlama,İşlem Başlama
+Açık Teslimatlar & İrsaliye Dağılımı (Antrepo / Yolda / PO),Açık Teslimatlar & İrsaliye Dağılımı (Antrepo / Yolda / PO)
+Gümrüklü Antrepoda Bekleyen Teslimatlar (İşlem Bekleyen Stok Havuzu),Gümrüklü Antrepoda Bekleyen Teslimatlar (İşlem Bekleyen Stok Havuzu)
+Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık timeline'a dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.,Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık timeline'a dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.
+Haftalık Açık Siparişler ve Sevkiyatlar (PO / Yolda / Gümrükte),Haftalık Açık Siparişler ve Sevkiyatlar (PO / Yolda / Gümrükte)
+{0} haftasında bekleyen açık teslimat veya sipariş bulunmamaktadır.,{0} haftasında bekleyen açık teslimat veya sipariş bulunmamaktadır.
+Haftalık planlanmış açık sipariş veya teslimat bulunmamaktadır.,Haftalık planlanmış açık sipariş veya teslimat bulunmamaktadır.
+Tüm açık siparişleri göster,Tüm açık siparişleri göster
+Antrepoda Bekliyor (İşlem Başlatılmadı),Antrepoda Bekliyor (İşlem Başlatılmadı)
+Gümrüklemede (+2g),Gümrüklemede (+2g)
+Fabrika Mal Girişi,Fabrika Mal Girişi
+Tahmini Varış (+7g Transit),Tahmini Varış (+7g Transit)
+Tahmini Varış (ETA),Tahmini Varış (ETA)
+PO Termini (ETA Eksik),PO Termini (ETA Eksik)
+Gümrüğe Geliş,Gümrüğe Geliş
+Gümrüğe Geliş Tarihi,Gümrüğe Geliş Tarihi
+Fabrikaya Sevkiyat Koşulu,Fabrikaya Sevkiyat Koşulu
+İşlem başlatıldığında (+2 gün) fabrikaya ulaşacaktır,İşlem başlatıldığında (+2 gün) fabrikaya ulaşacaktır
+Tedarik,Tedarik
+Tedarik Boru Hattı,Tedarik Boru Hattı
+Tedarik Boru Hattı (Geliş Aşamaları),Tedarik Boru Hattı (Geliş Aşamaları)
+Henüz Sevk Edilmemiş Açık PO,Henüz Sevk Edilmemiş Açık PO
+Sevkiyatta / Yolda Olan Açık Teslimat,Sevkiyatta / Yolda Olan Açık Teslimat
+Gümrüklü Antrepoda Bekleyen Açık Teslimat (Bekleme Havuzu),Gümrüklü Antrepoda Bekleyen Açık Teslimat (Bekleme Havuzu)
+Gümrükleme / Çekim İşlemi Başlatılmış Açık Teslimat (+2 Gün),Gümrükleme / Çekim İşlemi Başlatılmış Açık Teslimat (+2 Gün)
+Devreden Bakiye,Devreden Bakiye
+Açık Teslimat,Açık Teslimat
+Brüt İhtiyaç,Brüt İhtiyaç
+Önerilen Sipariş,Önerilen Sipariş
+Projeksiyon Bakiye,Projeksiyon Bakiye
+{0} Netleştirme Hesabı Özeti,{0} Netleştirme Hesabı Özeti
+Hafta Filtresini Kaldır,Hafta Filtresini Kaldır
+Hafta filtresini kaldır,Hafta filtresini kaldır
+Temizle,Temizle
+Belge,Belge
+Belge No,Belge No
+Durum,Durum
+Termin / Varış,Termin / Varış
+Hafta,Hafta
+Miktar,Miktar
+Sipariş,Sipariş
+Açık Sipariş,Açık Sipariş
+Tahmini,Tahmini
+Yükleme,Yükleme
+Tedarikçi Bazlı Planlanan Sipariş Dağılımı,Tedarikçi Bazlı Planlanan Sipariş Dağılımı
+Kotalı Dağılım (% Paylaşım),Kotalı Dağılım (% Paylaşım)
+Varsayılan Tedarikçi (%100),Varsayılan Tedarikçi (%100)
+En Ucuz Tedarikçi (%100),En Ucuz Tedarikçi (%100)
+Kotalı Satınalma Dağılımı,Kotalı Satınalma Dağılımı
+Tedarik Stratejisi,Tedarik Stratejisi
+Sadece Hammadde,Sadece Hammadde
+Bitmiş Ürün + Hammadde,Bitmiş Ürün + Hammadde
+Kota,Kota
+Birim Fiyat,Birim Fiyat
+MOQ,MOQ
+Paket,Paket
+Toplam Sipariş,Toplam Sipariş
+Tahmini Tutar,Tahmini Tutar
+Toplam İhtiyaç,Toplam İhtiyaç
+Veriler hesaplanıyor...,Veriler hesaplanıyor...
+Kayıt Bulunamadı,Kayıt Bulunamadı
+Seçilen filtrelere uygun hammadde bulunamadı.,Seçilen filtrelere uygun hammadde bulunamadı.
+Hammadde Bilgisi,Hammadde Bilgisi
+"Stok, İhtiyaç ve Kapsama","Stok, İhtiyaç ve Kapsama"
+{0} haftasına göre sırala (Eksik / Sipariş),{0} haftasına göre sırala (Eksik / Sipariş)
+Bu malzeme için bekleyen açık teslimat veya mamul kırılımı bulunmamaktadır.,Bu malzeme için bekleyen açık teslimat veya mamul kırılımı bulunmamaktadır.
+ETA girilmediği için yükleme tarihine varsayılan nakliye süresi eklendi,ETA girilmediği için yükleme tarihine varsayılan nakliye süresi eklendi
+Gümrüklü antrepoda bekleyen hammaddeleri göster,Gümrüklü antrepoda bekleyen hammaddeleri göster
+Gümrükleme / çekim işlemi başlatılmış teslimatları göster (+2 gün),Gümrükleme / çekim işlemi başlatılmış teslimatları göster (+2 gün)
+Sevkiyatta / Yolda olan hammaddeleri göster,Sevkiyatta / Yolda olan hammaddeleri göster
+Haftalık açık sipariş ve detayları görmek için tıklayın,Haftalık açık sipariş ve detayları görmek için tıklayın
+Filtreler,Filtreler
+Haftalık Gösterim,Haftalık Gösterim
+Gruplama Şekli,Gruplama Şekli
+Hammadde,Hammadde
+Ürün Grubu,Ürün Grubu
+Sadece Eksik Olanlar,Sadece Eksik Olanlar
+Sıfırla,Sıfırla
+Hammadde Kodu,Hammadde Kodu
+Serbest Stok,Serbest Stok
+İlk Eksik Hafta,İlk Eksik Hafta
+Önerilen Sipariş Tutarı,Önerilen Sipariş Tutarı
+Detayı Aç / Kapat,Detayı Aç / Kapat
+Beklenen PO,Beklenen PO
+Antrepo,Antrepo
+PO,PO

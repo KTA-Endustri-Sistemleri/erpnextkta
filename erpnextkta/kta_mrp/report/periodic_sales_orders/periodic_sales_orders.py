@@ -9,11 +9,12 @@ class SatisAnalizi:
         self.filters = frappe._dict(filters or {})
 
         today = date.today()
-        year_start = date(today.year, 1, 1)
-        year_end = date(today.year, 12, 31)
+        from erpnextkta.kta_mrp.mrp_engine.settings import get_mrp_settings
+        horizon_days = get_mrp_settings().planning_horizon_days
+        default_to_date = today + timedelta(days=horizon_days)
 
-        self.filters.from_date = self.filters.get("from_date") or year_start
-        self.filters.to_date = self.filters.get("to_date") or year_end
+        self.filters.from_date = self.filters.get("from_date") or (today - timedelta(days=30))
+        self.filters.to_date = self.filters.get("to_date") or default_to_date
         self.filters.range = self.filters.get("range", "Weekly")
         self.filters.tree_type = self.filters.get("tree_type", "Müşteri")
         self.filters.value_quantity = self.filters.get("value_quantity", "Quantity")

@@ -1,0 +1,167 @@
+{
+ "actions": [],
+ "creation": "2026-11-04 17:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_leveling",
+  "enable_leveling_by_default",
+  "enable_rampup_by_default",
+  "default_rampup_weeks",
+  "cb_leveling",
+  "rampup_trigger_utilization",
+  "rampup_max_capacity_limit",
+  "min_smoothing_qty",
+  "sb_time",
+  "planning_horizon_days",
+  "backlog_lookback_days",
+  "cb_time",
+  "default_production_time_days",
+  "default_delivery_time_days",
+  "urgent_shortage_weeks",
+  "sb_supply",
+  "available_warehouse_type",
+  "default_include_po",
+  "antrepo_clearance_days"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_leveling",
+   "fieldtype": "Section Break",
+   "label": "Kapasite & Dengeleme Parametreleri"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_leveling_by_default",
+   "fieldtype": "Check",
+   "label": "Kapasite Dengeleme Varsayılan Aktif (Forward Scheduling)"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_rampup_by_default",
+   "fieldtype": "Check",
+   "label": "Ramp-up / Düzeltme Varsayılan Aktif (Backward Smoothing)"
+  },
+  {
+   "default": "3",
+   "fieldname": "default_rampup_weeks",
+   "fieldtype": "Int",
+   "label": "Varsayılan Ramp-up Hafta Sayısı"
+  },
+  {
+   "fieldname": "cb_leveling",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "70",
+   "description": "Haftalık doluluk bu oranın üzerine çıktığında yük önceki haftalara yayılır.",
+   "fieldname": "rampup_trigger_utilization",
+   "fieldtype": "Percent",
+   "label": "Ramp-up Tetikleme Doluluk Eşiği (%)"
+  },
+  {
+   "default": "95",
+   "description": "Geriye yük taşınırken önceki haftanın kapasitesi bu tavanı aşamaz.",
+   "fieldname": "rampup_max_capacity_limit",
+   "fieldtype": "Percent",
+   "label": "Maksimum Tavan Doluluk Oranı (%)"
+  },
+  {
+   "default": "10",
+   "description": "Bu miktarın altındaki küçük dalgalanmalar taşınmaz.",
+   "fieldname": "min_smoothing_qty",
+   "fieldtype": "Int",
+   "label": "Minimum Kaydırma Eşiği (Adet)"
+  },
+  {
+   "fieldname": "sb_time",
+   "fieldtype": "Section Break",
+   "label": "Planlama Ufku & Zaman Parametreleri"
+  },
+  {
+   "default": "90",
+   "description": "Geleceğe dönük varsayılan planlama periyodu.",
+   "fieldname": "planning_horizon_days",
+   "fieldtype": "Int",
+   "label": "Varsayılan Planlama Ufku (Gün)"
+  },
+  {
+   "default": "270",
+   "description": "Geçmiş açık siparişleri geriye doğru tarama aralığı.",
+   "fieldname": "backlog_lookback_days",
+   "fieldtype": "Int",
+   "label": "Geçmiş Açık Sipariş Tarama Aralığı (Gün)"
+  },
+  {
+   "fieldname": "cb_time",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "14",
+   "description": "Ürün veya müşteri kartında süre eşleşmezse kullanılan varsayılan üretim süresi.",
+   "fieldname": "default_production_time_days",
+   "fieldtype": "Int",
+   "label": "Varsayılan Üretim Süresi (Gün)"
+  },
+  {
+   "default": "2",
+   "description": "Adres, Müşteri veya Müşteri Grubu kartında süre eşleşmezse kullanılan varsayılan sevk süresi.",
+   "fieldname": "default_delivery_time_days",
+   "fieldtype": "Int",
+   "label": "Varsayılan Sevk Süresi (Gün)"
+  },
+  {
+   "default": "4",
+   "description": "Bu hafta sayısı içinde eksik veren malzemeler 'Acil Eksik' olarak etiketlenir.",
+   "fieldname": "urgent_shortage_weeks",
+   "fieldtype": "Int",
+   "label": "Acil Eksik Eşik Haftası"
+  },
+  {
+   "fieldname": "sb_supply",
+   "fieldtype": "Section Break",
+   "label": "Depo & Satınalma Parametreleri"
+  },
+  {
+   "default": "Kullanılabilir Stok",
+   "fieldname": "available_warehouse_type",
+   "fieldtype": "Data",
+   "label": "Kullanılabilir Stok Depo Tipi"
+  },
+  {
+   "default": "1",
+   "fieldname": "default_include_po",
+   "fieldtype": "Check",
+   "label": "Açık PO Teslimatlarını Varsayılan Dahil Et"
+  },
+  {
+   "default": "2",
+   "description": "Antrepoya gelmiş malzemeler için millileştirme ve hatta çekilme tampon süresi.",
+   "fieldname": "antrepo_clearance_days",
+   "fieldtype": "Int",
+   "label": "Antrepo Millileştirme Süresi (Gün)"
+  }
+ ],
+ "issingle": 1,
+ "modified": "2026-11-04 17:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_mrp",
+ "name": "KTA MRP Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

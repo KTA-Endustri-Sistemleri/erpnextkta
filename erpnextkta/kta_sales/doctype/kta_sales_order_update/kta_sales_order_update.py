@@ -152,10 +152,12 @@ def get_customer_and_item(plant_no_customer, part_no_customer):
 
 def get_delivery_time_for_plant(plant_no_customer):
     """
-    Plant numarasına göre KTA Sevk Parametreleri'nden delivery_time (gün) döner.
+    Plant numarasına (Address.custom_eski_kod) göre sevk / transit süresini (gün) döner.
     """
     if not plant_no_customer:
         return 0
+
+    from erpnextkta.kta_mrp.mrp_engine.lead_time import resolve_shipping_lead_days
 
     address_name = frappe.db.get_value(
         "Address",
@@ -166,13 +168,8 @@ def get_delivery_time_for_plant(plant_no_customer):
     if not address_name:
         return 0
 
-    delivery_time = frappe.db.get_value(
-        "KTA Sevk Parametreleri",
-        {"customer_address": address_name},
-        "delivery_time",
-    )
-
-    return cint(delivery_time or 0)
+    shipping_days, _ = resolve_shipping_lead_days(address=address_name)
+    return cint(shipping_days or 0)
 
 
 def get_shipped_qty_for_window(customer, plant_no_customer, item_code, delivery_time_days):

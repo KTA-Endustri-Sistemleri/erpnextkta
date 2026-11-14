@@ -1,24 +1,21 @@
 import frappe
-from frappe.utils import getdate, add_months, today
+from frappe.utils import getdate, add_months, add_days, today
 from datetime import date
+from erpnextkta.kta_mrp.mrp_engine.settings import get_mrp_settings
 
 @frappe.whitelist()
 def get_report_filters(report_name):
     """Rapor adına göre modüler filtre listesini döner."""
+    from erpnextkta.kta_mrp.mrp_engine.capacity import get_monday_of_current_week
+    horizon_days = get_mrp_settings().planning_horizon_days
+    monday = str(get_monday_of_current_week())
     common_filters = {
         "dates": [
-            {
-                "fieldname": "from_date",
-                "label": "Başlangıç Tarihi",
-                "fieldtype": "Date",
-                "default": today(),
-                "reqd": 1
-            },
             {
                 "fieldname": "to_date",
                 "label": "Bitiş Tarihi",
                 "fieldtype": "Date",
-                "default": add_months(today(), 3),
+                "default": add_days(monday, horizon_days),
                 "reqd": 1
             }
         ],
@@ -104,7 +101,7 @@ def get_report_filters(report_name):
                 "label": "Bitiş Tarihi",
                 "fieldtype": "Date",
                 "reqd": 1,
-                "default": frappe.utils.today()
+                "default": add_days(today(), horizon_days)
             },
             {
                 "fieldname": "range",
@@ -182,7 +179,7 @@ def get_report_filters(report_name):
                 "fieldname": "to_date",
                 "label": "Bitiş Tarihi",
                 "fieldtype": "Date",
-                "default": frappe.utils.add_months(frappe.utils.today(), 2),
+                "default": add_days(today(), horizon_days),
                 "reqd": 1
             },
             {
@@ -190,39 +187,6 @@ def get_report_filters(report_name):
                 "label": "Müşteri",
                 "fieldtype": "Link",
                 "options": "Customer"
-            }
-        ]
-
-        return common_filters["dates"] + [
-            {
-                "fieldname": "dengeleme_yapilsin",
-                "label": "Kapasite Dengeleme Yapılsın mı?",
-                "fieldtype": "Check",
-                "default": 1
-            },
-            {
-                "fieldname": "ramp_up_aktif",
-                "label": "Ramp-up (Önden Üretim) Yapılsın mı?",
-                "fieldtype": "Check",
-                "default": 0
-            },
-            {
-                "fieldname": "ramp_up_weeks",
-                "label": "Ramp-up Süresi (Hafta)",
-                "fieldtype": "Int",
-                "default": 3
-            },
-            {
-                "fieldname": "custom_musteri_grubu",
-                "label": "Müşteri Grubu",
-                "fieldtype": "Link",
-                "options": "KTA Customer Group"
-            },
-            {
-                "fieldname": "item_group",
-                "label": "Ürün Grubu",
-                "fieldtype": "Link",
-                "options": "Item Group"
             }
         ]
 
@@ -283,7 +247,7 @@ def get_period_dates(period_name, filters=None, start_date=None):
         to_date = str(add_months(current_date, 6))
     elif period_name == "Süresiz":
         to_date = "2099-12-31"
-    else:  # Yıllık (varsayılan)
-        to_date = str(date(current_date.year, 12, 31))
+    else:  # Yıllık (varsayılan): bugünden itibaren 12 ay
+        to_date = str(add_months(current_date, 12))
         
     return from_date, to_date

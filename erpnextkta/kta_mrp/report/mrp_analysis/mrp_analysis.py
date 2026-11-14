@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import today, getdate, cint
+from frappe.utils import today, getdate, cint, add_days
 from collections import defaultdict
 from erpnextkta.kta_mrp.report_utils import get_period_dates
 
@@ -10,6 +10,8 @@ def execute(filters=None):
 
 	# Periyot filtresine göre tarihleri belirle
 	from_date, to_date = get_period_dates(filters.get("periyot", "Yıllık"), filters)
+	if filters.get("periyot") == "Süresiz":
+		to_date = get_open_demand_end_date(from_date)
 
 	# Filtre değerlerini al
 	filter_ara_malzeme_grubu = filters.get("ara_malzeme_grubu", "")
@@ -18,19 +20,10 @@ def execute(filters=None):
 	filter_sifir_tuketimi_goster = cint(filters.get("sifir_tuketimi_goster", 0))
 	fiyat_varsayilan_tedarikci = cint(filters.get("fiyat_varsayilan_tedarikci", 0))
 
-	# Material Requirement raporunu "Bitmiş Ürün + Hammadde" modunda çalıştır
-	from erpnextkta.kta_mrp.report.material_requirement.material_requirement import (
-		execute as mr_execute,
-	)
+	# Hammadde brüt ihtiyacını bitmiş ürün (müşteri grubu) kırılımıyla servis katmanından al
+	from erpnextkta.kta_mrp.mrp_engine.service import get_gross_requirements
 
-	mr_filters = {
-		"from_date": from_date,
-		"to_date": to_date,
-		"stage": "1 - Temel Hammadde İhtiyacı",
-		"group_by": "Bitmiş Ürün + Hammadde",
-	}
-
-	mr_columns, mr_data, *_ = mr_execute(mr_filters)
+	gross_requirements = get_gross_requirements({"from_date": from_date, "to_date": to_date})
 
 	# KTA Customer Group listesini al
 	customer_groups = frappe.db.get_all(
@@ -42,34 +35,15 @@ def execute(filters=None):
 	material_cg_totals = defaultdict(lambda: defaultdict(float))
 	material_all_totals = defaultdict(float)
 
-	for row in mr_data:
-		hammadde = row.get("hammadde")
-		bitmis_urun = row.get("bitmis_urun", "")
-		if not hammadde or "<b>" in str(bitmis_urun):
-			continue
-
-		musteri_grubu = row.get("musteri_grubu", "") or ""
-		satir_toplami = row.get("satir_toplami", 0) or 0
-
-		material_cg_totals[hammadde][musteri_grubu] += satir_toplami
-		material_all_totals[hammadde] += satir_toplami
+	for pegging in gross_requirements.pegging:
+		material_cg_totals[pegging.material][pegging.customer_group] += pegging.total
+		material_all_totals[pegging.material] += pegging.total
 
 	raw_materials = list(material_cg_totals.keys())
 
-	# Sıfır tüketimi göster aktifse stokta bulunan tüm kalemleri de dahil et
+	# Sıfır tüketimi göster aktifse stokta bulunan HAMMADDE ve OBS* kalemlerini de dahil et
 	if filter_sifir_tuketimi_goster:
-		stock_items = frappe.db.sql(
-			"""
-			SELECT DISTINCT bin.item_code
-			FROM `tabBin` bin
-			INNER JOIN `tabWarehouse` wh ON bin.warehouse = wh.name
-			WHERE wh.warehouse_type = 'Kullanılabilir Stok'
-			AND bin.actual_qty > 0
-		""",
-			as_dict=True,
-		)
-		stock_item_codes = {d.item_code for d in stock_items}
-		for item_code in stock_item_codes:
+		for item_code in get_zero_consumption_items():
 			if item_code not in material_cg_totals:
 				raw_materials.append(item_code)
 				material_all_totals[item_code] = 0
@@ -280,3 +254,43 @@ def execute(filters=None):
 	]
 
 	return columns, data, None, None, report_summary
+
+
+def get_zero_consumption_items():
+	"""Kullanılabilir stokta olan ve ara malzeme grubu HAMMADDE ya da OBS ile başlayan kalemler."""
+	return frappe.db.sql_list(
+		"""
+		SELECT DISTINCT bin.item_code
+		FROM `tabBin` bin
+		INNER JOIN `tabWarehouse` wh ON bin.warehouse = wh.name
+		INNER JOIN `tabItem` item ON item.name = bin.item_code
+		WHERE wh.warehouse_type = 'Kullanılabilir Stok'
+		AND bin.actual_qty > 0
+		AND (item.custom_ara_malzeme_grubu = 'HAMMADDE' OR item.custom_ara_malzeme_grubu LIKE 'OBS%%')
+		"""
+	)
+
+
+def get_open_demand_end_date(from_date, min_days=90):
+	"""Süresiz periyot için: açık SO teslim, MR ve İş Emri tarihlerinin en geç olanı.
+
+	2099'a kadar haftalık kolon üretmek yerine raporu son açık talebe kadar çalıştırır.
+	"""
+	last_dates = frappe.db.sql(
+		"""
+		SELECT MAX(so.delivery_date) FROM `tabSales Order` so
+		WHERE so.docstatus = 1 AND so.status NOT IN ('Closed', 'Completed')
+		UNION ALL
+		SELECT MAX(mr.schedule_date) FROM `tabMaterial Request` mr
+		WHERE mr.docstatus = 1 AND mr.material_request_type = 'Manufacture'
+		AND mr.status NOT IN ('Completed', 'Stopped', 'Cancelled')
+		UNION ALL
+		SELECT MAX(DATE(wo.planned_start_date)) FROM `tabWork Order` wo
+		WHERE wo.docstatus = 1 AND wo.status IN ('Not Started', 'In Process')
+		"""
+	)
+	end_date = add_days(getdate(from_date), min_days)
+	for (d,) in last_dates:
+		if d and getdate(d) > end_date:
+			end_date = getdate(d)
+	return str(end_date)

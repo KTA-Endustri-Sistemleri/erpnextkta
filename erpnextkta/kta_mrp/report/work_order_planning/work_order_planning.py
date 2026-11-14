@@ -1,28 +1,18 @@
 import frappe
 from datetime import datetime
 from collections import defaultdict
-from erpnextkta.kta_mrp.report.capacity_planning_report.capacity_planning_report import execute as get_capacity_plan
+from erpnextkta.kta_mrp.mrp_engine.capacity import build_capacity_plan
 
 def execute(filters=None):
     if not filters: filters = {}
     today = datetime.today().date()
     
-    capacity_result = get_capacity_plan(filters)
-    capacity_data = capacity_result[1]
-    
-    extra_data = capacity_result[5] if len(capacity_result) > 5 else None
-    if isinstance(extra_data, tuple) and len(extra_data) >= 3:
-        planned_kanban_map, raw_mr_demands, wo_plan = extra_data[:3]
-    elif isinstance(extra_data, tuple) and len(extra_data) == 2:
-        planned_kanban_map, raw_mr_demands = extra_data
-        wo_plan = {}
-    else:
-        planned_kanban_map = extra_data if extra_data else defaultdict(dict)
-        raw_mr_demands = defaultdict(dict)
-        wo_plan = {}
+    plan = build_capacity_plan(filters)
+    planned_kanban_map = plan.kanban_plan
+    raw_mr_demands = plan.raw_mr_demands
+    wo_plan = plan.wo_plan
+    planned_map = plan.plan
 
-    if not raw_mr_demands: raw_mr_demands = defaultdict(dict)
-    
     wo_filters = {"docstatus": 1, "status": ("in", ["In Process", "Not Started"])}
     item_filters = {"custom_ara_malzeme_grubu": "ÜRÜN"}
     if filters.get("item_group"): item_filters["item_group"] = filters["item_group"]
@@ -33,18 +23,11 @@ def execute(filters=None):
         wo_filters["production_item"] = ("in", items) if items else "non_existent"
     
     work_orders = frappe.get_all("Work Order", filters=wo_filters, fields=["production_item", "planned_start_date", "qty", "produced_qty"])
-    item_codes = {r.get("item_code") for r in capacity_data if r.get("item_code")}
+    item_codes = set(plan.item_groups.keys())
     item_codes.update({wo.production_item for wo in work_orders})
     item_codes.update(raw_mr_demands.keys())
     
     item_group_map = {i.name: i.item_group for i in frappe.get_all("Item", filters={"name": ("in", list(item_codes))}, fields=["name", "item_group"])} if item_codes else {}
-
-    planned_map = defaultdict(dict)
-    for row in capacity_data:
-        item = row.get("item_code")
-        if not item: continue
-        for k, v in row.items():
-            if "_w" in k: planned_map[item][k] = v or 0
 
     past_rem = defaultdict(int)
     future_rem = defaultdict(lambda: defaultdict(int))
