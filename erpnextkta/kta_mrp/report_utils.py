@@ -273,7 +273,7 @@ def get_period_dates(period_name, filters=None, start_date=None):
     
     if period_name == "Özel" and filters:
         from_date = str(getdate(filters.get("from_date")) if filters.get("from_date") else current_date)
-        to_date = str(getdate(filters.get("to_date")) if filters.get("to_date") else date(current_date.year, 12, 31))
+        to_date = str(getdate(filters.get("to_date")) if filters.get("to_date") else add_months(current_date, 12))
         return from_date, to_date
 
     from_date = str(current_date)
@@ -283,7 +283,7 @@ def get_period_dates(period_name, filters=None, start_date=None):
         to_date = str(add_months(current_date, 6))
     elif period_name == "Süresiz":
         to_date = "2099-12-31"
-    else:  # Yıllık (varsayılan)
-        to_date = str(date(current_date.year, 12, 31))
+    else:  # Yıllık (varsayılan: 12 aylık kayan periyot)
+        to_date = str(add_months(current_date, 12))
         
     return from_date, to_date

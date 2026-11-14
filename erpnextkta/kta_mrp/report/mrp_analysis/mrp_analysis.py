@@ -1,5 +1,6 @@
 import frappe
-from frappe.utils import today, getdate, cint
+from frappe import _
+from frappe.utils import cint
 from collections import defaultdict
 from erpnextkta.kta_mrp.report_utils import get_period_dates
 
@@ -16,7 +17,6 @@ def execute(filters=None):
 	filter_musteri_grubu = filters.get("musteri_grubu") or []
 	filter_item_group = filters.get("item_group", "")
 	filter_sifir_tuketimi_goster = cint(filters.get("sifir_tuketimi_goster", 0))
-	fiyat_varsayilan_tedarikci = cint(filters.get("fiyat_varsayilan_tedarikci", 0))
 
 	# Material Requirement raporunu "Bitmiş Ürün + Hammadde" modunda çalıştır
 	from erpnextkta.kta_mrp.report.material_requirement.material_requirement import (
@@ -30,7 +30,8 @@ def execute(filters=None):
 		"group_by": "Bitmiş Ürün + Hammadde",
 	}
 
-	mr_columns, mr_data, *_ = mr_execute(mr_filters)
+	mr_res = mr_execute(mr_filters)
+	mr_columns, mr_data = mr_res[0], mr_res[1]
 
 	# KTA Customer Group listesini al
 	customer_groups = frappe.db.get_all(
@@ -56,20 +57,9 @@ def execute(filters=None):
 
 	raw_materials = list(material_cg_totals.keys())
 
-	# Sıfır tüketimi göster aktifse stokta bulunan tüm kalemleri de dahil et
+	# Sıfır tüketimi göster aktifse stokta bulunan HAMMADDE ve OBS* kalemlerini de dahil et
 	if filter_sifir_tuketimi_goster:
-		stock_items = frappe.db.sql(
-			"""
-			SELECT DISTINCT bin.item_code
-			FROM `tabBin` bin
-			INNER JOIN `tabWarehouse` wh ON bin.warehouse = wh.name
-			WHERE wh.warehouse_type = 'Kullanılabilir Stok'
-			AND bin.actual_qty > 0
-		""",
-			as_dict=True,
-		)
-		stock_item_codes = {d.item_code for d in stock_items}
-		for item_code in stock_item_codes:
+		for item_code in get_zero_consumption_items():
 			if item_code not in material_cg_totals:
 				raw_materials.append(item_code)
 				material_all_totals[item_code] = 0
@@ -81,6 +71,7 @@ def execute(filters=None):
 	currency_map = {}
 	stock_map = {}
 	stock_value_map = {}
+	reserved_map = {}
 
 	if raw_materials:
 		items = frappe.db.get_all(
@@ -99,50 +90,39 @@ def execute(filters=None):
 			if s.default_supplier:
 				default_supplier_map[s.parent] = s.default_supplier
 
-		if fiyat_varsayilan_tedarikci:
-			price_data = frappe.db.sql(
-				"""
-				SELECT ip.item_code, ip.price_list_rate, ip.currency, ip.supplier
-				FROM `tabItem Price` ip
-				INNER JOIN (
-					SELECT item_code, supplier, MAX(creation) as max_creation
-					FROM `tabItem Price`
-					WHERE item_code IN %s AND buying = 1 AND supplier IS NOT NULL AND supplier != ''
-					GROUP BY item_code, supplier
-				) latest ON ip.item_code = latest.item_code AND ip.supplier = latest.supplier AND ip.creation = latest.max_creation
-				WHERE ip.buying = 1
-			""",
-				[tuple(raw_materials)],
-				as_dict=True,
-			)
-			for p in price_data:
-				def_sup = default_supplier_map.get(p.item_code)
-				if def_sup and def_sup == p.supplier:
-					price_map[p.item_code] = p.price_list_rate
-					currency_map[p.item_code] = p.currency
-		else:
-			price_data = frappe.db.sql(
-				"""
-				SELECT ip.item_code, ip.price_list_rate, ip.currency
-				FROM `tabItem Price` ip
-				INNER JOIN (
-					SELECT item_code, MAX(creation) as max_creation
-					FROM `tabItem Price`
-					WHERE item_code IN %s AND buying = 1
-					GROUP BY item_code
-				) latest ON ip.item_code = latest.item_code AND ip.creation = latest.max_creation
-				WHERE ip.buying = 1
-			""",
-				[tuple(raw_materials)],
-				as_dict=True,
-			)
-			for p in price_data:
+		# Fiyatları daimi olarak varsayılan tedarikçi üzerinden çek
+		price_data = frappe.db.sql(
+			"""
+			SELECT ip.item_code, ip.price_list_rate, ip.currency, ip.supplier
+			FROM `tabItem Price` ip
+			INNER JOIN (
+				SELECT item_code, supplier, MAX(creation) as max_creation
+				FROM `tabItem Price`
+				WHERE item_code IN %s AND buying = 1 AND supplier IS NOT NULL AND supplier != ''
+				GROUP BY item_code, supplier
+			) latest ON ip.item_code = latest.item_code AND ip.supplier = latest.supplier AND ip.creation = latest.max_creation
+			WHERE ip.buying = 1
+		""",
+			[tuple(raw_materials)],
+			as_dict=True,
+		)
+		for p in price_data:
+			def_sup = default_supplier_map.get(p.item_code)
+			if def_sup and def_sup == p.supplier:
 				price_map[p.item_code] = p.price_list_rate
 				currency_map[p.item_code] = p.currency
 
 		stock_data = frappe.db.sql(
 			"""
-			SELECT bin.item_code, SUM(bin.actual_qty) as total_qty, SUM(bin.stock_value) as total_value
+			SELECT 
+				bin.item_code, 
+				SUM(bin.actual_qty) as total_qty, 
+				SUM(bin.stock_value) as total_value,
+				SUM(
+					COALESCE(bin.reserved_qty_for_production, 0) + 
+					COALESCE(bin.reserved_qty, 0) + 
+					COALESCE(bin.reserved_qty_for_sub_contract, 0)
+				) as total_reserved
 			FROM `tabBin` bin
 			INNER JOIN `tabWarehouse` wh ON bin.warehouse = wh.name
 			WHERE bin.item_code IN %s
@@ -155,19 +135,22 @@ def execute(filters=None):
 		for d in stock_data:
 			stock_map[d.item_code] = d.total_qty or 0
 			stock_value_map[d.item_code] = d.total_value or 0
+			reserved_map[d.item_code] = d.total_reserved or 0
 
 	# Kolonlar
 	columns = [
-		{"label": "Hammadde Kodu", "fieldname": "hammadde_kodu", "fieldtype": "Link", "options": "Item", "width": 130},
-		{"label": "Grup", "fieldname": "grup", "fieldtype": "Data", "width": 140},
-		{"label": "Hammadde Adı", "fieldname": "hammadde_adi", "fieldtype": "Data", "width": 200},
-		{"label": "Varsayılan Tedarikçi", "fieldname": "varsayilan_tedarikci", "fieldtype": "Link", "options": "Supplier", "width": 180},
-		{"label": "Fiyat", "fieldname": "fiyat", "fieldtype": "Float", "width": 100},
-		{"label": "Para Birimi", "fieldname": "para_birimi", "fieldtype": "Data", "width": 80},
-		{"label": "Depo Stok", "fieldname": "depo_stok", "fieldtype": "Float", "width": 100},
-		{"label": "Bakiye Değeri", "fieldname": "bakiye_degeri", "fieldtype": "Float", "width": 120},
-		{"label": "Müşteri Grubu Dağılımı", "fieldname": "musteri_grubu_dagilimi", "fieldtype": "Data", "width": 220},
-		{"label": "Ara Malzeme Grubu", "fieldname": "ara_malzeme_grubu", "fieldtype": "Data", "width": 140},
+		{"label": _("Hammadde Kodu"), "fieldname": "hammadde_kodu", "fieldtype": "Link", "options": "Item", "width": 130},
+		{"label": _("Grup"), "fieldname": "grup", "fieldtype": "Data", "width": 140},
+		{"label": _("Hammadde Adı"), "fieldname": "hammadde_adi", "fieldtype": "Data", "width": 200},
+		{"label": _("Varsayılan Tedarikçi"), "fieldname": "varsayilan_tedarikci", "fieldtype": "Link", "options": "Supplier", "width": 180},
+		{"label": _("Fiyat"), "fieldname": "fiyat", "fieldtype": "Float", "width": 100},
+		{"label": _("Para Birimi"), "fieldname": "para_birimi", "fieldtype": "Data", "width": 80},
+		{"label": _("Depo Stok"), "fieldname": "depo_stok", "fieldtype": "Float", "width": 100},
+		{"label": _("Rezerve Miktar"), "fieldname": "rezerve_stok", "fieldtype": "Float", "width": 110},
+		{"label": _("Serbest Stok"), "fieldname": "serbest_stok", "fieldtype": "Float", "width": 110},
+		{"label": _("Bakiye Değeri (TL)"), "fieldname": "bakiye_degeri", "fieldtype": "Float", "width": 130},
+		{"label": _("Müşteri Grubu Dağılımı"), "fieldname": "musteri_grubu_dagilimi", "fieldtype": "Data", "width": 220},
+		{"label": _("Ara Malzeme Grubu"), "fieldname": "ara_malzeme_grubu", "fieldtype": "Data", "width": 140},
 	]
 
 	cg_fieldnames = {}
@@ -177,10 +160,10 @@ def execute(filters=None):
 		columns.append({"label": cg, "fieldname": fieldname, "fieldtype": "Float", "width": 100})
 
 	columns += [
-		{"label": "Genel Toplam", "fieldname": "genel_toplam", "fieldtype": "Float", "width": 120},
-		{"label": "Müşteri Grubu", "fieldname": "musteri_grubu", "fieldtype": "Data", "width": 120},
-		{"label": "Toplam Tüketim (Kapasite)", "fieldname": "toplam_tuketim", "fieldtype": "Float", "width": 160},
-		{"label": "Fark Oran", "fieldname": "fark_oran", "fieldtype": "Percent", "width": 100},
+		{"label": _("Genel Toplam"), "fieldname": "genel_toplam", "fieldtype": "Float", "width": 120},
+		{"label": _("Müşteri Grubu"), "fieldname": "musteri_grubu", "fieldtype": "Data", "width": 120},
+		{"label": _("Toplam Tüketim (Kapasite)"), "fieldname": "toplam_tuketim", "fieldtype": "Float", "width": 160},
+		{"label": _("Fark Oran"), "fieldname": "fark_oran", "fieldtype": "Percent", "width": 100},
 	]
 
 	# Veriler
@@ -222,6 +205,11 @@ def execute(filters=None):
 		if not filter_sifir_tuketimi_goster and genel_toplam == 0:
 			continue
 
+		depo_stok = stock_map.get(hammadde, 0)
+		rezerve_stok = reserved_map.get(hammadde, 0)
+		serbest_stok = round(depo_stok - rezerve_stok, 2)
+		bakiye_degeri = stock_value_map.get(hammadde, 0)
+
 		row = {
 			"hammadde_kodu": hammadde,
 			"grup": item_group,
@@ -229,10 +217,17 @@ def execute(filters=None):
 			"varsayilan_tedarikci": supplier,
 			"fiyat": price_map.get(hammadde, 0),
 			"para_birimi": currency_map.get(hammadde, ""),
-			"depo_stok": stock_map.get(hammadde, 0),
-			"bakiye_degeri": stock_value_map.get(hammadde, 0),
+			"depo_stok": depo_stok,
+			"rezerve_stok": rezerve_stok,
+			"serbest_stok": serbest_stok,
+			"bakiye_degeri": bakiye_degeri,
 			"ara_malzeme_grubu": ara_malzeme,
 		}
+
+		column_totals["depo_stok"] += depo_stok
+		column_totals["rezerve_stok"] += rezerve_stok
+		column_totals["serbest_stok"] += serbest_stok
+		column_totals["bakiye_degeri"] += bakiye_degeri
 
 		for cg in cg_names:
 			fieldname = cg_fieldnames[cg]
@@ -263,7 +258,17 @@ def execute(filters=None):
 	data.sort(key=lambda x: x.get("bakiye_degeri", 0), reverse=True)
 
 	# Toplam satırı
-	total_row = {"hammadde_kodu": "<b>TOPLAM</b>"}
+	total_depo = round(column_totals["depo_stok"], 2)
+	total_rezerve = round(column_totals["rezerve_stok"], 2)
+
+	total_row = {
+		"hammadde_kodu": _("TOPLAM"),
+		"is_total_row": 1,
+		"depo_stok": total_depo,
+		"rezerve_stok": total_rezerve,
+		"serbest_stok": round(total_depo - total_rezerve, 2),
+		"bakiye_degeri": round(column_totals["bakiye_degeri"], 2),
+	}
 	for cg in cg_names:
 		fn = cg_fieldnames[cg]
 		total_row[fn] = round(column_totals[fn], 2)
@@ -274,9 +279,25 @@ def execute(filters=None):
 
 	# Summary Cards
 	report_summary = [
-		{"value": len(data) - 1, "label": "Toplam Kalem", "indicator": "Blue"},
-		{"value": summary_shortage_count, "label": "Eksik Kalem", "indicator": "Red"},
-		{"value": frappe.format(summary_total_value, "Currency"), "label": "Toplam Stok Değeri", "indicator": "Green"}
+		{"value": len(data) - 1, "label": _("Toplam Kalem"), "indicator": "Blue"},
+		{"value": summary_shortage_count, "label": _("Eksik Kalem"), "indicator": "Red"},
+		{"value": frappe.format(summary_total_value, "Currency"), "label": _("Toplam Stok Değeri"), "indicator": "Green"}
 	]
 
 	return columns, data, None, None, report_summary
+
+
+def get_zero_consumption_items():
+	"""Kullanılabilir stokta olan ve ara malzeme grubu HAMMADDE ya da OBS ile başlayan kalemler."""
+	return frappe.db.sql_list(
+		"""
+		SELECT DISTINCT bin.item_code
+		FROM `tabBin` bin
+		INNER JOIN `tabWarehouse` wh ON bin.warehouse = wh.name
+		INNER JOIN `tabItem` item ON item.name = bin.item_code
+		WHERE wh.warehouse_type = 'Kullanılabilir Stok'
+		  AND bin.actual_qty > 0
+		  AND item.disabled = 0
+		  AND (item.custom_ara_malzeme_grubu = 'HAMMADDE' OR item.custom_ara_malzeme_grubu LIKE 'OBS%%')
+		"""
+	)
