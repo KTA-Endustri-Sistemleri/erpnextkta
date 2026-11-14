@@ -70,6 +70,12 @@
 <div class="kta-doc-section">
   <h2>MRP Zinciri Raporları ve Yönetim</h2>
   <div class="kta-doc-cards">
+    <a href="/docs/mrp-simulation" class="kta-doc-card" style="border: 2px solid #10b981;">
+      <span class="kta-doc-card-icon">🧪</span>
+      <h3>Görsel Simülasyon Kılavuzu</h3>
+      <p>Kapasite dengeleme (700&rarr;500&rarr;200), stoktan düşme ve 7 hammadde durumunu canlı test edin.</p>
+      <span class="kta-doc-badge green">Canlı Test &amp; Demo</span>
+    </a>
     <a href="/docs/mrp-settings" class="kta-doc-card" style="border: 2px solid var(--primary, #2563eb);">
       <span class="kta-doc-card-icon">🛠️</span>
       <h3>KTA MRP Ayarları</h3>
@@ -150,8 +156,8 @@
       </thead>
       <tbody>
         <tr><td><strong>Sales Order Item</strong></td><td>qty, delivered_qty, delivery_date</td><td>Açık sipariş talebi</td></tr>
-        <tr><td><strong>Address / Customer</strong></td><td>custom_shipping_lead_days</td><td>Sevk / Transit süresi ($T_{\text{transit}}$) &mdash; Tesis veya müşteri bazlı nakliye gün sayısı</td></tr>
-        <tr><td><strong>Item / Item Customer Detail</strong></td><td>custom_manufacturing_lead_days, custom_production_time_days</td><td>Dahili Üretim süresi ($T_{\text{prod}}$) &mdash; Fabrika içi imalat süresi</td></tr>
+        <tr><td><strong>Address / Customer</strong></td><td>custom_shipping_lead_days</td><td>Sevk / Transit süresi (T<sub>transit</sub>) &mdash; Tesis veya müşteri bazlı nakliye gün sayısı</td></tr>
+        <tr><td><strong>Item / Item Customer Detail</strong></td><td>custom_manufacturing_lead_days, custom_production_time_days</td><td>Dahili Üretim süresi (T<sub>prod</sub>) &mdash; Fabrika içi imalat süresi</td></tr>
         <tr><td><strong>KTA MRP Settings</strong></td><td>default_production_time_days, default_delivery_time_days</td><td>Merkezi güvenlik ağı ve küresel varsayılan süreler</td></tr>
         <tr><td><strong>Item</strong></td><td>custom_weekly_production, custom_musteri_grubu</td><td>Kapasite, gruplama</td></tr>
         <tr><td><strong>BOM Explosion Item</strong></td><td>stock_qty, stock_uom</td><td>Hammadde çarpanları (patlatılmış BOM)</td></tr>

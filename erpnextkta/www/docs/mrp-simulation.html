@@ -1,0 +1,217 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "mrp-simulation" %}
+
+{% block doc_content %}
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🧪</span>
+  <h1>KTA MRP Görsel Simülasyon Senaryosu</h1>
+  <p>KTA MRP ve Kapasite Planlama motorunun tüm ileri seviye davranışlarını (Kapasite Tavanı, Carry-Over, Stock-Covered, 7 Kademeli Hammadde Tedarik Hattı ve Pegging) ERPNext Desk üzerinde canlı ve görsel olarak inceleme rehberi.</p>
+</div>
+
+<!-- Quick Start & Commands -->
+<div class="kta-doc-section">
+  <h2>1. Hızlı Başlangıç &amp; Çalıştırma Komutları</h2>
+  <p>Simülasyon modülü, üretim veritabanına zarar vermeden tamamen bağımsız ve idempotens (tekrar tekrar çalıştırılabilir) olarak kurgulanmıştır. İstediğiniz an tek komutla kurabilir ve tek komutla geride hiçbir iz bırakmadan silebilirsiniz.</p>
+
+  <div class="kta-doc-cards">
+    <div class="kta-doc-card" style="border: 2px solid #10b981;">
+      <span class="kta-doc-card-icon">🚀</span>
+      <h3>Senaryoyu Kur (Seed)</h3>
+      <p>Tüm ana verileri, müşteri sevk sürelerini (<code>Address.custom_shipping_lead_days</code>), mamul üretim sürelerini (<code>Item.custom_manufacturing_lead_days</code>), 2 adet bitmiş mamulü, düz BOM'ları, 7 farklı lojistik durumdaki hammaddeyi, satış siparişlerini, iş emirlerini ve onaylı dahili üretim talebini sıfırdan oluşturur.</p>
+      <code>bench execute erpnextkta.mrp_simulation.seeder.seed</code>
+      <div style="margin-top: 8px;"><small class="text-muted">VS Code Kısayolu: <strong>Terminal &gt; Run Task &gt; Bench: Seed MRP Simulation</strong></small></div>
+    </div>
+
+    <div class="kta-doc-card" style="border: 2px solid #ef4444;">
+      <span class="kta-doc-card-icon">🧹</span>
+      <h3>Senaryoyu Temizle (Clean)</h3>
+      <p>Simülasyona ait tüm Satış Siparişleri, İş Emirleri, Stok Fişleri, Satın Alma İrsaliyeleri, Siparişleri, Malzeme Talepleri, BOM'lar, Müşteri ve Hammaddeleri bağımlılık sırasına göre güvenle iptal eder ve temizler.</p>
+      <code>bench execute erpnextkta.mrp_simulation.cleaner.clean</code>
+      <div style="margin-top: 8px;"><small class="text-muted">VS Code Kısayolu: <strong>Terminal &gt; Run Task &gt; Bench: Clean MRP Simulation</strong></small></div>
+    </div>
+  </div>
+</div>
+
+<!-- Narrative Story -->
+<div class="kta-doc-section">
+  <h2>2. Simülasyonun Hikayesi &amp; Kurgusal Senaryo</h2>
+  <p>Simülasyon çalıştığında dinamik olarak takvim haftalarını belirler (bulunduğumuz hafta <strong>W (Cari Hafta)</strong>, sonraki haftalar <strong>W+1</strong>, <strong>W+2</strong>... olarak konumlanır). Senaryo şu 4 ana eksen üzerine oturur:</p>
+
+  <div class="kta-doc-info">
+    <strong>1. İki Eksenli Lead Time Mimarisi (Üretim T<sub>prod</sub> vs Sevk T<sub>transit</sub>):</strong><br>
+    KTA iki eksenli süre modeline uygun olarak, mamul imalat süresi ürün üzerinden (<code>Item.custom_manufacturing_lead_days</code>), lojistik nakliye süresi ise teslimat adresi üzerinden (<code>Address.custom_shipping_lead_days</code>) bağımsız olarak okunur:
+    <ul>
+      <li><code>MUSTERI-AVRUPA</code> (İhracat): Fabrika imalat süresi T<sub>prod</sub> = 7 gün (<code>URUN-01</code>), lojistik nakliye süresi T<sub>transit</sub> = 5 gün (Adres). Geriye doğru çizelgeleme: <code>PSW = Teslim Tarihi - (7 + 5 gün)</code>. Teslim tarihinden <strong>12 gün önce</strong> üretim başlangıcı (W_CURRENT) planlanır.</li>
+      <li><code>MUSTERI-YERLI</code> (Yurtiçi): Fabrika imalat süresi T<sub>prod</sub> = 3 gün (<code>URUN-02</code>), lojistik nakliye süresi T<sub>transit</sub> = 1 gün (Adres). Geriye doğru çizelgeleme: <code>PSW = Teslim Tarihi - (3 + 1 gün)</code>. Teslim tarihinden <strong>4 gün önce</strong> üretim başlangıcı (W_CURRENT) planlanır.</li>
+      <li><strong>Sonuç:</strong> İki farklı teslim tarihine sahip sipariş, süre ayrıştırması sayesinde fabrikanın cari haftasına (W_CURRENT) tam olarak denk getirilir.</li>
+    </ul>
+  </div>
+
+  <div class="kta-doc-info warning">
+    <strong>2. Kapasite Tavanı ve Devir (Carry-Over / 720 &rarr; 500 &rarr; 220):</strong><br>
+    KTA mimarisinde kapasite iş istasyonlarından alınmaz; doğrudan <code>Item.custom_weekly_production</code> ve ürün grubunun tavan kapasitesinden (<code>group_capacity</code>) okunur:
+    <ul>
+      <li>Fabrikanın haftalık tavan üretim kapasitesi: <strong>500 Adet</strong>.</li>
+      <li>Cari hafta gelen toplam talep: <strong>720 Adet</strong> (500 adet URUN-01'den 80 net stok düşüldükten sonra 420 net talep + 300 adet URUN-02 brüt talep).</li>
+      <li><strong>Motorun Davranışı:</strong> Fabrika cari haftada tam kapasiteyle (500 adet, %100 doluluk) çalışır. Kapasiteyi aşan <strong>220 adet</strong> otomatik olarak bir sonraki haftaya (W+1) <em>Carry-Over</em> olarak devreder!</li>
+    </ul>
+  </div>
+
+  <div class="kta-doc-info success">
+    <strong>3. Stoktan Düşme &amp; Re-Order / Emniyet Stoğu (Stock Covered &amp; Safety Stock):</strong><br>
+    <ul>
+      <li><code>URUN-01</code> için müşteriden 500 adetlik kesin Satış Siparişi vardır ve depoda <strong>100 adet hazır mamul</strong> stoku bulunmaktadır.</li>
+      <li><code>URUN-01</code> altına <strong>20 adet Re-order / Emniyet Stoğu</strong> (<code>warehouse_reorder_level = 20</code>) tanımlanmıştır.</li>
+      <li><strong>Motorun Davranışı:</strong> PSW raporu 20 adedi emniyet stoğu olarak kilitler; siparişi karşılamak için 100 adedin yalnızca 80 adedini kullanır (<code>stock_covered = 80</code>). Net üretim ihtiyacı <strong>420 adet</strong> (500 &minus; 80) olarak planlanır ve hammadde ihtiyacı 420 üzerinden patlatılır!</li>
+      <li><strong>Re-order Mekanizması:</strong> KTA override kuralları sayesinde standart ERPNext reorder tetiklendiğinde satış siparişleri projeksiyondan düşmez ve otomatik açılan üretim talepleri doğrudan taslak (<strong>Draft</strong>) kalır.</li>
+    </ul>
+  </div>
+
+  <div class="kta-doc-info purple">
+    <strong>4. Dahili Üretim Talebi (Internal Demand - Material Request):</strong><br>
+    <code>KTAMaterialRequest</code> kurallarına göre onaylanan (Submitted) <code>Manufacture</code> tipindeki Malzeme Talepleri, doğrudan satış siparişi olmasa bile fabrikaya <strong>100 adet URUN-02</strong> üretim emri (W+1) yükler. Dahili üretim taleplerinde sevk süresi T<sub>transit</sub> = 0 kabul edilir; sadece ürünün imalat süresi (T<sub>prod</sub> = 3 gün) geriye sayılarak üretim başlangıç haftası (W+1) belirlenir.
+  </div>
+
+  <div class="kta-doc-info">
+    <strong>5. Depo Mimarisi (Hammadde ve Mamul Ayrımı):</strong><br>
+    KTA üretim standartlarına uygun olarak depolar ayrıştırılmıştır:
+    <ul>
+      <li><strong>Hammadde Deposu (<code>Stores - TEST</code>):</strong> Tüm hammaddelerin (HAMMADDE-01..07) giriş yaptığı, satın alma siparişlerinin teslim alındığı ve iş emirlerinde tüketim ambarı (<code>source_warehouse</code>) olarak tanımlanan ambar.</li>
+      <li><strong>Mamul / Ürün Deposu (<code>Finished Goods - TEST</code>):</strong> Üretilen bitmiş kablo demetlerinin (URUN-01, URUN-02) stoklandığı (<code>fg_warehouse</code>) ve Satış Siparişlerinin sevk edildiği ambar.</li>
+      <li><strong>İş Emirleri &amp; Skip Transfer:</strong> KTA kuralı gereği tüm iş emirleri <code>skip_transfer = 1</code> ile çalışır; hammaddeler doğrudan hammadde ambarından düşülür ve mamuller ürün ambarına teslim edilir.</li>
+    </ul>
+  </div>
+
+  <div class="kta-doc-info">
+    <strong>6. Merkezi Ayarlar (KTA MRP Settings Entegrasyonu):</strong><br>
+    Simülasyon motoru kurulurken <code>KTA MRP Settings</code> Single DocType'ını kontrol eder ve matematiksel modelin kusursuz çalışması için temel parametreleri otomatik senkronize eder:
+    <ul>
+      <li><code>available_warehouse_type = "Kullanılabilir Stok"</code>: Hammadde ve Mamul ambarlarının MRP tarafından taranmasını sağlar.</li>
+      <li><code>antrepo_clearance_days = 2</code>: HAMMADDE-05 (Gümrükte) için işlem başlangıç tarihine +2 gün tampon ekleyerek fabrikaya fiili giriş haftasını netleştirir.</li>
+      <li><code>urgent_shortage_weeks = 4</code>: HAMMADDE-07'nin kritik eksikliğinde "Acil Eksik" etiketini tetikler.</li>
+      <li><code>enable_leveling_by_default = 1</code>: Forward Scheduling kapasite dengelemesini (720 &rarr; 500 &rarr; 220) aktif tutar.</li>
+      <li><code>default_production_time_days = 14</code>: Üründe veya müşteri detayında imalat süresi tanımlanmamışsa devreye giren merkezi üretim süresi güvenlik ağı.</li>
+      <li><code>default_delivery_time_days = 2</code>: Adres, müşteri veya grupta sevk süresi tanımlanmamışsa devreye giren merkezi lojistik güvenlik ağı.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Raw Material Breakdown Table -->
+<div class="kta-doc-section">
+  <h2>3. Hammadde Tedarik Zincirinin 7 Hali (Material Requirement)</h2>
+  <p>Desk üzerindeki <strong>Material Requirement (Malzeme İhtiyaç)</strong> raporunu açtığınızda, 7 hammaddenin farklı renk, simge ve akordeon açılımlarıyla listelendiğini göreceksiniz:</p>
+
+  <div class="kta-doc-table-wrap">
+    <table class="kta-doc-table">
+      <thead>
+        <tr>
+          <th>Hammadde Kodu</th>
+          <th>Malzeme Adı</th>
+          <th>Lojistik Durumu</th>
+          <th>Sistemdeki Belge / Kayıt</th>
+          <th>MRP &amp; Desk Görünümü</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>HAMMADDE-01</strong></td>
+          <td>FLRY-B 0.50mm² Kablo</td>
+          <td>Ortak Malzeme (Pegging)</td>
+          <td>500 Metre Serbest Stok</td>
+          <td><span class="kta-doc-badge purple">Pegging Rekabeti</span> Hem URUN-01 hem URUN-02 tüketir; akordeonda iki ürünün talep rekabeti ve stok paylaşımı izlenir.</td>
+        </tr>
+        <tr>
+          <td><strong>HAMMADDE-02</strong></td>
+          <td>Dişi Terminal 2.8mm</td>
+          <td>Açık PO + Yolda (In-Transit)</td>
+          <td>Onaylı PO (1.000 Adet) + Taslak PR (500 Adet Yolda)</td>
+          <td><span class="kta-doc-badge blue">Açık PO (W+1)</span> <span class="kta-doc-badge orange">Yolda (W+1)</span> W+1 haftasında aynı hücrede hem açık PO (İndigo) hem de yolda irsaliye (Amber) çoklu rozet (multi-pill) olarak görünür.</td>
+        </tr>
+        <tr>
+          <td><strong>HAMMADDE-03</strong></td>
+          <td>6-Way Konnektör Gövdesi</td>
+          <td>Yolda (In-Transit) İrsaliye</td>
+          <td>Taslak PR (500 Adet, ETA: W+2)</td>
+          <td><span class="kta-doc-badge orange">Yolda (In-Transit)</span> Gemide/Tırda olan malzeme; tahmini varış tarihine (ETA) göre W+2 haftasında stoka eklenir.</td>
+        </tr>
+        <tr>
+          <td><strong>HAMMADDE-04</strong></td>
+          <td>Kablo Grommet / Kauçuk</td>
+          <td>Antrepoda İrsaliye</td>
+          <td>Taslak PR (800 Adet, Antrepoda)</td>
+          <td><span class="kta-doc-badge yellow">Antrepoda</span> Liman antreposunda bekleyen irsaliye; millileştirilmeden önce görünür.</td>
+        </tr>
+        <tr>
+          <td><strong>HAMMADDE-05</strong></td>
+          <td>Mini Sigorta Kutusu</td>
+          <td>Gümrüklemede İrsaliye</td>
+          <td>Taslak PR (400 Adet, Gümrükte)</td>
+          <td><span class="kta-doc-badge blue">Gümrüklemede</span> Gümrük beyannamesi açılmış, tescil ve muayene aşamasında olan irsaliye.</td>
+        </tr>
+        <tr>
+          <td><strong>HAMMADDE-06</strong></td>
+          <td>Yalıtım PVC Bant</td>
+          <td>Tam Yeterli Serbest Stok</td>
+          <td>2.000 Adet Serbest Stok</td>
+          <td><span class="kta-doc-badge green">Net İhtiyaç = 0</span> Depoda bol stok olduğu için yeşil hücreler; yeni sipariş önerilmez.</td>
+        </tr>
+        <tr>
+          <td><strong>HAMMADDE-07</strong></td>
+          <td>Erkek Pin Terminal</td>
+          <td>Kritik Eksik (Sıfır Stok)</td>
+          <td>Stok: 0, PO: 0, MOQ: 1.000, Paket: 250</td>
+          <td><span class="kta-doc-badge red">Önerilen PO Çıkar</span> Kırmızı hücreler; MOQ ve ambalaj katına göre otomatik satın alma önerisi hesaplanır.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Desk Navigation Guide -->
+<div class="kta-doc-section">
+  <h2>4. Desk Üzerinde Adım Adım Doğrulama Kılavuzu</h2>
+  <p>Senaryo tohumlandıktan sonra ERPNext arayüzünde şu ekranları sırasıyla ziyaret ederek sonuçları görsel olarak gözlemleyebilirsiniz:</p>
+
+  <div class="kta-doc-flow-vertical">
+    <div class="kta-doc-flow-vitem">
+      <div class="kta-doc-flow-vline">
+        <div class="kta-doc-flow-dot"></div>
+        <div class="kta-doc-flow-connector"></div>
+      </div>
+      <div class="kta-doc-flow-vcontent">
+        <h4>1. Adım: Kapasite Planlama Raporunu Açın</h4>
+        <p>Arama çubuğuna <code>Kapasite Planlama</code> yazın. Filtrelerden <strong>KABLO GRUBU</strong> ürün grubunu seçin. Cari haftada kapasitenin <strong>500 / 500 (%100)</strong> ile tam dolu olduğunu, sarkan <strong>200 adedin</strong> bir sonraki haftaya devrettiğini inceleyin.</p>
+      </div>
+    </div>
+    <div class="kta-doc-flow-vitem">
+      <div class="kta-doc-flow-vline">
+        <div class="kta-doc-flow-dot"></div>
+        <div class="kta-doc-flow-connector"></div>
+      </div>
+      <div class="kta-doc-flow-vcontent">
+        <h4>2. Adım: Malzeme İhtiyaç (Material Requirement) Ekranını Açın</h4>
+        <p>Arama çubuğuna <code>Material Requirement</code> yazın. 7 simülasyon hammaddesini filtreleyin veya listeden bulun. Her hammaddenin satırını açarak akordeon altından <strong>Tedarik Hattı (Supply Pipeline)</strong> ve <strong>Pegging</strong> sekmelerini görüntüleyin.</p>
+      </div>
+    </div>
+    <div class="kta-doc-flow-vitem">
+      <div class="kta-doc-flow-vline">
+        <div class="kta-doc-flow-dot"></div>
+        <div class="kta-doc-flow-connector"></div>
+      </div>
+      <div class="kta-doc-flow-vcontent">
+        <h4>3. Adım: Önerilen Satın Alma Siparişleri (Recommended PO) Raporunu Açın</h4>
+        <p>Arama çubuğuna <code>Önerilen Satın Alma Siparişleri</code> yazın. <code>HAMMADDE-07</code> için MOQ ve paketleme katına göre <strong>1.000 adetlik</strong> satın alma siparişi önerildiğini, temin süresine (Lead Time) göre sipariş verme tarihinin geriye çekildiğini doğrulayın.</p>
+      </div>
+    </div>
+    <div class="kta-doc-flow-vitem">
+      <div class="kta-doc-flow-vline">
+        <div class="kta-doc-flow-dot" style="background: #10b981; border-color: #d1fae5;"></div>
+      </div>
+      <div class="kta-doc-flow-vcontent">
+        <h4>4. Adım: Temizlik</h4>
+        <p>İncelemeniz bittiğinde <code>bench execute erpnextkta.mrp_simulation.cleaner.clean</code> komutunu çalıştırarak çalışma ortamınızı tamamen temizleyin.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

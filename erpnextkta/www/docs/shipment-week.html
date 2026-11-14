@@ -37,7 +37,7 @@
       <div class="kta-formula-desc">Müşteri siparişinin teslimat tarihinden, sevk adresi/müşteri rotasına ait sevk süresi (shipping lead days) düşülerek fabrikadan çıkış (yükleme) tarihi bulunur.</div>
     </div>
   </div>
-  <p><strong>Kademeli Sevk Süresi Hiyerarşisi ($T_{\text{transit}}$):</strong></p>
+  <p><strong>Kademeli Sevk Süresi Hiyerarşisi (T<sub>transit</sub>):</strong></p>
   <ol>
     <li><strong>Teslimat Adresi / Plant:</strong> <code>Address.custom_shipping_lead_days</code> (en yüksek öncelik; müşteri tesisi/plant bazlı süre).</li>
     <li><strong>Müşteri Kartı:</strong> Adreste süre boşsa <code>Customer.custom_shipping_lead_days</code> (müşteri genel varsayılanı).</li>

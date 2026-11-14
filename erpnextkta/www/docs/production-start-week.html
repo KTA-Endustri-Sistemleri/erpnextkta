@@ -45,16 +45,16 @@
   </div>
   <p><strong>İki Eksenli SAP Standardı Lead Time Mimarisi:</strong> Üretim ve sevkiyat süreleri birbirinden ayrılmış olup iki bağımsız kademeli hiyerarşi üzerinden çözümlenir:</p>
   <ul>
-    <li><strong>1. Sevk / Transit Süresi ($T_{\text{transit}}$):</strong> "Nereye gittiği" ile ilgilidir.
+    <li><strong>1. Sevk / Transit Süresi (T<sub>transit</sub>):</strong> "Nereye gittiği" ile ilgilidir.
       <br><code>Address (Plant).custom_shipping_lead_days</code> &rarr; <code>Customer.custom_shipping_lead_days</code> &rarr; <code>Customer Group.custom_shipping_lead_days</code> &rarr; <code>KTA MRP Settings.default_delivery_time_days</code> (Varsayılan <strong>2 Gün</strong>).
     </li>
-    <li><strong>2. Dahili Üretim Süresi ($T_{\text{prod}}$):</strong> "Ne üretildiği" ile ilgilidir.
+    <li><strong>2. Dahili Üretim Süresi (T<sub>prod</sub>):</strong> "Ne üretildiği" ile ilgilidir.
       <br><code>Item Customer Detail.custom_production_time_days</code> &rarr; <code>Item.custom_manufacturing_lead_days</code> &rarr; <code>KTA MRP Settings.default_production_time_days</code> (Varsayılan <strong>14 Gün</strong>).
       <br><em>Not: Standart <code>Item.lead_time_days</code> alanı Purchasing (Satınalma) sekmesinde olup hammadde tedarik süresine aittir; dahili üretim süresi olarak asla kullanılmaz.</em>
     </li>
   </ul>
-  <p><strong>Geriye Doğru Çizelgeleme:</strong> $\text{Sevk Tarihi} = \text{Teslimat Tarihi} - T_{\text{transit}}$, $\text{Üretim Başlangıç Tarihi} = \text{Sevk Tarihi} - T_{\text{prod}}$.</p>
-  <p><strong>Dahili Üretim Talepleri (MR):</strong> Malzeme Taleplerinde sevk süresi uygulanmaz; termin tarihinden yalnızca dahili üretim süresi ($T_{\text{prod}}$) düşülür.</p>
+  <p><strong>Geriye Doğru Çizelgeleme:</strong> <code>Sevk Tarihi = Teslimat Tarihi - T<sub>transit</sub></code>, <code>Üretim Başlangıç Tarihi = Sevk Tarihi - T<sub>prod</sub></code>.</p>
+  <p><strong>Dahili Üretim Talepleri (MR):</strong> Malzeme Taleplerinde sevk süresi uygulanmaz; termin tarihinden yalnızca dahili üretim süresi (T<sub>prod</sub>) düşülür.</p>
   <div class="kta-doc-info note">
     <strong>🛡️ Sıfır Gün Düşmeme Garantisi (Zero-Day Safety Net):</strong> Süre alanları boş bırakılsa dahi sistem hiçbir zaman 0 gün süresine düşmez; hiyerarşik olarak merkezi <code>KTA MRP Settings</code> parametrelerine başvurarak planlamayı korur.
   </div>
