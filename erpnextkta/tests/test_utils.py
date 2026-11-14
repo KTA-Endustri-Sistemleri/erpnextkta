@@ -56,6 +56,30 @@ def before_tests():
 		# FORCE updating default_currency just in case frail test runners created a shallow object
 		frappe.db.sql("UPDATE `tabCompany` SET default_currency='INR' WHERE name=%s", (company_name,))
 		frappe.db.commit()
+
+	# Ensure current year Fiscal Year exists for _Test Company
+	from frappe.utils import getdate, nowdate
+	curr_year = str(getdate(nowdate()).year)
+	if not frappe.db.exists("Fiscal Year", curr_year):
+		try:
+			frappe.get_doc({
+				"doctype": "Fiscal Year",
+				"year": curr_year,
+				"year_start_date": f"{curr_year}-01-01",
+				"year_end_date": f"{curr_year}-12-31",
+				"companies": [{"company": company_name}],
+			}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		except Exception:
+			pass
+	else:
+		try:
+			fy = frappe.get_doc("Fiscal Year", curr_year)
+			if not any(c.company == company_name for c in fy.companies):
+				fy.append("companies", {"company": company_name})
+				fy.save(ignore_permissions=True)
+		except Exception:
+			pass
+	frappe.db.commit()
 	# 2. Ensure essential root groups exist (idempotent)
 	# ──────────────────────────────────────────────────────────────────
 	standard_roots = [
@@ -64,6 +88,7 @@ def before_tests():
 		{"doctype": "Item Group", "item_group_name": "All Item Groups", "is_group": 1, "parent_item_group": ""},
 		{"doctype": "Supplier Group", "supplier_group_name": "All Supplier Groups", "is_group": 1, "parent_supplier_group": ""},
 		{"doctype": "Sales Person", "sales_person_name": "Sales Team", "is_group": 1, "parent_sales_person": ""},
+		{"doctype": "Department", "department_name": "All Departments", "is_group": 1, "parent_department": ""},
 	]
 
 	for root in standard_roots:
@@ -73,6 +98,7 @@ def before_tests():
 			"Item Group": "item_group_name",
 			"Supplier Group": "supplier_group_name",
 			"Sales Person": "sales_person_name",
+			"Department": "department_name",
 		}[root["doctype"]]
 		if not frappe.db.exists(root["doctype"], root[name_field]):
 			try:

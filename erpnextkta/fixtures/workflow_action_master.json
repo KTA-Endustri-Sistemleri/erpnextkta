@@ -1,0 +1,184 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-28 21:52:39.306756",
+  "name": "Review",
+  "workflow_action_name": "Review"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-29 20:18:13.473899",
+  "name": "Son Onay İste",
+  "workflow_action_name": "Son Onay İste"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-29 20:18:18.498081",
+  "name": "Devreye Alma",
+  "workflow_action_name": "Devreye Alma"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-29 20:18:24.094886",
+  "name": "Kaliteye Gönder",
+  "workflow_action_name": "Kaliteye Gönder"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-29 20:18:29.956902",
+  "name": "Üretime Gönder",
+  "workflow_action_name": "Üretime Gönder"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-30 21:19:33.560707",
+  "name": "8D Tamamla",
+  "workflow_action_name": "8D Tamamla"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2025-05-23 14:47:04.086355",
+  "name": "İade Et",
+  "workflow_action_name": "İade Et"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-11-06 19:17:48.868454",
+  "name": "İşlem Başlat",
+  "workflow_action_name": "İşlem Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-30 21:19:14.091499",
+  "name": "2D Başlat",
+  "workflow_action_name": "2D Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-30 21:19:24.013241",
+  "name": "1D Başlat",
+  "workflow_action_name": "1D Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-30 21:19:40.833072",
+  "name": "8D Başlat",
+  "workflow_action_name": "8D Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-30 21:19:48.315434",
+  "name": "7D Başlat",
+  "workflow_action_name": "7D Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-30 21:19:54.951646",
+  "name": "6D Başlat",
+  "workflow_action_name": "6D Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-30 21:20:01.743439",
+  "name": "5D Başlat",
+  "workflow_action_name": "5D Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-30 21:20:08.794767",
+  "name": "4D Başlat",
+  "workflow_action_name": "4D Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-30 21:20:16.099753",
+  "name": "3D Başlat",
+  "workflow_action_name": "3D Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-29 20:17:28.733973",
+  "name": "İthalatı Gerçekleştir",
+  "workflow_action_name": "İthalatı Gerçekleştir"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-29 20:17:47.919218",
+  "name": "Antrepodan Çek",
+  "workflow_action_name": "Antrepodan Çek"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-29 20:17:54.674446",
+  "name": "Antrepoya Al",
+  "workflow_action_name": "Antrepoya Al"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-29 20:18:00.580773",
+  "name": "Mal Giriş Başlat",
+  "workflow_action_name": "Mal Giriş Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-29 20:18:07.635396",
+  "name": "İthalat Başlat",
+  "workflow_action_name": "İthalat Başlat"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-28 21:52:39.305787",
+  "name": "Approve",
+  "workflow_action_name": "Approve"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2024-12-28 21:52:39.306288",
+  "name": "Reject",
+  "workflow_action_name": "Reject"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-11-13 17:40:00.000000",
+  "name": "Uyuşmazlık Bildir",
+  "workflow_action_name": "Uyuşmazlık Bildir"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-11-13 17:40:00.000000",
+  "name": "Sorun Çözüldü",
+  "workflow_action_name": "Sorun Çözüldü"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-11-13 17:40:00.000000",
+  "name": "Gümrüğe İade",
+  "workflow_action_name": "Gümrüğe İade"
+ }
+]
