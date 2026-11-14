@@ -9,7 +9,9 @@ These rules apply specifically to contributing to the `erpnextkta` repository on
   * **Test Cases:** Every fix or feature must include automated test cases to ensure stability and prevent regressions.
   * **UI Changes:** If changes affect the user interface, you must provide screenshots or a GIF demonstrating the visual differences.
   * **Documentation:** Ensure related documentation is updated if new APIs, fields, or configurations are introduced.
+* **Mandatory PR Template Rule:** Whenever asked to create, prepare, draft, or update a Pull Request (PR) description (or when PR creation is mentioned), you **MUST ALWAYS** use and fill out the repository's official template located at `.github/PULL_REQUEST_TEMPLATE.md`. Never invent or generate an arbitrary, ad-hoc PR template. Every section defined in `.github/PULL_REQUEST_TEMPLATE.md` (`Tür (PR Type)`, `Amaç`, `Değişiklik Özeti`, `Test Durumu`, `İlgili Issue`, `Ek Notlar`) must be properly filled out.
 * **PR Description Output Rule:** Whenever asked to write or update a PR description, always output the complete PR description in directly copy-pasteable Markdown format (enclosed in a ```markdown code block).
+* **Confidentiality & Privacy in PRs & Commits:** PR descriptions, commit messages, and documentation must **NEVER** contain commercial or confidential data, such as real purchase prices, unit costs, or specific vendor/partner company names (e.g., Türk Prysmian vb. şirket isimleri ve özel fiyat bilgileri asla bulunmamalıdır). Always anonymize or generalize such information (e.g., "varsayılan tedarikçi", "örnek birim fiyat") or omit them entirely.
 
 ## 2. Commit Message Conventions (Conventional Commits)
 All commit messages must follow the Conventional Commits specification. They are validated via `commitlint.config.js`.
