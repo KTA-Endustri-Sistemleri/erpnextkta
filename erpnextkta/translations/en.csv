@@ -953,3 +953,7 @@ Kalıp Adı,Mold Name
 Mevcut Kalıp Adedi,Available Mold Quantity
 Varsayılan Kalite Şablonu,Default Quality Template
 "Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Selected mold number ({0}) is not defined in the system or is disabled."
+Vardiya Kapasite Sınırını Devre Dışı Bırak,Disable Shift Capacity Limit
+"İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.","If checked, the operator's total net time within a shift is not limited by the Maximum Work Card Duration; the actual net time is written to the cards."
+Vardiya Sonu Otomatik Kapatmayı Devre Dışı Bırak,Disable Shift End Auto-Close
+"İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.","If checked, open cards are not automatically closed by the system at shift ends (16:15 and 00:15); closing cards remains completely with the operator."

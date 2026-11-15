@@ -942,3 +942,7 @@ Kalıp Adı,Formname
 Mevcut Kalıp Adedi,Verfügbare Formmenge
 Varsayılan Kalite Şablonu,Standard-Qualitätsvorlage
 "Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Die ausgewählte Formnummer ({0}) ist im System nicht definiert oder deaktiviert."
+Vardiya Kapasite Sınırını Devre Dışı Bırak,Schichtkapazitätsgrenze Deaktivieren
+"İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.","Wenn aktiviert, wird die gesamte Nettozeit des Bedieners innerhalb einer Schicht nicht durch die maximale Arbeitskartendauer begrenzt; die tatsächliche Nettozeit wird auf die Karten geschrieben."
+Vardiya Sonu Otomatik Kapatmayı Devre Dışı Bırak,Automatische Schichtende-Schließung Deaktivieren
+"İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.","Wenn aktiviert, werden offene Karten zum Schichtende (16:15 und 00:15) nicht automatisch vom System geschlossen; die Schließung bleibt vollständig beim Bediener."

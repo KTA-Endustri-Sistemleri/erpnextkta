@@ -6,14 +6,19 @@ from datetime import datetime
 from unittest.mock import patch
 import frappe
 from frappe.utils import get_datetime
-from erpnextkta.tests.test_utils import KTATestCase, make_mock_calisma_karti, make_mock_durus
+from erpnextkta.tests.test_utils import (
+	KTATestCase,
+	KTAUnitTestCase,
+	make_mock_calisma_karti,
+	make_mock_durus
+)
 from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import (
 	_shift_name_by_now,
 	_parse_minsec,
 	format_sure
 )
 
-class TestShiftNameByNow(unittest.TestCase):
+class TestShiftNameByNow(KTAUnitTestCase):
 	def _dt(self, h, m=0, s=0):
 		return datetime(2024, 1, 15, h, m, s)
 
@@ -41,7 +46,7 @@ class TestShiftNameByNow(unittest.TestCase):
 		"""Öğleden sonra 16:01'de 2. Vardiya'nın başladığını doğrular."""
 		self.assertEqual(_shift_name_by_now(self._dt(16, 0, 1)), "2. Vardiya")
 
-class TestParseMinsec(unittest.TestCase):
+class TestParseMinsec(KTAUnitTestCase):
 	def test_hhmmss_format(self):
 		"""'SS:DD:sn' formatındaki sürenin saniyeye doğru çevrildiğini test eder."""
 		self.assertEqual(_parse_minsec("01:30:00"), 5400)
@@ -54,7 +59,7 @@ class TestParseMinsec(unittest.TestCase):
 		"""Boş değer girildiğinde 0 saniye döndüğünü doğrular."""
 		self.assertEqual(_parse_minsec(None), 0)
 
-class TestFormatSure(unittest.TestCase):
+class TestFormatSure(KTAUnitTestCase):
 	def test_zero_seconds(self):
 		"""0 saniyenin '00:00:00' şeklinde formatlandığını test eder."""
 		self.assertEqual(format_sure(0), "00:00:00")
@@ -63,7 +68,7 @@ class TestFormatSure(unittest.TestCase):
 		"""3600 saniyenin '01:00:00' şeklinde formatlandığını test eder."""
 		self.assertEqual(format_sure(3600), "01:00:00")
 
-class TestGetDurum(unittest.TestCase):
+class TestGetDurum(KTAUnitTestCase):
 	def test_reddedildi_takes_priority(self):
 		"""Kalite kontrol reddedildiğinde kart durumunun 'reddedildi' olduğunu doğrular."""
 		doc = make_mock_calisma_karti(kalite_kontrol="Reddedildi", baslangic_saati="2024-01-15 08:00:00")
@@ -79,7 +84,7 @@ class TestGetDurum(unittest.TestCase):
 		doc = make_mock_calisma_karti(baslangic_saati=None)
 		self.assertEqual(doc.get_durum(), "hazir")
 
-class TestAktifDurusVarMi(unittest.TestCase):
+class TestAktifDurusVarMi(KTAUnitTestCase):
 	def test_empty_duruslar_returns_false(self):
 		"""Duruş listesi boşsa aktif duruş olmadığını doğrular."""
 		doc = make_mock_calisma_karti(duruslar=[])
@@ -92,7 +97,7 @@ class TestAktifDurusVarMi(unittest.TestCase):
 		self.assertTrue(doc.aktif_durus_var_mi())
 
 
-class TestValidateSubOpQcForSubmission(unittest.TestCase):
+class TestValidateSubOpQcForSubmission(KTAUnitTestCase):
 	def test_100_percent_qc_with_pending_throws(self):
 		"""%100 kalite kontrolde açıkta 'Onay Bekliyor' alt işlem varken hata fırlatıldığını doğrular."""
 		doc = make_mock_calisma_karti(
@@ -172,7 +177,7 @@ class TestValidateSubOpQcForSubmission(unittest.TestCase):
 			doc.validate_sub_op_qc_for_submission()
 
 
-class TestQcHelpers(unittest.TestCase):
+class TestQcHelpers(KTAUnitTestCase):
 	def test_is_qc_approved(self):
 		from erpnextkta.kta_calisma_karti.api_impl._helpers import is_qc_approved
 		self.assertTrue(is_qc_approved("Onaylandı"))
@@ -208,7 +213,7 @@ class TestQcHelpers(unittest.TestCase):
 		self.assertFalse(is_qc_pending("Reddedildi"))
 
 
-class TestDoubleFinishProtection(unittest.TestCase):
+class TestDoubleFinishProtection(KTAUnitTestCase):
 	def test_handle_bitis_on_already_finished_card_throws(self):
 		"""Zaten bitiş saati atanmış veya bitmiş bir kartta _handle_bitis'in hata fırlattığını doğrular."""
 		from erpnextkta.kta_calisma_karti.api_impl.cards import _handle_bitis
@@ -228,7 +233,7 @@ class TestDoubleFinishProtection(unittest.TestCase):
 		self.assertTrue("Bu kart zaten bitmiş" in msg or "This card is already finished" in msg)
 
 
-class TestShiftAutoCloseRejectedCards(unittest.TestCase):
+class TestShiftAutoCloseRejectedCards(KTAUnitTestCase):
 	def test_shift_closer_skips_classic_rejected_card(self):
 		"""Klasik kalite reddi almış kartların vardiya kapanışında atlandığını doğrular."""
 		from erpnextkta.tasks import auto_close_timed_out_cards
@@ -278,4 +283,26 @@ class TestShiftAutoCloseRejectedCards(unittest.TestCase):
 		     patch("erpnextkta.kta_calisma_karti.api_impl.job_card_sync.sync_time_log_to_job_card"):
 			auto_close_timed_out_cards()
 			self.assertIsNotNone(doc.bitis_saati)
+
+	def test_auto_close_disabled_skips_processing(self):
+		"""Vardiya sonu otomatik kapatma devre dışıyken auto_close_timed_out_cards'ın işlem yapmadığını test eder."""
+		from erpnextkta.tasks import auto_close_timed_out_cards
+		def mock_get_single_val(doctype, fieldname, *args, **kwargs):
+			if fieldname == "vardiya_sonu_otomatik_kapatmayi_devre_disi_birak":
+				return 1
+			return None
+
+		orig_get_all = frappe.get_all
+		calisma_karti_queried = []
+		def mock_get_all_fn(doctype, *args, **kwargs):
+			if doctype == "Calisma Karti":
+				calisma_karti_queried.append(True)
+			return orig_get_all(doctype, *args, **kwargs)
+
+		with (
+			patch("frappe.db.get_single_value", side_effect=mock_get_single_val),
+			patch("frappe.get_all", side_effect=mock_get_all_fn)
+		):
+			auto_close_timed_out_cards()
+			self.assertEqual(len(calisma_karti_queried), 0)
 

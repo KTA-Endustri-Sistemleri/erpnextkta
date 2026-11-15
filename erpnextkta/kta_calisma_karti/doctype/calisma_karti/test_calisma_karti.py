@@ -157,6 +157,57 @@ class TestCalismaKartiIntegration(KTATestCase):
 			doc.hesapla_toplam_sure()
 			self.assertEqual(doc.net_calisma_suresi, format_sure(1800))
 
+	def test_cap_disabled_skips_cap(self):
+		"""Kapasite sınırı devre dışıyken kotanın uygulanmadığını ve kilitli sorgunun çağrılmadığını doğrular."""
+		doc = make_mock_calisma_karti(baslangic_saati="2024-01-15 15:00:00", bitis_saati="2024-01-15 16:00:00")
+		MOD = "erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti"
+		with patch(f"{MOD}._other_cards_net_seconds_in_shift", return_value=24000) as other, \
+		     patch(f"{MOD}.get_kta_settings", return_value=(430, 400)), \
+		     patch(f"{MOD}._kapasite_siniri_devre_disi_mi", return_value=True):
+			doc.hesapla_toplam_sure()
+		self.assertEqual(doc.net_calisma_suresi, format_sure(3600))
+		other.assert_not_called()
+
+	def test_unsaved_setting_keeps_cap(self):
+		"""Ayar DB'de hiç yokken veya kaydedilmemişken varsayılanın kapalı (sınırın aktif) olduğunu doğrular."""
+		from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import _kapasite_siniri_devre_disi_mi
+		frappe.db.delete("Singles", {"doctype": "KTA Calisma Karti Settings", "field": "vardiya_kapasite_sinirini_devre_disi_birak"})
+		frappe.clear_cache(doctype="KTA Calisma Karti Settings")
+		self.assertFalse(_kapasite_siniri_devre_disi_mi())
+
+	def test_setting_saved_true_disables_cap(self):
+		"""Ayar kaydedildiğinde fonksiyonun True döndüğünü doğrular."""
+		from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import _kapasite_siniri_devre_disi_mi
+		frappe.db.set_single_value("KTA Calisma Karti Settings", "vardiya_kapasite_sinirini_devre_disi_birak", 1)
+		try:
+			self.assertTrue(_kapasite_siniri_devre_disi_mi())
+		finally:
+			frappe.db.set_single_value("KTA Calisma Karti Settings", "vardiya_kapasite_sinirini_devre_disi_birak", 0)
+
+	def test_cap_disabled_excludes_active_downtime(self):
+		"""Kapasite sınırı kapalıyken de devam eden aktif duruş süresinin net süreden düşüldüğünü doğrular."""
+		from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import _parse_minsec
+		doc = make_mock_calisma_karti(baslangic_saati=frappe.utils.add_to_date(None, minutes=-60), bitis_saati=None)
+		doc.append("duruslar", {"durus_baslangic": frappe.utils.add_to_date(None, minutes=-10), "durus_nedeni": "Diğer"})
+		MOD = "erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti"
+		with patch(f"{MOD}._kapasite_siniri_devre_disi_mi", return_value=True):
+			doc.hesapla_toplam_sure()
+		self.assertAlmostEqual(_parse_minsec(doc.net_calisma_suresi), 3000, delta=20)
+
+	def test_mode_switch_recomputes_open_card(self):
+		"""Açık kartın mod değişimi sonrasında doğru şekilde yeniden hesaplandığını doğrular."""
+		doc = make_mock_calisma_karti(baslangic_saati="2024-01-15 15:00:00", bitis_saati="2024-01-15 16:00:00")
+		MOD = "erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti"
+		with patch(f"{MOD}._other_cards_net_seconds_in_shift", return_value=24000), \
+		     patch(f"{MOD}.get_kta_settings", return_value=(430, 400)), \
+		     patch(f"{MOD}._kapasite_siniri_devre_disi_mi", return_value=False):
+			doc.hesapla_toplam_sure()
+		net_ilk = doc.net_calisma_suresi
+		self.assertEqual(net_ilk, format_sure(1800))
+		with patch(f"{MOD}._kapasite_siniri_devre_disi_mi", return_value=True):
+			doc.hesapla_toplam_sure()
+		self.assertEqual(doc.net_calisma_suresi, format_sure(3600))
+
 	def test_different_quality_inspections_allowed(self):
 		"""Farklı kalite kontrol kayıtları kullanan iki farklı kartın kaydedilebildiğini doğrular."""
 		for qi_suffix in ("QI-A", "QI-B"):
