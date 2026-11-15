@@ -26,6 +26,11 @@ def get_kta_settings():
         return 430, 400
 
 
+def _kapasite_siniri_devre_disi_mi() -> bool:
+    from frappe.utils import cint
+    return bool(cint(frappe.db.get_single_value("KTA Calisma Karti Settings", "vardiya_kapasite_sinirini_devre_disi_birak")))
+
+
 def _shift_name_by_now(now_dt):
     """Pick shift name by current time-of-day (fallback when Shift Assignment is not used).
 
@@ -373,6 +378,13 @@ class CalismaKarti(Document):
 
 
 
+    def _apply_shift_cap(self, start_dt, raw_net_saniye):
+        if _kapasite_siniri_devre_disi_mi():
+            return raw_net_saniye
+        max_limit, _ = get_kta_settings()
+        remaining = self._calculate_remaining_shift_capacity(start_dt, max_limit * 60)
+        return min(raw_net_saniye, remaining)
+
     def hesapla_toplam_sure(self):
         if not self.baslangic_saati:
             self.toplam_sure = "0:00"
@@ -385,13 +397,8 @@ class CalismaKarti(Document):
         toplam_saniye = (end_dt - start_dt).total_seconds()
         toplam_durus_saniye = self._calculate_total_durus_seconds(end_dt)
 
-        max_limit, _ = get_kta_settings()
-        max_saniye = max_limit * 60
-
-        remaining = self._calculate_remaining_shift_capacity(start_dt, max_saniye)
-
         raw_net_saniye = max(0, toplam_saniye - toplam_durus_saniye)
-        net_saniye = min(raw_net_saniye, remaining)
+        net_saniye = self._apply_shift_cap(start_dt, raw_net_saniye)
 
         self.toplam_sure = format_sure(toplam_saniye)
         self.net_calisma_suresi = format_sure(net_saniye)

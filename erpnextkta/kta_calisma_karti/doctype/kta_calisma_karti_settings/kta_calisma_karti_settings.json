@@ -6,6 +6,7 @@
     "field_order": [
         "max_kart_suresi_dk",
         "kart_uyari_suresi_dk",
+        "vardiya_kapasite_sinirini_devre_disi_birak",
         "tolerans_saat",
         "sb_yenileme",
         "liste_yenileme_araligi_sn",
@@ -15,6 +16,7 @@
         "ariza_devam_modu",
         "auto_pause_durus_nedeni",
         "timeout_durus_nedeni",
+        "vardiya_sonu_otomatik_kapatmayi_devre_disi_birak",
         "mukerrer_kalite_kontrolu_yap",
         "hata_raporu_section",
         "hata_raporu_aktif",
@@ -30,6 +32,7 @@
     "fields": [
         {
             "default": "430",
+            "depends_on": "eval:!doc.vardiya_kapasite_sinirini_devre_disi_birak",
             "fieldname": "max_kart_suresi_dk",
             "fieldtype": "Int",
             "in_list_view": 1,
@@ -42,6 +45,13 @@
             "fieldtype": "Int",
             "label": "Kart Uyar\u0131 S\u00fcresi (DK)",
             "reqd": 1
+        },
+        {
+            "default": "0",
+            "description": "İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.",
+            "fieldname": "vardiya_kapasite_sinirini_devre_disi_birak",
+            "fieldtype": "Check",
+            "label": "Vardiya Kapasite Sınırını Devre Dışı Bırak"
         },
         {
             "default": "8",
@@ -103,6 +113,13 @@
             "label": "Zaman Aşımı Duruş Nedeni",
             "options": "KTA Durus Sebebi",
             "description": "Vardiya sonunda otomatik kapatılan kartlar için kullanılacak duruş nedeni."
+        },
+        {
+            "default": "0",
+            "description": "İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.",
+            "fieldname": "vardiya_sonu_otomatik_kapatmayi_devre_disi_birak",
+            "fieldtype": "Check",
+            "label": "Vardiya Sonu Otomatik Kapatmayı Devre Dışı Bırak"
         },
         {
             "default": "1",
@@ -172,7 +189,7 @@
         }
     ],
     "issingle": 1,
-    "modified": "2026-03-02 12:00:00.000000",
+    "modified": "2026-11-15 05:10:00.000000",
     "modified_by": "Administrator",
     "module": "kta_calisma_karti",
     "name": "KTA Calisma Karti Settings",

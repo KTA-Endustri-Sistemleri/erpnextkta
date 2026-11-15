@@ -16,7 +16,9 @@ KTA Çalışma Kartı uygulamasının davranışı, yöneticiler tarafından 3 f
 Sistemin kalbindeki ana kuralları belirler. ERPNext arama çubuğuna **KTA Calisma Karti Settings** yazarak ulaşabilirsiniz.
 
 ### ⏱️ Vardiya ve Süre Limitleri
-- **Maksimum Çalışma Kartı Süresi (DK) (`max_kart_suresi_dk`):** Bir kartın en fazla kaç dakika açık (Çalışıyor) kalabileceğini belirler. (Standart: 430). Bu süreyi aşan kartlar sistem (cron) tarafından otomatik duraklatılır veya kapatılır.
+- **Vardiya Kapasite Sınırını Devre Dışı Bırak (`vardiya_kapasite_sinirini_devre_disi_birak`):** İşaretlenirse operatörün vardiya içindeki toplam net çalışma süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır. Bu seçenek aktif edildiğinde formdaki `Maksimum Çalışma Kartı Süresi (DK)` alanı dinamik olarak gizlenir.
+- **Maksimum Çalışma Kartı Süresi (DK) (`max_kart_suresi_dk`):** Bir kartın en fazla kaç dakika açık (Çalışıyor) kalabileceğini belirler (Standart: 430). Bu süreyi aşan kartlar sistem (cron) tarafından otomatik duraklatılır veya kapatılır. *Not: Vardiya Kapasite Sınırını Devre Dışı Bırak seçeneği işaretliyken bu sınır uygulanmaz ve alan form üzerinde gizlenir.*
+- **Vardiya Sonu Otomatik Kapatmayı Devre Dışı Bırak (`vardiya_sonu_otomatik_kapatmayi_devre_disi_birak`):** İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar arka plan cron görevi tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.
 - **Kart Uyarı Süresi (DK) (`kart_uyari_suresi_dk`):** Operatörün ekranında kırmızı renkli *"Vardiya Sonuna Yaklaşıyor"* uyarısının (Banner) çıkacağı dakikadır (Standart: 400).
 - **Tamamlanmış İE Tolerans Süresi (Saat) (`tolerans_saat`):** ERPNext tarafında bir İş Emri kapatılsa bile, son stok hareketinin üzerinden bu kadar saat geçene kadar sahadaki operatör o iş emrine Çalışma Kartı başlatabilir.
 
@@ -100,6 +102,8 @@ KTA Çalışma Kartı, ERPNext'in üretim ve stok altyapısı üzerine inşa edi
 | Sorun / İhtiyaç | Çözüm Yeri | Ne Yapılmalı? |
 | :--- | :--- | :--- |
 | Operatörlerin kart kapatma limiti olan 430 dakikayı değiştirmek | **KTA Calisma Karti Settings** | `max_kart_suresi_dk` değerini güncelleyin. |
+| Vardiya kapasite sınırını kaldırmak (tüm fiili süreyi karta yazmak) | **KTA Calisma Karti Settings** | `vardiya_kapasite_sinirini_devre_disi_birak` kutucuğunu işaretleyin (Maksimum süre alanı gizlenir). |
+| Vardiya sonunda (16:15 / 00:15) kartların otomatik kapatılmasını engellemek | **KTA Calisma Karti Settings** | `vardiya_sonu_otomatik_kapatmayi_devre_disi_birak` kutucuğunu işaretleyin. |
 | Kaliteci bir çalışma kartının verisini değiştiremiyor (Kilitli) | **KTA Calisma Karti Settings** | `admin_roles` listesine kalitecinin Frappe rolünü ekleyin. |
 | X operasyonunda Krimp formunu görmek istiyoruz | **KTA Calisma Karti Operasyonlari** | İlgili operasyonu açıp `has_krimp` tikini işaretleyin. |
 | Y operasyonunda her alt işleme kalite onayı vermek istiyoruz | **KTA Calisma Karti Operasyonlari** | İlgili operasyonu açıp `alt_operasyon_bazli_kalite` tikini işaretleyin. |

@@ -1,3 +1,4 @@
+import unittest
 import frappe
 from frappe import _
 from erpnextkta.kta_calisma_karti.setup import setup_system_downtime_reasons
@@ -293,17 +294,33 @@ def before_tests():
 
 from frappe.tests.utils import FrappeTestCase
 
+def log_test_start(test_instance):
+	parts = test_instance.__class__.__module__.split(".")
+	module_tag = parts[1] if len(parts) > 1 and parts[1] != "tests" else (parts[-1].replace("test_", "") if len(parts) > 1 else "kta")
+	tag_str = f"[{module_tag}]"
+	method_str = f"[{test_instance._testMethodName}]"
+	desc = test_instance.shortDescription()
+	if desc:
+		print(f"\n🔍 [TEST] {tag_str} {method_str}: {desc}")
+	else:
+		print(f"\n🔍 [TEST] {tag_str} {method_str}")
+
+
+class KTAUnitTestCase(unittest.TestCase):
+	"""Base TestCase for fast unit tests with standardized test logging."""
+
+	def setUp(self):
+		super().setUp()
+		log_test_start(self)
+
+
 class KTATestCase(FrappeTestCase):
 	"""Base TestCase for KTA Endüstri Sistemleri apps with shared setup logic."""
 
 	def setUp(self):
 		super().setUp()
 		frappe.flags.use_serial_and_batch_fields = False
-		desc = self.shortDescription()
-		if desc:
-			print(f"\n🔍 [TEST] {self._testMethodName}: {desc}")
-		else:
-			print(f"\n🔍 [TEST] {self._testMethodName}")
+		log_test_start(self)
 		
 		# Ensure test-specific Job Card and basic data exists
 		self.setup_kta_infrastructure()
@@ -323,6 +340,8 @@ class KTATestCase(FrappeTestCase):
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "mukerrer_kalite_kontrolu_yap", 1)
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk", 430)
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "kart_uyari_suresi_dk", 400)
+		frappe.db.set_single_value("KTA Calisma Karti Settings", "vardiya_kapasite_sinirini_devre_disi_birak", 0)
+		frappe.db.set_single_value("KTA Calisma Karti Settings", "vardiya_sonu_otomatik_kapatmayi_devre_disi_birak", 0)
 
 		self.company = create_test_company()
 		self.item_group = create_test_item_group()

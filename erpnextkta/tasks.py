@@ -43,6 +43,14 @@ def auto_close_timed_out_cards():
     - 'Duruşta' olanlar: Son duruş başlangıç saatinde kapatılır.
     - 'Çalışıyor' olanlar: Vardiya bitiş saatinde (16:00 veya 00:00) kapatılır.
     """
+    try:
+        from frappe.utils import cint
+        if cint(frappe.db.get_single_value("KTA Calisma Karti Settings", "vardiya_sonu_otomatik_kapatmayi_devre_disi_birak")) == 1:
+            frappe.logger().info("auto_close_timed_out_cards: disabled in settings, skipping.")
+            return
+    except Exception:
+        pass
+
     frappe.logger().info("auto_close_timed_out_cards started")
     
     now = now_datetime()
