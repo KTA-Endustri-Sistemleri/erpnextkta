@@ -3,6 +3,61 @@
 
 
 
+## 🚀 v4.1.0 (2026-11-15)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- **mrp**: add spec, plan, pr template and confidentiality rules
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **mrp**: add uom column and group subtotal rows by uom
+      
+      
+    
+      
+      
+        
+- **mrp**: add reservations, pricing, filters and rolling period
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.0.0 (2026-11-12)
 
 
