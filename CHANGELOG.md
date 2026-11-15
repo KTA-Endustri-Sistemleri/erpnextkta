@@ -3,6 +3,73 @@
 
 
 
+## 🚀 v4.3.0 (2026-11-15)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- **test**: add design spec and plan for modular test architecture
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **calisma-karti**: add shift capacity and auto-close toggle controls
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Refactoring
+
+    
+      
+      
+        
+- **tests**: modularize test suites and stabilize ci tests
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.2.0 (2026-11-15)
 
 
