@@ -56,6 +56,7 @@ RUN bench init --frappe-branch version-15 --skip-redis-config-generation --skip-
     ./env/bin/pip install --no-cache-dir tzdata && \
     git config --global --add safe.directory '*'
 
+USER root
 WORKDIR /home/frappe/frappe-bench
 
 CMD ["/bin/bash"]
