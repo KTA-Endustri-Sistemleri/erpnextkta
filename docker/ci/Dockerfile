@@ -45,12 +45,13 @@ WORKDIR /home/frappe
 # 2. Frappe Bench (v15) Başlatma ve Açık Bağımlılıkların Önceden Klonlanması
 RUN bench init --frappe-branch version-15 --skip-redis-config-generation --skip-assets /home/frappe/frappe-bench && \
     cd /home/frappe/frappe-bench && \
-    bench get-app payments --branch version-15 --resolve-deps && \
-    bench get-app hrms --branch version-15 --resolve-deps && \
-    bench get-app erpnext https://github.com/frappe/erpnext --branch version-15 --resolve-deps && \
+    bench get-app payments --branch version-15 && \
+    bench get-app hrms --branch version-15 && \
+    bench get-app erpnext https://github.com/frappe/erpnext --branch version-15 && \
     bench get-app https://github.com/Framras/trtaxoffices.git --branch version-15 && \
     bench get-app https://github.com/Framras/trtcmb.git --branch version-15 && \
     bench get-app https://github.com/Framras/trebelge.git --branch version-15 && \
+    bench setup requirements --dev && \
     ./env/bin/pip install --no-cache-dir --force-reinstall 'setuptools<81' && \
     ./env/bin/pip install --no-cache-dir tzdata && \
     git config --global --add safe.directory '*'

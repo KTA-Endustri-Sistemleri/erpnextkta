@@ -23,6 +23,9 @@ jobs:
   tests:
     name: Server
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     container:
       image: ghcr.io/kta-endustri-sistemleri/frappe-ci-base:v15
       credentials:
