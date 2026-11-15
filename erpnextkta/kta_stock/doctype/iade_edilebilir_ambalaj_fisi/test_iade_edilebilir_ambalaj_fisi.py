@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from erpnextkta.tests.test_utils import KTABaseTestCase
 
 from erpnextkta.kta_stock.doctype.iade_edilebilir_ambalaj_fisi.iade_edilebilir_ambalaj_fisi import (
 	get_supplier_balance,
@@ -33,7 +33,7 @@ def insert_giris_without_receipt(qty):
 	return fisi
 
 
-class TestIadeEdilebilirAmbalajFisi(FrappeTestCase):
+class TestIadeEdilebilirAmbalajFisi(KTABaseTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -44,6 +44,7 @@ class TestIadeEdilebilirAmbalajFisi(FrappeTestCase):
 			).insert(ignore_permissions=True)
 
 	def setUp(self):
+		super().setUp()
 		frappe.db.delete("Iade Edilebilir Ambalaj Fisi", {"supplier": TEST_SUPPLIER})
 
 	def test_qty_must_be_positive(self):

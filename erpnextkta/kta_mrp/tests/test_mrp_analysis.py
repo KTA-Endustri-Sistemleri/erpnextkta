@@ -1,12 +1,12 @@
 # Copyright (c) 2026, KTA Endüstri Sistemleri and Contributors
 # See license.txt
 
-import unittest
 import frappe
+from erpnextkta.tests.test_utils import KTABaseTestCase
 from erpnextkta.kta_mrp.report.mrp_analysis import mrp_analysis
 
 
-class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
+class TestMrpAnalysisReservationsAndFilters(KTABaseTestCase):
 	@classmethod
 	def setUpClass(cls):
 		if not getattr(frappe.local, "site", None):
@@ -101,6 +101,15 @@ class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
 				frappe.db.set_value(
 					"Item", code, {"custom_ara_malzeme_grubu": grp, "stock_uom": itm_uom, "disabled": 0}
 				)
+			if not frappe.db.exists("UOM Conversion Detail", {"parent": code, "uom": itm_uom}):
+				frappe.get_doc({
+					"doctype": "UOM Conversion Detail",
+					"parent": code,
+					"parenttype": "Item",
+					"parentfield": "uoms",
+					"uom": itm_uom,
+					"conversion_factor": 1.0,
+				}).insert(ignore_permissions=True)
 
 		# 6. Tedarikçi
 		cls.supplier_name = "_Test MRP Supplier"
@@ -143,9 +152,11 @@ class TestMrpAnalysisReservationsAndFilters(unittest.TestCase):
 
 		for rm_code, rate in [("_TEST_MRP_RAW", 25.50), ("_TEST_MRP_CABLE", 15.00)]:
 			if not frappe.db.exists("Item Price", {"item_code": rm_code, "supplier": cls.supplier_name}):
+				rm_uom = frappe.db.get_value("Item", rm_code, "stock_uom") or "Nos"
 				frappe.get_doc({
 					"doctype": "Item Price",
 					"item_code": rm_code,
+					"uom": rm_uom,
 					"price_list": price_list,
 					"buying": 1,
 					"supplier": cls.supplier_name,

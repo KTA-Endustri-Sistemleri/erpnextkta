@@ -2,12 +2,12 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from erpnextkta.tests.test_utils import KTABaseTestCase
 
 from erpnextkta.patches.v3_0_3.extract_enjeksiyon_kaliplari import execute as run_patch
 
 
-class TestMoldPatch(FrappeTestCase):
+class TestMoldPatch(KTABaseTestCase):
     def test_extract_enjeksiyon_kaliplari_patch(self):
         """Test that the patch extracts 46 molds from Quality Inspection Templates and is idempotent."""
         # Run patch

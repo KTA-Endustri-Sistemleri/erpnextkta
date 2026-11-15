@@ -101,6 +101,9 @@ class TestCalismaKartiIntegration(KTATestCase):
 		"""Birden fazla duruş içeren bir kartta toplam duruş ve net çalışma süresinin doğru hesaplandığını doğrular."""
 		from frappe.utils import get_datetime, add_to_date
 		
+		frappe.db.delete("Calisma Karti", {"operator": "test_duration@kta.com"})
+		frappe.db.commit()
+
 		# Create a card starting 2 hours ago
 		start = add_to_date(None, hours=-2)
 		doc = frappe.get_doc({

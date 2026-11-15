@@ -1,10 +1,10 @@
-import unittest
 from unittest.mock import MagicMock, patch
 import frappe
+from erpnextkta.tests.test_utils import KTAUnitTestCase
 from erpnextkta.kta_stock.label_manager import LabelPrinter
 
 
-class TestLabelManager(unittest.TestCase):
+class TestLabelManager(KTAUnitTestCase):
     def setUp(self):
         super().setUp()
         if not hasattr(frappe, "local"):

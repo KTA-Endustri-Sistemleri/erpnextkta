@@ -2,61 +2,24 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from erpnextkta.tests.test_utils import (
+    KTATestCase,
+    ensure_test_injection_fixtures,
+)
 from erpnextkta.kta_calisma_karti.api_impl.enjeksiyon import (
     add_enjeksiyon_olcumu,
     update_enjeksiyon_olcumu,
 )
 
 
-class TestCalismaKartiEnjeksiyonOlcumleri(FrappeTestCase):
+class TestCalismaKartiEnjeksiyonOlcumleri(KTATestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        frappe.set_user("Administrator")
-        if not frappe.db.exists("KTA Calisma Karti Operasyonlari", "OP40"):
-            doc = frappe.new_doc("KTA Calisma Karti Operasyonlari")
-            doc.name = "OP40"
-            doc.calisma_karti_op = "OP40"
-            doc.has_enjeksiyon = 1
-            doc.flags.ignore_permissions = True
-            doc.flags.ignore_mandatory = True
-            doc.insert()
-        else:
-            frappe.db.set_value("KTA Calisma Karti Operasyonlari", "OP40", "has_enjeksiyon", 1)
-
-        if not frappe.db.exists("KTA Calisma Karti Alt Operasyonlari", "OP40-0001"):
-            doc = frappe.new_doc("KTA Calisma Karti Alt Operasyonlari")
-            doc.name = "OP40-0001"
-            doc.parent_operation = "OP40"
-            doc.title = "0001"
-            doc.operasyon_tipi = "Blunt"
-            doc.is_active = 1
-            doc.flags.ignore_permissions = True
-            doc.flags.ignore_mandatory = True
-            doc.insert()
-
-        test_molds = [
-            "KLP-101", "KLP-102", "KLP-DUP", "KLP-FIRST", "KLP-INITIAL",
-            "KLP-LOCK-01", "KLP-LOCK-CHANGED", "KLP-LOCKED", "KLP-MAX",
-            "KLP-OP40-01", "KLP-OP40-02", "KLP-POINTS-01", "KLP-RECIPE-01",
-            "KLP-REJ-01", "KLP-SHIFT-01", "KLP-TAMPERED", "KLP-TAMPERED-AGAIN",
-            "KLP-UNIQ-01", "KLP-UPDATED"
-        ]
-        for m in test_molds:
-            if not frappe.db.exists("KTA Enjeksiyon Kalibi", m):
-                mold = frappe.new_doc("KTA Enjeksiyon Kalibi")
-                mold.kalip_no = m
-                mold.kalip_adi = f"Test Mold {m}"
-                mold.disabled = 0
-                mold.flags.ignore_permissions = True
-                mold.flags.ignore_mandatory = True
-                mold.insert()
-
-        frappe.db.commit()
+        ensure_test_injection_fixtures()
 
     def setUp(self):
-        frappe.set_user("Administrator")
+        super().setUp()
         self.item_code = frappe.db.get_value("Item", filters={"disabled": 0}, fieldname="name")
         if not self.item_code:
             self.item_code = "TEST-ENJ-ITEM"
