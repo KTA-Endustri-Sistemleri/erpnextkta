@@ -5,17 +5,18 @@ on:
   push:
     branches:
       - main
-      - feat/ci-docker-base-image
     paths:
       - 'docker/ci/**'
       - '.github/workflows/docker-ci-base.yml'
   pull_request:
+    branches:
+      - main
     paths:
       - 'docker/ci/**'
       - '.github/workflows/docker-ci-base.yml'
 
 concurrency:
-  group: docker-ci-base-${{ github.ref }}
+  group: docker-ci-base-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
