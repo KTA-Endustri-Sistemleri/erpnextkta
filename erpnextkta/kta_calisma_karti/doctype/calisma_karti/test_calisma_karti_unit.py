@@ -7,7 +7,6 @@ from unittest.mock import patch
 import frappe
 from frappe.utils import get_datetime
 from erpnextkta.tests.test_utils import (
-	KTATestCase,
 	KTAUnitTestCase,
 	make_mock_calisma_karti,
 	make_mock_durus

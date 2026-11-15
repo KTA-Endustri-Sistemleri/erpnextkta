@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from erpnextkta.tests.test_utils import KTATestCase, ensure_test_injection_fixtures
 
 from erpnextkta.kta_calisma_karti.api_impl._helpers import (
     _assert_enjeksiyon_kalip_valid,
@@ -16,50 +16,15 @@ from erpnextkta.kta_calisma_karti.api_impl.enjeksiyon import (
 )
 
 
-class TestEnjeksiyonKalipFull(FrappeTestCase):
+class TestEnjeksiyonKalipFull(KTATestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        frappe.set_user("Administrator")
-
-        # Ensure OP40 operation exists
-        if not frappe.db.exists("KTA Calisma Karti Operasyonlari", "OP40"):
-            doc = frappe.new_doc("KTA Calisma Karti Operasyonlari")
-            doc.name = "OP40"
-            doc.calisma_karti_op = "OP40"
-            doc.has_enjeksiyon = 1
-            doc.flags.ignore_permissions = True
-            doc.flags.ignore_mandatory = True
-            doc.insert()
-        else:
-            frappe.db.set_value("KTA Calisma Karti Operasyonlari", "OP40", "has_enjeksiyon", 1)
-
-        # Ensure OP40-E2E alt operasyonu exists
-        if not frappe.db.exists("KTA Calisma Karti Alt Operasyonlari", "OP40-E2E"):
-            doc = frappe.new_doc("KTA Calisma Karti Alt Operasyonlari")
-            doc.parent_operation = "OP40"
-            doc.title = "E2E"
-            doc.operasyon_tipi = "Blunt"
-            doc.is_active = 1
-            doc.flags.ignore_permissions = True
-            doc.flags.ignore_mandatory = True
-            doc.insert()
-
-        # Ensure baseline injection molds are seeded for CI environments
-        try:
-            from erpnextkta.patches.v3_0_3.extract_enjeksiyon_kaliplari import (
-                execute as seed_molds,
-            )
-
-            seed_molds()
-        except (frappe.DuplicateEntryError, frappe.ValidationError) as e:
-            frappe.logger("tests").debug(f"seed_molds atlandı: {e}")
-
-        frappe.db.commit()
+        ensure_test_injection_fixtures()
 
     def setUp(self):
         super().setUp()
-        frappe.set_user("Administrator")
+        ensure_test_injection_fixtures()
         self.created_cards = []
         self.created_molds = []
 

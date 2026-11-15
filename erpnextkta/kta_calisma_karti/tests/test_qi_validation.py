@@ -5,8 +5,9 @@ from erpnextkta.tests.test_utils import KTATestCase
 class TestQIValidation(KTATestCase):
     def setUp(self):
         super().setUp()
-        from erpnextkta.tests.test_utils import make_mock_calisma_karti
+        from erpnextkta.tests.test_utils import make_mock_calisma_karti, create_test_plant_floor
 
+        create_test_plant_floor("L-1")
         # Ensure operations exist with correct settings
         for op_name, mode in [("TEST-OP-LEGACY", 0), ("TEST-OP-SUB", 1)]:
             if not frappe.db.exists("KTA Calisma Karti Operasyonlari", op_name):
@@ -14,6 +15,7 @@ class TestQIValidation(KTATestCase):
                     "doctype": "KTA Calisma Karti Operasyonlari",
                     "name": op_name,
                     "calisma_karti_op": op_name,
+                    "plant_floor": "L-1",
                     "alt_operasyon_bazli_kalite": mode,
                     "yuzde_yuz_kalite_kontrol": mode
                 }).insert(ignore_permissions=True, ignore_mandatory=True)

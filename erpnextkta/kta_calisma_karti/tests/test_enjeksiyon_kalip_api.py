@@ -2,14 +2,14 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from erpnextkta.tests.test_utils import KTABaseTestCase
 
 from erpnextkta.kta_calisma_karti.api_impl._helpers import (
     _assert_enjeksiyon_kalip_valid,
 )
 
 
-class TestEnjeksiyonKalipApi(FrappeTestCase):
+class TestEnjeksiyonKalipApi(KTABaseTestCase):
     def setUp(self):
         super().setUp()
         # Ensure a known active mold and disabled mold exist for testing

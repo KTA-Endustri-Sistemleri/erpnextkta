@@ -2,10 +2,10 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from erpnextkta.tests.test_utils import KTABaseTestCase
 
 
-class TestKTAEnjeksiyonKalibi(FrappeTestCase):
+class TestKTAEnjeksiyonKalibi(KTABaseTestCase):
     def setUp(self):
         super().setUp()
         if frappe.db.table_exists("KTA Enjeksiyon Kalibi"):

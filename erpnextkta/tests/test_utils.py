@@ -1,3 +1,4 @@
+import sys
 import unittest
 import frappe
 from frappe import _
@@ -13,6 +14,7 @@ def before_tests():
 	of company, chart of accounts, default accounts, and fixtures.
 	"""
 	print("\nDEBUG: erpnextkta.tests.test_utils.before_tests hook'u çalıştırılıyor...")
+	frappe.flags.skip_test_records = True
 
 	company_name = "_Test Company"
 	abbr = "_TC"
@@ -79,7 +81,18 @@ def before_tests():
 			try:
 				frappe.get_doc(root).insert(ignore_permissions=True, ignore_if_duplicate=True)
 			except Exception:
+				# Root record may already exist or be inserted concurrently
 				pass
+
+	if not frappe.db.exists("Department", "All Departments"):
+		frappe.db.sql("""
+			INSERT INTO `tabDepartment` (name, department_name, is_group, parent_department, creation, modified, modified_by)
+			VALUES ('All Departments', 'All Departments', 1, '', NOW(), NOW(), 'Administrator')
+			ON DUPLICATE KEY UPDATE name=name
+		""")
+		from frappe.utils.nestedset import rebuild_tree
+		rebuild_tree("Department", "parent_department")
+		frappe.db.commit()
 
 	# ──────────────────────────────────────────────────────────────────
 	# 3. Sub-groups and common reference records
@@ -103,6 +116,7 @@ def before_tests():
 			try:
 				frappe.get_doc(rec).insert(ignore_permissions=True, ignore_if_duplicate=True)
 			except Exception:
+				# Sub-group record may already exist or fail safely during test setup
 				pass
 
 	# Genders, Sales Stages, Employment Types
@@ -230,6 +244,36 @@ def before_tests():
 		frappe.db.set_single_value("Global Defaults", "default_company", company_name)
 		frappe.db.set_single_value("Global Defaults", "default_currency", "INR")
 
+	# Ensure Fiscal Years covering current and adjacent years exist for test stability
+	from frappe.utils import getdate
+	cur_yr = getdate(today).year
+	for y in range(cur_yr - 2, cur_yr + 3):
+		fy_name = f"{y}"
+		if not frappe.db.exists("Fiscal Year", fy_name):
+			try:
+				frappe.get_doc({
+					"doctype": "Fiscal Year",
+					"year": fy_name,
+					"year_start_date": f"{y}-01-01",
+					"year_end_date": f"{y}-12-31",
+				}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			except Exception:
+				# Fiscal year may already exist or be created concurrently during testing
+				pass
+		for c_name in [company_name, "_Test Company KTA"]:
+			if frappe.db.exists("Company", c_name):
+				if not frappe.db.exists("Fiscal Year Company", {"parent": fy_name, "company": c_name}):
+					try:
+						doc = frappe.new_doc("Fiscal Year Company")
+						doc.parent = fy_name
+						doc.parenttype = "Fiscal Year"
+						doc.parentfield = "companies"
+						doc.company = c_name
+						doc.db_insert()
+					except Exception:
+						# Fiscal year company link may already exist or fail safely during test setup
+						pass
+
 	# ──────────────────────────────────────────────────────────────────
 	# 9. Relax Mandatory Fields
 	# ──────────────────────────────────────────────────────────────────
@@ -290,6 +334,20 @@ def before_tests():
 	frappe.db.commit()
 	frappe.clear_cache()
 
+	# Suppress Frappe's slow test console prints (e.g. tests taking >= 2s)
+	try:
+		tr = sys.modules.get("frappe.test_runner")
+		if tr:
+			tr.SLOW_TEST_THRESHOLD = 3600
+
+			def quiet_addSuccess(self, test):
+				super(tr.TimeLoggingTestResult, self).addSuccess(test)
+
+			tr.TimeLoggingTestResult.addSuccess = quiet_addSuccess
+	except Exception:
+		# Test runner monkeypatching is best-effort and can safely be skipped if unavailable
+		pass
+
 	print("DEBUG: Tüm altyapı verileri başarıyla yüklendi.")
 
 from frappe.tests.utils import FrappeTestCase
@@ -314,14 +372,21 @@ class KTAUnitTestCase(unittest.TestCase):
 		log_test_start(self)
 
 
-class KTATestCase(FrappeTestCase):
+class KTABaseTestCase(FrappeTestCase):
+	"""Base TestCase for database-backed tests with standard user and logging."""
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		frappe.flags.use_serial_and_batch_fields = False
+		log_test_start(self)
+
+
+class KTATestCase(KTABaseTestCase):
 	"""Base TestCase for KTA Endüstri Sistemleri apps with shared setup logic."""
 
 	def setUp(self):
 		super().setUp()
-		frappe.flags.use_serial_and_batch_fields = False
-		log_test_start(self)
-		
 		# Ensure test-specific Job Card and basic data exists
 		self.setup_kta_infrastructure()
 
@@ -425,6 +490,7 @@ def create_test_warehouse(company, name="_Test WIP"):
 				"company": company
 			}).insert(ignore_permissions=True)
 		except Exception:
+			# Warehouse may already exist in current test company
 			pass
 	return fullname
 
@@ -492,7 +558,9 @@ def create_test_shifts(shift_names):
 					"start_time": start, 
 					"end_time": end
 				}).insert(ignore_permissions=True, ignore_links=True)
-			except Exception: pass
+			except Exception:
+				# Shift type may already exist or fail safely
+				pass
 
 
 def create_test_operator(email, name):
@@ -502,7 +570,9 @@ def create_test_operator(email, name):
 				INSERT INTO `tabEmployee` (name, employee_name, first_name, status, creation, modified, modified_by)
 				VALUES (%s, %s, %s, 'Active', NOW(), NOW(), 'Administrator')
 			""", (email, name, name.split()[0]))
-		except Exception: pass
+		except Exception:
+			# Employee record might already exist
+			pass
 	return email
 
 
@@ -593,7 +663,18 @@ def _ensure_standard_roots():
 			try:
 				frappe.get_doc(root).insert(ignore_permissions=True, ignore_if_duplicate=True)
 			except Exception:
+				# Root record may already exist or be inserted concurrently
 				pass
+
+	if not frappe.db.exists("Department", "All Departments"):
+		frappe.db.sql("""
+			INSERT INTO `tabDepartment` (name, department_name, is_group, parent_department, creation, modified, modified_by)
+			VALUES ('All Departments', 'All Departments', 1, '', NOW(), NOW(), 'Administrator')
+			ON DUPLICATE KEY UPDATE name=name
+		""")
+		from frappe.utils.nestedset import rebuild_tree
+		rebuild_tree("Department", "parent_department")
+		frappe.db.commit()
 	frappe.db.commit()
 
 
@@ -612,11 +693,138 @@ def clear_item_stock_and_batches(item_code):
 
 
 def setup_test_fiscal_years(company):
-	"""Link test company to all fiscal years and clear cache to pass Fiscal Year validations."""
-	for fy_name in frappe.get_all("Fiscal Year", pluck="name"):
-		fy = frappe.get_doc("Fiscal Year", fy_name)
-		if not any(c.company == company for c in fy.companies):
-			fy.append("companies", {"company": company})
-			fy.save(ignore_permissions=True)
+	"""Ensure fiscal years covering the current year exist, link test company to all fiscal years, and clear cache."""
+	from frappe.utils import nowdate, getdate
+	current_year = getdate(nowdate()).year
 
+	for y in range(current_year - 2, current_year + 3):
+		fy_name = f"{y}"
+		if not frappe.db.exists("Fiscal Year", fy_name):
+			try:
+				frappe.get_doc({
+					"doctype": "Fiscal Year",
+					"year": fy_name,
+					"year_start_date": f"{y}-01-01",
+					"year_end_date": f"{y}-12-31",
+				}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			except Exception:
+				# Fiscal year may already exist or be inserted concurrently
+				pass
+
+	for fy_name in frappe.get_all("Fiscal Year", pluck="name"):
+		if not frappe.db.exists("Fiscal Year Company", {"parent": fy_name, "company": company}):
+			try:
+				doc = frappe.new_doc("Fiscal Year Company")
+				doc.parent = fy_name
+				doc.parenttype = "Fiscal Year"
+				doc.parentfield = "companies"
+				doc.company = company
+				doc.db_insert()
+			except Exception:
+				# Fiscal year link may already exist or fail safely
+				pass
+	frappe.db.commit()
 	frappe.cache().hdel("fiscal_years", company)
+
+
+def ensure_test_injection_fixtures():
+	"""Seed operations, sub-operations and molds needed by injection tests."""
+	frappe.set_user("Administrator")
+	if not frappe.db.exists("KTA Calisma Karti Operasyonlari", "OP40"):
+		doc = frappe.new_doc("KTA Calisma Karti Operasyonlari")
+		doc.name = "OP40"
+		doc.calisma_karti_op = "OP40"
+		doc.has_enjeksiyon = 1
+		doc.flags.ignore_permissions = True
+		doc.flags.ignore_mandatory = True
+		doc.insert()
+	else:
+		frappe.db.set_value("KTA Calisma Karti Operasyonlari", "OP40", "has_enjeksiyon", 1)
+
+	sub_ops = [
+		("OP40-0001", "0001"),
+		("OP40-E2E", "E2E"),
+	]
+	for sub_name, title in sub_ops:
+		if not frappe.db.exists("KTA Calisma Karti Alt Operasyonlari", sub_name):
+			doc = frappe.new_doc("KTA Calisma Karti Alt Operasyonlari")
+			doc.name = sub_name
+			doc.parent_operation = "OP40"
+			doc.title = title
+			doc.operasyon_tipi = "Blunt"
+			doc.is_active = 1
+			doc.flags.ignore_permissions = True
+			doc.flags.ignore_mandatory = True
+			doc.insert()
+
+	test_molds = [
+		"KLP-101", "KLP-102", "KLP-DUP", "KLP-FIRST", "KLP-INITIAL",
+		"KLP-LOCK-01", "KLP-LOCK-CHANGED", "KLP-LOCKED", "KLP-MAX",
+		"KLP-OP40-01", "KLP-OP40-02", "KLP-POINTS-01", "KLP-RECIPE-01",
+		"KLP-REJ-01", "KLP-SHIFT-01", "KLP-TAMPERED", "KLP-TAMPERED-AGAIN",
+		"KLP-UNIQ-01", "KLP-UPDATED", "TEST-ACTIVE-MOLD", "TEST-DISABLED-MOLD"
+	]
+	for m in test_molds:
+		if not frappe.db.exists("KTA Enjeksiyon Kalibi", m):
+			mold = frappe.new_doc("KTA Enjeksiyon Kalibi")
+			mold.kalip_no = m
+			mold.kalip_adi = f"Test Mold {m}"
+			mold.disabled = 1 if "DISABLED" in m else 0
+			mold.flags.ignore_permissions = True
+			mold.flags.ignore_mandatory = True
+			mold.insert()
+
+	try:
+		from erpnextkta.patches.v3_0_3.extract_enjeksiyon_kaliplari import (
+			execute as seed_molds,
+		)
+		seed_molds()
+	except Exception:
+		# Extraction patch is optional if molds already exist
+		pass
+
+	frappe.db.commit()
+
+
+def ensure_test_idc_fixtures():
+	"""Seed Item Groups, Ara Malzeme Grupları, and test items for IDC measurement tests."""
+	frappe.set_user("Administrator")
+	for group in ["120-IDC Connector", "190-Connection Systems", "100-Wires & Cables", "Products"]:
+		if not frappe.db.exists("Item Group", group):
+			frappe.get_doc({
+				"doctype": "Item Group",
+				"item_group_name": group,
+				"parent_item_group": "All Item Groups",
+				"is_group": 0,
+			}).insert(ignore_permissions=True)
+
+	for amg in ["OBS-Bedelsiz", "Normal", "ÜRÜN"]:
+		if not frappe.db.exists("KTA Ara Malzeme Grubu", amg):
+			frappe.get_doc({
+				"doctype": "KTA Ara Malzeme Grubu",
+				"kta_ara_malzeme_grubu": amg,
+			}).insert(ignore_permissions=True)
+
+	item_specs = [
+		("TEST-IDC-120-ITEM", "120-IDC Connector", "OBS-Bedelsiz"),
+		("TEST-CONN-190-ITEM", "190-Connection Systems", "Normal"),
+		("TEST-WIRE-100-ITEM", "100-Wires & Cables", "Normal"),
+		("TEST-IDC-NOT-IN-BOM", "120-IDC Connector", "Normal"),
+		("TEST-FG-ITEM-FOR-IDC", "Products", "Normal"),
+	]
+	for code, group, ara_grup in item_specs:
+		if not frappe.db.exists("Item", code):
+			doc = frappe.new_doc("Item")
+			doc.item_code = code
+			doc.item_name = code
+			doc.item_group = group
+			doc.is_stock_item = 1
+			doc.stock_uom = "Nos"
+			doc.custom_ara_malzeme_grubu = ara_grup
+			doc.insert(ignore_permissions=True)
+		else:
+			frappe.db.set_value("Item", code, {
+				"item_group": group,
+				"custom_ara_malzeme_grubu": ara_grup,
+			})
+	frappe.db.commit()

@@ -48,8 +48,9 @@ def auto_close_timed_out_cards():
         if cint(frappe.db.get_single_value("KTA Calisma Karti Settings", "vardiya_sonu_otomatik_kapatmayi_devre_disi_birak")) == 1:
             frappe.logger().info("auto_close_timed_out_cards: disabled in settings, skipping.")
             return
-    except Exception:
-        pass
+    except Exception as e:
+        # Settings tablosuna erişilemezse veya alan henüz tanımlı değilse varsayılan akışa devam et
+        frappe.logger().warning(f"auto_close_timed_out_cards: settings check failed, proceeding with default flow: {e}")
 
     frappe.logger().info("auto_close_timed_out_cards started")
     

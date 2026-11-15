@@ -2,65 +2,27 @@
 # See license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from erpnextkta.tests.test_utils import (
+    KTATestCase,
+    ensure_test_idc_fixtures,
+)
 from erpnextkta.kta_calisma_karti.api_impl.qc import (
     search_allowed_idc_items,
     _assert_idc_item_allowed_for_work_order,
 )
 
 
-class TestCalismaKartiIdcOlcumleri(FrappeTestCase):
+class TestCalismaKartiIdcOlcumleri(KTATestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        frappe.set_user("Administrator")
+        ensure_test_idc_fixtures()
 
-        # 1. Ensure Item Groups and KTA Ara Malzeme Grubu exist
-        for group in ["120-IDC Connector", "190-Connection Systems", "100-Wires & Cables", "Products"]:
-            if not frappe.db.exists("Item Group", group):
-                frappe.get_doc({
-                    "doctype": "Item Group",
-                    "item_group_name": group,
-                    "parent_item_group": "All Item Groups",
-                    "is_group": 0,
-                }).insert(ignore_permissions=True)
-
-        for amg in ["OBS-Bedelsiz", "Normal", "ÜRÜN"]:
-            if not frappe.db.exists("KTA Ara Malzeme Grubu", amg):
-                frappe.get_doc({
-                    "doctype": "KTA Ara Malzeme Grubu",
-                    "kta_ara_malzeme_grubu": amg,
-                }).insert(ignore_permissions=True)
-
-        # 2. Create test items
         cls.idc_item = "TEST-IDC-120-ITEM"
         cls.conn_item = "TEST-CONN-190-ITEM"
         cls.wire_item = "TEST-WIRE-100-ITEM"
         cls.not_in_bom = "TEST-IDC-NOT-IN-BOM"
         cls.fg_item = "TEST-FG-ITEM-FOR-IDC"
-
-        item_specs = [
-            (cls.idc_item, "120-IDC Connector", "OBS-Bedelsiz"),
-            (cls.conn_item, "190-Connection Systems", "Normal"),
-            (cls.wire_item, "100-Wires & Cables", "Normal"),
-            (cls.not_in_bom, "120-IDC Connector", "Normal"),
-            (cls.fg_item, "Products", "Normal"),
-        ]
-        for code, group, ara_grup in item_specs:
-            if not frappe.db.exists("Item", code):
-                doc = frappe.new_doc("Item")
-                doc.item_code = code
-                doc.item_name = code
-                doc.item_group = group
-                doc.is_stock_item = 1
-                doc.stock_uom = "Nos"
-                doc.custom_ara_malzeme_grubu = ara_grup
-                doc.insert(ignore_permissions=True)
-            else:
-                frappe.db.set_value("Item", code, {
-                    "item_group": group,
-                    "custom_ara_malzeme_grubu": ara_grup,
-                })
 
         company = frappe.db.get_value("Company", {}, "name") or "_Test Company"
 
@@ -120,7 +82,7 @@ class TestCalismaKartiIdcOlcumleri(FrappeTestCase):
         super().tearDownClass()
 
     def setUp(self):
-        frappe.set_user("Administrator")
+        super().setUp()
         self.ck = frappe.get_doc("Calisma Karti", self.card_name)
 
     def test_search_allowed_idc_items_includes_obs_bedelsiz(self):

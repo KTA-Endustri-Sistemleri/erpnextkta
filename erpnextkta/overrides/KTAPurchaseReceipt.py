@@ -1,3 +1,4 @@
+import inspect
 import frappe
 from frappe import _
 from frappe.model.docstatus import DocStatus
@@ -360,7 +361,20 @@ class KTAPurchaseReceipt(PurchaseReceipt):
                 super().on_submit()
 
                 # Önce Kalite Kontrollerini oluştur ki satırlardaki quality_inspection alanları dolsun
-                make_quality_inspections(self.company, self.doctype, self.name, qi_items)
+                sig = inspect.signature(make_quality_inspections)
+                qi_kwargs = {}
+                if "company" in sig.parameters:
+                    qi_kwargs["company"] = self.company
+                if "doctype" in sig.parameters:
+                    qi_kwargs["doctype"] = self.doctype
+                if "docname" in sig.parameters:
+                    qi_kwargs["docname"] = self.name
+                if "items" in sig.parameters:
+                    qi_kwargs["items"] = qi_items
+                if "inspection_type" in sig.parameters:
+                    qi_kwargs["inspection_type"] = "Incoming"
+
+                make_quality_inspections(**qi_kwargs)
 
                 # Stok kaydı tamamlandıktan sonra batch split ve etiket basımını başlat
                 from erpnextkta.kta_stock.label_manager import custom_split_kta_batches

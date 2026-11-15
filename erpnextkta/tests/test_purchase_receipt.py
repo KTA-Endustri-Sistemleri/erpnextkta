@@ -63,9 +63,7 @@ class TestKTAPurchaseReceiptGKK(KTATestCase):
         default_currency = frappe.db.get_value("Company", self.company, "default_currency") or "TRY"
         buying_price_list = frappe.db.get_value("Price List", {"buying": 1}, "name") or "Standard Buying"
 
-        # Resolve an active fiscal year date to prevent FiscalYearError
-        fy_list = frappe.get_all("Fiscal Year", fields=["year_start_date", "year_end_date"])
-        posting_date = fy_list[0].year_start_date if fy_list else frappe.utils.nowdate()
+        posting_date = frappe.utils.nowdate()
 
         pr = frappe.new_doc("Purchase Receipt")
         pr.company = self.company
