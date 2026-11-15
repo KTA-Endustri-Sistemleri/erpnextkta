@@ -3,6 +3,80 @@
 
 
 
+## 🚀 v4.2.0 (2026-11-15)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **docker**: switch default container user back to root for actions runner
+      
+      
+    
+      
+      
+        
+- **docker**: resolve uv dependency conflict during image build
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Continuous integration
+
+    
+      
+      
+        
+- **docker**: add branch and pr trigger to docker base image build
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **ci**: add pre-built docker base image workflow and speed up ci
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.1.0 (2026-11-15)
 
 
