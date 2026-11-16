@@ -30,8 +30,11 @@ Her sipariş kalemi için:
 Sevkiyat Tarihi = Teslimat Haftasının Son Günü − Sevkiyat Süresi (gün)
 ```
 
-- **Sevkiyat Süresi**, müşteri ve sevkiyat adresine göre **KTA Sevk Parametreleri** DocType'ından `delivery_time` alanı olarak alınır.
-- Önce müşteri + adres eşleşmesi denenir, bulunamazsa sadece müşteri adına bakılır.
+- **Sevkiyat Süresi ($T_{\text{transit}}$)**, merkezi `erpnextkta/kta_mrp/mrp_engine/lead_time.py` motoru tarafından şu hiyerarşiyle çözümlenir:
+  1. `Address (Plant).custom_shipping_lead_days`
+  2. `Customer.custom_shipping_lead_days`
+  3. `Customer Group.custom_shipping_lead_days`
+  4. `KTA MRP Settings.default_delivery_time_days` (Varsayılan 2 gün)
 - Hesaplanan tarihin ISO hafta etiketi (`Yıl-WHafta`) sevkiyat haftasını belirler.
 
 ---

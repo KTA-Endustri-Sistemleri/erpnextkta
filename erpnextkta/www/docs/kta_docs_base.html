@@ -16,7 +16,7 @@
       </a>
 
       <!-- MRP (ÜRETİM PLANLAMA) -->
-      {% set mrp_pages = ['mrp-overview', 'periodic-sales-orders', 'production-start-week', 'capacity-planning', 'material-requirement', 'mrp-analysis', 'recommended-purchase-orders', 'work-order-planning', 'shipment-week', 'production-pipeline'] %}
+      {% set mrp_pages = ['mrp-overview', 'mrp-settings', 'periodic-sales-orders', 'production-start-week', 'capacity-planning', 'material-requirement', 'mrp-analysis', 'recommended-purchase-orders', 'work-order-planning', 'shipment-week', 'production-pipeline'] %}
       <div class="kta-docs-nav-group {% if active_page in mrp_pages %}open{% endif %}">
         <div class="kta-docs-nav-group-title" onclick="this.parentElement.classList.toggle('open')">
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -31,6 +31,9 @@
         <div class="kta-docs-nav-items">
           <a href="/docs/mrp-overview" class="kta-docs-nav-item {% if active_page == 'mrp-overview' %}active{% endif %}">
             <span class="kta-docs-nav-icon">🔗</span>Genel Bakış
+          </a>
+          <a href="/docs/mrp-settings" class="kta-docs-nav-item {% if active_page == 'mrp-settings' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">🛠️</span>KTA MRP Ayarları
           </a>
           <a href="/docs/periodic-sales-orders" class="kta-docs-nav-item {% if active_page == 'periodic-sales-orders' %}active{% endif %}">
             <span class="kta-docs-nav-icon">📈</span>Satış Siparişleri

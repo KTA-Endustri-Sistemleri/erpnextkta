@@ -588,3 +588,304 @@ Unit Rate,Birim Fiyat
 Unassigned Operation,Atanmamış Operasyon
 Show Operation & Material Breakdown,Operasyon ve Malzeme Kırılımını Göster
 WIP Return / Adjustment,WIP İade / Düzeltme
+Haftalık Netleştirme Detayı,Haftalık Netleştirme Detayı
+Hesaplama detayları yükleniyor...,Hesaplama detayları yükleniyor...
+Detaylar alınamadı.,Detaylar alınamadı.
+Açık PO ve Mamul detayları yükleniyor...,Açık PO ve Mamul detayları yükleniyor...
+Bu Haftaya Düşen Açık Satınalma Siparişleri (PO),Bu Haftaya Düşen Açık Satınalma Siparişleri (PO)
+Sipariş No,Sipariş No
+Termin Tarihi,Termin Tarihi
+Bekleyen Miktar,Bekleyen Miktar
+Bu hafta için beklenen açık satınalma siparişi (PO) bulunmamaktadır.,Bu hafta için beklenen açık satınalma siparişi (PO) bulunmamaktadır.
+Açık PO filtresi kapalı olduğu için siparişler hesaba katılmamıştır.,Açık PO filtresi kapalı olduğu için siparişler hesaba katılmamıştır.
+Bu Haftadaki Brüt İhtiyaç Kaynakları (Mamul Talepleri),Bu Haftadaki Brüt İhtiyaç Kaynakları (Mamul Talepleri)
+Bitmiş Ürün,Bitmiş Ürün
+Ürün Açıklaması,Ürün Açıklaması
+BOM,BOM
+Müşteri Grubu,Müşteri Grubu
+Gereken Miktar,Gereken Miktar
+Temin Süresi,Temin Süresi
+Gün,Gün
+Min. Sipariş Miktarı (MOQ),Min. Sipariş Miktarı (MOQ)
+Paketleme Katı,Paketleme Katı
+Paket Katı,Paketleme Katı
+Netleştirme Hesabı,Netleştirme Hesabı
+Önceki Haftadan Devreden Bakiye,Önceki Haftadan Devreden Bakiye
+Gelen Açık Satınalma Siparişi (PO),Gelen Açık Satınalma Siparişi (PO)
+Brüt Üretim İhtiyacı,Brüt Üretim İhtiyacı
+Net Eksik / İhtiyaç,Net Eksik / İhtiyaç
+Önerilen Sipariş (MOQ & Paket Katı Uygulanmış),Önerilen Sipariş (MOQ & Paket Katı Uygulanmış)
+Dönem Sonu Projeksiyon Bakiye,Dönem Sonu Projeksiyon Bakiye
+Netleştirme Detayını Gör,Netleştirme Detayını Gör
+Nos,Adet
+Box,Kutu
+Pair,Çift
+Set,Set
+Hammadde İhtiyaç Planlama,Hammadde İhtiyaç Planlama
+Filtreleri Göster,Filtreleri Göster
+Filtreleri Gizle,Filtreleri Gizle
+Raporu Yenile,Raporu Yenile
+Tedarikçi Filtrele...,Tedarikçi Filtrele...
+Hammadde Kodu...,Hammadde Kodu...
+Müşteri Grubu...,Müşteri Grubu...
+Ürün Grubu...,Ürün Grubu...
+Aktif Haftalık Gösterim Modu,Aktif Haftalık Gösterim Modu
+İhtiyaç Yaratan Bitmiş Ürünler (Talep Dağılımı),İhtiyaç Yaratan Bitmiş Ürünler (Talep Dağılımı)
+Açık Satınalma Siparişleri (Giriş Dağılımı),Açık Satınalma Siparişleri (Giriş Dağılımı)
+Bu malzeme için bekleyen açık PO veya mamul kırılımı bulunmamaktadır.,Bu malzeme için bekleyen açık PO veya mamul kırılımı bulunmamaktadır.
+Excel Olarak İndir,Excel Olarak İndir
+CSV Olarak İndir,CSV Olarak İndir
+Sayfayı Yazdır veya PDF Al,Sayfayı Yazdır veya PDF Al
+Ufka Sıfırla,Ufka Sıfırla
+MRP Ayarlarındaki planlama ufkuna göre sıfırla,MRP Ayarlarındaki planlama ufkuna göre sıfırla
+Sıralama,Sıralama
+En Acil Eksikler (Varsayılan),En Acil Eksikler (Varsayılan)
+En Yüksek Sipariş Tutarı,En Yüksek Sipariş Tutarı
+En Yüksek Net Eksik,En Yüksek Net Eksik
+Hammadde Kodu (A-Z),Hammadde Kodu (A-Z)
+Sıralamayı varsayılana sıfırla,Sıralamayı varsayılana sıfırla
+Artan,Artan
+Azalan,Azalan
+Hammadde koduna göre sırala,Hammadde koduna göre sırala
+Sipariş Tutarı,Sipariş Tutarı
+Net Eksik,Net Eksik
+Kapsama Haftası,Kapsama Haftası
+Gümrüklemede,Gümrüklemede
+İşlem Başlat,İşlem Başlat
+Gümrükleme Başlama Tarihi,Gümrükleme Başlama Tarihi
+Gümrükte,Gümrükte
+Antrepoda Bekleyen,Antrepoda Bekleyen
+İşlem Başlama,İşlem Başlama
+Açık Teslimatlar & İrsaliye Dağılımı (Antrepo / Yolda / PO),Açık Teslimatlar & İrsaliye Dağılımı (Antrepo / Yolda / PO)
+Gümrüklü Antrepoda Bekleyen Teslimatlar (İşlem Bekleyen Stok Havuzu),Gümrüklü Antrepoda Bekleyen Teslimatlar (İşlem Bekleyen Stok Havuzu)
+Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık timeline'a dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.,Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık timeline'a dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.
+Haftalık Açık Siparişler ve Sevkiyatlar (PO / Yolda / Gümrükte),Haftalık Açık Siparişler ve Sevkiyatlar (PO / Yolda / Gümrükte)
+{0} haftasında bekleyen açık teslimat veya sipariş bulunmamaktadır.,{0} haftasında bekleyen açık teslimat veya sipariş bulunmamaktadır.
+Haftalık planlanmış açık sipariş veya teslimat bulunmamaktadır.,Haftalık planlanmış açık sipariş veya teslimat bulunmamaktadır.
+Tüm açık siparişleri göster,Tüm açık siparişleri göster
+Antrepoda Bekliyor (İşlem Başlatılmadı),Antrepoda Bekliyor (İşlem Başlatılmadı)
+Gümrüklemede (+2g),Gümrüklemede (+2g)
+Fabrika Mal Girişi,Fabrika Mal Girişi
+Tahmini Varış (+7g Transit),Tahmini Varış (+7g Transit)
+Tahmini Varış (ETA),Tahmini Varış (ETA)
+PO Termini (ETA Eksik),PO Termini (ETA Eksik)
+Gümrüğe Geliş,Gümrüğe Geliş
+Gümrüğe Geliş Tarihi,Gümrüğe Geliş Tarihi
+Fabrikaya Sevkiyat Koşulu,Fabrikaya Sevkiyat Koşulu
+İşlem başlatıldığında (+2 gün) fabrikaya ulaşacaktır,İşlem başlatıldığında (+2 gün) fabrikaya ulaşacaktır
+Tedarik,Tedarik
+Tedarik Boru Hattı,Tedarik Boru Hattı
+Tedarik Boru Hattı (Geliş Aşamaları),Tedarik Boru Hattı (Geliş Aşamaları)
+Henüz Sevk Edilmemiş Açık PO,Henüz Sevk Edilmemiş Açık PO
+Sevkiyatta / Yolda Olan Açık Teslimat,Sevkiyatta / Yolda Olan Açık Teslimat
+Gümrüklü Antrepoda Bekleyen Açık Teslimat (Bekleme Havuzu),Gümrüklü Antrepoda Bekleyen Açık Teslimat (Bekleme Havuzu)
+Gümrükleme / Çekim İşlemi Başlatılmış Açık Teslimat (+2 Gün),Gümrükleme / Çekim İşlemi Başlatılmış Açık Teslimat (+2 Gün)
+Devreden Bakiye,Devreden Bakiye
+Açık Teslimat,Açık Teslimat
+Brüt İhtiyaç,Brüt İhtiyaç
+Önerilen Sipariş,Önerilen Sipariş
+Projeksiyon Bakiye,Projeksiyon Bakiye
+{0} Netleştirme Hesabı Özeti,{0} Netleştirme Hesabı Özeti
+Hafta Filtresini Kaldır,Hafta Filtresini Kaldır
+Hafta filtresini kaldır,Hafta filtresini kaldır
+Belge,Belge
+Belge No,Belge No
+Termin / Varış,Termin / Varış
+Hafta,Hafta
+Sipariş,Sipariş
+Açık Sipariş,Açık Sipariş
+Tahmini,Tahmini
+Yükleme,Yükleme
+Tedarikçi Bazlı Planlanan Sipariş Dağılımı,Tedarikçi Bazlı Planlanan Sipariş Dağılımı
+Kotalı Dağılım (% Paylaşım),Kotalı Dağılım (% Paylaşım)
+Varsayılan Tedarikçi (%100),Varsayılan Tedarikçi (%100)
+En Ucuz Tedarikçi (%100),En Ucuz Tedarikçi (%100)
+Kotalı Satınalma Dağılımı,Kotalı Satınalma Dağılımı
+Tedarik Stratejisi,Tedarik Stratejisi
+Sadece Hammadde,Sadece Hammadde
+Bitmiş Ürün + Hammadde,Bitmiş Ürün + Hammadde
+Kota,Kota
+Birim Fiyat,Birim Fiyat
+MOQ,MOQ
+Paket,Paket
+Toplam Sipariş,Toplam Sipariş
+Tahmini Tutar,Tahmini Tutar
+Toplam İhtiyaç,Toplam İhtiyaç
+Veriler hesaplanıyor...,Veriler hesaplanıyor...
+Seçilen filtrelere uygun hammadde bulunamadı.,Seçilen filtrelere uygun hammadde bulunamadı.
+Hammadde Bilgisi,Hammadde Bilgisi
+"Stok, İhtiyaç ve Kapsama","Stok, İhtiyaç ve Kapsama"
+{0} haftasına göre sırala (Eksik / Sipariş),{0} haftasına göre sırala (Eksik / Sipariş)
+Bu malzeme için bekleyen açık teslimat veya mamul kırılımı bulunmamaktadır.,Bu malzeme için bekleyen açık teslimat veya mamul kırılımı bulunmamaktadır.
+ETA girilmediği için yükleme tarihine varsayılan nakliye süresi eklendi,ETA girilmediği için yükleme tarihine varsayılan nakliye süresi eklendi
+Gümrüklü antrepoda bekleyen hammaddeleri göster,Gümrüklü antrepoda bekleyen hammaddeleri göster
+Gümrükleme / çekim işlemi başlatılmış teslimatları göster (+2 gün),Gümrükleme / çekim işlemi başlatılmış teslimatları göster (+2 gün)
+Sevkiyatta / Yolda olan hammaddeleri göster,Sevkiyatta / Yolda olan hammaddeleri göster
+Haftalık açık sipariş ve detayları görmek için tıklayın,Haftalık açık sipariş ve detayları görmek için tıklayın
+Filtreler,Filtreler
+Haftalık Gösterim,Haftalık Gösterim
+Gruplama Şekli,Gruplama Şekli
+Ürün Grubu,Ürün Grubu
+Sadece Eksik Olanlar,Sadece Eksik Olanlar
+Sıfırla,Sıfırla
+Hammadde Kodu,Hammadde Kodu
+Serbest Stok,Serbest Stok
+İlk Eksik Hafta,İlk Eksik Hafta
+Önerilen Sipariş Tutarı,Önerilen Sipariş Tutarı
+Detayı Aç / Kapat,Detayı Aç / Kapat
+Beklenen PO,Beklenen PO
+Antrepo,Antrepo
+PO,PO
+En Acil Eksikler,En Acil Eksikler
+İncelenen Hafta,İncelenen Hafta
+Açık Siparişler ve Teslimatlar,Açık Siparişler ve Teslimatlar
+Tedarikçi Sipariş Dağılımı,Tedarikçi Sipariş Dağılımı
+Netleştirme Hesabı Özeti,Netleştirme Hesabı Özeti
+Tedarikçi Bazlı Sipariş Dağılımı,Tedarikçi Bazlı Sipariş Dağılımı
+Bu hafta için hammadde talebi doğuran bitmiş ürün bulunmamaktadır.,Bu hafta için hammadde talebi doğuran bitmiş ürün bulunmamaktadır.
+Bu hafta için beklenen açık teslimat bulunmamaktadır.,Bu hafta için beklenen açık teslimat bulunmamaktadır.
+Talep ve Bitmiş Ürünler,Talep ve Bitmiş Ürünler
+Aramayı Temizle,Aramayı Temizle
+Bu hafta talep yaratan model sayısı,Bu hafta talep yaratan model sayısı
+Bu hafta talep yok,Bu hafta talep yok
+CSV,CSV
+Excel,Excel
+Filtreleri Sıfırla,Filtreleri Sıfırla
+Gelişmiş Filtreler,Gelişmiş Filtreler
+Gelişmiş Filtreleri Aç / Kapat,Gelişmiş Filtreleri Aç / Kapat
+Haftalık Gösterim Modu,Haftalık Gösterim Modu
+Kapat (ESC),Kapat (ESC)
+Kod veya Açıklama...,Kod veya Açıklama...
+MRP Planlama Ufku Süresi,MRP Planlama Ufku Süresi
+Mal Kabul Uyuşmazlığı (Kapıda Bloke / Karantina),Mal Kabul Uyuşmazlığı (Kapıda Bloke / Karantina)
+Mal Kabul Uyuşmazlığı (Kapıda Bloke / Karantina): {0} {1},Mal Kabul Uyuşmazlığı (Kapıda Bloke / Karantina): {0} {1}
+Model,Model
+Siparişi,Siparişi
+Sıralama Seçenekleri,Sıralama Seçenekleri
+Tedarikçi Ara...,Tedarikçi Ara...
+Temin Süresi (Gün),Temin Süresi (Gün)
+Termin,Termin
+Uyuşmazlık,Uyuşmazlık
+Uyuşmazlık Bildirildi,Uyuşmazlık Bildirildi
+Uyuşmazlık Nedeni,Uyuşmazlık Nedeni
+Uyuşmazlık çözülene kadar malzeme üretimde kullanılamaz ve haftalık arza (receipts = 0) dahil edilmez.,Uyuşmazlık çözülene kadar malzeme üretimde kullanılamaz ve haftalık arza (receipts = 0) dahil edilmez.
+Varış,Varış
+Veriler yüklenirken bir hata oluştu.,Veriler yüklenirken bir hata oluştu.
+İhtiyacı,İhtiyacı
+Açık PO,Açık PO
+Bu Hafta,Bu Hafta
+Gösterilen,Gösterilen
+"Hammadde, açıklama veya tedarikçi ara...","Hammadde, açıklama veya tedarikçi ara..."
+Net İhtiyaç,Net İhtiyaç
+Para Birimi,Para Birimi
+Rezerve Stok,Rezerve Stok
+Stok,Stok
+Varsayılan Tedarikçi,Varsayılan Tedarikçi
+Gümrüklü Antrepoda Bekleyen Teslimatlar,Gümrüklü Antrepoda Bekleyen Teslimatlar
+ETA girilmediği için tahmini hesaplanmıştır,ETA girilmediği için tahmini hesaplanmıştır
+Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık plana dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.,Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık plana dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.
+Bağlı Satınalma Siparişi: {0},Bağlı Satınalma Siparişi: {0}
+Mal Kabul Uyuşmazlığı Bildirildi,Mal Kabul Uyuşmazlığı Bildirildi
+Önerilen Sipariş Dağılımı,Önerilen Sipariş Dağılımı
+Kotalı Tedarik Dağılımı,Kotalı Tedarik Dağılımı
+Malzeme Detayı ve Sevkiyatlar,Malzeme Detayı ve Sevkiyatlar
+En Düşük Fiyat Öncelikli,En Düşük Fiyat Öncelikli
+Termin Süresi Öncelikli,Termin Süresi Öncelikli
+KTA MRP Settings,KTA MRP Ayarları
+Kapasite & Dengeleme Parametreleri,Kapasite & Dengeleme Parametreleri
+Kapasite Dengeleme Varsayılan Aktif (Forward Scheduling),Kapasite Dengeleme Varsayılan Aktif (Forward Scheduling)
+Ramp-up / Düzeltme Varsayılan Aktif (Backward Smoothing),Ramp-up / Düzeltme Varsayılan Aktif (Backward Smoothing)
+Varsayılan Ramp-up Hafta Sayısı,Varsayılan Ramp-up Hafta Sayısı
+Ramp-up Tetikleme Doluluk Eşiği (%),Ramp-up Tetikleme Doluluk Eşiği (%)
+Maksimum Tavan Doluluk Oranı (%),Maksimum Tavan Doluluk Oranı (%)
+Minimum Kaydırma Eşiği (Adet),Minimum Kaydırma Eşiği (Adet)
+Planlama Ufku & Zaman Parametreleri,Planlama Ufku & Zaman Parametreleri
+Varsayılan Planlama Ufku (Gün),Varsayılan Planlama Ufku (Gün)
+Geçmiş Açık Sipariş Tarama Aralığı (Gün),Geçmiş Açık Sipariş Tarama Aralığı (Gün)
+Varsayılan Üretim Süresi (Gün),Varsayılan Üretim Süresi (Gün)
+Varsayılan Sevk Süresi (Gün),Varsayılan Sevk Süresi (Gün)
+Acil Eksik Eşik Haftası,Acil Eksik Eşik Haftası
+Depo & Satınalma Parametreleri,Depo & Satınalma Parametreleri
+Kullanılabilir Stok Depo Tipi,Kullanılabilir Stok Depo Tipi
+Açık PO Teslimatlarını Varsayılan Dahil Et,Açık PO Teslimatlarını Varsayılan Dahil Et
+Antrepo Millileştirme Süresi (Gün),Antrepo Millileştirme Süresi (Gün)
+Weekly Production,Haftalık Üretim Kapasitesi
+Haftalık Üretim,Haftalık Üretim
+Haftalık Üretim Kapasitesi,Haftalık Üretim Kapasitesi
+Kota Payı (%),Kota Payı (%)
+Müşteriye Özel Üretim Süresi (Gün),Müşteriye Özel Üretim Süresi (Gün)
+Varsayılan Sevk / Yol Süresi (Gün),Varsayılan Sevk / Yol Süresi (Gün)
+Sevk / Yol Süresi (Gün),Sevk / Yol Süresi (Gün)
+Antrepo Beyanname No,Antrepo Beyanname No
+Araç No,Araç No
+Gümrük Beyanname Tarihi,Gümrük Beyanname Tarihi
+Gumruk Beyannamesi No,Gümrük Beyannamesi No
+Gümrük Beyannamesi No,Gümrük Beyannamesi No
+Gümrük Müdürlüğü,Gümrük Müdürlüğü
+Gümrükleme,Gümrükleme
+Gümrüksüz,Gümrüksüz
+İrsaliye Tarihi,İrsaliye Tarihi
+is_antrepo_purchase_receipt,Antrepo Mal Kabulü
+is_import_purchase_receipt,İthalat Mal Kabulü
+İthalat,İthalat
+Fatura No,Fatura No
+Fatura Tarihi,Fatura Tarihi
+Kap,Kap
+kg,Kg
+Kg,Kg
+Konşimento No,Konşimento No
+Tahmini Varış Tarihi,Tahmini Varış Tarihi
+Yükleme Tarihi,Yükleme Tarihi
+Workflow State,İş Akışı Durumu
+Evrak / İrsaliye Uyuşmazlığı,Evrak / İrsaliye Uyuşmazlığı
+Fiziki Hasar / Kalite Problemi,Fiziki Hasar / Kalite Problemi
+Eksik / Yanlış Malzeme,Eksik / Yanlış Malzeme
+Uyuşmazlık Açıklaması,Uyuşmazlık Açıklaması
+Haftalık doluluk bu oranın üzerine çıktığında yük önceki haftalara yayılır.,Haftalık doluluk bu oranın üzerine çıktığında yük önceki haftalara yayılır.
+Geriye yük taşınırken önceki haftanın kapasitesi bu tavanı aşamaz.,Geriye yük taşınırken önceki haftanın kapasitesi bu tavanı aşamaz.
+Bu miktarın altındaki küçük dalgalanmalar taşınmaz.,Bu miktarın altındaki küçük dalgalanmalar taşınmaz.
+Geleceğe dönük varsayılan planlama periyodu.,Geleceğe dönük varsayılan planlama periyodu.
+Geçmiş açık siparişleri geriye doğru tarama aralığı.,Geçmiş açık siparişleri geriye doğru tarama aralığı.
+Ürün veya müşteri kartında süre eşleşmezse kullanılan varsayılan üretim süresi.,Ürün veya müşteri kartında süre eşleşmezse kullanılan varsayılan üretim süresi.
+"Adres, Müşteri veya Müşteri Grubu kartında süre eşleşmezse kullanılan varsayılan sevk süresi.","Adres, Müşteri veya Müşteri Grubu kartında süre eşleşmezse kullanılan varsayılan sevk süresi."
+Bu hafta sayısı içinde eksik veren malzemeler 'Acil Eksik' olarak etiketlenir.,Bu hafta sayısı içinde eksik veren malzemeler 'Acil Eksik' olarak etiketlenir.
+Antrepoya gelmiş malzemeler için millileştirme ve hatta çekilme tampon süresi.,Antrepoya gelmiş malzemeler için millileştirme ve hatta çekilme tampon süresi.
+Tek tedarikçili ürünlerde otomatik varsayılandır. 2 veya daha fazla tedarikçi olduğunda strateji seçimi zorunludur.,Tek tedarikçili ürünlerde otomatik varsayılandır. 2 veya daha fazla tedarikçi olduğunda strateji seçimi zorunludur.
+Mamulün fabrika içi standart imalat süresi (gün).,Mamulün fabrika içi standart imalat süresi (gün).
+Kotalı Dağılım stratejisinde bu tedarikçinin alacağı yüzde pay (toplam %100 olmalıdır).,Kotalı Dağılım stratejisinde bu tedarikçinin alacağı yüzde pay (toplam %100 olmalıdır).
+Bu müşteriye özel ambalaj/test/imalat süresi (boş ise ürünün genel süresi geçerlidir).,Bu müşteriye özel ambalaj/test/imalat süresi (boş ise ürünün genel süresi geçerlidir).
+Müşteri adresinde tanımlı sevk süresi yoksa geçerli olacak lojistik nakliye süresi (gün).,Müşteri adresinde tanımlı sevk süresi yoksa geçerli olacak lojistik nakliye süresi (gün).
+Müşteri veya adreste tanımlı sevk süresi yoksa geçerli olacak grup lojistik nakliye süresi (gün).,Müşteri veya adreste tanımlı sevk süresi yoksa geçerli olacak grup lojistik nakliye süresi (gün).
+Bu teslimat adresine/tesisine (Plant) olan lojistik nakliye süresi (gün).,Bu teslimat adresine/tesisine (Plant) olan lojistik nakliye süresi (gün).
+Antrepodaki malzeme için çekim/millileştirme işleminin başlatıldığı tarih,Antrepodaki malzeme için çekim/millileştirme işleminin başlatıldığı tarih
+İş Emri Rezervasyonlarını Stoktan Düş,İş Emri Rezervasyonlarını Stoktan Düş
+"İşaretlendiğinde, kullanılabilir depolardaki mevcut stoktan açık iş emirleri için ayrılmış rezervasyon miktarı (reserved_qty_for_production) düşülerek net serbest stok hesaplanır. İşaret kaldırıldığında brüt mevcut stok doğrudan serbest kabul edilir.","İşaretlendiğinde, kullanılabilir depolardaki mevcut stoktan açık iş emirleri için ayrılmış rezervasyon miktarı (reserved_qty_for_production) düşülerek net serbest stok hesaplanır. İşaret kaldırıldığında brüt mevcut stok doğrudan serbest kabul edilir."
+Hammadde ve Üretim Planlama için Gerekli Raporlar,Hammadde ve Üretim Planlama için Gerekli Raporlar
+Satış Siparişleri,Satış Siparişleri
+Teslimat Haftası,Teslimat Haftası
+Üretim Başlangıç Haftası,Üretim Başlangıç Haftası
+Kapasite Planlama Raporu,Kapasite Planlama Raporu
+İş Emri Planlama,İş Emri Planlama
+Hammadde İhtiyaç Planlama (Modern),Hammadde İhtiyaç Planlama (Modern)
+Hammadde İhtiyaç Planlama (Klasik),Hammadde İhtiyaç Planlama (Klasik)
+Önerilen Satınalma Siparişleri,Önerilen Satınalma Siparişleri
+MRP Analiz,MRP Analizi
+Tools,Araçlar
+MRP ile İlgili Güncellemeler İçin Gerekli Araçlar,MRP ile İlgili Güncellemeler İçin Gerekli Araçlar
+Satış Siparişi Güncelleme Aracı,Satış Siparişi Güncelleme Aracı
+Satış Siparişi Senkronizasyon Günlüğü,Satış Siparişi Senkronizasyon Günlüğü
+Settings,Ayarlar
+MRP,MRP
+Bekleyen açık sipariş veya teslimat bulunmamaktadır.,Bekleyen açık sipariş veya teslimat bulunmamaktadır.
+Belgeyi Görüntüle,Belgeyi Görüntüle
+Filtreyi Temizle,Filtreyi Temizle
+Kota Payı,Kota Payı
+Mal Giriş,Mal Giriş
+Mamul Detayı,Mamul Detayı
+Minimum Sipariş / Paket Katı,Minimum Sipariş / Paket Katı
+Termin / Varış Tarihi,Termin / Varış Tarihi
+Ürün Reçetesi (BOM),Ürün Reçetesi (BOM)
+İş Emri Malzeme Tüketim Stratejisi,İş Emri Malzeme Tüketim Stratejisi
+Anlık Stok Rezervasyonu (Klasik),Anlık Stok Rezervasyonu (Klasik)
+Kapasiteye Dağıtılmış Tüketim (Zaman Fazlı),Kapasiteye Dağıtılmış Tüketim (Zaman Fazlı)
+İş emirlerinin hammadde ihtiyacının nasıl karşılanacağını belirler. 'Anlık Stok Rezervasyonu' modunda açık iş emirlerinin tüm reçetesi bugünkü serbest stoktan peşin düşülür. 'Kapasiteye Dağıtılmış Tüketim' modunda ise iş emirleri ambar stokunu peşin kilitlemez; fabrikanın haftalık kapasite planındaki üretim hızına göre zaman fazlı olarak tüketilir (2 haftalık erken satın alma baskısını ve kardeş ürün malzeme kilitlenmelerini önler).,İş emirlerinin hammadde ihtiyacının nasıl karşılanacağını belirler. 'Anlık Stok Rezervasyonu' modunda açık iş emirlerinin tüm reçetesi bugünkü serbest stoktan peşin düşülür. 'Kapasiteye Dağıtılmış Tüketim' modunda ise iş emirleri ambar stokunu peşin kilitlemez; fabrikanın haftalık kapasite planındaki üretim hızına göre zaman fazlı olarak tüketilir (2 haftalık erken satın alma baskısını ve kardeş ürün malzeme kilitlenmelerini önler).
