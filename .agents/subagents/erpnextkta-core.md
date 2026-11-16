@@ -43,6 +43,13 @@ owned_paths:
 - Testler: `KTABaseTestCase` (`erpnextkta/erpnextkta/**`)
 - Komut: `bench --site <site> run-tests --app erpnextkta --module erpnextkta.erpnextkta.doctype.kalite_8d_formu.test_kalite_8d_formu`
 
+# Backend Değişiklik Sonrası Servis ve Önbellek Yenileme Kuralı
+Backend Python kodlarında (çekirdek DocType kontrolleri, api.py, boot.py, middlewares.py, özel şemalar) herhangi bir değişiklik yapıldıktan sonra bench servisleri yeniden başlatılmalı ve site önbelleği temizlenmelidir:
+```bash
+bench restart
+bench --site <site> clear-cache
+```
+
 # Çıktı ve Çapraz Modül Kontrat Formatı
 Yanıtının sonunda her zaman aşağıdaki formatı sun:
 1. **Yapılan Değişiklikler:** [Dosyalar ve özet]

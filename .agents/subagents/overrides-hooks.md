@@ -26,8 +26,14 @@ owned_paths:
    - `KTAMaterialRequest`, `KTAPurchaseReceipt`, `KTAQualityInspection`, `KTAbom`, `KTAPurchaseOrder`, `StockReconciliation`, `KTAStockEntry`, `KTADeliveryNote`, `KTASalesInvoice`, `KTAJobCard`, `KTAItemPrice`.
 3. **Olay Kancaları (`doc_events`):**
    - Modüller arası çapraz tetiklemeler `hooks.py:doc_events` üzerinden gevşek bağlı (loosely coupled) tutulur.
-4. **Veritabanı Göçleri (`patches/`, `patches.txt`):**
-   - Şema ve veri değişiklikleri idempotent (tekrar çalıştırılabilir) migration patch'leri olarak yazılır ve `patches.txt` sırasına eklenir.
+4. **Veritabanı Göçleri (`patches/`, `patches.txt`) ve Versiyon Odaklı Klasörleme Kuralı:**
+   - **Git & Branch Analizi Zorunluluğu:** Yeni bir migration patch'i yazılmadan önce **MUTLAKA** git etiketleri (`git tag -l` veya `git describe --tags --abbrev=0`), `erpnextkta/__init__.py:__version__` ve mevcut branch'teki commit'ler (`git log $(git describe --tags --abbrev=0)..HEAD --oneline`) kontrol edilmelidir.
+   - **SemVer'e Dayalı Gelecek Versiyon Belirleme:**
+     - Eğer branch'te yeni bir özellik (`feat` veya `feat(...)`) varsa Semantic Versioning kuralı gereği sürüm **minor** artar (örneğin mevcut sürüm `v4.4.0` ise ve branch `feat/mrp-modular-v2` olup `feat` commit'leri içeriyorsa bir sonraki sürüm **`v4.5.0`** olur ve klasör **`patches/v4_5_0/`** olarak açılmalıdır).
+     - Eğer branch'te sadece hata düzeltmesi (`fix`) veya bakım (`chore`, `refactor`) varsa sürüm **patch** artar (örneğin `v4.4.0` -> `v4.4.1` => `patches/v4_4_1/`).
+     - Geriye uyumsuz bir kırılım (`BREAKING CHANGE:` veya `feat!:`) varsa sürüm **major** artar (örneğin `v4.4.0` -> `v5.0.0` => `patches/v5_0_0/`).
+   - **Eski Versiyon Klasörüne Asla Yazmama:** Patch dosyası rastgele veya geçmişte kalmış eski versiyon klasörlerine (örneğin `v3_0_3` vb.) **ASLA** konulamaz.
+   - **Idempotentlik:** Şema ve veri değişiklikleri idempotent (tekrar çalıştırıldığında hata vermeyen) migration patch'leri olarak yazılır ve `patches.txt` sırasına eklenir.
 5. **3 Kademeli Test Altyapısı (`test_utils.py`):**
    - `KTAUnitTestCase(unittest.TestCase)`: Saf birim testler, sıfır DB maliyeti.
    - `KTABaseTestCase(FrappeTestCase)`: DB bağlantılı genel testler, Administrator oturumu, rollback koruması.
@@ -40,6 +46,13 @@ owned_paths:
 # Test ve Doğrulama Protokolü
 - Test altyapısı ve çekirdek override testleri: `erpnextkta/tests/**` (`test_job_card_sync.py`, `test_purchase_receipt*.py`)
 - Komut: `bench --site <site> run-tests --app erpnextkta --module erpnextkta.tests.test_job_card_sync`
+
+# Backend Değişiklik Sonrası Servis ve Önbellek Yenileme Kuralı
+Backend Python kodlarında (override sınıfları, hooks, patch'ler, test altyapısı) herhangi bir değişiklik yapıldıktan sonra bench servisleri yeniden başlatılmalı ve site önbelleği temizlenmelidir:
+```bash
+bench restart
+bench --site <site> clear-cache
+```
 
 # Çıktı ve Çapraz Modül Kontrat Formatı
 Yanıtının sonunda her zaman aşağıdaki formatı sun:

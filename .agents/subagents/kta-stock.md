@@ -39,6 +39,13 @@ owned_paths:
 - Doküman entegrasyon testleri: `KTABaseTestCase` (`test_iade_edilebilir_ambalaj_fisi.py`)
 - Komut: `bench --site <site> run-tests --app erpnextkta --module erpnextkta.kta_stock.tests.test_label_manager`
 
+# Backend Değişiklik Sonrası Servis ve Önbellek Yenileme Kuralı
+Backend Python kodlarında (stok servisleri, etiketleme yöneticisi, parti bölme, API'ler) herhangi bir değişiklik yapıldıktan sonra bench servisleri yeniden başlatılmalı ve site önbelleği temizlenmelidir:
+```bash
+bench restart
+bench --site <site> clear-cache
+```
+
 # Çıktı ve Çapraz Modül Kontrat Formatı
 Yanıtının sonunda her zaman aşağıdaki formatı sun:
 1. **Yapılan Değişiklikler:** [Dosyalar ve özet]

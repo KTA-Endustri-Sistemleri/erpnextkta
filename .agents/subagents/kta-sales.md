@@ -31,6 +31,13 @@ owned_paths:
 - Testler: `KTABaseTestCase` (`erpnextkta/kta_sales/**`)
 - Komut: `bench --site <site> run-tests --app erpnextkta --module erpnextkta.kta_sales.doctype.kta_sales_order_update.test_kta_sales_order_update`
 
+# Backend Değişiklik Sonrası Servis ve Önbellek Yenileme Kuralı
+Backend Python kodlarında (satış siparişi revizyonu, senkronizasyon logları, fiyat kontrolü) herhangi bir değişiklik yapıldıktan sonra bench servisleri yeniden başlatılmalı ve site önbelleği temizlenmelidir:
+```bash
+bench restart
+bench --site <site> clear-cache
+```
+
 # Çıktı ve Çapraz Modül Kontrat Formatı
 Yanıtının sonunda her zaman aşağıdaki formatı sun:
 1. **Yapılan Değişiklikler:** [Dosyalar ve özet]

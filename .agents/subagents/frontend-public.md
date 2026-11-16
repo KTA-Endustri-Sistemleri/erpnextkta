@@ -28,6 +28,7 @@ owned_paths:
 3. **UI/UX Standartları:**
    - Glassmorphism: `--ck-glass-*` CSS değişkenleri kullanılır; Light ve Dark modları desteklenir.
    - **Tema Uyumu Zorunluluğu (Light & Dark Theme):** Başta `material-requirement` (MRP Matrisi) olmak üzere tüm SPA'lar Frappe temasına (`data-theme="dark"` / `[data-theme="light"]`) %100 uyumlu olmak zorundadır. Sabit hardcoded renkler (`#fff`, `#f8fafc`, `#1e293b`) doğrudan kullanılmaz; CSS değişkenleri (`var(--bg-color)`, `var(--text-color)`, `var(--border-color)`, `var(--card-bg)`) veya dark-mode media/attribute kuralları üzerinden kontrast kaybı ve görünmez metin olmadan yönetilir.
+   - **Zorunlu Responsive Standartı (320px Desteği):** Tüm tasarımlar, sayfalar ve bileşenler en dar mobil ekranlar olan **320px** genişlikten itibaren masaüstü ekranlara kadar tam duyarlı (responsive) çalışmak zorundadır. Yatay taşma (unintended horizontal overflow), buton/ikon sıkışması, çekmece (drawer) veya modal taşması yaşanmamalıdır. Flex-wrap, `min-width: 0`, akıcı gridler ve `@media (max-width: 576px)` / `@media (max-width: 320px)` kuralları titizlikle uygulanır.
    - Modallar ve Çekmeceler (Side Drawer): Z-index ve DOM kirliliğini önlemek için `<Teleport to="body">` kullanılır.
    - Sıkıyönetim (Kritik Sihirbazlar): Operatör sihirbazları aktifken `frappe.msgprint` geçici bastırılır.
 4. **Desk Enjeksiyon Betikleri:**
