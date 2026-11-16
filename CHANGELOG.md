@@ -3,6 +3,42 @@
 
 
 
+## 🚀 v4.4.0 (2026-11-16)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **agents**: mandate full light and dark theme compliance for frontend subagent
+      
+      
+    
+      
+      
+        
+- **agents**: implement specialist subagent architecture and coordinator protocol
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.3.0 (2026-11-15)
 
 
