@@ -12,28 +12,89 @@
   <h2>1. Raporun Temel Amacı</h2>
   <ul>
     <li>Her hammadde için <strong>sipariş verilmesi gereken haftayı</strong> (temin süresi düşülerek) gösterir.</li>
-    <li>Siparişlerin <strong>MOQ</strong> ve <strong>paketleme katlarına</strong> uygun şekilde otomatik yuvarlandığını gösterir.</li>
-    <li>Küçük haftalık ihtiyaçları birleştirerek verimli sipariş miktarlarına dönüştürür.</li>
+    <li>Sipariş miktarları Malzeme İhtiyaç raporundaki <strong>Önerilen Sipariş</strong> ile birebir aynıdır (MOQ ve paket katı orada uygulanır).</li>
   </ul>
 </div>
 
 <div class="kta-doc-section">
   <h2>2. Hesaplama Mantığı</h2>
   <h3>📦 Veri Kaynağı</h3>
-  <p>Malzeme İhtiyaç Raporu'nu <code>Stokları Düş + PO Teslimatlarını Düş</code> modunda çalıştırarak <strong>net haftalık hammadde ihtiyacını</strong> alır.</p>
+  <p>Malzeme İhtiyaç raporuyla aynı servis katmanını (<code>mrp_engine</code>) kullanır: stok ve açık PO'larla netleştirilmiş, MOQ/paket katına yuvarlanmış <strong>haftalık önerilen siparişleri</strong> alır. Ürün Grubu filtresi talep tarafına (bitmiş ürünler) uygulanır.</p>
 
   <h3>⏳ Sipariş Zamanlaması</h3>
-  <div class="kta-doc-code">Sipariş Haftası = İhtiyaç Haftası − Temin Süresi (gün)</div>
-  <p>Temin Süresi, varsayılan tedarikçinin <code>Item Price</code> kaydındaki <code>lead_time_days</code> alanından alınır.</p>
+  <div class="kta-formula-grid">
+    <div class="kta-formula-card primary">
+      <div class="kta-formula-header">
+        <span>ZAMANLAMA FORMÜLÜ</span>
+        <span>Lead Time Geriye Öteleme</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Sipariş Haftası</span>
+        <span>= İhtiyaç Haftası − Temin Süresi (Lead Time)</span>
+      </div>
+      <div class="kta-formula-desc">Temin Süresi (gün), varsayılan tedarikçinin Item Price kaydındaki lead_time_days alanından okunarak haftaya çevrilir ve geriye sayılır.</div>
+    </div>
+  </div>
 
-  <h3>📦 MOQ ve Paketleme Yuvarlaması</h3>
-  <ol>
-    <li>Bir haftanın ihtiyacı MOQ'nun altındaysa, sonraki haftaların ihtiyaçları çekilerek MOQ'ya ulaşılmaya çalışılır.</li>
-    <li>Toplam miktar, paketleme miktarının katına yukarı yuvarlanır.</li>
-    <li>Yuvarlamadan kaynaklı fazlalık, sonraki haftaların ihtiyacından düşürülür.</li>
-  </ol>
+  <h3>📦 MOQ ve Paketleme</h3>
+  <p>Yuvarlama Malzeme İhtiyaç raporunda bir kez yapılır; bu rapor miktarları tekrar yuvarlamaz, sadece temin süresi kadar öne alır.</p>
+
+  <h3>🤝 Çoklu Tedarikçi ve Kotalı Dağıtım (Quota Share Lead Time)</h3>
+  <p>Kalemde tanımlı bir <strong>Item Sourcing Strategy</strong> (örneğin %60 Tedarikçi A, %40 Tedarikçi B) bulunduğunda:</p>
+  <ul>
+    <li>Malzeme İhtiyaç motoru siparişi kotalara göre böler ve her tedarikçinin kendi MOQ/paket katına göre lot sizing yapar.</li>
+    <li>Önerilen PO raporu, her tedarikçi için <strong>ayrı bir satır</strong> açarak <strong>ilgili tedarikçinin kendi temin süresi (Lead Time)</strong> kadar geriye sayar.</li>
+    <li>Böylece temin süresi uzun olan tedarikçiye (ör. 28 gün) daha erken, hızlı tedarikçiye (ör. 7 gün) daha geç sipariş açılarak nakit akışı ve ambar alanı optimize edilir.</li>
+    <li><strong>Geçmiş Hafta Kenetlemesi (Past-Due Clamping):</strong> Temin süresi geriye çekildiğinde sipariş tarihi cari haftanın öncesine düşerse, sistem tabloyu geçmişe açmaz; siparişi cari haftaya kenetler (clamp) ve <strong>Durum</strong> kolonunu <code>Acil / Gecikmiş</code> olarak işaretler.</li>
+  </ul>
   <div class="kta-doc-info warning">
-    <strong>⚠️ Tedarikçi Koşulu:</strong> Varsayılan tedarikçisi veya o tedarikçi için Item Price kaydı bulunmayan hammaddeler raporda yer almaz.
+    <strong>⚠️ Tedarikçi Bilgisi:</strong> Tanımlı tedarikçisi veya alış fiyatı olmayan hammaddeler de raporda listelenir (MOQ 0, paket 1, temin süresi 0 kabul edilir). Tedarikçi kolonu boş olan satırlar için kalem kartını tamamlayın.
+  </div>
+
+  <h3>🛒 Uygulamalı Tedarik Siparişi Senaryosu</h3>
+  <div class="kta-example-container">
+    <div class="kta-example-header">
+      <div class="kta-example-title">
+        <span class="kta-example-title-icon">⏱️</span>
+        <span>Sipariş Zamanlama Örneği (10023299 - AWG22 Kablo)</span>
+      </div>
+      <span class="kta-example-tag">Lead Time Öteleme</span>
+    </div>
+
+    <div class="kta-example-body">
+      <div class="kta-stat-grid">
+        <div class="kta-stat-tile danger">
+          <span class="kta-stat-label">İhtiyaç Haftası</span>
+          <span class="kta-stat-value">2026-W45</span>
+          <span class="kta-stat-sub danger">Acil Rezerve Açığı</span>
+        </div>
+        <div class="kta-stat-tile purple">
+          <span class="kta-stat-label">Tedarikçi Temin Süresi</span>
+          <span class="kta-stat-value">21 Gün</span>
+          <span class="kta-stat-sub">3 Hafta (Başoğlu Kablo)</span>
+        </div>
+        <div class="kta-stat-tile primary">
+          <span class="kta-stat-label">Sipariş Açılış Haftası</span>
+          <span class="kta-stat-value">2026-W42</span>
+          <span class="kta-stat-sub">W45 − 3 Hafta</span>
+        </div>
+        <div class="kta-stat-tile success">
+          <span class="kta-stat-label">Sipariş Miktarı</span>
+          <span class="kta-stat-value">5.000,00 m</span>
+          <span class="kta-stat-sub success">✓ Tedarikçi MOQ</span>
+        </div>
+      </div>
+
+      <div class="kta-insights-box">
+        <div class="kta-insights-header">
+          <span>💡</span>
+          <span>Sipariş Haftası Geçmişte Kalırsa Ne Olur?</span>
+        </div>
+        <div class="kta-insight-a">
+          Hesaplanan sipariş haftası cari haftanın gerisinde kalıyorsa (örneğin bugün W45 iken sipariş haftası W42 çıkıyorsa), sistem bunu <strong>🔴 Çok Acil Gecikmiş Sipariş</strong> olarak işaretler ve satınalma uzmanına malzemenin derhal sipariş edilmesi gerektiğini bildirir.
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -45,11 +106,14 @@
         <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
       </thead>
       <tbody>
-        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Planlama periyodunun başlangıcı</td><td>Bugün</td></tr>
-        <tr><td><strong>Bitiş Tarihi</strong></td><td>Planlama periyodunun bitişi</td><td>3 ay sonra</td></tr>
+        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Sistem tarafından otomatik olarak <strong>bulunulan haftanın Pazartesi gününe</strong> kilitlenir. Kullanıcı geçmişe dönük tarih seçemez.</td><td>Bu Haftanın Pazartesi Günü</td></tr>
+        <tr><td><strong>Bitiş Tarihi (Planlama Ufku)</strong></td><td>Planlama periyodunun bitişi. Varsayılan <code>KTA MRP Settings</code> (90 gün) ayarından gelir, 1 yıla kadar genişletilebilir.</td><td>Bugün + 90 gün</td></tr>
         <tr><td><strong>Ürün Grubu</strong></td><td>Belirli bir ürün grubuna filtreleme</td><td>(Hepsi)</td></tr>
       </tbody>
     </table>
+  </div>
+  <div class="kta-doc-info">
+    <strong>📅 Sabit Başlangıç Kuralı:</strong> Malzeme İhtiyaç raporuyla tam senkronizasyon için başlangıç tarihi filtresi kullanıcı girişine kapatılmış ve her zaman cari haftanın Pazartesi gününe sabitlenmiştir.
   </div>
 </div>
 
@@ -62,11 +126,12 @@
       </thead>
       <tbody>
         <tr><td><strong>Hammadde</strong></td><td>Hammadde item kodu</td></tr>
-        <tr><td><strong>Tedarikçi</strong></td><td>Varsayılan tedarikçi</td></tr>
+        <tr><td><strong>Tedarikçi</strong></td><td>Tedarikçi adı (Kotalı dağıtımda her tedarikçi için ayrı satır açılır)</td></tr>
         <tr><td><strong>Birim</strong></td><td>Stok birimi</td></tr>
-        <tr><td><strong>Lead Time (Gün)</strong></td><td>Temin süresi</td></tr>
-        <tr><td><strong>MOQ</strong></td><td>Minimum sipariş miktarı</td></tr>
+        <tr><td><strong>Lead Time (Gün)</strong></td><td>Tedarikçinin temin süresi</td></tr>
+        <tr><td><strong>MOQ</strong></td><td>Tedarikçinin minimum sipariş miktarı</td></tr>
         <tr><td><strong>Paket Miktarı</strong></td><td>Sipariş bu katın çarpanına yuvarlanır</td></tr>
+        <tr><td><strong>Durum</strong></td><td>Siparişin aciliyet durumu (<code>Normal</code> veya temin süresi geriye taştığında <code>Acil / Gecikmiş</code>)</td></tr>
         <tr><td><strong>Haftalık Sütunlar</strong></td><td>O hafta verilmesi önerilen sipariş miktarı</td></tr>
         <tr><td><strong>Satır Toplamı</strong></td><td>Toplam önerilen sipariş miktarı</td></tr>
       </tbody>

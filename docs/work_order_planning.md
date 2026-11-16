@@ -37,19 +37,29 @@ Her ürün için:
 
 4. Backlog öncelikli olarak ilk haftalara dağıtılır ve tükendikçe sonraki haftalara geçilir.
 
+### 📋 Sayısal Netleştirme Örnek Senaryosu
+
+| Hafta | Planlanan Üretim | Mevcut Açık İş Emri (WIP) | Kalan / Devreden WIP | Yeni Açılacak İş Emri | Durum / Açıklama |
+|:------|:----------------:|:-------------------------:|:--------------------:|:---------------------:|:-----------------|
+| **2026-W45 (Bu Hafta)** | 500 ad. | 300 ad. `(MFG-05164)` | 0 ad. | **200 ad.** | `⚠️ Eksik — Yeni İş Emri Açılmalı` |
+| **2026-W46 (Gelecek)** | 400 ad. | 500 ad. `(MFG-04684)` | **+100 ad. devir** | **0 ad.** | `✓ WIP Karşıladı (+100 Devretti)` |
+| **2026-W47 (2 Hafta Sonra)** | 300 ad. | 0 ad. | 0 ad. | **200 ad.** | `100 Devirden Düştü, 200 Yeni Açık` |
+| **TOPLAM** | **1.200 ad.** | **800 ad.** | - | **400 ad.** | `✓ %66,7 WIP / %33,3 Yeni İş Emri` |
+
+> **💡 Devir Mantığı:** W46'da 500 adet açık iş emri varken talep 400 adettir. Kalan 100 adetlik WIP fazlalığı silinmez; otomatik olarak W47'ye devredilir. Böylece W47'nin 300 adetlik talebinin 100'ü bu devirden karşılanır ve sadece 200 adetlik yeni iş emri ihtiyacı doğar.
+
 ---
 
 ## 3. Filtreler
 
 | Filtre | Açıklama | Varsayılan |
-|--------|----------|------------|
-| **Başlangıç Tarihi** | Planlama periyodunun başlangıcı | Bugün |
-| **Bitiş Tarihi** | Planlama periyodunun bitişi | Bugünden 3 ay sonra |
-| **Kapasite Dengeleme Yapılsın mı?** | Kapasite Planlama raporuna aktarılır | Açık |
-| **Ramp-up Yapılsın mı?** | Kapasite Planlama raporuna aktarılır | Kapalı |
-| **Ramp-up Süresi (Hafta)** | Kapasite Planlama raporuna aktarılır | 3 |
+|---|---|---|
+| **Başlangıç Tarihi** | Sistem tarafından otomatik olarak **bulunulan haftanın Pazartesi gününe** kilitlenir. Geçmiş tarih seçimi engellenmiştir. | Bu Haftanın Pazartesi Günü |
+| **Bitiş Tarihi (Planlama Ufku)** | Planlama periyodunun bitişi. Varsayılan `KTA MRP Settings` (90 gün) ayarından gelir, 1 yıla kadar genişletilebilir. | Bugün + 90 gün |
 | **Müşteri Grubu** | Belirli bir müşteri grubuna filtreleme | (Hepsi) |
 | **Ürün Grubu** | Belirli bir ürün grubuna filtreleme | (Hepsi) |
+
+> **⚙️ Kapasite Parametreleri:** Bu raporun dayandığı kapasite planlama algoritması, **KTA MRP Settings** altındaki merkezi ayarlarla çalışmaktadır.
 
 ---
 

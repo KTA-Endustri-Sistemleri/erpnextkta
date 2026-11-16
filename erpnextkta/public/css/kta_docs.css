@@ -648,3 +648,574 @@ code:not(.kta-doc-code) {
 .kta-docs-layout .page-head {
   display: none !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Modern Example Cards, Stat Tiles & Simulation Tables
+   ═══════════════════════════════════════════════════════════════ */
+.kta-example-container {
+  background: var(--kta-surface);
+  border: 1px solid var(--kta-border);
+  border-radius: var(--kta-radius-lg);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.07), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  margin: 24px 0 32px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.kta-example-container:hover {
+  box-shadow: 0 10px 30px -4px rgba(15, 23, 42, 0.12);
+  border-color: #cbd5e1;
+}
+
+.kta-example-header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.kta-example-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: #f8fafc;
+}
+
+.kta-example-title-icon {
+  font-size: 20px;
+}
+
+.kta-example-tag {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.kta-example-body {
+  padding: 22px 24px;
+}
+
+/* ─── Metric / Stat Tiles ─── */
+.kta-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.kta-stat-tile {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--kta-radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.kta-stat-tile::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #94a3b8;
+}
+
+.kta-stat-tile.danger::before { background: #ef4444; }
+.kta-stat-tile.warning::before { background: #f59e0b; }
+.kta-stat-tile.success::before { background: #10b981; }
+.kta-stat-tile.primary::before { background: #3b82f6; }
+.kta-stat-tile.purple::before { background: #8b5cf6; }
+
+.kta-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kta-stat-value {
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  font-family: var(--kta-font-mono);
+  letter-spacing: -0.3px;
+}
+
+.kta-stat-sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.kta-stat-sub.danger { color: #dc2626; font-weight: 600; }
+.kta-stat-sub.success { color: #16a34a; font-weight: 600; }
+
+/* ─── Simulation Table inside Example ─── */
+.kta-sim-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--kta-radius-md);
+  border: 1px solid #e2e8f0;
+  margin: 16px 0 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.kta-sim-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: #ffffff;
+}
+
+.kta-sim-table th {
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 700;
+  font-size: 11.5px;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 2px solid #cbd5e1;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.kta-sim-table td {
+  padding: 11px 14px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+  font-family: var(--kta-font-mono);
+  font-size: 13px;
+}
+
+.kta-sim-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.kta-sim-table tr.highlight-week {
+  background: #fef2f2;
+}
+
+.kta-sim-table tr.highlight-week td {
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.kta-sim-table tr.total-row {
+  background: #f8fafc;
+  font-weight: 800;
+}
+
+.kta-sim-table tr.total-row td {
+  border-top: 2px solid #cbd5e1;
+  border-bottom: none;
+  color: #0f172a;
+}
+
+.kta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--kta-font);
+}
+
+.kta-pill.red { background: #fee2e2; color: #991b1b; }
+.kta-pill.green { background: #d1fae5; color: #065f46; }
+.kta-pill.blue { background: #dbeafe; color: #1e40af; }
+.kta-pill.yellow { background: #fef3c7; color: #92400e; }
+
+/* ─── Insights Q&A Box ─── */
+.kta-insights-box {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: var(--kta-radius-md);
+  padding: 18px 20px;
+  margin-top: 20px;
+}
+
+.kta-insights-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #166534;
+  margin-bottom: 14px;
+}
+
+.kta-insight-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(22, 101, 52, 0.2);
+}
+
+.kta-insight-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.kta-insight-q {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #14532d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kta-insight-a {
+  font-size: 13px;
+  color: #166534;
+  line-height: 1.6;
+  padding-left: 22px;
+}
+
+/* ─── Modern Code Window / Terminal ─── */
+.kta-code-window {
+  background: #0f172a;
+  border-radius: var(--kta-radius-md);
+  overflow: hidden;
+  box-shadow: var(--kta-shadow-md);
+  margin: 18px 0;
+  border: 1px solid #334155;
+}
+
+.kta-window-bar {
+  background: #1e293b;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #334155;
+}
+
+.kta-window-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.kta-window-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.kta-window-dot.red { background: #ef4444; }
+.kta-window-dot.yellow { background: #f59e0b; }
+.kta-window-dot.green { background: #10b981; }
+
+.kta-window-title {
+  color: #94a3b8;
+  font-size: 12px;
+  font-family: var(--kta-font-mono);
+  font-weight: 600;
+}
+
+.kta-code-window pre {
+  margin: 0;
+  padding: 16px 20px;
+  background: transparent;
+  color: #e2e8f0;
+  font-family: var(--kta-font-mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+  overflow-x: auto;
+}
+
+/* ─── Numerical Alignments for Sim Tables ─── */
+.kta-sim-table th.num,
+.kta-sim-table td.num {
+  text-align: right;
+}
+
+/* ─── Formula Block & Cards ─── */
+.kta-formula-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.kta-formula-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid var(--kta-primary);
+  border-radius: var(--kta-radius-md);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.kta-formula-card.success { border-left-color: #10b981; }
+.kta-formula-card.purple { border-left-color: #8b5cf6; }
+.kta-formula-card.warning { border-left-color: #f59e0b; }
+
+.kta-formula-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+
+.kta-formula-expr {
+  font-family: var(--kta-font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.kta-formula-target {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.kta-formula-card.success .kta-formula-target { background: #dcfce7; color: #15803d; }
+.kta-formula-card.purple .kta-formula-target { background: #f3e8ff; color: #7e22ce; }
+.kta-formula-card.warning .kta-formula-target { background: #fef3c7; color: #b45309; }
+
+.kta-formula-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* ─── 3-Step Multi-Pass Cards ─── */
+.kta-step-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.kta-step-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--kta-radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.kta-step-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.kta-step-card.step-1::before { background: #3b82f6; }
+.kta-step-card.step-2::before { background: #8b5cf6; }
+.kta-step-card.step-3::before { background: #10b981; }
+
+.kta-step-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kta-step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.kta-step-card.step-1 .kta-step-number { background: #3b82f6; }
+.kta-step-card.step-2 .kta-step-number { background: #8b5cf6; }
+.kta-step-card.step-3 .kta-step-number { background: #10b981; }
+
+.kta-step-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.kta-step-subtitle {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.kta-step-body {
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.kta-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.kta-step-card.step-1 .kta-step-badge { background: #eff6ff; color: #1d4ed8; }
+.kta-step-card.step-2 .kta-step-badge { background: #faf5ff; color: #6b21a8; }
+.kta-step-card.step-3 .kta-step-badge { background: #f0fdf4; color: #15803d; }
+
+/* ─── Architecture Visual Diagram ─── */
+.kta-arch-diagram {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: var(--kta-radius-lg);
+  padding: 28px 20px;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.kta-arch-node {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--kta-radius-md);
+  padding: 14px 24px;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 260px;
+  position: relative;
+}
+
+.kta-arch-node.root {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  border-color: #334155;
+  box-shadow: 0 8px 16px -2px rgba(15, 23, 42, 0.2);
+}
+
+.kta-arch-node.root .kta-arch-node-title { color: #f8fafc; font-size: 15px; }
+.kta-arch-node.root .kta-arch-node-sub { color: #94a3b8; font-size: 11px; }
+
+.kta-arch-node.core {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 6px 12px -2px rgba(37, 99, 235, 0.25);
+}
+
+.kta-arch-node.core .kta-arch-node-title { color: #ffffff; font-size: 14px; }
+.kta-arch-node.core .kta-arch-node-sub { color: #bfdbfe; font-size: 11px; }
+
+.kta-arch-node-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #0f172a;
+}
+
+.kta-arch-node-sub {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.kta-arch-arrow-down {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #64748b;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.kta-arch-branches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 820px;
+}
+
+.kta-arch-leaf {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--kta-radius-md);
+  padding: 14px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+}
+
+.kta-arch-leaf:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  border-color: #3b82f6;
+}
+
+.kta-arch-leaf-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.kta-arch-leaf-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  align-self: center;
+}
+

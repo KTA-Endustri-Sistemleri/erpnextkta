@@ -677,14 +677,13 @@ Kartı Görüntüle,Karte anzeigen
 İşlem Başarıyla Devam Ettirildi,Prozess erfolgreich fortgesetzt
 Başlatılıyor...,Starten...
 "Lütfen bekleyin, ilgili karta yönlendiriliyorsunuz.","Bitte warten Sie, Sie werden zur entsprechenden Karte weitergeleitet."
-Duruş Nedeni,Stillstandsgrund
 Arıza Sonrası Bekleme,Warten nach Störung
 DURUŞTA (ARIZA),ANGEHALTEN (STÖRUNG)
 "Arıza giderildi, operatör onayı bekleniyor.","Störung behoben, warte auf Bestätigung des Bedieners."
 "Arıza iptal edildi, operatör bekleniyor.","Störung storniert, warte auf Bediener."
 "Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Wartungsteam fertig, warte auf Bediener, um Produktion fortzusetzen."
-"[Bakım Sonucu: Tamamlandı.]","[Wartungsergebnis: Abgeschlossen.]"
-"[Bakım Sonucu: İptal Edildi.]","[Wartungsergebnis: Storniert.]"
+[Bakım Sonucu: Tamamlandı.],[Wartungsergebnis: Abgeschlossen.]
+[Bakım Sonucu: İptal Edildi.],[Wartungsergebnis: Storniert.]
 Kullanıcı için varsayılan yazıcı bulunamadı,Standarddrucker für Benutzer nicht gefunden
 Kullanıcı için varsayılan yazıcı bulunamadı: {0},Standarddrucker für Benutzer nicht gefunden: {0}
 ⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ Diese Karte hat {0} Minuten überschritten! Bitte prüfen Sie das Formular (beenden oder anhalten).
@@ -715,15 +714,10 @@ Tedarikçi,Lieferant
 İrsaliye No,Lieferschein-Nr
 Sevk İrsaliye No,Versand-Lieferschein-Nr
 Hesaplanan Adet,Berechnete Menge
-Adet,Menge
 Giriş,Eingang
 Çıkış,Ausgang
 Seri,Serie
 Tarih,Datum
-Açıklama,Bemerkungen
-Seri,Serie
-Tarih,Datum
-Açıklama,Bemerkungen
 İşlem,Vorgang
 Teslim Eden,Übergeben von
 Teslim Alan,Übernommen von
@@ -766,7 +760,6 @@ Krimp Ölçüm Protokol Belgesi,Crimp-Messprotokolldokument
 Krimp Protokol Belgesi,Crimp-Protokolldokument
 Enjeksiyon Ölçüm Protokol Belgesi,Spritzguss-Messprotokolldokument
 Enjeksiyon Protokol Belgesi,Spritzguss-Protokolldokument
-
 Kısmi Kabul Edildi,Teilweise akzeptiert
 <b>⚠️ Dikkat:</b> Bu kart <b>{0} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.,"<b>⚠️ Achtung:</b> Diese Karte hat <b>{0} Minuten</b> überschritten! Bitte beenden, falls die Arbeit abgeschlossen ist."
 Alt Operasyon Kalite Onayları,Qualitätsfreigaben für Untervorgänge
@@ -899,50 +892,415 @@ Filtreler,Filter
 Tekrar Dene,Erneut versuchen
 Hepsi Bu Kadar.,Das ist alles.
 Kalite Reddi,Qualitätsablehnung
-"Bu alt operasyon kaydına kalite belgesi bağlanmıştır ({0} - {1}). Değişiklik veya silme işlemi için kalite birimini bilgilendirin.","Mit diesem Untervorgangsdatensatz ist ein Qualitätsprüfungsdokument verknüpft ({0} - {1}). Bitte kontaktieren Sie die Qualitätsabteilung für Änderungen oder Löschungen."
-"Bu ölçüm kaydı silinecek. Emin misiniz?","Dieser Messdatensatz wird gelöscht. Sind Sie sicher?"
+Bu alt operasyon kaydına kalite belgesi bağlanmıştır ({0} - {1}). Değişiklik veya silme işlemi için kalite birimini bilgilendirin.,Mit diesem Untervorgangsdatensatz ist ein Qualitätsprüfungsdokument verknüpft ({0} - {1}). Bitte kontaktieren Sie die Qualitätsabteilung für Änderungen oder Löschungen.
+Bu ölçüm kaydı silinecek. Emin misiniz?,Dieser Messdatensatz wird gelöscht. Sind Sie sicher?
 Detayları Göster/Gizle,Details ein-/ausblenden
-"Alt operasyon kaydı bulunamadı ({0}).","Untervorgangsdatensatz nicht gefunden ({0})."
-"%100 kalite kontrolü seçili operasyonlarda açıkta onay bekleyen alt işlem varken kart bitirilemez.","Bei Vorgängen mit 100% Qualitätskontrolle kann die Karte nicht beendet werden, solange Untervorgänge auf Freigabe warten."
-"Kartın bitirilebilmesi için en az bir alt işlemin kalite onayı almış olması gerekir.","Mindestens ein Untervorgang muss eine Qualitätsfreigabe erhalten haben, bevor die Karte beendet werden kann."
+Alt operasyon kaydı bulunamadı ({0}).,Untervorgangsdatensatz nicht gefunden ({0}).
+%100 kalite kontrolü seçili operasyonlarda açıkta onay bekleyen alt işlem varken kart bitirilemez.,"Bei Vorgängen mit 100% Qualitätskontrolle kann die Karte nicht beendet werden, solange Untervorgänge auf Freigabe warten."
+Kartın bitirilebilmesi için en az bir alt işlemin kalite onayı almış olması gerekir.,"Mindestens ein Untervorgang muss eine Qualitätsfreigabe erhalten haben, bevor die Karte beendet werden kann."
 Atanmamış / Geçmiş Ölçümler,Nicht zugewiesene / Frühere Messungen
-"Bu ölçüm kaydı kalite kontrolü tamamlanmış bir karta aittir. Değişiklik veya silme işlemi için kalite birimini bilgilendirin.","Dieser Messdatensatz gehört zu einer Karte mit abgeschlossener Qualitätskontrolle. Bitte benachrichtigen Sie die Qualitätsabteilung für Änderungen oder Löschungen."
-"İlk enjeksiyon ölçümü 'Başlangıç' periyodunda olmak zorundadır.","Die erste Spritzgussmessung muss in der Periode 'Başlangıç' erfolgen."
+Bu ölçüm kaydı kalite kontrolü tamamlanmış bir karta aittir. Değişiklik veya silme işlemi için kalite birimini bilgilendirin.,Dieser Messdatensatz gehört zu einer Karte mit abgeschlossener Qualitätskontrolle. Bitte benachrichtigen Sie die Qualitätsabteilung für Änderungen oder Löschungen.
+İlk enjeksiyon ölçümü 'Başlangıç' periyodunda olmak zorundadır.,Die erste Spritzgussmessung muss in der Periode 'Başlangıç' erfolgen.
 "Bir alt operasyon için en fazla 3 ölçüm (Başlangıç, Ara, Bitiş) girilebilir.","Für einen Unterarbeitsgang können maximal 3 Messungen (Başlangıç, Ara, Bitiş) eingegeben werden."
-"'{0}' periyodu için zaten bir ölçüm kaydedilmiş.","Für die Periode '{0}' wurde bereits eine Messung erfasst."
-"Bu alt operasyon kaydı kalite birimi tarafından reddedilmiştir. Yeni ölçüm eklenemez.","Dieser Untervorgangsdatensatz wurde von der Qualitätsabteilung abgelehnt. Neue Messungen können nicht hinzugefügt werden."
-"Tüm Periyot Ölçümleri Tamamlandı (3/3)","Alle Periodenmessungen abgeschlossen (3/3)"
+'{0}' periyodu için zaten bir ölçüm kaydedilmiş.,Für die Periode '{0}' wurde bereits eine Messung erfasst.
+Bu alt operasyon kaydı kalite birimi tarafından reddedilmiştir. Yeni ölçüm eklenemez.,Dieser Untervorgangsdatensatz wurde von der Qualitätsabteilung abgelehnt. Neue Messungen können nicht hinzugefügt werden.
+Tüm Periyot Ölçümleri Tamamlandı (3/3),Alle Periodenmessungen abgeschlossen (3/3)
 "Bu alt operasyon için tüm periyot ölçümleri (Başlangıç, Ara, Bitiş) tamamlanmıştır.","Alle Periodenmessungen (Başlangıç, Ara, Bitiş) für diesen Unterarbeitsgang wurden abgeschlossen."
 Alt Operasyon Kalite Tarafından Reddedildi,Unterarbeitsgang von der Qualität abgelehnt
 Ölçüm Limiti,Messgrenze
-"Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.","Auf dieser Arbeitskarte existiert bereits ein aktiver Unterarbeitsgang für die Form '{0}' und das Rohmaterial '{1}'."
+Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.,Auf dieser Arbeitskarte existiert bereits ein aktiver Unterarbeitsgang für die Form '{0}' und das Rohmaterial '{1}'.
 Mükerrer Alt İşlem,Doppelter Unterarbeitsgang
-"Çekme Kuvveti en az 100 N olmalıdır.","Die Zugkraft muss mindestens 100 N betragen."
-"'{0}' alanı boş veya 0 bırakılamaz.","Das Feld '{0}' darf nicht leer veya 0 sein."
+Çekme Kuvveti en az 100 N olmalıdır.,Die Zugkraft muss mindestens 100 N betragen.
+'{0}' alanı boş veya 0 bırakılamaz.,Das Feld '{0}' darf nicht leer veya 0 sein.
 Min: 100 N,Min: 100 N
-"'{0}' hammaddesi için enjeksiyon proses toleransları tanımlanmamış. Tolerans kaydı olmadan ölçüm girilemez.","Spritzgussprozess-Toleranzen sind für das Rohmaterial '{0}' nicht definiert. Ohne Toleranzdatensätze können keine Messungen eingegeben werden."
-"'{0}' hammaddesi için enjeksiyon tolerans parametresi bulunamadı. Ölçüm kaydedilemez.","Keine Spritzgusstoleranzparameter für Rohmaterial '{0}' gefunden. Messung kann nicht gespeichert werden."
-"'{0}' ({1} {2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4} {2}","'{0}' ({1} {2}) liegt außerhalb der Toleranzgrenzen. Akzeptierter Bereich: {3} - {4} {2}"
-"'{0}' ({1}{2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4}{2}","'{0}' ({1}{2}) liegt außerhalb der Toleranzgrenzen. Akzeptierter Bereich: {3} - {4}{2}"
-"Çekme Kuvveti ({0} N) kabul edilen minimum değerin ({1} N) altındadır.","Zugkraft ({0} N) liegt unter dem akzeptierten Minimum ({1} N)."
+'{0}' hammaddesi için enjeksiyon proses toleransları tanımlanmamış. Tolerans kaydı olmadan ölçüm girilemez.,Spritzgussprozess-Toleranzen sind für das Rohmaterial '{0}' nicht definiert. Ohne Toleranzdatensätze können keine Messungen eingegeben werden.
+'{0}' hammaddesi için enjeksiyon tolerans parametresi bulunamadı. Ölçüm kaydedilemez.,Keine Spritzgusstoleranzparameter für Rohmaterial '{0}' gefunden. Messung kann nicht gespeichert werden.
+'{0}' ({1} {2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4} {2},'{0}' ({1} {2}) liegt außerhalb der Toleranzgrenzen. Akzeptierter Bereich: {3} - {4} {2}
+'{0}' ({1}{2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4}{2},'{0}' ({1}{2}) liegt außerhalb der Toleranzgrenzen. Akzeptierter Bereich: {3} - {4}{2}
+Çekme Kuvveti ({0} N) kabul edilen minimum değerin ({1} N) altındadır.,Zugkraft ({0} N) liegt unter dem akzeptierten Minimum ({1} N).
 Tolerans Tanımı Eksik,Fehlende Toleranzdefinition
 Tolerans Dışı Değer,Wert außerhalb der Toleranz
 Seçili hammadde için enjeksiyon toleransları tanımlanmadığından ölçüm kaydedilemez.,Messung kann nicht gespeichert werden da keine Spritzgusstoleranzen für das ausgewählte Rohmaterial definiert sind.
 Hammadde seçimi zorunludur.,Rohmaterialauswahl ist erforderlich.
 İşlem Adedi Güncelle,Bearbeitungsmenge aktualisieren
-"Kalite onayı almış enjeksiyon alt operasyonunun işlem türü değiştirilemez.","Der Vorgangstyp einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden."
-"Kalite onayı almış enjeksiyon alt operasyonunun kalıp numarası değiştirilemez.","Die Werkzeugnummer einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden."
-"Kalite onayı almış enjeksiyon alt operasyonunun hammaddesi değiştirilemez.","Das Rohmaterial einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden."
+Kalite onayı almış enjeksiyon alt operasyonunun işlem türü değiştirilemez.,Der Vorgangstyp einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden.
+Kalite onayı almış enjeksiyon alt operasyonunun kalıp numarası değiştirilemez.,Die Werkzeugnummer einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden.
+Kalite onayı almış enjeksiyon alt operasyonunun hammaddesi değiştirilemez.,Das Rohmaterial einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden.
 Vardiya sonu üretilen adedi giriniz.,Geben Sie die am Schichtende produzierte Menge ein.
-"Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟","Herzlichen Glückwunsch! Sie haben alle 3/3 Messungen abgeschlossen und {0} Energiepunkte verdient! 🌟"
-"Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}]","Vollständiger Abschluss aller 3/3 Periodenmessungen für den Spritzguss-Teilvorgang. [{0}]"
+Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟,Herzlichen Glückwunsch! Sie haben alle 3/3 Messungen abgeschlossen und {0} Energiepunkte verdient! 🌟
+Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}],Vollständiger Abschluss aller 3/3 Periodenmessungen für den Spritzguss-Teilvorgang. [{0}]
 Enjeksiyon 3/3 Ölçüm Tamamlama,Spritzguss 3/3 Messungsabschluss
 KTA Enjeksiyon Kalibi,KTA-Spritzgussform
 Kalıp Adı,Formname
 Mevcut Kalıp Adedi,Verfügbare Formmenge
 Varsayılan Kalite Şablonu,Standard-Qualitätsvorlage
-"Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Die ausgewählte Formnummer ({0}) ist im System nicht definiert oder deaktiviert."
+Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.,Die ausgewählte Formnummer ({0}) ist im System nicht definiert oder deaktiviert.
 Vardiya Kapasite Sınırını Devre Dışı Bırak,Schichtkapazitätsgrenze Deaktivieren
-"İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.","Wenn aktiviert, wird die gesamte Nettozeit des Bedieners innerhalb einer Schicht nicht durch die maximale Arbeitskartendauer begrenzt; die tatsächliche Nettozeit wird auf die Karten geschrieben."
+İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.,"Wenn aktiviert, wird die gesamte Nettozeit des Bedieners innerhalb einer Schicht nicht durch die maximale Arbeitskartendauer begrenzt; die tatsächliche Nettozeit wird auf die Karten geschrieben."
 Vardiya Sonu Otomatik Kapatmayı Devre Dışı Bırak,Automatische Schichtende-Schließung Deaktivieren
-"İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.","Wenn aktiviert, werden offene Karten zum Schichtende (16:15 und 00:15) nicht automatisch vom System geschlossen; die Schließung bleibt vollständig beim Bediener."
+İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.,"Wenn aktiviert, werden offene Karten zum Schichtende (16:15 und 00:15) nicht automatisch vom System geschlossen; die Schließung bleibt vollständig beim Bediener."
+"Seçilen IDC kodu uygun değil. (item_group=120-IDC Connector veya 110-Connector, custom_ara_malzeme_grubu=HAMMADDE olmalı)","Der ausgewählte IDC-Code ist nicht geeignet. (item_group=120-IDC Connector oder 110-Connector, custom_ara_malzeme_grubu=ROHMATERIAL)"
+Hammadde / Ürün,Rohstoff / Produkt
+Ürün Açıklaması,Artikelbeschreibung
+BOM,Stückliste
+Stok,Bestand
+Rezerve Stok,Reservierter Bestand
+Serbest Stok,Freier Bestand
+Açık PO,Offene Bestellung
+Brüt İhtiyaç,Bruttobedarf
+Net İhtiyaç,Nettobedarf
+Önerilen Sipariş,Bestellvorschlag
+İlk Eksik Hafta,Erste Fehlwoche
+Kapsama (Hafta),Reichweite (Wochen)
+Fazla PO Miktarı,Überschüssige Bestellmenge
+Birim Fiyat,Stückpreis
+Para Birimi,Währung
+Önerilen Sipariş Tutarı,Bestellvorschlagswert
+Önerilen Sipariş Tutarı ({0}),Bestellvorschlagswert ({0})
+Toplam Kalem,Artikel Gesamt
+Eksik Kalem,Fehlartikel
+{0} Hafta İçinde Eksik,Fehlend Innerhalb Von {0} Wochen
+Fiyatı Olmayan Kalem,Artikel Ohne Preis
+Eksik Kalem Sayısı,Anzahl Fehlartikel
+Projeksiyon Bakiye,Projizierter Bestand
+Bitmiş Ürün + Hammadde,Fertigprodukt + Rohstoff
+Sadece Hammadde,Nur Rohstoff
+Haftalık Gösterim,Wochenansicht
+PO Teslimatlarını Dahil Et,Bestelllieferungen Einbeziehen
+Sadece Eksik Olanlar,Nur Fehlmengen
+Kapasite Dengeleme,Kapazitätsabgleich
+Ramp-up (Önden Üretim),Ramp-up (Vorproduktion)
+Lead Time (Gün),Lieferzeit (Tage)
+MOQ,MOQ
+Paket Miktarı,Verpackungsmenge
+Satır Toplamı,Zeilensumme
+Önerilen PO Sayısı,Anzahl Bestellvorschläge
+Toplam Önerilen Miktar,Vorgeschlagene Gesamtmenge
+PO Teslimatları,Bestelllieferungen
+Açık PO Girişleri,Offene Bestelleingänge
+Tedarikçiden beklenen açık siparişler,Vom Lieferanten erwartete offene Bestellungen
+Açık PO Teslimatları (Ham İhtiyaç Modu),Offene Bestelllieferungen (Rohbedarfsmodus)
+Dahil Değil,Nicht enthalten
+Gelen PO,Eingehende Bestellung
+Öneri,Bestellvorschlag
+Brüt,Brutto
+Net,Netto
+Haftalık Netleştirme Detayı,Wöchentliche Nettobedarfsdetails
+Hesaplama detayları yükleniyor...,Berechnungsdetails werden geladen...
+Netleştirme Detayı,Nettobedarfsdetails
+Netleştirme Detayını Gör,Nettobedarfsdetails anzeigen
+Bu Haftaya Düşen Açık Satınalma Siparişleri (PO),Für diese Woche geplante offene Bestellungen (PO)
+Bu Haftadaki Brüt İhtiyaç Kaynakları (Mamul Talepleri),Bruttobedarfsquellen für diese Woche (Fertigwarenbedarfe)
+Bu hafta için beklenen açık satınalma siparişi (PO) bulunmamaktadır.,Keine offenen Bestellungen für diese Woche erwartet.
+Açık PO filtresi kapalı olduğu için siparişler hesaba katılmamıştır.,"Bestellungen wurden nicht berücksichtigt, da PO-Filter deaktiviert ist."
+Önceki Haftadan Devreden Bakiye,Übertrag aus Vorwoche
+Gelen Açık Satınalma Siparişi (PO),Offene Bestellungen (PO)
+Brüt Üretim İhtiyacı,Brutto-Produktionsbedarf
+Net Eksik / İhtiyaç,Netto-Bedarf
+Önerilen Sipariş (MOQ & Paket Katı Uygulanmış),Bestellvorschlag (MOQ & Packung angewendet)
+Sipariş Sonrası Dönem Sonu Bakiye,Endbestand nach Bestellung
+Termin Tarihi,Liefertermin
+Bekleyen Miktar,Offene Menge
+Gereken Miktar,Benötigte Menge
+Detaylar alınamadı.,Details konnten nicht abgerufen werden.
+Sipariş No,Bestellnummer
+Netleştirme Hesabı,Nettobedarfsberechnung
+Dönem Sonu Projeksiyon Bakiye,Projizierter Endbestand
+Açık PO ve Mamul detayları yükleniyor...,Offene Bestellungen und Fertigprodukt-Details werden geladen...
+Bitmiş Ürün,Fertigware
+Temin Süresi,Wiederbeschaffungszeit
+Gün,Tage
+Min. Sipariş Miktarı (MOQ),Mindestbestellmenge (MOQ)
+Paketleme Katı,Verpackungseinheit
+Paket Katı,Verpackungseinheit
+Eksik,Fehlbestand
+Açık Bakiye,Fehlbestand
+Kapat,Schließen
+Nos,Stk.
+Box,Karton
+Pair,Paar
+Set,Satz
+Modern Matris,Moderne Matrix
+Klasik Tablo,Klassische Tabelle
+"Hammadde, açıklama veya tedarikçi ara...","Nach Material, Beschreibung oder Lieferant suchen..."
+Acil Eksikler,Dringende Engpässe
+Tüm Eksikler,Alle Engpässe
+Açık PO'su Olanlar,Mit Offener Bestellung
+Yeterli Stok,Ausreichender Bestand
+Tümünü Aç,Alle Erweitern
+Tümünü Kapat,Alle Zuklappen
+Gösterilen,Angezeigt
+Hammadde / Malzeme Bilgisi,Materialinformationen
+Stok Durumu,Bestandsstatus
+Özet İhtiyaç,Bedarfsübersicht
+Bu Hafta,Diese Woche
+Detayı Aç,Details Erweitern
+Detayı Kapat,Details Zuklappen
+Teslimat Takvimi,Lieferplan
+Brüt İhtiyaç Kaynakları (Mamul Talepleri),Bruttobedarfsquellen (Fertigerzeugnisse)
+Mamul,Fertigerzeugnis
+Toplam Brüt,Gesamtbrutto
+Detayları görmek için tıklayın,Klicken Sie hier
+Seçilen filtrelere veya arama kriterlerine uygun hammadde bulunamadı.,Kein Material gefunden
+Hammadde İhtiyaç Planlama,Materialbedarfsplanung
+Filtreleri Göster,Filter anzeigen
+Filtreleri Gizle,Filter ausblenden
+Raporu Yenile,Bericht aktualisieren
+Tedarikçi Filtrele...,Lieferant filtern...
+Hammadde Kodu...,Artikelcode...
+Müşteri Grubu...,Kundengruppe...
+Ürün Grubu...,Artikelgruppe...
+Aktif Haftalık Gösterim Modu,Aktiver Wochenansichtsmodus
+İhtiyaç Yaratan Bitmiş Ürünler (Talep Dağılımı),Bedarfsverursachende Fertigprodukte (Bedarfsaufteilung)
+Açık Satınalma Siparişleri (Giriş Dağılımı),Offene Bestellungen (Wareneingangsaufteilung)
+Bu malzeme için bekleyen açık PO veya mamul kırılımı bulunmamaktadır.,Für dieses Material liegen keine offenen Bestellungen oder Fertigproduktaufschlüsselungen vor.
+Excel Olarak İndir,Als Excel herunterladen
+CSV Olarak İndir,Als CSV herunterladen
+Sayfayı Yazdır veya PDF Al,Seite drucken oder als PDF speichern
+Yazdır,Drucken
+Ufka Sıfırla,Auf Planungshorizont zurücksetzen
+MRP Ayarlarındaki planlama ufkuna göre sıfırla,Auf den Planungshorizont aus den MRP-Einstellungen zurücksetzen
+Sıralama,Sortierung
+En Acil Eksikler (Varsayılan),Dringendste Engpässe (Standard)
+En Yüksek Sipariş Tutarı,Höchster Bestellbetrag
+En Yüksek Net Eksik,Höchster Nettobedarf
+Hammadde Kodu (A-Z),Artikelcode (A-Z)
+Sıralamayı varsayılana sıfırla,Sortierung auf Standard zurücksetzen
+Artan,Aufsteigend
+Azalan,Absteigend
+Hammadde koduna göre sırala,Nach Artikelcode sortieren
+Sipariş Tutarı,Bestellbetrag
+Net Eksik,Nettobedarf
+Kapsama Haftası,Reichweite in Wochen
+Gümrüklemede,In Verzollung
+İşlem Başlat,Verzollung Starten
+Gümrükleme Başlama Tarihi,Verzollungsbeginn Datum
+Gümrükte,Im Zoll
+Antrepoda Bekleyen,Ausstehend im Zolllager
+İşlem Başlama,Verzollungsbeginn
+Açık Teslimatlar & İrsaliye Dağılımı (Antrepo / Yolda / PO),Offene Lieferungen & Wareneingangsverteilung (Zolllager / Transit / PO)
+Gümrüklü Antrepoda Bekleyen Teslimatlar (İşlem Bekleyen Stok Havuzu),Im Zolllager wartende Lieferungen (Verzollungspool)
+Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık timeline'a dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.,Materialien im Zolllager werden erst bei Beginn der Verzollung im wöchentlichen Zeitplan berücksichtigt. Nach Verzollungsbeginn (+2 Tage) erfolgt die Lieferung ans Werk.
+Haftalık Açık Siparişler ve Sevkiyatlar (PO / Yolda / Gümrükte),Wöchentliche offene Bestellungen & Sendungen (PO / Transit / Zoll)
+{0} haftasında bekleyen açık teslimat veya sipariş bulunmamaktadır.,In Woche {0} liegen keine offenen Lieferungen oder Bestellungen vor.
+Haftalık planlanmış açık sipariş veya teslimat bulunmamaktadır.,Es liegen keine geplanten offenen Bestellungen oder Lieferungen vor.
+Tüm açık siparişleri göster,Alle offenen Bestellungen anzeigen
+Antrepoda Bekliyor (İşlem Başlatılmadı),Im Zolllager wartend (Verzollung nicht gestartet)
+Gümrüklemede (+2g),In Zollabfertigung (+2T)
+Fabrika Mal Girişi,Werkswarenumschlag
+Tahmini Varış (+7g Transit),Geschätzte Ankunft (+7T Transit)
+Tahmini Varış (ETA),Geschätzte Ankunft (ETA)
+PO Termini (ETA Eksik),PO-Liefertermin (Fehlende ETA)
+Gümrüğe Geliş,Ankunft am Zoll
+Gümrüğe Geliş Tarihi,Zollankunftsdatum
+Fabrikaya Sevkiyat Koşulu,Werksversandbedingung
+İşlem başlatıldığında (+2 gün) fabrikaya ulaşacaktır,Erreicht das Werk (+2 Tage) nach Einleitung der Zollabfertigung
+Tedarik,Beschaffung
+Tedarik Boru Hattı,Beschaffungspipeline
+Tedarik Boru Hattı (Geliş Aşamaları),Beschaffungspipeline (Eingangsstufen)
+Henüz Sevk Edilmemiş Açık PO,Nicht versandte offene PO
+Sevkiyatta / Yolda Olan Açık Teslimat,Unterwegs befindliche offene Lieferung
+Gümrüklü Antrepoda Bekleyen Açık Teslimat (Bekleme Havuzu),Offene Lieferung im Zolllager (Wartepool)
+Gümrükleme / Çekim İşlemi Başlatılmış Açık Teslimat (+2 Gün),Zollabfertigung gestartete offene Lieferung (+2 Tage)
+Devreden Bakiye,Anfangsbestand
+Açık Teslimat,Offene Lieferung
+{0} Netleştirme Hesabı Özeti,{0} Nettoberechnungsübersicht
+Hafta Filtresini Kaldır,Wochenfilter aufheben
+Hafta filtresini kaldır,Wochenfilter aufheben
+Temizle,Löschen
+Belge,Dokument
+Belge No,Beleg-Nr.
+Durum,Status
+Termin / Varış,Termin / Ankunft
+Hafta,Woche
+Sipariş,Bestellung
+Açık Sipariş,Offene Bestellung
+Tahmini,Geschätzt
+Yükleme,Verladung
+Tedarikçi Bazlı Planlanan Sipariş Dağılımı,Lieferantenbezogene Bestellverteilung
+Kotalı Dağılım (% Paylaşım),Quotenaufteilung (% Anteil)
+Varsayılan Tedarikçi (%100),Standardlieferant (100%)
+En Ucuz Tedarikçi (%100),Günstigster Lieferant (%100)
+Kotalı Satınalma Dağılımı,Quoten-Einkaufsverteilung
+Tedarik Stratejisi,Beschaffungsstrategie
+Kota,Quote
+Paket,Packungsgröße
+Toplam Sipariş,Gesamtbestellung
+Tahmini Tutar,Geschätzter Betrag
+Toplam İhtiyaç,Gesamtbedarf
+Veriler hesaplanıyor...,Daten werden berechnet...
+Kayıt Bulunamadı,Kein Datensatz gefunden
+Seçilen filtrelere uygun hammadde bulunamadı.,Kein passendes Rohmaterial für die gewählten Filter gefunden.
+Hammadde Bilgisi,Rohmaterialinfo
+"Stok, İhtiyaç ve Kapsama","Bestand, Bedarf & Reichweite"
+{0} haftasına göre sırala (Eksik / Sipariş),Nach Woche {0} sortieren (Fehlmenge / Bestellung)
+Bu malzeme için bekleyen açık teslimat veya mamul kırılımı bulunmamaktadır.,Für dieses Material liegen keine offenen Lieferungen oder Fertigproduktaufschlüsselungen vor.
+ETA girilmediği için yükleme tarihine varsayılan nakliye süresi eklendi,"Standard-Transitdauer zum Ladedatum addiert, da keine ETA eingegeben wurde"
+Gümrüklü antrepoda bekleyen hammaddeleri göster,Im Zolllager wartende Rohmaterialien anzeigen
+Gümrükleme / çekim işlemi başlatılmış teslimatları göster (+2 gün),Lieferungen mit eingeleiteter Verzollung anzeigen (+2 Tage)
+Sevkiyatta / Yolda olan hammaddeleri göster,Rohmaterialien auf dem Transportweg / Transit anzeigen
+Haftalık açık sipariş ve detayları görmek için tıklayın,"Klicken, um wöchentliche offene Bestellungen und Details anzuzeigen"
+Sıfırla,Zurücksetzen
+Hammadde Kodu,Artikelcode
+Detayı Aç / Kapat,Details auf-/zuklappen
+Beklenen PO,Erwartete PO
+Antrepo,Zolllager
+PO,PO
+En Acil Eksikler,Dringendste Engpässe
+İncelenen Hafta,Ausgewählte Woche
+Açık Siparişler ve Teslimatlar,Offene Bestellungen und Lieferungen
+Tedarikçi Sipariş Dağılımı,Lieferanten-Auftragsverteilung
+Netleştirme Hesabı Özeti,Nettobedarfsrechnung Zusammenfassung
+Tedarikçi Bazlı Sipariş Dağılımı,Lieferantenbezogene Auftragsverteilung
+Bu hafta için hammadde talebi doğuran bitmiş ürün bulunmamaktadır.,"Für diese Woche gibt es keine Fertigerzeugnisse, die Rohstoffbedarf erzeugen."
+Bu hafta için beklenen açık teslimat bulunmamaktadır.,Für diese Woche werden keine offenen Lieferungen erwartet.
+Talep ve Bitmiş Ürünler,Bedarf und Fertigerzeugnisse
+Aramayı Temizle,Suche Löschen
+Bu hafta talep yaratan model sayısı,Anzahl der Modelle mit Bedarf in dieser Woche
+Bu hafta talep yok,Kein Bedarf in dieser Woche
+CSV,CSV
+Excel,Excel
+Filtreleri Sıfırla,Filter Zurücksetzen
+Gelişmiş Filtreler,Erweiterte Filter
+Gelişmiş Filtreleri Aç / Kapat,Erweiterte Filter Ein-/Ausblenden
+Haftalık Gösterim Modu,Wöchentlicher Anzeigemodus
+Kapat (ESC),Schließen (ESC)
+Kayıt,Datensatz
+Kod veya Açıklama...,Code oder Beschreibung...
+MRP Planlama Ufku Süresi,MRP-Planungshorizont-Dauer
+Mal Kabul Uyuşmazlığı (Kapıda Bloke / Karantina),Wareneingangskonflikt (Am Tor blockiert / Quarantäne)
+Mal Kabul Uyuşmazlığı (Kapıda Bloke / Karantina): {0} {1},Wareneingangskonflikt (Am Tor blockiert / Quarantäne): {0} {1}
+Model,Modell
+Siparişi,Bestellung
+Sıralama Seçenekleri,Sortieroptionen
+Tedarikçi Ara...,Lieferant Suchen...
+Temin Süresi (Gün),Wiederbeschaffungszeit (Tage)
+Termin,Liefertermin
+Uyuşmazlık,Konflikt
+Uyuşmazlık Bildirildi,Konflikt Gemeldet
+Uyuşmazlık Nedeni,Konfliktursache
+Uyuşmazlık çözülene kadar malzeme üretimde kullanılamaz ve haftalık arza (receipts = 0) dahil edilmez.,"Bis der Konflikt gelöst ist, kann das Material nicht in der Produktion verwendet werden und wird nicht in den wöchentlichen Zufluss (receipts = 0) einbezogen."
+Varış,Ankunft
+Veriler yüklenirken bir hata oluştu.,Beim Laden der Daten ist ein Fehler aufgetreten.
+İhtiyacı,Bedarf
+Gümrüklü Antrepoda Bekleyen Teslimatlar,Im Zolllager wartende Lieferungen
+ETA girilmediği için tahmini hesaplanmıştır,"Geschätzt, da keine ETA angegeben ist"
+Antrepoda bekleyen malzemeler çekim işlemi başlatılana kadar haftalık plana dahil edilmez. Gümrükleme başlatıldığında (+2 gün) fabrikaya sevk edilir.,Im Zolllager wartende Materialien werden erst mit Beginn der Verzollung in den Wochenplan aufgenommen. Nach Verzollungsbeginn (+2 Tage) werden sie an das Werk geliefert.
+Bağlı Satınalma Siparişi: {0},Verknüpfte Bestellung: {0}
+Mal Kabul Uyuşmazlığı Bildirildi,Wareneingangsstreitigkeit gemeldet
+Önerilen Sipariş Dağılımı,Aufteilung der geplanten Bestellungen
+Kotalı Tedarik Dağılımı,Quotenbeschaffungsaufteilung
+Malzeme Detayı ve Sevkiyatlar,Materialdetails und Lieferungen
+En Düşük Fiyat Öncelikli,Niedrigster Preis Priorität
+Termin Süresi Öncelikli,Lieferzeit Priorität
+KTA MRP Settings,KTA MRP-Einstellungen
+Kapasite & Dengeleme Parametreleri,Kapazitäts- & Nivellierungsparameter
+Kapasite Dengeleme Varsayılan Aktif (Forward Scheduling),Kapazitätsausgleich standardmäßig aktivieren (Vorwärtsterminierung)
+Ramp-up / Düzeltme Varsayılan Aktif (Backward Smoothing),Ramp-up / Glättung standardmäßig aktivieren (Rückwärtsglättung)
+Varsayılan Ramp-up Hafta Sayısı,Standardmäßige Ramp-up-Wochenanzahl
+Ramp-up Tetikleme Doluluk Eşiği (%),Ramp-up-Auslöser-Auslastungsschwelle (%)
+Maksimum Tavan Doluluk Oranı (%),Maximale Kapazitätsobergrenze-Auslastung (%)
+Minimum Kaydırma Eşiği (Adet),Minimale Glättungsschwelle (Menge)
+Planlama Ufku & Zaman Parametreleri,Planungshorizont- & Zeitparameter
+Varsayılan Planlama Ufku (Gün),Standard-Planungshorizont (Tage)
+Geçmiş Açık Sipariş Tarama Aralığı (Gün),Rückstands-Lookback-Zeitraum (Tage)
+Varsayılan Üretim Süresi (Gün),Standard-Produktionszeit (Tage)
+Varsayılan Sevk Süresi (Gün),Standard-Lieferzeit (Tage)
+Acil Eksik Eşik Haftası,Dringende Fehlteil-Schwellenwoche
+Depo & Satınalma Parametreleri,Lager- & Einkaufsparameter
+Kullanılabilir Stok Depo Tipi,Verfügbare Lagerart
+Açık PO Teslimatlarını Varsayılan Dahil Et,Offene Bestelllieferungen standardmäßig einbeziehen
+Antrepo Millileştirme Süresi (Gün),Zolllager-Abfertigungszeit (Tage)
+Weekly Production,Wöchentliche Produktionskapazität
+Haftalık Üretim,Wöchentliche Produktion
+Haftalık Üretim Kapasitesi,Wöchentliche Produktionskapazität
+Üretim Süresi (Gün),Fertigungsdurchlaufzeit (Tage)
+Kota Payı (%),Quotenanteil (%)
+Müşteriye Özel Üretim Süresi (Gün),Kundenspezifische Produktionszeit (Tage)
+Varsayılan Sevk / Yol Süresi (Gün),Standard-Versand- / Transportzeit (Tage)
+Sevk / Yol Süresi (Gün),Versand- / Transportzeit (Tage)
+Antrepo Beyanname No,Zolllager-Erklärungsnummer
+Araç No,Fahrzeugnummer
+Gümrük Beyanname Tarihi,Zollerklärungsdatum
+Gumruk Beyannamesi No,Zollerklärungsnummer
+Gümrük Beyannamesi No,Zollerklärungsnummer
+Gümrük Müdürlüğü,Zollamt
+Gümrükleme,Verzollung
+Gümrüksüz,Zollfrei
+İrsaliye Tarihi,Lieferscheindatum
+is_antrepo_purchase_receipt,Zolllager-Eingang
+is_import_purchase_receipt,Import-Wareneingang
+İthalat,Import
+Fatura No,Rechnungsnummer
+Fatura Tarihi,Rechnungsdatum
+Kap,Packstückanzahl
+kg,Kg
+Kg,Kg
+Konşimento No,Konnossementnummer
+Tahmini Varış Tarihi,Voraussichtliches Ankunftsdatum (ETA)
+Yükleme Tarihi,Verladedatum
+Workflow State,Workflow-Status
+Evrak / İrsaliye Uyuşmazlığı,Dokumenten- / Lieferscheinabweichung
+Fiziki Hasar / Kalite Problemi,Physische Beschädigung / Qualitätsproblem
+Eksik / Yanlış Malzeme,Fehlendes / Falsches Material
+Uyuşmazlık Açıklaması,Streitigkeitsbeschreibung
+Haftalık doluluk bu oranın üzerine çıktığında yük önceki haftalara yayılır.,"Wenn die wöchentliche Auslastung diesen Wert überschreitet, wird die Last auf Vorwochen verteilt."
+Geriye yük taşınırken önceki haftanın kapasitesi bu tavanı aşamaz.,Bei der Rückverschiebung der Last darf die Kapazität der Vorwoche diese Obergrenze nicht überschreiten.
+Bu miktarın altındaki küçük dalgalanmalar taşınmaz.,Schwankungen unterhalb dieser Menge werden nicht verschoben.
+Geleceğe dönük varsayılan planlama periyodu.,Standardmäßiger vorausschauender Planungszeitraum.
+Geçmiş açık siparişleri geriye doğru tarama aralığı.,Bereich für den Rückwärtsscan historischer offener Bestellungen.
+Ürün veya müşteri kartında süre eşleşmezse kullanılan varsayılan üretim süresi.,"Standard-Produktionszeit, falls im Artikel- veya Kundendatensatz keine Dauer angegeben ist."
+"Adres, Müşteri veya Müşteri Grubu kartında süre eşleşmezse kullanılan varsayılan sevk süresi.","Standard-Lieferzeit, falls auf Adresse, Kunde oder Kundengruppe keine Dauer angegeben ist."
+Bu hafta sayısı içinde eksik veren malzemeler 'Acil Eksik' olarak etiketlenir.,"Materialien, die innerhalb dieser Wochenzahl fehlen, werden als 'Dringender Mangel' gekennzeichnet."
+Antrepoya gelmiş malzemeler için millileştirme ve hatta çekilme tampon süresi.,Pufferzeit für Verzollung und Bandandienung von Materialien im Zolllager.
+Tek tedarikçili ürünlerde otomatik varsayılandır. 2 veya daha fazla tedarikçi olduğunda strateji seçimi zorunludur.,Automatische Voreinstellung bei Einzelquellen. Bei zwei oder mehr Lieferanten ist die Auswahl einer Strategie erforderlich.
+Mamulün fabrika içi standart imalat süresi (gün).,Interne Standard-Fertigungsdurchlaufzeit für Fertigerzeugnisse (Tage).
+Kotalı Dağılım stratejisinde bu tedarikçinin alacağı yüzde pay (toplam %100 olmalıdır).,Prozentualer Anteil für diesen Lieferanten bei Quotenaufteilung (Summe muss 100% sein).
+Bu müşteriye özel ambalaj/test/imalat süresi (boş ise ürünün genel süresi geçerlidir).,"Für diesen Kunden spezifische Verpackungs-, Test- veya Fertigungszeit (falls leer, gilt der Artikelstandard)."
+Müşteri adresinde tanımlı sevk süresi yoksa geçerli olacak lojistik nakliye süresi (gün).,"Logistische Transportzeit, falls auf der Kundenadresse keine Versanddauer angegeben ist (Tage)."
+Müşteri veya adreste tanımlı sevk süresi yoksa geçerli olacak grup lojistik nakliye süresi (gün).,"Gruppen-Transportzeit, falls auf Kunde veya Adresse keine Versanddauer definiert ist (Tage)."
+Bu teslimat adresine/tesisine (Plant) olan lojistik nakliye süresi (gün).,Logistische Transportzeit zu dieser Lieferadresse/Werk (Plant) in Tagen.
+Antrepodaki malzeme için çekim/millileştirme işleminin başlatıldığı tarih,"Datum, an dem der Auslagerungs-/Verzollungsprozess für das Material im Zolllager begonnen wird"
+İş Emri Rezervasyonlarını Stoktan Düş,Fertigungsauftrags-Reservierungen vom Bestand abziehen
+"İşaretlendiğinde, kullanılabilir depolardaki mevcut stoktan açık iş emirleri için ayrılmış rezervasyon miktarı (reserved_qty_for_production) düşülerek net serbest stok hesaplanır. İşaret kaldırıldığında brüt mevcut stok doğrudan serbest kabul edilir.","Wenn aktiviert, wird die für offene Fertigungsaufträge reservierte Menge vom verfügbaren Lagerbestand abgezogen, um den freien Nettobestand zu berechnen. Wenn deaktiviert, gilt der Brutto-Istbestand als frei."
+Reports,Berichte
+Hammadde ve Üretim Planlama için Gerekli Raporlar,Erforderliche Berichte für Rohmaterial- und Produktionsplanung
+Satış Siparişleri,Kundenaufträge
+Teslimat Haftası,Lieferwoche
+Üretim Başlangıç Haftası,Produktionsstartwoche
+Kapasite Planlama Raporu,Kapazitätsplanungsbericht
+İş Emri Planlama,Fertigungsauftragsplanung
+Hammadde İhtiyaç Planlama (Modern),Materialbedarfsplanung (Modern)
+Hammadde İhtiyaç Planlama (Klasik),Materialbedarfsplanung (Klassisch)
+Önerilen Satınalma Siparişleri,Empfohlene Bestellungen
+MRP Analiz,MRP-Analyse
+Tools,Werkzeuge
+MRP ile İlgili Güncellemeler İçin Gerekli Araçlar,Erforderliche Werkzeuge für MRP-bezogene Aktualisierungen
+Satış Siparişi Güncelleme Aracı,Kundenauftrags-Aktualisierungstool
+Satış Siparişi Senkronizasyon Günlüğü,Kundenauftrags-Synchronisationsprotokoll
+Settings,Einstellungen
+MRP,MRP
+Bekleyen açık sipariş veya teslimat bulunmamaktadır.,Keine offenen Bestellungen oder Lieferungen ausstehend.
+Belgeyi Görüntüle,Dokument anzeigen
+Filtreyi Temizle,Filter zurücksetzen
+Kota Payı,Quotenanteil
+Mal Giriş,Wareneingang
+Mamul Detayı,Fertigerzeugnis-Detail
+Minimum Sipariş / Paket Katı,Mindestbestell- / Verpackungsvielfaches
+Termin / Varış Tarihi,Liefer- / Ankunftsdatum
+Ürün Reçetesi (BOM),Stückliste (BOM)
+Arıza,Störung
+Başka kart başlatıldığı için sistem tarafından otomatik duraklatıldı.,"Automatisch vom System pausiert, da eine andere Karte gestartet wurde."
+Board Kurma Hazırlık,Board-Rüstvorbereitung
+Depo / Hammadde Yerleştirme,Lager / Rohmaterialplatzierung
+Diğer,Andere
+Kalıp Bağlama / Makine Ayarı,Werkzeugwechsel / Maschineneinstellung
+Malzeme Bekleme,Warten auf Material
+Malzeme Taşıma,Materialtransport
+Mola,Pause
+Toplam Duruş,Gesamtausfallzeit
+Zaman Aşımı,Zeitüberschreitung
+İş Emri Malzeme Tüketim Stratejisi,Materialverbrauchsstrategie für Fertigungsaufträge
+Anlık Stok Rezervasyonu (Klasik),Sofortige Bestandsreservierung (Klassisch)
+Kapasiteye Dağıtılmış Tüketim (Zaman Fazlı),Kapazitätsorientierter Verbrauch (Zeitphasenorientiert)
+"İş emirlerinin hammadde ihtiyacının nasıl karşılanacağını belirler. 'Anlık Stok Rezervasyonu' modunda açık iş emirlerinin tüm reçetesi bugünkü serbest stoktan peşin düşülür. 'Kapasiteye Dağıtılmış Tüketim' modunda ise iş emirleri ambar stokunu peşin kilitlemez; fabrikanın haftalık kapasite planındaki üretim hızına göre zaman fazlı olarak tüketilir (2 haftalık erken satın alma baskısını ve kardeş ürün malzeme kilitlenmelerini önler).","Bestimmt, wie der Rohstoffbedarf für Fertigungsaufträge gedeckt wird. Im Modus 'Sofortige Bestandsreservierung' wird die gesamte Stückliste offener Fertigungsaufträge vorab vom heutigen freien Bestand abgezogen. Im Modus 'Kapazitätsorientierter Verbrauch' sperren Fertigungsaufträge den Lagerbestand nicht im Voraus; Materialien werden zeitphasenorientiert entsprechend dem wöchentlichen Kapazitätsplan der Fabrik verbraucht (verhindert einen 2-wöchigen vorzeitigen Einkaufsdruck und Materialblockaden bei Geschwisterprodukten)."

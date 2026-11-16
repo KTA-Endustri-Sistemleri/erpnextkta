@@ -30,11 +30,33 @@
 <div class="kta-doc-section">
   <h2>2. Hesaplama Mantığı</h2>
   <h3>⏳ Üretime Başlama Tarihi</h3>
-  <div class="kta-doc-code">Üretime Başlama Tarihi = Teslimat Tarihi − (Üretim Süresi + Sevkiyat Süresi)</div>
-  <p><strong>Satış Siparişleri:</strong> Üretim Süresi ve Sevkiyat Süresi değerleri, her müşteri/sevk adresi için ayrı ayrı tanımlanan <strong>KTA Sevk Parametreleri</strong> DocType'ından alınır.</p>
-  <p><strong>Dahili Üretim Talepleri (MR):</strong> Talebe bağlı ürünün <code>Item Customer</code> tablosundaki varsayılan müşterisinden üretim süresi çekilir. Müşteri bulunamazsa varsayılan olarak <strong>14 Gün</strong> üretim süresi kullanılarak gerekli tarihten (Schedule Date) geriye sayılır.</p>
-  <div class="kta-doc-info warning">
-    <strong>⚠️ Eşleşme Bulunamazsa:</strong> Teslimat tarihi olduğu gibi kullanılır ve rapor sonunda eşleşmeyen müşteriler listesi bildirilir.
+  <div class="kta-formula-grid">
+    <div class="kta-formula-card primary">
+      <div class="kta-formula-header">
+        <span>ZAMANLAMA FORMÜLÜ</span>
+        <span>Üretim & Sevkiyat Lead Time</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Üretime Başlama Tarihi</span>
+        <span>= Teslimat Tarihi − ( Üretim Süresi + Sevkiyat Süresi )</span>
+      </div>
+      <div class="kta-formula-desc">Müşteri siparişinin teslim tarihinden, sevk adresi ve rotaya ait nakliye süresi ile fabrikadaki standart üretim süresi geriye düşülerek üretime başlanması gereken hafta bulunur.</div>
+    </div>
+  </div>
+  <p><strong>İki Eksenli SAP Standardı Lead Time Mimarisi:</strong> Üretim ve sevkiyat süreleri birbirinden ayrılmış olup iki bağımsız kademeli hiyerarşi üzerinden çözümlenir:</p>
+  <ul>
+    <li><strong>1. Sevk / Transit Süresi ($T_{\text{transit}}$):</strong> "Nereye gittiği" ile ilgilidir.
+      <br><code>Address (Plant).custom_shipping_lead_days</code> &rarr; <code>Customer.custom_shipping_lead_days</code> &rarr; <code>Customer Group.custom_shipping_lead_days</code> &rarr; <code>KTA MRP Settings.default_delivery_time_days</code> (Varsayılan <strong>2 Gün</strong>).
+    </li>
+    <li><strong>2. Dahili Üretim Süresi ($T_{\text{prod}}$):</strong> "Ne üretildiği" ile ilgilidir.
+      <br><code>Item Customer Detail.custom_production_time_days</code> &rarr; <code>Item.custom_manufacturing_lead_days</code> &rarr; <code>KTA MRP Settings.default_production_time_days</code> (Varsayılan <strong>14 Gün</strong>).
+      <br><em>Not: Standart <code>Item.lead_time_days</code> alanı Purchasing (Satınalma) sekmesinde olup hammadde tedarik süresine aittir; dahili üretim süresi olarak asla kullanılmaz.</em>
+    </li>
+  </ul>
+  <p><strong>Geriye Doğru Çizelgeleme:</strong> $\text{Sevk Tarihi} = \text{Teslimat Tarihi} - T_{\text{transit}}$, $\text{Üretim Başlangıç Tarihi} = \text{Sevk Tarihi} - T_{\text{prod}}$.</p>
+  <p><strong>Dahili Üretim Talepleri (MR):</strong> Malzeme Taleplerinde sevk süresi uygulanmaz; termin tarihinden yalnızca dahili üretim süresi ($T_{\text{prod}}$) düşülür.</p>
+  <div class="kta-doc-info note">
+    <strong>🛡️ Sıfır Gün Düşmeme Garantisi (Zero-Day Safety Net):</strong> Süre alanları boş bırakılsa dahi sistem hiçbir zaman 0 gün süresine düşmez; hiyerarşik olarak merkezi <code>KTA MRP Settings</code> parametrelerine başvurarak planlamayı korur.
   </div>
 
   <h3>📊 Stok ve İş Emri (WIP) Düşme Mantığı</h3>
