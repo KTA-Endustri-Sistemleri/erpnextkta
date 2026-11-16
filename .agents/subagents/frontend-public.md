@@ -27,7 +27,8 @@ owned_paths:
    - UI etiketleri, butonlar ve başlıklar Title Case standardına uyar.
 3. **UI/UX Standartları:**
    - Glassmorphism: `--ck-glass-*` CSS değişkenleri kullanılır; Light ve Dark modları desteklenir.
-   - Modallar: Z-index ve DOM kirliliğini önlemek için `<Teleport to="body">` kullanılır.
+   - **Tema Uyumu Zorunluluğu (Light & Dark Theme):** Başta `material-requirement` (MRP Matrisi) olmak üzere tüm SPA'lar Frappe temasına (`data-theme="dark"` / `[data-theme="light"]`) %100 uyumlu olmak zorundadır. Sabit hardcoded renkler (`#fff`, `#f8fafc`, `#1e293b`) doğrudan kullanılmaz; CSS değişkenleri (`var(--bg-color)`, `var(--text-color)`, `var(--border-color)`, `var(--card-bg)`) veya dark-mode media/attribute kuralları üzerinden kontrast kaybı ve görünmez metin olmadan yönetilir.
+   - Modallar ve Çekmeceler (Side Drawer): Z-index ve DOM kirliliğini önlemek için `<Teleport to="body">` kullanılır.
    - Sıkıyönetim (Kritik Sihirbazlar): Operatör sihirbazları aktifken `frappe.msgprint` geçici bastırılır.
 4. **Desk Enjeksiyon Betikleri:**
    - `kta_report_utils.js` ve `kta_report_overrides.js` ile standart ERPNext rapor sayfalarına non-invasive biçimlendiriciler enjekte edilir.
