@@ -199,6 +199,8 @@ doc_events = {
     },
     "Company": {
         "validate": "erpnextkta.overrides.company_wip_validation.validate_wip_consumption_account"
+    "Item": {
+        "validate": "erpnextkta.overrides.item.validate_item_sourcing_strategy"
     }
 }
 # Document Events
@@ -406,6 +408,8 @@ fixtures = [
                     "Stock Entry Type-custom_etiket_sablonu",
                     "Company-custom_wip_consumption_account",
                     "Journal Entry Account-custom_work_order",
+                    "Item-custom_sourcing_strategy",
+                    "Item Supplier-custom_quota_share",
                 ],
             ]
         ],
@@ -438,6 +442,14 @@ fixtures = [
         "doctype": "Document Naming Rule",
         "filters": [
             ["document_type", "=", "Item"]
+        ]
+    },
+    "Workflow State",
+    "Workflow Action Master",
+    {
+        "doctype": "Workflow",
+        "filters": [
+            ["name", "in", ["KTA Mal Giris Sureci", "8D Formu Süreci"]]
         ]
     }
 ]

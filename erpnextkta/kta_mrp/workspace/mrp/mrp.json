@@ -13,11 +13,11 @@
  "label": "MRP",
  "links": [
   {
-   "description": "Hammadde ve \u00dcretim Planlama i\u00e7in Gerekli Raporlar",
+   "description": "Hammadde ve Üretim Planlama için Gerekli Raporlar",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Reports",
-   "link_count": 8,
+   "link_count": 9,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -25,7 +25,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Sat\u0131\u015f Sipari\u015fleri",
+   "label": "Satış Siparişleri",
    "link_count": 0,
    "link_to": "Periodic Sales Orders",
    "link_type": "Report",
@@ -35,7 +35,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Teslimat Haftas\u0131",
+   "label": "Teslimat Haftası",
    "link_count": 0,
    "link_to": "Shipment Week",
    "link_type": "Report",
@@ -46,7 +46,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "\u00dcretim Ba\u015flang\u0131\u00e7 Haftas\u0131",
+   "label": "Üretim Başlangıç Haftası",
    "link_count": 0,
    "link_to": "Production Start Week",
    "link_type": "Report",
@@ -68,7 +68,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "\u0130\u015f Emri Planlama",
+   "label": "İş Emri Planlama",
    "link_count": 0,
    "link_to": "Work Order Planning",
    "link_type": "Report",
@@ -78,8 +78,18 @@
   },
   {
    "hidden": 0,
+   "is_query_report": 0,
+   "label": "Hammadde İhtiyaç Planlama (Modern)",
+   "link_count": 0,
+   "link_to": "material-requirement",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
    "is_query_report": 1,
-   "label": "Hammadde \u0130htiya\u00e7 Planlama",
+   "label": "Hammadde İhtiyaç Planlama (Klasik)",
    "link_count": 0,
    "link_to": "Material Requirement",
    "link_type": "Report",
@@ -90,7 +100,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "\u00d6nerilen Sat\u0131nalma Sipari\u015fleri",
+   "label": "Önerilen Satınalma Siparişleri",
    "link_count": 0,
    "link_to": "Recommended Purchase Orders",
    "link_type": "Report",
@@ -109,11 +119,11 @@
    "type": "Link"
   },
   {
-   "description": "MRP ile \u0130lgili G\u00fcncellemeler \u0130\u00e7in Gerekli Ara\u00e7lar",
+   "description": "MRP ile İlgili Güncellemeler İçin Gerekli Araçlar",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Tools",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -121,7 +131,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Sat\u0131\u015f Sipari\u015fi G\u00fcncelleme Arac\u0131",
+   "label": "Satış Siparişi Güncelleme Aracı",
    "link_count": 0,
    "link_to": "KTA Sales Order Update",
    "link_type": "DocType",
@@ -131,15 +141,25 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Sat\u0131\u015f Sipari\u015fi Senkronizasyon G\u00fcnl\u00fc\u011f\u00fc",
+   "label": "Satış Siparişi Senkronizasyon Günlüğü",
    "link_count": 0,
    "link_to": "KTA SO Sync Log",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "link_count": 0,
+   "link_to": "KTA MRP Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-10-06 17:39:29.342399",
+ "modified": "2026-11-04 17:52:45.410410",
  "modified_by": "ufuk.karamalli@kta-endustri.com.tr",
  "module": "kta_mrp",
  "name": "MRP",

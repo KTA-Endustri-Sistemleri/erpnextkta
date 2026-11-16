@@ -6,8 +6,11 @@ def execute(filters=None):
     filters = filters or {}
     today = date.today()
 
+    from erpnextkta.kta_mrp.mrp_engine.settings import get_mrp_settings
+    horizon_days = get_mrp_settings().planning_horizon_days
+
     from_date = getdate(filters.get("from_date")) if filters.get("from_date") else today - timedelta(days=30)
-    to_date = getdate(filters.get("to_date")) if filters.get("to_date") else today + timedelta(days=60)
+    to_date = getdate(filters.get("to_date")) if filters.get("to_date") else today + timedelta(days=horizon_days)
 
     periodic_filters = {
         "from_date": from_date, "to_date": to_date, "range": "Weekly",
@@ -26,12 +29,12 @@ def execute(filters=None):
     for row in base_report.data:
         if not row.get("item_code") or "Genel Toplam" in str(row.get("tree_key", "")): continue
 
-        # KTA Sevk Parametreleri'ni bulmak için geliştirilmiş mantık
+        # Merkezi lead time motorundan sevk / transit süresini çöz
+        from erpnextkta.kta_mrp.mrp_engine.lead_time import resolve_shipping_lead_days
+
         customer = row.get("tree_key")
         address = row.get("shipping_address_name")
-        delivery_time = frappe.db.get_value("KTA Sevk Parametreleri", {"customer_name": customer, "customer_address": address}, "delivery_time") or 0
-        if not delivery_time:
-            delivery_time = frappe.db.get_value("KTA Sevk Parametreleri", {"customer_name": customer}, "delivery_time") or 0
+        delivery_time, _ = resolve_shipping_lead_days(address=address, customer=customer)
 
         for col in base_report.columns:
             label = col.get("label")
