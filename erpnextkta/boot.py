@@ -7,3 +7,16 @@ def boot_session(bootinfo):
     else:
         # Fallback values if settings ever become empty
         bootinfo.kta_admin_roles = ["System Manager", "Quality Manager", "Manufacturing Manager"]
+
+    try:
+        from erpnextkta.kta_mrp.mrp_engine.settings import get_mrp_settings
+        mrp_settings = get_mrp_settings()
+        bootinfo.kta_mrp_settings = {
+            "planning_horizon_days": mrp_settings.planning_horizon_days,
+            "backlog_lookback_days": mrp_settings.backlog_lookback_days,
+            "default_production_time_days": mrp_settings.default_production_time_days,
+            "urgent_shortage_weeks": mrp_settings.urgent_shortage_weeks,
+        }
+    except Exception:
+        bootinfo.kta_mrp_settings = {"planning_horizon_days": 90}
+

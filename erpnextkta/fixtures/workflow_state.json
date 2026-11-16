@@ -1,0 +1,200 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "modified": "2024-12-28 21:52:39.296447",
+  "name": "Approved",
+  "style": "Success",
+  "workflow_state_name": "Approved"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "remove",
+  "modified": "2024-12-28 21:52:39.297076",
+  "name": "Rejected",
+  "style": "Danger",
+  "workflow_state_name": "Rejected"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2026-11-06 19:17:48.409966",
+  "name": "Gümrüklemede",
+  "style": "",
+  "workflow_state_name": "Gümrüklemede"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-03-27 16:26:38.640349",
+  "name": "İade Et",
+  "style": "",
+  "workflow_state_name": "İade Et"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-30 21:20:45.400650",
+  "name": "Çözümlendi",
+  "style": "",
+  "workflow_state_name": "Çözümlendi"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-30 21:20:45.389866",
+  "name": "6D",
+  "style": "",
+  "workflow_state_name": "6D"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "question-sign",
+  "modified": "2024-12-28 21:52:39.295688",
+  "name": "Pending",
+  "style": "",
+  "workflow_state_name": "Pending"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-30 21:20:45.393340",
+  "name": "7D",
+  "style": "",
+  "workflow_state_name": "7D"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-30 21:20:45.352097",
+  "name": "1D",
+  "style": "",
+  "workflow_state_name": "1D"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-30 21:20:45.374772",
+  "name": "2D",
+  "style": "",
+  "workflow_state_name": "2D"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-30 21:20:45.378176",
+  "name": "3D",
+  "style": "",
+  "workflow_state_name": "3D"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-30 21:20:45.385571",
+  "name": "5D",
+  "style": "",
+  "workflow_state_name": "5D"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-30 21:20:45.382171",
+  "name": "4D",
+  "style": "",
+  "workflow_state_name": "4D"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-30 21:20:45.396799",
+  "name": "8D",
+  "style": "",
+  "workflow_state_name": "8D"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-29 20:15:00.786312",
+  "name": "Yolda",
+  "style": "Info",
+  "workflow_state_name": "Yolda"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-29 20:15:00.782677",
+  "name": "Antrepoda",
+  "style": "Info",
+  "workflow_state_name": "Antrepoda"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-29 20:15:00.776036",
+  "name": "Etiketleme",
+  "style": "Inverse",
+  "workflow_state_name": "Etiketleme"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-29 20:15:00.772018",
+  "name": "GKK Bekliyor",
+  "style": "Warning",
+  "workflow_state_name": "GKK Bekliyor"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-29 20:15:00.746488",
+  "name": "Kabul Edildi",
+  "style": "",
+  "workflow_state_name": "Kabul Edildi"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-29 20:15:00.789998",
+  "name": "Mal Girişe Hazır",
+  "style": "",
+  "workflow_state_name": "Mal Girişe Hazır"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-12-29 20:15:00.779393",
+  "name": "Mal Giriş",
+  "style": "Info",
+  "workflow_state_name": "Mal Giriş"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "exclamation-sign",
+  "modified": "2026-11-13 17:40:00.000000",
+  "name": "Mal Kabul Uyuşmazlığı",
+  "style": "Danger",
+  "workflow_state_name": "Mal Kabul Uyuşmazlığı"
+ }
+]

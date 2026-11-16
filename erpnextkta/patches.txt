@@ -28,3 +28,10 @@ erpnextkta.patches.v4_6.backfill_shopfloor_wip_account
 erpnextkta.patches.v4_6.fix_accounting_master_defaults
 erpnextkta.patches.v4_6.post_2026_accounting_reclassifications
 erpnextkta.patches.v4_6.reconcile_shopfloor_wip_discrepancies
+erpnextkta.patches.v4_5_0.disable_mrp_analysis_prepared_report
+erpnextkta.patches.v4_5_0.backfill_pr_transit_eta
+erpnextkta.patches.v4_5_0.add_kta_gumruk_sorumlusu_role
+erpnextkta.patches.v4_5_0.migrate_kta_sevk_parametreleri
+erpnextkta.patches.v4_5_0.fix_item_sourcing_strategy_percent
+
+
