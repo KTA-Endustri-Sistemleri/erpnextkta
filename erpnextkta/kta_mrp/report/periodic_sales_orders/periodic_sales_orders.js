@@ -1,5 +1,8 @@
 frappe.query_reports["Periodic Sales Orders"] = {
 	onload: function (report) {
+		if (window.kta && kta.report_utils && kta.report_utils.sync_mrp_date_filters) {
+			kta.report_utils.sync_mrp_date_filters(report);
+		}
 	},
 
 	filters: [
@@ -15,7 +18,9 @@ frappe.query_reports["Periodic Sales Orders"] = {
 			"label": __("Bitiş Tarihi"),
 			"fieldtype": "Date",
 			"reqd": 1,
-			"default": frappe.datetime.get_today()
+			"default": (window.kta && kta.report_utils && kta.report_utils.get_default_to_date)
+				? kta.report_utils.get_default_to_date()
+				: frappe.datetime.add_days(frappe.datetime.get_today(), 90)
 		},
 		{
 			"fieldname": "range",
