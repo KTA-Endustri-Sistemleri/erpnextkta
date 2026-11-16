@@ -131,9 +131,21 @@ Before declaring any task or feature complete, the Coordinator executes:
 3. **Changed Python Lint & Format Checks:**
    `/home/frappe/frappe-bench/env/bin/ruff check <modified_files>`
    `/home/frappe/frappe-bench/env/bin/ruff format --check <modified_files>`
+4. **Backend Service Restart & Cache Clear (if backend/Python was affected):**
+   `bench restart`
+   `bench --site <site> clear-cache`
 
 ---
 
 ## 8. Build Command Rule
 When building the frontend or checking for build errors, NEVER use direct package manager build commands. ALWAYS use the following command instead:
 `bench build --app erpnextkta --production`
+
+---
+
+## 9. Backend Modification & Cache Refresh Rule
+Whenever any backend Python code, controller, hook, API endpoint, patch, or MRP engine logic is added or modified, you **MUST ALWAYS** restart the bench services and clear the site cache to ensure that workers, web processes, and cache stores immediately pick up the changes:
+```bash
+bench restart
+bench --site <site> clear-cache
+```

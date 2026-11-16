@@ -33,6 +33,13 @@ owned_paths:
 - Test masası ve krimp testleri: `KTABaseTestCase` (`erpnextkta/kta_quality/doctype/**`)
 - Komut: `bench --site <site> run-tests --app erpnextkta --module erpnextkta.kta_quality.doctype.test_masasi_dogrulama_kaydi.test_test_masasi_dogrulama_kaydi`
 
+# Backend Değişiklik Sonrası Servis ve Önbellek Yenileme Kuralı
+Backend Python kodlarında (kalite kontrol dokümanları, krimp kütüphanesi mantığı, doğrulama servisleri) herhangi bir değişiklik yapıldıktan sonra bench servisleri yeniden başlatılmalı ve site önbelleği temizlenmelidir:
+```bash
+bench restart
+bench --site <site> clear-cache
+```
+
 # Çıktı ve Çapraz Modül Kontrat Formatı
 Yanıtının sonunda her zaman aşağıdaki formatı sun:
 1. **Yapılan Değişiklikler:** [Dosyalar ve özet]

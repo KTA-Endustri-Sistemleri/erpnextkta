@@ -34,6 +34,13 @@ owned_paths:
 - İlgili bakım testleri `KTABaseTestCase` kullanır.
 - Komut: `bench --site <site> run-tests --app erpnextkta --module erpnextkta.kta_asset_maintenance.tests` (veya ilgili test dosyası).
 
+# Backend Değişiklik Sonrası Servis ve Önbellek Yenileme Kuralı
+Backend Python kodlarında (varlık bakım servisleri, bildirimler, olay işleyicileri) herhangi bir değişiklik yapıldıktan sonra bench servisleri yeniden başlatılmalı ve site önbelleği temizlenmelidir:
+```bash
+bench restart
+bench --site <site> clear-cache
+```
+
 # Çıktı ve Çapraz Modül Kontrat Formatı
 Yanıtının sonunda her zaman aşağıdaki formatı sun:
 1. **Yapılan Değişiklikler:** [Dosyalar ve özet]
