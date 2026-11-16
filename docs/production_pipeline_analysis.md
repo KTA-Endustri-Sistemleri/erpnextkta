@@ -24,7 +24,7 @@ Bu ekran sayesinde:
 ### 📦 Veri Kaynakları
 Rapor, doğrudan birden fazla kaynağı sorgular:
 1. **Satış Siparişleri (Sales Order):** Teslimatı bekleyen tüm sipariş kalemleri.
-2. **KTA Sevk Parametreleri:** Müşteriye özel üretim ve sevkiyat süreleri.
+2. **İki Eksenli Lead Time Parametreleri:** Address/Customer sevk süresi ($T_{\text{transit}}$) ve Item üretim süresi ($T_{\text{prod}}$).
 3. **Açık İş Emirleri (Work Order):** `Not Started` veya `In Process` durumundaki iş emirleri.
 4. **Fiziksel Stok (Bin):** Seçilen depolardaki mevcut stok.
 5. **Kapasite:** Ürün grubunun haftalık üretim kapasitesi.
@@ -64,8 +64,8 @@ Sipariş miktarları, `Item Customer` tablosundaki `custom_musteri_paketleme_mik
 
 | Filtre | Açıklama | Varsayılan |
 |--------|----------|------------|
-| **Başlangıç Tarihi** | Analiz periyodunun başlangıcı | Bugün |
-| **Bitiş Tarihi** | Analiz periyodunun bitişi | Bugünden 90 gün sonra |
+| **Başlangıç Tarihi** | Sistem tarafından otomatik olarak **bulunulan haftanın Pazartesi gününe** kilitlenir. Geçmiş tarih seçimi engellenmiştir. | Bu Haftanın Pazartesi Günü |
+| **Bitiş Tarihi (Planlama Ufku)** | Planlama periyodunun bitişi. Varsayılan `KTA MRP Settings` (90 gün) ayarından gelir, 1 yıla kadar genişletilebilir. | Bugün + 90 gün |
 | **Ürün Grubu** | Belirli bir ürün grubuna filtreleme (zorunlu değil ama önerilir) | (Hepsi) |
 | **Müşteri** | Belirli bir müşteriye filtreleme | (Hepsi) |
 | **Depolar** | Stok bakiyesi hesaplaması için kullanılacak depolar | (Boş = stok hesaplanmaz) |

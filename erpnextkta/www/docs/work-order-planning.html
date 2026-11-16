@@ -22,9 +22,121 @@
   <p>İki farklı kaynaktan beslenir:</p>
   <ol>
     <li><strong>Kapasite Planlama Raporu:</strong> Haftalık planlanmış üretim miktarları (Satış siparişleri ve Dahili MRP taleplerinin toplamı).</li>
-    <li><strong>Work Order (İş Emri):</strong> İptal edilmemiş ve tamamlanmamış tüm açık iş emirleri.</li>
+    <li><strong>Work Order (İş Emri):</strong> İptal edilmemiş ve tamamlanmamış tüm açık iş emirleri (In Process / Not Started).</li>
   </ol>
-  <div class="kta-doc-code">Yeni İş Emri İhtiyacı = max((Planlanan Satış + Kanban Talebi) − Açık İş Emri Miktarı, 0)</div>
+  <div class="kta-formula-grid">
+    <div class="kta-formula-card primary">
+      <div class="kta-formula-header">
+        <span>NETLEŞTİRME FORMÜLÜ</span>
+        <span>Work Order Netting</span>
+      </div>
+      <div class="kta-formula-expr">
+        <span class="kta-formula-target">Yeni İş Emri İhtiyacı</span>
+        <span>= max( (Planlanan Satış + Kanban Talebi) − Açık İş Emri Kalan Miktarı, 0 )</span>
+      </div>
+      <div class="kta-formula-desc">Mevcut açık iş emirlerinin kalan miktarları plandan düşülür; negatif çıkarsa o haftanın ihtiyacı 0 olur, fazlalık sonraki haftalara devredilir.</div>
+    </div>
+  </div>
+  
+  <h3>📋 Sayısal Netleştirme Senaryosu</h3>
+  <div class="kta-example-container">
+    <div class="kta-example-header">
+      <div class="kta-example-title">
+        <span class="kta-example-title-icon">📋</span>
+        <span>Haftalık İş Emri Netleştirme Simülasyonu (Örnek Mamul)</span>
+      </div>
+      <span class="kta-example-tag">WIP Mahsuplaşması</span>
+    </div>
+
+    <div class="kta-example-body">
+      <!-- Stat Tiles -->
+      <div class="kta-stat-grid">
+        <div class="kta-stat-tile primary">
+          <span class="kta-stat-label">Toplam Planlanan Üretim</span>
+          <span class="kta-stat-value">1.200 ad.</span>
+          <span class="kta-stat-sub">3 Haftalık Brüt İhtiyaç</span>
+        </div>
+        <div class="kta-stat-tile purple">
+          <span class="kta-stat-label">Mevcut Açık İş Emri (WIP)</span>
+          <span class="kta-stat-value">800 ad.</span>
+          <span class="kta-stat-sub">MFG-05164 & MFG-04684</span>
+        </div>
+        <div class="kta-stat-tile danger">
+          <span class="kta-stat-label">Yeni Açılacak İş Emri</span>
+          <span class="kta-stat-value">400 ad.</span>
+          <span class="kta-stat-sub danger">⚠️ Üretim Emri Verilmeli</span>
+        </div>
+        <div class="kta-stat-tile success">
+          <span class="kta-stat-label">Karşılama Dengesi</span>
+          <span class="kta-stat-value">%66,7 WIP</span>
+          <span class="kta-stat-sub success">✓ %33,3 Yeni İş Emri</span>
+        </div>
+      </div>
+
+      <!-- Simulation Table -->
+      <div class="kta-sim-table-wrap">
+        <table class="kta-sim-table">
+          <thead>
+            <tr>
+              <th>Hafta</th>
+              <th class="num">Planlanan Üretim</th>
+              <th class="num">Açık İş Emri (WIP)</th>
+              <th class="num">Kalan / Devreden WIP</th>
+              <th class="num">Yeni Açılacak İş Emri</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="highlight-week">
+              <td><strong>2026-W45</strong> <small>(Bu Hafta)</small></td>
+              <td class="num">500 ad.</td>
+              <td class="num">300 ad. <small style="color: #6b21a8;">(MFG-05164)</small></td>
+              <td class="num" style="color: #dc2626;">0 ad.</td>
+              <td class="num" style="font-weight: 700; color: #dc2626;">200 ad.</td>
+              <td><span class="kta-pill red">Eksik — İş Emri Açılmalı</span></td>
+            </tr>
+            <tr>
+              <td><strong>2026-W46</strong> <small>(Gelecek Hafta)</small></td>
+              <td class="num">400 ad.</td>
+              <td class="num">500 ad. <small style="color: #6b21a8;">(MFG-04684)</small></td>
+              <td class="num" style="color: #16a34a; font-weight: 700;">+100 ad. devir</td>
+              <td class="num" style="color: #16a34a; font-weight: 700;">0 ad.</td>
+              <td><span class="kta-pill green">WIP Tam Karşıladı (+100 Fazla)</span></td>
+            </tr>
+            <tr>
+              <td><strong>2026-W47</strong> <small>(2 Hafta Sonra)</small></td>
+              <td class="num">300 ad.</td>
+              <td class="num">0 ad.</td>
+              <td class="num">0 ad.</td>
+              <td class="num" style="font-weight: 700; color: #dc2626;">200 ad.</td>
+              <td><span class="kta-pill blue">100 Devirden Düştü, 200 Açık</span></td>
+            </tr>
+            <tr class="total-row">
+              <td><strong>TOPLAM</strong></td>
+              <td class="num"><strong>1.200 ad.</strong></td>
+              <td class="num"><strong>800 ad.</strong></td>
+              <td class="num">-</td>
+              <td class="num" style="color: #dc2626;"><strong>400 ad.</strong></td>
+              <td><span class="kta-pill blue">✓ Netleştirme Tamamlandı</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Insights Box -->
+      <div class="kta-insights-box">
+        <div class="kta-insights-header">
+          <span>💡</span>
+          <span>W46 ve W47 Devir Mantığı Nasıl Çalıştı?</span>
+        </div>
+        <div class="kta-insight-item">
+          <span class="kta-insight-q">❓ Soru: "W46'da 500 adet açık iş emri varken talep 400 adetti. Kalan 100 adet ne oldu?"</span>
+          <span class="kta-insight-a"><strong>Cevap:</strong> Kalan 100 adetlik WIP fazlalığı yok sayılmaz; otomatik olarak W47'ye devredilir. Böylece W47'nin 300 adetlik talebinin 100'ü bu devirden karşılanır ve sadece 200 adetlik yeni iş emri açılması önerilir.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="kta-doc-info">
     <strong>📌 Backlog Dağıtımı:</strong> Geçmiş tarihli iş emirlerinin kalan miktarları, ilk haftalara öncelikli olarak dağıtılır ve plan ile eşleştirilerek kullanılır.
   </div>
@@ -37,13 +149,14 @@
       <thead>
         <tr><th>Filtre</th><th>Açıklama</th><th>Varsayılan</th></tr>
       </thead>
-      <tbody>
-        <tr><td><strong>Başlangıç / Bitiş Tarihi</strong></td><td>Planlama periyodu</td><td>Bugün — 3 ay sonra</td></tr>
-        <tr><td><strong>Kapasite Dengeleme</strong></td><td>Kapasite Planlama raporuna aktarılır (Multi-Pass Forward + Backward Fill)</td><td>Kapalı</td></tr>
-        <tr><td><strong>Ramp-up</strong></td><td>Kapasite Planlama raporuna aktarılır (Backward Fill + Ramp-up)</td><td>Kapalı</td></tr>
+        <tr><td><strong>Başlangıç Tarihi</strong></td><td>Sistem tarafından otomatik olarak <strong>bulunulan haftanın Pazartesi gününe</strong> kilitlenir. Geçmiş tarih seçimi engellenmiştir.</td><td>Bu Haftanın Pazartesi Günü</td></tr>
+        <tr><td><strong>Bitiş Tarihi (Planlama Ufku)</strong></td><td>Planlama periyodunun bitişi. Varsayılan <code>KTA MRP Settings</code> (90 gün) ayarından gelir, 1 yıla kadar genişletilebilir.</td><td>Bugün + 90 gün</td></tr>
         <tr><td><strong>Müşteri Grubu / Ürün Grubu</strong></td><td>Filtreleme</td><td>(Hepsi)</td></tr>
       </tbody>
     </table>
+  </div>
+  <div class="kta-doc-info">
+    <strong>⚙️ Kapasite Parametreleri:</strong> Bu raporun dayandığı kapasite planlama algoritması, <strong>KTA MRP Settings</strong> altındaki merkezi ayarlarla çalışmaktadır.
   </div>
 </div>
 
