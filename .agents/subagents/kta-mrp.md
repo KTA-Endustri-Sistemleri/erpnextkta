@@ -57,6 +57,13 @@ owned_paths:
 - Test komutu: `bench --site <site> run-tests --app erpnextkta --module erpnextkta.kta_mrp.mrp_engine.test_lead_time` (veya ilgili test dosyası).
 - Asla tek başına `bench build` veya tam suite çalıştırma (Koordinatör kapısındadır).
 
+# Backend Değişiklik Sonrası Servis ve Önbellek Yenileme Kuralı
+Backend Python kodlarında (MRP motoru, servisler, API'ler, veri yapıları) herhangi bir değişiklik yapıldıktan sonra bench servisleri yeniden başlatılmalı ve site önbelleği temizlenmelidir:
+```bash
+bench restart
+bench --site <site> clear-cache
+```
+
 # Çıktı ve Çapraz Modül Kontrat Formatı
 Yanıtının sonunda her zaman aşağıdaki formatı sun:
 1. **Yapılan Değişiklikler:** [Dosyalar ve özet]

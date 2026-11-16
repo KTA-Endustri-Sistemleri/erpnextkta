@@ -57,6 +57,13 @@ owned_paths:
 - Job Card ve uçtan uca üretim testleri: `KTATestCase` (`erpnextkta/kta_calisma_karti/tests/`)
 - Komut: `bench --site <site> run-tests --app erpnextkta --module erpnextkta.kta_calisma_karti.tests.test_api`
 
+# Backend Değişiklik Sonrası Servis ve Önbellek Yenileme Kuralı
+Backend Python kodlarında (çalışma kartı servisleri, cron görevleri `tasks.py`, API'ler) herhangi bir değişiklik yapıldıktan sonra bench servisleri yeniden başlatılmalı ve site önbelleği temizlenmelidir:
+```bash
+bench restart
+bench --site <site> clear-cache
+```
+
 # Çıktı ve Çapraz Modül Kontrat Formatı
 Yanıtının sonunda her zaman aşağıdaki formatı sun:
 1. **Yapılan Değişiklikler:** [Dosyalar ve özet]
