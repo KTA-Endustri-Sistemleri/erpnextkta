@@ -196,6 +196,9 @@ doc_events = {
     },
     "Asset Maintenance": {
         "on_update": "erpnextkta.kta_asset_maintenance.events.on_asset_maintenance_update"
+    },
+    "Item": {
+        "validate": "erpnextkta.overrides.item.validate_item_sourcing_strategy"
     }
 }
 # Document Events
@@ -401,6 +404,8 @@ fixtures = [
                     "Asset Maintenance Task-custom_event_id",
                     "Stock Entry Type-custom_etiket_basilabilir",
                     "Stock Entry Type-custom_etiket_sablonu",
+                    "Item-custom_sourcing_strategy",
+                    "Item Supplier-custom_quota_share",
                 ],
             ]
         ],
@@ -433,6 +438,14 @@ fixtures = [
         "doctype": "Document Naming Rule",
         "filters": [
             ["document_type", "=", "Item"]
+        ]
+    },
+    "Workflow State",
+    "Workflow Action Master",
+    {
+        "doctype": "Workflow",
+        "filters": [
+            ["name", "in", ["KTA Mal Giris Sureci", "8D Formu Süreci"]]
         ]
     }
 ]
