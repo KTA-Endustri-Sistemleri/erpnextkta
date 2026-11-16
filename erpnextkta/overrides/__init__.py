@@ -14,6 +14,7 @@ def apply():
     apply_job_card_override()
     apply_document_permission_override()
     apply_reorder_item_override()
+    apply_before_tests_override()
 
 def apply_document_permission_override():
     try:
@@ -159,3 +160,36 @@ def apply_reorder_item_override():
     except Exception as e:
         import frappe
         frappe.log_error(f"Error applying Reorder Item override: {e}", "KTA Override Error")
+
+
+def apply_before_tests_override():
+    try:
+        import erpnext.setup.utils as su
+
+        if hasattr(su, "before_tests") and not hasattr(su, "_original_before_tests"):
+            su._original_before_tests = su.before_tests
+
+            def safe_before_tests():
+                import frappe
+
+                if frappe.db and frappe.db.count("Item Price") > 100:
+                    orig_sql = frappe.db.sql
+
+                    def filter_sql(query, *args, **kwargs):
+                        if isinstance(query, str) and "delete from `tabitem price`" in query.lower():
+                            return None
+                        return orig_sql(query, *args, **kwargs)
+
+                    frappe.db.sql = filter_sql
+                    try:
+                        su._original_before_tests()
+                    finally:
+                        frappe.db.sql = orig_sql
+                else:
+                    su._original_before_tests()
+
+            su.before_tests = safe_before_tests
+    except Exception as e:
+        import frappe
+
+        frappe.log_error(f"Error applying before_tests override: {e}", "KTA Override Error")
