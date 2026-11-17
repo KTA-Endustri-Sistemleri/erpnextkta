@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from frappe.utils import cint, flt, nowdate, nowtime
+from frappe.utils import cint, flt, get_time, getdate, nowdate, nowtime
 
 
 class BatchSplitManager:
@@ -353,12 +353,39 @@ class BatchSplitManager:
                 posting_date = p_vals.get("posting_date")
                 posting_time = p_vals.get("posting_time")
 
-        if posting_date:
+        if not posting_date:
+            posting_date = getattr(bundle_doc, "posting_date", None)
+            if not posting_time:
+                posting_time = getattr(bundle_doc, "posting_time", None)
+
+            if not posting_date and getattr(bundle_doc, "posting_datetime", None):
+                dt_val = bundle_doc.posting_datetime
+                posting_date = str(getdate(dt_val))
+                if not posting_time:
+                    posting_time = str(get_time(dt_val))
+
+        if not posting_date:
+            posting_date = nowdate()
+
+        if not posting_time:
+            posting_time = nowtime()
+
+        if hasattr(bundle_doc, "meta") and hasattr(bundle_doc.meta, "has_field"):
+            if bundle_doc.meta.has_field("posting_datetime"):
+                from erpnext.stock.utils import get_combine_datetime
+
+                bundle_doc.posting_datetime = get_combine_datetime(
+                    posting_date, posting_time
+                )
+
+            if bundle_doc.meta.has_field("posting_date"):
+                bundle_doc.posting_date = posting_date
+
+            if bundle_doc.meta.has_field("posting_time"):
+                bundle_doc.posting_time = posting_time
+        else:
             bundle_doc.posting_date = posting_date
-            bundle_doc.posting_time = posting_time or nowtime()
-        elif not bundle_doc.posting_date:
-            bundle_doc.posting_date = nowdate()
-            bundle_doc.posting_time = bundle_doc.posting_time or nowtime()
+            bundle_doc.posting_time = posting_time
 
         warehouse = (
             row.get("warehouse") or row.get("t_warehouse") or row.get("s_warehouse")

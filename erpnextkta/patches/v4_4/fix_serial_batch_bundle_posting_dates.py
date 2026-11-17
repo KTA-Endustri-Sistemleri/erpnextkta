@@ -3,47 +3,53 @@ import frappe
 
 def execute():
     """
-    Backfill posting_date and posting_time on Serial and Batch Bundle
+    Backfill posting_datetime and/or posting_date/posting_time on Serial and Batch Bundle
     from parent vouchers to fix ERPNext v15 BatchNoValuation negative stock errors.
+    Supports both legacy (posting_date/posting_time) and modern (posting_datetime) schemas.
     """
-    # 1. Stock Entry
-    frappe.db.sql("""
-		UPDATE `tabSerial and Batch Bundle` sabb
-		JOIN `tabStock Entry` se ON sabb.voucher_no = se.name
-		SET sabb.posting_date = se.posting_date,
-			sabb.posting_time = COALESCE(se.posting_time, '00:00:00')
-		WHERE sabb.voucher_type = 'Stock Entry'
-		  AND sabb.posting_date IS NULL
-	""")
+    has_posting_datetime = frappe.db.has_column(
+        "Serial and Batch Bundle", "posting_datetime"
+    )
+    has_posting_date = frappe.db.has_column("Serial and Batch Bundle", "posting_date")
+    has_posting_time = frappe.db.has_column("Serial and Batch Bundle", "posting_time")
 
-    # 2. Purchase Receipt
-    frappe.db.sql("""
-		UPDATE `tabSerial and Batch Bundle` sabb
-		JOIN `tabPurchase Receipt` pr ON sabb.voucher_no = pr.name
-		SET sabb.posting_date = pr.posting_date,
-			sabb.posting_time = COALESCE(pr.posting_time, '00:00:00')
-		WHERE sabb.voucher_type = 'Purchase Receipt'
-		  AND sabb.posting_date IS NULL
-	""")
+    if not has_posting_datetime and not has_posting_date:
+        return
 
-    # 3. Delivery Note
-    frappe.db.sql("""
-		UPDATE `tabSerial and Batch Bundle` sabb
-		JOIN `tabDelivery Note` dn ON sabb.voucher_no = dn.name
-		SET sabb.posting_date = dn.posting_date,
-			sabb.posting_time = COALESCE(dn.posting_time, '00:00:00')
-		WHERE sabb.voucher_type = 'Delivery Note'
-		  AND sabb.posting_date IS NULL
-	""")
+    set_clauses = []
+    where_clauses = []
 
-    # 4. Other vouchers
-    for dt in ["Purchase Invoice", "Sales Invoice", "Stock Reconciliation"]:
+    if has_posting_datetime:
+        set_clauses.append(
+            "sabb.posting_datetime = TIMESTAMP(CONCAT(v.posting_date, ' ', COALESCE(v.posting_time, '00:00:00')))"
+        )
+        where_clauses.append("sabb.posting_datetime IS NULL")
+
+    if has_posting_date:
+        set_clauses.append("sabb.posting_date = v.posting_date")
+        where_clauses.append("sabb.posting_date IS NULL")
+
+    if has_posting_time:
+        set_clauses.append("sabb.posting_time = COALESCE(v.posting_time, '00:00:00')")
+
+    set_sql = ", ".join(set_clauses)
+    where_sql = " OR ".join(where_clauses)
+
+    voucher_types = [
+        "Stock Entry",
+        "Purchase Receipt",
+        "Delivery Note",
+        "Purchase Invoice",
+        "Sales Invoice",
+        "Stock Reconciliation",
+    ]
+
+    for dt in voucher_types:
         if frappe.db.exists("DocType", dt):
             frappe.db.sql(f"""
 				UPDATE `tabSerial and Batch Bundle` sabb
-				JOIN `tab{dt}` v ON sabb.voucher_no = v.name
-				SET sabb.posting_date = v.posting_date,
-					sabb.posting_time = COALESCE(v.posting_time, '00:00:00')
+				STRAIGHT_JOIN `tab{dt}` v ON sabb.voucher_no = v.name
+				SET {set_sql}
 				WHERE sabb.voucher_type = '{dt}'
-				  AND sabb.posting_date IS NULL
+				  AND ({where_sql})
 			""")

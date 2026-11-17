@@ -19,11 +19,20 @@ class TestBatchSplitPostingDate(KTAUnitTestCase):
         frappe.local.db = self._orig_db
         super().tearDown()
 
-    def _create_mock_bundle(self, posting_date=None, posting_time=None):
+    def _create_mock_bundle(self, posting_date=None, posting_time=None, fields=None):
         bundle = MagicMock()
         bundle.name = "SABB-TEST-0001"
         bundle.posting_date = posting_date
         bundle.posting_time = posting_time
+        bundle.posting_datetime = None
+        bundle.meta = MagicMock()
+
+        available_fields = (
+            fields
+            if fields is not None
+            else ["posting_date", "posting_time", "posting_datetime"]
+        )
+        bundle.meta.has_field.side_effect = lambda f: f in available_fields
         bundle.flags = MagicMock()
         bundle.entries = []
 
@@ -83,6 +92,7 @@ class TestBatchSplitPostingDate(KTAUnitTestCase):
 
         self.assertEqual(mock_bundle.posting_date, "2026-11-17")
         self.assertEqual(mock_bundle.posting_time, "14:30:00")
+        self.assertEqual(str(mock_bundle.posting_datetime), "2026-11-17 14:30:00")
         mock_bundle.save.assert_called_once_with(ignore_permissions=True)
         self.assertEqual(len(mock_bundle.entries), 2)
 
@@ -134,6 +144,9 @@ class TestBatchSplitPostingDate(KTAUnitTestCase):
 
         self.assertEqual(mock_bundle.posting_date, "2026-05-20")
         self.assertEqual(mock_bundle.posting_time, fixed_nowtime)
+        self.assertEqual(
+            str(mock_bundle.posting_datetime), f"2026-05-20 {fixed_nowtime}"
+        )
 
     @patch("erpnextkta.kta_stock.batch_manager.frappe.clear_document_cache")
     @patch.object(BatchSplitManager, "_get_reliable_incoming_rate", return_value=8.0)
@@ -174,6 +187,7 @@ class TestBatchSplitPostingDate(KTAUnitTestCase):
 
         self.assertEqual(mock_bundle.posting_date, "2026-08-12")
         self.assertEqual(mock_bundle.posting_time, "10:15:30")
+        self.assertEqual(str(mock_bundle.posting_datetime), "2026-08-12 10:15:30")
         self.mock_db.get_value.assert_any_call(
             "Purchase Receipt",
             "PR-2026-0001",
@@ -223,6 +237,9 @@ class TestBatchSplitPostingDate(KTAUnitTestCase):
 
         self.assertEqual(mock_bundle.posting_date, fixed_nowdate)
         self.assertEqual(mock_bundle.posting_time, fixed_nowtime)
+        self.assertEqual(
+            str(mock_bundle.posting_datetime), f"{fixed_nowdate} {fixed_nowtime}"
+        )
 
     @patch("erpnextkta.kta_stock.batch_manager.frappe.clear_document_cache")
     @patch.object(BatchSplitManager, "_get_reliable_incoming_rate", return_value=1.0)
@@ -258,6 +275,7 @@ class TestBatchSplitPostingDate(KTAUnitTestCase):
 
         self.assertEqual(mock_bundle.posting_date, "2026-03-01")
         self.assertEqual(mock_bundle.posting_time, "09:00:00")
+        self.assertEqual(str(mock_bundle.posting_datetime), "2026-03-01 09:00:00")
 
     @patch.object(BatchSplitManager, "_update_bundle_safely")
     @patch.object(BatchSplitManager, "_prepare_batch_allocations")
@@ -387,3 +405,105 @@ class TestBatchSplitPostingDate(KTAUnitTestCase):
         mock_update_safely.assert_called_once_with(
             item_row, mock_prepare.return_value, parent_doc=stock_entry_doc
         )
+
+    @patch("erpnextkta.kta_stock.batch_manager.frappe.clear_document_cache")
+    @patch.object(BatchSplitManager, "_get_reliable_incoming_rate", return_value=10.0)
+    def test_update_bundle_safely_when_schema_only_has_posting_datetime(
+        self, mock_rate, mock_clear_cache
+    ):
+        """When bundle schema only has posting_datetime, only posting_datetime is assigned."""
+        mock_bundle = self._create_mock_bundle(fields=["posting_datetime"])
+        row = frappe._dict(
+            {
+                "name": "row-only-datetime",
+                "serial_and_batch_bundle": "SABB-TEST-0006",
+                "warehouse": "Stores - TC",
+                "batch_no": None,
+            }
+        )
+        parent_doc = frappe._dict(
+            {
+                "doctype": "Stock Entry",
+                "name": "STE-2026-0003",
+                "posting_date": "2026-11-17",
+                "posting_time": "14:30:00",
+            }
+        )
+        allocations = [{"batch_no": "BATCH-007", "qty": 10.0}]
+
+        with patch(
+            "erpnextkta.kta_stock.batch_manager.frappe.get_doc",
+            return_value=mock_bundle,
+        ):
+            BatchSplitManager._update_bundle_safely(
+                row, allocations, parent_doc=parent_doc
+            )
+
+        self.assertEqual(str(mock_bundle.posting_datetime), "2026-11-17 14:30:00")
+        self.assertIsNone(mock_bundle.posting_date)
+        self.assertIsNone(mock_bundle.posting_time)
+
+    @patch("erpnextkta.kta_stock.batch_manager.frappe.clear_document_cache")
+    @patch.object(BatchSplitManager, "_get_reliable_incoming_rate", return_value=10.0)
+    def test_update_bundle_safely_when_schema_only_has_posting_date_and_time(
+        self, mock_rate, mock_clear_cache
+    ):
+        """When bundle schema only has posting_date and posting_time, posting_datetime is not set."""
+        mock_bundle = self._create_mock_bundle(fields=["posting_date", "posting_time"])
+        row = frappe._dict(
+            {
+                "name": "row-only-date-time",
+                "serial_and_batch_bundle": "SABB-TEST-0007",
+                "warehouse": "Stores - TC",
+                "batch_no": None,
+            }
+        )
+        parent_doc = frappe._dict(
+            {
+                "doctype": "Stock Entry",
+                "name": "STE-2026-0004",
+                "posting_date": "2026-11-17",
+                "posting_time": "14:30:00",
+            }
+        )
+        allocations = [{"batch_no": "BATCH-008", "qty": 10.0}]
+
+        with patch(
+            "erpnextkta.kta_stock.batch_manager.frappe.get_doc",
+            return_value=mock_bundle,
+        ):
+            BatchSplitManager._update_bundle_safely(
+                row, allocations, parent_doc=parent_doc
+            )
+
+        self.assertEqual(mock_bundle.posting_date, "2026-11-17")
+        self.assertEqual(mock_bundle.posting_time, "14:30:00")
+        self.assertIsNone(mock_bundle.posting_datetime)
+
+    @patch("erpnextkta.kta_stock.batch_manager.frappe.clear_document_cache")
+    @patch.object(BatchSplitManager, "_get_reliable_incoming_rate", return_value=10.0)
+    def test_update_bundle_safely_preserves_from_posting_datetime_if_only_datetime_set(
+        self, mock_rate, mock_clear_cache
+    ):
+        """When bundle only has posting_datetime set and no parent info is provided, date and time are derived."""
+        mock_bundle = self._create_mock_bundle()
+        mock_bundle.posting_datetime = "2026-04-10 11:20:00"
+        row = frappe._dict(
+            {
+                "name": "row-from-datetime",
+                "serial_and_batch_bundle": "SABB-TEST-0008",
+                "warehouse": "Stores - TC",
+                "batch_no": None,
+            }
+        )
+        allocations = [{"batch_no": "BATCH-009", "qty": 10.0}]
+
+        with patch(
+            "erpnextkta.kta_stock.batch_manager.frappe.get_doc",
+            return_value=mock_bundle,
+        ):
+            BatchSplitManager._update_bundle_safely(row, allocations, parent_doc=None)
+
+        self.assertEqual(mock_bundle.posting_date, "2026-04-10")
+        self.assertEqual(mock_bundle.posting_time, "11:20:00")
+        self.assertEqual(str(mock_bundle.posting_datetime), "2026-04-10 11:20:00")

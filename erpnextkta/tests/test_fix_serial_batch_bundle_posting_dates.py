@@ -12,9 +12,9 @@ class TestFixSerialBatchBundlePostingDates(KTAUnitTestCase):
     Test suite for database patch:
     erpnextkta.patches.v4_4.fix_serial_batch_bundle_posting_dates
 
-    Verifies backfilling of posting_date and posting_time on Serial and Batch Bundle
-    from parent vouchers (Stock Entry, Purchase Receipt, Delivery Note, Purchase Invoice,
-    Sales Invoice, Stock Reconciliation) where posting_date IS NULL.
+    Verifies backfilling of posting_datetime and/or posting_date/posting_time
+    on Serial and Batch Bundle from parent vouchers (Stock Entry, Purchase Receipt,
+    Delivery Note, Purchase Invoice, Sales Invoice, Stock Reconciliation).
     """
 
     @classmethod
@@ -74,26 +74,69 @@ class TestFixSerialBatchBundlePostingDates(KTAUnitTestCase):
         )
 
     def _create_bundle(
-        self, name, voucher_type, voucher_no, posting_date=None, posting_time=None
+        self,
+        name,
+        voucher_type,
+        voucher_no,
+        posting_date=None,
+        posting_time=None,
+        posting_datetime=None,
     ):
+        has_posting_datetime = frappe.db.has_column(
+            "Serial and Batch Bundle", "posting_datetime"
+        )
+        has_posting_date = frappe.db.has_column(
+            "Serial and Batch Bundle", "posting_date"
+        )
+        has_posting_time = frappe.db.has_column(
+            "Serial and Batch Bundle", "posting_time"
+        )
+
+        fields = ["name", "voucher_type", "voucher_no", "docstatus"]
+        values = [name, voucher_type, voucher_no, 1]
+
+        if has_posting_datetime:
+            if posting_datetime is None and posting_date:
+                posting_datetime = f"{posting_date} {posting_time or '00:00:00'}"
+            fields.append("posting_datetime")
+            values.append(posting_datetime)
+
+        if has_posting_date:
+            fields.append("posting_date")
+            values.append(posting_date)
+
+        if has_posting_time:
+            fields.append("posting_time")
+            values.append(posting_time)
+
+        fields_str = ", ".join(f"`{f}`" for f in fields)
+        placeholders = ", ".join(["%s"] * len(values))
+
         frappe.db.sql(
-            """
-            INSERT INTO `tabSerial and Batch Bundle` (name, voucher_type, voucher_no, posting_date, posting_time, docstatus)
-            VALUES (%s, %s, %s, %s, %s, 1)
-            """,
-            (name, voucher_type, voucher_no, posting_date, posting_time),
+            f"INSERT INTO `tabSerial and Batch Bundle` ({fields_str}) VALUES ({placeholders})",
+            tuple(values),
         )
 
     def test_backfill_all_voucher_types_and_idempotency(self):
         """
         Comprehensive test verifying:
-        1. Stock Entry backfill (posting_date and posting_time).
+        1. Stock Entry backfill (posting_date/posting_time and/or posting_datetime).
         2. Purchase Receipt backfill.
         3. Delivery Note backfill.
         4. Purchase Invoice, Sales Invoice (COALESCE NULL posting_time -> 00:00:00), Stock Reconciliation.
-        5. Existing posting_date is preserved (not overwritten).
+        5. Existing posting_date / posting_datetime is preserved (not overwritten).
         6. Idempotency (subsequent execute() runs without error and keeps data).
         """
+        has_posting_datetime = frappe.db.has_column(
+            "Serial and Batch Bundle", "posting_datetime"
+        )
+        has_posting_date = frappe.db.has_column(
+            "Serial and Batch Bundle", "posting_date"
+        )
+        has_posting_time = frappe.db.has_column(
+            "Serial and Batch Bundle", "posting_time"
+        )
+
         # 1. Stock Entry
         self._create_voucher(
             "Stock Entry", "TEST-SE-PATCH-001", "2025-02-01", "09:15:00"
@@ -130,7 +173,7 @@ class TestFixSerialBatchBundlePostingDates(KTAUnitTestCase):
             "TEST-SABB-SR-001", "Stock Reconciliation", "TEST-SR-PATCH-001"
         )
 
-        # 7. Existing posting_date should NOT be overwritten
+        # 7. Existing posting_date / posting_datetime should NOT be overwritten
         self._create_voucher(
             "Stock Entry", "TEST-SE-EXISTING-001", "2025-02-10", "12:00:00"
         )
@@ -142,88 +185,61 @@ class TestFixSerialBatchBundlePostingDates(KTAUnitTestCase):
             posting_time="08:00:00",
         )
 
+        frappe.db.commit()
+
         # Execute the patch
         execute()
 
+        frappe.db.commit()
+
+        fields_to_fetch = []
+        if has_posting_datetime:
+            fields_to_fetch.append("posting_datetime")
+        if has_posting_date:
+            fields_to_fetch.append("posting_date")
+        if has_posting_time:
+            fields_to_fetch.append("posting_time")
+
+        def assert_bundle(bundle_name, expected_date, expected_time):
+            res = frappe.db.get_value(
+                "Serial and Batch Bundle",
+                bundle_name,
+                fields_to_fetch,
+                as_dict=True,
+            )
+            self.assertIsNotNone(res)
+            if has_posting_datetime:
+                self.assertEqual(
+                    str(res.posting_datetime), f"{expected_date} {expected_time}"
+                )
+            if has_posting_date:
+                self.assertEqual(str(res.posting_date), expected_date)
+            if has_posting_time:
+                self.assertEqual(str(res.posting_time).zfill(8), expected_time)
+
         def verify_bundles():
             # 1. Stock Entry
-            se_res = frappe.db.get_value(
-                "Serial and Batch Bundle",
-                "TEST-SABB-SE-001",
-                ["posting_date", "posting_time"],
-                as_dict=True,
-            )
-            self.assertIsNotNone(se_res)
-            self.assertEqual(str(se_res.posting_date), "2025-02-01")
-            self.assertEqual(str(se_res.posting_time).zfill(8), "09:15:00")
-
+            assert_bundle("TEST-SABB-SE-001", "2025-02-01", "09:15:00")
             # 2. Purchase Receipt
-            pr_res = frappe.db.get_value(
-                "Serial and Batch Bundle",
-                "TEST-SABB-PR-001",
-                ["posting_date", "posting_time"],
-                as_dict=True,
-            )
-            self.assertIsNotNone(pr_res)
-            self.assertEqual(str(pr_res.posting_date), "2025-02-02")
-            self.assertEqual(str(pr_res.posting_time).zfill(8), "10:30:00")
-
+            assert_bundle("TEST-SABB-PR-001", "2025-02-02", "10:30:00")
             # 3. Delivery Note
-            dn_res = frappe.db.get_value(
-                "Serial and Batch Bundle",
-                "TEST-SABB-DN-001",
-                ["posting_date", "posting_time"],
-                as_dict=True,
-            )
-            self.assertIsNotNone(dn_res)
-            self.assertEqual(str(dn_res.posting_date), "2025-02-03")
-            self.assertEqual(str(dn_res.posting_time).zfill(8), "14:45:00")
-
+            assert_bundle("TEST-SABB-DN-001", "2025-02-03", "14:45:00")
             # 4. Purchase Invoice
-            pi_res = frappe.db.get_value(
-                "Serial and Batch Bundle",
-                "TEST-SABB-PI-001",
-                ["posting_date", "posting_time"],
-                as_dict=True,
-            )
-            self.assertEqual(str(pi_res.posting_date), "2025-02-04")
-            self.assertEqual(str(pi_res.posting_time).zfill(8), "16:20:00")
-
+            assert_bundle("TEST-SABB-PI-001", "2025-02-04", "16:20:00")
             # 5. Sales Invoice (COALESCE to '00:00:00')
-            si_res = frappe.db.get_value(
-                "Serial and Batch Bundle",
-                "TEST-SABB-SI-001",
-                ["posting_date", "posting_time"],
-                as_dict=True,
-            )
-            self.assertEqual(str(si_res.posting_date), "2025-02-05")
-            self.assertEqual(str(si_res.posting_time).zfill(8), "00:00:00")
-
+            assert_bundle("TEST-SABB-SI-001", "2025-02-05", "00:00:00")
             # 6. Stock Reconciliation
-            sr_res = frappe.db.get_value(
-                "Serial and Batch Bundle",
-                "TEST-SABB-SR-001",
-                ["posting_date", "posting_time"],
-                as_dict=True,
-            )
-            self.assertEqual(str(sr_res.posting_date), "2025-02-06")
-            self.assertEqual(str(sr_res.posting_time).zfill(8), "18:00:00")
-
-            # 7. Existing posting_date was NOT overwritten
-            ex_res = frappe.db.get_value(
-                "Serial and Batch Bundle",
-                "TEST-SABB-EXISTING-001",
-                ["posting_date", "posting_time"],
-                as_dict=True,
-            )
-            self.assertEqual(str(ex_res.posting_date), "2025-01-01")
-            self.assertEqual(str(ex_res.posting_time).zfill(8), "08:00:00")
+            assert_bundle("TEST-SABB-SR-001", "2025-02-06", "18:00:00")
+            # 7. Existing posting_date / posting_datetime was NOT overwritten
+            assert_bundle("TEST-SABB-EXISTING-001", "2025-01-01", "08:00:00")
 
         # First verification
         verify_bundles()
 
         # Run execute() a second time to verify idempotency
         execute()
+
+        frappe.db.commit()
 
         # Second verification ensures data remains identical
         verify_bundles()
