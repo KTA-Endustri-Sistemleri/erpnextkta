@@ -3,6 +3,49 @@
 
 
 
+## 🚀 v4.4.1 (2026-11-17)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **stock**: support posting_datetime schema in SABB bundle update and patch
+      
+      
+    
+      
+      
+        
+- **stock**: backfill missing posting datetime on existing bundles via migration patch
+      
+      
+    
+      
+      
+        
+- **stock**: propagate posting datetime to split serial and batch bundles
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.4.0 (2026-11-16)
 
 

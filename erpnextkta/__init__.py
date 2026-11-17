@@ -1,4 +1,4 @@
-__version__ = "4.4.0"
+__version__ = "4.4.1"
 
 try:
     from erpnextkta.overrides import apply as apply_overrides
