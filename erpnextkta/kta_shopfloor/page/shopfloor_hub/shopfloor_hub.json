@@ -1,0 +1,23 @@
+{
+ "doctype": "Page",
+ "icon": "octicon octicon-check-circle",
+ "module": "kta_shopfloor",
+ "name": "shopfloor_hub",
+ "page_name": "shopfloor_hub",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Manufacturing User"
+  },
+  {
+   "role": "Manufacturing Manager"
+  },
+  {
+   "role": "KTA Çalışma Kartı Yöneticisi"
+  }
+ ],
+ "standard": "Yes",
+ "title": "Shopfloor Hub"
+}

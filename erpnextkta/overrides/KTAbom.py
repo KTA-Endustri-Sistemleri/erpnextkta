@@ -1,8 +1,41 @@
 import frappe
 from erpnext.manufacturing.doctype.bom.bom import BOM
+from frappe import _
+
+from erpnextkta.kta_shopfloor.services.work_order_service import (
+    auto_normalize_work_order_operations,
+)
 
 
 class KTAbom(BOM):
+
+    def validate(self):
+        auto_normalize_work_order_operations(self)
+        super().validate()
+        self._validate_item_operations()
+
+    def _validate_item_operations(self):
+        """Ensure every raw material is assigned to an operation
+        when the BOM has operations."""
+        if not self.with_operations or not self.operations:
+            return
+
+        missing = []
+        for d in self.items:
+            if not d.operation:
+                missing.append(
+                    _("Row {0}: {1}").format(d.idx, d.item_code)
+                )
+
+        if missing:
+            frappe.msgprint(
+                _("The following raw materials are not assigned to any operation: {0}").format(
+                    "<br>".join(missing)
+                ),
+                title=_("Missing Operation Assignment"),
+                indicator="orange",
+            )
+
 
     def manage_default_bom(self):
         super().manage_default_bom()

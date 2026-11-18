@@ -4,3 +4,4 @@ kta_calisma_karti
 kta_sales
 kta_stock
 kta_quality
+kta_shopfloor
