@@ -485,7 +485,7 @@ Yükseklik (mm),Höhe (mm)
 Kontak No,Terminal-Nr
 KESİT:,QUERSCHNITT:
 İzokrimp Yüksekliği (mm),Isocrimphöhe (mm)
-Adet,Menge
+Adet,Stück
 KALIP:,FORM:
 KALIP NO:,FORM-NR.:
 Kalıp No zorunludur.,Form-Nr. ist erforderlich.
@@ -715,7 +715,7 @@ Tedarikçi,Lieferant
 İrsaliye No,Lieferschein-Nr
 Sevk İrsaliye No,Versand-Lieferschein-Nr
 Hesaplanan Adet,Berechnete Menge
-Adet,Menge
+Adet,Stück
 Giriş,Eingang
 Çıkış,Ausgang
 Seri,Serie
@@ -724,7 +724,7 @@ Açıklama,Bemerkungen
 Seri,Serie
 Tarih,Datum
 Açıklama,Bemerkungen
-İşlem,Vorgang
+İşlem,Aktion
 Teslim Eden,Übergeben von
 Teslim Alan,Übernommen von
 Adet sıfırdan büyük olmalıdır.,Die Menge muss größer als null sein.
@@ -946,3 +946,247 @@ Vardiya Kapasite Sınırını Devre Dışı Bırak,Schichtkapazitätsgrenze Deak
 "İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.","Wenn aktiviert, wird die gesamte Nettozeit des Bedieners innerhalb einer Schicht nicht durch die maximale Arbeitskartendauer begrenzt; die tatsächliche Nettozeit wird auf die Karten geschrieben."
 Vardiya Sonu Otomatik Kapatmayı Devre Dışı Bırak,Automatische Schichtende-Schließung Deaktivieren
 "İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.","Wenn aktiviert, werden offene Karten zum Schichtende (16:15 und 00:15) nicht automatisch vom System geschlossen; die Schließung bleibt vollständig beim Bediener."
+KTA Production Confirmation,KTA-Produktionsrückmeldung
+KTA Uretim Teyidi,KTA-Produktionsrückmeldung
+CO11N Üretim Teyit Ekranı,CO11N Produktionsrückmeldungs-Cockpit
+CO11N Hızlı Üretim Teyidi,CO11N Schnelle Produktionsrückmeldung
+İş Emri veya İş Kartı Barkodunu Okutarak Hızlı Teyit Girişi Yapın,Scannen Sie den Fertigungsauftrag- oder Job-Karten-Barcode für schnelle Rückmeldung
+Yeni Okutma,Neuer Scan
+Barkod veya İş Emri No Okutun…,Barcode oder Fertigungsauftrags-Nr. scannen…
+Teyit Başarıyla Tamamlandı,Rückmeldung Erfolgreich Abgeschlossen
+"Teyit Başarıyla Kaydedildi: {0}","Rückmeldung Erfolgreich Gespeichert: {0}"
+Teyit Belgesi,Rückmeldebeleg
+Stok Fişi,Materialbeleg
+İlişkili Stok Fişi,Verknüpfter Materialbeleg
+Hedef Miktar,Zielmenge
+Üretilen Mamul,Produzierte Ware
+Kalan Mamul,Verbleibende Ware
+Operasyonlar,Vorgänge
+Son Operasyon,Letzter Vorgang
+Kalan,Rest
+Teyit Girişi,Rückmeldeerfassung
+Seçili Operasyon,Ausgewählter Vorgang
+Bu son operasyondur: Teyit verildiğinde mamul girişi yapılacaktır.,Dies ist der letzte Vorgang: Bei Rückmeldung wird der Fertigwareneingang gebucht.
+Teyit Edilen,Rückgemeldet
+Açık Bakiye,Offener Saldo
+Sağlam Miktar (Yield Qty),Gutmenge (Yield Qty)
+Kalanın Tümü,Gesamte Restmenge
+Son Teyit (Kalanı Kapat),Endrückmeldung (Rest Schließen)
+"Hedef adede tam ulaşılmasa bile açık bakiyeyi ve İş Kartını kapatır.","Schließt den offenen Saldo und die Job-Karte, auch wenn die Zielmenge nicht erreicht wird."
+Teyit Et,Rückmelden
+Başlamak İçin Barkod Okutun,Barcode Scannen zum Starten
+"İş Emri veya İş Kartı üzerinde bulunan barkodu okutarak operasyonları listeleyin.","Scannen Sie den Barcode auf dem Fertigungsauftrag oder der Job-Karte, um Vorgänge aufzulisten."
+İş Emri detayları alınamadı.,Details des Fertigungsauftrags konnten nicht abgerufen werden.
+Barkod okutulurken bir hata oluştu.,Beim Scannen des Barcodes ist ein Fehler aufgetreten.
+Lütfen önce bir İş Emri ve Operasyon seçin.,Bitte wählen Sie zuerst einen Fertigungsauftrag und Vorgang aus.
+Lütfen sağlam miktar girin.,Bitte geben Sie eine Gutmenge ein.
+Sağlam Miktar sıfırdan büyük bir sayı olmalıdır.,Gutmenge muss eine Zahl größer als null sein.
+Teyit işlemi başarısız oldu.,Rückmeldevorgang fehlgeschlagen.
+Teyit işlemi sırasında bir hata oluştu.,Beim Rückmeldevorgang ist ein Fehler aufgetreten.
+Barkod veya İş Emri / İş Kartı boş olamaz.,Barcode oder Fertigungsauftrag / Job-Karte darf nicht leer sein.
+Barkod ile eşleşen İş Emri veya İş Kartı bulunamadı: {0},Kein Fertigungsauftrag oder Job-Karte passend zum Barcode gefunden: {0}
+Bu İş Emri için okuma yetkiniz yok.,Sie haben keine Leseberechtigung für diesen Fertigungsauftrag.
+Bu sayfaya erişim yetkiniz bulunmamaktadır.,Sie haben keine Berechtigung für den Zugriff auf diese Seite.
+İş Emri (work_order) zorunludur.,Fertigungsauftrag (work_order) ist erforderlich.
+İş Emri bulunamadı: {0},Fertigungsauftrag nicht gefunden: {0}
+Operasyon (operation) zorunludur.,Vorgang (operation) ist erforderlich.
+Sağlam Miktar (yield_qty) sıfırdan büyük olmalıdır.,Gutmenge (yield_qty) muss größer als null sein.
+Sağlam Miktar (Yield Qty) sıfırdan büyük olmalıdır.,Gutmenge (Yield Qty) muss größer als null sein.
+Üretim teyidi bulunamadı: {0},Produktionsrückmeldung nicht gefunden: {0}
+Üretim teyidi zaten iptal edilmiş: {0},Produktionsrückmeldung bereits storniert: {0}
+"Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0}","Nur übermittelte Rückmeldungen können storniert werden: {0}"
+Üretim teyidini iptal etme yetkiniz bulunmamaktadır.,Sie sind nicht berechtigt Produktionsrückmeldungen zu stornieren.
+Aktif İş Emirleri,Aktive Fertigungsaufträge
+İş Emirleri,Fertigungsaufträge
+Devam Edenler,In Bearbeitung
+Başlamamış,Nicht begonnen
+Başlanmamış,Nicht begonnen
+İş Emri veya Ürün Ara…,Fertigungsauftrag oder Artikel suchen…
+Aramaya uygun açık iş emri bulunamadı.,Keine passenden offenen Fertigungsaufträge gefunden.
+İş Emirlerini Görüntüle,Fertigungsaufträge anzeigen
+"İş Emri No, Ürün Kodu veya Adı Ara…","Fertigungsauftrag-Nr., Artikelcode oder -name suchen…"
+Arama kriterlerinize uygun aktif iş emri bulunamadı.,"Keine aktiven Fertigungsaufträge gefunden, die den Suchkriterien entsprechen."
+İş Emirlerini Listele,Fertigungsaufträge auflisten
+İş Emirleri Yüklenemedi,Fertigungsaufträge konnten nicht geladen werden
+İş Emirleri Yükleniyor…,Fertigungsaufträge werden geladen…
+Kart üzerine tıklayarak ilgili iş emrini doğrudan yükleyebilirsiniz.,Sie können den entsprechenden Fertigungsauftrag direkt durch Klicken auf die Karte laden.
+Kopyalandı!,Kopiert!
+Numarayı Kopyala,Nummer kopieren
+Üretim İlerlemesi,Produktionsfortschritt
+Açık bakiyenin tamamını aktar,Gesamte offene Menge übertragen
+Son Operasyon (Milestone),Letzte Operation (Milestone)
+Teyit No,Rückmelde-Nr.
+Operasyon bazında sağlam miktar teyidi ve SAP CORS ters kayıt yönetimi,Vorgangsbezogene Gutmengenrückmeldung und SAP CORS Stornierungsmanagement
+Kayıt,Datensätze
+{0} Kayıt,{0} Datensätze
+{0} Adet,{0} Stück
+Teyit Geçmişi ve Hareketler,Rückmeldehistorie und Bewegungen
+Yenile,Aktualisieren
+Tarih / Saat,Datum / Uhrzeit
+Kullanıcı,Benutzer
+Durum,Status
+İptal,Stornieren
+Tüketim,Verbrauch
+Üretim,Produktion
+Seçimi Temizle,Auswahl aufheben
+Bir İş Emri Seçin,Wählen Sie einen Fertigungsauftrag
+Lütfen sol paneldeki listeden işlem yapmak istediğiniz bir İş Emri seçin.,"Bitte wählen Sie aus der Liste im linken Bereich einen Fertigungsauftrag aus, den Sie bearbeiten möchten."
+İş Emri Yükleniyor…,Fertigungsauftrag wird geladen…
+Kayıt Yok,Keine Datensätze
+Teyit Kayıtları Yükleniyor…,Rückmeldedatensätze werden geladen…
+Bu iş emrine ait henüz bir üretim teyidi kaydedilmemiş.,Für diesen Fertigungsauftrag wurden noch keine Produktionsrückmeldungen erfasst.
+Son Teyit Olarak Kaydedildi,Als Endrückmeldung erfasst
+SAP CORS Protokolüyle Bu Teyidi İptal Et,Diese Rückmeldung mit SAP-CORS-Protokoll stornieren
+Teyit Geçmişi Alınamadı,Rückmeldehistorie konnte nicht geladen werden
+Aramanıza veya bu statüye uygun iş emri bulunamadı.,Keine Fertigungsaufträge gefunden, die Ihrer Suche oder diesem Status entsprechen.
+Listeyi Yenile,Liste aktualisieren
+Temizle,Löschen
+Yükleniyor…,Wird geladen…
+Son,Ende
+Shopfloor Hub,Shopfloor Hub
+Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi,Echtzeit-Fertigungsauftragsausführung und Produktionsrückmeldung
+Work Orders,Fertigungsaufträge
+Operations,Vorgänge
+Shopfloor Views,Shopfloor-Ansichten
+Yeni İş Emri Aç,Neuen Fertigungsauftrag erstellen
+Serbest,Freigegeben
+Devam Eden,In Bearbeitung
+Tamamlanan,Abgeschlossen
+Draft,Entwurf
+Released,Freigegeben
+In Process,In Bearbeitung
+Completed,Abgeschlossen
+Not Started,Nicht begonnen
+Lütfen sol listeden bir iş emri seçin veya yeni bir iş emri açın.,Bitte wählen Sie einen Fertigungsauftrag aus der linken Liste aus oder erstellen Sie einen neuen Fertigungsauftrag.
+Hızlı taslak iş emri oluşturma,Schnellerstellung eines Entwurfs-Fertigungsauftrags
+Kapat,Schließen
+Mamul Kodu,Artikelcode
+Mamul kodu veya adı ile arayın...,Nach Artikelcode oder -name suchen...
+Aranıyor...,Suche läuft...
+Eşleşen mamul bulunamadı,Kein passender Artikel gefunden
+Varsayılan reçete ve termin bilgisi yükleniyor...,Standardstückliste und Durchlaufzeit werden geladen...
+Varsayılan BOM yok,Keine Standardstückliste
+Termin: {0} Gün,Durchlaufzeit: {0} Tage
+Gelişmiş Seçenekler,Erweiterte Optionen
+Reçete (BOM No),Stückliste (BOM-Nr.)
+Otomatik (varsayılan BOM),Automatisch (Standardstückliste)
+Kaynak Depo,Quelllager
+Opsiyonel,Optional
+Hedef Depo (Mamul),Ziellager (Fertigware)
+Varsayılan mamul deposu,Standard-Fertigwarenlager
+Planlanan Başlangıç,Geplantes Startdatum
+Planlanan Bitiş,Geplantes Enddatum
+Taslak Olarak Kaydet,Als Entwurf speichern
+Lütfen bir mamul (Item) seçin.,Bitte wählen Sie einen Artikel aus.
+Üretim miktarı sıfırdan büyük olmalıdır.,Die Produktionsmenge muss größer als null sein.
+İş Emri oluşturulamadı.,Fertigungsauftrag konnte nicht erstellt werden.
+Taslak İş Emri Oluşturuldu: {0},Entwurfs-Fertigungsauftrag erstellt: {0}
+İş Emri oluşturulurken bir hata oluştu.,Beim Erstellen des Fertigungsauftrags ist ein Fehler aufgetreten.
+Hammadde Uygunluğu,Materialverfügbarkeit
+Hammadde ve Bileşen Stok Uygunluk Matrisi,Material- und Komponenten-Bestandsverfügbarkeitsmatrix
+Hammadde Uygunluk Matrisi,Materialverfügbarkeitsmatrix
+Eksik Parça ile Serbest Bırakıldı,Mit Fehlmenge freigegeben
+Üretim Süresi (Gün),Fertigungsdurchlaufzeit (Tage)
+Karşılama Oranı,Deckungsgrad
+Karşılama %,Deckung %
+Depo Stok,Lagerbestand
+İhtiyaç Miktarı,Bedarfsmenge
+Eksik Miktar,Fehlmenge
+Stok Durumunu Yenile,Bestandsstatus aktualisieren
+Stok Yenile,Bestand aktualisieren
+Üretilecek Mamul,Zu fertigender Artikel
+Genel Hammadde Hazırlık Durumu,Allgemeine Materialbereitschaft
+Kontrol Ediliyor…,Wird geprüft…
+%{0} Hazır (Tüm bileşenler mevcut),{0}% Bereit (Alle Komponenten verfügbar)
+Tüm bileşenler mevcut,Alle Komponenten verfügbar
+%{0} Hazır ({1} Kalem Eksik),{0}% Bereit ({1} Positionen fehlen)
+Bu iş emri üretime serbest bırakılmıştır.,Dieser Fertigungsauftrag wurde für die Produktion freigegeben.
+İş emri durumu güncellendi. Operasyon teyitlerini başlatmak için geçiş yapabilirsiniz.,"Status des Fertigungsauftrags aktualisiert. Sie können wechseln, um Vorgangsrückmeldungen zu starten."
+Operasyon Teyidine Geç,Zur Vorgangsrückmeldung wechseln
+Taslak İş Emri,Entwurfs-Fertigungsauftrag
+Eksik hammadde bulunuyor. İsterseniz uyarıyı onaylayarak serbest bırakabilirsiniz.,Materialfehlmenge vorhanden. Sie können den Auftrag durch Bestätigung der Warnung freigeben.
+Tüm bileşen stokları uygun. İş emrini üretime serbest bırakabilirsiniz.,Alle Komponentenbestände sind verfügbar. Sie können den Fertigungsauftrag freigeben.
+Serbest Bırakılıyor…,Wird freigegeben…
+İş Emrini Serbest Bırak (Release),Fertigungsauftrag freigeben (Release)
+{0} Bileşen,{0} Komponenten
+Hammadde Stok Durumu Kontrol Ediliyor…,Materialbestand wird geprüft…
+Bu iş emri için malzeme gereksinimi bulunmuyor.,Für diesen Fertigungsauftrag sind keine Materialanforderungen vorhanden.
+Bileşen Kodu,Komponentencode
+İhtiyaç,Bedarf
+Mevcut Stok,Verfügbarer Bestand
+Eksik,Fehlt
+Eksik Hammadde Uyarısı,Materialfehlmenge-Warnung
+Bu iş emrinde {0} adet bileşende hammadde eksiktir.,In diesem Fertigungsauftrag fehlen Materialien bei {0} Komponente(n).
+Bileşen,Komponente
+Mevcut,Verfügbar
+Yine de Serbest Bırak (Force Release),Trotzdem freigeben (Force Release)
+Hammadde uygunluk bilgileri alınamadı.,Informationen zur Materialverfügbarkeit konnten nicht abgerufen werden.
+İş emri başarıyla serbest bırakıldı,Fertigungsauftrag erfolgreich freigegeben
+İş emri serbest bırakılırken bir hata oluştu.,Beim Freigeben des Fertigungsauftrags ist ein Fehler aufgetreten.
+"""{0}"" numaralı iş emrini üretime serbest bırakmak istediğinize emin misiniz?","Möchten Sie den Fertigungsauftrag ""{0}"" wirklich für die Produktion freigeben?"
+Geçerli bir mamul kodu (item_code) zorunludur.,Ein gültiger Artikelcode (item_code) ist erforderlich.
+Yalnızca taslak durumundaki İş Emirleri serbest bırakılabilir: {0},Nur Fertigungsaufträge im Entwurfsstatus können freigegeben werden: {0}
+Eksik hammadde mevcut: {0},Materialfehlmenge vorhanden: {0}
+İş Emri eksik hammadde ile serbest bırakıldı: {0},Fertigungsauftrag mit Materialfehlmenge freigegeben: {0}
+Şirket bilgisi çözümlenemedi.,Unternehmensinformationen konnten nicht aufgelöst werden.
+Ürün için aktif reçete (BOM) bulunamadı: {0},Keine aktive Stückliste (BOM) für Artikel gefunden: {0}
+İş Emrini Yeni Sekmede Aç,Fertigungsauftrag in neuem Tab öffnen
+{0} Adım,{0} Schritte
+İlişkili Stok Fişleri,Verknüpfte Lagerbuchungen
+İptal İşlemi Başarısız,Stornierung fehlgeschlagen
+Teyit Başarıyla İptal Edildi: {0},Rückmeldung erfolgreich storniert: {0}
+Teyit iptal edilirken bir hata oluştu.,Beim Stornieren der Rückmeldung ist ein Fehler aufgetreten.
+"""{0}"" numaralı teyit belgesini ve ilişkili stok hareketlerini SAP CORS protokolüyle iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.","Möchten Sie die Rückmeldung ""{0}"" und die zugehörigen Lagerbuchungen wirklich mit dem SAP-CORS-Protokoll stornieren? Dieser Vorgang kann nicht rückgängig gemacht werden."
+Üretim Fişi,Produktionsbuchung
+Tüketim Fişi,Verbrauchsbuchung
+İş Emri yüklenirken hata oluştu.,Beim Laden des Fertigungsauftrags ist ein Fehler aufgetreten.
+Bu iş emri {0} durumundadır.,Dieser Fertigungsauftrag hat den Status {0}.
+Durdurulmuş veya kapatılmış iş emirleri için serbest bırakma veya operasyon teyidi yapılamaz.,Für gestoppte oder geschlossene Fertigungsaufträge kann keine Freigabe oder Vorgangsrückmeldung erfolgen.
+Bu iş emri iptal edilmiştir.,Dieser Fertigungsauftrag wurde storniert.
+Eksik Hammadde ile Serbest Bırakıldı,Mit Materialfehlbestand freigegeben
+Hatta Mevcut,Auf Linie verfügbar
+Transfer Edilebilir,Umlagerung möglich
+Fabrikada Yok,Nicht im Werk
+Kritik Eksik,Kritischer Fehlbestand
+Transfer Gerekli,Umlagerung erforderlich
+Hatta (Tüketim Deposu),Auf Linie (Verbrauchslager)
+Diğer Depolarda,In anderen Lagern
+(Rezerve: {0}),(Reserviert: {0})
+Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur. Hat transferi yapılarak üretime hazır hale getirilebilir.,Auf der Linie fehlende Materialien sind in zentralen/anderen Lagern verfügbar. Sie können durch Linienumlagerung bereitgestellt werden.
+Kritik hammadde eksikliği mevcut. {0} kalem fabrika genelinde temin edilememiştir.,Kritischer Materialengpass besteht. {0} Positionen konnten werksweit nicht beschafft werden.
+Tüm hammaddeler hatta kullanıma hazır.,Alle Rohstoffe sind auf der Linie einsatzbereit.
+Tüm eksik kalemler Merkez/Diğer depolardan hat transferi ile temin edilebilir.,Alle fehlenden Positionen können durch Linienumlagerung aus zentralen/anderen Lagern bezogen werden.
+Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur.,Auf der Linie fehlende Materialien sind in zentralen/anderen Lagern verfügbar.
+Alternatif Hammadde Seçimi,Auswahl alternativer Rohstoffe
+Şu an muadil kullanılıyor (Orijinal: {0}),Derzeit verwendete Alternative (Original: {0})
+Onaylı alternatifler yükleniyor…,Genehmigte Alternativen werden geladen…
+Bu hammadde için tanımlı onaylı bir alternatif bulunmuyor.,Für diesen Rohstoff sind keine genehmigten Alternativen definiert.
+Hatta Stok,Linienbestand
+Çift Yönlü,Beidseitig
+Muadili Seç,Alternative auswählen
+Orijinal Reçete Koduna Dön,Auf ursprünglichen Stücklistencode zurücksetzen
+Muadil (Orijinal: {0}),Alternative (Original: {0})
+Orijinal,Original
+Değiştir,Ändern
+Kısmi tüketim yapılmış hammadde için alternatif seçilemez.,Für teilweise verbrauchtes Material kann keine Alternative ausgewählt werden.
+Hedef Miktarı Düzenle,Zielmenge bearbeiten
+Hedef miktar güncellendi: {0},Zielmenge aktualisiert: {0}
+Yalnızca taslak durumundaki İş Emirlerinin miktarı değiştirilebilir: {0},Nur Entwurfs-Arbeitsaufträge können in der Menge geändert werden: {0}
+İş Emri üretim hedef miktarı {0} -> {1} olarak güncellendi.,Zielmenge des Arbeitsauftrags aktualisiert: {0} -> {1}.
+Edit Target Quantity,Zielmenge bearbeiten
+Target quantity updated: {0},Zielmenge aktualisiert: {0}
+Only draft Work Orders can have their quantity changed: {0},Nur Entwurfs-Arbeitsaufträge können in der Menge geändert werden: {0}
+Work Order production target quantity updated: {0} -> {1}.,Zielmenge des Arbeitsauftrags aktualisiert: {0} -> {1}.
+Hat İkmal Onayı (Üretim Deposu Stok Yetersiz),Liniennachschub-Bestätigung (Unzureichender Produktionslagerbestand)
+"Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.","Die für die Rückmeldung an der Produktionslinie erforderlichen Rohstoffe sind unzureichend. Sie können die Rückmeldung durch einen Nachschubtransfer von anderen Produktionslinien abschließen."
+"Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.","Für einige Materialien konnte an anderen Produktionslinien kein Bestand gefunden werden. Ein direkter Linientransfer aus dem Rohstofflager ist nicht zulässig. Bitte fordern Sie beim Lager einen Liniennachschub an."
+Transfer Miktarı,Transfermenge
+Kaynak Üretim Deposu,Quell-Produktionslager
+Üretim depolarında stok yok,Kein Bestand in Produktionslagern
+⚡ Hatta Aktar ve Teyit Et,⚡ An Linie übertragen und rückmelden
+Aktarılıyor ve Teyit Ediliyor…,Wird übertragen und rückgemeldet…
+"Hat İkmali Yapıldı: {0}","Liniennachschub durchgeführt: {0}"
+"Mevcut: {0} {1}","Verfügbar: {0} {1}"
+Hat ikmali transferi gerçekleştirilemedi.,Liniennachschubtransfer konnte nicht durchgeführt werden.
+Hat ikmali transferi sırasında bir hata oluştu.,Beim Liniennachschubtransfer ist ein Fehler aufgetreten.
+"İş Emri: {0}","Fertigungsauftrag: {0}"

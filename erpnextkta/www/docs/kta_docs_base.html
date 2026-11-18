@@ -62,8 +62,8 @@
         </div>
       </div>
 
-      <!-- ÇALIŞMA KARTI -->
-      {% set work_pages = ['calisma-karti', 'calisma-karti-ayarlar', 'calisma-karti-mimarisi'] %}
+      <!-- ÇALIŞMA KARTI VE ÜRETİM TEYİT -->
+      {% set work_pages = ['calisma-karti', 'shopfloor-hub', 'calisma-karti-ayarlar', 'calisma-karti-mimarisi'] %}
       <div class="kta-docs-nav-group {% if active_page in work_pages %}open{% endif %}">
         <div class="kta-docs-nav-group-title" onclick="this.parentElement.classList.toggle('open')">
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -75,6 +75,9 @@
         <div class="kta-docs-nav-items">
           <a href="/docs/calisma-karti" class="kta-docs-nav-item {% if active_page == 'calisma-karti' %}active{% endif %}">
             <span class="kta-docs-nav-icon">📋</span>Çalışma Kartı (Genel)
+          </a>
+          <a href="/docs/shopfloor-hub" class="kta-docs-nav-item {% if active_page == 'shopfloor-hub' %}active{% endif %}">
+            <span class="kta-docs-nav-icon">⚡</span>Shopfloor Hub (Teyit)
           </a>
           <a href="/docs/calisma-karti-ayarlar" class="kta-docs-nav-item {% if active_page == 'calisma-karti-ayarlar' %}active{% endif %}">
             <span class="kta-docs-nav-icon">⚙️</span>Çalışma Kartı Ayarları

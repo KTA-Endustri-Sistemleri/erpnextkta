@@ -1,0 +1,190 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:CONF-{YYYY}-{#####}",
+ "creation": "2026-11-17 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_general",
+  "work_order",
+  "job_card",
+  "operation",
+  "column_break_1",
+  "posting_date",
+  "posting_time",
+  "confirmed_by",
+  "section_break_production",
+  "yield_qty",
+  "is_final_confirmation",
+  "column_break_2",
+  "stock_entry",
+  "milestone_confirmation",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_general",
+   "fieldtype": "Section Break",
+   "label": "Genel Bilgiler"
+  },
+  {
+   "fieldname": "work_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "\u0130\u015f Emri",
+   "options": "Work Order",
+   "reqd": 1
+  },
+  {
+   "fieldname": "job_card",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Job Card",
+   "options": "Job Card"
+  },
+  {
+   "fieldname": "operation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Operasyon",
+   "options": "Operation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Tarih",
+   "reqd": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "posting_time",
+   "fieldtype": "Time",
+   "label": "Saat",
+   "reqd": 1
+  },
+  {
+   "default": "__user",
+   "fieldname": "confirmed_by",
+   "fieldtype": "Link",
+   "label": "Teyit Eden",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_production",
+   "fieldtype": "Section Break",
+   "label": "\u00dcretim Miktar\u0131 ve Sarfiyat"
+  },
+  {
+   "fieldname": "yield_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Sa\u011flam Miktar (Yield Qty)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_final_confirmation",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Son Teyit (Kalan\u0131 Kapat)"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "stock_entry",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "\u0130li\u015fkili Stok Fi\u015fi",
+   "options": "Stock Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "milestone_confirmation",
+   "fieldtype": "Link",
+   "label": "Milestone Confirmation",
+   "options": "KTA Production Confirmation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "KTA Production Confirmation",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-11-18 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "kta_shopfloor",
+ "name": "KTA Production Confirmation",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Manufacturing Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Manufacturing User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

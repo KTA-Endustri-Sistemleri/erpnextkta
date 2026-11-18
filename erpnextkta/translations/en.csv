@@ -485,7 +485,7 @@ Yükseklik (mm),Height (mm)
 Kontak No,Terminal No
 KESİT:,CROSS-SECTION:
 İzokrimp Yüksekliği (mm),Isocrimp Height (mm)
-Adet,Quantity
+Adet,Units
 KALIP:,MOLD:
 KALIP NO:,MOLD NO.:
 Kalıp No zorunludur.,Mold No. is required.
@@ -726,7 +726,7 @@ Tedarikçi,Supplier
 İrsaliye No,Delivery Note No
 Sevk İrsaliye No,Dispatch Delivery Note No
 Hesaplanan Adet,Calculated Qty
-Adet,Quantity
+Adet,Units
 Giriş,Receipt
 Çıkış,Issue
 Seri,Series
@@ -735,7 +735,7 @@ Açıklama,Remarks
 Seri,Series
 Tarih,Date
 Açıklama,Remarks
-İşlem,Transaction Type
+İşlem,Action
 Teslim Eden,Delivered By
 Teslim Alan,Received By
 Adet sıfırdan büyük olmalıdır.,Quantity must be greater than zero.
@@ -957,3 +957,247 @@ Vardiya Kapasite Sınırını Devre Dışı Bırak,Disable Shift Capacity Limit
 "İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.","If checked, the operator's total net time within a shift is not limited by the Maximum Work Card Duration; the actual net time is written to the cards."
 Vardiya Sonu Otomatik Kapatmayı Devre Dışı Bırak,Disable Shift End Auto-Close
 "İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.","If checked, open cards are not automatically closed by the system at shift ends (16:15 and 00:15); closing cards remains completely with the operator."
+KTA Production Confirmation,KTA Production Confirmation
+KTA Uretim Teyidi,KTA Production Confirmation
+CO11N Üretim Teyit Ekranı,CO11N Production Confirmation Cockpit
+CO11N Hızlı Üretim Teyidi,CO11N Fast Production Confirmation
+İş Emri veya İş Kartı Barkodunu Okutarak Hızlı Teyit Girişi Yapın,Scan Work Order or Job Card Barcode for Fast Confirmation Entry
+Yeni Okutma,New Scan
+Barkod veya İş Emri No Okutun…,Scan Barcode or Work Order No…
+Teyit Başarıyla Tamamlandı,Confirmation Completed Successfully
+"Teyit Başarıyla Kaydedildi: {0}","Confirmation Successfully Saved: {0}"
+Teyit Belgesi,Confirmation Document
+Stok Fişi,Stock Entry
+İlişkili Stok Fişi,Linked Stock Entry
+Hedef Miktar,Target Quantity
+Üretilen Mamul,Produced Item
+Kalan Mamul,Remaining Item
+Operasyonlar,Operations
+Son Operasyon,Final Operation
+Kalan,Remaining
+Teyit Girişi,Confirmation Entry
+Seçili Operasyon,Selected Operation
+Bu son operasyondur: Teyit verildiğinde mamul girişi yapılacaktır.,This is the final operation: Finished goods receipt will be posted upon confirmation.
+Teyit Edilen,Confirmed
+Açık Bakiye,Open Balance
+Sağlam Miktar (Yield Qty),Yield Quantity (Yield Qty)
+Kalanın Tümü,Full Pending
+Son Teyit (Kalanı Kapat),Final Confirmation (Close Remaining)
+Hedef adede tam ulaşılmasa bile açık bakiyeyi ve İş Kartını kapatır.,Closes the open balance and Job Card even if target quantity is not reached.
+Teyit Et,Confirm
+Başlamak İçin Barkod Okutun,Scan Barcode to Start
+İş Emri veya İş Kartı üzerinde bulunan barkodu okutarak operasyonları listeleyin.,Scan the barcode on the Work Order or Job Card to list operations.
+İş Emri detayları alınamadı.,Could not retrieve Work Order details.
+Barkod okutulurken bir hata oluştu.,An error occurred while scanning barcode.
+Lütfen önce bir İş Emri ve Operasyon seçin.,Please select a Work Order and Operation first.
+Lütfen sağlam miktar girin.,Please enter yield quantity.
+Sağlam Miktar sıfırdan büyük bir sayı olmalıdır.,Yield Quantity must be a number greater than zero.
+Teyit işlemi başarısız oldu.,Confirmation process failed.
+Teyit işlemi sırasında bir hata oluştu.,An error occurred during confirmation.
+Barkod veya İş Emri / İş Kartı boş olamaz.,Barcode or Work Order / Job Card cannot be empty.
+Barkod ile eşleşen İş Emri veya İş Kartı bulunamadı: {0},No Work Order or Job Card found matching barcode: {0}
+Bu İş Emri için okuma yetkiniz yok.,You do not have permission to read this Work Order.
+Bu sayfaya erişim yetkiniz bulunmamaktadır.,You do not have permission to access this page.
+İş Emri (work_order) zorunludur.,Work Order (work_order) is required.
+İş Emri bulunamadı: {0},Work Order not found: {0}
+Operasyon (operation) zorunludur.,Operation (operation) is required.
+Sağlam Miktar (yield_qty) sıfırdan büyük olmalıdır.,Yield Quantity (yield_qty) must be greater than zero.
+Sağlam Miktar (Yield Qty) sıfırdan büyük olmalıdır.,Yield Quantity (Yield Qty) must be greater than zero.
+Üretim teyidi bulunamadı: {0},Production confirmation not found: {0}
+Üretim teyidi zaten iptal edilmiş: {0},Production confirmation already cancelled: {0}
+"Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0}","Only submitted confirmations can be cancelled: {0}"
+Üretim teyidini iptal etme yetkiniz bulunmamaktadır.,You do not have permission to cancel production confirmations.
+Aktif İş Emirleri,Active Work Orders
+İş Emirleri,Work Orders
+Devam Edenler,In Process
+Başlamamış,Not Started
+Başlanmamış,Not Started
+İş Emri veya Ürün Ara…,Search Work Order or Item…
+Aramaya uygun açık iş emri bulunamadı.,No matching open work orders found.
+İş Emirlerini Görüntüle,View Work Orders
+"İş Emri No, Ürün Kodu veya Adı Ara…","Search Work Order No, Item Code or Name…"
+Arama kriterlerinize uygun aktif iş emri bulunamadı.,No active work orders found matching search criteria.
+İş Emirlerini Listele,List Work Orders
+İş Emirleri Yüklenemedi,Failed to Load Work Orders
+İş Emirleri Yükleniyor…,Loading Work Orders…
+Kart üzerine tıklayarak ilgili iş emrini doğrudan yükleyebilirsiniz.,You can load the relevant work order directly by clicking on the card.
+Kopyalandı!,Copied!
+Numarayı Kopyala,Copy Number
+Üretim İlerlemesi,Production Progress
+Açık bakiyenin tamamını aktar,Transfer Entire Pending Quantity
+Son Operasyon (Milestone),Final Operation (Milestone)
+Teyit No,Confirmation No
+Operasyon bazında sağlam miktar teyidi ve SAP CORS ters kayıt yönetimi,Operation-Based Yield Confirmation and SAP CORS Reversal Management
+Kayıt,Records
+{0} Kayıt,{0} Records
+{0} Adet,{0} Units
+Teyit Geçmişi ve Hareketler,Confirmation History and Movements
+Yenile,Refresh
+Tarih / Saat,Date / Time
+Kullanıcı,User
+Durum,Status
+İptal,Cancel
+Tüketim,Consumption
+Üretim,Production
+Seçimi Temizle,Clear Selection
+Bir İş Emri Seçin,Select a Work Order
+Lütfen sol paneldeki listeden işlem yapmak istediğiniz bir İş Emri seçin.,Please select a Work Order you want to process from the list on the left panel.
+İş Emri Yükleniyor…,Loading Work Order…
+Kayıt Yok,No Records
+Teyit Kayıtları Yükleniyor…,Loading Confirmation Records…
+Bu iş emrine ait henüz bir üretim teyidi kaydedilmemiş.,No production confirmations have been recorded for this work order yet.
+Son Teyit Olarak Kaydedildi,Recorded as Final Confirmation
+SAP CORS Protokolüyle Bu Teyidi İptal Et,Cancel This Confirmation with SAP CORS Protocol
+Teyit Geçmişi Alınamadı,Failed to Load Confirmation History
+Aramanıza veya bu statüye uygun iş emri bulunamadı.,No work orders found matching your search or status.
+Listeyi Yenile,Refresh List
+Temizle,Clear
+Yükleniyor…,Loading…
+Son,Final
+Shopfloor Hub,Shopfloor Hub
+Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi,Real-Time Work Order Execution and Production Confirmation
+Work Orders,Work Orders
+Operations,Operations
+Shopfloor Views,Shopfloor Views
+Yeni İş Emri Aç,Create New Work Order
+Serbest,Released
+Devam Eden,In Process
+Tamamlanan,Completed
+Draft,Draft
+Released,Released
+In Process,In Process
+Completed,Completed
+Not Started,Not Started
+Lütfen sol listeden bir iş emri seçin veya yeni bir iş emri açın.,Please select a work order from the left list or create a new work order.
+Hızlı taslak iş emri oluşturma,Quick Draft Work Order Creation
+Kapat,Close
+Mamul Kodu,Item Code
+Mamul kodu veya adı ile arayın...,Search by Item Code or Name...
+Aranıyor...,Searching...
+Eşleşen mamul bulunamadı,No matching item found
+Varsayılan reçete ve termin bilgisi yükleniyor...,Loading default BOM and lead time...
+Varsayılan BOM yok,No Default BOM
+Termin: {0} Gün,Lead Time: {0} Days
+Gelişmiş Seçenekler,Advanced Options
+Reçete (BOM No),Bill of Materials (BOM No)
+Otomatik (varsayılan BOM),Automatic (Default BOM)
+Kaynak Depo,Source Warehouse
+Opsiyonel,Optional
+Hedef Depo (Mamul),Target Warehouse (FG)
+Varsayılan mamul deposu,Default Finished Goods Warehouse
+Planlanan Başlangıç,Planned Start Date
+Planlanan Bitiş,Planned End Date
+Taslak Olarak Kaydet,Save as Draft
+Lütfen bir mamul (Item) seçin.,Please select an item.
+Üretim miktarı sıfırdan büyük olmalıdır.,Production quantity must be greater than zero.
+İş Emri oluşturulamadı.,Failed to create Work Order.
+Taslak İş Emri Oluşturuldu: {0},Draft Work Order Created: {0}
+İş Emri oluşturulurken bir hata oluştu.,An error occurred while creating the Work Order.
+Hammadde Uygunluğu,Material Availability
+Hammadde ve Bileşen Stok Uygunluk Matrisi,Material and Component Stock Availability Matrix
+Hammadde Uygunluk Matrisi,Material Availability Matrix
+Eksik Parça ile Serbest Bırakıldı,Released with Shortage
+Üretim Süresi (Gün),Manufacturing Lead Days
+Karşılama Oranı,Coverage Ratio
+Karşılama %,Coverage %
+Depo Stok,Warehouse Stock
+İhtiyaç Miktarı,Required Qty
+Eksik Miktar,Shortage Qty
+Stok Durumunu Yenile,Refresh Stock Status
+Stok Yenile,Refresh Stock
+Üretilecek Mamul,Production Item
+Genel Hammadde Hazırlık Durumu,Overall Material Readiness
+Kontrol Ediliyor…,Checking…
+%{0} Hazır (Tüm bileşenler mevcut),{0}% Ready (All Components Available)
+Tüm bileşenler mevcut,All Components Available
+%{0} Hazır ({1} Kalem Eksik),{0}% Ready ({1} Items Short)
+Bu iş emri üretime serbest bırakılmıştır.,This work order has been released to production.
+İş emri durumu güncellendi. Operasyon teyitlerini başlatmak için geçiş yapabilirsiniz.,Work order status updated. You can switch to start operation confirmations.
+Operasyon Teyidine Geç,Go to Operation Confirmation
+Taslak İş Emri,Draft Work Order
+Eksik hammadde bulunuyor. İsterseniz uyarıyı onaylayarak serbest bırakabilirsiniz.,Material shortage detected. You can release the order by confirming the warning.
+Tüm bileşen stokları uygun. İş emrini üretime serbest bırakabilirsiniz.,All component stocks are available. You can release the work order to production.
+Serbest Bırakılıyor…,Releasing…
+İş Emrini Serbest Bırak (Release),Release Work Order
+{0} Bileşen,{0} Components
+Hammadde Stok Durumu Kontrol Ediliyor…,Checking Material Stock Status…
+Bu iş emri için malzeme gereksinimi bulunmuyor.,No material requirements found for this work order.
+Bileşen Kodu,Component Code
+İhtiyaç,Required
+Mevcut Stok,Available Stock
+Eksik,Short
+Eksik Hammadde Uyarısı,Material Shortage Warning
+Bu iş emrinde {0} adet bileşende hammadde eksiktir.,This work order has material shortages in {0} component(s).
+Bileşen,Component
+Mevcut,Available
+Yine de Serbest Bırak (Force Release),Force Release Anyway
+Hammadde uygunluk bilgileri alınamadı.,Failed to retrieve material availability information.
+İş emri başarıyla serbest bırakıldı,Work order released successfully
+İş emri serbest bırakılırken bir hata oluştu.,An error occurred while releasing the work order.
+"""{0}"" numaralı iş emrini üretime serbest bırakmak istediğinize emin misiniz?","Are you sure you want to release work order ""{0}"" to production?"
+Geçerli bir mamul kodu (item_code) zorunludur.,A valid item code (item_code) is required.
+Yalnızca taslak durumundaki İş Emirleri serbest bırakılabilir: {0},Only Draft Work Orders can be released: {0}
+Eksik hammadde mevcut: {0},Material shortage detected: {0}
+İş Emri eksik hammadde ile serbest bırakıldı: {0},Work Order released with material shortage: {0}
+Şirket bilgisi çözümlenemedi.,Company information could not be resolved.
+Ürün için aktif reçete (BOM) bulunamadı: {0},No active Bill of Materials (BOM) found for item: {0}
+İş Emrini Yeni Sekmede Aç,Open Work Order in New Tab
+{0} Adım,{0} Steps
+İlişkili Stok Fişleri,Linked Stock Entries
+İptal İşlemi Başarısız,Cancellation Failed
+Teyit Başarıyla İptal Edildi: {0},Confirmation Cancelled Successfully: {0}
+Teyit iptal edilirken bir hata oluştu.,An error occurred while cancelling the confirmation.
+"""{0}"" numaralı teyit belgesini ve ilişkili stok hareketlerini SAP CORS protokolüyle iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.","Are you sure you want to cancel confirmation ""{0}"" and its linked stock entries using the SAP CORS protocol? This action cannot be undone."
+Üretim Fişi,Manufacture Entry
+Tüketim Fişi,Consumption Entry
+İş Emri yüklenirken hata oluştu.,An error occurred while loading the Work Order.
+Bu iş emri {0} durumundadır.,This work order is in {0} status.
+Durdurulmuş veya kapatılmış iş emirleri için serbest bırakma veya operasyon teyidi yapılamaz.,Release or operation confirmation cannot be performed for stopped or closed work orders.
+Bu iş emri iptal edilmiştir.,This work order has been cancelled.
+Eksik Hammadde ile Serbest Bırakıldı,Released with Material Shortage
+Hatta Mevcut,Available on Line
+Transfer Edilebilir,Transfer Available
+Fabrikada Yok,Not in Plant
+Kritik Eksik,Critical Shortage
+Transfer Gerekli,Transfer Required
+Hatta (Tüketim Deposu),On Line (Consumption Warehouse)
+Diğer Depolarda,In Other Warehouses
+(Rezerve: {0}),(Reserved: {0})
+Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur. Hat transferi yapılarak üretime hazır hale getirilebilir.,Materials missing on the line are available in central/other warehouses. They can be made ready for production via line transfer.
+Kritik hammadde eksikliği mevcut. {0} kalem fabrika genelinde temin edilememiştir.,Critical material shortage exists. {0} items could not be supplied plant-wide.
+Tüm hammaddeler hatta kullanıma hazır.,All raw materials are ready for use on the line.
+Tüm eksik kalemler Merkez/Diğer depolardan hat transferi ile temin edilebilir.,All missing items can be fulfilled via line transfer from central/other warehouses.
+Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur.,Materials missing on the line are available in central/other warehouses.
+Alternatif Hammadde Seçimi,Alternative Raw Material Selection
+Şu an muadil kullanılıyor (Orijinal: {0}),Alternative currently used (Original: {0})
+Onaylı alternatifler yükleniyor…,Loading approved alternatives…
+Bu hammadde için tanımlı onaylı bir alternatif bulunmuyor.,No approved alternatives defined for this raw material.
+Hatta Stok,Line Stock
+Çift Yönlü,Two-Way
+Muadili Seç,Select Alternative
+Orijinal Reçete Koduna Dön,Restore Original BOM Code
+Muadil (Orijinal: {0}),Alternative (Original: {0})
+Orijinal,Original
+Değiştir,Change
+Kısmi tüketim yapılmış hammadde için alternatif seçilemez.,Cannot select alternative for partially consumed material.
+Hedef Miktarı Düzenle,Edit Target Quantity
+Hedef miktar güncellendi: {0},Target quantity updated: {0}
+Yalnızca taslak durumundaki İş Emirlerinin miktarı değiştirilebilir: {0},Only draft Work Orders can have their quantity changed: {0}
+İş Emri üretim hedef miktarı {0} -> {1} olarak güncellendi.,Work Order production target quantity updated: {0} -> {1}.
+Edit Target Quantity,Edit Target Quantity
+Target quantity updated: {0},Target quantity updated: {0}
+Only draft Work Orders can have their quantity changed: {0},Only draft Work Orders can have their quantity changed: {0}
+Work Order production target quantity updated: {0} -> {1}.,Work Order production target quantity updated: {0} -> {1}.
+Hat İkmal Onayı (Üretim Deposu Stok Yetersiz),Line Replenishment Confirmation (Insufficient Production Warehouse Stock)
+"Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.","Raw material required for confirmation on the production line is insufficient. You can complete confirmation by staging replenishment transfer from other production lines."
+"Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.","Stock could not be found on other production lines for some materials. Direct line transfer from the raw material warehouse is not allowed. Please request line replenishment from the warehouse department."
+Transfer Miktarı,Transfer Quantity
+Kaynak Üretim Deposu,Source Production Warehouse
+Üretim depolarında stok yok,No Stock in Production Warehouses
+⚡ Hatta Aktar ve Teyit Et,⚡ Transfer to Line and Confirm
+Aktarılıyor ve Teyit Ediliyor…,Transferring and Confirming…
+"Hat İkmali Yapıldı: {0}","Line Replenishment Completed: {0}"
+"Mevcut: {0} {1}","Available: {0} {1}"
+Hat ikmali transferi gerçekleştirilemedi.,Line replenishment transfer could not be completed.
+Hat ikmali transferi sırasında bir hata oluştu.,An error occurred during line replenishment transfer.
+"İş Emri: {0}","Work Order: {0}"

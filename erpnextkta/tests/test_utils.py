@@ -1,7 +1,9 @@
 import sys
 import unittest
+
 import frappe
 from frappe import _
+
 from erpnextkta.kta_calisma_karti.setup import setup_system_downtime_reasons
 
 
@@ -28,16 +30,18 @@ def before_tests():
 		print(f"DEBUG: {company_name} için tam setup_complete çalıştırılıyor...")
 		from erpnext.setup.setup_wizard.setup_wizard import setup_complete
 
-		args = frappe._dict({
-			"company_name": company_name,
-			"company_abbr": abbr,
-			"default_currency": "INR",
-			"country": "India",
-			"chart_of_accounts": "Standard",
-			"domain": "Manufacturing",
-			"fy_start_date": "2024-01-01",
-			"fy_end_date": "2024-12-31",
-		})
+		args = frappe._dict(
+			{
+				"company_name": company_name,
+				"company_abbr": abbr,
+				"default_currency": "INR",
+				"country": "India",
+				"chart_of_accounts": "Standard",
+				"domain": "Manufacturing",
+				"fy_start_date": "2024-01-01",
+				"fy_end_date": "2024-12-31",
+			}
+		)
 		try:
 			setup_complete(args)
 			print("DEBUG: setup_complete başarıyla tamamlandı.")
@@ -45,13 +49,15 @@ def before_tests():
 			print(f"DEBUG: setup_complete hata fırlattı: {e}")
 			# If setup_complete failed partially, ensure Company at least exists
 			if not frappe.db.exists("Company", company_name):
-				frappe.get_doc({
-					"doctype": "Company",
-					"company_name": company_name,
-					"abbr": abbr,
-					"default_currency": "INR",
-					"country": "India",
-				}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+				frappe.get_doc(
+					{
+						"doctype": "Company",
+						"company_name": company_name,
+						"abbr": abbr,
+						"default_currency": "INR",
+						"country": "India",
+					}
+				).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 		frappe.db.commit()
 	else:
@@ -62,11 +68,31 @@ def before_tests():
 	# 2. Ensure essential root groups exist (idempotent)
 	# ──────────────────────────────────────────────────────────────────
 	standard_roots = [
-		{"doctype": "Customer Group", "customer_group_name": "All Customer Groups", "is_group": 1, "parent_customer_group": ""},
+		{
+			"doctype": "Customer Group",
+			"customer_group_name": "All Customer Groups",
+			"is_group": 1,
+			"parent_customer_group": "",
+		},
 		{"doctype": "Territory", "territory_name": "All Territories", "is_group": 1, "parent_territory": ""},
-		{"doctype": "Item Group", "item_group_name": "All Item Groups", "is_group": 1, "parent_item_group": ""},
-		{"doctype": "Supplier Group", "supplier_group_name": "All Supplier Groups", "is_group": 1, "parent_supplier_group": ""},
-		{"doctype": "Sales Person", "sales_person_name": "Sales Team", "is_group": 1, "parent_sales_person": ""},
+		{
+			"doctype": "Item Group",
+			"item_group_name": "All Item Groups",
+			"is_group": 1,
+			"parent_item_group": "",
+		},
+		{
+			"doctype": "Supplier Group",
+			"supplier_group_name": "All Supplier Groups",
+			"is_group": 1,
+			"parent_supplier_group": "",
+		},
+		{
+			"doctype": "Sales Person",
+			"sales_person_name": "Sales Team",
+			"is_group": 1,
+			"parent_sales_person": "",
+		},
 	]
 
 	for root in standard_roots:
@@ -91,6 +117,7 @@ def before_tests():
 			ON DUPLICATE KEY UPDATE name=name
 		""")
 		from frappe.utils.nestedset import rebuild_tree
+
 		rebuild_tree("Department", "parent_department")
 		frappe.db.commit()
 
@@ -98,11 +125,36 @@ def before_tests():
 	# 3. Sub-groups and common reference records
 	# ──────────────────────────────────────────────────────────────────
 	sub_records = [
-		{"doctype": "Customer Group", "customer_group_name": "Individual", "is_group": 0, "parent_customer_group": "All Customer Groups"},
-		{"doctype": "Customer Group", "customer_group_name": "Commercial", "is_group": 0, "parent_customer_group": "All Customer Groups"},
-		{"doctype": "Customer Group", "customer_group_name": "_Test Customer Group", "is_group": 0, "parent_customer_group": "All Customer Groups"},
-		{"doctype": "Supplier Group", "supplier_group_name": "Local", "is_group": 0, "parent_supplier_group": "All Supplier Groups"},
-		{"doctype": "Supplier Group", "supplier_group_name": "_Test Supplier Group", "is_group": 0, "parent_supplier_group": "All Supplier Groups"},
+		{
+			"doctype": "Customer Group",
+			"customer_group_name": "Individual",
+			"is_group": 0,
+			"parent_customer_group": "All Customer Groups",
+		},
+		{
+			"doctype": "Customer Group",
+			"customer_group_name": "Commercial",
+			"is_group": 0,
+			"parent_customer_group": "All Customer Groups",
+		},
+		{
+			"doctype": "Customer Group",
+			"customer_group_name": "_Test Customer Group",
+			"is_group": 0,
+			"parent_customer_group": "All Customer Groups",
+		},
+		{
+			"doctype": "Supplier Group",
+			"supplier_group_name": "Local",
+			"is_group": 0,
+			"parent_supplier_group": "All Supplier Groups",
+		},
+		{
+			"doctype": "Supplier Group",
+			"supplier_group_name": "_Test Supplier Group",
+			"is_group": 0,
+			"parent_supplier_group": "All Supplier Groups",
+		},
 		{"doctype": "Warehouse Type", "name": "Transit", "warehouse_type": "Transit"},
 		{"doctype": "Warehouse Type", "name": "Work In Progress", "warehouse_type": "Work In Progress"},
 		{"doctype": "Warehouse Type", "name": "Finished Goods", "warehouse_type": "Finished Goods"},
@@ -122,44 +174,68 @@ def before_tests():
 	# Genders, Sales Stages, Employment Types
 	for gender in ["Female", "Male", "Other"]:
 		if not frappe.db.exists("Gender", gender):
-			frappe.get_doc({"doctype": "Gender", "gender": gender}).insert(ignore_permissions=True, ignore_if_duplicate=True)
-	for stage in ["Prospecting", "Qualification", "Needs Analysis", "Value Proposition", "Negotiation/Review"]:
+			frappe.get_doc({"doctype": "Gender", "gender": gender}).insert(
+				ignore_permissions=True, ignore_if_duplicate=True
+			)
+	for stage in [
+		"Prospecting",
+		"Qualification",
+		"Needs Analysis",
+		"Value Proposition",
+		"Negotiation/Review",
+	]:
 		if not frappe.db.exists("Sales Stage", stage):
-			frappe.get_doc({"doctype": "Sales Stage", "stage_name": stage}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			frappe.get_doc({"doctype": "Sales Stage", "stage_name": stage}).insert(
+				ignore_permissions=True, ignore_if_duplicate=True
+			)
 	for et in ["Full-time", "Part-time", "Contract", "Intern"]:
 		if not frappe.db.exists("Employment Type", et):
-			frappe.get_doc({"doctype": "Employment Type", "employee_type_name": et}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			frappe.get_doc({"doctype": "Employment Type", "employee_type_name": et}).insert(
+				ignore_permissions=True, ignore_if_duplicate=True
+			)
 
 	# Stock Entry Types
-	for set_name, purpose in [("Material Issue", "Material Issue"), ("Material Receipt", "Material Receipt"),
-							  ("Material Transfer", "Material Transfer"), ("Manufacture", "Manufacture")]:
+	for set_name, purpose in [
+		("Material Issue", "Material Issue"),
+		("Material Receipt", "Material Receipt"),
+		("Material Transfer", "Material Transfer"),
+		("Manufacture", "Manufacture"),
+	]:
 		if not frappe.db.exists("Stock Entry Type", set_name):
-			frappe.get_doc({"doctype": "Stock Entry Type", "name": set_name, "purpose": purpose, "is_standard": 1}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			frappe.get_doc(
+				{"doctype": "Stock Entry Type", "name": set_name, "purpose": purpose, "is_standard": 1}
+			).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 	# UOMs
 	for uom in ["Nos", "Unit"]:
 		if not frappe.db.exists("UOM", uom):
-			frappe.get_doc({"doctype": "UOM", "uom_name": uom, "name": uom, "enabled": 1}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			frappe.get_doc({"doctype": "UOM", "uom_name": uom, "name": uom, "enabled": 1}).insert(
+				ignore_permissions=True, ignore_if_duplicate=True
+			)
 
 	# ──────────────────────────────────────────────────────────────────
 	# 4. Core Test Records (Customer, Supplier)
 	# ──────────────────────────────────────────────────────────────────
 	if not frappe.db.exists("Customer", "_Test Customer"):
-		frappe.get_doc({
-			"doctype": "Customer",
-			"customer_name": "_Test Customer",
-			"customer_group": "_Test Customer Group",
-			"territory": "All Territories",
-			"customer_type": "Company",
-		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		frappe.get_doc(
+			{
+				"doctype": "Customer",
+				"customer_name": "_Test Customer",
+				"customer_group": "_Test Customer Group",
+				"territory": "All Territories",
+				"customer_type": "Company",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 	if not frappe.db.exists("Supplier", "_Test Supplier"):
-		frappe.get_doc({
-			"doctype": "Supplier",
-			"supplier_name": "_Test Supplier",
-			"supplier_group": "_Test Supplier Group",
-			"supplier_type": "Company",
-		}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		frappe.get_doc(
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Supplier",
+				"supplier_group": "_Test Supplier Group",
+				"supplier_type": "Company",
+			}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 	# ──────────────────────────────────────────────────────────────────
 	# 5. Fix Party Types (Receivable/Payable mapping)
@@ -179,13 +255,16 @@ def before_tests():
 			account_type = frappe.get_cached_value("Account", d.account, "account_type")
 			if account_type in ["Receivable", "Payable"]:
 				if not (d.party_type and d.party) and not self.get("party_not_required"):
-					frappe.throw(_("Satır {0}: {1} için Taraf Tipi ve Taraf zorunludur").format(d.idx, d.account))
+					frappe.throw(
+						_("Satır {0}: {1} için Taraf Tipi ve Taraf zorunludur").format(d.idx, d.account)
+					)
 
 	JournalEntry.validate_party = patched_validate_party
 	print("DEBUG: JournalEntry.validate_party monkeypatch uygulandı")
 
 	# 6b. BOM: ensure conversion_rate is never None
 	from erpnext.manufacturing.doctype.bom.bom import BOM
+
 	_original_set_conversion_rate = BOM.set_conversion_rate
 
 	def _patched_set_conversion_rate(self):
@@ -215,64 +294,55 @@ def before_tests():
 	# ──────────────────────────────────────────────────────────────────
 	frappe.db.set_single_value("System Settings", "country", "India")
 	frappe.db.set_single_value("System Settings", "setup_complete", 1)
+	if frappe.db.exists("DocType", "Manufacturing Settings"):
+		frappe.db.set_single_value("Manufacturing Settings", "material_consumption", 1)
+		frappe.db.set_single_value("Manufacturing Settings", "make_serial_no_batch_from_work_order", 0)
+
+	if frappe.db.exists("Item", "_Test Item KTA"):
+		frappe.db.set_value("Item", "_Test Item KTA", {"has_batch_no": 0, "has_serial_no": 0})
 
 	# Currencies
 	for cur in ["INR", "USD", "EUR"]:
 		if not frappe.db.exists("Currency", cur):
-			frappe.get_doc({"doctype": "Currency", "currency_name": cur, "name": cur, "enabled": 1}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			frappe.get_doc({"doctype": "Currency", "currency_name": cur, "name": cur, "enabled": 1}).insert(
+				ignore_permissions=True, ignore_if_duplicate=True
+			)
 		else:
 			frappe.db.set_value("Currency", cur, "enabled", 1)
 
 	# Currency Exchange records (use today's date to avoid stale-rate filtering)
 	from frappe.utils import nowdate
+
 	today = nowdate()
 	for from_cur, to_cur, rate in [("USD", "INR", 60.0), ("EUR", "INR", 70.0)]:
 		if not frappe.db.exists("Currency Exchange", {"from_currency": from_cur, "to_currency": to_cur}):
-			frappe.get_doc({
-				"doctype": "Currency Exchange",
-				"from_currency": from_cur,
-				"to_currency": to_cur,
-				"exchange_rate": rate,
-				"date": today,
-				"for_buying": 1,
-				"for_selling": 1,
-			}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			frappe.get_doc(
+				{
+					"doctype": "Currency Exchange",
+					"from_currency": from_cur,
+					"to_currency": to_cur,
+					"exchange_rate": rate,
+					"date": today,
+					"for_buying": 1,
+					"for_selling": 1,
+				}
+			).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-	# Global Defaults
-	if frappe.db.exists("Company", company_name):
-		frappe.db.set_default("company", company_name)
-		frappe.db.set_single_value("Global Defaults", "default_company", company_name)
-		frappe.db.set_single_value("Global Defaults", "default_currency", "INR")
+	# Global Defaults (only set in test mode when no real company exists)
+	if frappe.flags.in_test and frappe.db.exists("Company", company_name):
+		has_real_company = frappe.db.exists(
+			"Company", {"name": ["not like", "_Test%"], "is_group": 0}
+		)
+		if not has_real_company:
+			frappe.db.set_default("company", company_name)
+			frappe.db.set_single_value("Global Defaults", "default_company", company_name)
+			frappe.db.set_single_value("Global Defaults", "default_currency", "INR")
 
 	# Ensure Fiscal Years covering current and adjacent years exist for test stability
-	from frappe.utils import getdate
-	cur_yr = getdate(today).year
-	for y in range(cur_yr - 2, cur_yr + 3):
-		fy_name = f"{y}"
-		if not frappe.db.exists("Fiscal Year", fy_name):
-			try:
-				frappe.get_doc({
-					"doctype": "Fiscal Year",
-					"year": fy_name,
-					"year_start_date": f"{y}-01-01",
-					"year_end_date": f"{y}-12-31",
-				}).insert(ignore_permissions=True, ignore_if_duplicate=True)
-			except Exception:
-				# Fiscal year may already exist or be created concurrently during testing
-				pass
-		for c_name in [company_name, "_Test Company KTA"]:
-			if frappe.db.exists("Company", c_name):
-				if not frappe.db.exists("Fiscal Year Company", {"parent": fy_name, "company": c_name}):
-					try:
-						doc = frappe.new_doc("Fiscal Year Company")
-						doc.parent = fy_name
-						doc.parenttype = "Fiscal Year"
-						doc.parentfield = "companies"
-						doc.company = c_name
-						doc.db_insert()
-					except Exception:
-						# Fiscal year company link may already exist or fail safely during test setup
-						pass
+	if not frappe.db.exists("Company", "_Test Company KTA"):
+		create_test_company("_Test Company KTA")
+	setup_test_fiscal_years(company_name)
+	setup_test_fiscal_years("_Test Company KTA")
 
 	# ──────────────────────────────────────────────────────────────────
 	# 9. Relax Mandatory Fields
@@ -304,22 +374,28 @@ def before_tests():
 	# 10. Ensure Missing Custom Fields for Tests
 	# ──────────────────────────────────────────────────────────────────
 	from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-	
+
 	if not frappe.db.has_column("Quality Inspection", "custom_calisma_karti"):
-			create_custom_field("Quality Inspection", dict(
-					fieldname='custom_calisma_karti',
-					label='Çalışma Kartı',
-					fieldtype='Link',
-					options='Calisma Karti',
-					insert_after='reference_type'
-			))
+		create_custom_field(
+			"Quality Inspection",
+			dict(
+				fieldname="custom_calisma_karti",
+				label="Çalışma Kartı",
+				fieldtype="Link",
+				options="Calisma Karti",
+				insert_after="reference_type",
+			),
+		)
 	if not frappe.db.has_column("Quality Inspection", "custom_alt_operasyon_kaydi"):
-			create_custom_field("Quality Inspection", dict(
-					fieldname='custom_alt_operasyon_kaydi',
-					label='Alt Operasyon Kaydı',
-					fieldtype='Data',
-					insert_after='custom_calisma_karti'
-			))
+		create_custom_field(
+			"Quality Inspection",
+			dict(
+				fieldname="custom_alt_operasyon_kaydi",
+				label="Alt Operasyon Kaydı",
+				fieldtype="Data",
+				insert_after="custom_calisma_karti",
+			),
+		)
 
 	# Seed baseline injection molds if needed
 	try:
@@ -350,11 +426,17 @@ def before_tests():
 
 	print("DEBUG: Tüm altyapı verileri başarıyla yüklendi.")
 
+
 from frappe.tests.utils import FrappeTestCase
+
 
 def log_test_start(test_instance):
 	parts = test_instance.__class__.__module__.split(".")
-	module_tag = parts[1] if len(parts) > 1 and parts[1] != "tests" else (parts[-1].replace("test_", "") if len(parts) > 1 else "kta")
+	module_tag = (
+		parts[1]
+		if len(parts) > 1 and parts[1] != "tests"
+		else (parts[-1].replace("test_", "") if len(parts) > 1 else "kta")
+	)
 	tag_str = f"[{module_tag}]"
 	method_str = f"[{test_instance._testMethodName}]"
 	desc = test_instance.shortDescription()
@@ -394,10 +476,10 @@ class KTATestCase(KTABaseTestCase):
 		# 0. Infrastructure data seeding
 		setup_system_downtime_reasons()
 
-		# Temizlik (Önceki testlerden kalan Job Card Time Log'ları temizle)
+		# Temizlik (Onceki testlerden kalan Job Card Time Log'lari temizle)
 		frappe.db.sql("DELETE FROM `tabJob Card Time Log` WHERE parent='TEST-JC-KTA-001'")
 		frappe.db.sql("UPDATE `tabJob Card` SET quality_inspection=NULL WHERE name='TEST-JC-KTA-001'")
-		# Çalışma kartı kirliliğini temizle
+		# Calisma karti kirliligini temizle
 		frappe.db.sql("DELETE FROM `tabCalisma Karti` WHERE name LIKE 'TEST-CK-OP%%'")
 		frappe.db.commit()
 
@@ -405,32 +487,40 @@ class KTATestCase(KTABaseTestCase):
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "mukerrer_kalite_kontrolu_yap", 1)
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "max_kart_suresi_dk", 430)
 		frappe.db.set_single_value("KTA Calisma Karti Settings", "kart_uyari_suresi_dk", 400)
-		frappe.db.set_single_value("KTA Calisma Karti Settings", "vardiya_kapasite_sinirini_devre_disi_birak", 0)
-		frappe.db.set_single_value("KTA Calisma Karti Settings", "vardiya_sonu_otomatik_kapatmayi_devre_disi_birak", 0)
+		frappe.db.set_single_value(
+			"KTA Calisma Karti Settings", "vardiya_kapasite_sinirini_devre_disi_birak", 0
+		)
+		frappe.db.set_single_value(
+			"KTA Calisma Karti Settings", "vardiya_sonu_otomatik_kapatmayi_devre_disi_birak", 0
+		)
 
 		self.company = create_test_company()
 		self.item_group = create_test_item_group()
 		self.item = create_test_item(self.item_group)
+		frappe.db.set_value("Item", self.item, {"has_batch_no": 0, "has_serial_no": 0})
 		self.wip_warehouse = create_test_warehouse(self.company)
 		self.expense_account = create_test_scrap_account(self.company)
-		
+
 		# Operations and Stations
 		create_test_plant_floor("L-1")
 		self.kta_op = create_test_kta_operation("KTA-OP-001-TEST", "L-1")
 		self.ws_name = create_test_workstation("_Test KTA Workstation")
-		
+
 		create_test_shifts(["1. Vardiya", "2. Vardiya", "3. Vardiya"])
 		create_test_operator("test@kta.com", "Test Operator")
-		
+
 		self.erpnext_op = create_test_erpnext_operation("_Test ERPNext Op", self.ws_name)
-		
+
 		# WO and Job Card
-		self.wo_name = create_test_work_order(
-			"TEST-WO-KTA-001", self.item, self.company, self.wip_warehouse
-		)
+		self.wo_name = create_test_work_order("TEST-WO-KTA-001", self.item, self.company, self.wip_warehouse)
 		self.jc_name = create_test_job_card(
-			"TEST-JC-KTA-001", self.wo_name, self.wip_warehouse, 
-			self.erpnext_op, self.ws_name, self.item, self.company
+			"TEST-JC-KTA-001",
+			self.wo_name,
+			self.wip_warehouse,
+			self.erpnext_op,
+			self.ws_name,
+			self.item,
+			self.company,
 		)
 		# Seed baseline injection molds if needed
 		try:
@@ -445,38 +535,84 @@ class KTATestCase(KTABaseTestCase):
 		frappe.db.commit()
 
 
+def setup_test_fiscal_years(company):
+	"""Ensure fiscal years covering the current year exist, link test company to all fiscal years, and clear cache."""
+	from frappe.utils import getdate, nowdate
+
+	current_year = getdate(nowdate()).year
+
+	for y in range(current_year - 2, current_year + 3):
+		fy_name = f"{y}"
+		if not frappe.db.exists("Fiscal Year", fy_name):
+			try:
+				frappe.get_doc(
+					{
+						"doctype": "Fiscal Year",
+						"year": fy_name,
+						"year_start_date": f"{y}-01-01",
+						"year_end_date": f"{y}-12-31",
+					}
+				).insert(ignore_permissions=True, ignore_if_duplicate=True)
+			except Exception:
+				# Fiscal year may already exist or be inserted concurrently
+				pass
+
+	if frappe.db.exists("Company", company):
+		for fy_name in frappe.get_all("Fiscal Year", pluck="name"):
+			if not frappe.db.exists("Fiscal Year Company", {"parent": fy_name, "company": company}):
+				try:
+					doc = frappe.new_doc("Fiscal Year Company")
+					doc.parent = fy_name
+					doc.parenttype = "Fiscal Year"
+					doc.parentfield = "companies"
+					doc.company = company
+					doc.db_insert()
+				except Exception:
+					# Fiscal year link may already exist or fail safely
+					pass
+		frappe.db.commit()
+		frappe.cache().hdel("fiscal_years", company)
+
+
 def create_test_company(company_name="_Test Company KTA"):
 	if not frappe.db.exists("Company", company_name):
-		frappe.get_doc({
-			"doctype": "Company",
-			"company_name": company_name,
-			"abbr": "TKTA",
-			"default_currency": "TRY",
-			"country": "Turkey"
-		}).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "Company",
+				"company_name": company_name,
+				"abbr": "TKTA",
+				"default_currency": "TRY",
+				"country": "Turkey",
+			}
+		).insert(ignore_permissions=True)
+	setup_test_fiscal_years(company_name)
 	return company_name
 
 
 def create_test_item_group(name="_Test Item Group KTA"):
 	if not frappe.db.exists("Item Group", name):
-		frappe.get_doc({
-			"doctype": "Item Group",
-			"item_group_name": name,
-			"is_group": 0,
-			"parent_item_group": "All Item Groups"
-		}).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "Item Group",
+				"item_group_name": name,
+				"is_group": 0,
+				"parent_item_group": "All Item Groups",
+			}
+		).insert(ignore_permissions=True)
 	return name
 
 
 def create_test_item(item_group, item_code="_Test Item KTA"):
 	if not frappe.db.exists("Item", item_code):
-		frappe.get_doc({
-			"doctype": "Item",
-			"item_code": item_code,
-			"item_group": item_group,
-			"is_stock_item": 1,
-			"stock_uom": "Nos"
-		}).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "Item",
+				"item_code": item_code,
+				"item_group": item_group,
+				"is_stock_item": 1,
+				"stock_uom": "Nos",
+			}
+		).insert(ignore_permissions=True)
 	return item_code
 
 
@@ -484,11 +620,9 @@ def create_test_warehouse(company, name="_Test WIP"):
 	fullname = f"{name} - TKTA"
 	if not frappe.db.exists("Warehouse", fullname):
 		try:
-			frappe.get_doc({
-				"doctype": "Warehouse",
-				"warehouse_name": name,
-				"company": company
-			}).insert(ignore_permissions=True)
+			frappe.get_doc({"doctype": "Warehouse", "warehouse_name": name, "company": company}).insert(
+				ignore_permissions=True
+			)
 		except Exception:
 			# Warehouse may already exist in current test company
 			pass
@@ -499,46 +633,44 @@ def create_test_scrap_account(company, name="Test Scrap Expense"):
 	fullname = f"{name} - TKTA"
 	if not frappe.db.exists("Account", fullname):
 		parent_acc = "Expenses - TKTA"
-		frappe.get_doc({
-			"doctype": "Account",
-			"account_name": name,
-			"company": company,
-			"is_group": 0,
-			"parent_account": parent_acc,
-			"account_type": "Expense Account"
-		}).insert(ignore_permissions=True, ignore_links=True)
+		frappe.get_doc(
+			{
+				"doctype": "Account",
+				"account_name": name,
+				"company": company,
+				"is_group": 0,
+				"parent_account": parent_acc,
+				"account_type": "Expense Account",
+			}
+		).insert(ignore_permissions=True, ignore_links=True)
 	return fullname
 
 
 def create_test_plant_floor(name="L-1"):
 	if not frappe.db.exists("Plant Floor", name):
-		frappe.get_doc({
-			"doctype": "Plant Floor",
-			"name": name,
-			"plant_name": name,
-			"floor_name": name
-		}).insert(ignore_permissions=True)
+		frappe.get_doc(
+			{"doctype": "Plant Floor", "name": name, "plant_name": name, "floor_name": name}
+		).insert(ignore_permissions=True)
 	return name
 
 
 def create_test_kta_operation(name, plant_floor):
 	if not frappe.db.exists("KTA Calisma Karti Operasyonlari", name):
-		frappe.get_doc({
-			"doctype": "KTA Calisma Karti Operasyonlari",
-			"name": name,
-			"calisma_karti_op": "Test Operasyon",
-			"miktar_zorunlu_mu": 1,
-			"plant_floor": plant_floor
-		}).insert(ignore_permissions=True, ignore_links=True)
+		frappe.get_doc(
+			{
+				"doctype": "KTA Calisma Karti Operasyonlari",
+				"name": name,
+				"calisma_karti_op": "Test Operasyon",
+				"miktar_zorunlu_mu": 1,
+				"plant_floor": plant_floor,
+			}
+		).insert(ignore_permissions=True, ignore_links=True)
 	return name
 
 
 def create_test_workstation(name):
 	if not frappe.db.exists("Workstation", name):
-		frappe.get_doc({
-			"doctype": "Workstation",
-			"workstation_name": name
-		}).insert(ignore_permissions=True)
+		frappe.get_doc({"doctype": "Workstation", "workstation_name": name}).insert(ignore_permissions=True)
 	return name
 
 
@@ -546,18 +678,15 @@ def create_test_shifts(shift_names):
 	times = {
 		"1. Vardiya": ("08:00:00", "16:00:00"),
 		"2. Vardiya": ("16:00:00", "00:00:00"),
-		"3. Vardiya": ("00:00:00", "08:00:00")
+		"3. Vardiya": ("00:00:00", "08:00:00"),
 	}
 	for name in shift_names:
 		if not frappe.db.exists("Shift Type", name):
 			start, end = times.get(name, ("08:00:00", "16:00:00"))
 			try:
-				frappe.get_doc({
-					"doctype": "Shift Type", 
-					"name": name, 
-					"start_time": start, 
-					"end_time": end
-				}).insert(ignore_permissions=True, ignore_links=True)
+				frappe.get_doc(
+					{"doctype": "Shift Type", "name": name, "start_time": start, "end_time": end}
+				).insert(ignore_permissions=True, ignore_links=True)
 			except Exception:
 				# Shift type may already exist or fail safely
 				pass
@@ -566,10 +695,13 @@ def create_test_shifts(shift_names):
 def create_test_operator(email, name):
 	if not frappe.db.exists("Employee", email):
 		try:
-			frappe.db.sql("""
+			frappe.db.sql(
+				"""
 				INSERT INTO `tabEmployee` (name, employee_name, first_name, status, creation, modified, modified_by)
 				VALUES (%s, %s, %s, 'Active', NOW(), NOW(), 'Administrator')
-			""", (email, name, name.split()[0]))
+			""",
+				(email, name, name.split()[0]),
+			)
 		except Exception:
 			# Employee record might already exist
 			pass
@@ -578,20 +710,21 @@ def create_test_operator(email, name):
 
 def create_test_erpnext_operation(name, workstation):
 	if not frappe.db.exists("Operation", name):
-		frappe.get_doc({
-			"doctype": "Operation",
-			"name": name,
-			"workstation": workstation
-		}).insert(ignore_permissions=True)
+		frappe.get_doc({"doctype": "Operation", "name": name, "workstation": workstation}).insert(
+			ignore_permissions=True
+		)
 	return name
 
 
 def create_test_work_order(name, item, company, warehouse):
 	if not frappe.db.exists("Work Order", name):
-		frappe.db.sql("""
+		frappe.db.sql(
+			"""
 			INSERT INTO `tabWork Order` (name, production_item, qty, company, wip_warehouse, fg_warehouse, docstatus, status, creation, modified, modified_by)
 			VALUES (%s, %s, 100, %s, %s, %s, 1, 'Not Started', NOW(), NOW(), 'Administrator')
-		""", (name, item, company, warehouse, warehouse))
+		""",
+			(name, item, company, warehouse, warehouse),
+		)
 	else:
 		frappe.db.set_value("Work Order", name, "docstatus", 1)
 		frappe.db.set_value("Work Order", name, "status", "Not Started")
@@ -600,10 +733,13 @@ def create_test_work_order(name, item, company, warehouse):
 
 def create_test_job_card(name, wo, warehouse, operation, workstation, item, company):
 	if not frappe.db.exists("Job Card", name):
-		frappe.db.sql("""
+		frappe.db.sql(
+			"""
 			INSERT INTO `tabJob Card` (name, work_order, wip_warehouse, operation, workstation, production_item, for_quantity, company, docstatus, creation, modified, modified_by)
 			VALUES (%s, %s, %s, %s, %s, %s, 100, %s, 1, NOW(), NOW(), 'Administrator')
-		""", (name, wo, warehouse, operation, workstation, item, company))
+		""",
+			(name, wo, warehouse, operation, workstation, item, company),
+		)
 	else:
 		frappe.db.set_value("Job Card", name, "docstatus", 1)
 	return name
@@ -612,6 +748,7 @@ def create_test_job_card(name, wo, warehouse, operation, workstation, item, comp
 def make_mock_calisma_karti(**kwargs):
 	"""Build a minimal CalismaKarti-like mock object."""
 	from erpnextkta.kta_calisma_karti.doctype.calisma_karti.calisma_karti import CalismaKarti
+
 	doc = CalismaKarti.__new__(CalismaKarti)
 	doc.name = kwargs.get("name", "TEST-CK-001")
 	doc.doctype = "Calisma Karti"
@@ -634,6 +771,7 @@ def make_mock_calisma_karti(**kwargs):
 
 def make_mock_durus(durus_baslangic=None, durus_bitis=None, durus_suresi=None):
 	from unittest.mock import MagicMock
+
 	row = MagicMock()
 	row.durus_baslangic = durus_baslangic
 	row.durus_bitis = durus_bitis
@@ -644,11 +782,31 @@ def make_mock_durus(durus_baslangic=None, durus_bitis=None, durus_suresi=None):
 def _ensure_standard_roots():
 	"""Ensure essential root groups exist to prevent LinkValidationError during setup."""
 	standard_roots = [
-		{"doctype": "Customer Group", "customer_group_name": "All Customer Groups", "is_group": 1, "parent_customer_group": ""},
+		{
+			"doctype": "Customer Group",
+			"customer_group_name": "All Customer Groups",
+			"is_group": 1,
+			"parent_customer_group": "",
+		},
 		{"doctype": "Territory", "territory_name": "All Territories", "is_group": 1, "parent_territory": ""},
-		{"doctype": "Item Group", "item_group_name": "All Item Groups", "is_group": 1, "parent_item_group": ""},
-		{"doctype": "Supplier Group", "supplier_group_name": "All Supplier Groups", "is_group": 1, "parent_supplier_group": ""},
-		{"doctype": "Sales Person", "sales_person_name": "Sales Team", "is_group": 1, "parent_sales_person": ""},
+		{
+			"doctype": "Item Group",
+			"item_group_name": "All Item Groups",
+			"is_group": 1,
+			"parent_item_group": "",
+		},
+		{
+			"doctype": "Supplier Group",
+			"supplier_group_name": "All Supplier Groups",
+			"is_group": 1,
+			"parent_supplier_group": "",
+		},
+		{
+			"doctype": "Sales Person",
+			"sales_person_name": "Sales Team",
+			"is_group": 1,
+			"parent_sales_person": "",
+		},
 	]
 
 	for root in standard_roots:
@@ -673,6 +831,7 @@ def _ensure_standard_roots():
 			ON DUPLICATE KEY UPDATE name=name
 		""")
 		from frappe.utils.nestedset import rebuild_tree
+
 		rebuild_tree("Department", "parent_department")
 		frappe.db.commit()
 	frappe.db.commit()
@@ -690,41 +849,6 @@ def clear_item_stock_and_batches(item_code):
 		frappe.db.delete("Serial and Batch Bundle", {"name": ["in", bundles]})
 
 	frappe.db.delete("Batch", {"item": item_code})
-
-
-def setup_test_fiscal_years(company):
-	"""Ensure fiscal years covering the current year exist, link test company to all fiscal years, and clear cache."""
-	from frappe.utils import nowdate, getdate
-	current_year = getdate(nowdate()).year
-
-	for y in range(current_year - 2, current_year + 3):
-		fy_name = f"{y}"
-		if not frappe.db.exists("Fiscal Year", fy_name):
-			try:
-				frappe.get_doc({
-					"doctype": "Fiscal Year",
-					"year": fy_name,
-					"year_start_date": f"{y}-01-01",
-					"year_end_date": f"{y}-12-31",
-				}).insert(ignore_permissions=True, ignore_if_duplicate=True)
-			except Exception:
-				# Fiscal year may already exist or be inserted concurrently
-				pass
-
-	for fy_name in frappe.get_all("Fiscal Year", pluck="name"):
-		if not frappe.db.exists("Fiscal Year Company", {"parent": fy_name, "company": company}):
-			try:
-				doc = frappe.new_doc("Fiscal Year Company")
-				doc.parent = fy_name
-				doc.parenttype = "Fiscal Year"
-				doc.parentfield = "companies"
-				doc.company = company
-				doc.db_insert()
-			except Exception:
-				# Fiscal year link may already exist or fail safely
-				pass
-	frappe.db.commit()
-	frappe.cache().hdel("fiscal_years", company)
 
 
 def ensure_test_injection_fixtures():
@@ -758,11 +882,27 @@ def ensure_test_injection_fixtures():
 			doc.insert()
 
 	test_molds = [
-		"KLP-101", "KLP-102", "KLP-DUP", "KLP-FIRST", "KLP-INITIAL",
-		"KLP-LOCK-01", "KLP-LOCK-CHANGED", "KLP-LOCKED", "KLP-MAX",
-		"KLP-OP40-01", "KLP-OP40-02", "KLP-POINTS-01", "KLP-RECIPE-01",
-		"KLP-REJ-01", "KLP-SHIFT-01", "KLP-TAMPERED", "KLP-TAMPERED-AGAIN",
-		"KLP-UNIQ-01", "KLP-UPDATED", "TEST-ACTIVE-MOLD", "TEST-DISABLED-MOLD"
+		"KLP-101",
+		"KLP-102",
+		"KLP-DUP",
+		"KLP-FIRST",
+		"KLP-INITIAL",
+		"KLP-LOCK-01",
+		"KLP-LOCK-CHANGED",
+		"KLP-LOCKED",
+		"KLP-MAX",
+		"KLP-OP40-01",
+		"KLP-OP40-02",
+		"KLP-POINTS-01",
+		"KLP-RECIPE-01",
+		"KLP-REJ-01",
+		"KLP-SHIFT-01",
+		"KLP-TAMPERED",
+		"KLP-TAMPERED-AGAIN",
+		"KLP-UNIQ-01",
+		"KLP-UPDATED",
+		"TEST-ACTIVE-MOLD",
+		"TEST-DISABLED-MOLD",
 	]
 	for m in test_molds:
 		if not frappe.db.exists("KTA Enjeksiyon Kalibi", m):
@@ -778,6 +918,7 @@ def ensure_test_injection_fixtures():
 		from erpnextkta.patches.v3_0_3.extract_enjeksiyon_kaliplari import (
 			execute as seed_molds,
 		)
+
 		seed_molds()
 	except Exception:
 		# Extraction patch is optional if molds already exist
@@ -787,23 +928,27 @@ def ensure_test_injection_fixtures():
 
 
 def ensure_test_idc_fixtures():
-	"""Seed Item Groups, Ara Malzeme Grupları, and test items for IDC measurement tests."""
+	"""Seed Item Groups, Ara Malzeme Gruplari, and test items for IDC measurement tests."""
 	frappe.set_user("Administrator")
 	for group in ["120-IDC Connector", "190-Connection Systems", "100-Wires & Cables", "Products"]:
 		if not frappe.db.exists("Item Group", group):
-			frappe.get_doc({
-				"doctype": "Item Group",
-				"item_group_name": group,
-				"parent_item_group": "All Item Groups",
-				"is_group": 0,
-			}).insert(ignore_permissions=True)
+			frappe.get_doc(
+				{
+					"doctype": "Item Group",
+					"item_group_name": group,
+					"parent_item_group": "All Item Groups",
+					"is_group": 0,
+				}
+			).insert(ignore_permissions=True)
 
 	for amg in ["OBS-Bedelsiz", "Normal", "ÜRÜN"]:
 		if not frappe.db.exists("KTA Ara Malzeme Grubu", amg):
-			frappe.get_doc({
-				"doctype": "KTA Ara Malzeme Grubu",
-				"kta_ara_malzeme_grubu": amg,
-			}).insert(ignore_permissions=True)
+			frappe.get_doc(
+				{
+					"doctype": "KTA Ara Malzeme Grubu",
+					"kta_ara_malzeme_grubu": amg,
+				}
+			).insert(ignore_permissions=True)
 
 	item_specs = [
 		("TEST-IDC-120-ITEM", "120-IDC Connector", "OBS-Bedelsiz"),
@@ -823,8 +968,12 @@ def ensure_test_idc_fixtures():
 			doc.custom_ara_malzeme_grubu = ara_grup
 			doc.insert(ignore_permissions=True)
 		else:
-			frappe.db.set_value("Item", code, {
-				"item_group": group,
-				"custom_ara_malzeme_grubu": ara_grup,
-			})
+			frappe.db.set_value(
+				"Item",
+				code,
+				{
+					"item_group": group,
+					"custom_ara_malzeme_grubu": ara_grup,
+				},
+			)
 	frappe.db.commit()

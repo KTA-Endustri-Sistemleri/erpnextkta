@@ -1,0 +1,833 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "shopfloor-hub" %}
+
+{% block doc_content %}
+<style>
+  .co11n-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .co11n-badge.blue { background: #dbeafe; color: #1e40af; }
+  .co11n-badge.green { background: #dcfce7; color: #166534; }
+  .co11n-badge.amber { background: #fef3c7; color: #92400e; }
+  .co11n-badge.purple { background: #f3e8ff; color: #6b21a8; }
+  .co11n-badge.rose { background: #ffe4e6; color: #9f1239; }
+
+  .flow-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin: 24px 0;
+  }
+  .flow-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .flow-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.08);
+    border-color: #cbd5e1;
+  }
+  .flow-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .flow-card-icon {
+    font-size: 24px;
+  }
+  .flow-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+  .flow-card-desc {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .step-container {
+    margin: 28px 0;
+    border-left: 3px solid #3b82f6;
+    padding-left: 20px;
+  }
+  .step-item {
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .step-item:last-child {
+    margin-bottom: 0;
+  }
+  .step-item::before {
+    content: '';
+    position: absolute;
+    left: -27px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #3b82f6;
+    border: 2px solid #ffffff;
+  }
+
+  .formula-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-family: monospace;
+    font-size: 14px;
+    color: #0f172a;
+    overflow-x: auto;
+  }
+
+  .callout-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin: 20px 0;
+    color: #1e3a8a;
+  }
+  .callout-box.warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+  .callout-box.success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+  }
+  .callout-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .doc-table th, .doc-table td {
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    text-align: left;
+  }
+  .doc-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-weight: 700;
+  }
+  .doc-table tr:nth-child(even) td {
+    background: #fcfcfd;
+  }
+</style>
+
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">⚡</span>
+  <h1>Shopfloor Hub (Çoklu Görünüm Üretim Kokpiti)</h1>
+  <p>Tek ekranda iki entegre görünümle iş emri oluşturma, hammadde stok uygunluk kontrolü ve üretime serbest bırakma (<code>Work Orders</code>) ile gerçek zamanlı operasyon teyidi, orantısal hammadde sarfiyatı (261 Backflush), mamul girişi (101 GR) ve SAP CORS ters kayıt işlemlerini (<code>Operations</code>) yöneten bağımsız atölye kokpiti.</p>
+</div>
+
+<div class="kta-doc-section">
+  <h2>🌟 1. Mimari Felsefe ve Neden CO11N Modeli?</h2>
+  <p>
+    Kablo gruplama, krimp basma ve elektromekanik montaj süreçlerinde standart ERPNext üretim akışı şu temel zorlukları doğurmaktaydı:
+  </p>
+  <ul>
+    <li>
+      <strong>Kısmi Submit Eksikliği:</strong> ERPNext çekirdeğinde <code>Job Card</code> belgesi tüm iş emri miktarı için açılır ve ara adetler için kısmi onay (submit) imkanı sunmaz.
+    </li>
+    <li>
+      <strong>Peel-Off (Klonlama) Sorunu:</strong> Önceki ara çözümlerde denenen "iş kartından adet koparıp yeni kart açma" mantığı; sahte <em>"Material Transferred"</em> statülerine, referans kaymalarına ve takip edilemez bir iş kartı karmaşasına yol açmıştır.
+    </li>
+    <li>
+      <strong>Atölye Veri Ayrımı:</strong> Operatörlerin girdiği anlık Çalışma Kartı (net süre, duruş, ölçüm) verileri doğrudan stok tüketimine bağlanamaz; stok sarfiyatı yetkili ekip arkadaşlarının fiziki sayımı ve onayı ile gerçekleştirilmelidir.
+    </li>
+  </ul>
+
+  <p>
+    Bu darboğazları aşmak üzere <strong><code>kta_shopfloor</code></strong> modülü ve <strong>SAP CO11N Üretim Teyit Modeli</strong> devreye alınmıştır:
+  </p>
+
+  <div class="flow-card-grid">
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🏷️</span>
+        <h4 class="flow-card-title">Job Card Açık Sepettir</h4>
+      </div>
+      <p class="flow-card-desc">
+        Job Card asla bölünmez veya klonlanmaz. Operatörler barkod okutarak süreyi işletir, duruşları ve kalite ölçümlerini bağlar. Job Card açık ve pasif bir veri taşıyıcısıdır.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">⚡</span>
+        <h4 class="flow-card-title">Hızlı Teyit Kokpiti</h4>
+      </div>
+      <p class="flow-card-desc">
+        Yetkili üretim yöneticisi veya vardiya amiri, fiziki sayımını tamamladığı sağlam miktarı (Yield Qty) tek ekrandan girer. Teyit anında orantısal stok hareketleri tetiklenir.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🛡️</span>
+        <h4 class="flow-card-title">Bağımsız KTA Üretim Teyidi</h4>
+      </div>
+      <p class="flow-card-desc">
+        Her teyit işlemi <code>KTA Production Confirmation</code> adında
+        submittable bir belge oluşturur. Denetlenebilir, değiştirilemez ve SAP
+        CORS protokolüyle ters kaydı yapılabilir.
+      </p>
+    </div>
+  </div>
+
+  <hr />
+
+  <h2>🖥️ 2. Shopfloor Hub Çoklu Görünüm Mimarisi ve Kullanımı</h2>
+  <p>
+    Sisteme Frappe Desk menüsünden veya doğrudan <strong><code>/app/shopfloor_hub</code></strong> adresiyle ulaşabilirsiniz. Ekran el terminali, dokunmatik panel ve masaüstü tarayıcılarla tam uyumludur.
+  </p>
+  <p>
+    Sayfanın en üstündeki sabit navigasyon çubuğunda (<code>ShopfloorNavbar</code>) iki ana görünüm sekmesi bulunur ve sol iş emri kenar çubuğu (<code>WorkOrderSidebar</code>) aktif sekmeye göre bağlamsal olarak filtrelenir:
+  </p>
+
+  <div class="flow-card-grid">
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">⚡</span>
+        <h4 class="flow-card-title">[ ⚡ Work Orders ] Görünümü</h4>
+      </div>
+      <p class="flow-card-desc">
+        <strong>İş Emri Oluşturma ve Serbest Bırakma Merkezi:</strong> Sol panelde <em>Tümü</em>, <em>Taslak</em> ve <em>Serbest</em> filtreleriyle iş emirlerini listeler. <code>+ Yeni İş Emri Aç</code> butonuyla hızlı taslak iş emri açılmasını, hedef miktar düzenlemeyi (quantity scaling), <strong>Hammadde Uygunluk Matrisi</strong> üzerinden bileşen stok kontrolünü ve eksik parça uyarılı serbest bırakmayı (<em>Shortage-Allowed Release</em>) sağlar.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">📋</span>
+        <h4 class="flow-card-title">[ 📋 Operations ] Görünümü</h4>
+      </div>
+      <p class="flow-card-desc">
+        <strong>Operasyon Teyit ve Sarfiyat Kokpiti:</strong> Sol panelde yalnızca serbest bırakılmış ve aktif iş emirlerini (<em>Tümü</em>, <em>Devam Eden</em>, <em>Başlanmamış</em>) gösterir. Tamamlanan veya kapatılmış iş emirleri kokpitte listelenmez. Sağlam miktar teyidi, orantısal backflush (261), çoklu stok fişi takibi (tüketim + mamul girişi 101 GR) ve SAP CORS ters kayıt işlemlerini yönetir.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🗂️</span>
+        <h4 class="flow-card-title">Bağlamsal Sol İş Emri Paneli</h4>
+      </div>
+      <p class="flow-card-desc">
+        <code>get_active_work_orders</code> API'si üzerinden beslenir. Varsayılan olarak ve <code>limit=0</code> ile tüm aktif kayıtlar çekilir; pasif ve tamamlanmış (<em>Completed</em>, <em>Closed</em>) iş emirleri elenir. İş emri no, ürün kodu veya ürün adına göre anlık arama yapabilir, aktif sekmeye özel durum filtrelerini kullanabilir ve mini ilerleme çubuğunu inceleyerek iş emirlerini tek tıkla yükleyebilirsiniz.
+      </p>
+    </div>
+  </div>
+
+  <h3>A. Work Orders Görünümü: Hızlı İş Emri Açma, Termin (T<sub>prod</sub>), Stok Kontrolü ve Serbest Bırakma</h3>
+  <div class="step-container">
+    <div class="step-item">
+      <h4>1. Hızlı Taslak İş Emri Açma (<code>+ Yeni İş Emri Aç</code>)</h4>
+      <p>
+        <code>Work Orders</code> sekmesinde sol panelin üstündeki <strong><code>+ Yeni İş Emri Aç</code></strong> butonuna tıklayın. Açılan pencerede yalnızca <strong>Mamul Kodu</strong> ve <strong>Miktar</strong> alanları zorunludur; seçilen mamul için aktif varsayılan reçete (<code>BOM</code>) ve stok birimi otomatik yüklenir.
+      </p>
+      <p>
+        <strong>Gelişmiş Seçenekler</strong> akordeonu açıldığında Reçete (<code>BOM No</code>), Kaynak Depo, Hedef Depo (Mamul), Planlanan Başlangıç ve Planlanan Bitiş tarihleri özelleştirilebilir. Planlanan bitiş tarihi kullanıcı tarafından değiştirilmediyse dahili imalat süresi (<strong>T<sub>prod</sub></strong>) üzerinden otomatik hesaplanır:
+      </p>
+      <div class="formula-box">
+        Planlanan Bitiş Tarihi = Planlanan Başlangıç Tarihi + T_prod (Gün)<br/>
+        T_prod Öncelik Hiyerarşisi:<br/>
+        1. Item Customer Detail.custom_production_time_days (müşteri belirtilmişse ve &gt; 0 ise)<br/>
+        2. Item.custom_manufacturing_lead_days (ürün kartındaki üretim süresi &gt; 0 ise)<br/>
+        3. Varsayılan Fallback: 14 Gün
+      </div>
+      <p>
+        <code>Taslak Olarak Kaydet</code> butonuna basıldığında iş emri <strong>Taslak (Draft)</strong> statüsünde oluşturulur ve sağ alana yüklenir.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>2. 3 Kademeli Malzeme Hazırlık ve Stok Uygunluk Kontrolü</h4>
+      <p>
+        <code>Work Orders</code> görünümünde bir iş emri seçildiğinde sistem reçetedeki tüm bileşenler için anlık olarak <strong>3 Katmanlı Stok ve Hat Besleme Modeli</strong>ni işletir. Bu model, yalnızca brüt stok miktarını değil, üretim rezervasyonlarını ve şirket genelindeki tüm fabrika ambarlarını hesaba katar:
+      </p>
+
+      <h5>A. Hattaki Net Kullanılabilir Stok Formülü</h5>
+      <p>
+        Hatta veya tüketim deposunda bulunan brüt stok (<code>Bin.actual_qty</code>), devam eden diğer iş emirleri tarafından rezerve edilmiş olabilir. Bu nedenle sistem hatta serbestçe kullanılabilecek net stoğu aşağıdaki formülle hesaplar:
+      </p>
+      <div class="formula-box">
+        Net Kullanılabilir Stok (Hatta) = max(0, Bin.actual_qty - Bin.reserved_qty_for_production)<br/>
+        Eksik Miktar (Shortage) = max(0, required_qty - Net Kullanılabilir Stok)
+      </div>
+      <p>
+        Matris tablosunda <strong>Hatta (Tüketim Deposu)</strong> sütununda bu net kullanılabilir stok gösterilir. İlgili depoda rezerve miktar varsa hemen altında <code>(Rezerve: X)</code> ibaresiyle açıkça belirtilir.
+      </p>
+
+      <h5>B. Diğer Fabrika Depoları Görünürlüğü (Plant-Wide Warehouse Stock)</h5>
+      <p>
+        Hattaki net stok iş emri ihtiyacını karşılamadığında sistem şirkete ait diğer tüm aktif ve grup-olmayan (non-group) depoları (Merkez Depo, Hammadde Ambarı, Dış Depolar vb.) sorgular. Bu depolardaki rezerve edilmemiş kullanılabilir stokların toplamı <strong>Diğer Depolarda</strong> sütununda gösterilir; fareyle üzerine gelindiğinde ambar bazlı stok dağılımı araç ipucu (tooltip) ile listelenir.
+      </p>
+
+      <h5>C. 3 Kademeli Hazırlık Sınıflandırması</h5>
+      <p>Her bir hammadde ve bileşen aşağıdaki 3 kademeden birine ayrılır:</p>
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th style="width: 180px;">Kademe &amp; Rozet</th>
+            <th style="width: 240px;">Koşul</th>
+            <th>Anlamı ve Üretim Aksiyonu</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="co11n-badge green">✅ Hatta Mevcut</span></td>
+            <td><code>line_available_qty &gt;= required_qty</code></td>
+            <td>Tüketim/hat ambarındaki net kullanılabilir stok iş emri ihtiyacını eksiksiz karşılar. Malzeme hatta fiziken hazır ve tüketime uygundur.</td>
+          </tr>
+          <tr>
+            <td><span class="co11n-badge amber">⚠️ Transfer Edilebilir</span></td>
+            <td><code>(line_available_qty + other_wh_qty) &gt;= required_qty</code></td>
+            <td>Hatta stok eksiktir ancak şirketin Merkez veya diğer fabrika depolarında yeterli stok bulunmaktadır. Hat transferi (<code>Stock Entry - Material Transfer</code>) yapılarak malzeme hatta beslenebilir; kritik tedarik riski yoktur.</td>
+          </tr>
+          <tr>
+            <td><span class="co11n-badge rose">🚫 Fabrikada Yok</span></td>
+            <td><code>(line_available_qty + other_wh_qty) &lt; required_qty</code></td>
+            <td><strong>Kritik Hammadde Eksikliği:</strong> Fabrika genelindeki tüm ambarlar toplansa dahi iş emri ihtiyacı karşılanamamaktadır. Malzemenin satınalma/tedarik süreci beklenmelidir.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h5>D. Dinamik Durum Banner'ı ve Karşılama İlerlemesi</h5>
+      <p>
+        Panelin üst kısmında genel karşılama oranı ilerleme çubuğuyla birlikte durum özeti renkli bir bilgilendirme banner'ı ile gösterilir:
+      </p>
+      <ul>
+        <li><strong>Kritik Eksiklik Varsa (Kırmızı):</strong> <em>"⚠️ Kritik hammadde eksikliği mevcut. {N} kalem fabrika genelinde temin edilememiştir."</em></li>
+        <li><strong>Transferle Karşılanabiliyorsa (Mavi/Bilgi):</strong> <em>"ℹ️ Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur. Hat transferi yapılarak üretime hazır hale getirilebilir."</em></li>
+        <li><strong>Tümü Hatta Hazırsa (Yeşil):</strong> <em>"✅ Tüm hammaddeler hatta kullanıma hazır."</em></li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>3. Taslak İş Emirlerinde Hedef Miktar Düzenleme (Quantity Scaling)</h4>
+      <p>
+        İş Emri Serbest Bırakma ve Malzeme Hazırlık Kontrolü panelinde, taslak (<strong>Draft</strong>, <code>docstatus = 0</code>) durumundaki iş emirlerinin hedef üretim miktarı (<code>qty</code>) silip yeniden açmaya gerek kalmadan serbestçe düzenlenebilir. Paneldeki <strong>Hedef Miktar</strong> satırında yer alan <strong>✏️ Hedef Miktarı Düzenle</strong> butonuna tıklanarak yeni miktar anlık olarak revize edilebilir:
+      </p>
+      <ul>
+        <li>
+          <strong>Reçete Bileşen İhtiyaçlarının Orantısal Ölçeklenmesi:</strong> Yeni miktar kaydedildiğinde backend üzerinde <code>update_work_order_qty</code> servisi çalışır; reçetedeki tüm bileşenlerin ihtiyaç miktarları (<code>required_items.required_qty</code>) ve satır tutarları yeni parti büyüklüğü oranında (<code>new_qty / old_qty</code>) 4 ondalık hassasiyetle orantısal olarak ölçeklenir.
+        </li>
+        <li>
+          <strong>Atanmış Onaylı Alternatif Hammadde Seçimlerinin Korunması:</strong> Reçete sıfırdan yeniden yüklenmez veya silinmez; mevcut satırların miktarları güncellenir. Bu sayede planlamacı tarafından önceden atanmış olan onaylı alternatif hammadde (muadil) seçimleri ve <code>custom_original_item</code> eşleştirmeleri kesinlikle kaybolmaz, korunur.
+        </li>
+        <li>
+          <strong>Operasyon Süreleri ve Normalleştirilmiş Sıra ID'lerinin Korunması:</strong> İş emrindeki operasyonların planlanan süreleri (<code>time_in_mins</code>) ve operasyon miktarları (<code>qty</code>) yeni orana göre güncellenir. Aynı zamanda <code>auto_normalize_work_order_operations</code> fonksiyonu çağrılarak operasyonların <code>1, 2, 3...</code> normalleştirilmiş sıra ID'leri (<code>idx</code>) tam olarak muhafaza edilir.
+        </li>
+        <li>
+          <strong>Denetim İzi (Audit Log):</strong> Hedef miktar güncellendiğinde Frappe aktivite geçmişine (<em>Comment</em>) <em>"İş Emri üretim hedef miktarı {old_qty} -&gt; {new_qty} olarak güncellendi."</em> şeklinde kalıcı bir denetim kaydı işlenir ve malzeme hazırlık matrisi yeni ihtiyaçlara göre gerçek zamanlı yeniden hesaplanır.
+        </li>
+      </ul>
+      <div class="callout-box info" style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 12px 0; border-radius: 4px;">
+        💡 <strong>Yalnızca Taslak Durumu:</strong> Yalnızca taslak (<code>docstatus = 0</code>) durumundaki İş Emirlerinin hedef miktarı değiştirilebilir. Serbest bırakılmış (<code>docstatus = 1</code>) veya üretime başlanmış iş emirlerinde düzenleme butonu kilitlenir; böylece üretim ve teyit bütünlüğü güvenceye alınır.
+      </div>
+    </div>
+
+    <div class="step-item">
+      <h4>4. İş Emrini Serbest Bırakma (Release) ve Eksik Hammadde Yönetimi</h4>
+      <p>
+        Taslak iş emrini üretime almak için <strong><code>🚀 İş Emrini Serbest Bırak (Release)</code></strong> butonuna tıklayın:
+      </p>
+      <ul>
+        <li><strong>Tüm Bileşenler Hatta Mevcutsa:</strong> Doğrudan onay penceresi sonrası iş emri submit edilir (<code>docstatus = 1</code>) ve operasyon iş kartları (Job Card) serbest bırakılır.</li>
+        <li><strong>Eksiklik Varsa (Shortage-Allowed Release):</strong> Katı bir hat blokajı yerine hat yöneticisine inisiyatif veren <strong>Eksik Hammadde Uyarısı</strong> diyaloğu açılır. Diyalogda:
+          <ul>
+            <li>Eksik kalemlerin İhtiyaç, Hatta Mevcut ve Eksik miktarları tablo olarak listelenir.</li>
+            <li>Eğer tüm eksikler Merkez/Diğer depolarda mevcutsa <em>"ℹ️ Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur."</em> notu düşülerek hat transferi tavsiye edilir.</li>
+            <li>Yetkili kullanıcı <strong><code>Yine de Serbest Bırak (Force Release)</code></strong> butonuna bastığında iş emri submit edilir.</li>
+            <li>İş emri üzerinde <strong><code>Eksik Hammadde ile Serbest Bırakıldı</code></strong> (<code>custom_released_with_shortage = 1</code>) alanı işaretlenir ve detaylı eksik listesi Frappe aktivite geçmişine (<em>Comment</em>) kalıcı olarak yazılır.</li>
+          </ul>
+        </li>
+        <li><strong>İşlem Sonrası Akış:</strong> Serbest bırakma sonrası ekran <code>Work Orders</code> görünümünde kalarak başarı bildirimi gösterir. Yetkili isterse sağ üstteki <strong><code>📋 Operasyon Teyidine Geç</code></strong> butonuyla tek tıkla <code>Operations</code> görünümüne geçiş yapabilir.</li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>5. Alternatif Hammadde (Muadil) Yönetimi ve Tüketim Kuralları</h4>
+      <p>
+        Üretim hatlarında malzeme temin darboğazlarını aşmak, hat duruşlarını önlemek ve atıl stokları eritmek amacıyla <code>Work Orders</code> ekranında <strong>Hammadde Uygunluk Matrisi</strong> üzerinde dinamik <strong>Alternatif Hammadde (Muadil) Değişimi</strong> desteklenir.
+      </p>
+
+      <h5>A. Katı Poke-Yoke Kuralı ve Onaylı Muadil Havuzu</h5>
+      <p>
+        Kalite ve mühendislik onayından geçmemiş rastgele parçaların sahada tüketilmesini engellemek için sistemde katı Poke-Yoke kontrolleri devrededir:
+      </p>
+      <ul>
+        <li>
+          <strong>Yalnızca Onaylı Alternatifler:</strong> Kullanıcı malzeme satırındaki <code>Değiştir</code> butonuna tıkladığında, yalnızca ERPNext standart <code>Item Alternative</code> listesinde tek yönlü veya çift yönlü (<code>two_way = 1</code>) olarak tanımlanmış ve Ar-Ge/Kalite tarafından onaylanmış alternatif kodlar listelenir. Tanımlı onayı olmayan kodların manuel girilmesine veya seçilmesine izin verilmez.
+        </li>
+        <li>
+          <strong>Kısmi Tüketim Blokajı:</strong> Bir iş emrinde ilgili hammadde için daha önce kısmi teyit veya backflush tüketimi gerçekleştiyse (<code>consumed_qty &gt; 0</code>), reçete tutarlılığı gereği alternatif değişimi anında bloke edilir ve <em>"Kısmi tüketim yapılmış hammadde için alternatif seçilemez."</em> uyarısı verilir.
+        </li>
+        <li>
+          <strong>Anlık Ambar Dağılımı ve Çift Yönlülük Rozeti:</strong> Alternatif seçim modalında her bir muadil için <strong>Hatta Stok</strong> ve <strong>Diğer Depolarda</strong>ki net stok adetleri gerçek zamanlı sorgulanır; çift yönlü ikameler <span class="co11n-badge blue">Çift Yönlü</span> rozetiyle belirtilir.
+        </li>
+      </ul>
+
+      <h5>B. Proaktif Seçim Desteği (Stok Eritme ve Parti Önceliği)</h5>
+      <p>
+        Sistem muadil seçimini yalnızca orijinal malzemenin tükendiği (shortage) senaryolarla sınırlandırmaz. Orijinal hammadde hatta eksiksiz bulunsa dahi (<code>line_available_qty &gt;= required_qty</code>), üretim planlamacısı veya vardiya amiri şu operasyonel gerekçelerle proaktif olarak muadili devreye alabilir:
+      </p>
+      <ul>
+        <li>Ambarda bekleyen alternatif lotların raf ömrü (SKT) veya FIFO önceliği nedeniyle eritilmesi,</li>
+        <li>Müşteri talebi veya kablo kesit/renk eşdeğerlikleri doğrultusunda parti bazlı optimizasyon,</li>
+        <li>Hattaki orijinal stoğun daha kritik bir iş emrine saklanması amacıyla alternatif malzemenin hatta beslenmesi.</li>
+      </ul>
+
+      <h5>C. Reçete İzlenebilirliği ve Tek Tıkla Geri Dönüş (Restore)</h5>
+      <p>
+        Muadil seçildiğinde iş emri reçete satırındaki <code>item_code</code> alternatif kodla güncellenir ve orijinal reçete kodu <code>custom_original_item</code> alanına kaydedilir:
+      </p>
+      <ul>
+        <li>
+          <strong>Görsel Uyarı ve Durum:</strong> Matris tablosunda satır <span class="co11n-badge amber">Muadil</span> rozeti alır ve <em>"Şu an muadil kullanılıyor (Orijinal: {0})"</em> bilgilendirme metni görüntülenir.
+        </li>
+        <li>
+          <strong>Geri Alınabilirlik (Restore):</strong> Planlamacı karar değiştirdiğinde <strong><code>Orijinal Reçete Koduna Dön</code></strong> butonuna tek tıkla basarak iş emri satırını anında orijinal BOM bileşenine ve standart ihtiyaç miktarına geri döndürebilir.
+        </li>
+      </ul>
+
+      <h5>D. Tüketim (Backflush) Entegrasyonu ve Standart Kısıtlamanın Aşılması</h5>
+      <p>
+        ERPNext çekirdeği standart olarak iş emri tüketim fişlerinde (<code>Stock Entry - Material Consumption for Manufacture</code>) reçetede tanımlı olmayan veya miktarı sapan bileşenleri <code>validate_components_quantities_per_bom</code> fonksiyonuyla reddeder.
+      </p>
+      <p>
+        <code>kta_shopfloor</code> CO11N operasyon teyit motoru, <code>custom_original_item</code> alanını ve onaylı <code>Item Alternative</code> bağlamını doğrulayarak bu kısıtlamayı kontrollü biçimde aşar:
+      </p>
+      <div class="callout-box success">
+        <div class="callout-title">⚡ Fiili Kod ve FIFO Parti Çıkışı</div>
+        <p>
+          CO11N teyidi sırasında stok çıkışı (261 Backflush) orijinal kod üzerinden değil, <strong>fiilen seçilmiş alternatif kod</strong> ve bu koda ait ambar partisi (FIFO batch) üzerinden gerçekleştirilir. Mamul maliyetine (101 GR) yansıtılan malzeme maliyeti doğrudan tüketilen alternatifin birim maliyeti üzerinden netleştirilir.
+        </p>
+      </div>
+
+      <h5>E. Alternatif Hammadde Akış Şeması</h5>
+      <div class="mermaid-box" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0; overflow-x: auto; text-align: center;">
+        <pre class="mermaid">
+flowchart TD
+    A["Reçete Bileşeni (BOM Item)"] --> B{"Alternatif İhtiyacı?<br/>(Stok Yokluğu veya Proaktif Eritme)"}
+    B -->|"Hayır"| C["Orijinal Kod ile Devam Et"]
+    B -->|"Evet: Muadil Seçimi"| D["Alternatif Seçim Modalı Açılır"]
+    
+    D --> E{"Poke-Yoke 1:<br/>Kısmi Tüketim Var mı?"}
+    E -->|"consumed_qty > 0"| F["Blokaj: Kısmi tüketilmiş satır değiştirilemez!"]
+    E -->|"Tüketim Yok"| G{"Poke-Yoke 2:<br/>Item Alternative Tanımı Onaylı mı?"}
+    
+    G -->|"Onaysız Kod"| H["Blokaj: Yalnızca onaylı alternatifler listelenir"]
+    G -->|"Onaylı (Tek veya Çift Yönlü)"| I["Muadil Seçilir<br/>custom_original_item = Orijinal Kod"]
+    
+    I --> J{"Planlamacı Kararı"}
+    J -->|"Orijinale Dön"| K["Tek Tıkla Restore: Orijinal BOM Koduna Geri Dönüş"]
+    J -->|"Muadili Onayla"| L["İş Emri Serbest Bırakılır (Release)"]
+    
+    L --> M["CO11N Operasyon Teyidi (261 Backflush)"]
+    M --> N["ERPNext Reçete Kısıtlaması Güvenli Aşılır<br/>(validate_components_quantities_per_bom bypass)"]
+    N --> O["Fiili Alternatif Kod & FIFO Partisi Sarf Edilir<br/>Mamul Maliyetine Muadil Maliyeti Yansıtılır"]
+        </pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout-box success">
+    <div class="callout-title">🔒 Stok Rezervasyonu ve Tüketim Yaşam Döngüsü</div>
+    <p>
+      Bir taslak iş emri <code>Work Orders</code> sekmesinden serbest bırakıldığında (<code>Submit / docstatus = 1</code>), ERPNext çekirdeği reçetedeki hammadde ihtiyaçları için ilgili kaynak/WIP deposunda <strong>üretim rezervasyonu</strong> (<code>Bin.reserved_qty_for_production</code>) oluşturur.
+    </p>
+    <p>
+      <code>Operations</code> sekmesinden operasyon teyidi verilip backflush hammadde sarfiyatı (<code>Material Consumption for Manufacture</code>) işlendiğinde, ilgili iş emri satırındaki tüketilen miktar (<code>consumed_qty</code>) artar ve bu tüketim kadar depo rezervasyonu otomatik olarak düşer (<code>reserved_qty_for_production = required_qty - consumed_qty</code>). Bir teyit SAP CORS ile iptal edildiğinde ise stok iadesiyle birlikte rezervasyon miktarı otomatik olarak geri yüklenir.
+    </p>
+  </div>
+
+  <h3>B. Operations Görünümü: Operasyon Teyit Kokpiti</h3>
+  <div class="step-container">
+    <div class="step-item">
+      <h4>Adım 1: İş Emri Seçimi (Sol Panel veya Barkod)</h4>
+      <p>
+        <code>Operations</code> sekmesinde yalnızca serbest bırakılmış ve aktif iş emirleri listelenir; taslaklar ve tamamlanan kayıtlar bu görünümden filtrelenir. İş emrini iki pratik yöntemden birini kullanarak ekrana yükleyebilirsiniz:
+      </p>
+      <ul>
+        <li>
+          <strong>Sol İş Emri Paneli / Kenar Çubuğu:</strong> Ekranın solunda yer alan panelde <em>Tümü</em>, <em>Devam Eden</em> (<em>In Process</em>) ve <em>Başlanmamış</em> (<em>Not Started</em>) iş emirleri anlık kayıt sayısıyla (<em>Kayıt</em>) listelenir. Operasyonlar sekmesindeki önceki <em>Tamamlanan</em> sekmesinin yerini <em>Başlanmamış</em> (<em>Not Started</em>) sekmesi almış olup, tamamlanan iş emirleri kokpitte gösterilmez. <code>get_active_work_orders</code> API'si varsayılan olarak ve <code>limit=0</code> ile tüm aktif kayıtları sınırsız çeker, pasif/tamamlanmış (<code>Completed</code>, <code>Closed</code>) iş emirlerini eler.
+          Üst kısımdaki arama kutucuğundan iş emri numarası, ürün kodu veya adına göre anında filtreleme yapabilir, kart üzerindeki mini ilerleme çubuğunu inceleyerek tek tıkla iş emrini kokpite yükleyebilirsiniz. İşlem tamamlandığında <code>✕ Seçimi Temizle</code> butonu ile ana görünüme dönülebilir.
+        </li>
+        <li>
+          <strong>Barkod Okutma:</strong> İş Emri formundaki veya basılı gezgin karttaki barkodu barkod okuyucuyla okutun veya el ile yazıp <code>ENTER</code> tuşuna basın.
+        </li>
+      </ul>
+      <p>
+        İş emri yüklendiğinde ürün kodu, ürün adı, hedef miktar, üretilen adet ve sıralı operasyon adımları istasyon bazında anında ekrana gelir.
+      </p>
+      <ul>
+        <li><strong>Numarayı Kopyala:</strong> İş emri başlığında bulunan kopyalama simgesine tıklayarak iş emri numarasını tek tıkla panoya alabilirsiniz (<em>Kopyalandı!</em> bildirimi gösterilir).</li>
+        <li><strong>Görsel KPI ve İlerleme Kartı:</strong> Kartın üst kısmında <em>Hedef Miktar</em>, <em>Üretilen Mamul</em> ve <em>Kalan Mamul</em> KPI sayaçları ile birlikte renkli ve gradyan geçişli <strong>Üretim İlerlemesi</strong> çubuğu (% rozetiyle) dinamik olarak güncellenir.</li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>Adım 2: Operasyon Seçimi</h4>
+      <p>
+        Sol listeden teyit verilecek operasyonu seçin (Örn: <em>0010 Kablo Kesim</em> veya <em>0020 Krimp Basma</em>). Rota içerisindeki son montaj adımının üzerinde <span class="co11n-badge purple">★ Son Operasyon (Milestone)</span> rozeti açıkça vurgulanır. Bu aşamada teyit verildiğinde mamul girişi (101 GR) süreci ve geriye dönük eksik ara operasyonları otomatik tamamlayan <strong>Akıllı Milestone Kümülatif Telafi Sarfiyatı (Auto-Catchup Backflush)</strong> devreye girer.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>Adım 3: Sağlam Miktar (Yield Qty) Girişi</h4>
+      <p>
+        Fiziki olarak sayımı yapılan sağlam miktarı girin. Dokunmatik ekranlarda hızlı giriş için <code>+1</code>, <code>+5</code>, <code>+10</code>, <code>+25</code>, <code>+50</code> ve açık bakiyenin tamamını tek dokunuşla aktaran <strong>Kalanın Tümü</strong> (<em>Açık bakiyenin tamamını aktar</em>) butonunu kullanabilirsiniz.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>Adım 4: Teyit Et Butonu</h4>
+      <p>
+        <code>Teyit Et</code> butonuna bastığınızda işlem onaylanır; sistem otomatik olarak teyit belgesini ve stok fişini oluşturarak ekranda direkt tıklanabilir bağlantılar sunar. Geçmiş teyitler listesinden her bir <strong>Teyit No</strong> ve ilişkili stok fişi incelenebilir.
+      </p>
+    </div>
+  </div>
+
+  <hr />
+
+  <h2>📊 3. Kısmi Teyit ve "Son Teyit (Kalanı Kapat)" Mantığı</h2>
+
+  <h3>A. Kısmi Teyit (Partial Confirmation)</h3>
+  <p>
+    Büyük partili üretimlerde parti tamamlanmasını beklemeye gerek yoktur. Örneğin 10.000 adetlik bir iş emrinde her 1.000 adet kesildiğinde ara teyit girilebilir. 
+    İstasyonlar arasında sıralı kilit bulunmaz; kesim operasyonu devam ederken krimp operasyonu tamamlanan miktarlar için bağımsız teyit alabilir.
+  </p>
+
+  <h3>B. Son Teyit (Kalanı Kapat - Final Confirmation)</h3>
+  <p>
+    Üretim süreçlerinde hurda, kesim firesi veya parti eksilmesi nedeniyle iş emri hedef adedine birebir ulaşılamayabilir (Örneğin: 1.000 adetlik hedefte 985 adet sağlam üretilmiş, 15 adet hurda ayrılmış olabilir).
+  </p>
+
+  <div class="callout-box warning">
+    <div class="callout-title">⚠️ "Son Teyit (Kalanı Kapat)" İşaretlendiğinde Ne Olur?</div>
+    <ol>
+      <li>
+        <strong>Bakiye Farkı Otomatik Kapatılır:</strong> Kalan hammadde sarfiyatı küsurat yuvarlamalarına takılmadan doğrudan reçete bakiye farkından hesaplanır:
+        <div class="formula-box">
+          Son Teyit Sarfiyatı = Reçete Toplam İhtiyaç - Önceki Teyitlerde Tüketilmiş Miktar
+        </div>
+      </li>
+      <li>
+        <strong>Job Card Tamamlanır:</strong> İlgili operasyonun Job Card'ı açık bakiye sıfırlanarak <code>Completed</code> durumuna getirilir.
+      </li>
+      <li>
+        <strong>Son Operasyonda İş Emri Kapanır:</strong> Eğer son operasyon teyit ediliyorsa veya tüm operasyonlar bittiyse Work Order durumu <code>Completed</code> yapılarak kapatılır.
+      </li>
+    </ol>
+  </div>
+
+  <h3>C. Akıllı Milestone (Kilometre Taşı) Kümülatif Kapatma ve Telafi Sarfiyatı (Auto-Catchup Backflush)</h3>
+  <p>
+    Kablo gruplama ve montaj hatlarının gerçek fabrika dinamiklerinde operatörler ara istasyonlarda (kablo kesim, uç açma, krimp basma vb.) anlık teyit girmeyi atlayabilir, kısmi teyit girebilir ya da parçaları seri şekilde bir sonraki istasyona aktarabilirler. Bu durumda nihai test/montaj istasyonundaki operatör doğrudan <strong>Son Operasyon (Milestone)</strong> üzerinde teyit verdiğinde (örneğin 1. operasyonda sadece 5 adet teyit edilmişken, son operasyonda 8 adet teyit verildiğinde), sistem akıllı <strong>Auto-Catchup Backflush</strong> mekanizmasını devreye sokar:
+  </p>
+
+  <div class="flow-card-grid">
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">⚡</span>
+        <h4 class="flow-card-title">1. Otomatik Kümülatif Seviyeleme</h4>
+      </div>
+      <p class="flow-card-desc">
+        Sistem, son operasyon teyit edildiği anda geriye dönük tüm ara operasyonları inceler. Tamamlanan miktarı (<code>completed_qty</code>) son operasyonun hedef seviyesinin (8 adet) altında kalmış tüm önceki operasyonları ve bunlara bağlı <code>Job Card</code> ilerlemelerini otomatik olarak 8 adede eşitler.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">📦</span>
+        <h4 class="flow-card-title">2. Telafi Sarfiyatı (Catchup Backflush)</h4>
+      </div>
+      <p class="flow-card-desc">
+        Daha önce 5 adedi sarf edilmiş 1. operasyon hammaddesinin kalan 3 adetlik farkı ile teyidi hiç girilmemiş ara istasyon hammaddelerinin (8 adedin tamamı) sarfiyatı o anki stok fişine otomatik dahil edilerek depodan düşülür.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🎯</span>
+        <h4 class="flow-card-title">3. Sıfır Hayalet Stok (No Ghost Inventory)</h4>
+      </div>
+      <p class="flow-card-desc">
+        Mamul ambarına fiziken giren ürünün tüm bileşenleri aynı anda WIP deposundan düşülür. Atölyede fiziken tüketilmiş ancak kayıtlarda ambarda kalmış "hayalet stok" (ghost inventory) oluşumu kesin olarak engellenir.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🛡️</span>
+        <h4 class="flow-card-title">4. Sıfır Hat Duruşu &amp; Blokaj Önleme</h4>
+      </div>
+      <p class="flow-card-desc">
+        ERPNext çekirdeğinin ara operasyonlar tamamlanmadığında fırlattığı katı <em>"Operation not sufficiently confirmed"</em> hatası ve üretim hattı duruşları tamamen ortadan kaldırılır. Mamul girişi pürüzsüz gerçekleşir.
+      </p>
+    </div>
+  </div>
+
+  <div class="callout-box info" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;">
+    <div class="callout-title">💡 Senaryo Analizi: 4 Operasyonlu İş Emrinde Kümülatif Telafi Akışı</div>
+    <p>
+      10 adetlik bir iş emrinde operasyon durumları ve Milestone teyidi (8 Adet) verildiğinde arka planda çalışan otomatik işlemler:
+    </p>
+    <table class="doc-table" style="margin-top: 12px; background: #ffffff;">
+      <thead>
+        <tr>
+          <th>Operasyon Sırası &amp; Adı</th>
+          <th>Teyit Öncesi Durum</th>
+          <th>Milestone Teyidi (8 Adet) Sonrası</th>
+          <th>Hammadde Sarfiyatı (Backflush)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>0010 - Kablo Kesim</strong></td>
+          <td>5 / 10 Adet (Kısmi Teyit)</td>
+          <td><span class="co11n-badge green">8 / 10 Adet (Otomatik Seviyelendi)</span></td>
+          <td>Daha önce 5 adedi tüketilmişti; <strong>kalan 3 adetlik fark</strong> telafi sarfiyatı olarak fişe eklendi.</td>
+        </tr>
+        <tr>
+          <td><strong>0020 - Krimp Basma</strong></td>
+          <td>0 / 10 Adet (Atlandı / Teyitsiz)</td>
+          <td><span class="co11n-badge green">8 / 10 Adet (Otomatik Seviyelendi)</span></td>
+          <td>Hiç teyit girilmemişti; <strong>8 adedin tamamı</strong> telafi sarfiyatı olarak depodan düşüldü.</td>
+        </tr>
+        <tr>
+          <td><strong>0030 - Ara Kontrol</strong></td>
+          <td>0 / 10 Adet (Atlandı / Teyitsiz)</td>
+          <td><span class="co11n-badge green">8 / 10 Adet (Otomatik Seviyelendi)</span></td>
+          <td>Hammadde atanmamış operasyon; Job Card tamamlanma miktarı 8 adede çekildi.</td>
+        </tr>
+        <tr>
+          <td><strong>0040 - Nihai Montaj (★ Milestone)</strong></td>
+          <td>0 / 10 Adet (Aktif Teyit)</td>
+          <td><span class="co11n-badge purple">8 / 10 Adet (Teyit Edildi)</span></td>
+          <td>Montaj sarfları + Genel Reçete Sarfları + <strong>8 Adet Mamul Girişi (101 GR)</strong> üretildi.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <h2>🧱 4. Orantısal Hammadde Sarfiyatı (261 Backflush) ve Mamul Girişi (101 GR)</h2>
+
+  <p>
+    CO11N teyit motoru, SAP standartlarına uygun iki fazlı bir stok hareketi mimarisi işletir:
+  </p>
+
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>Operasyon Tipi</th>
+        <th>SAP Hareketi</th>
+        <th>ERPNext Fiş Türü</th>
+        <th>Açıklama &amp; Mantık</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Ara Operasyonlar</strong> (Örn: Kesim, Krimp)</td>
+        <td><span class="co11n-badge blue">261 Backflush</span></td>
+        <td><code>Material Consumption for Manufacture</code></td>
+        <td>
+          Yalnızca o operasyona atanmış hammaddeler teyit edilen sağlam miktar oranında hesaplanır ve ambardan otomatik sarf edilir. FIFO partileri otomatik seçilir.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Son Operasyon</strong> (Milestone / Nihai Montaj)</td>
+        <td><span class="co11n-badge green">101 GR + WIP Rollup</span></td>
+        <td><code>Manufacture</code></td>
+        <td>
+          Operasyona atanmamış genel sarflar (bant, etiket vb.) düşülür. Varsa önceki ara operasyonlarda eksik kalmış hammaddelerin telafi sarfiyatı (<strong>Auto-Catchup Backflush</strong>) fişe otomatik dahil edilir. Önceki ara operasyonlarda harcanan hammadde maliyetleri mamule orantısal yansıtılır (WIP Rollup) ve bitmiş ürün mamul ambarına (<code>fg_warehouse</code>) alınır.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Hammadde Hesaplama Formülü:</h3>
+  <div class="formula-box">
+    Tüketilecek Hammadde Miktarı = ( Teyit Edilen Sağlam Miktar / İş Emri Toplam Hedef Miktarı ) × BOM Toplam İhtiyaç Miktarı
+  </div>
+
+  <div class="callout-box success">
+    <div class="callout-title">✨ Otomatik FIFO Parti Tahsisi (Auto FIFO Batch Allocation)</div>
+    <p>
+      ERPNext'in <code>auto_create_serial_and_batch_bundle_for_outward = 1</code> entegrasyonu sayesinde, sarf edilen hammaddelerin lot/batch numaralarını operatörün tek tek seçmesine gerek yoktur. Sistem ambarınızdaki en eski giriş tarihli partileri otomatik olarak fişe bağlar.
+    </p>
+  </div>
+
+  <h3>A. Kullanıcı Onaylı Hat İkmal Modali (User-Confirmed Staging)</h3>
+  <p>
+    Operatör teyit ekranında <code>Teyit Et</code> butonuna bastığında sistem arka planda <strong>Pre-Flight Stok Kontrolü</strong> (<code>check_confirmation_materials</code>) çalıştırır. Teyit edilecek operasyonda tüketilecek hammaddelerin hat deposundaki (<code>wip_warehouse</code>) fiili serbest stokları taranır:
+  </p>
+  <ul>
+    <li>
+      <strong>Stok Yeterli:</strong> Hat deposunda yeterli hammadde varsa herhangi bir arayüz kesintisi olmadan teyit ve sarfiyat işlemi anında tamamlanır.
+    </li>
+    <li>
+      <strong>Stok Yetersiz (Kullanıcı Onaylı Hat İkmal Modali):</strong> Hat deposunda eksik hammadde tespit edildiğinde ekrana <strong>Hat İkmal Onayı (Üretim Deposu Stok Yetersiz)</strong> modali (<code>MaterialStagingModal</code>) açılır.
+    </li>
+  </ul>
+
+  <div class="callout-box warning">
+    <div class="callout-title">🔒 Katı İş Kuralı: Yalnızca Üretim (WIP) Depoları Arasında Transfer</div>
+    <p>
+      Hat ikmali transferleri <strong>yalnızca üretim/WIP depoları</strong> arasında yapılabilir (Örn: Boşta olan veya fazla stoğu bulunan başka bir montaj hattı deposundan hedef hat deposuna). 
+      Operatörün kokpit üzerinden ana hammadde depolarından, merkez ambarlardan veya mal kabul/tesellüm alanlarından doğrudan çekim yapması <strong>engellenmiştir</strong>. 
+      Eğer diğer üretim hatlarında da stok yoksa arayüz net bir uyarı gösterir ve operatörden ambar birimiyle iletişime geçerek resmi hat ikmali talep etmesini ister.
+    </p>
+  </div>
+
+  <p>
+    Modal açıldığında eksik hammadde kalemleri, hedef hat deposundaki mevcut stok, eksik miktar ve kaynak üretim deposu seçenekleri listelenir:
+  </p>
+  <ul>
+    <li>Operatör her bir kalem için transfer miktarını ve kaynak üretim deposunu doğrular.</li>
+    <li>
+      <strong>⚡ Hatta Aktar ve Teyit Et</strong> butonuna tıklandığında, sistem tek tıkla <code>Material Transfer for Manufacture</code> stok fişini otomatik oluşturup onaylar (<code>submit</code>) ve hemen ardından bekleyen operasyon teyidini başarıyla tamamlar.
+    </li>
+  </ul>
+
+  <div class="callout-box">
+    <div class="callout-title">🚀 Yol Haritası (Roadmap): SAP LP12 Depo-Üretim İkmal Modülü</div>
+    <p>
+      Gelecek sprintlerde depocuların iş emri bazlı çekme listeleri (<em>pull list</em>) görerek ana hammadde deposundan hat depolarına 2 adımlı toplu/dalga ikmal yapabileceği <strong>SAP LP12 modeli</strong> devreye alınacaktır. Bu modül sayesinde hat ikmalleri operatörün reaktif müdahalesi yerine, ambar biriminin vardiya öncesi hazırladığı proaktif transfer dalgalarıyla yürütülecektir.
+    </p>
+  </div>
+
+  <hr />
+
+  <h2>🔄 5. Hatalı Teyitlerin İptali ve Ters Kayıt (SAP CORS)</h2>
+  <p>
+    Eğer yetkili bir kullanıcı yanlış bir iş emri veya yanlış bir sağlam miktar girdiyse, SAP CORS (Cancel Confirmation) mantığıyla işlem geri alınabilir.
+  </p>
+
+  <div class="flow-card-grid">
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🚫</span>
+        <h4 class="flow-card-title">1. İptal Yetkisi</h4>
+      </div>
+      <p class="flow-card-desc">
+        Güvenlik nedeniyle teyit iptali yalnızca yetkili rollere (<code>System Manager</code>, <code>Manufacturing Manager</code>, <code>KTA Çalışma Kartı Yöneticisi</code>) açıktır.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">↩️</span>
+        <h4 class="flow-card-title">2. Stok Fişi İptali</h4>
+      </div>
+      <p class="flow-card-desc">
+        Teyide bağlı olarak üretilmiş olan <code>Stock Entry</code> fişi (tüketim veya mamul girişi) otomatik olarak <code>cancel</code> durumuna alınır. Sarf edilen hammaddeler ambar stoklarına iade edilir.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">📉</span>
+        <h4 class="flow-card-title">3. İlerleme Geri Çekme</h4>
+      </div>
+      <p class="flow-card-desc">
+        İş Emri ve Job Card üzerindeki tamamlanan miktarlar düşülür. Eğer iş emri tamamlandı durumuna geçmişse tekrar <code>In Process</code> statüsüne çevrilir.
+      </p>
+    </div>
+  </div>
+
+  <hr />
+
+  <h2>📑 6. Frappe Desk Dokümanı: "KTA Production Confirmation"</h2>
+  <p>
+    Arama çubuğuna <strong>KTA Production Confirmation</strong> yazarak geçmiş tüm
+    teyit işlemlerine ulaşabilirsiniz.
+  </p>
+  <ul>
+    <li><strong>İş Emri & Operasyon:</strong> Teyidin hangi iş emri ve operasyon için yapıldığı.</li>
+    <li><strong>Sağlam Miktar:</strong> Bildirilen net üretim miktarı.</li>
+    <li><strong>Teyit Eden:</strong> İşlemi gerçekleştiren kullanıcının sistem hesabı.</li>
+    <li><strong>İlişkili Stok Fişi:</strong> Otomatik açılan sarfiyat veya mamul giriş stok fişine doğrudan bağlantı.</li>
+    <li><strong>Durum:</strong> <code>Taslak</code>, <code>Gönderildi</code> (Onaylı) veya <code>İptal Edildi</code>.</li>
+  </ul>
+
+  <div class="callout-box">
+    <div class="callout-title">💡 İpucu: Süre ve Kalite Takipleri Nasıl Etkilenir?</div>
+    <p>
+      <code>kta_shopfloor</code> modülü, mevcut <code>kta_calisma_karti</code> modülünden bağımsız çalışır. 
+      Operatörler sahadaki el terminallerinden Çalışma Kartı açıp net süre, duruş ve krimp/kalite testlerini girmeye kesintisiz devam eder. 
+      CO11N teyit motoru bu verilerle çatışmaz; atölye süreleri Job Card'da birikirken, stok hareketleri CO11N üzerinden güvenli ve kontrollü yürütülür.
+    </p>
+  </div>
+
+  <hr />
+
+  <h2>🔌 7. Entegrasyon ve API Uç Noktaları</h2>
+  <p>
+    Shopfloor Hub ve operasyon teyit motoru tarafından kullanılan temel API uç noktaları:
+  </p>
+  <ul>
+    <li>
+      <strong><code>get_active_work_orders</code> (Aktif İş Emirleri):</strong>
+      Varsayılan olarak ve <code>limit=0</code> gönderildiğinde sistemdeki tüm eşleşen aktif iş emirleri sınırlandırma olmaksızın listelenir. Tamamlanmış (<code>Completed</code>), kapatılmış (<code>Closed</code>), iptal edilmiş (<code>Cancelled</code>) veya durdurulmuş (<code>Stopped</code>) iş emirleri API ve arayüz katmanında filtrelenerek kokpitten elenir. <code>Operations</code> görünümünde yalnızca serbest bırakılmış (<code>docstatus = 1</code>) ve durumu <code>Not Started</code> (Başlanmamış) veya <code>In Process</code> (Devam Eden) olan iş emirleri sunulur.
+    </li>
+    <li>
+      <strong><code>check_confirmation_materials</code> (Pre-Flight Hat Stok Kontrolü):</strong>
+      Teyit öncesinde operasyon bazında tüketilecek reçete hammaddelerinin hat deposundaki (<code>wip_warehouse</code>) net serbest stoklarını kontrol eder. Eksik hammadde varsa diğer üretim (WIP) depolarındaki serbest stokları ve kaynak alternatiflerini döner.
+    </li>
+    <li>
+      <strong><code>stage_confirmation_materials</code> (Kullanıcı Onaylı Hat İkmali):</strong>
+      Kullanıcının seçtiği kaynak üretim depolarından hedef hat deposuna eksik miktarlar için tek tıkla <code>Material Transfer for Manufacture</code> stok fişi oluşturup onaylar (<code>submit</code>) ve teyit sürecinin önünü açar.
+    </li>
+  </ul>
+</div>
+
+<!-- Mermaid JS Script -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.8/dist/mermaid.min.js" integrity="sha384-N3QqR/7q+xm3BGX+CBbNI8AUmRRqcsDzToy+0z1NLDI0QmTKW8zvwLvqulJgk3dP" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.mermaid) {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'neutral',
+        securityLevel: 'loose',
+        flowchart: {
+          useMaxWidth: false,
+          htmlLabels: true
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

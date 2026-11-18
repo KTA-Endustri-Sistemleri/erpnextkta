@@ -78,6 +78,35 @@ ERPNext’in standart üretim akışlarını gerçek atölye senaryolarına uyar
 
 <section class="module-card" markdown="1">
 
+## ⚡ KTA Shopfloor (CO11N Üretim Teyit Motoru)
+
+SAP CO11N yaklaşımıyla tasarlanmış bağımsız üretim teyit ve stok tüketim modülüdür. Atölye süre kayıtlarını tutan `kta_calisma_karti` modülünü zorlamadan yetkili onaylı orantısal hammadde sarfiyatı (261 Backflush) ve mamul girişi (101 GR) gerçekleştirir.
+
+**Öne çıkan özellikler:**
+
+- [Shopfloor Hub (CO11N) Üretim Teyit Kılavuzu](kta_shopfloor_hub_kilavuzu.html) ⚡
+- **Hızlı Teyit Kokpiti (Vue 3 SPA):** Barkod okutarak anında operasyon yükleme, sağlam miktar bildirimi ve tek tıkla teyit.
+- **Orantısal Hammadde Sarfiyatı (261 Backflush):** Ara operasyonlarda yalnızca operasyona bağlı hammaddelerin BOM oranına göre sarf edilmesi.
+- **Mamul Girişi (101 GR) & WIP Rollup:** Son operasyonda ara operasyon maliyetlerini mamule yansıtarak mamul ambarına devir alma.
+- **Son Teyit (Kalanı Kapat):** Fire veya eksik üretimde kalan reçete bakiyesini küsurat yuvarlamasız kapatma ve Job Card / Work Order tamamlama.
+- **SAP CORS Yetkili İptali:** Hatalı teyitlerin yetkili kullanıcılarca iptal edilmesi ve bağlı `Stock Entry` fişlerinin otomatik ters kaydı (`cancel`).
+
+**Dosya yapısı (örnek):**
+
+- `kta_shopfloor/`
+  - `doctype/kta_uretim_teyidi/` (Submittable Teyit Dokümanı)
+  - `services/`
+    - `confirmation_service.py` (Teyit Koordinatörü)
+    - `backflush_service.py` (Reçete Sarfiyat & Mamul Girişi)
+    - `reversal_service.py` (CORS İptal ve Ters Kayıt)
+  - `page/kta_co11n/` (Desk Sayfası)
+  - `api.py` (Whitelisted API Facade)
+- `public/kta-co11n/` (Vue 3 SPA Arayüzü)
+
+</section>
+
+<section class="module-card" markdown="1">
+
 ## 📦 KTA Stock & Logistics
 
 KTA’nın depo, etiketleme ve lojistik modeli için geliştirilmiş kritik kısıtlama ve otomasyon modülüdür.

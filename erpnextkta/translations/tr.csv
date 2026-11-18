@@ -93,3 +93,260 @@ Kalıp Adı,Kalıp Adı
 Mevcut Kalıp Adedi,Mevcut Kalıp Adedi
 Varsayılan Kalite Şablonu,Varsayılan Kalite Şablonu
 "Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı."
+KTA Production Confirmation,KTA Üretim Teyidi
+KTA Uretim Teyidi,KTA Üretim Teyidi
+CO11N Üretim Teyit Ekranı,CO11N Üretim Teyit Ekranı
+CO11N Hızlı Üretim Teyidi,CO11N Hızlı Üretim Teyidi
+İş Emri veya İş Kartı Barkodunu Okutarak Hızlı Teyit Girişi Yapın,İş Emri veya İş Kartı Barkodunu Okutarak Hızlı Teyit Girişi Yapın
+Yeni Okutma,Yeni Okutma
+Barkod veya İş Emri No Okutun…,Barkod veya İş Emri No Okutun…
+Teyit Başarıyla Tamamlandı,Teyit Başarıyla Tamamlandı
+"Teyit Başarıyla Kaydedildi: {0}","Teyit Başarıyla Kaydedildi: {0}"
+Teyit Belgesi,Teyit Belgesi
+Stok Fişi,Stok Fişi
+İlişkili Stok Fişi,İlişkili Stok Fişi
+Hedef Miktar,Hedef Miktar
+Üretilen Mamul,Üretilen Mamul
+Kalan Mamul,Kalan Mamul
+Operasyonlar,Operasyonlar
+Son Operasyon,Son Operasyon
+Kalan,Kalan
+Teyit Girişi,Teyit Girişi
+Seçili Operasyon,Seçili Operasyon
+Bu son operasyondur: Teyit verildiğinde mamul girişi yapılacaktır.,Bu son operasyondur: Teyit verildiğinde mamul girişi yapılacaktır.
+Teyit Edilen,Teyit Edilen
+Açık Bakiye,Açık Bakiye
+Sağlam Miktar (Yield Qty),Sağlam Miktar (Yield Qty)
+Kalanın Tümü,Kalanın Tümü
+Son Teyit (Kalanı Kapat),Son Teyit (Kalanı Kapat)
+Hedef adede tam ulaşılmasa bile açık bakiyeyi ve İş Kartını kapatır.,Hedef adede tam ulaşılmasa bile açık bakiyeyi ve İş Kartını kapatır.
+Teyit Et,Teyit Et
+Başlamak İçin Barkod Okutun,Başlamak İçin Barkod Okutun
+İş Emri veya İş Kartı üzerinde bulunan barkodu okutarak operasyonları listeleyin.,İş Emri veya İş Kartı üzerinde bulunan barkodu okutarak operasyonları listeleyin.
+İş Emri detayları alınamadı.,İş Emri detayları alınamadı.
+Barkod okutulurken bir hata oluştu.,Barkod okutulurken bir hata oluştu.
+Lütfen önce bir İş Emri ve Operasyon seçin.,Lütfen önce bir İş Emri ve Operasyon seçin.
+Lütfen sağlam miktar girin.,Lütfen sağlam miktar girin.
+Sağlam Miktar sıfırdan büyük bir sayı olmalıdır.,Sağlam Miktar sıfırdan büyük bir sayı olmalıdır.
+Teyit işlemi başarısız oldu.,Teyit işlemi başarısız oldu.
+Teyit işlemi sırasında bir hata oluştu.,Teyit işlemi sırasında bir hata oluştu.
+Barkod veya İş Emri / İş Kartı boş olamaz.,Barkod veya İş Emri / İş Kartı boş olamaz.
+Barkod ile eşleşen İş Emri veya İş Kartı bulunamadı: {0},Barkod ile eşleşen İş Emri veya İş Kartı bulunamadı: {0}
+Bu İş Emri için okuma yetkiniz yok.,Bu İş Emri için okuma yetkiniz yok.
+Bu sayfaya erişim yetkiniz bulunmamaktadır.,Bu sayfaya erişim yetkiniz bulunmamaktadır.
+İş Emri (work_order) zorunludur.,İş Emri (work_order) zorunludur.
+İş Emri bulunamadı: {0},İş Emri bulunamadı: {0}
+Operasyon (operation) zorunludur.,Operasyon (operation) zorunludur.
+Sağlam Miktar (yield_qty) sıfırdan büyük olmalıdır.,Sağlam Miktar (yield_qty) sıfırdan büyük olmalıdır.
+Sağlam Miktar (Yield Qty) sıfırdan büyük olmalıdır.,Sağlam Miktar (Yield Qty) sıfırdan büyük olmalıdır.
+Üretim teyidi bulunamadı: {0},Üretim teyidi bulunamadı: {0}
+Üretim teyidi zaten iptal edilmiş: {0},Üretim teyidi zaten iptal edilmiş: {0}
+"Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0}","Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0}"
+Üretim teyidini iptal etme yetkiniz bulunmamaktadır.,Üretim teyidini iptal etme yetkiniz bulunmamaktadır.
+Aktif İş Emirleri,Aktif İş Emirleri
+İş Emirleri,İş Emirleri
+Devam Edenler,Devam Edenler
+Başlamamış,Başlamamış
+Başlanmamış,Başlanmamış
+İş Emri veya Ürün Ara…,İş Emri veya Ürün Ara…
+Aramaya uygun açık iş emri bulunamadı.,Aramaya uygun açık iş emri bulunamadı.
+İş Emirlerini Görüntüle,İş Emirlerini Görüntüle
+"İş Emri No, Ürün Kodu veya Adı Ara…","İş Emri No, Ürün Kodu veya Adı Ara…"
+Arama kriterlerinize uygun aktif iş emri bulunamadı.,Arama kriterlerinize uygun aktif iş emri bulunamadı.
+İş Emirlerini Listele,İş Emirlerini Listele
+İş Emirleri Yüklenemedi,İş Emirleri Yüklenemedi
+İş Emirleri Yükleniyor…,İş Emirleri Yükleniyor…
+Kart üzerine tıklayarak ilgili iş emrini doğrudan yükleyebilirsiniz.,Kart üzerine tıklayarak ilgili iş emrini doğrudan yükleyebilirsiniz.
+Kopyalandı!,Kopyalandı!
+Numarayı Kopyala,Numarayı Kopyala
+Üretim İlerlemesi,Üretim İlerlemesi
+Açık bakiyenin tamamını aktar,Açık bakiyenin tamamını aktar
+Son Operasyon (Milestone),Son Operasyon (Milestone)
+Teyit No,Teyit No
+Operasyon bazında sağlam miktar teyidi ve SAP CORS ters kayıt yönetimi,Operasyon bazında sağlam miktar teyidi ve SAP CORS ters kayıt yönetimi
+Kayıt,Kayıt
+{0} Kayıt,{0} Kayıt
+{0} Adet,{0} Adet
+Teyit Geçmişi ve Hareketler,Teyit Geçmişi ve Hareketler
+Yenile,Yenile
+Tarih / Saat,Tarih / Saat
+Kullanıcı,Kullanıcı
+Durum,Durum
+İptal,İptal
+Tüketim,Tüketim
+Üretim,Üretim
+Seçimi Temizle,Seçimi Temizle
+Bir İş Emri Seçin,Bir İş Emri Seçin
+Lütfen sol paneldeki listeden işlem yapmak istediğiniz bir İş Emri seçin.,Lütfen sol paneldeki listeden işlem yapmak istediğiniz bir İş Emri seçin.
+İş Emri Yükleniyor…,İş Emri Yükleniyor…
+Kayıt Yok,Kayıt Yok
+Teyit Kayıtları Yükleniyor…,Teyit Kayıtları Yükleniyor…
+Bu iş emrine ait henüz bir üretim teyidi kaydedilmemiş.,Bu iş emrine ait henüz bir üretim teyidi kaydedilmemiş.
+Son Teyit Olarak Kaydedildi,Son Teyit Olarak Kaydedildi
+SAP CORS Protokolüyle Bu Teyidi İptal Et,SAP CORS Protokolüyle Bu Teyidi İptal Et
+Teyit Geçmişi Alınamadı,Teyit Geçmişi Alınamadı
+Aramanıza veya bu statüye uygun iş emri bulunamadı.,Aramanıza veya bu statüye uygun iş emri bulunamadı.
+Listeyi Yenile,Listeyi Yenile
+Temizle,Temizle
+Yükleniyor…,Yükleniyor…
+Son,Son
+Shopfloor Hub,Shopfloor Hub
+Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi,Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi
+Work Orders,İş Emirleri
+Operations,Operasyonlar
+Shopfloor Views,Shopfloor Görünümleri
+Yeni İş Emri Aç,Yeni İş Emri Aç
+Tümü,Tümü
+Taslak,Taslak
+Serbest,Serbest
+Devam Eden,Devam Eden
+Tamamlanan,Tamamlanan
+Draft,Taslak
+Released,Serbest
+In Process,Devam Eden
+Completed,Tamamlandı
+Not Started,Başlanmamış
+Seçili,Seçili
+Tekrar Dene,Tekrar Dene
+Lütfen sol listeden bir iş emri seçin veya yeni bir iş emri açın.,Lütfen sol listeden bir iş emri seçin veya yeni bir iş emri açın.
+Hızlı taslak iş emri oluşturma,Hızlı taslak iş emri oluşturma
+Kapat,Kapat
+Mamul Kodu,Mamul Kodu
+Mamul kodu veya adı ile arayın...,Mamul kodu veya adı ile arayın...
+Aranıyor...,Aranıyor...
+Eşleşen mamul bulunamadı,Eşleşen mamul bulunamadı
+Varsayılan reçete ve termin bilgisi yükleniyor...,Varsayılan reçete ve termin bilgisi yükleniyor...
+Varsayılan BOM yok,Varsayılan BOM yok
+Termin: {0} Gün,Termin: {0} Gün
+Miktar,Miktar
+Gelişmiş Seçenekler,Gelişmiş Seçenekler
+Reçete (BOM No),Reçete (BOM No)
+Otomatik (varsayılan BOM),Otomatik (varsayılan BOM)
+Kaynak Depo,Kaynak Depo
+Opsiyonel,Opsiyonel
+Hedef Depo (Mamul),Hedef Depo (Mamul)
+Varsayılan mamul deposu,Varsayılan mamul deposu
+Planlanan Başlangıç,Planlanan Başlangıç
+Planlanan Bitiş,Planlanan Bitiş
+Kaydediliyor...,Kaydediliyor...
+Taslak Olarak Kaydet,Taslak Olarak Kaydet
+Lütfen bir mamul (Item) seçin.,Lütfen bir mamul (Item) seçin.
+Üretim miktarı sıfırdan büyük olmalıdır.,Üretim miktarı sıfırdan büyük olmalıdır.
+İş Emri oluşturulamadı.,İş Emri oluşturulamadı.
+Taslak İş Emri Oluşturuldu: {0},Taslak İş Emri Oluşturuldu: {0}
+İş Emri oluşturulurken bir hata oluştu.,İş Emri oluşturulurken bir hata oluştu.
+Hammadde Uygunluğu,Hammadde Uygunluğu
+Hammadde ve Bileşen Stok Uygunluk Matrisi,Hammadde ve Bileşen Stok Uygunluk Matrisi
+Hammadde Uygunluk Matrisi,Hammadde Uygunluk Matrisi
+Eksik Parça ile Serbest Bırakıldı,Eksik Parça ile Serbest Bırakıldı
+Üretim Süresi (Gün),Üretim Süresi (Gün)
+Karşılama Oranı,Karşılama Oranı
+Karşılama %,Karşılama %
+Depo Stok,Depo Stok
+İhtiyaç Miktarı,İhtiyaç Miktarı
+Eksik Miktar,Eksik Miktar
+Stok Durumunu Yenile,Stok Durumunu Yenile
+Stok Yenile,Stok Yenile
+Üretilecek Mamul,Üretilecek Mamul
+Genel Hammadde Hazırlık Durumu,Genel Hammadde Hazırlık Durumu
+Kontrol Ediliyor…,Kontrol Ediliyor…
+%{0} Hazır (Tüm bileşenler mevcut),%{0} Hazır (Tüm bileşenler mevcut)
+Tüm bileşenler mevcut,Tüm bileşenler mevcut
+%{0} Hazır ({1} Kalem Eksik),%{0} Hazır ({1} Kalem Eksik)
+Bu iş emri üretime serbest bırakılmıştır.,Bu iş emri üretime serbest bırakılmıştır.
+İş emri durumu güncellendi. Operasyon teyitlerini başlatmak için geçiş yapabilirsiniz.,İş emri durumu güncellendi. Operasyon teyitlerini başlatmak için geçiş yapabilirsiniz.
+Operasyon Teyidine Geç,Operasyon Teyidine Geç
+Taslak İş Emri,Taslak İş Emri
+Eksik hammadde bulunuyor. İsterseniz uyarıyı onaylayarak serbest bırakabilirsiniz.,Eksik hammadde bulunuyor. İsterseniz uyarıyı onaylayarak serbest bırakabilirsiniz.
+Tüm bileşen stokları uygun. İş emrini üretime serbest bırakabilirsiniz.,Tüm bileşen stokları uygun. İş emrini üretime serbest bırakabilirsiniz.
+Serbest Bırakılıyor…,Serbest Bırakılıyor…
+İş Emrini Serbest Bırak (Release),İş Emrini Serbest Bırak (Release)
+{0} Bileşen,{0} Bileşen
+Hammadde Stok Durumu Kontrol Ediliyor…,Hammadde Stok Durumu Kontrol Ediliyor…
+Bu iş emri için malzeme gereksinimi bulunmuyor.,Bu iş emri için malzeme gereksinimi bulunmuyor.
+Bileşen Kodu,Bileşen Kodu
+Depo,Depo
+İhtiyaç,İhtiyaç
+Mevcut Stok,Mevcut Stok
+Hazır,Hazır
+Eksik,Eksik
+Eksik Hammadde Uyarısı,Eksik Hammadde Uyarısı
+Bu iş emrinde {0} adet bileşende hammadde eksiktir.,Bu iş emrinde {0} adet bileşende hammadde eksiktir.
+Bileşen,Bileşen
+Mevcut,Mevcut
+Vazgeç,Vazgeç
+Yine de Serbest Bırak (Force Release),Yine de Serbest Bırak (Force Release)
+Hammadde uygunluk bilgileri alınamadı.,Hammadde uygunluk bilgileri alınamadı.
+İş emri başarıyla serbest bırakıldı,İş emri başarıyla serbest bırakıldı
+İş emri serbest bırakılırken bir hata oluştu.,İş emri serbest bırakılırken bir hata oluştu.
+"""{0}"" numaralı iş emrini üretime serbest bırakmak istediğinize emin misiniz?","""{0}"" numaralı iş emrini üretime serbest bırakmak istediğinize emin misiniz?"
+Geçerli bir mamul kodu (item_code) zorunludur.,Geçerli bir mamul kodu (item_code) zorunludur.
+Yalnızca taslak durumundaki İş Emirleri serbest bırakılabilir: {0},Yalnızca taslak durumundaki İş Emirleri serbest bırakılabilir: {0}
+Eksik hammadde mevcut: {0},Eksik hammadde mevcut: {0}
+İş Emri eksik hammadde ile serbest bırakıldı: {0},İş Emri eksik hammadde ile serbest bırakıldı: {0}
+Şirket bilgisi çözümlenemedi.,Şirket bilgisi çözümlenemedi.
+Ürün için aktif reçete (BOM) bulunamadı: {0},Ürün için aktif reçete (BOM) bulunamadı: {0}
+İş Emrini Yeni Sekmede Aç,İş Emrini Yeni Sekmede Aç
+Ürün,Ürün
+Tamamlandı,Tamamlandı
+{0} Adım,{0} Adım
+Operasyon,Operasyon
+İlişkili Stok Fişleri,İlişkili Stok Fişleri
+İptal Edildi,İptal Edildi
+İptal İşlemi Başarısız,İptal İşlemi Başarısız
+Teyit Başarıyla İptal Edildi: {0},Teyit Başarıyla İptal Edildi: {0}
+Teyit iptal edilirken bir hata oluştu.,Teyit iptal edilirken bir hata oluştu.
+"""{0}"" numaralı teyit belgesini ve ilişkili stok hareketlerini SAP CORS protokolüyle iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.","""{0}"" numaralı teyit belgesini ve ilişkili stok hareketlerini SAP CORS protokolüyle iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+Üretim Fişi,Üretim Fişi
+Tüketim Fişi,Tüketim Fişi
+İş Emri yüklenirken hata oluştu.,İş Emri yüklenirken hata oluştu.
+Bu iş emri {0} durumundadır.,Bu iş emri {0} durumundadır.
+Durdurulmuş veya kapatılmış iş emirleri için serbest bırakma veya operasyon teyidi yapılamaz.,Durdurulmuş veya kapatılmış iş emirleri için serbest bırakma veya operasyon teyidi yapılamaz.
+Bu iş emri iptal edilmiştir.,Bu iş emri iptal edilmiştir.
+Eksik Hammadde ile Serbest Bırakıldı,Eksik Hammadde ile Serbest Bırakıldı
+Hatta Mevcut,Hatta Mevcut
+Transfer Edilebilir,Transfer Edilebilir
+Fabrikada Yok,Fabrikada Yok
+Kritik Eksik,Kritik Eksik
+Transfer Gerekli,Transfer Gerekli
+Hatta (Tüketim Deposu),Hatta (Tüketim Deposu)
+Diğer Depolarda,Diğer Depolarda
+(Rezerve: {0}),(Rezerve: {0})
+Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur. Hat transferi yapılarak üretime hazır hale getirilebilir.,Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur. Hat transferi yapılarak üretime hazır hale getirilebilir.
+Kritik hammadde eksikliği mevcut. {0} kalem fabrika genelinde temin edilememiştir.,Kritik hammadde eksikliği mevcut. {0} kalem fabrika genelinde temin edilememiştir.
+Tüm hammaddeler hatta kullanıma hazır.,Tüm hammaddeler hatta kullanıma hazır.
+Tüm eksik kalemler Merkez/Diğer depolardan hat transferi ile temin edilebilir.,Tüm eksik kalemler Merkez/Diğer depolardan hat transferi ile temin edilebilir.
+Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur.,Hatta eksik olan malzemeler Merkez/Diğer depolarda mevcuttur.
+Alternatif Hammadde Seçimi,Alternatif Hammadde Seçimi
+Şu an muadil kullanılıyor (Orijinal: {0}),Şu an muadil kullanılıyor (Orijinal: {0})
+Onaylı alternatifler yükleniyor…,Onaylı alternatifler yükleniyor…
+Bu hammadde için tanımlı onaylı bir alternatif bulunmuyor.,Bu hammadde için tanımlı onaylı bir alternatif bulunmuyor.
+Hatta Stok,Hatta Stok
+Çift Yönlü,Çift Yönlü
+Muadili Seç,Muadili Seç
+Orijinal Reçete Koduna Dön,Orijinal Reçete Koduna Dön
+Muadil (Orijinal: {0}),Muadil (Orijinal: {0})
+Orijinal,Orijinal
+Değiştir,Değiştir
+Kısmi tüketim yapılmış hammadde için alternatif seçilemez.,Kısmi tüketim yapılmış hammadde için alternatif seçilemez.
+Hedef Miktarı Düzenle,Hedef Miktarı Düzenle
+Hedef miktar güncellendi: {0},Hedef miktar güncellendi: {0}
+Yalnızca taslak durumundaki İş Emirlerinin miktarı değiştirilebilir: {0},Yalnızca taslak durumundaki İş Emirlerinin miktarı değiştirilebilir: {0}
+İş Emri üretim hedef miktarı {0} -> {1} olarak güncellendi.,İş Emri üretim hedef miktarı {0} -> {1} olarak güncellendi.
+Edit Target Quantity,Hedef Miktarı Düzenle
+Target quantity updated: {0},Hedef miktar güncellendi: {0}
+Only draft Work Orders can have their quantity changed: {0},Yalnızca taslak durumundaki İş Emirlerinin miktarı değiştirilebilir: {0}
+Work Order production target quantity updated: {0} -> {1}.,İş Emri üretim hedef miktarı {0} -> {1} olarak güncellendi.
+Hat İkmal Onayı (Üretim Deposu Stok Yetersiz),Hat İkmal Onayı (Üretim Deposu Stok Yetersiz)
+"Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.","Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz."
+"Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.","Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz."
+Transfer Miktarı,Transfer Miktarı
+Kaynak Üretim Deposu,Kaynak Üretim Deposu
+Üretim depolarında stok yok,Üretim depolarında stok yok
+⚡ Hatta Aktar ve Teyit Et,⚡ Hatta Aktar ve Teyit Et
+Aktarılıyor ve Teyit Ediliyor…,Aktarılıyor ve Teyit Ediliyor…
+"Hat İkmali Yapıldı: {0}","Hat İkmali Yapıldı: {0}"
+"Mevcut: {0} {1}","Mevcut: {0} {1}"
+Hat ikmali transferi gerçekleştirilemedi.,Hat ikmali transferi gerçekleştirilemedi.
+Hat ikmali transferi sırasında bir hata oluştu.,Hat ikmali transferi sırasında bir hata oluştu.
+"İş Emri: {0}","İş Emri: {0}"

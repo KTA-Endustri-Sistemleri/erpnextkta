@@ -51,6 +51,7 @@ All commit messages must follow the Conventional Commits specification. They are
   * The subject must not be empty.
   * Write the subject in the imperative, present tense: "change", not "changed" or "changes".
   * Keep the subject line short (ideally under 72 characters).
+  * **Line Length Limit (STRICT):** No line in a commit message (subject or body) may exceed 100 characters. Wrap long sentences, bullet points, and descriptions so that every line is strictly <= 100 characters.
 
 ---
 
@@ -79,7 +80,8 @@ All commit messages must follow the Conventional Commits specification. They are
 
 ## 5. Naming Conventions
 * **DocTypes:** Always singular, Title Case, separated by spaces (e.g., `Sales Invoice`).
-* **Fields:** Slugged version of the label, lowercase, using underscores (e.g., label "Customer Name" -> field `customer_name`).
+* **DocType Language Invariant (STRICT & CRITICAL):** DocTypes MUST NEVER be created with Turkish names or Turkish characters (e.g., NEVER `KTA Uretim Teyidi`, `KTA Calisma Karti`, `Hurda Kaydi`). DocTypes must ALWAYS use standard English terminology (Title Case, singular, e.g., `KTA Production Confirmation`, `KTA Work Card`, `KTA Scrap Entry`). User-facing labels can be translated into Turkish via translation dictionaries (`tr.csv`), but the DocType name itself, its folder name, and its fieldnames must strictly be in English.
+* **Fields:** Slugged version of the label, lowercase, using underscores (e.g., label "Customer Name" -> field `customer_name`). All fieldnames must strictly be in English.
 * **Link Fields:** The field name should match the name of the linked DocType in lowercase (e.g., link to `Employee` -> `employee`).
 * **Variables:**
   * Use the slugged version of the DocType name for document objects (e.g., `sales_order = frappe.get_doc('Sales Order', ...)`).

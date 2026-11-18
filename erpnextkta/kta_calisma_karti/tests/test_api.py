@@ -748,5 +748,47 @@ class TestCalismaKartiAPI(KTATestCase):
 		self.assertEqual(ck2.kalite_kontrol, "Kısmi Kabul Edildi")
 		self.assertEqual(ck2.docstatus, 1)
 
+	def test_job_card_clean_no_peel_off(self):
+		"""KTAJobCard sınıfında peel-off ve otomatik tüketim metodlarının temizlendiğini,
+		standart zaman çizelgesi (time_logs) yapısının korunduğunu doğrular."""
+		from frappe.utils import add_to_date, now_datetime
+
+		from erpnextkta.overrides.job_card import KTAJobCard
+
+		self.assertFalse(hasattr(KTAJobCard, "peel_off_partial_production"))
+		self.assertFalse(hasattr(KTAJobCard, "_create_consumption_entry_if_needed"))
+		self.assertFalse(hasattr(KTAJobCard, "_cancel_consumption_entries"))
+
+		jc = frappe.get_doc("Job Card", self.jc_name)
+		self.assertIsInstance(jc, KTAJobCard)
+
+		# Create a draft Job Card to verify normal time log handling
+		draft_jc = frappe.get_doc({
+			"doctype": "Job Card",
+			"work_order": self.wo_name,
+			"wip_warehouse": self.wip_warehouse,
+			"operation": self.erpnext_op,
+			"workstation": self.ws_name,
+			"production_item": self.item,
+			"for_quantity": 10,
+			"company": self.company,
+		}).insert(ignore_permissions=True)
+
+		self.assertIsInstance(draft_jc, KTAJobCard)
+		t1 = now_datetime()
+		t2 = add_to_date(t1, minutes=15)
+		draft_jc.append("time_logs", {
+			"from_time": t1,
+			"to_time": t2,
+			"time_in_mins": 15,
+			"completed_qty": 0,
+			"employee": "test@kta.com",
+		})
+		draft_jc.save()
+		draft_jc.reload()
+		self.assertEqual(len(draft_jc.time_logs), 1)
+		self.assertEqual(draft_jc.total_time_in_mins, 15)
+
+
 
 
