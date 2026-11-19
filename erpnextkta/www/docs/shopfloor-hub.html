@@ -211,7 +211,9 @@
     Sisteme Frappe Desk menüsünden veya doğrudan <strong><code>/app/shopfloor_hub</code></strong> adresiyle ulaşabilirsiniz. Ekran el terminali, dokunmatik panel ve masaüstü tarayıcılarla tam uyumludur.
   </p>
   <p>
-    Sayfanın en üstündeki sabit navigasyon çubuğunda (<code>ShopfloorNavbar</code>) iki ana görünüm sekmesi bulunur ve sol iş emri kenar çubuğu (<code>WorkOrderSidebar</code>) aktif sekmeye göre bağlamsal olarak filtrelenir:
+    Sayfanın en üstündeki sabit navigasyon çubuğunda (<code>ShopfloorNavbar</code>)
+    üç ana görünüm sekmesi bulunur ve sol iş emri kenar çubuğu
+    (<code>WorkOrderSidebar</code>) aktif sekmeye göre bağlamsal olarak filtrelenir:
   </p>
 
   <div class="flow-card-grid">
@@ -221,7 +223,12 @@
         <h4 class="flow-card-title">[ ⚡ Work Orders ] Görünümü</h4>
       </div>
       <p class="flow-card-desc">
-        <strong>İş Emri Oluşturma ve Serbest Bırakma Merkezi:</strong> Sol panelde <em>Tümü</em>, <em>Taslak</em> ve <em>Serbest</em> filtreleriyle iş emirlerini listeler. <code>+ Yeni İş Emri Aç</code> butonuyla hızlı taslak iş emri açılmasını, hedef miktar düzenlemeyi (quantity scaling), <strong>Hammadde Uygunluk Matrisi</strong> üzerinden bileşen stok kontrolünü ve eksik parça uyarılı serbest bırakmayı (<em>Shortage-Allowed Release</em>) sağlar.
+        <strong>İş Emri Oluşturma ve Serbest Bırakma Merkezi:</strong> Sol panelde
+        <em>Tümü</em>, <em>Taslak</em> ve <em>Serbest</em> filtreleriyle iş
+        emirlerini listeler. Hızlı iş emri açma, hedef miktar düzenleme (quantity
+        scaling), <strong>Hammadde Uygunluk Matrisi</strong> ile stok kontrolü
+        ve eksik parça uyarılı serbest bırakmayı (<em>Shortage-Allowed Release</em>)
+        sağlar.
       </p>
     </div>
 
@@ -231,7 +238,25 @@
         <h4 class="flow-card-title">[ 📋 Operations ] Görünümü</h4>
       </div>
       <p class="flow-card-desc">
-        <strong>Operasyon Teyit ve Sarfiyat Kokpiti:</strong> Sol panelde yalnızca serbest bırakılmış ve aktif iş emirlerini (<em>Tümü</em>, <em>Devam Eden</em>, <em>Başlanmamış</em>) gösterir. Tamamlanan veya kapatılmış iş emirleri kokpitte listelenmez. Sağlam miktar teyidi, orantısal backflush (261), çoklu stok fişi takibi (tüketim + mamul girişi 101 GR) ve SAP CORS ters kayıt işlemlerini yönetir.
+        <strong>Operasyon Teyit ve Sarfiyat Kokpiti:</strong> Sol panelde serbest
+        bırakılmış aktif iş emirlerini (<em>Tümü</em>, <em>Devam Eden</em>,
+        <em>Başlanmamış</em>) gösterir. Sağlam miktar teyidi (Yield Qty),
+        orantısal backflush (261), çoklu stok fişi takibi (101 GR) ve SAP CORS
+        ters kayıt işlemlerini yönetir.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">📇</span>
+        <h4 class="flow-card-title">[ 📇 Work Cards ] Görünümü</h4>
+      </div>
+      <p class="flow-card-desc">
+        <strong>Çalışma Kartları ve Alt Operasyon Analitiği:</strong> Sahada
+        açılan operatör çalışma kartlarını iş emri ve operasyon hiyerarşisinde
+        canlı izler. Tam rota kontrol listesi (Checklist), tüketimsiz süreç adımları,
+        mükerrerliksiz tekil süre toplamı, fiili hammadde sarfiyatı ve hurda
+        mutabakatını görselleştirir.
       </p>
     </div>
 
@@ -241,7 +266,13 @@
         <h4 class="flow-card-title">Bağlamsal Sol İş Emri Paneli</h4>
       </div>
       <p class="flow-card-desc">
-        <code>get_active_work_orders</code> API'si üzerinden beslenir. Varsayılan olarak ve <code>limit=0</code> ile tüm aktif kayıtlar çekilir; pasif ve tamamlanmış (<em>Completed</em>, <em>Closed</em>) iş emirleri elenir. İş emri no, ürün kodu veya ürün adına göre anlık arama yapabilir, aktif sekmeye özel durum filtrelerini kullanabilir ve mini ilerleme çubuğunu inceleyerek iş emirlerini tek tıkla yükleyebilirsiniz.
+        <code>get_active_work_orders</code> API'si üzerinden beslenir. Varsayılan
+        olarak ve <code>limit=0</code> ile tüm aktif kayıtlar çekilir. İş emri no,
+        ürün kodu veya adına göre anlık arama yapılabilir. Çalışma Kartları
+        (Work Cards) sekmesinde sol çekmecede (drawer) yer alan "Tamamlandı"
+        (Completed) sekmesi seçildiğinde sistem performans için otomatik olarak
+        cari Mali Yıl (Fiscal Year) filtrelemesi uygular ve azalan (descending)
+        sıralama ile sunar.
       </p>
     </div>
   </div>
@@ -475,15 +506,29 @@ flowchart TD
     <div class="step-item">
       <h4>Adım 1: İş Emri Seçimi (Sol Panel veya Barkod)</h4>
       <p>
-        <code>Operations</code> sekmesinde yalnızca serbest bırakılmış ve aktif iş emirleri listelenir; taslaklar ve tamamlanan kayıtlar bu görünümden filtrelenir. İş emrini iki pratik yöntemden birini kullanarak ekrana yükleyebilirsiniz:
+        <code>Operations</code> sekmesinde yalnızca serbest bırakılmış ve aktif iş emirleri
+        listelenir; taslaklar ve tamamlanan kayıtlar bu görünümden filtrelenir. İş emrini
+        iki pratik yöntemden birini kullanarak ekrana yükleyebilirsiniz:
       </p>
       <ul>
         <li>
-          <strong>Sol İş Emri Paneli / Kenar Çubuğu:</strong> Ekranın solunda yer alan panelde <em>Tümü</em>, <em>Devam Eden</em> (<em>In Process</em>) ve <em>Başlanmamış</em> (<em>Not Started</em>) iş emirleri anlık kayıt sayısıyla (<em>Kayıt</em>) listelenir. Operasyonlar sekmesindeki önceki <em>Tamamlanan</em> sekmesinin yerini <em>Başlanmamış</em> (<em>Not Started</em>) sekmesi almış olup, tamamlanan iş emirleri kokpitte gösterilmez. <code>get_active_work_orders</code> API'si varsayılan olarak ve <code>limit=0</code> ile tüm aktif kayıtları sınırsız çeker, pasif/tamamlanmış (<code>Completed</code>, <code>Closed</code>) iş emirlerini eler.
-          Üst kısımdaki arama kutucuğundan iş emri numarası, ürün kodu veya adına göre anında filtreleme yapabilir, kart üzerindeki mini ilerleme çubuğunu inceleyerek tek tıkla iş emrini kokpite yükleyebilirsiniz. İşlem tamamlandığında <code>✕ Seçimi Temizle</code> butonu ile ana görünüme dönülebilir.
+          <strong>Sol İş Emri Paneli / Kenar Çubuğu:</strong> Ekranın solunda yer alan panelde
+          <em>Tümü</em>, <em>Devam Eden</em> (<em>In Process</em>) ve <em>Başlanmamış</em>
+          (<em>Not Started</em>) iş emirleri anlık kayıt sayısıyla (<em>Kayıt</em>)
+          listelenir. Operasyonlar sekmesindeki önceki <em>Tamamlanan</em> sekmesinin yerini
+          <em>Başlanmamış</em> (<em>Not Started</em>) sekmesi almış olup, tamamlanan iş
+          emirleri bu kokpitte gösterilmez (tamamlanan iş emirleri Work Cards sekmesindeki
+          sol çekmecede incelenebilir). <code>get_active_work_orders</code> API'si varsayılan
+          olarak ve <code>limit=0</code> ile tüm aktif kayıtları sınırsız çeker,
+          pasif/tamamlanmış (<code>Completed</code>, <code>Closed</code>) iş emirlerini eler.
+          Üst kısımdaki arama kutucuğundan iş emri numarası, ürün kodu veya adına göre
+          anında filtreleme yapabilir, kart üzerindeki mini ilerleme çubuğunu inceleyerek tek
+          tıkla iş emrini kokpite yükleyebilirsiniz. İşlem tamamlandığında
+          <code>✕ Seçimi Temizle</code> butonu ile ana görünüme dönülebilir.
         </li>
         <li>
-          <strong>Barkod Okutma:</strong> İş Emri formundaki veya basılı gezgin karttaki barkodu barkod okuyucuyla okutun veya el ile yazıp <code>ENTER</code> tuşuna basın.
+          <strong>Barkod Okutma:</strong> İş Emri formundaki veya basılı gezgin karttaki
+          barkodu barkod okuyucuyla okutun veya el ile yazıp <code>ENTER</code> tuşuna basın.
         </li>
       </ul>
       <p>
@@ -514,6 +559,190 @@ flowchart TD
       <p>
         <code>Teyit Et</code> butonuna bastığınızda işlem onaylanır; sistem otomatik olarak teyit belgesini ve stok fişini oluşturarak ekranda direkt tıklanabilir bağlantılar sunar. Geçmiş teyitler listesinden her bir <strong>Teyit No</strong> ve ilişkili stok fişi incelenebilir.
       </p>
+    </div>
+  </div>
+
+  <h3>C. Work Cards Görünümü: Çalışma Kartları & Alt Operasyon Analitiği</h3>
+  <div class="step-container">
+    <div class="step-item">
+      <h4>1. Kokpit Amacı ve Genel Mimari</h4>
+      <p>
+        <strong>[ 📇 Work Cards ]</strong> sekmesi, atölye sahasındaki operatörlerin
+        el terminallerinden açtığı canlı çalışma kartlarını (<code>KTA Calisma Karti</code>)
+        iş emri ve operasyon hiyerarşisinde konsolide eden analitik yönetim
+        merkezidir. Yöneticiler, planlamacılar ve hat amirleri; SAP CO11N stok
+        teyitlerinden bağımsız olarak sahada gerçekleşen net süreleri, alt işlem
+        ilerlemelerini ve fiili hammadde kullanımlarını tek bakışta denetler.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>2. Sol Çekmece (Drawer) ve Tamamlanan (Completed) İş Emirleri</h4>
+      <p>
+        Çalışma Kartları görünümünde sol kenar çekmecesinde (drawer) iş emirleri
+        durumlarına göre filtrelenebilir. Bu sekmede <strong>Tümü</strong>,
+        <strong>Devam Eden</strong> (<em>In Process</em>),
+        <strong>Başlanmamış</strong> (<em>Not Started</em>) seçeneklerinin yanı sıra
+        artık <strong>Tamamlandı</strong> (<em>Completed</em>) sekmesi de yer alır.
+      </p>
+      <p>
+        Bu sekme seçildiğinde çok fazla eski kaydın listelenip performansı düşürmesini
+        ve gereksiz ağ trafiği yaratmasını önlemek amacıyla sistem otomatik olarak
+        <strong>cari Mali Yıl (Fiscal Year)</strong> filtrelemesi uygular.
+      </p>
+      <p>
+        Sorgu sonucunda yalnızca cari mali yılda kapanan kayıtlar listelenir ve en güncel
+        iş emirlerine hızla erişilebilmesi için sonuçlar <strong>azalan (descending -
+        <code>name desc</code>)</strong> sıralama ile sunulur.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>3. Üst Özet KPI Göstergeleri</h4>
+      <p>
+        Seçilen iş emrine ait tüm çalışma kartları arka planda taranarak
+        aşağıdaki 5 kritik KPI kartında anlık olarak özetlenir:
+      </p>
+      <ul>
+        <li>
+          <strong>Toplam Kart:</strong> İlgili iş emrine bağlanmış tüm açık ve
+          tamamlanmış tekil kart sayısı.
+        </li>
+        <li>
+          <strong>Tamamlanan Kart:</strong> İşlemi bitirilmiş veya teslim edilmiş
+          (<code>Bitmiş</code> / <code>docstatus = 1</code>) kart sayısı.
+        </li>
+        <li>
+          <strong>Devam Eden Kart:</strong> Sahada halen aktif çalışan veya molada
+          olan (<code>Çalışıyor</code> / <code>Duruşta</code>) kart sayısı.
+        </li>
+        <li>
+          <strong>Toplam Çalışma Süresi (dk):</strong> Kart bazında tekilleştirilmiş
+          net fiili süre toplamı.
+        </li>
+        <li>
+          <strong>Toplam Hurda:</strong> İş emri kapsamında kaydedilen toplam
+          fire ve hurda adedi.
+        </li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>4. Tam Rota ve Süreç Kontrol Listesi (Live Route Checklist)</h4>
+      <p>
+        Üretim rotasındaki tüm operasyonlar ve her operasyona tanımlı alt adımlar
+        tam sıralı kontrol listesi (Checklist) olarak sunulur:
+      </p>
+      <ul>
+        <li>
+          <strong>⚪ Başlanmadı:</strong> İlgili alt operasyon için sahada henüz
+          hiçbir çalışma kartı açılmamışsa, adım gizlenmez; operatörün henüz bu
+          aşamaya gelmediğini gösteren <code>⚪ Başlanmadı</code> rozetiyle listelenir.
+        </li>
+        <li>
+          <strong>🔵 Devam Ediyor:</strong> Sahada ilgili alt operasyona bağlı en az
+          bir adet aktif açık kart bulunuyorsa mavi durum rozeti gösterilir.
+        </li>
+        <li>
+          <strong>🟢 Tamamlandı:</strong> İlgili alt adımın tüm kartları bitirilmişse
+          yeşil tamamlandı rozeti görüntülenir.
+        </li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>5. Tüketimsiz Alt Operasyonlar (Süreç Adımları)</h4>
+      <p>
+        Kablo gruplama ve montaj süreçlerinde yer alan hazırlık, ara kontrol,
+        etiketleme, elektriksel test veya görsel muayene gibi adımlarda fiziksel
+        hammadde sarfiyatı gerçekleşmez (<code>is_tuketim_hesaplanir == 0</code>).
+      </p>
+      <p>
+        Sistem bu alt operasyonları otomatik olarak tespit eder ve
+        <span class="co11n-badge amber">ℹ️ Süreç Adımı (Tüketim Hesaplanmaz)</span>
+        rozetini ekler. Böylece operatörlerin ve yöneticilerin malzeme sarfiyatı
+        beklentisine girmesi engellenir, süreç odağı korunur.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>6. Fiili Hammadde Tüketimi ve Hurda Mutabakatı</h4>
+      <p>
+        Alt operasyon kartları açıldığında (akordeon tıklamasıyla), adımda fiilen
+        kullanılan malzemeler iki temel yönteme göre hesaplanarak listelenir:
+      </p>
+      <ul>
+        <li>
+          <strong>Formüllü Metraj Tüketimi (Kablo Kesim):</strong> Kablo kesim
+          satırlarında net tüketim boy (mm) ve işlem adedi çarpımıyla metraj cinsinden
+          hesaplanır:
+          <div class="formula-box">
+            Fiili Metraj Tüketimi (m) = (Kablo Kesim Boyu [mm] × İşlem Adedi) / 1000
+          </div>
+        </li>
+        <li>
+          <strong>Adet Bazlı Parça Tüketimi:</strong> Terminal, soket ve conta gibi
+          bileşenlerde basılan krimp adedi kadar net parça tüketimi hesaplanır.
+        </li>
+        <li>
+          <strong>Hurda Eşleştirmesi ve Eşleşmeyen Hurdalar:</strong> Kartlarda
+          bildirilen hurda miktarları alt operasyon malzemeleriyle eşleştirilir.
+          Herhangi bir alt adıma bağlanamayan genel operasyon hurdaları ise
+          operasyon başlığında <span class="co11n-badge rose">⚠️ Eşleşmeyen Hurdalar</span>
+          uyarı kutusunda gösterilir.
+        </li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>7. Kart Sürelerinin Mükerrerliksiz Toplanması</h4>
+      <p>
+        Bir çalışma kartı içerisinde operatör birden fazla alt operasyon satırı
+        (örneğin hem uç açma hem krimp basma) işlemiş olabilir. Kartın net çalışma
+        süresi alt operasyonlara paylaştırılırken, üst KPI toplamında aynı kartın
+        süresi mükerrer olarak iki kez toplanmaz.
+      </p>
+      <div class="formula-box">
+        Toplam Net Süre = ∑ (Tekil Kart Net Süresi)  [set(card_name) tekilleştirmesi]
+      </div>
+      <p>
+        Bu sayede yönetici raporlarında gerçek atölye işçilik süresi sapmasız ve
+        kesin doğrulukla raporlanır.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>8. Bağlı Çalışma Kartları İzlenebilirliği</h4>
+      <p>
+        Her alt operasyon akordeonunun alt kısmında, o adıma katkı sağlayan tüm
+        çalışma kartları (<code>Kart No</code>, <code>Operatör</code>, <code>Durum</code>,
+        <code>Çalışma Süresi dk</code>, <code>İşlem Adedi</code>, <code>Kayıt Tarihi</code>)
+        şeffaf bir tablo halinde listelenir. Kart numarasına tıklanarak doğrudan
+        ilgili çalışma kartı formuna gidilebilir.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>9. Hammadde Tüketim ve Fire Mutabakatı (BOM vs. Fiili Harcama)</h4>
+      <p>
+        İş Emri reçetesinde (BOM) planlanan hammadde miktarları ile atölye
+        çalışma kartlarından gelen net tüketim ve fire/hurda kayıtları
+        karşılaştırmalı mutabakat tablosunda konsolide edilir:
+      </p>
+      <ul>
+        <li>
+          <strong>Hesaplanan Göstergeler:</strong> Planlanan (BOM) miktar,
+          kartlardan fiilen tüketilen miktar, hurda/fire miktarı, toplam
+          harcanan ve sapma/fark (+/-) anlık hesaplanır.
+        </li>
+        <li>
+          <strong>Durum Rozetleri ve Hızlı Filtreler:</strong> Malzemeler
+          <em>%100 Eşleşti</em>, <em>Plan Aşımı</em>, <em>Devam Ediyor</em>,
+          <em>Tüketim Yok</em> veya <em>Reçete Dışı</em> durumlarına göre
+          otomatik filtrelenebilir. Arama kutusu üzerinden hammadde kodu
+          veya operasyon adına göre anlık süzme yapılabilir.
+        </li>
+      </ul>
     </div>
   </div>
 

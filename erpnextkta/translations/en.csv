@@ -1201,3 +1201,62 @@ Aktarılıyor ve Teyit Ediliyor…,Transferring and Confirming…
 Hat ikmali transferi gerçekleştirilemedi.,Line replenishment transfer could not be completed.
 Hat ikmali transferi sırasında bir hata oluştu.,An error occurred during line replenishment transfer.
 "İş Emri: {0}","Work Order: {0}"
+Work Cards,Work Cards
+Alt Operasyon Analitiği ve Tüketim Mutabakatı,Sub-Operation Analytics & Reconciliation
+Sub-Operation Analytics,Sub-Operation Analytics
+Toplam Kart,Total Cards
+Tamamlanan Kart,Completed Cards
+Devam Eden Kart,Cards in Progress
+Toplam Çalışma Süresi,Total Working Duration
+Toplam Hurda,Total Scrap
+Rota ve Alt Operasyon Kontrol Listesi,Route and Sub-Operation Checklist
+Bu iş emrine ait operasyon kaydı bulunamadı.,No operations found for this Work Order.
+Job Card Belgesini Aç,Open Job Card
+Operasyon Toplam Süresi,Total Operation Duration
+Eşleşmeyen Hurdalar (Unassigned Scraps),Unassigned Scraps
+Unassigned Scraps,Unassigned Scraps
+Süreç Adımı (Tüketim Hesaplanmaz),Process Step (No Consumption)
+Hammadde Tüketimleri,Material Consumptions
+Hurda Kayıtları,Scrap Records
+Bağlı Çalışma Kartları,Linked Work Cards
+Kart No,Card No
+Kayıt Tarihi,Creation Date
+Henüz Kart Açılmadı,No Cards Created Yet
+Toplam İşlem Miktarı,Total Process Quantity
+Lütfen sol paneldeki listeden bir İş Emri seçin.,Select a Work Order from the left panel.
+Çalışma Kartı Verileri Yükleniyor…,Loading Work Card Data…
+Analitik verisi alınamadı.,Could not fetch analytics data.
+Çalışma Kartı verileri yüklenirken bir hata oluştu.,Error loading Work Card data.
+Başlanmadı,Not Started
+In Progress,In Progress
+Devam Ediyor,In Progress
+No Material Consumption,No Material Consumption
+Process Count,Process Count
+Net Work Duration,Net Work Duration
+Contributing Cards,Contributing Cards
+Select a Work Order to inspect cards.,Select a Work Order to inspect cards.
+Toplam Süre,Total Duration
+Toplam Miktar,Total Quantity
+Çalışma Süresi,Work Duration
+Hammadde Tüketim ve Fire Mutabakatı,Raw Material Consumption & Scrap Reconciliation
+Hammadde veya operasyon ara…,Search material or operation…
+%100 Eşleşti,100% Matched
+Tüketim Yok,No Consumption
+Plan Aşımı,Over Consumption
+Reçete Dışı,Out of BOM
+Toplam Harcanan,Total Spent
+Sapma / Fark,Variance / Difference
+Hammadde Kodu ve Adı,Raw Material Code and Name
+Planlanan (BOM),Planned (BOM)
+Kartlardan Tüketilen,Consumed from Cards
+Hurda / Fire,Scrap / Waste
+Kriterlere uygun mutabakat kalemi bulunamadı.,No reconciliation items match criteria.
+Kalem,Items
+Daralt,Collapse
+Genişlet,Expand
+Bu Malzemeyi Tüketen Operatörler,Operators Who Consumed This Material
+Tüketim Payı,Consumption Share
+Operatörler,Operators
+Operators Who Consumed This Material,Operators Who Consumed This Material
+Consumption Share,Consumption Share
+Operators,Operators

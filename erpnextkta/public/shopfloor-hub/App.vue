@@ -9,6 +9,7 @@ import ConfirmationHistory from './components/ConfirmationHistory.vue';
 import CreateWorkOrderModal from './components/CreateWorkOrderModal.vue';
 import MaterialStagingModal from './components/MaterialStagingModal.vue';
 import WorkOrderReleasePanel from './components/WorkOrderReleasePanel.vue';
+import WorkCardAnalyticsPanel from './components/WorkCardAnalyticsPanel.vue';
 import WorkspaceHeader from './components/WorkspaceHeader.vue';
 import type {
   WorkOrderContext,
@@ -104,7 +105,10 @@ function clearSelection() {
 
 async function handleViewChange(view: WorkOrderViewMode) {
   activeView.value = view;
-  if (view === 'operations' && context.value?.status === 'Draft') {
+  if (
+    (view === 'operations' || view === 'work_cards') &&
+    context.value?.status === 'Draft'
+  ) {
     clearSelection();
   }
   await nextTick();
@@ -282,9 +286,19 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
 
       <main class="co11n-workspace">
         <WorkspaceHeader>
-          <template #title>{{ __('Shopfloor Hub') }}</template>
+          <template #title>
+            {{
+              activeView === 'work_cards'
+                ? __('Çalışma Kartları')
+                : __('Shopfloor Hub')
+            }}
+          </template>
           <template #subtitle>
-            {{ __('Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi') }}
+            {{
+              activeView === 'work_cards'
+                ? __('Alt Operasyon Analitiği ve Tüketim Mutabakatı')
+                : __('Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi')
+            }}
           </template>
           <template #actions>
             <button
@@ -299,7 +313,10 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
         </WorkspaceHeader>
 
         <div v-if="errorMessage" class="co11n-alert alert-danger">
-          <div class="alert-content"><span class="alert-icon">⚠️</span><div>{{ errorMessage }}</div></div>
+          <div class="alert-content">
+            <span class="alert-icon">⚠️</span>
+            <div>{{ errorMessage }}</div>
+          </div>
           <button type="button" class="alert-close" @click="errorMessage = null">✕</button>
         </div>
 
@@ -316,7 +333,9 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
                 >
                   📄 {{ __('Teyit Belgesi') }}: {{ successResult.confirmation }}
                 </a>
-                <template v-if="successResult.stock_entries && successResult.stock_entries.length > 0">
+                <template
+                  v-if="successResult.stock_entries && successResult.stock_entries.length > 0"
+                >
                   <a
                     v-for="se in successResult.stock_entries"
                     :key="se.name"
@@ -326,10 +345,18 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
                   >
                     <span v-if="se.type === 'manufacture'">📦</span>
                     <span v-else>⚙️</span>
-                    {{ se.label || (se.type === 'manufacture' ? __('Üretim Fişi') : __('Tüketim Fişi')) }}: {{ se.name }}
+                    {{
+                      se.label ||
+                      (se.type === 'manufacture' ? __('Üretim Fişi') : __('Tüketim Fişi'))
+                    }}: {{ se.name }}
                   </a>
                 </template>
-                <a v-else-if="successResult.stock_entry" :href="`/app/stock-entry/${successResult.stock_entry}`" target="_blank" class="doc-link">
+                <a
+                  v-else-if="successResult.stock_entry"
+                  :href="`/app/stock-entry/${successResult.stock_entry}`"
+                  target="_blank"
+                  class="doc-link"
+                >
                   📦 {{ __('Stok Fişi') }}: {{ successResult.stock_entry }}
                 </a>
               </div>
@@ -357,14 +384,45 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
           </div>
         </template>
 
+        <template v-else-if="activeView === 'work_cards'">
+          <WorkCardAnalyticsPanel
+            v-if="selectedWorkOrder"
+            :work-order="selectedWorkOrder"
+            :loading-work-order="loading"
+          />
+          <div v-else class="empty-state">
+            <div class="empty-icon">⏱️</div>
+            <h3 class="empty-title">{{ __('Work Cards') }}</h3>
+            <p class="empty-desc">
+              {{ __('Lütfen sol paneldeki listeden bir İş Emri seçin.') }}
+            </p>
+          </div>
+        </template>
+
         <template v-else>
           <div v-if="context" class="co11n-content-flow">
             <WoStatsCard :context="context" />
             <div class="co11n-ops-grid">
-              <OperationsList :operations="context.operations" :selected-operation="selectedOperation" :target-qty="context.qty" @select="selectOperation" />
-              <ConfirmationPanel v-model="yieldQty" v-model:is-final-confirmation="isFinalConfirmation" :selected-operation="selectedOperation" :target-qty="context.qty" :submitting="submitting" @submit="submitConfirmation" />
+              <OperationsList
+                :operations="context.operations"
+                :selected-operation="selectedOperation"
+                :target-qty="context.qty"
+                @select="selectOperation"
+              />
+              <ConfirmationPanel
+                v-model="yieldQty"
+                v-model:is-final-confirmation="isFinalConfirmation"
+                :selected-operation="selectedOperation"
+                :target-qty="context.qty"
+                :submitting="submitting"
+                @submit="submitConfirmation"
+              />
             </div>
-            <ConfirmationHistory :work-order="context.work_order" :refresh-key="historyRefreshKey" @confirmation-cancelled="refreshCurrentContext" />
+            <ConfirmationHistory
+              :work-order="context.work_order"
+              :refresh-key="historyRefreshKey"
+              @confirmation-cancelled="refreshCurrentContext"
+            />
           </div>
 
           <div v-else-if="loading" class="empty-state">
@@ -375,7 +433,9 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
           <div v-else class="empty-state">
             <div class="empty-icon">👈</div>
             <h3 class="empty-title">{{ __('Bir İş Emri Seçin') }}</h3>
-            <p class="empty-desc">{{ __('Lütfen sol paneldeki listeden işlem yapmak istediğiniz bir İş Emri seçin.') }}</p>
+            <p class="empty-desc">
+              {{ __('Lütfen sol paneldeki listeden işlem yapmak istediğiniz bir İş Emri seçin.') }}
+            </p>
           </div>
         </template>
       </main>

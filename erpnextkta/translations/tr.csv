@@ -350,3 +350,66 @@ Aktarılıyor ve Teyit Ediliyor…,Aktarılıyor ve Teyit Ediliyor…
 Hat ikmali transferi gerçekleştirilemedi.,Hat ikmali transferi gerçekleştirilemedi.
 Hat ikmali transferi sırasında bir hata oluştu.,Hat ikmali transferi sırasında bir hata oluştu.
 "İş Emri: {0}","İş Emri: {0}"
+Work Cards,Çalışma Kartları
+Çalışma Kartları,Çalışma Kartları
+Alt Operasyon Analitiği ve Tüketim Mutabakatı,Alt Operasyon Analitiği ve Mutabakat
+Sub-Operation Analytics,Alt Operasyon Analitiği
+Toplam Kart,Toplam Kart
+Tamamlanan Kart,Tamamlanan Kart
+Devam Eden Kart,Devam Eden Kart
+Toplam Çalışma Süresi,Toplam Çalışma Süresi
+Toplam Hurda,Toplam Hurda
+Rota ve Alt Operasyon Kontrol Listesi,Rota ve Alt Operasyon Kontrol Listesi
+Bu iş emrine ait operasyon kaydı bulunamadı.,Bu iş emrine ait operasyon kaydı bulunamadı.
+Job Card Belgesini Aç,Job Card Belgesini Aç
+Operasyon Toplam Süresi,Operasyon Toplam Süresi
+Eşleşmeyen Hurdalar (Unassigned Scraps),Eşleşmeyen Hurdalar
+Unassigned Scraps,Eşleşmeyen Hurdalar
+Hurda Nedeni,Hurda Nedeni
+Süreç Adımı (Tüketim Hesaplanmaz),Süreç Adımı (Tüketim Hesaplanmaz)
+Hammadde Tüketimleri,Hammadde Tüketimleri
+Hurda Kayıtları,Hurda Kayıtları
+Bağlı Çalışma Kartları,Bağlı Çalışma Kartları
+Kart No,Kart No
+Kayıt Tarihi,Kayıt Tarihi
+Henüz Kart Açılmadı,Henüz Kart Açılmadı
+Toplam İşlem Miktarı,Toplam İşlem Miktarı
+Lütfen sol paneldeki listeden bir İş Emri seçin.,Sol panelden bir İş Emri seçin.
+Çalışma Kartı Verileri Yükleniyor…,Çalışma Kartı Verileri Yükleniyor…
+Analitik verisi alınamadı.,Analitik verisi alınamadı.
+Çalışma Kartı verileri yüklenirken bir hata oluştu.,Çalışma Kartı yüklenirken hata oluştu.
+Başlanmadı,Başlanmadı
+In Progress,Devam Ediyor
+Devam Ediyor,Devam Ediyor
+No Material Consumption,Tüketimsiz İşlem
+Process Count,İşlem Adedi
+Net Work Duration,Net Çalışma Süresi
+Contributing Cards,Katkı Sağlayan Kartlar
+Select a Work Order to inspect cards.,Kartları incelemek için iş emri seçin.
+Toplam Süre,Toplam Süre
+Toplam Miktar,Toplam Miktar
+Çalışma Süresi,Çalışma Süresi
+İşlem Adedi,İşlem Adedi
+Hammadde Tüketim ve Fire Mutabakatı,Hammadde Tüketim ve Fire Mutabakatı
+Hammadde veya operasyon ara…,Hammadde veya operasyon ara…
+%100 Eşleşti,%100 Eşleşti
+Tüketim Yok,Tüketim Yok
+Plan Aşımı,Plan Aşımı
+Reçete Dışı,Reçete Dışı
+Toplam Harcanan,Toplam Harcanan
+Sapma / Fark,Sapma / Fark
+Hammadde Kodu ve Adı,Hammadde Kodu ve Adı
+Planlanan (BOM),Planlanan (BOM)
+Kartlardan Tüketilen,Kartlardan Tüketilen
+Hurda / Fire,Hurda / Fire
+Kriterlere uygun mutabakat kalemi bulunamadı.,Kriterlere uygun mutabakat kalemi bulunamadı.
+Kalem,Kalem
+Daralt,Daralt
+Genişlet,Genişlet
+Birim,Birim
+Bu Malzemeyi Tüketen Operatörler,Bu Malzemeyi Tüketen Operatörler
+Tüketim Payı,Tüketim Payı
+Operatörler,Operatörler
+Operators Who Consumed This Material,Bu Malzemeyi Tüketen Operatörler
+Consumption Share,Tüketim Payı
+Operators,Operatörler

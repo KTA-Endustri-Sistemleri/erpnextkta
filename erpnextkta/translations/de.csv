@@ -343,7 +343,7 @@ Sınıflandırma,Einstufung
 Tamamlanan Miktar,Abgeschlossene Menge
 Tamamlanan miktar negatif olamaz.,Der abgeschlossene Betrag darf nicht negativ sein.
 Tamamlanan miktar sayısal olmalıdır.,Der abgeschlossene Betrag muss numerisch sein.
-Tamamlandı,Vollendet
+Tamamlandı,Abgeschlossen
 Tarih Aralığı,Datumsbereich
 Tarih:,Geschichte:
 Taslak,Entwurf
@@ -1038,7 +1038,7 @@ Bu iş emrine ait henüz bir üretim teyidi kaydedilmemiş.,Für diesen Fertigun
 Son Teyit Olarak Kaydedildi,Als Endrückmeldung erfasst
 SAP CORS Protokolüyle Bu Teyidi İptal Et,Diese Rückmeldung mit SAP-CORS-Protokoll stornieren
 Teyit Geçmişi Alınamadı,Rückmeldehistorie konnte nicht geladen werden
-Aramanıza veya bu statüye uygun iş emri bulunamadı.,Keine Fertigungsaufträge gefunden, die Ihrer Suche oder diesem Status entsprechen.
+Aramanıza veya bu statüye uygun iş emri bulunamadı.,"Keine passenden Fertigungsaufträge gefunden."
 Listeyi Yenile,Liste aktualisieren
 Temizle,Löschen
 Yükleniyor…,Wird geladen…
@@ -1190,3 +1190,62 @@ Aktarılıyor ve Teyit Ediliyor…,Wird übertragen und rückgemeldet…
 Hat ikmali transferi gerçekleştirilemedi.,Liniennachschubtransfer konnte nicht durchgeführt werden.
 Hat ikmali transferi sırasında bir hata oluştu.,Beim Liniennachschubtransfer ist ein Fehler aufgetreten.
 "İş Emri: {0}","Fertigungsauftrag: {0}"
+Work Cards,Arbeitskarten
+Alt Operasyon Analitiği ve Tüketim Mutabakatı,Unteroperationsanalytik & Verbrauch
+Sub-Operation Analytics,Unteroperationsanalytik
+Toplam Kart,Karten Gesamt
+Tamamlanan Kart,Abgeschlossene Karten
+Devam Eden Kart,Laufende Karten
+Toplam Çalışma Süresi,Gesamtarbeitszeit
+Toplam Hurda,Ausschuss Gesamt
+Rota ve Alt Operasyon Kontrol Listesi,Arbeitsplan- & Unteroperations-Checkliste
+Bu iş emrine ait operasyon kaydı bulunamadı.,Keine Vorgänge für diesen Auftrag gefunden.
+Job Card Belgesini Aç,Job Card öffnen
+Operasyon Toplam Süresi,Gesamtdauer des Vorgangs
+Eşleşmeyen Hurdalar (Unassigned Scraps),Nicht Zugewiesener Ausschuss
+Unassigned Scraps,Nicht Zugewiesener Ausschuss
+Süreç Adımı (Tüketim Hesaplanmaz),Prozessschritt (Ohne Verbrauch)
+Hammadde Tüketimleri,Materialverbräuche
+Hurda Kayıtları,Ausschusseinträge
+Bağlı Çalışma Kartları,Verknüpfte Arbeitskarten
+Kart No,Karten-Nr.
+Kayıt Tarihi,Erstellungsdatum
+Henüz Kart Açılmadı,Noch Keine Karten Erstellt
+Toplam İşlem Miktarı,Gesamtbearbeitungsmenge
+Lütfen sol paneldeki listeden bir İş Emri seçin.,Bitte wählen Sie links einen Auftrag aus.
+Çalışma Kartı Verileri Yükleniyor…,Lade Arbeitskartendaten…
+Analitik verisi alınamadı.,Analysedaten konnten nicht geladen werden.
+Çalışma Kartı verileri yüklenirken bir hata oluştu.,Fehler beim Laden der Arbeitskarten.
+Başlanmadı,Nicht Begonnen
+In Progress,In Bearbeitung
+Devam Ediyor,In Bearbeitung
+No Material Consumption,Kein Materialverbrauch
+Process Count,Bearbeitungsmenge
+Net Work Duration,Nettoarbeitszeit
+Contributing Cards,Beteiligte Karten
+Select a Work Order to inspect cards.,Wählen Sie einen Auftrag zur Ansicht.
+Toplam Süre,Gesamtdauer
+Toplam Miktar,Gesamtmenge
+Çalışma Süresi,Arbeitszeit
+Hammadde Tüketim ve Fire Mutabakatı,Rohstoffverbrauch & Ausschussabgleich
+Hammadde veya operasyon ara…,Material oder Operation suchen…
+%100 Eşleşti,100% Abgestimmt
+Tüketim Yok,Kein Verbrauch
+Plan Aşımı,Mehrverbrauch
+Reçete Dışı,Nicht in Stückliste
+Toplam Harcanan,Gesamt Verbraucht
+Sapma / Fark,Abweichung / Differenz
+Hammadde Kodu ve Adı,Rohstoffcode und Name
+Planlanan (BOM),Geplant (Stückliste)
+Kartlardan Tüketilen,Verbraucht aus Karten
+Hurda / Fire,Ausschuss / Verlust
+Kriterlere uygun mutabakat kalemi bulunamadı.,Keine passenden Positionen gefunden.
+Kalem,Positionen
+Daralt,Einklappen
+Genişlet,Ausklappen
+Bu Malzemeyi Tüketen Operatörler,Bediener Die Dieses Material Verbraucht Haben
+Tüketim Payı,Verbrauchsanteil
+Operatörler,Bediener
+Operators Who Consumed This Material,Bediener Die Dieses Material Verbraucht Haben
+Consumption Share,Verbrauchsanteil
+Operators,Bediener

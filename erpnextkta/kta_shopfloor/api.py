@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, nowdate
 
 from erpnextkta.kta_shopfloor.services.confirmation_service import (
 	ConfirmationService,
@@ -30,11 +30,15 @@ def get_shopfloor_hub_context(barcode: str | None = None) -> dict:
 	Returns dict containing Work Order header data, operation list, and default selections.
 	"""
 	if not barcode:
-		frappe.throw(_("Barkod veya İş Emri / İş Kartı boş olamaz."), frappe.ValidationError)
+		frappe.throw(
+			_("Barkod veya İş Emri / İş Kartı boş olamaz."), frappe.ValidationError
+		)
 
 	code = str(barcode).strip()
 	if not code:
-		frappe.throw(_("Barkod veya İş Emri / İş Kartı boş olamaz."), frappe.ValidationError)
+		frappe.throw(
+			_("Barkod veya İş Emri / İş Kartı boş olamaz."), frappe.ValidationError
+		)
 
 	wo_name = None
 	selected_job_card = None
@@ -46,7 +50,9 @@ def get_shopfloor_hub_context(barcode: str | None = None) -> dict:
 
 	# 2. Direct Job Card match
 	elif frappe.db.exists("Job Card", code):
-		jc_data = frappe.db.get_value("Job Card", code, ["name", "work_order", "operation"], as_dict=True)
+		jc_data = frappe.db.get_value(
+			"Job Card", code, ["name", "work_order", "operation"], as_dict=True
+		)
 		if jc_data:
 			selected_job_card = jc_data.name
 			wo_name = jc_data.work_order
@@ -146,7 +152,9 @@ def get_shopfloor_hub_context(barcode: str | None = None) -> dict:
 		)
 		selected_operation = default_op_name
 
-	source_wh = getattr(wo, "source_warehouse", None) or getattr(wo, "wip_warehouse", None)
+	source_wh = getattr(wo, "source_warehouse", None) or getattr(
+		wo, "wip_warehouse", None
+	)
 
 	return {
 		"work_order": wo.name,
@@ -157,7 +165,9 @@ def get_shopfloor_hub_context(barcode: str | None = None) -> dict:
 		"produced_qty": flt(wo.produced_qty or 0),
 		"docstatus": cint(wo.docstatus),
 		"status": wo.status,
-		"custom_released_with_shortage": cint(wo.get("custom_released_with_shortage") or 0),
+		"custom_released_with_shortage": cint(
+			wo.get("custom_released_with_shortage") or 0
+		),
 		"source_warehouse": source_wh,
 		"fg_warehouse": getattr(wo, "fg_warehouse", None),
 		"company": wo.company,
@@ -236,16 +246,23 @@ def get_active_work_orders(
 	company: str | None = None,
 	status_filter: str | None = None,
 	include_drafts: int = 0,
+	fiscal_year: str | None = None,
+	order_by: str | None = None,
 ) -> list[dict]:
 	"""Retrieve Work Orders for Shopfloor Hub drawers (Operations & Work Orders views).
 
 	Filters:
 	- company: Specified company, or user's default company / active companies.
-	- status_filter / status: Optional status filter ('Draft', 'Released', 'Not Started', 'In Process', 'Completed').
-	- include_drafts: When 1 and no status filter is given, includes active Work Orders (Draft, Not Started, In Process).
-	  When 0 (default, Operations view) and no status filter is given, restricts to docstatus=1 and status in ('Not Started', 'In Process').
+	- status_filter / status: Optional status filter ('Draft', 'Released', 'Not Started',
+	  'In Process', 'Completed').
+	- include_drafts: When 1 and no status filter is given, includes active Work Orders (Draft,
+	  Not Started, In Process). When 0 (default, Operations view) and no status filter is given,
+	  restricts to docstatus=1 and status in ('Not Started', 'In Process').
 	- search: If provided, filters by name, production_item, or item_name (LIKE %search%).
-	- sorting: name asc
+	- fiscal_year: Optional Fiscal Year to restrict creation date range. Defaults to current
+	  fiscal year when status is 'Completed'.
+	- order_by: Custom order by clause. Defaults to 'name desc' when status is 'Completed',
+	  otherwise defaults to 'name asc'.
 	- limit: Limit record count if > 0. If None, 0, or omitted, returns all matching records.
 	"""
 	filters: dict[str, object] = {}
@@ -257,7 +274,9 @@ def get_active_work_orders(
 			or frappe.defaults.get_user_default("company")
 			or frappe.db.get_single_value("Global Defaults", "default_company")
 		)
-		if not frappe.flags.in_test and (not target_company or str(target_company).startswith("_Test")):
+		if not frappe.flags.in_test and (
+			not target_company or str(target_company).startswith("_Test")
+		):
 			real_company = frappe.db.get_value(
 				"Company",
 				{"name": ["not like", "_Test%"], "is_group": 0},
@@ -269,7 +288,9 @@ def get_active_work_orders(
 	if target_company:
 		filters["company"] = target_company
 	else:
-		active_companies = frappe.get_all("Company", filters={"is_group": 0}, pluck="name")
+		active_companies = frappe.get_all(
+			"Company", filters={"is_group": 0}, pluck="name"
+		)
 		if active_companies:
 			filters["company"] = ["in", active_companies]
 
@@ -292,6 +313,50 @@ def get_active_work_orders(
 	else:
 		filters["docstatus"] = 1
 		filters["status"] = ["in", ["Not Started", "In Process"]]
+
+	if effective_status == "Completed" or fiscal_year:
+		start_date = None
+		end_date = None
+		if fiscal_year:
+			fy_dates = frappe.db.get_value(
+				"Fiscal Year",
+				fiscal_year,
+				["year_start_date", "year_end_date"],
+				as_dict=True,
+			)
+			if fy_dates:
+				start_date = fy_dates.get("year_start_date")
+				end_date = fy_dates.get("year_end_date")
+			elif (
+				len(str(fiscal_year).strip()) == 4
+				and str(fiscal_year).strip().isdigit()
+			):
+				start_date = f"{str(fiscal_year).strip()}-01-01"
+				end_date = f"{str(fiscal_year).strip()}-12-31"
+		elif effective_status == "Completed":
+			try:
+				import erpnext.accounts.utils
+
+				fy_info = erpnext.accounts.utils.get_fiscal_year(date=nowdate())
+				if isinstance(fy_info, (list, tuple)) and len(fy_info) >= 3:
+					start_date = fy_info[1]
+					end_date = fy_info[2]
+				elif isinstance(fy_info, dict):
+					start_date = fy_info.get("year_start_date")
+					end_date = fy_info.get("year_end_date")
+			except Exception as err:  # noqa: BLE001
+				frappe.logger().debug(f"Unable to resolve fiscal year: {err}")
+
+			if not start_date or not end_date:
+				cur_year = nowdate()[:4]
+				start_date = f"{cur_year}-01-01"
+				end_date = f"{cur_year}-12-31"
+
+		if start_date and end_date:
+			filters["creation"] = [
+				"between",
+				[f"{start_date} 00:00:00", f"{end_date} 23:59:59"],
+			]
 
 	or_filters = None
 	if search and str(search).strip():
@@ -317,12 +382,19 @@ def get_active_work_orders(
 
 	limit_records = cint(limit) if (limit is not None and cint(limit) > 0) else None
 
+	if order_by and str(order_by).strip():
+		resolved_order_by = str(order_by).strip()
+	elif effective_status == "Completed":
+		resolved_order_by = "name desc"
+	else:
+		resolved_order_by = "name asc"
+
 	records = frappe.get_all(
 		"Work Order",
 		filters=filters,
 		or_filters=or_filters,
 		fields=fields,
-		order_by="name asc",
+		order_by=resolved_order_by,
 		limit=limit_records,
 	)
 
@@ -462,7 +534,9 @@ def get_production_confirmations(work_order: str) -> list[dict]:
 
 		for se in se_list:
 			remarks = se.get("remarks") or ""
-			is_match = (conf_name in remarks) or (bool(linked_se) and se["name"] == linked_se)
+			is_match = (conf_name in remarks) or (
+				bool(linked_se) and se["name"] == linked_se
+			)
 			if is_match and se["name"] not in seen_se_names:
 				seen_se_names.add(se["name"])
 				purpose = se.get("purpose")
@@ -477,7 +551,9 @@ def get_production_confirmations(work_order: str) -> list[dict]:
 				)
 
 		if linked_se and linked_se not in seen_se_names:
-			se_doc = frappe.db.get_value("Stock Entry", linked_se, ["name", "purpose"], as_dict=True)
+			se_doc = frappe.db.get_value(
+				"Stock Entry", linked_se, ["name", "purpose"], as_dict=True
+			)
 			if se_doc:
 				seen_se_names.add(se_doc.name)
 				purpose = se_doc.purpose
@@ -520,7 +596,9 @@ def get_work_order_alternatives(work_order: str, row_name: str) -> dict:
 
 
 @frappe.whitelist()
-def set_work_order_alternative(work_order: str, row_name: str, alternative_item_code: str) -> dict:
+def set_work_order_alternative(
+	work_order: str, row_name: str, alternative_item_code: str
+) -> dict:
 	"""API endpoint to substitute an approved alternative on a Draft Work Order."""
 	return set_work_order_item_alternative(work_order, row_name, alternative_item_code)
 

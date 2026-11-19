@@ -49,9 +49,9 @@ class TestCO11NAPI(KTATestCase):
 
 		for op in [self.op1, self.op2]:
 			if not frappe.db.exists("Operation", op):
-				frappe.get_doc({"doctype": "Operation", "name": op, "workstation": self.ws_name}).insert(
-					ignore_permissions=True
-				)
+				frappe.get_doc(
+					{"doctype": "Operation", "name": op, "workstation": self.ws_name}
+				).insert(ignore_permissions=True)
 
 		frappe.db.delete("Work Order Operation", {"parent": self.wo_name})
 		frappe.db.delete("Stock Entry", {"work_order": self.wo_name})
@@ -181,7 +181,9 @@ class TestCO11NAPI(KTATestCase):
 		self.assertEqual(ctx["selected_operation"], self.op2)
 		self.assertEqual(len(ctx["operations"]), 2)
 
-	@patch("erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry")
+	@patch(
+		"erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry"
+	)
 	def test_submit_co11n_confirmation(self, mock_consumption):
 		"""submit_co11n_confirmation delegates to ConfirmationService and returns result."""
 		mock_consumption.return_value = "TEST-SE-API-001"
@@ -198,7 +200,9 @@ class TestCO11NAPI(KTATestCase):
 		self.assertTrue(res.get("confirmation"))
 		self.assertEqual(res.get("stock_entry"), "TEST-SE-API-001")
 
-	@patch("erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry")
+	@patch(
+		"erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry"
+	)
 	def test_cancel_co11n_confirmation(self, mock_consumption):
 		"""cancel_co11n_confirmation cancels confirmation using ReversalService."""
 		mock_consumption.return_value = None
@@ -248,7 +252,9 @@ class TestCO11NAPI(KTATestCase):
 		finally:
 			frappe.set_user(current_user)
 
-	def _create_legacy_work_order(self, qty: float = 5000.0, legacy_mfg_qty: float = 720.0) -> str:
+	def _create_legacy_work_order(
+		self, qty: float = 5000.0, legacy_mfg_qty: float = 720.0
+	) -> str:
 		wo = frappe.get_doc(
 			{
 				"doctype": "Work Order",
@@ -298,16 +304,20 @@ class TestCO11NAPI(KTATestCase):
 		jc.flags.ignore_permissions = True
 		jc.flags.ignore_mandatory = True
 		jc.insert(ignore_permissions=True)
-		frappe.db.set_value("Job Card", jc.name, {"docstatus": 1, "status": "Completed"})
+		frappe.db.set_value(
+			"Job Card", jc.name, {"docstatus": 1, "status": "Completed"}
+		)
 
-		# Create legacy Stock Entry (Manufacture) of 720 units (not tied to any KTA Production Confirmation)
+		# Create legacy Stock Entry (Manufacture) of 720 units
+		# (not tied to any KTA Production Confirmation)
 		se_name = f"TEST-SE-LEGACY-{frappe.generate_hash(length=6)}"
 		frappe.db.sql(
 			"""
             INSERT INTO `tabStock Entry` (
                 name, docstatus, purpose, stock_entry_type, work_order, company,
                 fg_completed_qty, creation, modified, modified_by
-            ) VALUES (%s, 1, 'Manufacture', 'Manufacture', %s, %s, %s, NOW(), NOW(), 'Administrator')
+            ) VALUES (%s, 1, 'Manufacture', 'Manufacture', %s, %s, %s,
+                NOW(), NOW(), 'Administrator')
             """,
 			(se_name, wo.name, self.company, legacy_mfg_qty),
 		)
@@ -353,9 +363,11 @@ class TestCO11NAPI(KTATestCase):
 		"""CO11N confirmation on legacy WO adds on top of legacy qty (720 + 100 = 820)."""
 		legacy_wo = self._create_legacy_work_order(qty=5000.0, legacy_mfg_qty=720.0)
 
-		with patch(
-			"erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry"
-		) as mock_se:
+		cons_entry_target = (
+			"erpnextkta.kta_shopfloor.services.confirmation_service."
+			"BackflushService.create_consumption_entry"
+		)
+		with patch(cons_entry_target) as mock_se:
 			mock_se.return_value = None
 			res = submit_co11n_confirmation(
 				{
@@ -374,12 +386,14 @@ class TestCO11NAPI(KTATestCase):
 		self.assertEqual(op["status"], "Work In Progress")
 
 	def test_legacy_work_order_reversal(self):
-		"""Cancelling the 100-unit confirmation restores legacy quantities (completed=720, pending=4280)."""
+		"""Cancelling 100-unit confirmation restores legacy quantities (completed=720, pending=4280)."""
 		legacy_wo = self._create_legacy_work_order(qty=5000.0, legacy_mfg_qty=720.0)
 
-		with patch(
-			"erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry"
-		) as mock_se:
+		cons_entry_target = (
+			"erpnextkta.kta_shopfloor.services.confirmation_service."
+			"BackflushService.create_consumption_entry"
+		)
+		with patch(cons_entry_target) as mock_se:
 			mock_se.return_value = None
 			res = submit_co11n_confirmation(
 				{
@@ -429,7 +443,9 @@ class TestCO11NAPI(KTATestCase):
 		self.assertTrue(any(d["name"] == self.wo_name for d in search_by_name))
 
 		# Search filter by production_item
-		search_by_item = get_active_work_orders(search=matching_order["production_item"])
+		search_by_item = get_active_work_orders(
+			search=matching_order["production_item"]
+		)
 		self.assertTrue(any(d["name"] == self.wo_name for d in search_by_item))
 
 		# Search with non-matching query
@@ -456,13 +472,16 @@ class TestCO11NAPI(KTATestCase):
 
 	def test_submit_co11n_confirmation_returns_multiple_stock_entries(self):
 		"""Milestone confirmation produces and returns both consumption and manufacture entries."""
+		target_pkg = (
+			"erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService"
+		)
 		with (
 			patch(
-				"erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry",
+				f"{target_pkg}.create_consumption_entry",
 				return_value="MAT-STE-TEST-CONS",
 			),
 			patch(
-				"erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_finished_goods_entry",
+				f"{target_pkg}.create_finished_goods_entry",
 				return_value="MAT-STE-TEST-FG",
 			),
 		):
@@ -555,8 +574,12 @@ class TestCO11NAPI(KTATestCase):
 		confs_legacy = get_co11n_confirmations(self.wo_name)
 		self.assertEqual(len(confs_new), len(confs_legacy))
 
+		cons_entry_target = (
+			"erpnextkta.kta_shopfloor.services.confirmation_service."
+			"BackflushService.create_consumption_entry"
+		)
 		with patch(
-			"erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry",
+			cons_entry_target,
 			return_value="MAT-STE-ALIAS-01",
 		):
 			res_new = submit_production_confirmation(
@@ -573,9 +596,13 @@ class TestCO11NAPI(KTATestCase):
 			self.assertTrue(cancel_res.get("success"))
 
 	def _setup_api_bom_and_warehouses(self):
-		item_group = frappe.db.get_value("Item", self.item, "item_group") or "All Item Groups"
+		item_group = (
+			frappe.db.get_value("Item", self.item, "item_group") or "All Item Groups"
+		)
 		src_wh = f"_Test API Source WH - {frappe.db.get_value('Company', self.company, 'abbr')}"
-		fg_wh = f"_Test API FG WH - {frappe.db.get_value('Company', self.company, 'abbr')}"
+		fg_wh = (
+			f"_Test API FG WH - {frappe.db.get_value('Company', self.company, 'abbr')}"
+		)
 		for wh_name, full_wh in [
 			("_Test API Source WH", src_wh),
 			("_Test API FG WH", fg_wh),
@@ -647,7 +674,9 @@ class TestCO11NAPI(KTATestCase):
 		qty: float,
 		reserved_qty: float = 0.0,
 	):
-		bin_name = frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": warehouse}, "name")
+		bin_name = frappe.db.get_value(
+			"Bin", {"item_code": item_code, "warehouse": warehouse}, "name"
+		)
 		if bin_name:
 			frappe.db.set_value(
 				"Bin",
@@ -700,7 +729,9 @@ class TestCO11NAPI(KTATestCase):
 		self.assertEqual(res["docstatus"], 0)
 		self.assertEqual(res["status"], "Draft")
 		self.assertEqual(res["bom_no"], bom_name)
-		self.assertEqual(str(getdate(res["planned_end_date"])), add_days(start_date, 14))
+		self.assertEqual(
+			str(getdate(res["planned_end_date"])), add_days(start_date, 14)
+		)
 		self.assertTrue(frappe.db.exists("Work Order", res["name"]))
 
 	def test_api_check_material_availability(self):
@@ -790,7 +821,9 @@ class TestCO11NAPI(KTATestCase):
 		self.assertIn(self.wo_name, all_names)
 
 		# status_filter='Draft': only docstatus=0
-		draft_only = get_active_work_orders(company=self.company, status_filter="Draft", include_drafts=1)
+		draft_only = get_active_work_orders(
+			company=self.company, status_filter="Draft", include_drafts=1
+		)
 		draft_names = [d["name"] for d in draft_only]
 		self.assertIn(draft_name, draft_names)
 		self.assertNotIn(self.wo_name, draft_names)
@@ -807,13 +840,19 @@ class TestCO11NAPI(KTATestCase):
 
 		# status_filter='In Process' and 'Completed'
 		frappe.db.set_value("Work Order", self.wo_name, "status", "In Process")
-		in_process = get_active_work_orders(company=self.company, status_filter="In Process")
+		in_process = get_active_work_orders(
+			company=self.company, status_filter="In Process"
+		)
 		self.assertIn(self.wo_name, [d["name"] for d in in_process])
 
-		completed_before = get_active_work_orders(company=self.company, status_filter="Completed")
+		completed_before = get_active_work_orders(
+			company=self.company, status_filter="Completed"
+		)
 		self.assertNotIn(self.wo_name, [d["name"] for d in completed_before])
 		frappe.db.set_value("Work Order", self.wo_name, "status", "Completed")
-		completed_after = get_active_work_orders(company=self.company, status_filter="Completed")
+		completed_after = get_active_work_orders(
+			company=self.company, status_filter="Completed"
+		)
 		self.assertIn(self.wo_name, [d["name"] for d in completed_after])
 
 	def test_get_shopfloor_hub_context_includes_uom_docstatus_and_shortage_flag(self):
@@ -835,8 +874,12 @@ class TestCO11NAPI(KTATestCase):
 		):
 			get_item_default_bom(self.item)
 
+		doc_check_perm = (
+			"erpnextkta.kta_shopfloor.services.work_order_service."
+			"frappe.model.document.Document.check_permission"
+		)
 		with patch(
-			"erpnextkta.kta_shopfloor.services.work_order_service.frappe.model.document.Document.check_permission",
+			doc_check_perm,
 			side_effect=frappe.PermissionError,
 		):
 			with self.assertRaises(frappe.PermissionError):
@@ -876,6 +919,69 @@ class TestCO11NAPI(KTATestCase):
 				)
 		finally:
 			frappe.flags.in_test = prev_in_test
+
+	def test_get_active_work_orders_fiscal_year_and_order_by(self):
+		"""get_active_work_orders supports fiscal_year date bounds and custom order_by."""
+		orders_asc = get_active_work_orders(
+			company=self.company,
+			order_by="name asc",
+			include_drafts=1,
+		)
+		orders_desc = get_active_work_orders(
+			company=self.company,
+			order_by="name desc",
+			include_drafts=1,
+		)
+		if len(orders_asc) >= 2:
+			self.assertEqual(orders_asc[0]["name"], orders_desc[-1]["name"])
+			self.assertEqual(orders_asc[-1]["name"], orders_desc[0]["name"])
+
+		with patch(
+			"erpnextkta.kta_shopfloor.api.frappe.get_all", return_value=[]
+		) as mock_get_all:
+			get_active_work_orders(
+				company=self.company,
+				status_filter="Completed",
+			)
+			self.assertEqual(mock_get_all.call_args.kwargs.get("order_by"), "name desc")
+
+		with patch(
+			"erpnextkta.kta_shopfloor.api.frappe.get_all", return_value=[]
+		) as mock_get_all:
+			get_active_work_orders(
+				company=self.company,
+				status_filter="Not Started",
+			)
+			self.assertEqual(mock_get_all.call_args.kwargs.get("order_by"), "name asc")
+
+		res_cur_year = get_active_work_orders(
+			company=self.company,
+			fiscal_year="2026",
+			include_drafts=1,
+		)
+		names_cur_year = [d["name"] for d in res_cur_year]
+		self.assertIn(self.wo_name, names_cur_year)
+
+		res_past_year = get_active_work_orders(
+			company=self.company,
+			fiscal_year="2024",
+			include_drafts=1,
+		)
+		names_past_year = [d["name"] for d in res_past_year]
+		self.assertNotIn(self.wo_name, names_past_year)
+
+		with patch(
+			"erpnextkta.kta_shopfloor.api.frappe.get_all", return_value=[]
+		) as mock_get_all:
+			get_active_work_orders(
+				company=self.company,
+				status_filter="Completed",
+			)
+			creation_filter = mock_get_all.call_args.kwargs["filters"].get("creation")
+			self.assertIsNotNone(creation_filter)
+			self.assertEqual(creation_filter[0], "between")
+			self.assertTrue(creation_filter[1][0].startswith("2026-01-01"))
+			self.assertTrue(creation_filter[1][1].startswith("2026-12-31"))
 
 	def test_api_update_work_order_quantity(self):
 		"""update_work_order_quantity endpoint scales draft WO qty and enforces docstatus validation."""
