@@ -21,6 +21,7 @@ interface NavTab {
 const tabs: NavTab[] = [
   { id: 'work_orders', icon: '⚡', label: 'Work Orders' },
   { id: 'operations', icon: '📋', label: 'Operations' },
+  { id: 'work_cards', icon: '⏱️', label: 'Work Cards' },
 ];
 
 function handleSelectTab(view: WorkOrderViewMode) {

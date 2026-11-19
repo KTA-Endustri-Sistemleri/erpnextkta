@@ -1,6 +1,6 @@
 // Types for Shopfloor Hub Cockpit
 
-export type WorkOrderViewMode = "work_orders" | "operations";
+export type WorkOrderViewMode = "work_orders" | "operations" | "work_cards";
 
 export interface LinkedStockEntry {
   name: string;
@@ -200,3 +200,104 @@ export interface MaterialStagingResponse {
 
 export type MaterialAvailability = MaterialAvailabilityResponse;
 export type ShortageItem = MaterialAvailabilityItem;
+
+export interface MaterialConsumptionItem {
+  item_code: string;
+  item_name?: string | null;
+  total_qty: number;
+  uom: string;
+}
+
+export interface ScrapAllocationItem {
+  item_code: string;
+  qty: number;
+  uom: string;
+  reason?: string | null;
+}
+
+export interface CardDetailItem {
+  card_name: string;
+  operator?: string | null;
+  durum: string;
+  net_calisma_suresi: number;
+  islem_adedi: number;
+  creation: string;
+}
+
+export interface SubOperationAnalytics {
+  sub_op_id: string;
+  title: string;
+  sequence: number;
+  status: string;
+  status_badge: string;
+  is_tuketim_hesaplanir: number;
+  total_process_qty: number;
+  total_duration_mins: number;
+  consumptions: MaterialConsumptionItem[];
+  scraps: ScrapAllocationItem[];
+  cards: CardDetailItem[];
+}
+
+export interface KtaOperationGroup {
+  op_code: string;
+  op_title: string;
+  total_duration_mins: number;
+  sub_operations: SubOperationAnalytics[];
+}
+
+export interface WorkCardSummaryStats {
+  total_cards: number;
+  completed_cards: number;
+  in_progress_cards: number;
+  total_duration_mins: number;
+  total_scrap_qty: number;
+}
+
+export interface OperationAnalytics {
+  operation_name: string;
+  sequence_id?: number;
+  job_card?: string | null;
+  status: string;
+  total_duration_mins: number;
+  unmatched_scraps: ScrapAllocationItem[];
+  sub_operations: SubOperationAnalytics[];
+  kta_operations?: KtaOperationGroup[];
+}
+
+export type OperationCardAnalytics = OperationAnalytics;
+
+export interface OperatorConsumptionItem {
+  operator: string;
+  operator_name: string;
+  consumed_qty: number;
+  card_count: number;
+  percentage: number;
+}
+
+export interface MaterialReconciliationItem {
+  item_code: string;
+  item_name?: string | null;
+  operation?: string | null;
+  stock_uom: string;
+  planned_qty: number;
+  consumed_qty: number;
+  scrap_qty: number;
+  total_spent: number;
+  variance: number;
+  status: string;
+  status_badge: string;
+  operators?: OperatorConsumptionItem[];
+}
+
+export interface WorkCardAnalyticsResponse {
+  work_order: string;
+  production_item: string;
+  item_name?: string | null;
+  qty: number;
+  summary: WorkCardSummaryStats;
+  operations: OperationAnalytics[];
+  material_reconciliation?: MaterialReconciliationItem[];
+}
+
+export type WorkOrderCardAnalyticsResponse = WorkCardAnalyticsResponse;
+
