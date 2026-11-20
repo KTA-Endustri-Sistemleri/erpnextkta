@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v4.5.1 (2026-11-20)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **calisma-karti**: restore missing public api facade exports
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.5.0 (2026-11-20)
 
 
