@@ -1053,3 +1053,37 @@ class TestCalismaKartiAPI(KTATestCase):
         draft_jc.reload()
         self.assertEqual(len(draft_jc.time_logs), 1)
         self.assertEqual(draft_jc.total_time_in_mins, 15)
+
+    def test_public_api_facade_exports(self):
+        """Public API facade modülünün (`erpnextkta.kta_calisma_karti.api`)
+        frontend tarafından çağrılan kritik whitelist metotlarını eksiksiz
+        re-export ettiğini doğrular."""
+        import erpnextkta.kta_calisma_karti.api as api
+
+        expected_exports = [
+            "get_job_card_by_barcode",
+            "get_work_order_by_barcode",
+            "get_my_calisma_kartlari",
+            "get_calisma_karti_detail",
+            "check_active_card_data",
+            "create_calisma_karti",
+            "get_operations_for_job_card",
+            "is_kut_kablo_operation",
+            "search_alt_operasyon_kayitlari",
+            "search_allowed_hammadde_items",
+            "get_item_uom",
+            "get_work_order_card_analytics",
+            "get_job_card_protocols_html",
+        ]
+
+        for method_name in expected_exports:
+            self.assertTrue(
+                hasattr(api, method_name),
+                f"erpnextkta.kta_calisma_karti.api must export {method_name}",
+            )
+            fn = getattr(api, method_name)
+            self.assertTrue(
+                callable(fn),
+                f"{method_name} in erpnextkta.kta_calisma_karti.api must be callable",
+            )
+
