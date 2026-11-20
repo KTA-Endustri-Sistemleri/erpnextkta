@@ -3,6 +3,49 @@
 
 
 
+## 🚀 v4.5.0 (2026-11-20)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **shopfloor**: add work cards view and fiscal year completed filter
+      
+      
+    
+      
+      
+        
+- **calisma-karti**: add work card analytics and reconciliation service
+      
+      
+    
+      
+      
+        
+- **shopfloor**: implement shopfloor hub cockpit, work orders and confirmation engine
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.4.1 (2026-11-17)
 
 
