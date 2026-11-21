@@ -407,6 +407,18 @@ def before_tests():
 	except (frappe.DuplicateEntryError, frappe.ValidationError) as e:
 		frappe.logger("tests").debug(f"seed_molds atlandı: {e}")
 
+	if frappe.db.exists("DocType", "KTA Zebra Templates"):
+		for tmpl_name in ("Depo Giriş Etiketi", "İş Emri Etiketi"):
+			if not frappe.db.exists("KTA Zebra Templates", tmpl_name):
+				frappe.get_doc(
+					{
+						"doctype": "KTA Zebra Templates",
+						"doctype_name": tmpl_name,
+						"zebra_template": "^XA^FD{data.item_code}|{data.sut_barcode}|{data.qty}^FS^XZ",
+					}
+				).insert(ignore_permissions=True, ignore_if_duplicate=True)
+				frappe.cache().delete_value(f"kta_zebra_template_{tmpl_name}")
+
 	frappe.db.commit()
 	frappe.clear_cache()
 
