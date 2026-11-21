@@ -38,7 +38,7 @@ frappe.ui.form.on("Stock Reconciliation", {
       function (data) {
         frappe.call({
           // 🔴 IMPORTANT: use our custom server method instead of the core one
-          method: "erpnextkta.rest-api.stock_reconciliation.get_items_static",
+          method: "erpnextkta.kta_stock.services.stock_reconciliation_service.get_items_static",
           args: {
             warehouse: data.warehouse,
             posting_date: frm.doc.posting_date,
@@ -95,7 +95,7 @@ frappe.ui.form.on("Stock Reconciliation", {
         ],
         (data) => {
           frappe.call({
-            method: "erpnextkta.rest-api.stock_reconciliation.create_stock_reco_docs_for_warehouse_group",
+            method: "erpnextkta.kta_stock.services.stock_reconciliation_service.create_stock_reco_docs_for_warehouse_group",
             args: {
               warehouse_group: data.warehouse_group,
               company: frm.doc.company,

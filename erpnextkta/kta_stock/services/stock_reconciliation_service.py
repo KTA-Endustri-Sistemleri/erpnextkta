@@ -1,15 +1,13 @@
-# erpnextkta/stock_reco_api.py
+# erpnextkta/kta_stock/services/stock_reconciliation_service.py
 
 import frappe
-from frappe import _
-from frappe.utils import cint, flt, today, nowtime
-
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import (
-    get_itemwise_batch,
-    get_stock_balance,
-    get_item_data,
     get_item_and_warehouses,
+    get_item_data,
+    get_itemwise_batch,
 )
+from frappe import _
+from frappe.utils import cint, flt, nowtime, today
 
 
 def get_items_for_stock_reco_static(warehouse: str, company: str):
@@ -99,9 +97,11 @@ def get_items_static(
         return []
 
     # Bulk fetch data to avoid N+1 queries
-    itemwise_batch_data = get_itemwise_batch(warehouse, posting_date, company, item_code)
+    itemwise_batch_data = get_itemwise_batch(
+        warehouse, posting_date, company, item_code
+    )
     balances = get_bulk_stock_balances(warehouse, posting_date, posting_time)
-    
+
     # We only need serial nos if some items have them
     has_serial_items = any(d.get("has_serial_no") for d in items)
     serial_nos_map = get_bulk_serial_nos(warehouse) if has_serial_items else {}
@@ -109,7 +109,7 @@ def get_items_static(
     res = []
     for d in items:
         key = (d.item_code, d.warehouse)
-        
+
         # Get balance from pre-fetched data
         qty, valuation_rate = balances.get(key, (0.0, 0.0))
 
@@ -124,7 +124,7 @@ def get_items_static(
         else:
             # Serialized or Normal items
             serial_no = serial_nos_map.get(key, "") if d.get("has_serial_no") else ""
-            
+
             if ignore_empty_stock and not qty:
                 continue
 
@@ -142,29 +142,37 @@ def get_bulk_stock_balances(warehouse: str, posting_date: str, posting_time: str
     Fetches latest qty and valuation rate for all items in a warehouse (or group).
     """
     wh = frappe.get_cached_doc("Warehouse", warehouse)
-    
+
     # Fast path for today's date: use Bin table
     if posting_date >= today():
-        data = frappe.db.sql("""
-            select 
+        data = frappe.db.sql(
+            """
+            select
                 bin.item_code, bin.warehouse, bin.actual_qty, bin.valuation_rate
             from `tabBin` bin
             join `tabWarehouse` w on w.name = bin.warehouse
             where w.lft >= %s and w.rgt <= %s
-        """, (wh.lft, wh.rgt), as_dict=True)
-        
-        return {(d.item_code, d.warehouse): (flt(d.actual_qty), flt(d.valuation_rate)) for d in data}
+        """,
+            (wh.lft, wh.rgt),
+            as_dict=True,
+        )
+
+        return {
+            (d.item_code, d.warehouse): (flt(d.actual_qty), flt(d.valuation_rate))
+            for d in data
+        }
 
     # Robust path for past dates: use ROW_NUMBER over SLE
     # Note: Requires MariaDB 10.2+ or MySQL 8.0+
     try:
-        data = frappe.db.sql(f"""
+        data = frappe.db.sql(
+            """
             select warehouse, item_code, qty_after_transaction, valuation_rate
             from (
-                select 
+                select
                     warehouse, item_code, qty_after_transaction, valuation_rate,
                     ROW_NUMBER() OVER (
-                        PARTITION BY item_code, warehouse 
+                        PARTITION BY item_code, warehouse
                         ORDER BY posting_date DESC, posting_time DESC, creation DESC, name DESC
                     ) as rn
                 from `tabStock Ledger Entry`
@@ -174,12 +182,21 @@ def get_bulk_stock_balances(warehouse: str, posting_date: str, posting_time: str
                 and is_cancelled = 0
             ) t
             where rn = 1
-        """, (wh.lft, wh.rgt, posting_date, posting_date, posting_time), as_dict=True)
-    except Exception:
+        """,
+            (wh.lft, wh.rgt, posting_date, posting_date, posting_time),
+            as_dict=True,
+        )
+    except Exception:  # noqa: BLE001
         # Fallback for very old DBs (though unlikely) or complex cases
         return {}
 
-    return {(d.item_code, d.warehouse): (flt(d.qty_after_transaction), flt(d.valuation_rate)) for d in data}
+    return {
+        (d.item_code, d.warehouse): (
+            flt(d.qty_after_transaction),
+            flt(d.valuation_rate),
+        )
+        for d in data
+    }
 
 
 def get_bulk_serial_nos(warehouse: str):
@@ -187,20 +204,25 @@ def get_bulk_serial_nos(warehouse: str):
     Fetches all active serial numbers grouped by item and warehouse.
     """
     wh = frappe.get_cached_doc("Warehouse", warehouse)
-    data = frappe.db.sql("""
+    data = frappe.db.sql(
+        """
         select item_code, warehouse, GROUP_CONCAT(name SEPARATOR '\n') as serial_nos
         from `tabSerial No`
         where warehouse in (select name from tabWarehouse where lft >= %s and rgt <= %s)
         and status = 'Active'
         group by item_code, warehouse
-    """, (wh.lft, wh.rgt), as_dict=True)
-    
+    """,
+        (wh.lft, wh.rgt),
+        as_dict=True,
+    )
+
     return {(d.item_code, d.warehouse): d.serial_nos for d in data}
 
 
 # ----------------------------
 # Bulk creation (Background Job)
 # ----------------------------
+
 
 @frappe.whitelist()
 def create_stock_reco_docs_for_warehouse_group(
@@ -227,7 +249,7 @@ def create_stock_reco_docs_for_warehouse_group(
     requested_by = frappe.session.user
 
     job = frappe.enqueue(
-        method="erpnextkta.rest-api.stock_reconciliation._job_create_stock_reco_docs_for_warehouse_group",
+        method="erpnextkta.kta_stock.services.stock_reconciliation_service._job_create_stock_reco_docs_for_warehouse_group",
         queue="long",
         timeout=60 * 60,  # 1 hour
         job_name=f"Bulk Stock Reco: {warehouse_group} ({posting_date} {posting_time})",
@@ -242,7 +264,9 @@ def create_stock_reco_docs_for_warehouse_group(
     return {
         "queued": True,
         "job_id": getattr(job, "id", None),
-        "message": _("Arkaplan görevi sıraya alındı. Tamamlandığında bildirim alacaksınız."),
+        "message": _(
+            "Arkaplan görevi sıraya alındı. Tamamlandığında bildirim alacaksınız."
+        ),
     }
 
 
@@ -342,7 +366,9 @@ def _job_create_stock_reco_docs_for_warehouse_group(
     }
 
 
-def _notify_bulk_stock_reco_result(user: str, warehouse_group: str, created: list, skipped: list):
+def _notify_bulk_stock_reco_result(
+    user: str, warehouse_group: str, created: list, skipped: list
+):
     """
     Notify user via Notification Log when the background job is done.
     """
