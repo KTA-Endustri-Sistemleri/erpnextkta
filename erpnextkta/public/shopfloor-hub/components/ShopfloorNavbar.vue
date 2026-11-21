@@ -22,6 +22,7 @@ const tabs: NavTab[] = [
   { id: 'work_orders', icon: '⚡', label: 'Work Orders' },
   { id: 'operations', icon: '📋', label: 'Operations' },
   { id: 'work_cards', icon: '⏱️', label: 'Work Cards' },
+  { id: 'line_transfers', icon: '🔄', label: 'Line Transfers' },
 ];
 
 function handleSelectTab(view: WorkOrderViewMode) {
@@ -105,6 +106,13 @@ function handleSelectTab(view: WorkOrderViewMode) {
   gap: 0.5rem;
   height: 54px;
   justify-self: center;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.navbar-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-tab-btn {
@@ -122,6 +130,7 @@ function handleSelectTab(view: WorkOrderViewMode) {
   cursor: pointer;
   transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-tab-btn:hover {
@@ -157,13 +166,15 @@ function handleSelectTab(view: WorkOrderViewMode) {
 
 @media (max-width: 768px) {
   .shopfloor-navbar {
-    grid-template-columns: auto 1fr;
-    gap: 0.75rem;
-    padding: 0 0.85rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.6rem;
+    padding: 0 0.75rem;
   }
 
   .navbar-tabs {
     justify-self: end;
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .navbar-spacer {
@@ -171,8 +182,8 @@ function handleSelectTab(view: WorkOrderViewMode) {
   }
 
   .nav-tab-btn {
-    padding: 0 0.75rem;
-    font-size: 0.82rem;
+    padding: 0 0.65rem;
+    font-size: 0.8rem;
   }
 }
 </style>

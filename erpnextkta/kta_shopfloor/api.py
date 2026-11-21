@@ -9,6 +9,13 @@ from erpnextkta.kta_shopfloor.services.confirmation_service import (
     ConfirmationService,
     _resolve_job_card,
 )
+from erpnextkta.kta_shopfloor.services.line_transfer_service import (
+    execute_line_transfer,
+    get_line_idle_stock,
+    get_line_transfer_deficits,
+    get_production_warehouses,
+    search_line_transfer_items,
+)
 from erpnextkta.kta_shopfloor.services.reservation_deficit_service import (
     get_line_reservation_deficits,
 )
@@ -233,11 +240,13 @@ def check_confirmation_materials(
 def stage_confirmation_materials(
     work_order: str,
     transfers: list[dict] | str,
+    allow_reserved_override: int = 0,
 ) -> dict:
     """Create and submit a Material Transfer for Manufacture Stock Entry to replenish line stock."""
     return ConfirmationService.stage_confirmation_materials(
         work_order=work_order,
         transfers=transfers,
+        allow_reserved_override=allow_reserved_override,
     )
 
 
@@ -628,3 +637,58 @@ def get_line_deficits(
     frappe.has_permission("Work Order", "read", throw=True)
     return get_line_reservation_deficits(target_warehouse)
 
+
+@frappe.whitelist()
+def get_shopfloor_production_warehouses(company: str | None = None) -> list[dict]:
+    """API endpoint to list valid production line warehouses for line transfers."""
+    frappe.has_permission("Work Order", "read", throw=True)
+    return get_production_warehouses(company=company)
+
+
+@frappe.whitelist()
+def get_shopfloor_line_deficits(target_warehouse: str) -> list[dict]:
+    """API endpoint to get target line deficits coverable from sibling production lines."""
+    frappe.has_permission("Work Order", "read", throw=True)
+    return get_line_transfer_deficits(target_warehouse)
+
+
+@frappe.whitelist()
+def get_shopfloor_idle_stock(source_warehouse: str) -> list[dict]:
+    """API endpoint to get unreserved idle stock on a source production warehouse."""
+    frappe.has_permission("Work Order", "read", throw=True)
+    return get_line_idle_stock(source_warehouse)
+
+
+@frappe.whitelist()
+def search_shopfloor_transfer_items(
+    source_warehouse: str,
+    search: str | None = None,
+    limit: int = 30,
+) -> list[dict]:
+    """API endpoint to search stocked items inside a source production warehouse."""
+    frappe.has_permission("Work Order", "read", throw=True)
+    return search_line_transfer_items(
+        source_warehouse=source_warehouse, search=search, limit=limit
+    )
+
+
+@frappe.whitelist(methods=["POST"])
+def execute_shopfloor_line_transfer(
+    transfers: list[dict] | str,
+    allow_reserved_override: int = 0,
+    remarks: str | None = None,
+) -> dict:
+    """API endpoint to execute inter-line Material Transfer with LIFO batch resolution."""
+    if not (
+        frappe.has_permission("Stock Entry", "create")
+        or frappe.has_permission("Work Order", "write")
+    ):
+        frappe.throw(
+            _("Hat transferi oluşturma yetkiniz bulunmamaktadır."),
+            frappe.PermissionError,
+        )
+    return execute_line_transfer(
+        transfers=transfers,
+        allow_reserved_override=allow_reserved_override,
+        remarks=remarks,
+    )
