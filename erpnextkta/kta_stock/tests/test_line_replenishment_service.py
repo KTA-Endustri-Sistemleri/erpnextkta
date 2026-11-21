@@ -29,10 +29,16 @@ class TestLineReplenishmentService(FrappeTestCase):
             cls.target_wh = "_Test Line Replenish 1 - _TC"
             cls.sibling_wh = "_Test Line Replenish 2 - _TC"
 
-        cls.central_wh = "110 HAMMADDE - KTA"
-        cls.shelf_1 = "W1A-01-01 - KTA"
-        cls.shelf_2 = "W1A-01-02 - KTA"
-        cls.shelf_3 = "W1A-01-03 - KTA"
+        if frappe.db.exists("Warehouse", "110 HAMMADDE - KTA"):
+            cls.central_wh = "110 HAMMADDE - KTA"
+            cls.shelf_1 = "W1A-01-01 - KTA"
+            cls.shelf_2 = "W1A-01-02 - KTA"
+            cls.shelf_3 = "W1A-01-03 - KTA"
+        else:
+            cls.central_wh = "110 HAMMADDE - _TC"
+            cls.shelf_1 = "W1A-01-01 - _TC"
+            cls.shelf_2 = "W1A-01-02 - _TC"
+            cls.shelf_3 = "W1A-01-03 - _TC"
 
         cls._ensure_warehouses()
         cls._ensure_items()
@@ -74,8 +80,10 @@ class TestLineReplenishmentService(FrappeTestCase):
             p_wh.is_group = 1
             p_wh.flags.ignore_permissions = True
             p_wh.insert()
+            cls.parent_wh = p_wh.name
 
-        for wh_name in [cls.target_wh, cls.sibling_wh]:
+        for attr in ("target_wh", "sibling_wh"):
+            wh_name = getattr(cls, attr)
             if not frappe.db.exists("Warehouse", wh_name):
                 wh = frappe.new_doc("Warehouse")
                 wh.warehouse_name = wh_name.replace(" - _TC", "")
@@ -84,16 +92,19 @@ class TestLineReplenishmentService(FrappeTestCase):
                 wh.is_group = 0
                 wh.flags.ignore_permissions = True
                 wh.insert()
+                setattr(cls, attr, wh.name)
 
         if not frappe.db.exists("Warehouse", cls.central_wh):
             c_wh = frappe.new_doc("Warehouse")
             c_wh.warehouse_name = "110 HAMMADDE"
             c_wh.company = cls.company
-            c_wh.is_group = 0
+            c_wh.is_group = 1
             c_wh.flags.ignore_permissions = True
             c_wh.insert()
+            cls.central_wh = c_wh.name
 
-        for s_wh in [cls.shelf_1, cls.shelf_2, cls.shelf_3]:
+        for attr in ("shelf_1", "shelf_2", "shelf_3"):
+            s_wh = getattr(cls, attr)
             if not frappe.db.exists("Warehouse", s_wh):
                 wh = frappe.new_doc("Warehouse")
                 wh.warehouse_name = s_wh.replace(" - KTA", "").replace(" - _TC", "")
@@ -102,6 +113,7 @@ class TestLineReplenishmentService(FrappeTestCase):
                 wh.is_group = 0
                 wh.flags.ignore_permissions = True
                 wh.insert()
+                setattr(cls, attr, wh.name)
 
     @classmethod
     def _ensure_items(cls):

@@ -1,87 +1,115 @@
 import frappe
-from frappe import _
 from erpnext.stock.doctype.serial_and_batch_bundle.serial_and_batch_bundle import (
     SerialandBatchBundle as ERPNextSerialandBatchBundle,
 )
 from erpnext.stock.serial_batch_bundle import get_batches_from_bundle
 
+from erpnextkta.kta_stock.services.relabeling_service import extract_base_lot
+
 
 class SerialandBatchBundle(ERPNextSerialandBatchBundle):
     """
-    Override Serial & Batch Bundle naming so Purchase Receipt bundles reuse the
-    SUT prefix (first 7 alphanumeric chars of the base batch). All other flows
-    defer to ERPNext's default autoname logic.
+    Override Serial & Batch Bundle naming so Purchase Receipt and Inward
+    Stock Entry / Stock Reconciliation bundles reuse the 7-char base_lot when
+    unused. All other flows defer to ERPNext's default autoname logic.
     """
 
     def autoname(self):
-        # Sadece Purchase Receipt ise ve özel isimlendirme başarılıysa uygula
-        if self.voucher_type == "Purchase Receipt":
+        if self.voucher_type in (
+            "Purchase Receipt",
+            "Stock Entry",
+            "Stock Reconciliation",
+        ):
             preferred = self._kta_get_preferred_name()
             if preferred:
                 self.name = preferred
                 return
 
-        # Diğer tüm durumlarda (Üretim dahil) ERPNext'in orijinal naming'ini kullan
+        # Diğer tüm durumlarda ERPNext'in orijinal naming'ini kullan
         super().autoname()
 
     def _kta_get_preferred_name(self):
         """
         Purchase Receipt için bundle ismi olarak batch'in ilk 7 karakterini kullan.
+        Stock Entry ve Stock Reconciliation Inward bundle'ları için base_lot kullan.
         Diğer tüm durumlar için ERPNext'in varsayılan davranışını kullan.
         """
-        if self.voucher_type != "Purchase Receipt" or not self.voucher_detail_no:
-            return None
+        if self.voucher_type == "Purchase Receipt":
+            if not self.voucher_detail_no:
+                return None
 
-        batch_no = frappe.db.get_value(
-            "Purchase Receipt Item", 
-            self.voucher_detail_no, 
-            "batch_no"
-        )
-        
-        if not batch_no:
-            return None
+            batch_no = frappe.db.get_value(
+                "Purchase Receipt Item",
+                self.voucher_detail_no,
+                "batch_no",
+            )
 
-        # Sadece alfanumerik karakterleri al ve uppercase yap
-        filtered = "".join(filter(str.isalnum, batch_no.upper()))
-        
-        if len(filtered) < 7:
-            return None
+            if not batch_no:
+                return None
 
-        candidate = filtered[:7]
+            # Sadece alfanumerik karakterleri al ve uppercase yap
+            filtered = "".join(filter(str.isalnum, batch_no.upper()))
 
-        # Eğer bu bundle ismi zaten kullanılıyorsa, None döndür
-        # ERPNext'in kendi naming mekanizması devreye girecek
-        if frappe.db.exists("Serial and Batch Bundle", candidate):
-            return None
+            if len(filtered) < 7:
+                return None
 
-        return candidate
-    
+            candidate = filtered[:7]
+
+            # Eğer bu bundle ismi zaten kullanılıyorsa, None döndür
+            # ERPNext'in kendi naming mekanizması devreye girecek
+            if frappe.db.exists("Serial and Batch Bundle", candidate):
+                return None
+
+            return candidate
+
+        if (
+            self.voucher_type in ("Stock Entry", "Stock Reconciliation")
+            and self.type_of_transaction == "Inward"
+        ):
+            batches = [
+                d.get("batch_no")
+                for d in (self.get("entries") or [])
+                if d.get("batch_no")
+            ]
+            if not batches:
+                return None
+
+            base_lots = {extract_base_lot(b) for b in batches}
+            if len(base_lots) == 1:
+                candidate = next(iter(base_lots))
+                if candidate and not frappe.db.exists(
+                    "Serial and Batch Bundle", candidate
+                ):
+                    return candidate
+
+        return None
+
     def validate(self):
         # Üretim (Stock Entry) değilse standart validate çalışsın ve çıksın
         if self.voucher_type != "Stock Entry":
             super().validate()
             return
-            
-        # KTA: Eğer split edilmiş bir batch ise core validation'lardaki 
+
+        # KTA: Eğer split edilmiş bir batch ise core validation'lardaki
         # KeyError ve format hatalarını engellemek için flags set et
         self._ensure_split_batch_compatibility()
-        
+
         super().validate()
-        
+
         # Sadece üretim girişlerinde bizim ek kontrolümüz çalışsın
         if self.type_of_transaction == "Inward":
             self._validate_manufacturing_batches()
 
     def _ensure_split_batch_compatibility(self):
         """
-        Split edilmiş batch'lerin (son 4 hane rakam) core ERPNext validasyonlarında 
+        Split edilmiş batch'lerin (son 4 hane rakam) core ERPNext validasyonlarında
         hata çıkartmasını önler. Monkey patch gereksinimini ortadan kaldırır.
         """
         for entry in self.get("entries", []):
             batch_no = entry.get("batch_no")
             if not batch_no:
                 continue
-            
+
             # Eğer bir split batch ise (suffix 0001 vb.)
             if len(batch_no) > 4 and batch_no[-4:].isdigit():
                 # ERPNext core'un bu batch'i 'existing' olarak görmesini sağla
@@ -99,7 +127,7 @@ class SerialandBatchBundle(ERPNextSerialandBatchBundle):
             batch_no = entry.get("batch_no")
             if not batch_no or entry.is_outward:
                 continue
-            
+
             # Split batch kontrolü (son 4 karakter rakam mı?)
             if len(batch_no) > 4 and batch_no[-4:].isdigit():
                 # Base batch'in mevcut olup olmadığını kontrol et
@@ -107,8 +135,11 @@ class SerialandBatchBundle(ERPNextSerialandBatchBundle):
                 if frappe.db.exists("Batch", base_batch):
                     # Base batch ile ilişkilendirilmiş mi kontrol et
                     base_batch_doc = frappe.get_doc("Batch", base_batch)
-                    if (base_batch_doc.get("reference_doctype") == "Work Order" and
-                        not base_batch_doc.get("stock_entry_reference_name")):
+                    if base_batch_doc.get(
+                        "reference_doctype"
+                    ) == "Work Order" and not base_batch_doc.get(
+                        "stock_entry_reference_name"
+                    ):
                         # Bu bir split batch, base batch'e referans olmamalı
                         # KTA logic treats suffixes as separate entities in the split flow
                         pass

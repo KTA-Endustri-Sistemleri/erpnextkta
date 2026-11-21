@@ -490,7 +490,7 @@ function loadPrefNumber(key, fallback) {
 
 // --- Data loaders ---
 async function loadYears() {
-  years.value = await call("erpnextkta.rest-api.stock_reconciliation_dashboard.get_years");
+  years.value = await call("erpnextkta.kta_stock.services.stock_reconciliation_dashboard_service.get_years");
   if (years.value.length && !years.value.includes(year.value)) {
     year.value = years.value[0];
   }
@@ -542,7 +542,7 @@ async function loadDashboard(resetSelection = true) {
     }
 
     const res = await call(
-      "erpnextkta.rest-api.stock_reconciliation_dashboard.get_dashboard",
+      "erpnextkta.kta_stock.services.stock_reconciliation_dashboard_service.get_dashboard",
       buildDashboardArgs()
     );
 
@@ -575,7 +575,7 @@ async function refreshDetails() {
   details.value = [];
   try {
     const res = await call(
-      "erpnextkta.rest-api.stock_reconciliation_dashboard.get_item_details",
+      "erpnextkta.kta_stock.services.stock_reconciliation_dashboard_service.get_item_details",
       {
         item_code: selected.value.item_code,
         ...buildDashboardArgs(),

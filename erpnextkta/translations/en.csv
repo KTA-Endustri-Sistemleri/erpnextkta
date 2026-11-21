@@ -1577,3 +1577,11 @@ Teyit Eden,Confirmed By
 Serbest Stok,Free Stock
 Talep Edilen,Requested
 Malzeme Ara,Search Items
+Return from Production Supply,Return from Production Supply
+Package Split,Package Split
+Package Split allows only one item per Stock Entry.,Package Split allows only one item per Stock Entry.
+Benzersiz 7 haneli lot ön eki üretilemedi.,Unable to generate a unique 7-character lot prefix.
+Lot {0} için maksimum koli soneki (9999) aşıldı.,Maximum box suffix (9999) exceeded for lot {0}.
+"Ürün, kaynak depo ve hedef depo zorunludur.","Item, source warehouse, and target warehouse are mandatory."
+Bölme miktarları boş olamaz ve tüm değerler sıfırdan büyük olmalıdır.,Split quantities cannot be empty and all values must be greater than zero.
+"Kaynak depoda yeterli stok yok. Mevcut: {0}, İstenen: {1}","Insufficient stock in source warehouse. Available: {0}, Requested: {1}"

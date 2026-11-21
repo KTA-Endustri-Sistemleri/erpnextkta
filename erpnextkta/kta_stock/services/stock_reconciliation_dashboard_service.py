@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
-
 from frappe.utils import getdate
 
 ROLE_REQUIRED = "Stock Reconciliation Manager"
@@ -12,8 +11,6 @@ ROLE_REQUIRED = "Stock Reconciliation Manager"
 
 def _require_role():
     """Allow only Stock Reconciliation Manager role to access API."""
-    user = frappe.session.user
-    roles = frappe.get_roles(user) or []
     if not frappe.has_permission("Stock Reconciliation", "read"):
         frappe.throw(_("İzin verilmiyor"), frappe.PermissionError)
 
@@ -49,11 +46,13 @@ def _parse_date(d: str | None) -> str | None:
         return None
     try:
         return str(getdate(d))
-    except Exception:
+    except (ValueError, TypeError, frappe.ValidationError):
         frappe.throw(_("Geçersiz tarih: {0}").format(d))
 
 
-def _build_date_filter(year: int, from_date: str | None, to_date: str | None) -> tuple[str, dict]:
+def _build_date_filter(
+    year: int, from_date: str | None, to_date: str | None
+) -> tuple[str, dict]:
     """
     Build SQL WHERE fragment for posting_date filter.
 
@@ -113,7 +112,7 @@ def get_dashboard(year: int, from_date: str | None = None, to_date: str | None =
 
     try:
         year = int(year)
-    except Exception:
+    except (ValueError, TypeError):
         frappe.throw(_("Geçersiz yıl"))
 
     diff = _diff_expr("sri")
@@ -207,13 +206,15 @@ def get_dashboard(year: int, from_date: str | None = None, to_date: str | None =
         "meta": {
             "counts": {"draft": draft_count, "submitted": submitted_count},
             "progress_pct": progress_pct,  # submitted %
-            "open_pct": open_pct,          # draft %
+            "open_pct": open_pct,  # draft %
         },
     }
 
 
 @frappe.whitelist()
-def get_item_details(item_code: str, year: int, from_date: str | None = None, to_date: str | None = None):
+def get_item_details(
+    item_code: str, year: int, from_date: str | None = None, to_date: str | None = None
+):
     """
     Drill-down per item: list docs (Draft+Submitted) and their contribution.
 
@@ -226,7 +227,7 @@ def get_item_details(item_code: str, year: int, from_date: str | None = None, to
 
     try:
         year = int(year)
-    except Exception:
+    except (ValueError, TypeError):
         frappe.throw(_("Geçersiz yıl"))
 
     diff = _diff_expr("sri")

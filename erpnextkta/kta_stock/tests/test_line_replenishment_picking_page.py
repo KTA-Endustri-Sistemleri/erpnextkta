@@ -84,23 +84,79 @@ class TestLineReplenishmentPickingPage(FrappeTestCase):
         self.assertIsNone(none_res)
 
     def test_get_replenishment_order_details_with_shelf_and_batch(self):
-        item_code = frappe.db.get_value("Item", {}, "name")
-        warehouse = frappe.db.get_value("Warehouse", {"is_group": 0}, "name")
-        company = frappe.db.get_value("Company", {}, "name")
-        if not (item_code and warehouse and company):
-            return
+        from erpnextkta.tests.test_utils import create_test_item_group
+
+        company = (
+            "_Test Company"
+            if frappe.db.exists("Company", "_Test Company")
+            else frappe.db.get_value("Company", {}, "name")
+        )
+        self.assertTrue(company)
+
+        item_group = create_test_item_group()
+        item_code = "_TEST-LRO-PICK-BATCH-ITEM"
+        if not frappe.db.exists("Item", item_code):
+            frappe.get_doc(
+                {
+                    "doctype": "Item",
+                    "item_code": item_code,
+                    "item_name": item_code,
+                    "item_group": item_group,
+                    "is_stock_item": 1,
+                    "stock_uom": "Nos",
+                    "has_batch_no": 1,
+                    "create_new_batch": 0,
+                }
+            ).insert(ignore_permissions=True)
+
+        parent_wh = frappe.db.get_value(
+            "Warehouse", {"company": company, "is_group": 1}, "name"
+        )
+        abbr = frappe.db.get_value("Company", company, "abbr") or "_TC"
+
+        def ensure_leaf_wh(wh_label: str) -> str:
+            wh_name = f"{wh_label} - {abbr}"
+            if not frappe.db.exists("Warehouse", wh_name):
+                wh_doc = frappe.get_doc(
+                    {
+                        "doctype": "Warehouse",
+                        "warehouse_name": wh_label,
+                        "company": company,
+                        "parent_warehouse": parent_wh,
+                        "is_group": 0,
+                    }
+                ).insert(ignore_permissions=True)
+                return wh_doc.name
+            return wh_name
+
+        target_wh = ensure_leaf_wh("_Test LRO Pick Target")
+        source_wh = ensure_leaf_wh("_Test LRO Pick Source")
+
+        batch_id = "_TEST-LRO-PICK-BATCH-01"
+        if not frappe.db.exists("Batch", batch_id):
+            batch_doc = frappe.get_doc(
+                {
+                    "doctype": "Batch",
+                    "batch_id": batch_id,
+                    "item": item_code,
+                    "batch_qty": 0,
+                }
+            ).insert(ignore_permissions=True)
+            batch_name = batch_doc.name
+        else:
+            batch_name = batch_id
 
         order = frappe.get_doc(
             {
                 "doctype": "KTA Line Replenishment Order",
-                "target_warehouse": warehouse,
+                "target_warehouse": target_wh,
                 "company": company,
                 "items": [
                     {
                         "item_code": item_code,
                         "deficit_qty": 15.0,
-                        "suggested_source_warehouse": "W1A-01-01 - KTA",
-                        "suggested_batch_no": "0000000070",
+                        "suggested_source_warehouse": source_wh,
+                        "suggested_batch_no": batch_name,
                         "uom": "Nos",
                     }
                 ],
@@ -122,8 +178,8 @@ class TestLineReplenishmentPickingPage(FrappeTestCase):
             self.assertEqual(len(details["items"]), 1)
             row = details["items"][0]
             self.assertNotIn("sourcing_type", row)
-            self.assertEqual(row["suggested_source_warehouse"], "W1A-01-01 - KTA")
-            self.assertEqual(row["suggested_batch_no"], "0000000070")
+            self.assertEqual(row["suggested_source_warehouse"], source_wh)
+            self.assertEqual(row["suggested_batch_no"], batch_name)
             self.assertEqual(row["deficit_qty"], 15.0)
             self.assertEqual(row["picked_qty"], 15.0)
             self.assertEqual(row["is_picked"], 0)

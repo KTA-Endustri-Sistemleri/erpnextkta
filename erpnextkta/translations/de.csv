@@ -1566,3 +1566,11 @@ Teyit Eden,Bestätigt Von
 Serbest Stok,Freier Bestand
 Talep Edilen,Angefordert
 Malzeme Ara,Artikel Suchen
+Return from Production Supply,Rückgabe aus Produktionsversorgungsbereich
+Package Split,Gebindeteilung
+Package Split allows only one item per Stock Entry.,Bei der Gebindeteilung ist nur ein Artikel pro Lagerbuchung zulässig.
+Benzersiz 7 haneli lot ön eki üretilemedi.,Eindeutiges 7-stelliges Chargenpräfix konnte nicht erzeugt werden.
+Lot {0} için maksimum koli soneki (9999) aşıldı.,Maximales Gebindesuffix (9999) für Charge {0} überschritten.
+"Ürün, kaynak depo ve hedef depo zorunludur.","Artikel, Ausgangslager und Ziellager sind erforderlich."
+Bölme miktarları boş olamaz ve tüm değerler sıfırdan büyük olmalıdır.,Teilmengen dürfen nicht leer sein und müssen alle größer als null sein.
+"Kaynak depoda yeterli stok yok. Mevcut: {0}, İstenen: {1}","Unzureichender Bestand im Ausgangslager. Verfügbar: {0}, Angefordert: {1}"

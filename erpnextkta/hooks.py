@@ -94,6 +94,7 @@ page_js = {"query-report" : "public/js/kta_report_utils.js"}
 after_migrate = [
     "erpnextkta.overrides.apply",
     "erpnextkta.kta_calisma_karti.setup.setup",
+    "erpnextkta.kta_stock.setup.setup",
 ]
 
 # Uninstallation
@@ -171,10 +172,10 @@ doc_events = {
         "on_update": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
         "on_cancel": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
         "on_trash": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
-        "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_unique_draft_stock_reco_per_set_warehouse"
+        "validate": "erpnextkta.kta_stock.services.stock_reconciliation_lock.validate_unique_draft_stock_reco_per_set_warehouse"
     },
     "Stock Entry": {
-        "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
+        "validate": "erpnextkta.kta_stock.services.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
         "on_update": "erpnextkta.kta_calisma_karti.api_impl.hurda.sync_stock_entry_to_calisma_karti",
         "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash",
         "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer"

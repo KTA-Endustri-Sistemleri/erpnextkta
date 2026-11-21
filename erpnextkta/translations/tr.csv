@@ -733,3 +733,11 @@ Teyit Eden,Teyit Eden
 Serbest Stok,Serbest Stok
 Talep Edilen,Talep Edilen
 Malzeme Ara,Malzeme Ara
+Return from Production Supply,Üretim Tedarik Alanından İade
+Package Split,Koli Bölme
+Package Split allows only one item per Stock Entry.,Koli Bölme hareketi stok belgesi başına yalnızca bir ürün destekler.
+Benzersiz 7 haneli lot ön eki üretilemedi.,Benzersiz 7 haneli lot ön eki üretilemedi.
+Lot {0} için maksimum koli soneki (9999) aşıldı.,Lot {0} için maksimum koli soneki (9999) aşıldı.
+"Ürün, kaynak depo ve hedef depo zorunludur.","Ürün, kaynak depo ve hedef depo zorunludur."
+Bölme miktarları boş olamaz ve tüm değerler sıfırdan büyük olmalıdır.,Bölme miktarları boş olamaz ve tüm değerler sıfırdan büyük olmalıdır.
+"Kaynak depoda yeterli stok yok. Mevcut: {0}, İstenen: {1}","Kaynak depoda yeterli stok yok. Mevcut: {0}, İstenen: {1}"
