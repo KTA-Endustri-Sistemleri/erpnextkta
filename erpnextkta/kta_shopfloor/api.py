@@ -11,10 +11,14 @@ from erpnextkta.kta_shopfloor.services.confirmation_service import (
 )
 from erpnextkta.kta_shopfloor.services.line_transfer_service import (
     execute_line_transfer,
+    execute_production_supply_return,
     get_line_idle_stock,
     get_line_transfer_deficits,
     get_production_warehouses,
     search_line_transfer_items,
+)
+from erpnextkta.kta_shopfloor.services.line_transfer_service import (
+    get_raw_material_return_warehouses as _get_raw_material_return_warehouses,
 )
 from erpnextkta.kta_shopfloor.services.reservation_deficit_service import (
     get_line_reservation_deficits,
@@ -672,11 +676,19 @@ def search_shopfloor_transfer_items(
     )
 
 
+@frappe.whitelist()
+def get_raw_material_return_warehouses(company: str | None = None) -> list[dict]:
+    """API endpoint to list active 110 raw material return leaf shelves."""
+    frappe.has_permission("Work Order", "read", throw=True)
+    return _get_raw_material_return_warehouses(company=company)
+
+
 @frappe.whitelist(methods=["POST"])
 def execute_shopfloor_line_transfer(
     transfers: list[dict] | str,
     allow_reserved_override: int = 0,
     remarks: str | None = None,
+    split_packages: int = 0,
 ) -> dict:
     """API endpoint to execute inter-line Material Transfer with LIFO batch resolution."""
     if not (
@@ -689,6 +701,31 @@ def execute_shopfloor_line_transfer(
         )
     return execute_line_transfer(
         transfers=transfers,
+        allow_reserved_override=allow_reserved_override,
+        remarks=remarks,
+        split_packages=split_packages,
+    )
+
+
+@frappe.whitelist(methods=["POST"])
+def execute_shopfloor_supply_return(
+    items: list[dict] | str,
+    target_warehouse: str,
+    allow_reserved_override: int = 0,
+    remarks: str | None = None,
+) -> dict:
+    """API endpoint to return idle line stock back to 110 raw material leaf shelves."""
+    if not (
+        frappe.has_permission("Stock Entry", "create")
+        or frappe.has_permission("Work Order", "write")
+    ):
+        frappe.throw(
+            _("Depo iadesi oluşturma yetkiniz bulunmamaktadır."),
+            frappe.PermissionError,
+        )
+    return execute_production_supply_return(
+        items=items,
+        target_warehouse=target_warehouse,
         allow_reserved_override=allow_reserved_override,
         remarks=remarks,
     )

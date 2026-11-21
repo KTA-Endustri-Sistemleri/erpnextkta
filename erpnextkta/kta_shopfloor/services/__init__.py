@@ -13,10 +13,13 @@ from erpnextkta.kta_shopfloor.services.confirmation_service import (
 )
 from erpnextkta.kta_shopfloor.services.line_transfer_service import (
     execute_line_transfer,
+    execute_production_supply_return,
     get_line_idle_stock,
     get_line_transfer_deficits,
     get_production_warehouses,
+    get_raw_material_return_warehouses,
     is_valid_production_warehouse,
+    is_valid_raw_material_return_warehouse,
     resolve_lifo_batches,
     search_line_transfer_items,
 )
@@ -33,12 +36,15 @@ __all__ = [
     "create_consumption_entry",
     "create_finished_goods_entry",
     "execute_line_transfer",
+    "execute_production_supply_return",
     "get_central_warehouse",
     "get_line_idle_stock",
     "get_line_reservation_deficits",
     "get_line_transfer_deficits",
     "get_production_warehouses",
+    "get_raw_material_return_warehouses",
     "is_valid_production_warehouse",
+    "is_valid_raw_material_return_warehouse",
     "resolve_lifo_batches",
     "search_line_transfer_items",
 ]

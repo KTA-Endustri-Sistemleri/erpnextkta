@@ -7,6 +7,14 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt, get_datetime, getdate, today
 
+from erpnextkta.kta_stock.label_manager import enqueue_print_labels_by_names
+from erpnextkta.kta_stock.services.relabeling_service import (
+    create_package_split_repack,
+    get_batch_ledger_balances,
+    is_standard_kta_box_batch,
+    upsert_box_label,
+)
+
 FORBIDDEN_WAREHOUSE_KEYWORDS = (
     "hammadde",
     "raw material",
@@ -193,6 +201,264 @@ def _clean_warehouse_label(wh_row: dict, abbr: str | None) -> str:
     if suffix and raw_label.endswith(suffix):
         return raw_label[: -len(suffix)]
     return raw_label
+
+
+def _is_production_warehouse_row(
+    wh_data: dict,
+    group_warehouses: list[dict],
+) -> bool:
+    """Fast production warehouse check using preloaded group warehouses."""
+    if (
+        not wh_data
+        or cint(wh_data.get("is_group")) == 1
+        or cint(wh_data.get("disabled")) == 1
+    ):
+        return False
+
+    if _contains_any_keyword(
+        (
+            wh_data.get("name"),
+            wh_data.get("warehouse_name"),
+            wh_data.get("parent_warehouse"),
+        ),
+        FORBIDDEN_WAREHOUSE_KEYWORDS,
+    ):
+        return False
+
+    lft = cint(wh_data.get("lft") or 0)
+    rgt = cint(wh_data.get("rgt") or 0)
+    if lft > 0 and rgt > 0:
+        for grp in group_warehouses:
+            g_lft = cint(grp.get("lft") or 0)
+            g_rgt = cint(grp.get("rgt") or 0)
+            if (
+                g_lft < lft
+                and g_rgt > rgt
+                and _contains_any_keyword(
+                    (grp.get("name"), grp.get("warehouse_name")),
+                    FORBIDDEN_WAREHOUSE_KEYWORDS,
+                )
+            ):
+                return False
+
+        for grp in group_warehouses:
+            g_lft = cint(grp.get("lft") or 0)
+            g_rgt = cint(grp.get("rgt") or 0)
+            if (
+                g_lft > 0
+                and g_lft <= lft
+                and g_rgt >= rgt
+                and _contains_any_keyword(
+                    (grp.get("name"), grp.get("warehouse_name")),
+                    ("150 üretim", "150 uretim"),
+                )
+            ):
+                return True
+
+    return _contains_any_keyword(
+        (
+            wh_data.get("name"),
+            wh_data.get("warehouse_name"),
+            wh_data.get("parent_warehouse"),
+        ),
+        ALLOWED_PRODUCTION_KEYWORDS,
+    )
+
+
+def _get_mrp_settings_return_roots(company: str | None = None) -> list[dict]:
+    """Resolve configured central raw material warehouse roots from KTA MRP Settings if present."""
+    if not frappe.db.exists("DocType", "KTA MRP Settings"):
+        return []
+
+    meta = frappe.get_meta("KTA MRP Settings")
+    has_rejected_col = frappe.db.has_column("Warehouse", "is_rejected_warehouse")
+    fields = ["name", "warehouse_name", "company", "is_group", "disabled", "lft", "rgt"]
+    if has_rejected_col:
+        fields.append("is_rejected_warehouse")
+
+    roots: list[dict] = []
+    for fieldname in (
+        "central_warehouse",
+        "raw_material_warehouse",
+        "default_raw_material_warehouse",
+    ):
+        if not meta.has_field(fieldname):
+            continue
+        wh_name = frappe.db.get_single_value("KTA MRP Settings", fieldname)
+        if not wh_name or not frappe.db.exists("Warehouse", wh_name):
+            continue
+        wh_row = frappe.db.get_value("Warehouse", wh_name, fields, as_dict=True)
+        if not wh_row or cint(wh_row.get("disabled")) == 1:
+            continue
+        if company and wh_row.get("company") and wh_row.get("company") != company:
+            continue
+        roots.append(wh_row)
+    return roots
+
+
+def _get_raw_material_return_roots(company: str | None = None) -> list[dict]:
+    """Find 110 HAMMADDE / 110 Raw Material root nodes for the given company."""
+    roots = _get_mrp_settings_return_roots(company)
+    wh_filters: dict = {"is_group": 1, "disabled": 0}
+    if company:
+        wh_filters["company"] = company
+
+    group_candidates = frappe.get_all(
+        "Warehouse",
+        filters=wh_filters,
+        fields=["name", "warehouse_name", "company", "is_group", "lft", "rgt"],
+    )
+    seen = {r.get("name") for r in roots}
+    for grp in group_candidates:
+        if grp.name in seen:
+            continue
+        if _contains_any_keyword(
+            (grp.get("name"), grp.get("warehouse_name")),
+            ("110 hammadde", "110 raw material"),
+        ):
+            roots.append(grp)
+            seen.add(grp.name)
+
+    if roots:
+        return roots
+
+    leaf_filters: dict = {"is_group": 0, "disabled": 0}
+    if company:
+        leaf_filters["company"] = company
+    for leaf in frappe.get_all(
+        "Warehouse",
+        filters=leaf_filters,
+        fields=["name", "warehouse_name", "company", "is_group", "lft", "rgt"],
+    ):
+        if _contains_any_keyword(
+            (leaf.get("name"), leaf.get("warehouse_name")),
+            ("110 hammadde", "110 raw material"),
+        ):
+            roots.append(leaf)
+
+    return roots
+
+
+def _warehouse_in_roots(wh_data: dict, roots: list[dict]) -> bool:
+    """Return True if wh_data is one of roots or sits inside a root NestedSet subtree."""
+    wh_lft = cint(wh_data.get("lft") or 0)
+    wh_rgt = cint(wh_data.get("rgt") or 0)
+    wh_name = wh_data.get("name")
+    for root in roots:
+        r_lft = cint(root.get("lft") or 0)
+        r_rgt = cint(root.get("rgt") or 0)
+        if r_lft > 0 and r_rgt > 0 and wh_lft > 0 and wh_rgt > 0:
+            if r_lft <= wh_lft and wh_rgt <= r_rgt:
+                return True
+        elif wh_name and wh_name == root.get("name"):
+            return True
+    return False
+
+
+def is_valid_raw_material_return_warehouse(
+    warehouse: str | None,
+    company: str | None = None,
+) -> bool:
+    """Validate whether a warehouse is an active non-rejected leaf shelf under 110 HAMMADDE."""
+    if not warehouse or not str(warehouse).strip():
+        return False
+
+    wh_name = str(warehouse).strip()
+    has_rejected_col = frappe.db.has_column("Warehouse", "is_rejected_warehouse")
+    fields = [
+        "name",
+        "warehouse_name",
+        "parent_warehouse",
+        "company",
+        "is_group",
+        "disabled",
+        "lft",
+        "rgt",
+    ]
+    if has_rejected_col:
+        fields.append("is_rejected_warehouse")
+
+    wh_data = frappe.db.get_value("Warehouse", wh_name, fields, as_dict=True)
+    if (
+        not wh_data
+        or cint(wh_data.get("is_group")) == 1
+        or cint(wh_data.get("disabled")) == 1
+        or cint(wh_data.get("is_rejected_warehouse") or 0) == 1
+    ):
+        return False
+
+    if company and wh_data.get("company") and wh_data.get("company") != company:
+        return False
+
+    if is_valid_production_warehouse(wh_data.name):
+        return False
+
+    effective_company = (
+        company or wh_data.get("company") or _resolve_target_company(None)
+    )
+    roots = _get_raw_material_return_roots(effective_company)
+    return _warehouse_in_roots(wh_data, roots)
+
+
+def get_raw_material_return_warehouses(company: str | None = None) -> list[dict]:
+    """List active non-rejected leaf shelves under 110 HAMMADDE for production supply return."""
+    target_company = _resolve_target_company(company)
+    if not target_company:
+        return []
+
+    roots = _get_raw_material_return_roots(target_company)
+    if not roots:
+        return []
+
+    abbr = frappe.db.get_value("Company", target_company, "abbr")
+    has_rejected_col = frappe.db.has_column("Warehouse", "is_rejected_warehouse")
+    leaf_filters: dict = {
+        "company": target_company,
+        "is_group": 0,
+        "disabled": 0,
+    }
+    if has_rejected_col:
+        leaf_filters["is_rejected_warehouse"] = 0
+
+    fields = [
+        "name",
+        "warehouse_name",
+        "parent_warehouse",
+        "is_group",
+        "disabled",
+        "lft",
+        "rgt",
+    ]
+    if has_rejected_col:
+        fields.append("is_rejected_warehouse")
+
+    leaf_warehouses = frappe.get_all(
+        "Warehouse",
+        filters=leaf_filters,
+        fields=fields,
+        order_by="name asc",
+    )
+    group_warehouses = frappe.get_all(
+        "Warehouse",
+        filters={"is_group": 1, "disabled": 0},
+        fields=["name", "warehouse_name", "lft", "rgt"],
+    )
+
+    result = []
+    for w in leaf_warehouses:
+        if cint(w.get("is_rejected_warehouse") or 0) == 1:
+            continue
+        if not _warehouse_in_roots(w, roots):
+            continue
+        if _is_production_warehouse_row(w, group_warehouses):
+            continue
+        result.append(
+            {
+                "warehouse": w.name,
+                "label": _clean_warehouse_label(w, abbr),
+            }
+        )
+    return result
 
 
 def get_production_warehouses(company: str | None = None) -> list[dict]:
@@ -683,6 +949,125 @@ def _fetch_sibling_deficits_by_item(
     return best_by_item
 
 
+def _fetch_warehouse_batches_by_item(
+    item_codes: list[str],
+    warehouse: str,
+) -> dict[str, list[dict]]:
+    """Fetch positive unexpired batch balances per item_code in a single bulk query (LIFO ordered)."""
+    if not item_codes or not warehouse:
+        return {}
+
+    batch_item_codes = frappe.get_all(
+        "Item",
+        filters={"name": ["in", item_codes], "has_batch_no": 1},
+        pluck="name",
+    )
+    if not batch_item_codes:
+        return {}
+
+    rows = frappe.db.sql(
+        """
+        SELECT
+            item_code,
+            batch_no,
+            SUM(qty) AS qty,
+            MAX(CASE WHEN qty > 0 THEN posting_dt ELSE NULL END) AS last_inward_posting_datetime,
+            MAX(CASE WHEN qty > 0 THEN sle_creation ELSE NULL END) AS last_inward_creation
+        FROM (
+            SELECT
+                sle.item_code AS item_code,
+                sle.batch_no AS batch_no,
+                sle.actual_qty AS qty,
+                COALESCE(
+                    sle.posting_datetime,
+                    TIMESTAMP(sle.posting_date, COALESCE(sle.posting_time, '00:00:00'))
+                ) AS posting_dt,
+                sle.creation AS sle_creation
+            FROM `tabStock Ledger Entry` sle
+            WHERE sle.item_code IN %(item_codes)s
+              AND sle.warehouse = %(warehouse)s
+              AND sle.is_cancelled = 0
+              AND sle.batch_no IS NOT NULL
+              AND sle.batch_no != ''
+              AND (sle.serial_and_batch_bundle IS NULL OR sle.serial_and_batch_bundle = '')
+
+            UNION ALL
+
+            SELECT
+                sle.item_code AS item_code,
+                sbe.batch_no AS batch_no,
+                sbe.qty AS qty,
+                COALESCE(
+                    sle.posting_datetime,
+                    TIMESTAMP(sle.posting_date, COALESCE(sle.posting_time, '00:00:00'))
+                ) AS posting_dt,
+                sle.creation AS sle_creation
+            FROM `tabStock Ledger Entry` sle
+            INNER JOIN `tabSerial and Batch Entry` sbe
+                ON sbe.parent = sle.serial_and_batch_bundle
+            WHERE sle.item_code IN %(item_codes)s
+              AND COALESCE(NULLIF(sbe.warehouse, ''), sle.warehouse) = %(warehouse)s
+              AND sle.is_cancelled = 0
+              AND sle.serial_and_batch_bundle IS NOT NULL
+              AND sle.serial_and_batch_bundle != ''
+              AND sbe.batch_no IS NOT NULL
+              AND sbe.batch_no != ''
+        ) AS combined
+        GROUP BY item_code, batch_no
+        HAVING SUM(qty) > 1e-6
+        """,
+        {"item_codes": tuple(batch_item_codes), "warehouse": warehouse},
+        as_dict=True,
+    )
+    if not rows:
+        return {}
+
+    batch_nos = list({r.batch_no for r in rows if r.get("batch_no")})
+    batch_meta = {
+        b.name: b
+        for b in frappe.get_all(
+            "Batch",
+            filters={"name": ["in", batch_nos], "disabled": 0},
+            fields=["name", "expiry_date", "creation"],
+        )
+    }
+    today_date = getdate(today())
+
+    grouped_raw: dict[str, list[dict]] = {}
+    for row in rows:
+        meta = batch_meta.get(row.batch_no)
+        if not meta:
+            continue
+        expiry_date = meta.get("expiry_date")
+        if expiry_date and getdate(expiry_date) < today_date:
+            continue
+        grouped_raw.setdefault(row.item_code, []).append(
+            {
+                "batch_no": row.batch_no,
+                "qty": flt(row.qty, 4),
+                "last_inward_posting_datetime": row.get("last_inward_posting_datetime"),
+                "last_inward_creation": row.get("last_inward_creation"),
+                "batch_creation": meta.get("creation"),
+            }
+        )
+
+    result: dict[str, list[dict]] = {}
+    for item_code, candidates in grouped_raw.items():
+        candidates.sort(
+            key=lambda c: (
+                _dt_sort_str(c.get("last_inward_posting_datetime")),
+                _dt_sort_str(c.get("last_inward_creation")),
+                _dt_sort_str(c.get("batch_creation")),
+                c.get("batch_no") or "",
+            ),
+            reverse=True,
+        )
+        result[item_code] = [
+            {"batch_no": c["batch_no"], "qty": c["qty"]} for c in candidates
+        ]
+    return result
+
+
 def get_line_idle_stock(source_warehouse: str) -> list[dict]:
     """Mode 2 (Idle Line Stock): find unreserved free stock on source_warehouse and matching line deficits."""
     source_wh = _validate_production_warehouse_or_throw(source_warehouse)
@@ -706,6 +1091,7 @@ def get_line_idle_stock(source_warehouse: str) -> list[dict]:
     item_codes = list({r["item_code"] for r in idle_rows if r.get("item_code")})
     items_meta = _fetch_items_metadata(item_codes)
     sibling_deficits = _fetch_sibling_deficits_by_item(item_codes, company, source_wh)
+    batches_by_item = _fetch_warehouse_batches_by_item(item_codes, source_wh)
 
     results = []
     for row in idle_rows:
@@ -741,6 +1127,7 @@ def get_line_idle_stock(source_warehouse: str) -> list[dict]:
                 "suggested_target_warehouse": suggested_target_wh,
                 "target_deficit_qty": target_deficit_qty,
                 "suggested_qty": suggested_qty,
+                "available_batches": batches_by_item.get(item_code, []),
             }
         )
 
@@ -998,11 +1385,224 @@ def _build_stock_entry_items_with_lifo(validated_items: list[dict]) -> list[dict
     return se_items
 
 
+def _ensure_relabeling_stock_entry_types() -> None:
+    """Ensure Return from Production Supply and Package Split Stock Entry Types exist."""
+    if not frappe.db.exists(
+        "Stock Entry Type", "Return from Production Supply"
+    ) or not frappe.db.exists("Stock Entry Type", "Package Split"):
+        from erpnextkta.kta_stock.setup import setup_stock_entry_types
+
+        setup_stock_entry_types()
+
+
+def _is_full_remaining_standard_box(
+    item_code: str,
+    source_wh: str,
+    batch_no: str | None,
+    alloc_qty: float,
+) -> bool:
+    """Return True if batch_no is a 7+4 KTA box with full remaining balance only in source_wh."""
+    if not batch_no or not is_standard_kta_box_batch(batch_no):
+        return False
+
+    balances = get_batch_ledger_balances(item_code, batch_no)
+    source_balance = flt(
+        sum(flt(b["qty"]) for b in balances if b["warehouse"] == source_wh), 4
+    )
+    if abs(source_balance - flt(alloc_qty, 4)) > 1e-6:
+        return False
+
+    other_balances = [
+        b for b in balances if b["warehouse"] != source_wh and abs(flt(b["qty"])) > 1e-6
+    ]
+    return len(other_balances) == 0
+
+
+def _submit_transfer_stock_entry(
+    se_items: list[dict],
+    company: str | None,
+    stock_entry_type: str,
+    purpose: str,
+    remarks: str,
+    work_order: str | None = None,
+    call_set_stock_entry_type: bool = True,
+) -> str:
+    """Create, populate, and submit a Material Transfer / Return Stock Entry."""
+    se = frappe.new_doc("Stock Entry")
+    se.purpose = purpose
+    se.stock_entry_type = stock_entry_type
+    if work_order:
+        se.work_order = work_order
+    se.company = company
+
+    sources = {d["s_warehouse"] for d in se_items if d.get("s_warehouse")}
+    targets = {d["t_warehouse"] for d in se_items if d.get("t_warehouse")}
+    if len(sources) == 1:
+        se.from_warehouse = next(iter(sources))
+    if len(targets) == 1:
+        se.to_warehouse = next(iter(targets))
+
+    for item_row in se_items:
+        se.append("items", item_row)
+
+    se.remarks = remarks
+    if call_set_stock_entry_type and hasattr(se, "set_stock_entry_type"):
+        se.set_stock_entry_type()
+    if hasattr(se, "calculate_rate_and_amount"):
+        se.calculate_rate_and_amount(raise_error_if_no_rate=False)
+    for row in se.get("items") or []:
+        if flt(row.get("basic_rate")) <= 0:
+            row.allow_zero_valuation_rate = 1
+
+    se.flags.ignore_permissions = True
+    se.insert(ignore_permissions=True)
+    se.submit()
+    return se.name
+
+
+def _execute_split_line_transfer(
+    validated_items: list[dict],
+    transfers_list: list[dict],
+    used_reserved_stock: bool,
+    company: str | None,
+    work_order: str | None = None,
+    remarks: str | None = None,
+) -> dict:
+    """Execute inter-line transfer with Package Split on partial/legacy boxes and label printing."""
+    _ensure_relabeling_stock_entry_types()
+    consumed_by_key: dict[tuple[str, str], dict[str, float]] = {}
+    mt_items: list[dict] = []
+    split_stock_entries: list[str] = []
+    all_stock_entries: list[str] = []
+    printed_labels = 0
+
+    for row in validated_items:
+        item_code = row["item_code"]
+        source_wh = row["source_warehouse"]
+        target_wh = row["target_warehouse"]
+        prior = consumed_by_key.setdefault((item_code, source_wh), {})
+
+        allocations = resolve_lifo_batches(
+            item_code=item_code,
+            warehouse=source_wh,
+            required_qty=row["qty"],
+            _prior_consumed=prior,
+        )
+
+        for alloc in allocations:
+            alloc_batch = alloc.get("batch_no")
+            alloc_qty = flt(alloc.get("qty"), 4)
+            if alloc_batch and not _is_full_remaining_standard_box(
+                item_code, source_wh, alloc_batch, alloc_qty
+            ):
+                split_res = create_package_split_repack(
+                    item_code=item_code,
+                    source_warehouse=source_wh,
+                    target_warehouse=target_wh,
+                    source_batch=alloc_batch,
+                    split_qtys=[alloc_qty],
+                    remarks=remarks
+                    or _("Hatlar Arası Koli Bölme Transferi: {0} -> {1}").format(
+                        source_wh, target_wh
+                    ),
+                )
+                se_name = split_res["stock_entry"]
+                split_stock_entries.append(se_name)
+                all_stock_entries.append(se_name)
+                printed_labels += len(split_res.get("created_batches") or [])
+            else:
+                if alloc_batch:
+                    prior[alloc_batch] = flt(prior.get(alloc_batch, 0.0) + alloc_qty, 4)
+                detail = {
+                    "item_code": item_code,
+                    "s_warehouse": source_wh,
+                    "t_warehouse": target_wh,
+                    "qty": alloc_qty,
+                    "transfer_qty": alloc_qty,
+                    "stock_uom": row["stock_uom"],
+                    "uom": row["stock_uom"],
+                    "conversion_factor": 1.0,
+                }
+                if alloc_batch:
+                    detail["batch_no"] = alloc_batch
+                    detail["use_serial_batch_fields"] = 1
+                mt_items.append(detail)
+
+    transfer_se_name = None
+    if mt_items:
+        purpose = (
+            "Material Transfer for Manufacture" if work_order else "Material Transfer"
+        )
+        eff_remarks = (
+            str(remarks).strip()
+            if remarks and str(remarks).strip()
+            else (
+                _("Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0}").format(
+                    work_order
+                )
+                if work_order
+                else _("Hatlar Arası Transfer (Line Transfer)")
+            )
+        )
+        transfer_se_name = _submit_transfer_stock_entry(
+            se_items=mt_items,
+            company=company,
+            stock_entry_type=purpose,
+            purpose=purpose,
+            remarks=eff_remarks,
+            work_order=work_order,
+            call_set_stock_entry_type=True,
+        )
+        all_stock_entries.insert(0, transfer_se_name)
+
+        posting_date = frappe.db.get_value(
+            "Stock Entry", transfer_se_name, "posting_date"
+        )
+        labels_to_print: list[str] = []
+        for detail in mt_items:
+            if not detail.get("batch_no"):
+                continue
+            lbl_name = upsert_box_label(
+                item_code=detail["item_code"],
+                batch_no=detail["batch_no"],
+                qty=flt(detail["qty"]),
+                target_warehouse=detail["t_warehouse"],
+                source_warehouse=detail["s_warehouse"],
+                reference_doctype="Stock Entry",
+                reference_name=transfer_se_name,
+                posting_date=posting_date,
+                fallback_ref="TRANSFER",
+            )
+            if lbl_name and str(lbl_name) not in labels_to_print:
+                labels_to_print.append(str(lbl_name))
+
+        if labels_to_print:
+            enqueue_print_labels_by_names(labels_to_print)
+            printed_labels += len(labels_to_print)
+
+    primary_se = transfer_se_name or (
+        split_stock_entries[0] if split_stock_entries else None
+    )
+    return {
+        "success": True,
+        "stock_entry": primary_se,
+        "stock_entries": all_stock_entries,
+        "split_stock_entries": split_stock_entries,
+        "printed_labels": printed_labels,
+        "transferred_items": transfers_list,
+        "used_reserved_stock": used_reserved_stock,
+        "message": _("{0} numaralı hat transferi başarıyla tamamlandı.").format(
+            ", ".join(all_stock_entries)
+        ),
+    }
+
+
 def execute_line_transfer(
     transfers: list[dict] | str,
     allow_reserved_override: int | bool = 0,
     work_order: str | None = None,
     remarks: str | None = None,
+    split_packages: int | bool = 0,
 ) -> dict:
     """Execute inter-line Material Transfer (or Material Transfer for Manufacture) with LIFO batches."""
     transfers_list = _parse_transfers_payload(transfers)
@@ -1010,7 +1610,6 @@ def execute_line_transfer(
     used_reserved_stock = _validate_bin_and_reservation_limits(
         agg_demand, allow_reserved_override
     )
-    se_items = _build_stock_entry_items_with_lifo(validated_items)
 
     company = None
     if work_order:
@@ -1025,51 +1624,352 @@ def execute_line_transfer(
             "Warehouse", validated_items[0]["target_warehouse"], "company"
         )
 
-    se = frappe.new_doc("Stock Entry")
-    if work_order:
-        se.purpose = "Material Transfer for Manufacture"
-        se.stock_entry_type = "Material Transfer for Manufacture"
-        se.work_order = work_order
-    else:
-        se.purpose = "Material Transfer"
-        se.stock_entry_type = "Material Transfer"
-
-    se.company = company
-
-    sources = {d["source_warehouse"] for d in validated_items}
-    targets = {d["target_warehouse"] for d in validated_items}
-    if len(sources) == 1:
-        se.from_warehouse = next(iter(sources))
-    if len(targets) == 1:
-        se.to_warehouse = next(iter(targets))
-
-    for item_row in se_items:
-        se.append("items", item_row)
-
-    if remarks and str(remarks).strip():
-        se.remarks = str(remarks).strip()
-    elif work_order:
-        se.remarks = _("Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0}").format(
-            work_order
+    if cint(split_packages):
+        return _execute_split_line_transfer(
+            validated_items=validated_items,
+            transfers_list=transfers_list,
+            used_reserved_stock=used_reserved_stock,
+            company=company,
+            work_order=work_order,
+            remarks=remarks,
         )
-    else:
-        se.remarks = _("Hatlar Arası Transfer (Line Transfer)")
 
-    if hasattr(se, "set_stock_entry_type"):
-        se.set_stock_entry_type()
-    if hasattr(se, "calculate_rate_and_amount"):
-        se.calculate_rate_and_amount(raise_error_if_no_rate=False)
-
-    se.flags.ignore_permissions = True
-    se.insert(ignore_permissions=True)
-    se.submit()
+    se_items = _build_stock_entry_items_with_lifo(validated_items)
+    purpose = "Material Transfer for Manufacture" if work_order else "Material Transfer"
+    eff_remarks = (
+        str(remarks).strip()
+        if remarks and str(remarks).strip()
+        else (
+            _("Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0}").format(work_order)
+            if work_order
+            else _("Hatlar Arası Transfer (Line Transfer)")
+        )
+    )
+    se_name = _submit_transfer_stock_entry(
+        se_items=se_items,
+        company=company,
+        stock_entry_type=purpose,
+        purpose=purpose,
+        remarks=eff_remarks,
+        work_order=work_order,
+        call_set_stock_entry_type=True,
+    )
 
     return {
         "success": True,
-        "stock_entry": se.name,
+        "stock_entry": se_name,
         "transferred_items": transfers_list,
         "used_reserved_stock": used_reserved_stock,
         "message": _("{0} numaralı hat transferi başarıyla tamamlandı.").format(
-            se.name
+            se_name
+        ),
+    }
+
+
+def _validate_single_return_row(row: dict, default_target_wh: str) -> dict:
+    """Validate a single production supply return row."""
+    item_code = row.get("item_code")
+    if not item_code or not frappe.db.exists("Item", item_code):
+        frappe.throw(
+            _("Geçerli bir malzeme kodu zorunludur: {0}").format(item_code),
+            frappe.ValidationError,
+        )
+
+    qty = flt(row.get("qty"), 4)
+    if qty <= 0:
+        frappe.throw(
+            _("İade miktarı sıfırdan büyük olmalıdır."),
+            frappe.ValidationError,
+        )
+
+    source_wh = str(row.get("source_warehouse") or "").strip()
+    target_wh = str(row.get("target_warehouse") or default_target_wh or "").strip()
+
+    if not source_wh or not frappe.db.exists("Warehouse", source_wh):
+        frappe.throw(
+            _("Geçerli bir kaynak üretim deposu zorunludur: {0}").format(source_wh),
+            frappe.ValidationError,
+        )
+    if not is_valid_production_warehouse(source_wh):
+        frappe.throw(
+            _(
+                "Depo iadesi yalnızca geçerli üretim hatlarından yapılabilir: {0}"
+            ).format(source_wh),
+            frappe.ValidationError,
+        )
+    if not is_valid_raw_material_return_warehouse(target_wh):
+        frappe.throw(
+            _("Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0}").format(
+                target_wh
+            ),
+            frappe.ValidationError,
+        )
+    if source_wh == target_wh:
+        frappe.throw(
+            _("Kaynak depo ve hedef depo aynı olamaz: {0}").format(source_wh),
+            frappe.ValidationError,
+        )
+
+    src_company = frappe.db.get_value("Warehouse", source_wh, "company")
+    tgt_company = frappe.db.get_value("Warehouse", target_wh, "company")
+    if src_company and tgt_company and src_company != tgt_company:
+        frappe.throw(
+            _(
+                "Kaynak depo ({0}) ve hedef depo ({1}) aynı şirkete ait olmalıdır."
+            ).format(source_wh, target_wh),
+            frappe.ValidationError,
+        )
+
+    item_meta = (
+        frappe.db.get_value(
+            "Item", item_code, ["stock_uom", "has_batch_no"], as_dict=True
+        )
+        or {}
+    )
+    batch_no = str(row.get("batch_no") or "").strip() or None
+    if batch_no and not cint(item_meta.get("has_batch_no") or 0):
+        frappe.throw(
+            _("Parti takipsiz kalem için parti seçilemez: {0}").format(item_code),
+            frappe.ValidationError,
+        )
+
+    return {
+        "item_code": item_code,
+        "qty": qty,
+        "source_warehouse": source_wh,
+        "target_warehouse": target_wh,
+        "batch_no": batch_no,
+        "has_batch_no": cint(item_meta.get("has_batch_no") or 0),
+        "stock_uom": item_meta.get("stock_uom") or "Nos",
+        "company": src_company or tgt_company,
+    }
+
+
+def _validate_return_rows(
+    items_list: list[dict],
+    target_warehouse: str,
+) -> tuple[list[dict], dict[tuple[str, str], float]]:
+    """Validate target return shelf and all return item rows."""
+    default_target_wh = str(target_warehouse or "").strip()
+    if not is_valid_raw_material_return_warehouse(default_target_wh):
+        frappe.throw(
+            _("Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0}").format(
+                target_warehouse or ""
+            ),
+            frappe.ValidationError,
+        )
+
+    validated_items: list[dict] = []
+    agg_demand: dict[tuple[str, str], float] = {}
+
+    for row in items_list:
+        if not isinstance(row, dict):
+            continue
+        item_data = _validate_single_return_row(row, default_target_wh)
+        validated_items.append(item_data)
+        key = (item_data["item_code"], item_data["source_warehouse"])
+        agg_demand[key] = flt(agg_demand.get(key, 0.0) + item_data["qty"], 4)
+
+    if not validated_items:
+        frappe.throw(
+            _("İade edilecek geçerli malzeme bulunamadı."),
+            frappe.ValidationError,
+        )
+
+    return validated_items, agg_demand
+
+
+def _resolve_explicit_batch_allocation(
+    item_code: str,
+    source_wh: str,
+    qty: float,
+    batch_no: str,
+    prior_consumed: dict[str, float],
+) -> list[dict]:
+    """Validate and allocate an explicit user-selected batch from source_wh."""
+    batch_meta = frappe.db.get_value(
+        "Batch",
+        batch_no,
+        ["name", "item", "disabled", "expiry_date"],
+        as_dict=True,
+    )
+    if (
+        not batch_meta
+        or batch_meta.get("item") != item_code
+        or cint(batch_meta.get("disabled")) == 1
+    ):
+        frappe.throw(
+            _("Geçerli ve aktif bir parti seçilmelidir: {0}").format(batch_no),
+            frappe.ValidationError,
+        )
+
+    expiry_date = batch_meta.get("expiry_date")
+    if expiry_date and getdate(expiry_date) < getdate(today()):
+        frappe.throw(
+            _("Seçilen partinin son kullanma tarihi dolmuştur: {0}").format(batch_no),
+            frappe.ValidationError,
+        )
+
+    balances = get_batch_ledger_balances(item_code, batch_no)
+    src_bal = flt(
+        sum(flt(b["qty"]) for b in balances if b["warehouse"] == source_wh), 4
+    )
+    avail = flt(src_bal - flt(prior_consumed.get(batch_no, 0.0)), 4)
+    if avail + 1e-6 < flt(qty, 4):
+        frappe.throw(
+            _(
+                "Seçilen parti ({0}) için kaynak depoda ({1}) yeterli bakiye yok. Mevcut: {2}, İstenen: {3}"
+            ).format(batch_no, source_wh, avail, flt(qty, 4)),
+            frappe.ValidationError,
+        )
+
+    return [{"batch_no": batch_no, "qty": flt(qty, 4)}]
+
+
+def execute_production_supply_return(
+    items: list[dict] | str,
+    target_warehouse: str,
+    allow_reserved_override: int | bool = 0,
+    remarks: str | None = None,
+) -> dict:
+    """Return idle production line stock back to 110 raw material leaf shelves with strict box routing."""
+    _ensure_relabeling_stock_entry_types()
+    items_list = _parse_transfers_payload(items)
+    validated_items, agg_demand = _validate_return_rows(items_list, target_warehouse)
+    used_reserved_stock = _validate_bin_and_reservation_limits(
+        agg_demand, allow_reserved_override
+    )
+
+    company = validated_items[0].get("company") or frappe.db.get_value(
+        "Warehouse", validated_items[0]["target_warehouse"], "company"
+    )
+    consumed_by_key: dict[tuple[str, str], dict[str, float]] = {}
+    return_rows: list[dict] = []
+    split_stock_entries: list[str] = []
+    stock_entries: list[str] = []
+    returned_items: list[dict] = []
+    printed_labels = 0
+
+    for row in validated_items:
+        item_code = row["item_code"]
+        source_wh = row["source_warehouse"]
+        target_wh = row["target_warehouse"]
+        prior = consumed_by_key.setdefault((item_code, source_wh), {})
+
+        if row["has_batch_no"] and row["batch_no"]:
+            allocations = _resolve_explicit_batch_allocation(
+                item_code=item_code,
+                source_wh=source_wh,
+                qty=row["qty"],
+                batch_no=row["batch_no"],
+                prior_consumed=prior,
+            )
+        else:
+            allocations = resolve_lifo_batches(
+                item_code=item_code,
+                warehouse=source_wh,
+                required_qty=row["qty"],
+                _prior_consumed=prior,
+            )
+
+        for alloc in allocations:
+            alloc_batch = alloc.get("batch_no")
+            alloc_qty = flt(alloc.get("qty"), 4)
+            is_full_std = _is_full_remaining_standard_box(
+                item_code, source_wh, alloc_batch, alloc_qty
+            )
+
+            if alloc_batch is None or is_full_std:
+                if alloc_batch:
+                    prior[alloc_batch] = flt(prior.get(alloc_batch, 0.0) + alloc_qty, 4)
+                detail = {
+                    "item_code": item_code,
+                    "s_warehouse": source_wh,
+                    "t_warehouse": target_wh,
+                    "qty": alloc_qty,
+                    "transfer_qty": alloc_qty,
+                    "stock_uom": row["stock_uom"],
+                    "uom": row["stock_uom"],
+                    "conversion_factor": 1.0,
+                }
+                if alloc_batch:
+                    detail["batch_no"] = alloc_batch
+                    detail["use_serial_batch_fields"] = 1
+                return_rows.append(detail)
+            else:
+                split_res = create_package_split_repack(
+                    item_code=item_code,
+                    source_warehouse=source_wh,
+                    target_warehouse=target_wh,
+                    source_batch=alloc_batch,
+                    split_qtys=[alloc_qty],
+                    remarks=remarks
+                    or _(
+                        "Üretim Tedarik Alanından Koli Bölme İadesi: {0} -> {1}"
+                    ).format(source_wh, target_wh),
+                )
+                split_se_name = split_res["stock_entry"]
+                split_stock_entries.append(split_se_name)
+                stock_entries.append(split_se_name)
+                created = split_res.get("created_batches") or []
+                printed_labels += len(created)
+                returned_items.append(
+                    {
+                        "item_code": item_code,
+                        "qty": alloc_qty,
+                        "source_warehouse": source_wh,
+                        "target_warehouse": target_wh,
+                        "batch_no": alloc_batch,
+                        "result_batch_no": created[0]["batch_no"]
+                        if created
+                        else alloc_batch,
+                        "stock_entry": split_se_name,
+                        "routing": "split",
+                    }
+                )
+
+    return_stock_entry = None
+    if return_rows:
+        eff_remarks = (
+            str(remarks).strip()
+            if remarks and str(remarks).strip()
+            else _("Üretim Tedarik Alanından Depo İadesi (150x -> 110)")
+        )
+        # Never call set_stock_entry_type() so custom type 'Return from Production Supply' is preserved
+        return_stock_entry = _submit_transfer_stock_entry(
+            se_items=return_rows,
+            company=company,
+            stock_entry_type="Return from Production Supply",
+            purpose="Material Transfer",
+            remarks=eff_remarks,
+            call_set_stock_entry_type=False,
+        )
+        stock_entries.insert(0, return_stock_entry)
+        for detail in return_rows:
+            if detail.get("batch_no"):
+                printed_labels += 1
+            returned_items.append(
+                {
+                    "item_code": detail["item_code"],
+                    "qty": flt(detail["qty"]),
+                    "source_warehouse": detail["s_warehouse"],
+                    "target_warehouse": detail["t_warehouse"],
+                    "batch_no": detail.get("batch_no"),
+                    "result_batch_no": detail.get("batch_no"),
+                    "stock_entry": return_stock_entry,
+                    "routing": "return",
+                }
+            )
+
+    return {
+        "success": True,
+        "stock_entries": stock_entries,
+        "return_stock_entry": return_stock_entry,
+        "split_stock_entries": split_stock_entries,
+        "printed_labels": printed_labels,
+        "returned_items": returned_items,
+        "used_reserved_stock": used_reserved_stock,
+        "message": _("{0} numaralı depo iadesi başarıyla tamamlandı.").format(
+            ", ".join(stock_entries)
         ),
     }

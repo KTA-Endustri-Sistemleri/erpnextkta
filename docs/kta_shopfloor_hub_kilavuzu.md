@@ -119,11 +119,21 @@ SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sa�
   - `get_line_transfer_deficits(target_warehouse)` (**Açık Karşılama / `deficit_pull`**): Hedef hattın `reserved_qty_for_production > actual_qty` açıklarını tarar, `_fetch_sibling_bins_by_item` ile yalnızca kardeş hatlarda fiili stoğu (`actual_qty > 0`) olanları `free_qty DESC, actual_qty DESC` sırasıyla listeler; serbest stoğu olanlarda `default_selected = True`, yalnız rezerve stoğu olanlarda `uses_reserved_stock = True` ve `default_selected = False` döner.
   - `get_line_idle_stock(source_warehouse)` (**Atıl Hat Stoğu / `idle_push`**): Kaynak hatta `actual_qty - reserved_qty_for_production > 0` boşta bekleyen stokları listeler; `_fetch_sibling_deficits_by_item` ile aynı malzeme için açığı bulunan en yüksek açık sahibi kardeş hattı (`suggested_target_warehouse`, `target_deficit_qty`) önerir.
   - `search_line_transfer_items(source_warehouse, search=None, limit=30)`: Manuel hat transferi modalı için kaynak depoda fiili stoğu bulunan kalemleri `actual_qty`, `reserved_qty` ve `free_qty` değerleriyle arar.
-- **Tek Adımda Transfer Yürütme (`execute_line_transfer`):**
+- **Tek Adımda Transfer Yürütme (`execute_line_transfer(..., split_packages=0)`):**
   - `_validate_transfer_rows`: Kaynak/hedef farklılığını, her iki deponun `is_valid_production_warehouse` kuralını ve aynı şirkete ait olduklarını doğrular.
   - `_validate_bin_and_reservation_limits`: Aynı `(item_code, source_warehouse)` çiftine denk gelen satırları toplulaştırarak `req_qty > actual_qty` ise kesin hata fırlatır; `req_qty > free_qty` durumunda `allow_reserved_override` onaylanmamışsa (`0`) `ValidationError` ile durdurur.
   - `_build_stock_entry_items_with_lifo`: Çoklu satırda aynı parti bakiyesini çift tahsis etmemek için `consumed_by_key` izleyerek `resolve_lifo_batches` ile satırları hazırlar.
-  - Resmi `Stock Entry` (`work_order` varsa `"Material Transfer for Manufacture"`, yoksa `"Material Transfer"`) belgesini insert ve submit ederek tek adımda stok defterini günceller.
+  - **Varsayılan Sessiz Transfer (`split_packages = 0`):** Resmi `Stock Entry` (`work_order` varsa `"Material Transfer for Manufacture"`, yoksa `"Material Transfer"`) belgesini insert ve submit ederek tek adımda stok defterini günceller (ekstra `Repack` açmaz ve ZPL basmaz).
+  - **İsteğe Bağlı Koli Bölme & Etiketleme (`split_packages = 1` → `_execute_split_line_transfer`):** `Atıl Hat Stoğu` veya `Manuel Hat Transferi` modalında kullanıcı *"Yeni Koliye Böl ve Etiket Bas"* kutucuğunu işaretlediğinde çalışır. Kısmi ayrılan veya `LEGACY` tahsisler için `relabeling_service.create_package_split_repack` (`Package Split` / `Repack`) keser ve yeni `000x` kutulara otomatik `Depo Giriş Etiketi` basar; tam kalan standart kutuları ise `Material Transfer` + `upsert_box_label` + `enqueue_print_labels_by_names` ile taşıyıp etiketler.
+- **Üretim Tedarik Alanından Depoya İade (`150x → 110 HAMMADDE`):**
+  - `get_raw_material_return_warehouses(company=None)` & `is_valid_raw_material_return_warehouse(warehouse, company=None)`: Şirket içi `KTA MRP Settings` (`central_warehouse` / `raw_material_warehouse` / `default_raw_material_warehouse`) veya NestedSet `"110 hammadde"` / `"110 raw material"` grubu altındaki aktif, grup-olmayan ve hurda/red olmayan (`is_rejected_warehouse = 0`) yaprak rafları çözer (`150x` üretim hatları reddedilir).
+  - `execute_production_supply_return(items, target_warehouse, allow_reserved_override=0, remarks=None)`:
+    - Seçili kaynak hat için `Bin` rezervasyon korumasını uygular (`allow_reserved_override = 1` onayı olmadan serbest stok aşılamaz; `actual_qty` hiçbir zaman aşılamaz).
+    - Satırda açık `batch_no` verilmişse `_resolve_explicit_batch_allocation` ile, verilmemişse `resolve_lifo_batches` ile parti çözer.
+    - **Depo Kapısında Sıfır Taviz Yönlendirmesi (`_is_full_remaining_standard_box`):**
+      1. Standart `7+4` KTA kutusunun kaynak hattaki tam kalan bakiyesi dönüyorsa ve başka hiçbir depoda aynı partiden açık bakiye kalmıyorsa → `stock_entry_type = "Return from Production Supply"` (`purpose = "Material Transfer"`, `set_stock_entry_type()` çağrılmadan) belgesi kesilir; mevcut etiket miktar/depo ile güncellenir ve basılır.
+      2. Kısmi bölünme, başka depoda bakiye kalması veya `LEGACY`/standart dışı parti durumlarında → `create_package_split_repack` ile otomatik `Package Split` (`Repack`) kesilir ve yeni `000x` / `7+4` kutu etiketlenir.
+    - Tüm oluşturulan belgeleri ve basılan etiket adedini tek yanıtta (`stock_entries`, `return_stock_entry`, `split_stock_entries`, `printed_labels`, `returned_items`, `used_reserved_stock`) döner.
 
 ---
 
@@ -149,7 +159,9 @@ SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sa�
 | `get_shopfloor_line_deficits` | `target_warehouse` (str) | Seçili hedef hattın kardeş hatlardan karşılanabilecek rezervasyon açıklarını (`deficit_pull`) döner. |
 | `get_shopfloor_idle_stock` | `source_warehouse` (str) | Seçili kaynak hattaki boşta bekleyen (serbest) stokları ve önerilen açık sahibi hedef hatları (`idle_push`) döner. |
 | `search_shopfloor_transfer_items` | `source_warehouse` (str), `search` (str), `limit` (int) | Manuel Hat Transferi modalında kaynak depoda stoklu malzemeleri serbest/fiziksel bakiyelerle arar. |
-| `execute_shopfloor_line_transfer` | `transfers` (list/json), `allow_reserved_override` (int), `remarks` (str) | `Stock Entry` (create) veya `Work Order` (write) yetkisini doğrulayıp LIFO parti tahsisiyle tek adımda `Stock Entry (Material Transfer)` oluşturur ve submit eder (`POST`). |
+| `execute_shopfloor_line_transfer` | `transfers` (list/json), `allow_reserved_override` (int), `remarks` (str), `split_packages` (int) | `Stock Entry` (create) veya `Work Order` (write) yetkisini doğrulayıp LIFO parti tahsisiyle `Material Transfer` (varsayılan `split_packages=0`) ya da `Package Split` + etiket baskısı (`split_packages=1`) çalıştırır (`POST`). |
+| `get_raw_material_return_warehouses` | `company` (str, opsiyonel) | `110 HAMMADDE` altındaki aktif, grup-olmayan ve `is_rejected_warehouse=0` yaprak iade raflarını döner (`Work Order` read). |
+| `execute_shopfloor_supply_return` | `items` (list/json), `target_warehouse` (str), `allow_reserved_override` (int), `remarks` (str) | `150x → 110` iadelerinde tam standart kutular için `Return from Production Supply`, kısmi/`LEGACY` kutular için `Package Split` oluşturur ve Zebra etiketlerini günceller/basar (`POST`). |
 
 ---
 
@@ -167,11 +179,12 @@ SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sa�
   - `components/WoStatsCard.vue`, `components/OperationsList.vue`, `components/ConfirmationPanel.vue`, `components/ConfirmationHistory.vue`: Operasyon teyidi KPI, istasyon seçimi, miktar girişi ve CORS iptal geçmişi bileşenleri.
   - `components/WorkCardAnalyticsPanel.vue`, `components/WorkCardSubOperationCard.vue`, `components/WorkCardMaterialReconciliation.vue`: Çalışma kartı, alt operasyon rota kontrolü ve malzeme/hurda mutabakat bileşenleri.
   - **Hatlar Arası Transfer (`line_transfers`) Bileşenleri (`<500` satır modüler yapı):**
-    - `components/LineTransfersPanel.vue`: Ana panel orkestratörü; mod geçişi (`deficit_pull` / `idle_push`), depo yükleme, transfer öncesi `findReservedOverages` kontrolü ve **Öncelik Kaydırma (Rezerve Stok Kullanımı) Onayı** modalı.
+    - `components/LineTransfersPanel.vue`: Ana panel orkestratörü; mod geçişi (`deficit_pull` / `idle_push`), depo yükleme, transfer/iade öncesi `findReservedOverages` kontrolü, `execute_shopfloor_line_transfer` / `execute_shopfloor_supply_return` çalıştırma, basılan etiket sayacı ve **Öncelik Kaydırma (Rezerve Stok Kullanımı) Onayı** modalı.
     - `components/LineTransferHeader.vue`: `📥 Açık Karşılama` / `📤 Atıl Hat Stoğu` segment kontrolü, `+ Manuel Transfer` ve `🔄 Yenile` aksiyonları, dinamik `150x` hat seçim pill'leri ve `🔍 Diğer Üretim Deposu...` diyaloğu.
     - `components/LineDeficitTransferTable.vue`: Seçilen hedef hattaki açıkları, kaynak `150x` hat seçicisini (`Serbest` / `Fiziksel`), `🟢 Serbestten Hazır` / `⚠️ Öncelik Kaydırma (Rezerve)` durum rozetlerini ve `⚡ Seçilenleri Hatta Aktar` aksiyon çubuğunu sunar.
-    - `components/LineIdleStockTable.vue`: Seçilen kaynak hattaki `Fiziksel / Rezerve / Boşta (Serbest)` stok dağılımını, önerilen açık sahibi hedef hattı (`suggested_target_warehouse`), hedef `150x` hat seçicisini ve `⚡ Seçilenleri Gönder` aksiyon çubuğunu sunar.
-    - `components/ManualLineTransferModal.vue`: Kaynak ve hedef `150x` hat seçimi, 250ms debounced kaynak hat malzeme araması (`search_shopfloor_transfer_items`), sepete ekleme/çıkarma, satır bazlı rezerve/fiziksel stok doğrulaması ve `⚡ Transferi Başlat` aksiyonu.
+    - `components/LineIdleStockTable.vue`: Seçilen kaynak hattaki `Fiziksel / Rezerve / Boşta (Serbest)` stok dağılımını, önerilen açık sahibi hedef hattı (`suggested_target_warehouse`), hedef `150x` hat seçicisini, `150x ↔ 150x` transferler için isteğe bağlı *"Yeni Koliye Böl ve Etiket Bas"* seçeneğini, **↩️ Depoya İade (110)** butonunu ve `⚡ Seçilenleri Gönder` aksiyon çubuğunu sunar.
+    - `components/ProductionSupplyReturnModal.vue`: `<Teleport to="body">` modalı; `get_raw_material_return_warehouses` üzerinden yalnızca `110` yaprak rafları listeler, kaynak kutu/parti seçimi (`Otomatik (LIFO — Yeni Açılan İlk)` veya belirli `batch_no`), bakiye/rezerve uyarısı ve açıklama girişiyle `execute_shopfloor_supply_return` tetikler.
+    - `components/ManualLineTransferModal.vue`: Kaynak ve hedef `150x` hat seçimi, 250ms debounced kaynak hat malzeme araması (`search_shopfloor_transfer_items`), sepete ekleme/çıkarma, satır bazlı rezerve/fiziksel stok doğrulaması, isteğe bağlı *"Yeni Koliye Böl ve Etiket Bas"* (`split_packages`) kutusu ve `⚡ Transferi Başlat` aksiyonu.
 - **Üretim Paketi:** `erpnextkta/public/dist/js/shopfloor-hub.bundle.*.js`
 
 ---
@@ -202,6 +215,9 @@ Tüm servisler, şema alanları ve API uç noktaları için kapsamlı otomatik t
    - **Kılavuz:** [Line Replenishment Geliştirici Kılavuzu](developer_guides/line_replenishment_guide.md)
 2. **Üretim Hatları Arası Transfer (`150x ↔ 150x`):**
    - **Araçlar:** `Shopfloor Hub` (`/app/shopfloor_hub`) → **`🔄 Hatlar Arası Transfer`** sekmesi (ve `Operations` sekmesindeki *Hatlar Arası Hızlı Transfer* Pre-Flight modali)
-   - **Özellikler:** Sipariş/PDA adımı olmadan tek adımda resmi `Stock Entry`, arka plan otomatik **LIFO** parti bölme (kaynak hattın aktif FIFO partisini korumak için) ve serbest stok sınırı + onaylı öncelik kaydırma (`allow_reserved_override`).
+   - **Özellikler:** Sipariş/PDA adımı olmadan tek adımda resmi `Stock Entry`, arka plan otomatik **LIFO** parti bölme (kaynak hattın aktif FIFO partisini korumak için) ve serbest stok sınırı + onaylı öncelik kaydırma (`allow_reserved_override`). İsteğe bağlı *"Yeni Koliye Böl ve Etiket Bas"* (`split_packages = 1`) ile kısmi/`LEGACY` koliler `Package Split` üzerinden etiketlenebilir.
+3. **Üretim Tedarik Alanından Depoya İade (`150x → 110 HAMMADDE`):**
+   - **Araçlar:** `Shopfloor Hub` → **`🔄 Hatlar Arası Transfer` → `Atıl Hat Stoğu` → `↩️ Depoya İade (110)`**
+   - **Özellikler:** Yalnızca `110` hammadde yaprak raflarına iade; tam standart `7+4` kutularda `Return from Production Supply` (`Material Transfer`), kısmi/paylaşımlı/`LEGACY` kutularda otomatik `Package Split` (`Repack`) ve `Depo Giriş Etiketi` basımı. (Etiket/koli kuralları için [KTA Stok ve Lojistik Kılavuzu](kta_stok_lojistik_kilavuzu.md).)
 
 </main>

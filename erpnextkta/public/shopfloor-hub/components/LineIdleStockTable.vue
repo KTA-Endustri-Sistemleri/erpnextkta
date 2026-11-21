@@ -4,6 +4,7 @@ import type {
   LineIdleStockItem,
   ProductionWarehouseOption,
   LineTransferPayloadItem,
+  SupplyReturnDraftInput,
 } from "../types";
 
 const __ = (...args: any[]) => (window as any).__(...args);
@@ -26,8 +27,11 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: "execute-transfer", items: LineTransferPayloadItem[]): void;
+  (e: "execute-transfer", items: LineTransferPayloadItem[], splitPackages: boolean): void;
+  (e: "open-supply-return", rows: SupplyReturnDraftInput[]): void;
 }>();
+
+const splitPackages = ref<boolean>(false);
 
 const fallbackWarehouses: ProductionWarehouseOption[] = [
   { warehouse: "1501 KESMELER - KTA", label: "1501 KESMELER" },
@@ -136,7 +140,11 @@ const isIndeterminate = computed(
     selectedRows.value.length < props.items.length
 );
 
-const hasInvalidSelected = computed(() =>
+const hasInvalidQtySelected = computed(() =>
+  selectedRows.value.some((item) => isQtyInvalid(item))
+);
+
+const hasInvalidTransferSelected = computed(() =>
   selectedRows.value.some((item) => isRowInvalid(item))
 );
 
@@ -163,10 +171,21 @@ function formatQty(val: number | null | undefined): string {
   }).format(num);
 }
 
+function handleReturnToSupply() {
+  if (selectedRows.value.length === 0 || hasInvalidQtySelected.value || props.submitting) {
+    return;
+  }
+  const rows: SupplyReturnDraftInput[] = selectedRows.value.map((item) => ({
+    item,
+    qty: Number(getDraft(item).qty),
+  }));
+  emit("open-supply-return", rows);
+}
+
 function handleSend() {
   if (
     selectedRows.value.length === 0 ||
-    hasInvalidSelected.value ||
+    hasInvalidTransferSelected.value ||
     props.submitting
   ) {
     return;
@@ -180,7 +199,7 @@ function handleSend() {
       target_warehouse: draft.targetWarehouse,
     };
   });
-  emit("execute-transfer", payload);
+  emit("execute-transfer", payload, splitPackages.value);
 }
 </script>
 
@@ -301,7 +320,7 @@ function handleSend() {
                       }}{{
                         wh.warehouse === item.suggested_target_warehouse &&
                         item.target_deficit_qty > 0
-                          ? ` (${__("Açık")}: ${formatQty(item.target_deficit_qty)})`
+                          ? ` (${__("Hat Açığı")}: ${formatQty(item.target_deficit_qty)})`
                           : ""
                       }}
                     </option>
@@ -349,38 +368,41 @@ function handleSend() {
       <div class="lt-action-bar">
         <div class="lt-summary">
           <strong>
-            {{
-              __("{0} kalem seçildi, toplam {1} miktar gönderilecek", [
-                selectedRows.length,
-                formatQty(totalTransferQty),
-              ])
-            }}
+            {{ __("{0} kalem seçildi, toplam {1} miktar gönderilecek", [selectedRows.length, formatQty(totalTransferQty)]) }}
           </strong>
-          <span v-if="hasInvalidSelected" class="summary-err">
-            🔴
-            {{
-              __("Seçili satırlarda geçerli bir hedef hat ve miktar belirtin")
-            }}
+          <label class="lt-split-toggle">
+            <input v-model="splitPackages" type="checkbox" class="lt-checkbox" :disabled="submitting" />
+            <span>{{ __("Yeni Koliye Böl ve Etiket Bas") }}</span>
+          </label>
+          <span v-if="hasInvalidQtySelected" class="summary-err">
+            🔴 {{ __("Seçili satırlarda stok sınırını aşan veya geçersiz miktar var") }}
+          </span>
+          <span v-else-if="hasInvalidTransferSelected" class="summary-err">
+            🔴 {{ __("Hat transferi için seçili satırlarda hedef hat belirtin") }}
           </span>
         </div>
 
-        <button
-          type="button"
-          class="lt-submit-btn"
-          :disabled="
-            selectedRows.length === 0 || hasInvalidSelected || submitting
-          "
-          @click="handleSend"
-        >
-          <span>⚡</span>
-          <span>
-            {{
-              submitting
-                ? __("Gönderiliyor...")
-                : __("Seçilenleri Gönder")
-            }}
-          </span>
-        </button>
+        <div class="lt-action-buttons">
+          <button
+            type="button"
+            class="lt-return-btn"
+            :disabled="selectedRows.length === 0 || hasInvalidQtySelected || submitting"
+            @click="handleReturnToSupply"
+          >
+            <span>↩️</span>
+            <span>{{ __("Depoya İade (110)") }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="lt-submit-btn"
+            :disabled="selectedRows.length === 0 || hasInvalidTransferSelected || submitting"
+            @click="handleSend"
+          >
+            <span>⚡</span>
+            <span>{{ submitting ? __("Gönderiliyor...") : __("Seçilenleri Gönder") }}</span>
+          </button>
+        </div>
       </div>
     </template>
   </div>
@@ -431,9 +453,15 @@ function handleSend() {
 [data-theme="dark"] .inline-err { color: #f87171; }
 .lt-action-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 0.95rem 1.25rem; background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 0.75rem; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05); }
 [data-theme="dark"] .lt-action-bar { background: var(--ck-glass-bg, #1c2127); border-color: var(--ck-glass-border, rgba(255, 255, 255, 0.12)); }
-.lt-summary { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.88rem; color: var(--text-color, #0f172a); }
+.lt-summary { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.88rem; color: var(--text-color, #0f172a); }
+.lt-split-toggle { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.81rem; font-weight: 600; color: var(--text-color, #334155); cursor: pointer; margin: 0; }
 .summary-err { font-size: 0.78rem; font-weight: 700; color: #dc2626; }
 [data-theme="dark"] .summary-err { color: #f87171; }
+.lt-action-buttons { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.lt-return-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.05rem; border: 1px solid var(--border-color, #cbd5e1); border-radius: 0.55rem; background: var(--bg-color, #f8fafc); color: var(--text-color, #0f172a); font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: all 0.15s ease; }
+[data-theme="dark"] .lt-return-btn { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); color: #f8fafc; }
+.lt-return-btn:hover:not(:disabled) { border-color: #2563eb; color: #2563eb; }
+.lt-return-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .lt-submit-btn { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1.25rem; border: none; border-radius: 0.55rem; background: #2563eb; color: #ffffff; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.15s ease; }
 .lt-submit-btn:hover:not(:disabled) { background: #1d4ed8; box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28); }
 .lt-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }

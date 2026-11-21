@@ -18,10 +18,11 @@ class TestReservationDeficitService(FrappeTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.company = "_Test Company"
+        cls.abbr = frappe.db.get_value("Company", cls.company, "abbr") or "_TC"
 
-        cls.parent_wh = "_Test Line Group - _TC"
-        cls.target_wh = "_Test Line 1 - _TC"
-        cls.sibling_wh = "_Test Line 2 - _TC"
+        cls.parent_wh = f"_Test Line Group - {cls.abbr}"
+        cls.target_wh = f"_Test Line 1 - {cls.abbr}"
+        cls.sibling_wh = f"_Test Line 2 - {cls.abbr}"
         cls.central_wh = "110 HAMMADDE - KTA"
 
         cls._ensure_warehouses()
@@ -29,9 +30,10 @@ class TestReservationDeficitService(FrappeTestCase):
 
     @classmethod
     def _ensure_warehouses(cls):
+        suffix = f" - {cls.abbr}"
         if not frappe.db.exists("Warehouse", cls.parent_wh):
             p_wh = frappe.new_doc("Warehouse")
-            p_wh.warehouse_name = cls.parent_wh.replace(" - _TC", "")
+            p_wh.warehouse_name = cls.parent_wh.removesuffix(suffix)
             p_wh.company = cls.company
             p_wh.is_group = 1
             p_wh.flags.ignore_permissions = True
@@ -40,20 +42,27 @@ class TestReservationDeficitService(FrappeTestCase):
         for wh_name in [cls.target_wh, cls.sibling_wh]:
             if not frappe.db.exists("Warehouse", wh_name):
                 wh = frappe.new_doc("Warehouse")
-                wh.warehouse_name = wh_name.replace(" - _TC", "")
+                wh.warehouse_name = wh_name.removesuffix(suffix)
                 wh.company = cls.company
                 wh.parent_warehouse = cls.parent_wh
                 wh.is_group = 0
                 wh.flags.ignore_permissions = True
                 wh.insert()
 
-        if not frappe.db.exists("Warehouse", cls.central_wh):
-            c_wh = frappe.new_doc("Warehouse")
-            c_wh.warehouse_name = "110 HAMMADDE"
-            c_wh.company = cls.company
-            c_wh.is_group = 0
-            c_wh.flags.ignore_permissions = True
-            c_wh.insert()
+        if frappe.db.exists("Warehouse", "110 HAMMADDE - KTA"):
+            cls.central_wh = "110 HAMMADDE - KTA"
+        else:
+            company_central = f"110 HAMMADDE{suffix}"
+            if not frappe.db.exists("Warehouse", company_central):
+                c_wh = frappe.new_doc("Warehouse")
+                c_wh.warehouse_name = "110 HAMMADDE"
+                c_wh.company = cls.company
+                c_wh.is_group = 0
+                c_wh.flags.ignore_permissions = True
+                c_wh.insert()
+                cls.central_wh = c_wh.name
+            else:
+                cls.central_wh = company_central
 
     @classmethod
     def _ensure_items(cls):
@@ -386,3 +395,34 @@ class TestReservationDeficitService(FrappeTestCase):
             )
         finally:
             draft_order.delete(force=True)
+
+    def test_get_central_warehouse_clean_ci_without_company_custom_field(self):
+        """get_central_warehouse resolves company warehouse safely when Company lacks custom field."""
+        from erpnextkta.kta_shopfloor.services.reservation_deficit_service import (
+            get_central_warehouse,
+        )
+
+        # Should never raise OperationalError 1054 for default_raw_material_warehouse
+        resolved = get_central_warehouse(self.company)
+        self.assertTrue(resolved)
+        self.assertTrue(frappe.db.exists("Warehouse", resolved))
+
+        # Verify company-scoped resolution creates/uses 110 HAMMADDE - <abbr> cleanly
+        suffix = f" - {self.abbr}"
+        company_central = f"110 HAMMADDE{suffix}"
+        created_temp = False
+        if not frappe.db.exists("Warehouse", company_central):
+            wh = frappe.new_doc("Warehouse")
+            wh.warehouse_name = "110 HAMMADDE"
+            wh.company = self.company
+            wh.is_group = 0
+            wh.flags.ignore_permissions = True
+            wh.insert()
+            company_central = wh.name
+            created_temp = True
+
+        try:
+            self.assertEqual(get_central_warehouse(self.company), company_central)
+        finally:
+            if created_temp and frappe.db.exists("Warehouse", company_central):
+                frappe.delete_doc("Warehouse", company_central, force=True)

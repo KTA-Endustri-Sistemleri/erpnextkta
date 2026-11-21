@@ -819,14 +819,17 @@ flowchart TD
         <div class="flow-card">
           <div class="flow-card-header">
             <span class="flow-card-icon">📤</span>
-            <h4 class="flow-card-title">Atıl Hat Stoğu (<code>idle_push</code>)</h4>
+            <h4 class="flow-card-title">Atıl Hat Stoğu (<code>idle_push</code>) &amp; Depoya İade</h4>
           </div>
           <p class="flow-card-desc">
             Kaynak <code>150x</code> hattı seçilir. Bu hatta iş emri rezervasyonları dışında boşta bekleyen
             tüm serbest stoklar (<code>actual_qty - reserved_qty_for_production &gt; 0</code>) listelenir.
             Aynı hammadde için rezervasyon açığı bulunan kardeş bir <code>150x</code> hat varsa sistem
             en yüksek açığa sahip hedef hattı (<code>suggested_target_warehouse</code>) ve aktarılacak
-            miktarı (<code>target_deficit_qty</code>) otomatik önerir.
+            miktarı (<code>target_deficit_qty</code>) otomatik önerir. Alt aksiyon çubuğundan ister
+            <strong>⚡ Seçilenleri Gönder</strong> ile kardeş hatta aktarım yapılır (isteğe bağlı
+            <em>Yeni Koliye Böl ve Etiket Bas</em> seçeneğiyle), ister <strong>↩️ Depoya İade (110)</strong>
+            ile artan malzeme merkez <code>110</code> hammadde raflarına geri gönderilir.
           </p>
         </div>
 
@@ -838,8 +841,9 @@ flowchart TD
           <p class="flow-card-desc">
             Açık veya atıl stok önerisinden bağımsız acil aktarımlar için kullanılır. Kullanıcı kaynak
             <code>150x</code> hattını ve hedef <code>150x</code> hattını seçer, kaynak hatta stoğu bulunan
-            kalemleri kod veya isimle arar, miktarını girip <strong>⚡ Transferi Başlat</strong> butonuyla
-            tek adımda transfer eder.
+            kalemleri kod veya isimle arar, miktarını girip ister sessiz transfer ister
+            <strong>Yeni Koliye Böl ve Etiket Bas</strong> seçeneğiyle <strong>⚡ Transferi Başlat</strong>
+            butonuna basarak tek adımda aktarır.
           </p>
         </div>
       </div>
@@ -901,6 +905,84 @@ flowchart LR
     C --> F["Tek Adımda Stock Entry<br/>(Material Transfer - docstatus=1)"]
     F --> G["Hedef 150x Hat"]
         </pre>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <h4>5. Üretim Tedarik Alanından Depoya İade (<code>150x → 110 HAMMADDE</code>)</h4>
+      <p>
+        Üretim hattında artan tam veya açılmış hammadde kutularının merkez depoya geri alınması için
+        <strong>Atıl Hat Stoğu</strong> (<code>idle_push</code>) altındaki <strong>↩️ Depoya İade (110)</strong>
+        butonu kullanılır (<code>ProductionSupplyReturnModal</code>):
+      </p>
+      <ul>
+        <li>
+          <strong>Katı Hedef Depo Kilidi (Yalnızca 110 Yaprak Raflar):</strong> Hedef seçicide yalnızca
+          <code>110 HAMMADDE</code> altındaki aktif, grup-olmayan ve hurda/red olmayan
+          (<code>is_rejected_warehouse = 0</code>) yaprak raflar listelenir. <code>150x</code> üretim
+          hatları, grup depolar ve hurda/red depoları kesinlikle engellenir.
+        </li>
+        <li>
+          <strong>İsteğe Bağlı Kutu/Parti Seçimi &amp; Rezerve Koruması:</strong> Her satır için parti
+          seçimi varsayılan olarak <em>Otomatik (LIFO — Yeni Açılan İlk)</em> bırakılabilir veya fiziksel
+          okutulan belirli bir <code>batch_no</code> seçilebilir. İade miktarı kaynak hattaki serbest stoğu
+          aşarsa mevcut <strong>Öncelik Kaydırma Onayı</strong> (<code>allow_reserved_override = 1</code>)
+          istenir; fiziksel bakiye (<code>actual_qty</code>) hiçbir koşulda aşılamaz.
+        </li>
+        <li>
+          <strong>Depo Kapısında Sıfır Taviz Kuralı:</strong> Backend servisi (<code>execute_production_supply_return</code>)
+          iade edilen her partiyi otomatik olarak iki yoldan birine yönlendirir (detaylı etiket kuralları için
+          bkz. <a href="/docs/stok-lojistik">Stok ve Lojistik Kılavuzu</a>):
+          <ul>
+            <li>
+              <strong>Tam Kalan Standart <code>7+4</code> Kutu:</strong> Kutu standart formatta ise, kaynak
+              hattaki tüm kalan bakiyesi dönüyorsa ve başka hiçbir depoda aynı partiden stok kalmayacaksa
+              <span class="co11n-badge green">Return from Production Supply</span> (<code>Material Transfer</code>)
+              fişi kesilir; mevcut <code>Depo Giriş Etiketi</code> güncellenir ve Zebra'dan yeniden basılır.
+            </li>
+            <li>
+              <strong>Kısmi Bölünen Kutu veya <code>LEGACY</code> / Paylaşımlı Parti:</strong> Kutunun sadece
+              bir kısmı dönüyorsa, aynı partiden başka depoda bakiye kalıyorsa veya parti <code>LEGACY</code> /
+              standart dışı ise arka planda her kaynak kutu için otomatik
+              <span class="co11n-badge purple">Package Split</span> (<code>Repack</code>) belgesi oluşturulur;
+              dönen parça için sıradaki <code>000x</code> (veya <code>LEGACY</code> ise yeni <code>7+4</code>)
+              kutu etiketi basılır, hatta kalan kısmın etiketi güncel bakiyeye eşitlenir.
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>6. Hatlar Arası Transferde İsteğe Bağlı Koli Bölme (<code>150x ↔ 150x</code>, <code>split_packages</code>)</h4>
+      <p>
+        Üretim hatları arası transferlerde varsayılan hız ve sadelik korunurken, kullanıcı istediğinde yeni
+        kutu etiketi üretme seçeneği sunar:
+      </p>
+      <ul>
+        <li>
+          <strong>Varsayılan Akış Sessizdir (<code>split_packages = 0</code>):</strong> <em>Açık Karşılama</em>
+          (<code>deficit_pull</code>), operasyon teyidi <em>Hatlar Arası Hızlı Transfer</em> modalı ve onay
+          kutusu işaretlenmemiş <em>Atıl Hat Stoğu</em> / <em>Manuel Transfer</em> işlemleri ek
+          <code>Repack</code> açmadan ve otomatik ZPL etiket basmadan hızlı <code>Material Transfer</code> üretir.
+        </li>
+        <li>
+          <strong>İsteğe Bağlı Böl &amp; Etiketle (<code>split_packages = 1</code>):</strong> <em>Atıl Hat
+          Stoğu</em> alt aksiyon çubuğunda veya <em>Manuel Hat Transferi</em> modalında
+          <strong>"Yeni Koliye Böl ve Etiket Bas"</strong> seçeneği işaretlendiğinde; kısmi veya <code>LEGACY</code>
+          tahsisler otomatik <code>Package Split</code> ile hedef hatta yeni <code>000x</code> kutu olarak
+          etiketlenir, tam kalan standart kutular ise <code>Material Transfer</code> ile taşınıp güncel
+          <code>Depo Giriş Etiketi</code> basılır.
+        </li>
+      </ul>
+      <div class="callout-box">
+        <div class="callout-title">ℹ️ Seçenek Kapsamı Notu</div>
+        <p>
+          <em>Atıl Hat Stoğu</em> ekranındaki <strong>"Yeni Koliye Böl ve Etiket Bas"</strong> anahtarı
+          yalnızca kardeş hatlar arası <strong>⚡ Seçilenleri Gönder</strong> (<code>150x ↔ 150x</code>)
+          transferlerini etkiler. <strong>↩️ Depoya İade (110)</strong> akışında depo kapısı sıfır taviz
+          kuralı her zaman otomatik çalışır.
+        </p>
       </div>
     </div>
   </div>
@@ -1229,7 +1311,15 @@ flowchart LR
     </li>
     <li>
       <strong><code>execute_shopfloor_line_transfer</code> (Tek Adımlı Hatlar Arası Transfer):</strong>
-      Çift yönlü üretim deposu doğrulaması, serbest/rezerve stok sınırı (<code>allow_reserved_override</code>) ve arka plan otomatik <strong>LIFO</strong> parti bölme algoritmasıyla tek adımda <code>Stock Entry (Material Transfer)</code> belgesi oluşturur ve submit eder.
+      Çift yönlü üretim deposu doğrulaması, serbest/rezerve stok sınırı (<code>allow_reserved_override</code>) ve arka plan otomatik <strong>LIFO</strong> parti bölme algoritmasıyla tek adımda <code>Stock Entry (Material Transfer)</code> belgesi oluşturur ve submit eder. Opsiyonel <code>split_packages = 1</code> verildiğinde kısmi/<code>LEGACY</code> kutular için <code>Package Split</code> keser ve yeni <code>Depo Giriş Etiketi</code> basar (varsayılan <code>0</code>: sessiz hızlı transfer).
+    </li>
+    <li>
+      <strong><code>get_raw_material_return_warehouses</code> (110 İade Rafları):</strong>
+      Şirket bazında <code>110 HAMMADDE</code> altındaki aktif, grup-olmayan ve hurda/red olmayan (<code>is_rejected_warehouse = 0</code>) yaprak rafları listeler (<code>150x</code> hatlar ve grup depolar hariç tutulur).
+    </li>
+    <li>
+      <strong><code>execute_shopfloor_supply_return</code> (Üretim Tedarik Alanından İade):</strong>
+      <code>150x</code> hattındaki stokları <code>allow_reserved_override</code> ve isteğe bağlı açık <code>batch_no</code> / otomatik LIFO seçimiyle doğrular; tam kalan standart <code>7+4</code> kutular için <code>Return from Production Supply</code>, kısmi veya <code>LEGACY</code> kutular için otomatik <code>Package Split</code> belgesi kesip Zebra etiketlerini günceller/basar.
     </li>
   </ul>
 </div>

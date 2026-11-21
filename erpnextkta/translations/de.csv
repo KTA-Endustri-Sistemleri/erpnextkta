@@ -1697,3 +1697,41 @@ Toplam hareket {0} ancak net {1} (oran %{2}).,"Gesamtbewegung beträgt {0}, aber
 Belgeler arası gidiş-geliş,Belegübergreifende Hin- und Herbewegung
 Toplam belge hareketi {0} ancak net {1} (oran %{2}).,"Gesamte Belegbewegung beträgt {0}, aber Netto ist {1} (Verhältnis {2}%)."
 Etiket Miktarı,Etikettenmenge
+Depo iadesi oluşturma yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, eine Lagerrückgabe zu erstellen."
+Hatlar Arası Koli Bölme Transferi: {0} -> {1},Linienumbuchung mit Gebindeteilung: {0} -> {1}
+İade miktarı sıfırdan büyük olmalıdır.,Die Rückgabemenge muss größer als null sein.
+Geçerli bir kaynak üretim deposu zorunludur: {0},Ein gültiges Quell-Produktionslager ist erforderlich: {0}
+Depo iadesi yalnızca geçerli üretim hatlarından yapılabilir: {0},Eine Lagerrückgabe kann nur von gültigen Produktionslinien durchgeführt werden: {0}
+Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0},Das Ziellager muss ein gültiges 110-Rohstoff-Regallager sein: {0}
+Parti takipsiz kalem için parti seçilemez: {0},Für einen Artikel ohne Chargenführung kann keine Charge ausgewählt werden: {0}
+İade edilecek geçerli malzeme bulunamadı.,Keine gültigen Artikel für die Rückgabe gefunden.
+Geçerli ve aktif bir parti seçilmelidir: {0},Es muss eine gültige und aktive Charge ausgewählt werden: {0}
+Seçilen partinin son kullanma tarihi dolmuştur: {0},Das Verfallsdatum der ausgewählten Charge ist abgelaufen: {0}
+"Seçilen parti ({0}) için kaynak depoda ({1}) yeterli bakiye yok. Mevcut: {2}, İstenen: {3}","Unzureichender Bestand für die ausgewählte Charge ({0}) im Quelllager ({1}). Verfügbar: {2}, Angefordert: {3}"
+Üretim Tedarik Alanından Koli Bölme İadesi: {0} -> {1},Gebindeteilungs-Rückgabe aus Produktionsversorgungsbereich: {0} -> {1}
+Üretim Tedarik Alanından Depo İadesi (150x -> 110),Lagerrückgabe aus Produktionsversorgungsbereich (150x -> 110)
+{0} numaralı depo iadesi başarıyla tamamlandı.,Lagerrückgabe {0} erfolgreich abgeschlossen.
+110 hammadde iade rafları yüklenemedi.,110-Rohstoff-Rückgaberegale konnten nicht geladen werden.
+Seçili parti bakiyesi aşıldı ({0}),Bestand der ausgewählten Charge überschritten ({0})
+Hat stoğu sınırı aşıldı,Linienbestandsgrenze überschritten
+Üretim Tedarik Alanından Depoya İade (110),Rückgabe aus Produktionsversorgungsbereich ins Lager (110)
+Kaynak Üretim Hattı: {0},Quell-Produktionslinie: {0}
+Tam kalan standart kutular Return from Production Supply fişiyle iade edilir; kısmi bölünen veya LEGACY partiler otomatik Package Split ile 110 depoya etiketlenerek aktarılır.,Vollständig verbleibende Standardgebinde werden per Return from Production Supply zurückgegeben; teilgeteilte oder LEGACY-Chargen werden automatisch per Package Split etikettiert ins Lager 110 umgebucht.
+Hedef 110 Hammadde Rafı,Ziel-110-Rohstoffregal
+-- Hedef 110 Rafı Seçin --,-- Ziel-110-Regal Auswählen --
+İade nedeni veya not ekleyin...,Rückgabegrund oder Notiz Hinzufügen...
+İade edilecek kalem bulunmuyor.,Keine Artikel zur Rückgabe vorhanden.
+Kaynak Kutu / Parti,Quellgebinde / Charge
+İade Miktarı,Rückgabemenge
+Otomatik (LIFO — Yeni Açılan İlk),Automatisch (LIFO — Zuletzt Geöffnete Zuerst)
+İade İşleniyor...,Rückgabe Wird Verarbeitet...
+↩️ Depoya İade Et,↩️ Ins Lager Zurückgeben
+Hat Açığı,Liniendefizit
+Yeni Koliye Böl ve Etiket Bas,In Neues Gebinde Teilen und Etikett Drucken
+Hat transferi için seçili satırlarda hedef hat belirtin,Geben Sie für ausgewählte Zeilen eine Ziellinie für die Linienumbuchung an
+Depoya İade (110),Rückgabe ins Lager (110)
+Depoya iade işlemi başarıyla tamamlandı.,Lagerrückgabe erfolgreich abgeschlossen.
+Depoya iade işlemi tamamlanamadı.,Lagerrückgabe konnte nicht abgeschlossen werden.
+Depoya iade işlemi sırasında bir hata oluştu.,Bei der Lagerrückgabe ist ein Fehler aufgetreten.
+Depoya İade İşlemi Tamamlandı,Lagerrückgabe Abgeschlossen
+{0} adet etiket yazdırıldı / kuyruğa alındı.,{0} Etiketten gedruckt / in Warteschlange.

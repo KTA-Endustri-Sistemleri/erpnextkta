@@ -1,7 +1,7 @@
 # Copyright (c) 2026, KTA and Contributors
 # See license.txt
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import frappe
 from erpnext.stock.doctype.batch.batch import get_batch_qty
@@ -10,24 +10,33 @@ from frappe.utils import add_days, flt, today
 from erpnextkta.kta_shopfloor.api import (
     check_confirmation_materials,
     execute_shopfloor_line_transfer,
+    execute_shopfloor_supply_return,
     get_shopfloor_idle_stock,
     get_shopfloor_line_deficits,
     get_shopfloor_production_warehouses,
     search_shopfloor_transfer_items,
     stage_confirmation_materials,
 )
+from erpnextkta.kta_shopfloor.api import (
+    get_raw_material_return_warehouses as api_get_raw_material_return_warehouses,
+)
 from erpnextkta.kta_shopfloor.services.line_transfer_service import (
     execute_line_transfer,
+    execute_production_supply_return,
     get_line_idle_stock,
     get_line_transfer_deficits,
     get_production_warehouses,
+    get_raw_material_return_warehouses,
     is_valid_production_warehouse,
+    is_valid_raw_material_return_warehouse,
     resolve_lifo_batches,
     search_line_transfer_items,
 )
 from erpnextkta.kta_shopfloor.services.work_order_service import (
     check_work_order_material_availability,
 )
+from erpnextkta.kta_stock.services.relabeling_service import is_standard_kta_box_batch
+from erpnextkta.kta_stock.setup import setup_stock_entry_types
 from erpnextkta.tests.test_utils import (
     KTABaseTestCase,
     create_test_company,
@@ -67,10 +76,16 @@ class TestLineTransferService(KTABaseTestCase):
         self.raw_nested_leaf = self._ensure_warehouse(
             f"_Test W1Z-01-01 {self.uid}", parent=self.raw_nested_group
         )
+        self.rejected_raw_leaf = self._ensure_warehouse(
+            f"_Test Rejected Shelf {self.uid}",
+            parent=self.raw_group,
+            is_rejected=1,
+        )
         self.disabled_line = self._ensure_warehouse(
             f"_Test WIP Disabled {self.uid}", parent=self.prod_group, disabled=1
         )
         self.fg_wh = self._ensure_warehouse(f"_Test FG Store {self.uid}")
+        setup_stock_entry_types()
 
         self.item_plain = self._ensure_item(
             f"_TEST-LT-PLAIN-{self.uid}", has_batch_no=0
@@ -88,19 +103,23 @@ class TestLineTransferService(KTABaseTestCase):
         is_group: int = 0,
         parent: str | None = None,
         disabled: int = 0,
+        is_rejected: int = 0,
     ) -> str:
         full_name = f"{wh_name} - {self.abbr}"
         if not frappe.db.exists("Warehouse", full_name):
-            doc = frappe.get_doc(
-                {
-                    "doctype": "Warehouse",
-                    "warehouse_name": wh_name,
-                    "company": self.company,
-                    "is_group": is_group,
-                    "parent_warehouse": parent,
-                    "disabled": disabled,
-                }
-            )
+            doc_dict = {
+                "doctype": "Warehouse",
+                "warehouse_name": wh_name,
+                "company": self.company,
+                "is_group": is_group,
+                "parent_warehouse": parent,
+                "disabled": disabled,
+            }
+            if is_rejected and frappe.db.has_column(
+                "Warehouse", "is_rejected_warehouse"
+            ):
+                doc_dict["is_rejected_warehouse"] = 1
+            doc = frappe.get_doc(doc_dict)
             doc.flags.ignore_permissions = True
             doc.insert()
             return doc.name
@@ -724,3 +743,490 @@ class TestLineTransferService(KTABaseTestCase):
                     }
                 ]
             )
+
+    def test_return_target_warehouse_validation_rejects_production_groups_and_rejected(
+        self,
+    ):
+        """Return target validator accepts active 110 leaf shelves and rejects 150x, group, and rejected stores."""
+        self.assertTrue(
+            is_valid_raw_material_return_warehouse(self.raw_leaf, company=self.company)
+        )
+        self.assertTrue(
+            is_valid_raw_material_return_warehouse(
+                self.raw_nested_leaf, company=self.company
+            )
+        )
+        self.assertFalse(
+            is_valid_raw_material_return_warehouse(self.line_1, company=self.company)
+        )
+        self.assertFalse(
+            is_valid_raw_material_return_warehouse(self.raw_group, company=self.company)
+        )
+        self.assertFalse(
+            is_valid_raw_material_return_warehouse(self.fg_wh, company=self.company)
+        )
+        self.assertFalse(
+            is_valid_raw_material_return_warehouse(
+                self.rejected_raw_leaf, company=self.company
+            )
+        )
+        self.assertFalse(
+            is_valid_raw_material_return_warehouse("", company=self.company)
+        )
+        self.assertFalse(
+            is_valid_raw_material_return_warehouse(None, company=self.company)
+        )
+
+        wh_list = [
+            w["warehouse"]
+            for w in get_raw_material_return_warehouses(company=self.company)
+        ]
+        self.assertIn(self.raw_leaf, wh_list)
+        self.assertIn(self.raw_nested_leaf, wh_list)
+        self.assertNotIn(self.line_1, wh_list)
+        self.assertNotIn(self.raw_group, wh_list)
+        self.assertNotIn(self.fg_wh, wh_list)
+        self.assertNotIn(self.rejected_raw_leaf, wh_list)
+
+        api_list = api_get_raw_material_return_warehouses(company=self.company)
+        self.assertEqual([w["warehouse"] for w in api_list], wh_list)
+
+    def test_get_line_idle_stock_includes_available_batches(self):
+        """get_line_idle_stock returns bulk-fetched available_batches per item without N+1."""
+        base_lot = f"L{self.uid.upper()}"[:7]
+        b1 = self._ensure_batch(f"{base_lot}0001", self.item_batch)
+        b2 = self._ensure_batch(f"{base_lot}0002", self.item_batch)
+
+        self._receive_stock(
+            self.item_batch,
+            self.line_2,
+            40.0,
+            batch_no=b1,
+            posting_date=add_days(today(), -2),
+            posting_time="09:00:00",
+        )
+        self._receive_stock(
+            self.item_batch,
+            self.line_2,
+            25.0,
+            batch_no=b2,
+            posting_date=add_days(today(), -1),
+            posting_time="11:00:00",
+        )
+        self._receive_stock(self.item_plain, self.line_2, 15.0)
+
+        idle = get_line_idle_stock(self.line_2)
+        by_item = {row["item_code"]: row for row in idle}
+
+        self.assertIn(self.item_batch, by_item)
+        self.assertEqual(
+            by_item[self.item_batch]["available_batches"],
+            [
+                {"batch_no": b2, "qty": 25.0},
+                {"batch_no": b1, "qty": 40.0},
+            ],
+        )
+        self.assertIn(self.item_plain, by_item)
+        self.assertEqual(by_item[self.item_plain]["available_batches"], [])
+
+    def test_full_remaining_standard_box_return_creates_return_entry_and_updates_label(
+        self,
+    ):
+        """Full remaining 7+4 box return uses Return from Production Supply and updates PR label."""
+        base_lot = f"R{self.uid.upper()}"[:7]
+        box_batch = self._ensure_batch(f"{base_lot}0001", self.item_batch)
+        self._receive_stock(self.item_batch, self.line_2, 40.0, batch_no=box_batch)
+
+        lbl = frappe.get_doc(
+            {
+                "doctype": "KTA Stock Label",
+                "label_type": "Depo Giriş Etiketi",
+                "reference_doctype": "Purchase Receipt",
+                "reference_name": f"MAT-PRE-RET-{self.uid}",
+                "item_code": self.item_batch,
+                "item_name": self.item_batch,
+                "uom": "Nos",
+                "qty": 100.0,
+                "batch": box_batch,
+                "sut_barcode": box_batch,
+                "target_warehouse": self.line_2,
+                "quality_ref": "ATLA 5/1",
+                "supplier_delivery_note": "DN-001",
+                "gr_posting_date": today(),
+                "do_not_split": 0,
+            }
+        )
+        lbl.flags.ignore_links = True
+        lbl.insert(ignore_permissions=True)
+
+        with patch(
+            "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+            return_value=MagicMock(),
+        ):
+            res = execute_production_supply_return(
+                items=[
+                    {
+                        "item_code": self.item_batch,
+                        "qty": 40.0,
+                        "source_warehouse": self.line_2,
+                    }
+                ],
+                target_warehouse=self.raw_leaf,
+            )
+
+        self.assertTrue(res["success"])
+        self.assertTrue(res["return_stock_entry"])
+        self.assertEqual(res["split_stock_entries"], [])
+        self.assertEqual(res["printed_labels"], 1)
+
+        se = frappe.get_doc("Stock Entry", res["return_stock_entry"])
+        self.assertEqual(se.docstatus, 1)
+        self.assertEqual(se.purpose, "Material Transfer")
+        self.assertEqual(se.stock_entry_type, "Return from Production Supply")
+
+        updated_lbl = frappe.db.get_value(
+            "KTA Stock Label",
+            {"sut_barcode": box_batch, "label_type": "Depo Giriş Etiketi"},
+            ["reference_doctype", "reference_name", "qty", "target_warehouse"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(updated_lbl)
+        self.assertEqual(updated_lbl.reference_doctype, "Purchase Receipt")
+        self.assertEqual(updated_lbl.reference_name, f"MAT-PRE-RET-{self.uid}")
+        self.assertEqual(flt(updated_lbl.qty), 40.0)
+        self.assertEqual(updated_lbl.target_warehouse, self.raw_leaf)
+
+    def test_partial_shared_and_legacy_returns_route_to_package_split(self):
+        """Partial 7+4 return, multi-warehouse shared batch, and LEGACY batch route to Package Split."""
+        base_lot_1 = f"P{self.uid.upper()}"[:7]
+        std_partial = self._ensure_batch(f"{base_lot_1}0001", self.item_batch)
+        self._receive_stock(self.item_batch, self.line_2, 40.0, batch_no=std_partial)
+
+        base_lot_2 = f"M{self.uid.upper()}"[:7]
+        std_shared = self._ensure_batch(f"{base_lot_2}0001", self.item_batch)
+        self._receive_stock(self.item_batch, self.line_2, 20.0, batch_no=std_shared)
+        self._receive_stock(self.item_batch, self.line_3, 10.0, batch_no=std_shared)
+
+        legacy_batch = self._ensure_batch(f"LEGACY-RET-{self.uid}", self.item_batch)
+        self._receive_stock(self.item_batch, self.line_2, 30.0, batch_no=legacy_batch)
+
+        with patch(
+            "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+            return_value=MagicMock(),
+        ):
+            # 1. Partial 15 out of 40 from std_partial
+            res_partial = execute_production_supply_return(
+                items=[
+                    {
+                        "item_code": self.item_batch,
+                        "qty": 15.0,
+                        "source_warehouse": self.line_2,
+                        "batch_no": std_partial,
+                    }
+                ],
+                target_warehouse=self.raw_leaf,
+            )
+            self.assertIsNone(res_partial["return_stock_entry"])
+            self.assertEqual(len(res_partial["split_stock_entries"]), 1)
+            self.assertEqual(res_partial["printed_labels"], 1)
+            new_partial_batch = res_partial["returned_items"][0]["result_batch_no"]
+            self.assertEqual(new_partial_batch, f"{base_lot_1}0002")
+            self.assertEqual(
+                flt(
+                    get_batch_qty(
+                        batch_no=std_partial,
+                        warehouse=self.line_2,
+                        item_code=self.item_batch,
+                    )
+                ),
+                25.0,
+            )
+            self.assertEqual(
+                flt(
+                    get_batch_qty(
+                        batch_no=new_partial_batch,
+                        warehouse=self.raw_leaf,
+                        item_code=self.item_batch,
+                    )
+                ),
+                15.0,
+            )
+            split_se = frappe.get_doc(
+                "Stock Entry", res_partial["split_stock_entries"][0]
+            )
+            self.assertEqual(split_se.stock_entry_type, "Package Split")
+            self.assertEqual(split_se.purpose, "Repack")
+
+            # 2. Full 20 in line_2 of std_shared, while 10 remains in line_3 -> MUST split!
+            res_shared = execute_production_supply_return(
+                items=[
+                    {
+                        "item_code": self.item_batch,
+                        "qty": 20.0,
+                        "source_warehouse": self.line_2,
+                        "batch_no": std_shared,
+                    }
+                ],
+                target_warehouse=self.raw_leaf,
+            )
+            self.assertIsNone(res_shared["return_stock_entry"])
+            self.assertEqual(len(res_shared["split_stock_entries"]), 1)
+            self.assertEqual(
+                res_shared["returned_items"][0]["result_batch_no"],
+                f"{base_lot_2}0002",
+            )
+
+            # 3. LEGACY batch -> MUST split into new 7+4 standard 0001 box!
+            res_legacy = execute_production_supply_return(
+                items=[
+                    {
+                        "item_code": self.item_batch,
+                        "qty": 30.0,
+                        "source_warehouse": self.line_2,
+                        "batch_no": legacy_batch,
+                    }
+                ],
+                target_warehouse=self.raw_leaf,
+            )
+            self.assertIsNone(res_legacy["return_stock_entry"])
+            self.assertEqual(len(res_legacy["split_stock_entries"]), 1)
+            minted_from_legacy = res_legacy["returned_items"][0]["result_batch_no"]
+            self.assertTrue(is_standard_kta_box_batch(minted_from_legacy))
+            self.assertTrue(minted_from_legacy.endswith("0001"))
+
+    def test_return_explicit_batch_reserved_override_and_api_guard(self):
+        """Supply return enforces explicit batch balance, reserved override, target locks, and API perms."""
+        base_lot = f"E{self.uid.upper()}"[:7]
+        box_old = self._ensure_batch(f"{base_lot}0001", self.item_batch)
+        box_new = self._ensure_batch(f"{base_lot}0002", self.item_batch)
+
+        self._receive_stock(
+            self.item_batch,
+            self.line_2,
+            20.0,
+            batch_no=box_old,
+            posting_date=add_days(today(), -2),
+        )
+        self._receive_stock(
+            self.item_batch,
+            self.line_2,
+            20.0,
+            batch_no=box_new,
+            posting_date=add_days(today(), -1),
+        )
+        self._set_reserved_qty(self.item_batch, self.line_2, 30.0)  # free = 10
+
+        # Target cannot be a 150x production warehouse or rejected warehouse
+        with self.assertRaises(frappe.ValidationError):
+            execute_production_supply_return(
+                items=[
+                    {
+                        "item_code": self.item_batch,
+                        "qty": 5.0,
+                        "source_warehouse": self.line_2,
+                    }
+                ],
+                target_warehouse=self.line_1,
+            )
+        with self.assertRaises(frappe.ValidationError):
+            execute_production_supply_return(
+                items=[
+                    {
+                        "item_code": self.item_batch,
+                        "qty": 5.0,
+                        "source_warehouse": self.line_2,
+                    }
+                ],
+                target_warehouse=self.rejected_raw_leaf,
+            )
+
+        # Exceeding explicit batch balance (25 > 20 in box_new) fails
+        with self.assertRaises(frappe.ValidationError):
+            execute_production_supply_return(
+                items=[
+                    {
+                        "item_code": self.item_batch,
+                        "qty": 25.0,
+                        "source_warehouse": self.line_2,
+                        "batch_no": box_new,
+                    }
+                ],
+                target_warehouse=self.raw_leaf,
+                allow_reserved_override=1,
+            )
+
+        # Exceeding free qty (15 > 10) without override fails
+        payload = [
+            {
+                "item_code": self.item_batch,
+                "qty": 15.0,
+                "source_warehouse": self.line_2,
+                "batch_no": box_old,
+            }
+        ]
+        with self.assertRaises(frappe.ValidationError):
+            execute_production_supply_return(
+                items=payload,
+                target_warehouse=self.raw_leaf,
+                allow_reserved_override=0,
+            )
+
+        with patch(
+            "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+            return_value=MagicMock(),
+        ):
+            res = execute_shopfloor_supply_return(
+                items=payload,
+                target_warehouse=self.raw_leaf,
+                allow_reserved_override=1,
+            )
+
+        self.assertTrue(res["success"])
+        self.assertTrue(res["used_reserved_stock"])
+        # Selected box_old reduced to 5.0 while box_new remains untouched at 20.0
+        self.assertEqual(
+            flt(
+                get_batch_qty(
+                    batch_no=box_old, warehouse=self.line_2, item_code=self.item_batch
+                )
+            ),
+            5.0,
+        )
+        self.assertEqual(
+            flt(
+                get_batch_qty(
+                    batch_no=box_new, warehouse=self.line_2, item_code=self.item_batch
+                )
+            ),
+            20.0,
+        )
+
+        # API permission check
+        with (
+            patch(
+                "erpnextkta.kta_shopfloor.api.frappe.has_permission",
+                return_value=False,
+            ),
+            self.assertRaises(frappe.PermissionError),
+        ):
+            execute_shopfloor_supply_return(
+                items=payload,
+                target_warehouse=self.raw_leaf,
+                allow_reserved_override=1,
+            )
+
+    def test_inter_line_transfer_split_packages_default_vs_opt_in(self):
+        """split_packages=0 keeps silent Material Transfer; split_packages=1 splits partial boxes and prints labels."""
+        base_lot = f"S{self.uid.upper()}"[:7]
+        box_split = self._ensure_batch(f"{base_lot}0001", self.item_batch)
+        self._receive_stock(
+            self.item_batch,
+            self.line_2,
+            40.0,
+            batch_no=box_split,
+            posting_date=add_days(today(), -1),
+        )
+
+        # 1. Default split_packages=0: silent Material Transfer, NO Package Split, NO labels
+        res_default = execute_line_transfer(
+            [
+                {
+                    "item_code": self.item_batch,
+                    "qty": 15.0,
+                    "source_warehouse": self.line_2,
+                    "target_warehouse": self.line_1,
+                }
+            ]
+        )
+        self.assertTrue(res_default["success"])
+        se_default = frappe.get_doc("Stock Entry", res_default["stock_entry"])
+        self.assertEqual(se_default.stock_entry_type, "Material Transfer")
+        self.assertFalse(
+            frappe.db.exists(
+                "KTA Stock Label",
+                {"sut_barcode": box_split, "label_type": "Depo Giriş Etiketi"},
+            )
+        )
+
+        # 2. Opt-in split_packages=1 on partial/shared box_split -> Package Split 0002 + label!
+        with patch(
+            "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+            return_value=MagicMock(),
+        ):
+            res_split = execute_shopfloor_line_transfer(
+                transfers=[
+                    {
+                        "item_code": self.item_batch,
+                        "qty": 10.0,
+                        "source_warehouse": self.line_2,
+                        "target_warehouse": self.line_3,
+                    }
+                ],
+                split_packages=1,
+            )
+        self.assertTrue(res_split["success"])
+        self.assertEqual(len(res_split["split_stock_entries"]), 1)
+        self.assertEqual(res_split["printed_labels"], 1)
+        minted_child = f"{base_lot}0002"
+        self.assertEqual(
+            flt(
+                get_batch_qty(
+                    batch_no=minted_child,
+                    warehouse=self.line_3,
+                    item_code=self.item_batch,
+                )
+            ),
+            10.0,
+        )
+        child_lbl = frappe.db.get_value(
+            "KTA Stock Label",
+            {"sut_barcode": minted_child, "label_type": "Depo Giriş Etiketi"},
+            ["qty", "target_warehouse"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(child_lbl)
+        self.assertEqual(flt(child_lbl.qty), 10.0)
+        self.assertEqual(child_lbl.target_warehouse, self.line_3)
+
+        # 3. Full remaining standard box with split_packages=1 -> Material Transfer + enqueue label print
+        base_lot_full = f"F{self.uid.upper()}"[:7]
+        box_full = self._ensure_batch(f"{base_lot_full}0001", self.item_batch)
+        self._receive_stock(
+            self.item_batch,
+            self.line_2,
+            30.0,
+            batch_no=box_full,
+        )
+        with (
+            patch(
+                "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "erpnextkta.kta_shopfloor.services.line_transfer_service.enqueue_print_labels_by_names"
+            ) as mock_enqueue,
+        ):
+            res_full = execute_line_transfer(
+                [
+                    {
+                        "item_code": self.item_batch,
+                        "qty": 30.0,
+                        "source_warehouse": self.line_2,
+                        "target_warehouse": self.line_3,
+                    }
+                ],
+                split_packages=1,
+            )
+        self.assertTrue(res_full["success"])
+        self.assertEqual(res_full["split_stock_entries"], [])
+        self.assertEqual(res_full["printed_labels"], 1)
+        mock_enqueue.assert_called_once()
+        full_lbl = frappe.db.get_value(
+            "KTA Stock Label",
+            {"sut_barcode": box_full, "label_type": "Depo Giriş Etiketi"},
+            ["qty", "target_warehouse"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(full_lbl)
+        self.assertEqual(flt(full_lbl.qty), 30.0)
+        self.assertEqual(full_lbl.target_warehouse, self.line_3)

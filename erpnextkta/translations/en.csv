@@ -1708,3 +1708,41 @@ Toplam hareket {0} ancak net {1} (oran %{2}).,Total movement is {0} but net is {
 Belgeler arası gidiş-geliş,Cross-Document Oscillation
 Toplam belge hareketi {0} ancak net {1} (oran %{2}).,Total document movement is {0} but net is {1} (ratio {2}%).
 Etiket Miktarı,Label Qty
+Depo iadesi oluşturma yetkiniz bulunmamaktadır.,You do not have permission to create a warehouse return.
+Hatlar Arası Koli Bölme Transferi: {0} -> {1},Inter-Line Package Split Transfer: {0} -> {1}
+İade miktarı sıfırdan büyük olmalıdır.,Return quantity must be greater than zero.
+Geçerli bir kaynak üretim deposu zorunludur: {0},A valid source production warehouse is mandatory: {0}
+Depo iadesi yalnızca geçerli üretim hatlarından yapılabilir: {0},Warehouse return can only be performed from valid production lines: {0}
+Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0},Target warehouse must be a valid 110 raw material leaf shelf: {0}
+Parti takipsiz kalem için parti seçilemez: {0},Batch cannot be selected for a non-batch item: {0}
+İade edilecek geçerli malzeme bulunamadı.,No valid items found to return.
+Geçerli ve aktif bir parti seçilmelidir: {0},A valid and active batch must be selected: {0}
+Seçilen partinin son kullanma tarihi dolmuştur: {0},The selected batch has expired: {0}
+"Seçilen parti ({0}) için kaynak depoda ({1}) yeterli bakiye yok. Mevcut: {2}, İstenen: {3}","Insufficient balance for selected batch ({0}) in source warehouse ({1}). Available: {2}, Requested: {3}"
+Üretim Tedarik Alanından Koli Bölme İadesi: {0} -> {1},Package Split Return from Production Supply: {0} -> {1}
+Üretim Tedarik Alanından Depo İadesi (150x -> 110),Warehouse Return from Production Supply (150x -> 110)
+{0} numaralı depo iadesi başarıyla tamamlandı.,Warehouse return {0} completed successfully.
+110 hammadde iade rafları yüklenemedi.,Failed to load 110 raw material return shelves.
+Seçili parti bakiyesi aşıldı ({0}),Selected batch balance exceeded ({0})
+Hat stoğu sınırı aşıldı,Line stock limit exceeded
+Üretim Tedarik Alanından Depoya İade (110),Return from Production Supply to Warehouse (110)
+Kaynak Üretim Hattı: {0},Source Production Line: {0}
+Tam kalan standart kutular Return from Production Supply fişiyle iade edilir; kısmi bölünen veya LEGACY partiler otomatik Package Split ile 110 depoya etiketlenerek aktarılır.,Full remaining standard boxes are returned via Return from Production Supply; partially split or LEGACY batches are automatically transferred via Package Split with labels to 110 warehouse.
+Hedef 110 Hammadde Rafı,Target 110 Raw Material Shelf
+-- Hedef 110 Rafı Seçin --,-- Select Target 110 Shelf --
+İade nedeni veya not ekleyin...,Add Return Reason or Note...
+İade edilecek kalem bulunmuyor.,No items to return.
+Kaynak Kutu / Parti,Source Box / Batch
+İade Miktarı,Return Qty
+Otomatik (LIFO — Yeni Açılan İlk),Automatic (LIFO — Newly Opened First)
+İade İşleniyor...,Processing Return...
+↩️ Depoya İade Et,↩️ Return to Warehouse
+Hat Açığı,Line Deficit
+Yeni Koliye Böl ve Etiket Bas,Split into New Box and Print Label
+Hat transferi için seçili satırlarda hedef hat belirtin,Specify a target line on selected rows for line transfer
+Depoya İade (110),Return to Warehouse (110)
+Depoya iade işlemi başarıyla tamamlandı.,Warehouse return completed successfully.
+Depoya iade işlemi tamamlanamadı.,Warehouse return could not be completed.
+Depoya iade işlemi sırasında bir hata oluştu.,An error occurred during warehouse return.
+Depoya İade İşlemi Tamamlandı,Warehouse Return Completed
+{0} adet etiket yazdırıldı / kuyruğa alındı.,{0} labels printed / queued.

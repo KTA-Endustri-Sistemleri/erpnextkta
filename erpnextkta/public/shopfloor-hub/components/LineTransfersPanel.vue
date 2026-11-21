@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import type {
   LineTransferSubMode,
   ProductionWarehouseOption,
@@ -7,12 +7,16 @@ import type {
   LineIdleStockItem,
   LineTransferPayloadItem,
   LineTransferResponse,
+  ProductionSupplyReturnPayloadItem,
+  ProductionSupplyReturnResponse,
+  SupplyReturnDraftInput,
   ReservedStockWarning,
 } from "../types";
 import LineTransferHeader from "./LineTransferHeader.vue";
 import LineDeficitTransferTable from "./LineDeficitTransferTable.vue";
 import LineIdleStockTable from "./LineIdleStockTable.vue";
 import ManualLineTransferModal from "./ManualLineTransferModal.vue";
+import ProductionSupplyReturnModal from "./ProductionSupplyReturnModal.vue";
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
@@ -28,11 +32,30 @@ const idleItems = ref<LineIdleStockItem[]>([]);
 const loading = ref<boolean>(false);
 const submitting = ref<boolean>(false);
 const errorMessage = ref<string | null>(null);
-const lastSuccess = ref<LineTransferResponse | null>(null);
+const lastSuccess = ref<LineTransferResponse | ProductionSupplyReturnResponse | null>(null);
+const lastSuccessKind = ref<"transfer" | "return">("transfer");
 const showManualModal = ref<boolean>(false);
+const showReturnModal = ref<boolean>(false);
+const returnDraftRows = ref<SupplyReturnDraftInput[]>([]);
 const showReservedModal = ref<boolean>(false);
 const pendingTransfers = ref<LineTransferPayloadItem[]>([]);
+const pendingSplitPackages = ref<boolean>(false);
+const pendingReturnPayload = ref<{
+  items: ProductionSupplyReturnPayloadItem[];
+  targetWarehouse: string;
+  remarks: string;
+} | null>(null);
 const pendingWarnings = ref<ReservedStockWarning[]>([]);
+
+const lastSuccessEntries = computed<string[]>(() => {
+  const res = lastSuccess.value;
+  if (!res) return [];
+  if (Array.isArray(res.stock_entries) && res.stock_entries.length > 0) return res.stock_entries;
+  if ("stock_entry" in res && res.stock_entry) return [res.stock_entry];
+  return [];
+});
+
+const lastSuccessPrintedLabels = computed(() => Number(lastSuccess.value?.printed_labels || 0));
 
 function callFrappe<T = any>(method: string, args: Record<string, any> = {}): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -74,9 +97,7 @@ function extractError(err: any, fallback: string): string {
 
 async function fetchProductionWarehouses() {
   try {
-    const res = await callFrappe<ProductionWarehouseOption[]>(
-      "erpnextkta.kta_shopfloor.api.get_shopfloor_production_warehouses"
-    );
+    const res = await callFrappe<ProductionWarehouseOption[]>("erpnextkta.kta_shopfloor.api.get_shopfloor_production_warehouses");
     productionWarehouses.value = Array.isArray(res) ? res : [];
   } catch (err) {
     console.error("get_shopfloor_production_warehouses error:", err);
@@ -93,16 +114,10 @@ async function loadActiveList() {
   errorMessage.value = null;
   try {
     if (activeMode.value === "deficit_pull") {
-      const res = await callFrappe<LineTransferDeficitItem[]>(
-        "erpnextkta.kta_shopfloor.api.get_shopfloor_line_deficits",
-        { target_warehouse: selectedWarehouse.value }
-      );
+      const res = await callFrappe<LineTransferDeficitItem[]>("erpnextkta.kta_shopfloor.api.get_shopfloor_line_deficits", { target_warehouse: selectedWarehouse.value });
       deficitItems.value = Array.isArray(res) ? res : [];
     } else {
-      const res = await callFrappe<LineIdleStockItem[]>(
-        "erpnextkta.kta_shopfloor.api.get_shopfloor_idle_stock",
-        { source_warehouse: selectedWarehouse.value }
-      );
+      const res = await callFrappe<LineIdleStockItem[]>("erpnextkta.kta_shopfloor.api.get_shopfloor_idle_stock", { source_warehouse: selectedWarehouse.value });
       idleItems.value = Array.isArray(res) ? res : [];
     }
   } catch (err: any) {
@@ -127,26 +142,19 @@ function handleWarehouseChange(wh: string) {
 function findReservedOverages(transfers: LineTransferPayloadItem[]): ReservedStockWarning[] {
   const aggQty = new Map<string, number>();
   const metaMap = new Map<string, { free_qty: number; actual_qty: number; item_name?: string; uom?: string; target: string }>();
-
   for (const t of transfers) {
     const key = `${t.item_code}::${t.source_warehouse}`;
     aggQty.set(key, (aggQty.get(key) || 0) + Number(t.qty || 0));
     if (metaMap.has(key)) continue;
-
     if (activeMode.value === "deficit_pull") {
       const defRow = deficitItems.value.find((d) => d.item_code === t.item_code);
       const src = defRow?.available_sources.find((s) => s.warehouse === t.source_warehouse);
-      if (src) {
-        metaMap.set(key, { free_qty: Number(src.free_qty || 0), actual_qty: Number(src.actual_qty || 0), item_name: defRow?.item_name, uom: defRow?.uom, target: t.target_warehouse });
-      }
+      if (src) metaMap.set(key, { free_qty: Number(src.free_qty || 0), actual_qty: Number(src.actual_qty || 0), item_name: defRow?.item_name, uom: defRow?.uom, target: t.target_warehouse });
     } else {
       const idleRow = idleItems.value.find((i) => i.item_code === t.item_code && i.source_warehouse === t.source_warehouse);
-      if (idleRow) {
-        metaMap.set(key, { free_qty: Number(idleRow.free_qty || 0), actual_qty: Number(idleRow.actual_qty || 0), item_name: idleRow.item_name, uom: idleRow.uom, target: t.target_warehouse });
-      }
+      if (idleRow) metaMap.set(key, { free_qty: Number(idleRow.free_qty || 0), actual_qty: Number(idleRow.actual_qty || 0), item_name: idleRow.item_name, uom: idleRow.uom, target: t.target_warehouse });
     }
   }
-
   const warnings: ReservedStockWarning[] = [];
   for (const [key, totalQty] of aggQty.entries()) {
     const info = metaMap.get(key);
@@ -158,42 +166,102 @@ function findReservedOverages(transfers: LineTransferPayloadItem[]): ReservedSto
   return warnings;
 }
 
-function initiateTransfer(transfers: LineTransferPayloadItem[], explicitWarnings?: ReservedStockWarning[]) {
+function initiateTransfer(transfers: LineTransferPayloadItem[], explicitWarnings?: ReservedStockWarning[], splitPackages = false) {
   const warnings = explicitWarnings !== undefined ? explicitWarnings : findReservedOverages(transfers);
+  pendingReturnPayload.value = null;
+  pendingSplitPackages.value = Boolean(splitPackages);
   if (warnings.length > 0) {
     pendingTransfers.value = transfers;
     pendingWarnings.value = warnings;
     showReservedModal.value = true;
     return;
   }
-  executeTransfer(transfers, false);
+  executeTransfer(transfers, false, Boolean(splitPackages));
 }
 
-async function executeTransfer(transfers: LineTransferPayloadItem[], allowReservedOverride: boolean) {
+function openSupplyReturnModal(rows: SupplyReturnDraftInput[]) {
+  returnDraftRows.value = rows;
+  showReturnModal.value = true;
+}
+
+function handleSupplyReturnSubmit(
+  payload: { items: ProductionSupplyReturnPayloadItem[]; targetWarehouse: string; remarks: string },
+  reservedWarnings: ReservedStockWarning[]
+) {
+  pendingTransfers.value = [];
+  pendingSplitPackages.value = false;
+  pendingReturnPayload.value = payload;
+  if (reservedWarnings.length > 0) {
+    pendingWarnings.value = reservedWarnings;
+    showReservedModal.value = true;
+    return;
+  }
+  executeSupplyReturn(payload, false);
+}
+
+function confirmReservedOverride() {
+  if (pendingReturnPayload.value) executeSupplyReturn(pendingReturnPayload.value, true);
+  else executeTransfer(pendingTransfers.value, true, pendingSplitPackages.value);
+}
+
+async function executeTransfer(transfers: LineTransferPayloadItem[], allowReservedOverride: boolean, splitPackages: boolean) {
   if (submitting.value || !transfers.length) return;
   submitting.value = true;
   errorMessage.value = null;
   try {
-    const res = await callFrappe<LineTransferResponse>(
-      "erpnextkta.kta_shopfloor.api.execute_shopfloor_line_transfer",
-      { transfers, allow_reserved_override: allowReservedOverride ? 1 : 0 }
-    );
+    const res = await callFrappe<LineTransferResponse>("erpnextkta.kta_shopfloor.api.execute_shopfloor_line_transfer", {
+      transfers,
+      allow_reserved_override: allowReservedOverride ? 1 : 0,
+      split_packages: splitPackages ? 1 : 0,
+    });
     if (res && res.success) {
       showReservedModal.value = false;
       showManualModal.value = false;
       pendingTransfers.value = [];
       pendingWarnings.value = [];
+      lastSuccessKind.value = "transfer";
       lastSuccess.value = res;
-      (window as any).frappe?.show_alert?.({
-        message: __("Hatlar Arası Transfer Tamamlandı: {0}", [res.stock_entry]),
-        indicator: "green",
-      });
+      (window as any).frappe?.show_alert?.({ message: __("Hatlar Arası Transfer Tamamlandı: {0}", [res.stock_entry]), indicator: "green" });
       await loadActiveList();
     } else {
       throw new Error(res?.message || __("Transfer tamamlanamadı."));
     }
   } catch (err: any) {
     errorMessage.value = extractError(err, __("Hatlar arası transfer sırasında bir hata oluştu."));
+    showReservedModal.value = false;
+  } finally {
+    submitting.value = false;
+  }
+}
+
+async function executeSupplyReturn(
+  payload: { items: ProductionSupplyReturnPayloadItem[]; targetWarehouse: string; remarks: string },
+  allowReservedOverride: boolean
+) {
+  if (submitting.value || !payload.items.length) return;
+  submitting.value = true;
+  errorMessage.value = null;
+  try {
+    const res = await callFrappe<ProductionSupplyReturnResponse>("erpnextkta.kta_shopfloor.api.execute_shopfloor_supply_return", {
+      items: payload.items,
+      target_warehouse: payload.targetWarehouse,
+      allow_reserved_override: allowReservedOverride ? 1 : 0,
+      remarks: payload.remarks || null,
+    });
+    if (res && res.success) {
+      showReservedModal.value = false;
+      showReturnModal.value = false;
+      pendingReturnPayload.value = null;
+      pendingWarnings.value = [];
+      lastSuccessKind.value = "return";
+      lastSuccess.value = res;
+      (window as any).frappe?.show_alert?.({ message: res.message || __("Depoya iade işlemi başarıyla tamamlandı."), indicator: "green" });
+      await loadActiveList();
+    } else {
+      throw new Error(res?.message || __("Depoya iade işlemi tamamlanamadı."));
+    }
+  } catch (err: any) {
+    errorMessage.value = extractError(err, __("Depoya iade işlemi sırasında bir hata oluştu."));
     showReservedModal.value = false;
   } finally {
     submitting.value = false;
@@ -261,11 +329,16 @@ onUnmounted(() => window.removeEventListener("keydown", handleEsc));
       <div class="lt-alert-left">
         <span>✅</span>
         <div>
-          <strong>{{ __("Hatlar Arası Transfer Başarıyla Tamamlandı") }}</strong>
+          <strong>
+            {{ lastSuccessKind === "return" ? __("Depoya İade İşlemi Tamamlandı") : __("Hatlar Arası Transfer Başarıyla Tamamlandı") }}
+          </strong>
           <div class="lt-success-meta">
-            <a :href="`/app/stock-entry/${lastSuccess.stock_entry}`" target="_blank" class="lt-se-link">
-              📦 {{ __("Stok Fişi") }}: {{ lastSuccess.stock_entry }} ↗
+            <a v-for="se in lastSuccessEntries" :key="se" :href="`/app/stock-entry/${se}`" target="_blank" class="lt-se-link">
+              📦 {{ __("Stok Fişi") }}: {{ se }} ↗
             </a>
+            <span v-if="lastSuccessPrintedLabels > 0" class="lt-printed-badge">
+              🏷️ {{ __("{0} adet etiket yazdırıldı / kuyruğa alındı.", [lastSuccessPrintedLabels]) }}
+            </span>
           </div>
         </div>
       </div>
@@ -278,7 +351,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEsc));
       :target-warehouse="selectedWarehouse"
       :loading="loading"
       :submitting="submitting"
-      @execute-transfer="(items) => initiateTransfer(items)"
+      @execute-transfer="(items) => initiateTransfer(items, undefined, false)"
     />
 
     <LineIdleStockTable
@@ -288,7 +361,8 @@ onUnmounted(() => window.removeEventListener("keydown", handleEsc));
       :production-warehouses="productionWarehouses"
       :loading="loading"
       :submitting="submitting"
-      @execute-transfer="(items) => initiateTransfer(items)"
+      @execute-transfer="(items, splitPkgs) => initiateTransfer(items, undefined, splitPkgs)"
+      @open-supply-return="openSupplyReturnModal"
     />
 
     <ManualLineTransferModal
@@ -297,7 +371,16 @@ onUnmounted(() => window.removeEventListener("keydown", handleEsc));
       :production-warehouses="productionWarehouses"
       :submitting="submitting"
       @close="showManualModal = false"
-      @submit="(t, w) => initiateTransfer(t, w)"
+      @submit="(t, w, splitPkgs) => initiateTransfer(t, w, splitPkgs)"
+    />
+
+    <ProductionSupplyReturnModal
+      :show="showReturnModal"
+      :source-warehouse="selectedWarehouse"
+      :initial-items="returnDraftRows"
+      :submitting="submitting"
+      @close="showReturnModal = false"
+      @submit="handleSupplyReturnSubmit"
     />
 
     <Teleport to="body">
@@ -336,7 +419,7 @@ onUnmounted(() => window.removeEventListener("keydown", handleEsc));
           </div>
           <div class="lt-modal-footer">
             <button type="button" class="lt-mbtn lt-mbtn-cancel" :disabled="submitting" @click="closeReservedModal">{{ __("Vazgeç") }}</button>
-            <button type="button" class="lt-mbtn lt-mbtn-confirm" :disabled="submitting" @click="executeTransfer(pendingTransfers, true)">
+            <button type="button" class="lt-mbtn lt-mbtn-confirm" :disabled="submitting" @click="confirmReservedOverride">
               {{ submitting ? __("Transfer Ediliyor...") : __("Onayla ve Transfer Et") }}
             </button>
           </div>
@@ -354,8 +437,9 @@ onUnmounted(() => window.removeEventListener("keydown", handleEsc));
 .lt-alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
 [data-theme="dark"] .lt-alert-success { background: rgba(34, 197, 94, 0.16); border-color: rgba(74, 222, 128, 0.35); color: #86efac; }
 .lt-alert-left { display: flex; align-items: center; gap: 0.65rem; }
-.lt-success-meta { margin-top: 0.2rem; }
+.lt-success-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-top: 0.25rem; }
 .lt-se-link { font-weight: 700; text-decoration: underline; color: inherit; }
+.lt-printed-badge { font-weight: 700; font-size: 0.8rem; }
 .lt-alert-close { background: transparent; border: none; color: inherit; cursor: pointer; font-size: 1rem; opacity: 0.7; }
 .lt-modal-overlay { position: fixed; inset: 0; z-index: 1070; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1rem; }
 .lt-modal { width: 100%; max-width: 660px; max-height: 88vh; display: flex; flex-direction: column; background: var(--card-bg, #ffffff); color: var(--text-color, #0f172a); border: 1px solid var(--border-color, #e2e8f0); border-radius: 0.85rem; box-shadow: 0 24px 50px rgba(15, 23, 42, 0.28); overflow: hidden; }

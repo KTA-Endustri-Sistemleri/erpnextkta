@@ -881,3 +881,42 @@ Tek belge sonuca hakim,Tek belge sonuca hakim
 Belgeler arası gidiş-geliş,Belgeler arası gidiş-geliş
 Toplam belge hareketi {0} ancak net {1} (oran %{2}).,Toplam belge hareketi {0} ancak net {1} (oran %{2}).
 Etiket Miktarı,Etiket Miktarı
+Depo iadesi oluşturma yetkiniz bulunmamaktadır.,Depo iadesi oluşturma yetkiniz bulunmamaktadır.
+Hatlar Arası Koli Bölme Transferi: {0} -> {1},Hatlar Arası Koli Bölme Transferi: {0} -> {1}
+İade miktarı sıfırdan büyük olmalıdır.,İade miktarı sıfırdan büyük olmalıdır.
+Geçerli bir kaynak üretim deposu zorunludur: {0},Geçerli bir kaynak üretim deposu zorunludur: {0}
+Depo iadesi yalnızca geçerli üretim hatlarından yapılabilir: {0},Depo iadesi yalnızca geçerli üretim hatlarından yapılabilir: {0}
+Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0},Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0}
+Parti takipsiz kalem için parti seçilemez: {0},Parti takipsiz kalem için parti seçilemez: {0}
+İade edilecek geçerli malzeme bulunamadı.,İade edilecek geçerli malzeme bulunamadı.
+Geçerli ve aktif bir parti seçilmelidir: {0},Geçerli ve aktif bir parti seçilmelidir: {0}
+Seçilen partinin son kullanma tarihi dolmuştur: {0},Seçilen partinin son kullanma tarihi dolmuştur: {0}
+"Seçilen parti ({0}) için kaynak depoda ({1}) yeterli bakiye yok. Mevcut: {2}, İstenen: {3}","Seçilen parti ({0}) için kaynak depoda ({1}) yeterli bakiye yok. Mevcut: {2}, İstenen: {3}"
+Üretim Tedarik Alanından Koli Bölme İadesi: {0} -> {1},Üretim Tedarik Alanından Koli Bölme İadesi: {0} -> {1}
+Üretim Tedarik Alanından Depo İadesi (150x -> 110),Üretim Tedarik Alanından Depo İadesi (150x -> 110)
+{0} numaralı depo iadesi başarıyla tamamlandı.,{0} numaralı depo iadesi başarıyla tamamlandı.
+110 hammadde iade rafları yüklenemedi.,110 hammadde iade rafları yüklenemedi.
+Seçili parti bakiyesi aşıldı ({0}),Seçili parti bakiyesi aşıldı ({0})
+Hat stoğu sınırı aşıldı,Hat stoğu sınırı aşıldı
+Üretim Tedarik Alanından Depoya İade (110),Üretim Tedarik Alanından Depoya İade (110)
+Kaynak Üretim Hattı: {0},Kaynak Üretim Hattı: {0}
+Tam kalan standart kutular Return from Production Supply fişiyle iade edilir; kısmi bölünen veya LEGACY partiler otomatik Package Split ile 110 depoya etiketlenerek aktarılır.,Tam kalan standart kutular Return from Production Supply fişiyle iade edilir; kısmi bölünen veya LEGACY partiler otomatik Package Split ile 110 depoya etiketlenerek aktarılır.
+Hedef 110 Hammadde Rafı,Hedef 110 Hammadde Rafı
+-- Hedef 110 Rafı Seçin --,-- Hedef 110 Rafı Seçin --
+Açıklama (Opsiyonel),Açıklama (Opsiyonel)
+İade nedeni veya not ekleyin...,İade nedeni veya not ekleyin...
+İade edilecek kalem bulunmuyor.,İade edilecek kalem bulunmuyor.
+Kaynak Kutu / Parti,Kaynak Kutu / Parti
+İade Miktarı,İade Miktarı
+Otomatik (LIFO — Yeni Açılan İlk),Otomatik (LIFO — Yeni Açılan İlk)
+İade İşleniyor...,İade İşleniyor...
+↩️ Depoya İade Et,↩️ Depoya İade Et
+Hat Açığı,Hat Açığı
+Yeni Koliye Böl ve Etiket Bas,Yeni Koliye Böl ve Etiket Bas
+Hat transferi için seçili satırlarda hedef hat belirtin,Hat transferi için seçili satırlarda hedef hat belirtin
+Depoya İade (110),Depoya İade (110)
+Depoya iade işlemi başarıyla tamamlandı.,Depoya iade işlemi başarıyla tamamlandı.
+Depoya iade işlemi tamamlanamadı.,Depoya iade işlemi tamamlanamadı.
+Depoya iade işlemi sırasında bir hata oluştu.,Depoya iade işlemi sırasında bir hata oluştu.
+Depoya İade İşlemi Tamamlandı,Depoya İade İşlemi Tamamlandı
+{0} adet etiket yazdırıldı / kuyruğa alındı.,{0} adet etiket yazdırıldı / kuyruğa alındı.

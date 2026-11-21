@@ -25,8 +25,10 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: "close"): void;
-  (e: "submit", transfers: LineTransferPayloadItem[], reservedWarnings: ReservedStockWarning[]): void;
+  (e: "submit", transfers: LineTransferPayloadItem[], reservedWarnings: ReservedStockWarning[], splitPackages: boolean): void;
 }>();
+
+const splitPackages = ref<boolean>(false);
 
 const fallbackWarehouses: ProductionWarehouseOption[] = [
   { warehouse: "1501 KESMELER - KTA", label: "1501 KESMELER" },
@@ -68,6 +70,7 @@ watch(
     searchResults.value = [];
     searchError.value = null;
     addedLines.value = [];
+    splitPackages.value = false;
     if (localSource.value) fetchSourceItems();
   }
 );
@@ -172,7 +175,7 @@ function handleSubmit() {
       free_qty: Number(l.free_qty),
       actual_qty: Number(l.actual_qty),
     }));
-  emit("submit", transfers, reservedWarnings);
+  emit("submit", transfers, reservedWarnings, splitPackages.value);
 }
 
 function formatQty(val: number | null | undefined): string {
@@ -308,10 +311,16 @@ onUnmounted(() => {
         </div>
 
         <div class="mlt-footer">
-          <button type="button" class="mlt-btn mlt-btn-cancel" :disabled="submitting" @click="handleClose">{{ __("Vazgeç") }}</button>
-          <button type="button" class="mlt-btn mlt-btn-primary" :disabled="!canSubmit || submitting" @click="handleSubmit">
-            {{ submitting ? __("Transfer Ediliyor...") : __("⚡ Transferi Başlat") }}
-          </button>
+          <label class="mlt-split-toggle">
+            <input v-model="splitPackages" type="checkbox" class="mlt-split-check" :disabled="submitting" />
+            <span>{{ __("Yeni Koliye Böl ve Etiket Bas") }}</span>
+          </label>
+          <div class="mlt-footer-btns">
+            <button type="button" class="mlt-btn mlt-btn-cancel" :disabled="submitting" @click="handleClose">{{ __("Vazgeç") }}</button>
+            <button type="button" class="mlt-btn mlt-btn-primary" :disabled="!canSubmit || submitting" @click="handleSubmit">
+              {{ submitting ? __("Transfer Ediliyor...") : __("⚡ Transferi Başlat") }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -368,8 +377,11 @@ onUnmounted(() => {
 .mlt-del-btn { background: transparent; border: none; cursor: pointer; font-size: 0.95rem; }
 .text-right { text-align: right !important; }
 .text-center { text-align: center !important; }
-.mlt-footer { display: flex; justify-content: flex-end; gap: 0.7rem; padding: 0.95rem 1.35rem; border-top: 1px solid var(--border-color, #e2e8f0); background: var(--bg-color, #f8fafc); }
+.mlt-footer { display: flex; justify-content: space-between; align-items: center; gap: 0.7rem; flex-wrap: wrap; padding: 0.95rem 1.35rem; border-top: 1px solid var(--border-color, #e2e8f0); background: var(--bg-color, #f8fafc); }
 [data-theme="dark"] .mlt-footer { background: rgba(255, 255, 255, 0.02); }
+.mlt-split-toggle { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.81rem; font-weight: 600; cursor: pointer; margin: 0; }
+.mlt-split-check { width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer; }
+.mlt-footer-btns { display: flex; align-items: center; gap: 0.65rem; margin-left: auto; }
 .mlt-btn { padding: 0.52rem 1.1rem; border-radius: 0.5rem; font-size: 0.84rem; font-weight: 700; cursor: pointer; border: none; }
 .mlt-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .mlt-btn-cancel { background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #cbd5e1); color: var(--text-muted, #475569); }
