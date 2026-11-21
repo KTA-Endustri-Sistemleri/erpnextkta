@@ -694,8 +694,8 @@ DURUŞTA (ARIZA),ON HOLD (BREAKDOWN)
 "Arıza giderildi, operatör onayı bekleniyor.","Breakdown fixed, waiting for operator confirmation."
 "Arıza iptal edildi, operatör bekleniyor.","Breakdown cancelled, waiting for operator."
 "Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Maintenance team finished, waiting for operator to resume production."
-"[Bakım Sonucu: Tamamlandı.]","[Maintenance Result: Completed.]"
-"[Bakım Sonucu: İptal Edildi.]","[Maintenance Result: Cancelled.]"
+[Bakım Sonucu: Tamamlandı.],[Maintenance Result: Completed.]
+[Bakım Sonucu: İptal Edildi.],[Maintenance Result: Cancelled.]
 Kullanıcı için varsayılan yazıcı bulunamadı,Default printer for user not found
 Kullanıcı için varsayılan yazıcı bulunamadı: {0},Default printer for user not found: {0}
 ⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ This card has exceeded {0} minutes! Please check the form (finish or pause).
@@ -776,7 +776,6 @@ Krimp Ölçüm Protokol Belgesi,Crimping Measurement Protocol Document
 Krimp Protokol Belgesi,Crimping Protocol Document
 Enjeksiyon Ölçüm Protokol Belgesi,Injection Measurement Protocol Document
 Enjeksiyon Protokol Belgesi,Injection Protocol Document
-
 Kısmi Kabul Edildi,Partially Accepted
 <b>⚠️ Dikkat:</b> Bu kart <b>{0} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.,<b>⚠️ Warning:</b> This card has exceeded <b>{0} minutes</b>! Please finish if work is done.
 Alt Operasyon Kalite Onayları,Sub-Operation Quality Approvals
@@ -910,53 +909,53 @@ Filtreler,Filters
 Tekrar Dene,Try Again
 Hepsi Bu Kadar.,That's all.
 Kalite Reddi,Quality Rejected
-"Bu alt operasyon kaydına kalite belgesi bağlanmıştır ({0} - {1}). Değişiklik veya silme işlemi için kalite birimini bilgilendirin.","A quality inspection document is linked to this sub-operation record ({0} - {1}). Please contact the quality department for modification or deletion."
-"Bu ölçüm kaydı silinecek. Emin misiniz?","This measurement record will be deleted. Are you sure?"
+Bu alt operasyon kaydına kalite belgesi bağlanmıştır ({0} - {1}). Değişiklik veya silme işlemi için kalite birimini bilgilendirin.,A quality inspection document is linked to this sub-operation record ({0} - {1}). Please contact the quality department for modification or deletion.
+Bu ölçüm kaydı silinecek. Emin misiniz?,This measurement record will be deleted. Are you sure?
 Detayları Göster/Gizle,Show/Hide Details
-"Alt operasyon kaydı bulunamadı ({0}).","Sub-operation record not found ({0})."
-"%100 kalite kontrolü seçili operasyonlarda açıkta onay bekleyen alt işlem varken kart bitirilemez.","In operations with 100% quality inspection, cards cannot be finished while sub-operations are pending approval."
-"Kartın bitirilebilmesi için en az bir alt işlemin kalite onayı almış olması gerekir.","At least one sub-operation must have quality approval before finishing the card."
+Alt operasyon kaydı bulunamadı ({0}).,Sub-operation record not found ({0}).
+%100 kalite kontrolü seçili operasyonlarda açıkta onay bekleyen alt işlem varken kart bitirilemez.,"In operations with 100% quality inspection, cards cannot be finished while sub-operations are pending approval."
+Kartın bitirilebilmesi için en az bir alt işlemin kalite onayı almış olması gerekir.,At least one sub-operation must have quality approval before finishing the card.
 Atanmamış / Geçmiş Ölçümler,Unassigned / Legacy Measurements
-"Bu ölçüm kaydı kalite kontrolü tamamlanmış bir karta aittir. Değişiklik veya silme işlemi için kalite birimini bilgilendirin.","This measurement record belongs to a card with completed quality control. Please notify the quality unit for modification or deletion."
-"İlk enjeksiyon ölçümü 'Başlangıç' periyodunda olmak zorundadır.","The first injection measurement must be in the 'Başlangıç' period."
+Bu ölçüm kaydı kalite kontrolü tamamlanmış bir karta aittir. Değişiklik veya silme işlemi için kalite birimini bilgilendirin.,This measurement record belongs to a card with completed quality control. Please notify the quality unit for modification or deletion.
+İlk enjeksiyon ölçümü 'Başlangıç' periyodunda olmak zorundadır.,The first injection measurement must be in the 'Başlangıç' period.
 "Bir alt operasyon için en fazla 3 ölçüm (Başlangıç, Ara, Bitiş) girilebilir.","A maximum of 3 measurements (Başlangıç, Ara, Bitiş) can be entered for a sub-operation."
-"'{0}' periyodu için zaten bir ölçüm kaydedilmiş.","A measurement has already been recorded for the '{0}' period."
-"Bu alt operasyon kaydı kalite birimi tarafından reddedilmiştir. Yeni ölçüm eklenemez.","This sub-operation record has been rejected by the quality department. New measurements cannot be added."
-"Tüm Periyot Ölçümleri Tamamlandı (3/3)","All Period Measurements Completed (3/3)"
+'{0}' periyodu için zaten bir ölçüm kaydedilmiş.,A measurement has already been recorded for the '{0}' period.
+Bu alt operasyon kaydı kalite birimi tarafından reddedilmiştir. Yeni ölçüm eklenemez.,This sub-operation record has been rejected by the quality department. New measurements cannot be added.
+Tüm Periyot Ölçümleri Tamamlandı (3/3),All Period Measurements Completed (3/3)
 "Bu alt operasyon için tüm periyot ölçümleri (Başlangıç, Ara, Bitiş) tamamlanmıştır.","All period measurements (Başlangıç, Ara, Bitiş) have been completed for this sub-operation."
 Alt Operasyon Kalite Tarafından Reddedildi,Sub-operation Rejected by Quality
 Ölçüm Limiti,Measurement Limit
-"Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.","An active sub-operation already exists on this work card for mold '{0}' and raw material '{1}'."
+Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.,An active sub-operation already exists on this work card for mold '{0}' and raw material '{1}'.
 Mükerrer Alt İşlem,Duplicate Sub-Operation
-"Çekme Kuvveti en az 100 N olmalıdır.","Tensile force must be at least 100 N."
-"'{0}' alanı boş veya 0 bırakılamaz.","'{0}' cannot be empty or 0."
+Çekme Kuvveti en az 100 N olmalıdır.,Tensile force must be at least 100 N.
+'{0}' alanı boş veya 0 bırakılamaz.,'{0}' cannot be empty or 0.
 Min: 100 N,Min: 100 N
-"'{0}' hammaddesi için enjeksiyon proses toleransları tanımlanmamış. Tolerans kaydı olmadan ölçüm girilemez.","Injection process tolerances are not defined for raw material '{0}'. Measurements cannot be entered without tolerance records."
-"'{0}' hammaddesi için enjeksiyon tolerans parametresi bulunamadı. Ölçüm kaydedilemez.","No injection tolerance parameters found for raw material '{0}'. Measurement cannot be saved."
-"'{0}' ({1} {2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4} {2}","'{0}' ({1} {2}) is outside the tolerance limits. Accepted range: {3} - {4} {2}"
-"'{0}' ({1}{2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4}{2}","'{0}' ({1}{2}) is outside the tolerance limits. Accepted range: {3} - {4}{2}"
-"Çekme Kuvveti ({0} N) kabul edilen minimum değerin ({1} N) altındadır.","Tensile force ({0} N) is below the accepted minimum ({1} N)."
+'{0}' hammaddesi için enjeksiyon proses toleransları tanımlanmamış. Tolerans kaydı olmadan ölçüm girilemez.,Injection process tolerances are not defined for raw material '{0}'. Measurements cannot be entered without tolerance records.
+'{0}' hammaddesi için enjeksiyon tolerans parametresi bulunamadı. Ölçüm kaydedilemez.,No injection tolerance parameters found for raw material '{0}'. Measurement cannot be saved.
+'{0}' ({1} {2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4} {2},'{0}' ({1} {2}) is outside the tolerance limits. Accepted range: {3} - {4} {2}
+'{0}' ({1}{2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4}{2},'{0}' ({1}{2}) is outside the tolerance limits. Accepted range: {3} - {4}{2}
+Çekme Kuvveti ({0} N) kabul edilen minimum değerin ({1} N) altındadır.,Tensile force ({0} N) is below the accepted minimum ({1} N).
 Tolerans Tanımı Eksik,Missing Tolerance Definition
 Tolerans Dışı Değer,Out of Tolerance Value
 Seçili hammadde için enjeksiyon toleransları tanımlanmadığından ölçüm kaydedilemez.,Measurement cannot be saved because injection tolerances are not defined for the selected raw material.
 Hammadde seçimi zorunludur.,Raw material selection is required.
 İşlem Adedi Güncelle,Update Process Quantity
-"Kalite onayı almış enjeksiyon alt operasyonunun işlem türü değiştirilemez.","Operation type of a quality approved injection sub-operation cannot be changed."
-"Kalite onayı almış enjeksiyon alt operasyonunun kalıp numarası değiştirilemez.","Mold number of a quality approved injection sub-operation cannot be changed."
-"Kalite onayı almış enjeksiyon alt operasyonunun hammaddesi değiştirilemez.","Raw material of a quality approved injection sub-operation cannot be changed."
+Kalite onayı almış enjeksiyon alt operasyonunun işlem türü değiştirilemez.,Operation type of a quality approved injection sub-operation cannot be changed.
+Kalite onayı almış enjeksiyon alt operasyonunun kalıp numarası değiştirilemez.,Mold number of a quality approved injection sub-operation cannot be changed.
+Kalite onayı almış enjeksiyon alt operasyonunun hammaddesi değiştirilemez.,Raw material of a quality approved injection sub-operation cannot be changed.
 Vardiya sonu üretilen adedi giriniz.,Enter produced quantity at the end of the shift.
-"Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟","Congratulations! You completed all 3/3 measurements and earned {0} Energy Points! 🌟"
-"Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}]","Completing all 3/3 period measurements for injection sub-operation. [{0}]"
+Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟,Congratulations! You completed all 3/3 measurements and earned {0} Energy Points! 🌟
+Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}],Completing all 3/3 period measurements for injection sub-operation. [{0}]
 Enjeksiyon 3/3 Ölçüm Tamamlama,Injection 3/3 Measurement Completion
 KTA Enjeksiyon Kalibi,KTA Injection Mold
 Kalıp Adı,Mold Name
 Mevcut Kalıp Adedi,Available Mold Quantity
 Varsayılan Kalite Şablonu,Default Quality Template
-"Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Selected mold number ({0}) is not defined in the system or is disabled."
+Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.,Selected mold number ({0}) is not defined in the system or is disabled.
 Vardiya Kapasite Sınırını Devre Dışı Bırak,Disable Shift Capacity Limit
-"İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.","If checked, the operator's total net time within a shift is not limited by the Maximum Work Card Duration; the actual net time is written to the cards."
+İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.,"If checked, the operator's total net time within a shift is not limited by the Maximum Work Card Duration; the actual net time is written to the cards."
 Vardiya Sonu Otomatik Kapatmayı Devre Dışı Bırak,Disable Shift End Auto-Close
-"İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.","If checked, open cards are not automatically closed by the system at shift ends (16:15 and 00:15); closing cards remains completely with the operator."
+İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.,"If checked, open cards are not automatically closed by the system at shift ends (16:15 and 00:15); closing cards remains completely with the operator."
 KTA Production Confirmation,KTA Production Confirmation
 KTA Uretim Teyidi,KTA Production Confirmation
 CO11N Üretim Teyit Ekranı,CO11N Production Confirmation Cockpit
@@ -965,7 +964,7 @@ CO11N Hızlı Üretim Teyidi,CO11N Fast Production Confirmation
 Yeni Okutma,New Scan
 Barkod veya İş Emri No Okutun…,Scan Barcode or Work Order No…
 Teyit Başarıyla Tamamlandı,Confirmation Completed Successfully
-"Teyit Başarıyla Kaydedildi: {0}","Confirmation Successfully Saved: {0}"
+Teyit Başarıyla Kaydedildi: {0},Confirmation Successfully Saved: {0}
 Teyit Belgesi,Confirmation Document
 Stok Fişi,Stock Entry
 İlişkili Stok Fişi,Linked Stock Entry
@@ -1005,7 +1004,7 @@ Sağlam Miktar (yield_qty) sıfırdan büyük olmalıdır.,Yield Quantity (yield
 Sağlam Miktar (Yield Qty) sıfırdan büyük olmalıdır.,Yield Quantity (Yield Qty) must be greater than zero.
 Üretim teyidi bulunamadı: {0},Production confirmation not found: {0}
 Üretim teyidi zaten iptal edilmiş: {0},Production confirmation already cancelled: {0}
-"Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0}","Only submitted confirmations can be cancelled: {0}"
+Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0},Only submitted confirmations can be cancelled: {0}
 Üretim teyidini iptal etme yetkiniz bulunmamaktadır.,You do not have permission to cancel production confirmations.
 Aktif İş Emirleri,Active Work Orders
 İş Emirleri,Work Orders
@@ -1189,18 +1188,18 @@ Target quantity updated: {0},Target quantity updated: {0}
 Only draft Work Orders can have their quantity changed: {0},Only draft Work Orders can have their quantity changed: {0}
 Work Order production target quantity updated: {0} -> {1}.,Work Order production target quantity updated: {0} -> {1}.
 Hat İkmal Onayı (Üretim Deposu Stok Yetersiz),Line Replenishment Confirmation (Insufficient Production Warehouse Stock)
-"Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.","Raw material required for confirmation on the production line is insufficient. You can complete confirmation by staging replenishment transfer from other production lines."
-"Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.","Stock could not be found on other production lines for some materials. Direct line transfer from the raw material warehouse is not allowed. Please request line replenishment from the warehouse department."
+Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.,Raw material required for confirmation on the production line is insufficient. You can complete confirmation by staging replenishment transfer from other production lines.
+Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.,Stock could not be found on other production lines for some materials. Direct line transfer from the raw material warehouse is not allowed. Please request line replenishment from the warehouse department.
 Transfer Miktarı,Transfer Quantity
 Kaynak Üretim Deposu,Source Production Warehouse
 Üretim depolarında stok yok,No Stock in Production Warehouses
 ⚡ Hatta Aktar ve Teyit Et,⚡ Transfer to Line and Confirm
 Aktarılıyor ve Teyit Ediliyor…,Transferring and Confirming…
-"Hat İkmali Yapıldı: {0}","Line Replenishment Completed: {0}"
-"Mevcut: {0} {1}","Available: {0} {1}"
+Hat İkmali Yapıldı: {0},Line Replenishment Completed: {0}
+Mevcut: {0} {1},Available: {0} {1}
 Hat ikmali transferi gerçekleştirilemedi.,Line replenishment transfer could not be completed.
 Hat ikmali transferi sırasında bir hata oluştu.,An error occurred during line replenishment transfer.
-"İş Emri: {0}","Work Order: {0}"
+İş Emri: {0},Work Order: {0}
 Work Cards,Work Cards
 Alt Operasyon Analitiği ve Tüketim Mutabakatı,Sub-Operation Analytics & Reconciliation
 Sub-Operation Analytics,Sub-Operation Analytics
@@ -1260,3 +1259,142 @@ Operatörler,Operators
 Operators Who Consumed This Material,Operators Who Consumed This Material
 Consumption Share,Consumption Share
 Operators,Operators
+Line Replenishment Hub,Line Replenishment Hub
+Line Replenishment Picking,Line Replenishment Picking
+Line Replenishment Order,Line Replenishment Order
+Smart Sourcing (WIP First),Smart Sourcing (WIP First)
+Direct Central Store,Direct Central Store
+Line Transfer,Line Transfer
+Central Warehouse,Central Warehouse
+Scan Deficits,Scan Deficits
+Create Replenishment Order,Create Replenishment Order
+Complete Transfer,Complete Transfer
+Override to Central,Override to Central
+Target Line Warehouse,Target Line Warehouse
+Deficit Qty,Deficit Qty
+Picked Qty,Picked Qty
+Tolerance Warning,Tolerance Warning
+Barcode Scanner,Barcode Scanner
+Select Replenishment Order,Select Replenishment Order
+Hat İkmal Kokpiti,Line Replenishment Hub
+Hat İkmal Toplama,Line Replenishment Picking
+Hat İkmal Emri,Line Replenishment Order
+Akıllı Kaynak (Önce WIP),Smart Sourcing (WIP First)
+Doğrudan Ana Ambar,Direct Central Store
+Hatlar Arası Dengeleme,Line Transfer
+Açıkları Tara,Scan Deficits
+Hat İkmal Emri Oluştur,Create Replenishment Order
+Transferi Tamamla,Complete Transfer
+Tümünü Ana Ambara Çevir,Switch All to Central Warehouse
+Hedef Hat Deposu,Target Line Warehouse
+Net Açık Miktarı,Deficit Qty
+Toplanan Miktar,Picked Quantity
+Tolerans Uyarısı,Tolerance Warning
+Barkod Okuyucu,Barcode Scanner
+İkmal Emri Seçin,Select Replenishment Order
+Hedef WIP Deposu,Target WIP Warehouse
+Tedarik Stratejisi,Sourcing Strategy
+Açıkları Yenile,Refresh Deficits
+Hedef Depo Seçimi Zorunlu,Target Warehouse Selection Required
+Hedef WIP Deposu Seçin,Select Target WIP Warehouse
+Rezervasyon Açığı Bulunmamaktadır,No Reservation Deficit Found
+Açık Olan Hammaddeler,Deficit Raw Materials
+Toplam Net Açık,Total Net Deficit
+🔄 Hat İçi Dengeleme,🔄 Line Balancing
+📦 Ana Ambar Tedariki,📦 Central Warehouse Sourcing
+Ana Ambara Çevir,Switch to Central Warehouse
+Hat Transferi,Line Transfer
+Kalem Seçilmedi,No Item Selected
+Toplandı,Picked
+İhtiyaç,Required
+Kaynak Depo,Source Warehouse
+Parti (Batch),Batch
+Belirtilmedi,Not Specified
+Tolerans,Tolerance
+Toplanan Miktar:,Picked Qty:
+Tolerans Aşıldı!,Tolerance Exceeded!
+Transfer Tamamlandı:,Transfer Completed:
+Raf Lokasyonu,Shelf Location
+Shelf Location,Shelf Location
+Tam Koli Çıkışı,Full Batch Issue
+Full Batch Issue,Full Batch Issue
+Parti No,Batch No
+Batch No,Batch No
+Hat İkmal Emri raf ve parti tahsislerine göre başarıyla oluşturuldu: {0},Line Replenishment Order successfully created based on shelf and batch allocations: {0}
+Switch All to Central Warehouse,Switch All to Central Warehouse
+Taslak İkmalde,In Draft Replenishment
+In Draft Replenishment,In Draft Replenishment
+Depoda Stok Yok (Seçilemez),Out of Stock (Not Selectable)
+Out of Stock (Not Selectable),Out of Stock (Not Selectable)
+Mükerrer Talep Engellendi,Duplicate Request Blocked
+Duplicate Request Blocked,Duplicate Request Blocked
+Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.,None of the selected items have available stock in the warehouse or sibling lines.
+None of the selected items have available stock in the warehouse or sibling lines.,None of the selected items have available stock in the warehouse or sibling lines.
+-- Sipariş Seçiniz --,-- Select Order --
+Aktif İkmal Siparişi,Active Replenishment Order
+Ana Ambar,Central Warehouse
+Artır (+1),Increase (+1)
+Azalt (-1),Decrease (-1)
+Açık siparişler:,Open Orders:
+Açıklar Taranıyor...,Scanning Deficits...
+Aşağıdaki kalemler için toplanan miktar %15 tolerans sınırını aşıyor: {0},Picked quantity exceeds +15% tolerance limit for the following items: {0}
+Barkod Okut (PDA Scanner),Scan Barcode (PDA Scanner)
+Barkod eşleşmedi veya bu sipariş listesinde yok: {0},Barcode did not match or is not in this order list: {0}
+Barkod sorgulanırken hata oluştu.,An error occurred while querying the barcode.
+Belirtilmemiş,Not Specified
+Birim:,UOM:
+Bu siparişte toplanacak kalem bulunamadı.,No items found to pick in this order.
+Depodan Çıkacak Miktar,Quantity to Issue
+Diğer Depo...,Other Warehouse...
+Eşleşti: {0}{1},Matched: {0}{1}
+Hammadde Kodu & Adı,Raw Material Code & Name
+Hat Rezervasyon Açıkları ve Çekme İkmal Yönetimi,Line Reservation Deficits and Pull Replenishment Management
+Hat Stoğu,Line Stock
+Hat rezervasyon açıkları taranırken bir hata oluştu.,An error occurred while scanning line reservation deficits.
+Hat rezervasyonları ve ambar stok durumu sorgulanıyor.,Querying line reservations and warehouse stock status.
+Hat İkmal Emri Oluşturuldu,Replenishment Order Created
+Hat İkmal Emri Oluşturuluyor...,Creating Replenishment Order...
+Hat İkmal Emri başarıyla oluşturuldu: {0},Replenishment Order created successfully: {0}
+Hat İkmal Toplama (PDA),Line Replenishment Picking (PDA)
+Hedef Depo Seçin,Select Target Warehouse
+Hedef WIP Ambarını Girin (örn. 1501 KESMELER - KTA):,Enter Target WIP Warehouse (e.g. 1501 KESMELER - KTA):
+Hızlı Hat Seçimi:,Quick Line Selection:
+Kaynak Depo / Raf,Source Warehouse / Bin
+Kaynak Tipi,Source Type
+Kodu Kopyala,Copy Code
+Kopyalandı: {0},Copied: {0}
+Kısmi Stok,Partial Stock
+Kısmi Taslak:,Partial Draft:
+Lütfen hammadde rezervasyon açıklarını görüntülemek için yukarıdaki hızlı butonlardan veya diğer ambar seçeneğinden bir üretim hattı seçin.,Please select a production line from the quick buttons above or other warehouse options to view raw material reservation deficits.
+Lütfen önce bir Hedef WIP Deposu seçin.,Please select a Target WIP Warehouse first.
+Lütfen önce bir ikmal siparişi seçiniz.,Please select a replenishment order first.
+Maks,Max
+Malzeme Transferi Gerçekleştiriliyor...,Executing Material Transfer...
+Net Açık (Deficit),Net Deficit
+Oluşturuluyor...,Creating...
+Parti,Batch
+Raf,Shelf
+Seçilen hatta üretim emirleri için rezerve edilmiş tüm hammaddeler hat stoğunda mevcuttur veya bekleyen açık bulunmamaktadır.,All raw materials reserved for production orders on the selected line are available in line stock or no pending deficits exist.
+Seçilen kalemler için Malzeme Transferi (Stock Entry) oluşturulsun mu?,Create a Material Transfer (Stock Entry) for the selected items?
+Sipariş Kalemleri Yükleniyor...,Loading Order Items...
+Stok Yok,No Stock
+Strateji,Strategy
+Taranıyor...,Scanning...
+Tolerans Aşıldı! (+%15 Üzeri),Tolerance Exceeded! (Over +15%)
+Toplama yapmak için yukarıdan açık bir sipariş seçin.,Select an open order from above to start picking.
+Transfer Tamamlandı: {0},Transfer Completed: {0}
+Tüm kalemler toplanmalı ve miktarlar sıfırdan büyük olmalıdır: {0},All items must be picked and quantities must be greater than zero: {0}
+Tüm kalemler toplanmalıdır,All items must be picked
+Tümünü Al,Pick All
+Tümünü Seç / Kaldır,Select / Deselect All
+Uygula,Apply
+{0} / {1} Kalem Toplandı,{0} / {1} Items Picked
+{0} adet seçilmemiş veya temin edilemeyen kalem hariç tutuldu,{0} unselected or unavailable items excluded
+"{0} hammadde seçildi, toplam {1} adet aktarılacak","{0} raw materials selected, total {1} units will be transferred"
+Ürün / SUT / Parti Barkodu Okutun...,Scan Item / SUT / Batch Barcode...
+İkmal Emri listesi güncellendi: {0},Replenishment Order list updated: {0}
+İlerleme,Progress
+Cancelled,Cancelled
+KTA Line Replenishment Order,KTA Line Replenishment Order
+KTA Line Replenishment Item,KTA Line Replenishment Item
+Line Replenishment Item,Line Replenishment Item

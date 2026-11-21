@@ -683,8 +683,8 @@ DURUŞTA (ARIZA),ANGEHALTEN (STÖRUNG)
 "Arıza giderildi, operatör onayı bekleniyor.","Störung behoben, warte auf Bestätigung des Bedieners."
 "Arıza iptal edildi, operatör bekleniyor.","Störung storniert, warte auf Bediener."
 "Bakım ekibi işlemi bitirdi, operatörün üretime devam etmesi bekleniyor.","Wartungsteam fertig, warte auf Bediener, um Produktion fortzusetzen."
-"[Bakım Sonucu: Tamamlandı.]","[Wartungsergebnis: Abgeschlossen.]"
-"[Bakım Sonucu: İptal Edildi.]","[Wartungsergebnis: Storniert.]"
+[Bakım Sonucu: Tamamlandı.],[Wartungsergebnis: Abgeschlossen.]
+[Bakım Sonucu: İptal Edildi.],[Wartungsergebnis: Storniert.]
 Kullanıcı için varsayılan yazıcı bulunamadı,Standarddrucker für Benutzer nicht gefunden
 Kullanıcı için varsayılan yazıcı bulunamadı: {0},Standarddrucker für Benutzer nicht gefunden: {0}
 ⚠️ Bu kart {0} dakikayı aştı! Lütfen formu kontrol edin (bitirin veya durdurun).,⚠️ Diese Karte hat {0} Minuten überschritten! Bitte prüfen Sie das Formular (beenden oder anhalten).
@@ -766,7 +766,6 @@ Krimp Ölçüm Protokol Belgesi,Crimp-Messprotokolldokument
 Krimp Protokol Belgesi,Crimp-Protokolldokument
 Enjeksiyon Ölçüm Protokol Belgesi,Spritzguss-Messprotokolldokument
 Enjeksiyon Protokol Belgesi,Spritzguss-Protokolldokument
-
 Kısmi Kabul Edildi,Teilweise akzeptiert
 <b>⚠️ Dikkat:</b> Bu kart <b>{0} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.,"<b>⚠️ Achtung:</b> Diese Karte hat <b>{0} Minuten</b> überschritten! Bitte beenden, falls die Arbeit abgeschlossen ist."
 Alt Operasyon Kalite Onayları,Qualitätsfreigaben für Untervorgänge
@@ -899,53 +898,53 @@ Filtreler,Filter
 Tekrar Dene,Erneut versuchen
 Hepsi Bu Kadar.,Das ist alles.
 Kalite Reddi,Qualitätsablehnung
-"Bu alt operasyon kaydına kalite belgesi bağlanmıştır ({0} - {1}). Değişiklik veya silme işlemi için kalite birimini bilgilendirin.","Mit diesem Untervorgangsdatensatz ist ein Qualitätsprüfungsdokument verknüpft ({0} - {1}). Bitte kontaktieren Sie die Qualitätsabteilung für Änderungen oder Löschungen."
-"Bu ölçüm kaydı silinecek. Emin misiniz?","Dieser Messdatensatz wird gelöscht. Sind Sie sicher?"
+Bu alt operasyon kaydına kalite belgesi bağlanmıştır ({0} - {1}). Değişiklik veya silme işlemi için kalite birimini bilgilendirin.,Mit diesem Untervorgangsdatensatz ist ein Qualitätsprüfungsdokument verknüpft ({0} - {1}). Bitte kontaktieren Sie die Qualitätsabteilung für Änderungen oder Löschungen.
+Bu ölçüm kaydı silinecek. Emin misiniz?,Dieser Messdatensatz wird gelöscht. Sind Sie sicher?
 Detayları Göster/Gizle,Details ein-/ausblenden
-"Alt operasyon kaydı bulunamadı ({0}).","Untervorgangsdatensatz nicht gefunden ({0})."
-"%100 kalite kontrolü seçili operasyonlarda açıkta onay bekleyen alt işlem varken kart bitirilemez.","Bei Vorgängen mit 100% Qualitätskontrolle kann die Karte nicht beendet werden, solange Untervorgänge auf Freigabe warten."
-"Kartın bitirilebilmesi için en az bir alt işlemin kalite onayı almış olması gerekir.","Mindestens ein Untervorgang muss eine Qualitätsfreigabe erhalten haben, bevor die Karte beendet werden kann."
+Alt operasyon kaydı bulunamadı ({0}).,Untervorgangsdatensatz nicht gefunden ({0}).
+%100 kalite kontrolü seçili operasyonlarda açıkta onay bekleyen alt işlem varken kart bitirilemez.,"Bei Vorgängen mit 100% Qualitätskontrolle kann die Karte nicht beendet werden, solange Untervorgänge auf Freigabe warten."
+Kartın bitirilebilmesi için en az bir alt işlemin kalite onayı almış olması gerekir.,"Mindestens ein Untervorgang muss eine Qualitätsfreigabe erhalten haben, bevor die Karte beendet werden kann."
 Atanmamış / Geçmiş Ölçümler,Nicht zugewiesene / Frühere Messungen
-"Bu ölçüm kaydı kalite kontrolü tamamlanmış bir karta aittir. Değişiklik veya silme işlemi için kalite birimini bilgilendirin.","Dieser Messdatensatz gehört zu einer Karte mit abgeschlossener Qualitätskontrolle. Bitte benachrichtigen Sie die Qualitätsabteilung für Änderungen oder Löschungen."
-"İlk enjeksiyon ölçümü 'Başlangıç' periyodunda olmak zorundadır.","Die erste Spritzgussmessung muss in der Periode 'Başlangıç' erfolgen."
+Bu ölçüm kaydı kalite kontrolü tamamlanmış bir karta aittir. Değişiklik veya silme işlemi için kalite birimini bilgilendirin.,Dieser Messdatensatz gehört zu einer Karte mit abgeschlossener Qualitätskontrolle. Bitte benachrichtigen Sie die Qualitätsabteilung für Änderungen oder Löschungen.
+İlk enjeksiyon ölçümü 'Başlangıç' periyodunda olmak zorundadır.,Die erste Spritzgussmessung muss in der Periode 'Başlangıç' erfolgen.
 "Bir alt operasyon için en fazla 3 ölçüm (Başlangıç, Ara, Bitiş) girilebilir.","Für einen Unterarbeitsgang können maximal 3 Messungen (Başlangıç, Ara, Bitiş) eingegeben werden."
-"'{0}' periyodu için zaten bir ölçüm kaydedilmiş.","Für die Periode '{0}' wurde bereits eine Messung erfasst."
-"Bu alt operasyon kaydı kalite birimi tarafından reddedilmiştir. Yeni ölçüm eklenemez.","Dieser Untervorgangsdatensatz wurde von der Qualitätsabteilung abgelehnt. Neue Messungen können nicht hinzugefügt werden."
-"Tüm Periyot Ölçümleri Tamamlandı (3/3)","Alle Periodenmessungen abgeschlossen (3/3)"
+'{0}' periyodu için zaten bir ölçüm kaydedilmiş.,Für die Periode '{0}' wurde bereits eine Messung erfasst.
+Bu alt operasyon kaydı kalite birimi tarafından reddedilmiştir. Yeni ölçüm eklenemez.,Dieser Untervorgangsdatensatz wurde von der Qualitätsabteilung abgelehnt. Neue Messungen können nicht hinzugefügt werden.
+Tüm Periyot Ölçümleri Tamamlandı (3/3),Alle Periodenmessungen abgeschlossen (3/3)
 "Bu alt operasyon için tüm periyot ölçümleri (Başlangıç, Ara, Bitiş) tamamlanmıştır.","Alle Periodenmessungen (Başlangıç, Ara, Bitiş) für diesen Unterarbeitsgang wurden abgeschlossen."
 Alt Operasyon Kalite Tarafından Reddedildi,Unterarbeitsgang von der Qualität abgelehnt
 Ölçüm Limiti,Messgrenze
-"Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.","Auf dieser Arbeitskarte existiert bereits ein aktiver Unterarbeitsgang für die Form '{0}' und das Rohmaterial '{1}'."
+Bu çalışma kartında '{0}' kalıbı ve '{1}' hammaddesi için zaten aktif bir alt işlem kaydı bulunmaktadır.,Auf dieser Arbeitskarte existiert bereits ein aktiver Unterarbeitsgang für die Form '{0}' und das Rohmaterial '{1}'.
 Mükerrer Alt İşlem,Doppelter Unterarbeitsgang
-"Çekme Kuvveti en az 100 N olmalıdır.","Die Zugkraft muss mindestens 100 N betragen."
-"'{0}' alanı boş veya 0 bırakılamaz.","Das Feld '{0}' darf nicht leer veya 0 sein."
+Çekme Kuvveti en az 100 N olmalıdır.,Die Zugkraft muss mindestens 100 N betragen.
+'{0}' alanı boş veya 0 bırakılamaz.,Das Feld '{0}' darf nicht leer veya 0 sein.
 Min: 100 N,Min: 100 N
-"'{0}' hammaddesi için enjeksiyon proses toleransları tanımlanmamış. Tolerans kaydı olmadan ölçüm girilemez.","Spritzgussprozess-Toleranzen sind für das Rohmaterial '{0}' nicht definiert. Ohne Toleranzdatensätze können keine Messungen eingegeben werden."
-"'{0}' hammaddesi için enjeksiyon tolerans parametresi bulunamadı. Ölçüm kaydedilemez.","Keine Spritzgusstoleranzparameter für Rohmaterial '{0}' gefunden. Messung kann nicht gespeichert werden."
-"'{0}' ({1} {2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4} {2}","'{0}' ({1} {2}) liegt außerhalb der Toleranzgrenzen. Akzeptierter Bereich: {3} - {4} {2}"
-"'{0}' ({1}{2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4}{2}","'{0}' ({1}{2}) liegt außerhalb der Toleranzgrenzen. Akzeptierter Bereich: {3} - {4}{2}"
-"Çekme Kuvveti ({0} N) kabul edilen minimum değerin ({1} N) altındadır.","Zugkraft ({0} N) liegt unter dem akzeptierten Minimum ({1} N)."
+'{0}' hammaddesi için enjeksiyon proses toleransları tanımlanmamış. Tolerans kaydı olmadan ölçüm girilemez.,Spritzgussprozess-Toleranzen sind für das Rohmaterial '{0}' nicht definiert. Ohne Toleranzdatensätze können keine Messungen eingegeben werden.
+'{0}' hammaddesi için enjeksiyon tolerans parametresi bulunamadı. Ölçüm kaydedilemez.,Keine Spritzgusstoleranzparameter für Rohmaterial '{0}' gefunden. Messung kann nicht gespeichert werden.
+'{0}' ({1} {2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4} {2},'{0}' ({1} {2}) liegt außerhalb der Toleranzgrenzen. Akzeptierter Bereich: {3} - {4} {2}
+'{0}' ({1}{2}) tolerans sınırları dışındadır. Kabul edilen aralık: {3} - {4}{2},'{0}' ({1}{2}) liegt außerhalb der Toleranzgrenzen. Akzeptierter Bereich: {3} - {4}{2}
+Çekme Kuvveti ({0} N) kabul edilen minimum değerin ({1} N) altındadır.,Zugkraft ({0} N) liegt unter dem akzeptierten Minimum ({1} N).
 Tolerans Tanımı Eksik,Fehlende Toleranzdefinition
 Tolerans Dışı Değer,Wert außerhalb der Toleranz
 Seçili hammadde için enjeksiyon toleransları tanımlanmadığından ölçüm kaydedilemez.,Messung kann nicht gespeichert werden da keine Spritzgusstoleranzen für das ausgewählte Rohmaterial definiert sind.
 Hammadde seçimi zorunludur.,Rohmaterialauswahl ist erforderlich.
 İşlem Adedi Güncelle,Bearbeitungsmenge aktualisieren
-"Kalite onayı almış enjeksiyon alt operasyonunun işlem türü değiştirilemez.","Der Vorgangstyp einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden."
-"Kalite onayı almış enjeksiyon alt operasyonunun kalıp numarası değiştirilemez.","Die Werkzeugnummer einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden."
-"Kalite onayı almış enjeksiyon alt operasyonunun hammaddesi değiştirilemez.","Das Rohmaterial einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden."
+Kalite onayı almış enjeksiyon alt operasyonunun işlem türü değiştirilemez.,Der Vorgangstyp einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden.
+Kalite onayı almış enjeksiyon alt operasyonunun kalıp numarası değiştirilemez.,Die Werkzeugnummer einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden.
+Kalite onayı almış enjeksiyon alt operasyonunun hammaddesi değiştirilemez.,Das Rohmaterial einer qualitätsgeprüften Spritzguss-Teiloperation kann nicht geändert werden.
 Vardiya sonu üretilen adedi giriniz.,Geben Sie die am Schichtende produzierte Menge ein.
-"Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟","Herzlichen Glückwunsch! Sie haben alle 3/3 Messungen abgeschlossen und {0} Energiepunkte verdient! 🌟"
-"Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}]","Vollständiger Abschluss aller 3/3 Periodenmessungen für den Spritzguss-Teilvorgang. [{0}]"
+Tebrikler! 3/3 ölçümü eksiksiz tamamlayarak {0} Enerji Puanı kazandınız! 🌟,Herzlichen Glückwunsch! Sie haben alle 3/3 Messungen abgeschlossen und {0} Energiepunkte verdient! 🌟
+Enjeksiyon alt operasyonu için tüm periyot ölçümlerini (3/3) eksiksiz tamamlama. [{0}],Vollständiger Abschluss aller 3/3 Periodenmessungen für den Spritzguss-Teilvorgang. [{0}]
 Enjeksiyon 3/3 Ölçüm Tamamlama,Spritzguss 3/3 Messungsabschluss
 KTA Enjeksiyon Kalibi,KTA-Spritzgussform
 Kalıp Adı,Formname
 Mevcut Kalıp Adedi,Verfügbare Formmenge
 Varsayılan Kalite Şablonu,Standard-Qualitätsvorlage
-"Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Die ausgewählte Formnummer ({0}) ist im System nicht definiert oder deaktiviert."
+Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.,Die ausgewählte Formnummer ({0}) ist im System nicht definiert oder deaktiviert.
 Vardiya Kapasite Sınırını Devre Dışı Bırak,Schichtkapazitätsgrenze Deaktivieren
-"İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.","Wenn aktiviert, wird die gesamte Nettozeit des Bedieners innerhalb einer Schicht nicht durch die maximale Arbeitskartendauer begrenzt; die tatsächliche Nettozeit wird auf die Karten geschrieben."
+İşaretlenirse operatörün vardiya içindeki toplam net süresi Maksimum Çalışma Kartı Süresi ile sınırlandırılmaz; kartlara fiili net süre yazılır.,"Wenn aktiviert, wird die gesamte Nettozeit des Bedieners innerhalb einer Schicht nicht durch die maximale Arbeitskartendauer begrenzt; die tatsächliche Nettozeit wird auf die Karten geschrieben."
 Vardiya Sonu Otomatik Kapatmayı Devre Dışı Bırak,Automatische Schichtende-Schließung Deaktivieren
-"İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.","Wenn aktiviert, werden offene Karten zum Schichtende (16:15 und 00:15) nicht automatisch vom System geschlossen; die Schließung bleibt vollständig beim Bediener."
+İşaretlenirse vardiya bitimlerinde (16:15 ve 00:15) açık kalan kartlar sistem tarafından otomatik kapatılmaz; kart kapatma kontrolü tamamen operatörde kalır.,"Wenn aktiviert, werden offene Karten zum Schichtende (16:15 und 00:15) nicht automatisch vom System geschlossen; die Schließung bleibt vollständig beim Bediener."
 KTA Production Confirmation,KTA-Produktionsrückmeldung
 KTA Uretim Teyidi,KTA-Produktionsrückmeldung
 CO11N Üretim Teyit Ekranı,CO11N Produktionsrückmeldungs-Cockpit
@@ -954,7 +953,7 @@ CO11N Hızlı Üretim Teyidi,CO11N Schnelle Produktionsrückmeldung
 Yeni Okutma,Neuer Scan
 Barkod veya İş Emri No Okutun…,Barcode oder Fertigungsauftrags-Nr. scannen…
 Teyit Başarıyla Tamamlandı,Rückmeldung Erfolgreich Abgeschlossen
-"Teyit Başarıyla Kaydedildi: {0}","Rückmeldung Erfolgreich Gespeichert: {0}"
+Teyit Başarıyla Kaydedildi: {0},Rückmeldung Erfolgreich Gespeichert: {0}
 Teyit Belgesi,Rückmeldebeleg
 Stok Fişi,Materialbeleg
 İlişkili Stok Fişi,Verknüpfter Materialbeleg
@@ -972,10 +971,10 @@ Açık Bakiye,Offener Saldo
 Sağlam Miktar (Yield Qty),Gutmenge (Yield Qty)
 Kalanın Tümü,Gesamte Restmenge
 Son Teyit (Kalanı Kapat),Endrückmeldung (Rest Schließen)
-"Hedef adede tam ulaşılmasa bile açık bakiyeyi ve İş Kartını kapatır.","Schließt den offenen Saldo und die Job-Karte, auch wenn die Zielmenge nicht erreicht wird."
+Hedef adede tam ulaşılmasa bile açık bakiyeyi ve İş Kartını kapatır.,"Schließt den offenen Saldo und die Job-Karte, auch wenn die Zielmenge nicht erreicht wird."
 Teyit Et,Rückmelden
 Başlamak İçin Barkod Okutun,Barcode Scannen zum Starten
-"İş Emri veya İş Kartı üzerinde bulunan barkodu okutarak operasyonları listeleyin.","Scannen Sie den Barcode auf dem Fertigungsauftrag oder der Job-Karte, um Vorgänge aufzulisten."
+İş Emri veya İş Kartı üzerinde bulunan barkodu okutarak operasyonları listeleyin.,"Scannen Sie den Barcode auf dem Fertigungsauftrag oder der Job-Karte, um Vorgänge aufzulisten."
 İş Emri detayları alınamadı.,Details des Fertigungsauftrags konnten nicht abgerufen werden.
 Barkod okutulurken bir hata oluştu.,Beim Scannen des Barcodes ist ein Fehler aufgetreten.
 Lütfen önce bir İş Emri ve Operasyon seçin.,Bitte wählen Sie zuerst einen Fertigungsauftrag und Vorgang aus.
@@ -994,7 +993,7 @@ Sağlam Miktar (yield_qty) sıfırdan büyük olmalıdır.,Gutmenge (yield_qty) 
 Sağlam Miktar (Yield Qty) sıfırdan büyük olmalıdır.,Gutmenge (Yield Qty) muss größer als null sein.
 Üretim teyidi bulunamadı: {0},Produktionsrückmeldung nicht gefunden: {0}
 Üretim teyidi zaten iptal edilmiş: {0},Produktionsrückmeldung bereits storniert: {0}
-"Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0}","Nur übermittelte Rückmeldungen können storniert werden: {0}"
+Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0},Nur übermittelte Rückmeldungen können storniert werden: {0}
 Üretim teyidini iptal etme yetkiniz bulunmamaktadır.,Sie sind nicht berechtigt Produktionsrückmeldungen zu stornieren.
 Aktif İş Emirleri,Aktive Fertigungsaufträge
 İş Emirleri,Fertigungsaufträge
@@ -1038,7 +1037,7 @@ Bu iş emrine ait henüz bir üretim teyidi kaydedilmemiş.,Für diesen Fertigun
 Son Teyit Olarak Kaydedildi,Als Endrückmeldung erfasst
 SAP CORS Protokolüyle Bu Teyidi İptal Et,Diese Rückmeldung mit SAP-CORS-Protokoll stornieren
 Teyit Geçmişi Alınamadı,Rückmeldehistorie konnte nicht geladen werden
-Aramanıza veya bu statüye uygun iş emri bulunamadı.,"Keine passenden Fertigungsaufträge gefunden."
+Aramanıza veya bu statüye uygun iş emri bulunamadı.,Keine passenden Fertigungsaufträge gefunden.
 Listeyi Yenile,Liste aktualisieren
 Temizle,Löschen
 Yükleniyor…,Wird geladen…
@@ -1178,18 +1177,18 @@ Target quantity updated: {0},Zielmenge aktualisiert: {0}
 Only draft Work Orders can have their quantity changed: {0},Nur Entwurfs-Arbeitsaufträge können in der Menge geändert werden: {0}
 Work Order production target quantity updated: {0} -> {1}.,Zielmenge des Arbeitsauftrags aktualisiert: {0} -> {1}.
 Hat İkmal Onayı (Üretim Deposu Stok Yetersiz),Liniennachschub-Bestätigung (Unzureichender Produktionslagerbestand)
-"Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.","Die für die Rückmeldung an der Produktionslinie erforderlichen Rohstoffe sind unzureichend. Sie können die Rückmeldung durch einen Nachschubtransfer von anderen Produktionslinien abschließen."
-"Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.","Für einige Materialien konnte an anderen Produktionslinien kein Bestand gefunden werden. Ein direkter Linientransfer aus dem Rohstofflager ist nicht zulässig. Bitte fordern Sie beim Lager einen Liniennachschub an."
+Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.,Die für die Rückmeldung an der Produktionslinie erforderlichen Rohstoffe sind unzureichend. Sie können die Rückmeldung durch einen Nachschubtransfer von anderen Produktionslinien abschließen.
+Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.,Für einige Materialien konnte an anderen Produktionslinien kein Bestand gefunden werden. Ein direkter Linientransfer aus dem Rohstofflager ist nicht zulässig. Bitte fordern Sie beim Lager einen Liniennachschub an.
 Transfer Miktarı,Transfermenge
 Kaynak Üretim Deposu,Quell-Produktionslager
 Üretim depolarında stok yok,Kein Bestand in Produktionslagern
 ⚡ Hatta Aktar ve Teyit Et,⚡ An Linie übertragen und rückmelden
 Aktarılıyor ve Teyit Ediliyor…,Wird übertragen und rückgemeldet…
-"Hat İkmali Yapıldı: {0}","Liniennachschub durchgeführt: {0}"
-"Mevcut: {0} {1}","Verfügbar: {0} {1}"
+Hat İkmali Yapıldı: {0},Liniennachschub durchgeführt: {0}
+Mevcut: {0} {1},Verfügbar: {0} {1}
 Hat ikmali transferi gerçekleştirilemedi.,Liniennachschubtransfer konnte nicht durchgeführt werden.
 Hat ikmali transferi sırasında bir hata oluştu.,Beim Liniennachschubtransfer ist ein Fehler aufgetreten.
-"İş Emri: {0}","Fertigungsauftrag: {0}"
+İş Emri: {0},Fertigungsauftrag: {0}
 Work Cards,Arbeitskarten
 Alt Operasyon Analitiği ve Tüketim Mutabakatı,Unteroperationsanalytik & Verbrauch
 Sub-Operation Analytics,Unteroperationsanalytik
@@ -1249,3 +1248,142 @@ Operatörler,Bediener
 Operators Who Consumed This Material,Bediener Die Dieses Material Verbraucht Haben
 Consumption Share,Verbrauchsanteil
 Operators,Bediener
+Line Replenishment Hub,Liniennachschub-Hub
+Line Replenishment Picking,Liniennachschub-Kommissionierung
+Line Replenishment Order,Liniennachschubauftrag
+Smart Sourcing (WIP First),Smart Sourcing (Zuerst WIP)
+Direct Central Store,Direktes Zentrallager
+Line Transfer,Linientransfer
+Central Warehouse,Zentrallager
+Scan Deficits,Fehlbestände scannen
+Create Replenishment Order,Nachschubauftrag erstellen
+Complete Transfer,Transfer abschließen
+Override to Central,Alles auf Zentrallager umstellen
+Target Line Warehouse,Ziellinienlager
+Deficit Qty,Fehlmenge
+Picked Qty,Kommissionierte Menge
+Tolerance Warning,Toleranzwarnung
+Barcode Scanner,Barcodescanner
+Select Replenishment Order,Nachschubauftrag auswählen
+Hat İkmal Kokpiti,Liniennachschub-Hub
+Hat İkmal Toplama,Liniennachschub-Kommissionierung
+Hat İkmal Emri,Liniennachschubauftrag
+Akıllı Kaynak (Önce WIP),Smart Sourcing (Zuerst WIP)
+Doğrudan Ana Ambar,Direktes Zentrallager
+Hatlar Arası Dengeleme,Linientransfer
+Açıkları Tara,Fehlbestände scannen
+Hat İkmal Emri Oluştur,Nachschubauftrag Erstellen
+Transferi Tamamla,Transfer Abschließen
+Tümünü Ana Ambara Çevir,Alle auf Zentrallager umstellen
+Hedef Hat Deposu,Ziellinienlager
+Net Açık Miktarı,Fehlmenge
+Toplanan Miktar,Kommissionierte Menge
+Tolerans Uyarısı,Toleranzwarnung
+Barkod Okuyucu,Barcodescanner
+İkmal Emri Seçin,Nachschubauftrag auswählen
+Hedef WIP Deposu,Ziel-WIP-Lager
+Tedarik Stratejisi,Beschaffungsstrategie
+Açıkları Yenile,Fehlbestände Aktualisieren
+Hedef Depo Seçimi Zorunlu,Auswahl Des Ziellagers Erforderlich
+Hedef WIP Deposu Seçin,Ziel-WIP-Lager Auswählen
+Rezervasyon Açığı Bulunmamaktadır,Keine Reservierungsfehlbestände Vorhanden
+Açık Olan Hammaddeler,Fehlende Rohstoffe
+Toplam Net Açık,Gesamte Nettofehlmenge
+🔄 Hat İçi Dengeleme,🔄 Linienausgleich
+📦 Ana Ambar Tedariki,📦 Zentrallagerbeschaffung
+Ana Ambara Çevir,Auf Zentrallager umstellen
+Hat Transferi,Linientransfer
+Kalem Seçilmedi,Kein Artikel ausgewählt
+Toplandı,Kommissioniert
+İhtiyaç,Bedarf
+Kaynak Depo,Quelllager
+Parti (Batch),Charge
+Belirtilmedi,Nicht Angegeben
+Tolerans,Toleranz
+Toplanan Miktar:,Kommissionierte Menge:
+Tolerans Aşıldı!,Toleranz überschritten!
+Transfer Tamamlandı:,Transfer abgeschlossen:
+Raf Lokasyonu,Regalplatz
+Shelf Location,Regalplatz
+Tam Koli Çıkışı,Komplette Chargenausgabe
+Full Batch Issue,Komplette Chargenausgabe
+Parti No,Chargennummer
+Batch No,Chargennummer
+Hat İkmal Emri raf ve parti tahsislerine göre başarıyla oluşturuldu: {0},Liniennachschubauftrag erfolgreich basierend auf Regalplatz- und Chargenzuweisungen erstellt: {0}
+Switch All to Central Warehouse,Alle auf Zentrallager umstellen
+Taslak İkmalde,Im Entwurfsnachschub
+In Draft Replenishment,Im Entwurfsnachschub
+Depoda Stok Yok (Seçilemez),Nicht auf Lager (Nicht wählbar)
+Out of Stock (Not Selectable),Nicht auf Lager (Nicht wählbar)
+Mükerrer Talep Engellendi,Doppelte Anforderung blockiert
+Duplicate Request Blocked,Doppelte Anforderung blockiert
+Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.,Keiner der ausgewählten Artikel ist im Lager oder in den Linien verfügbar.
+None of the selected items have available stock in the warehouse or sibling lines.,Keiner der ausgewählten Artikel ist im Lager oder in den Linien verfügbar.
+-- Sipariş Seçiniz --,-- Auftrag Auswählen --
+Aktif İkmal Siparişi,Aktiver Nachschubauftrag
+Ana Ambar,Zentrallager
+Artır (+1),Erhöhen (+1)
+Azalt (-1),Verringern (-1)
+Açık siparişler:,Offene Aufträge:
+Açıklar Taranıyor...,Fehlbestände Werden Gescannt...
+Aşağıdaki kalemler için toplanan miktar %15 tolerans sınırını aşıyor: {0},Kommissionierte Menge überschreitet das Toleranzlimit von +15% für folgende Artikel: {0}
+Barkod Okut (PDA Scanner),Barcode Scannen (PDA Scanner)
+Barkod eşleşmedi veya bu sipariş listesinde yok: {0},Barcode stimmt nicht überein oder ist nicht in dieser Auftragsliste: {0}
+Barkod sorgulanırken hata oluştu.,Beim Abfragen des Barcodes ist ein Fehler aufgetreten.
+Belirtilmemiş,Nicht Angegeben
+Birim:,Einheit:
+Bu siparişte toplanacak kalem bulunamadı.,In diesem Auftrag wurden keine zu kommissionierenden Artikel gefunden.
+Depodan Çıkacak Miktar,Ausgabemenge
+Diğer Depo...,Anderes Lager...
+Eşleşti: {0}{1},Übereinstimmung: {0}{1}
+Hammadde Kodu & Adı,Rohmaterialcode & -name
+Hat Rezervasyon Açıkları ve Çekme İkmal Yönetimi,Linienreservierungs-Fehlbestände und Pull-Nachschubverwaltung
+Hat Stoğu,Linienbestand
+Hat rezervasyon açıkları taranırken bir hata oluştu.,Beim Scannen von Linienreservierungs-Fehlbeständen ist ein Fehler aufgetreten.
+Hat rezervasyonları ve ambar stok durumu sorgulanıyor.,Linienreservierungen und Lagerbestandsstatus werden abgefragt.
+Hat İkmal Emri Oluşturuldu,Nachschubauftrag Erstellt
+Hat İkmal Emri Oluşturuluyor...,Nachschubauftrag Wird Erstellt...
+Hat İkmal Emri başarıyla oluşturuldu: {0},Nachschubauftrag erfolgreich erstellt: {0}
+Hat İkmal Toplama (PDA),Liniennachschub-Kommissionierung (PDA)
+Hedef Depo Seçin,Ziellager Auswählen
+Hedef WIP Ambarını Girin (örn. 1501 KESMELER - KTA):,Ziel-WIP-Lager eingeben (z. B. 1501 KESMELER - KTA):
+Hızlı Hat Seçimi:,Schnelle Linienauswahl:
+Kaynak Depo / Raf,Quelllager / Regal
+Kaynak Tipi,Quelltyp
+Kodu Kopyala,Code Kopieren
+Kopyalandı: {0},Kopiert: {0}
+Kısmi Stok,Teilbestand
+Kısmi Taslak:,Teilentwurf:
+Lütfen hammadde rezervasyon açıklarını görüntülemek için yukarıdaki hızlı butonlardan veya diğer ambar seçeneğinden bir üretim hattı seçin.,"Bitte wählen Sie eine Produktionslinie aus den obigen Schnellschaltflächen oder anderen Lageroptionen aus, um Fehlbestände an Rohmaterialreservierungen anzuzeigen."
+Lütfen önce bir Hedef WIP Deposu seçin.,Bitte wählen Sie zuerst ein Ziel-WIP-Lager aus.
+Lütfen önce bir ikmal siparişi seçiniz.,Bitte wählen Sie zuerst einen Nachschubauftrag aus.
+Maks,Max
+Malzeme Transferi Gerçekleştiriliyor...,Materialtransfer Wird Ausgeführt...
+Net Açık (Deficit),Netto-Fehlbestand
+Oluşturuluyor...,Wird Erstellt...
+Parti,Charge
+Raf,Regal
+Seçilen hatta üretim emirleri için rezerve edilmiş tüm hammaddeler hat stoğunda mevcuttur veya bekleyen açık bulunmamaktadır.,Alle für Fertigungsaufträge auf der ausgewählten Linie reservierten Rohmaterialien sind im Linienbestand verfügbar oder es liegen keine offenen Fehlbestände vor.
+Seçilen kalemler için Malzeme Transferi (Stock Entry) oluşturulsun mu?,Materialtransfer (Stock Entry) für die ausgewählten Artikel erstellen?
+Sipariş Kalemleri Yükleniyor...,Auftragspositionen Werden Geladen...
+Stok Yok,Kein Bestand
+Strateji,Strategie
+Taranıyor...,Wird Gescannt...
+Tolerans Aşıldı! (+%15 Üzeri),Toleranz Überschritten! (Über +15%)
+Toplama yapmak için yukarıdan açık bir sipariş seçin.,"Wählen Sie oben einen offenen Auftrag aus, um mit der Kommissionierung zu beginnen."
+Transfer Tamamlandı: {0},Transfer Abgeschlossen: {0}
+Tüm kalemler toplanmalı ve miktarlar sıfırdan büyük olmalıdır: {0},Alle Positionen müssen kommissioniert werden und die Mengen müssen größer als null sein: {0}
+Tüm kalemler toplanmalıdır,Alle Positionen müssen kommissioniert werden
+Tümünü Al,Alles Entnehmen
+Tümünü Seç / Kaldır,Alle Auswählen / Abwählen
+Uygula,Anwenden
+{0} / {1} Kalem Toplandı,{0} / {1} Positionen Kommissioniert
+{0} adet seçilmemiş veya temin edilemeyen kalem hariç tutuldu,{0} nicht ausgewählte oder nicht verfügbare Artikel ausgeschlossen
+"{0} hammadde seçildi, toplam {1} adet aktarılacak","{0} Rohmaterialien ausgewählt, insgesamt {1} Einheiten werden übertragen"
+Ürün / SUT / Parti Barkodu Okutun...,Artikel- / SUT- / Chargenbarcode Scannen...
+İkmal Emri listesi güncellendi: {0},Nachschubauftragsliste aktualisiert: {0}
+İlerleme,Fortschritt
+Cancelled,Storniert
+KTA Line Replenishment Order,KTA Liniennachschubauftrag
+KTA Line Replenishment Item,KTA Liniennachschub-Position
+Line Replenishment Item,Liniennachschub-Position
