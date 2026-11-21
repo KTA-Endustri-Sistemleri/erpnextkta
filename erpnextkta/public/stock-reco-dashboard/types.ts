@@ -40,6 +40,7 @@ export interface StockRecoPreviewRow {
   current_qty: number;
   label_name: string | null;
   label_qty: number | null;
+  label_type?: string | null;
   status: RecoPreviewStatus;
   suggested_mode1_selected: boolean;
   has_batch_no: number | boolean;

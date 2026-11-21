@@ -23,7 +23,16 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "refresh"): void;
-  (e: "execute", payload: { mode: RecoRelabelMode; selectedItems: StockRecoRelabelSelection[]; isDraftSubmit: boolean; printLabels: boolean }): void;
+  (
+    e: "execute",
+    payload: {
+      mode: RecoRelabelMode;
+      selectedItems: StockRecoRelabelSelection[];
+      isDraftSubmit: boolean;
+      printLabels: boolean;
+      submitDoc: boolean;
+    }
+  ): void;
 }>();
 
 const activeMode = ref<RecoRelabelMode>("mode1_changed");
@@ -160,6 +169,20 @@ function statusClass(status: StockRecoPreviewRow["status"]): string {
   return "st-legacy";
 }
 
+function getLabelTypeDisplay(type: string | null | undefined): string {
+  if (!type) return "";
+  if (type === "İş Emri Etiketi") return `🏭 ${__("İş Emri")}`;
+  if (type === "Depo Giriş Etiketi") return `📦 ${__("Depo")}`;
+  return `🏷️ ${__(type)}`;
+}
+
+function getLabelTypeClass(type: string | null | undefined): string {
+  if (!type) return "";
+  if (type === "İş Emri Etiketi") return "lt-work-order";
+  if (type === "Depo Giriş Etiketi") return "lt-warehouse";
+  return "lt-default";
+}
+
 function formatQty(val: number | null | undefined): string {
   if (val === null || val === undefined) return "—";
   return new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 4 }).format(Number(val));
@@ -171,7 +194,7 @@ function openDocInDesk(name: string) {
   }
 }
 
-function handleExecute() {
+function handleExecute(submitDoc: boolean = true) {
   if (!props.preview || props.submitting || selectedEntries.value.length === 0 || hasInvalidSplit.value) {
     return;
   }
@@ -189,6 +212,7 @@ function handleExecute() {
     selectedItems,
     isDraftSubmit: props.preview.doc.docstatus === 0,
     printLabels: printLabels.value,
+    submitDoc,
   });
 }
 </script>
@@ -280,6 +304,14 @@ function handleExecute() {
                 <div class="rlw-batch-col">
                   <div class="rlw-batch-top">
                     <span class="rlw-batch-code">{{ row.batch_no || __("Partisiz") }}</span>
+                    <span
+                      v-if="row.label_type"
+                      class="rlw-badge-type"
+                      :class="getLabelTypeClass(row.label_type)"
+                      :title="row.label_type"
+                    >
+                      {{ getLabelTypeDisplay(row.label_type) }}
+                    </span>
                     <span class="rlw-badge" :class="statusClass(row.status)">{{ statusLabel(row.status) }}</span>
                   </div>
                   <label v-if="!row.is_standard_batch || row.is_legacy" class="rlw-legacy-toggle">
@@ -335,20 +367,37 @@ function handleExecute() {
           </div>
         </div>
 
-        <button
-          type="button"
-          class="rlw-submit-btn"
-          :disabled="submitting || selectedEntries.length === 0 || hasInvalidSplit"
-          @click="handleExecute"
-        >
-          {{
-            submitting
-              ? __("İşleniyor...")
-              : preview.doc.docstatus === 0
-                ? __("Onayla ve Etiketleri Bas")
-                : __("Etiketleri Güncelle ve Bas")
-          }}
-        </button>
+        <div class="rlw-action-buttons">
+          <template v-if="preview.doc.docstatus === 0">
+            <button
+              type="button"
+              class="rlw-save-draft-btn"
+              :disabled="submitting || selectedEntries.length === 0 || hasInvalidSplit"
+              :title="__('Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.')"
+              @click="handleExecute(false)"
+            >
+              🖨️ {{ submitting ? __("İşleniyor...") : __("Taslakta Kaydet & Etiket Bas") }}
+            </button>
+            <button
+              type="button"
+              class="rlw-submit-btn"
+              :disabled="submitting || selectedEntries.length === 0 || hasInvalidSplit"
+              @click="handleExecute(true)"
+            >
+              ✅ {{ submitting ? __("İşleniyor...") : __("Sayımı Onayla ve Tamamla") }}
+            </button>
+          </template>
+          <template v-else>
+            <button
+              type="button"
+              class="rlw-submit-btn"
+              :disabled="submitting || selectedEntries.length === 0 || hasInvalidSplit"
+              @click="handleExecute(false)"
+            >
+              🏷️ {{ submitting ? __("İşleniyor...") : __("Etiketleri Güncelle ve Bas") }}
+            </button>
+          </template>
+        </div>
       </footer>
     </template>
   </section>
@@ -421,8 +470,21 @@ function handleExecute() {
 .rlw-action-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 0.9rem 1.15rem; background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 0.75rem; }
 [data-theme="dark"] .rlw-action-bar { background: var(--ck-glass-bg, #1c2127); border-color: var(--ck-glass-border, rgba(255, 255, 255, 0.12)); }
 .rlw-action-left { display: flex; flex-direction: column; gap: 0.35rem; }
+.rlw-action-buttons { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
 .rlw-print-toggle { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; margin: 0; }
 .rlw-counters { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.84rem; }
+.rlw-badge-type { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.12rem 0.45rem; border-radius: 0.35rem; font-size: 0.7rem; font-weight: 700; white-space: nowrap; border: 1px solid var(--border-color, #cbd5e1); }
+.rlw-badge-type.lt-work-order { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.rlw-badge-type.lt-warehouse { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+.rlw-badge-type.lt-default { background: var(--bg-color, #f1f5f9); color: var(--text-muted, #475569); }
+[data-theme="dark"] .rlw-badge-type.lt-work-order { background: rgba(59, 130, 246, 0.18); color: #93c5fd; border-color: rgba(96, 165, 250, 0.35); }
+[data-theme="dark"] .rlw-badge-type.lt-warehouse { background: rgba(34, 197, 94, 0.18); color: #86efac; border-color: rgba(74, 222, 128, 0.35); }
+[data-theme="dark"] .rlw-badge-type.lt-default { background: rgba(255, 255, 255, 0.08); color: #cbd5e1; border-color: rgba(255, 255, 255, 0.16); }
+.rlw-save-draft-btn { padding: 0.58rem 1.15rem; border-radius: 0.5rem; border: 1px solid var(--border-color, #cbd5e1); background: var(--bg-color, #f8fafc); color: var(--text-color, #0f172a); font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: all 0.15s ease; }
+.rlw-save-draft-btn:hover:not(:disabled) { background: #f1f5f9; border-color: #94a3b8; }
+.rlw-save-draft-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+[data-theme="dark"] .rlw-save-draft-btn { background: rgba(255, 255, 255, 0.06); border-color: var(--ck-glass-border, rgba(255, 255, 255, 0.18)); color: #f8fafc; }
+[data-theme="dark"] .rlw-save-draft-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.28); }
 .rlw-submit-btn { padding: 0.58rem 1.25rem; border: none; border-radius: 0.5rem; background: #2563eb; color: #ffffff; font-size: 0.86rem; font-weight: 700; cursor: pointer; }
 .rlw-submit-btn:hover:not(:disabled) { background: #1d4ed8; }
 .rlw-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -117,10 +117,21 @@ Fiziksel kutu izlenebilirliğinin mal kabul, sayım ve üretim iade döngüleri 
 - **Form Kısayolu (`erpnextkta/public/js/stock_reconciliation.js`):** `Stock Reconciliation` formu üzerindeki **Sayım ve Etiket Merkezinde Aç** butonu `frappe.route_options = { doc, tab: "operations" }` ile ilgili belgeyi doğrudan merkezin operasyon sekmesinde açar.
 - **Toplu Sayım Oluşturma (`BulkCreateRecoModal.vue`):** Depo grubu (`is_group = 1`), tarih/saat ve `Boş Stokları Yoksay` seçimiyle tüm alt yaprak depolar için `create_stock_reco_docs_for_warehouse_group` arka plan görevini başlatır.
 - **Etiket Sağlık Durumları (`get_stock_reconciliation_label_preview`):** ERPNext v15 `serial_and_batch_bundle` / `batch_no` satırlarını okuyarak her pozitif kalemi `valid` (`Uyumlu`), `qty_changed` (`Miktar Değişti`), `missing_label` (`Etiket Eksik`) veya `legacy_batch` (`LEGACY / Partisiz`) olarak sınıflar.
+- **Dinamik Etiket Tipi Çözümlemesi (`Depo Giriş Etiketi` vs. `İş Emri Etiketi`):**
+  - **Malzeme Kökenine Göre Otomatik Eşleşme:** Hammaddeler (`Purchase Receipt` kökenli veya satın alma kalemleri) için varsayılan olarak **Depo Giriş Etiketi**, mamul ve yarı mamuller (`Work Order` / `Stock Entry` kökenli veya BOM'lu / `ÜRÜNLER` grubu kalemleri) için otomatik olarak **İş Emri Etiketi** şablonu çözümlenir (`resolve_item_default_label_type`).
+  - **Etiket Eşleşme Bütünlüğü:** Mamul partiler daha önce yalnızca mal kabul etiketleri sorgulandığı için hatalı olarak `missing_label` ("Etiket Eksik") durumuna düşebilmekteydi. Yapılan dinamik çözümleme sayesinde mamul partiler sistemdeki mevcut `İş Emri Etiketi` kayıtlarıyla eksiksiz eşleşir.
+  - **Dashboard Görsel Rozetleri:** Sayım ve Etiketleme tablosunda her parti kodunun yanında ürünün kökenine uygun olarak `🏭 İş Emri` veya `📦 Depo` rozeti gösterilir; böylece operatör hangi etiket şablonunun basılacağını önizleme ekranında anında doğrular.
 - **Mod 1 (Fiziksel Kutu Esas) vs. Mod 2 (Sistem Partisi Esas):** Mod 1 yalnızca `qty_changed`, `missing_label` ve `legacy_batch` satırlarını seçerken, Mod 2 belgedeki tüm pozitif stok satırlarını kapsar.
-- **Taslak (`submit_and_print_stock_reconciliation`) & Onaylı (`relabel_submitted_stock_reconciliation`):**
-  - Taslakta `LEGACY` dönüşümleri için eski partiyi sıfırlama satırı korunup yeni `7+4` satırlar yazılır; çoklu kutu kırılımında sıradaki `000x` satırları eklenir, belge submit edilir ve etiketler Zebra kuyruğuna gönderilir.
-  - Onaylı belgede tekil standart kutular `upsert_box_label` ile güncellenir; bölme veya `LEGACY` dönüşümlerinde `create_package_split_repack(..., ignore_reco_lock=is_reco_manager)` ile `Stock Entry (Package Split)` kesilir. `ignore_reco_lock=True`, yalnızca sistem kaynaklı sayım düzeltmelerinde geçici `frappe.flags.kta_ignore_reco_lock` bayrağıyla `stock_reconciliation_lock` engelini güvenli biçimde aşar.
+- **Belge Durumuna Göre İşlem Akışı:**
+  - **Taslak (`Draft / docstatus = 0`) Belgede Kullanıcı Seçenekleri (`submit_and_print_stock_reconciliation`):**
+    - **Taslakta Kaydet & Etiket Bas (`submit_doc=0`):** Sayım belgesini kapatmadan/onaylamadan (`docstatus = 0` kalarak), yalnızca seçili satırlar için standart `7+4` parti atamasını / kutu bölmesini taslak belgeye kaydeder ve Zebra yazıcıdan etiketleri basar. Sayım devam ederken kutuları hemen etiketlemek için kullanılır. Taslak aşamasındaki partiler defter bakiyesi henüz oluşmadığı için `clear_empty_labels` koruması altındadır.
+    - **Sayımı Onayla ve Tamamla (`submit_doc=1`):** Sayım operasyonunun tamamı bittiğinde `LEGACY` sıfırlama ve yeni kutu kırılımlarını kesinleştirir, belgeyi `docstatus = 1` ile resmi olarak stok defterine (`Stock Ledger`) işler ve etiketleri Zebra yazıcı kuyruğuna gönderir.
+  - **Onaylı (`Submitted / docstatus = 1`) Belgede (`relabel_submitted_stock_reconciliation`):**
+    - Tekil standart kutular `upsert_box_label` ile güncellenir; bölme veya `LEGACY` dönüşümlerinde `create_package_split_repack(..., ignore_reco_lock=is_reco_manager)` ile `Stock Entry (Package Split)` kesilir. `ignore_reco_lock=True`, yalnızca sistem kaynaklı sayım düzeltmelerinde geçici `frappe.flags.kta_ignore_reco_lock` bayrağıyla `stock_reconciliation_lock` engelini güvenli biçimde aşar.
+- **Sayım Belgesi İptali ve Silinmesinde Etiket/Parti Otomatik Temizliği (Rollback):**
+  - **Otomatik Etiket ve Yazdırma Günlüğü Temizliği (`delete_labels_with_print_logs`):** `Stock Reconciliation` belgesi iptal edildiğinde (`Cancel / docstatus = 2`) veya silindiğinde (`Delete / Trash`), bu belgeye bağlı olarak oluşturulmuş tüm `KTA Stock Label` ve `KTA Print Log` kayıtları sistem tarafından otomatik olarak silinir.
+  - **Bağlantı Hatasının (`LinkExistsError`) Önlenmesi:** Kullanıcılar daha önce sayım belgesini iptal ederken veya silerken karşılaştıkları `LinkExistsError` (*"Cannot delete or cancel because linked with KTA Stock Label"*) hatasıyla artık karşılaşmaz. Sistemin tüm geri alma (rollback) sürecini otomatik ve güvenli biçimde yönetmesi sağlanmıştır.
+  - **Sıfır Bakiyeli Partilerin Pasife Alınması veya Silinmesi:** Sayım esnasında üretilmiş olup defter bakiyesi sıfıra düşen (`Stock Ledger Entry` net bakiyesi `0` olan) bölünmüş partiler, belge silindiğinde (`on_trash`) sistemden tamamen silinir; belge iptal edildiğinde (`on_cancel`) ise stok defteri tarihsel hareket izlenebilirliğini korumak amacıyla pasife alınarak miktarı sıfırlanır (`disabled = 1, batch_qty = 0`). Ayrıca `LabelPrinter.clear_empty_labels()` çağrılarak yetim kalan etiketler de sistemden ayıklanır.
 - **Fark & Anomali Analizi (`RecoAnalyticsTab.vue` + `RecoItemDrawer.vue`):** Yıl/tarih/eşik/yön filtreleri, 7 KPI kartı, Taslak/Onaylı ilerleme barı, kural tabanlı anomali tespiti, risk puanlaması, CSV dışa aktarma ve Socket.IO (`stock_reco_dashboard_update`) canlı yenileme içerir.
 
 ---
@@ -130,8 +141,9 @@ Fiziksel kutu izlenebilirliğinin mal kabul, sayım ve üretim iade döngüleri 
 Eski `erpnextkta/rest-api/` klasörü kaldırılarak tüm stok ve sayım servisleri modül içi `erpnextkta/kta_stock/services/` altında birleştirilmiştir:
 
 - **Backend Servisleri (`erpnextkta/kta_stock/`):**
+  - `erpnextkta/overrides/stock_reconciliation.py`: `StockReconciliation` DocType sınıf geçersiz kılması (override); `remove_items_with_no_change` ile sıfır fark satır koruması, `on_cancel` ve `on_trash` kancalarıyla `_cleanup_associated_labels_and_batches` ve `delete_labels_with_print_logs` rollback otomasyonu.
   - `erpnextkta/kta_stock/setup.py`: `after_migrate` hook'u ile özel `Stock Entry Type` kayıtlarını güvenceye alır.
-  - `erpnextkta/kta_stock/services/relabeling_service.py`: `is_standard_kta_box_batch`, `extract_base_lot`, `generate_new_base_lot`, `allocate_next_box_batches`, `resolve_batch_label_metadata`, `get_batch_ledger_balances`, `delete_labels_with_print_logs`, `upsert_box_label`, `sync_batch_label_to_ledger_balance`, `create_package_split_repack`.
+  - `erpnextkta/kta_stock/services/relabeling_service.py`: `is_standard_kta_box_batch`, `extract_base_lot`, `generate_new_base_lot`, `allocate_next_box_batches`, `resolve_item_default_label_type`, `resolve_batch_label_metadata`, `get_batch_ledger_balances`, `delete_labels_with_print_logs`, `upsert_box_label`, `sync_batch_label_to_ledger_balance`, `create_package_split_repack`.
   - `erpnextkta/kta_stock/services/stock_reconciliation_service.py`: `get_items_static`, `create_stock_reco_docs_for_warehouse_group`, `list_stock_reconciliations`, `get_stock_reconciliation_label_preview`, `submit_and_print_stock_reconciliation`, `relabel_submitted_stock_reconciliation`.
   - `erpnextkta/kta_stock/services/stock_reconciliation_dashboard_service.py`: `get_years`, `get_dashboard`, `get_item_details`.
   - `erpnextkta/kta_stock/services/stock_reconciliation_lock.py`: `validate_unique_draft_stock_reco_per_set_warehouse` ve `validate_stock_entry_warehouse_lock`.
@@ -142,6 +154,7 @@ Eski `erpnextkta/rest-api/` klasörü kaldırılarak tüm stok ve sayım servisl
   - `erpnextkta/kta_stock/tests/test_relabeling_service.py`
   - `erpnextkta/kta_stock/tests/test_label_manager.py`
   - `erpnextkta/kta_stock/tests/test_stock_reconciliation_relabeling.py`
+  - `erpnextkta/tests/test_stock_reconciliation_override.py`
   - `erpnextkta/tests/test_stock_entry_labeling.py`
 
 </main>

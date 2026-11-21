@@ -568,9 +568,9 @@ def _load_label_map_for_batches(batches: list[str]) -> dict[str, dict]:
         return {}
     labels = frappe.get_all(
         "KTA Stock Label",
-        filters={"label_type": "Depo Giriş Etiketi"},
+        filters={"label_type": ["in", ["Depo Giriş Etiketi", "İş Emri Etiketi"]]},
         or_filters=[["sut_barcode", "in", batches], ["batch", "in", batches]],
-        fields=["name", "sut_barcode", "batch", "qty"],
+        fields=["name", "sut_barcode", "batch", "qty", "label_type"],
         order_by="creation asc",
     )
     label_map: dict[str, dict] = {}
@@ -639,6 +639,7 @@ def get_stock_reconciliation_label_preview(stock_reconciliation: str) -> dict:
         lbl = label_map.get(batch_no) if batch_no else None
         label_name = str(lbl.get("name")) if lbl and lbl.get("name") else None
         label_qty = flt(lbl.get("qty")) if lbl else None
+        label_type = lbl.get("label_type") if lbl else None
 
         if is_legacy:
             status = "legacy_batch"
@@ -668,6 +669,7 @@ def get_stock_reconciliation_label_preview(stock_reconciliation: str) -> dict:
                 "current_qty": flt(row.get("current_qty")),
                 "label_name": label_name,
                 "label_qty": label_qty,
+                "label_type": label_type,
                 "status": status,
                 "suggested_mode1_selected": status != "valid",
                 "has_batch_no": has_batch_no,
@@ -878,12 +880,14 @@ def submit_and_print_stock_reconciliation(
     stock_reconciliation: str,
     selected_items: list[dict] | str,
     print_labels: int = 1,
+    submit_doc: int | str = 1,
 ) -> dict:
-    """Expand/standardize selected Draft rows in-place, submit Stock Reconciliation, and print labels."""
+    """Expand/standardize selected Draft rows in-place, optionally submit Stock Reconciliation, and print labels."""
     parsed_items = _parse_selected_items(selected_items)
     doc = frappe.get_doc("Stock Reconciliation", stock_reconciliation)
     frappe.has_permission("Stock Reconciliation", "write", doc=doc, throw=True)
-    frappe.has_permission("Stock Reconciliation", "submit", doc=doc, throw=True)
+    if cint(submit_doc) == 1:
+        frappe.has_permission("Stock Reconciliation", "submit", doc=doc, throw=True)
 
     if doc.docstatus != 0:
         frappe.throw(
@@ -1020,7 +1024,8 @@ def submit_and_print_stock_reconciliation(
 
     doc.save(ignore_permissions=True)
     _cleanup_orphan_draft_bundles(doc, cleared_bundles)
-    doc.submit()
+    if cint(submit_doc) == 1:
+        doc.submit()
 
     label_names: list[str] = []
     for item_code, wh, batch_no, box_qty in labels_to_upsert:
@@ -1041,7 +1046,7 @@ def submit_and_print_stock_reconciliation(
             if lbl_str not in label_names:
                 label_names.append(lbl_str)
 
-    if touched_pairs:
+    if touched_pairs and cint(submit_doc) == 1:
         LabelPrinter.clear_empty_labels(pairs=list(touched_pairs))
 
     queued_print_count = 0

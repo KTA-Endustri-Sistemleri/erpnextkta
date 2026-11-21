@@ -414,7 +414,7 @@ için bir değer girmelisiniz.,Sie müssen einen Wert für eingeben.
 İsim,Name
 İstasyon,Station
 İzin verilmiyor,Nicht erlaubt
-İş Emri,Arbeitsauftrag
+İş Emri,Fertigungsauftrag
 İş Emri Bulunamadı,Arbeitsauftrag nicht gefunden
 İş Emri Kapalı,Arbeitsauftrag geschlossen
 İş Emri onaylanmamış (docstatus != 1).,Arbeitsauftrag nicht genehmigt (Dokumentstatus != 1).
@@ -1735,3 +1735,9 @@ Depoya iade işlemi tamamlanamadı.,Lagerrückgabe konnte nicht abgeschlossen we
 Depoya iade işlemi sırasında bir hata oluştu.,Bei der Lagerrückgabe ist ein Fehler aufgetreten.
 Depoya İade İşlemi Tamamlandı,Lagerrückgabe Abgeschlossen
 {0} adet etiket yazdırıldı / kuyruğa alındı.,{0} Etiketten gedruckt / in Warteschlange.
+Taslakta Kaydet & Etiket Bas,Entwurf Speichern & Etiketten Drucken
+Sayımı Onayla ve Tamamla,Inventur Abschließen & Bestätigen
+"Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı.","Entwurf aktualisiert: {0} Etiketten verarbeitet, {1} Druckaufträge in Warteschlange."
+Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,"Speichert ausgewählte Zeilen und druckt Etiketten, ohne den Entwurf zu bestätigen."
+İş Emri Etiketi,Fertigungsauftragsetikett
+Depo Giriş Etiketi,Wareneingangsetikett

@@ -541,7 +541,7 @@ class LabelPrinter:
             f"""
             SELECT name, item_code, batch
             FROM `tabKTA Stock Label`
-            WHERE label_type = 'Depo Giriş Etiketi'
+            WHERE label_type IN ('Depo Giriş Etiketi', 'İş Emri Etiketi')
               AND IFNULL(item_code, '') != ''
               AND IFNULL(batch, '') != ''
               {pair_filter}

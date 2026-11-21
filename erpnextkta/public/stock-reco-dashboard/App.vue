@@ -137,25 +137,35 @@ async function handleExecuteRelabel(payload: {
   selectedItems: StockRecoRelabelSelection[];
   isDraftSubmit: boolean;
   printLabels: boolean;
+  submitDoc?: boolean;
 }) {
   if (!selectedDocName.value || submittingRelabel.value) return;
   submittingRelabel.value = true;
   errorMessage.value = null;
   lastResult.value = null;
   try {
-    const method = payload.isDraftSubmit
+    const isDraft = payload.isDraftSubmit;
+    const method = isDraft
       ? "erpnextkta.kta_stock.services.stock_reconciliation_service.submit_and_print_stock_reconciliation"
       : "erpnextkta.kta_stock.services.stock_reconciliation_service.relabel_submitted_stock_reconciliation";
-    const res = await callRpc<StockRecoRelabelResult>(method, {
+    const rpcArgs: Record<string, any> = {
       stock_reconciliation: selectedDocName.value,
       selected_items: payload.selectedItems,
       print_labels: payload.printLabels ? 1 : 0,
-    });
+    };
+    if (isDraft) {
+      rpcArgs.submit_doc = payload.submitDoc === false ? 0 : 1;
+    }
+    const res = await callRpc<StockRecoRelabelResult>(method, rpcArgs);
     lastResult.value = res;
     const labelCount = res?.labels?.length || 0;
     const printCount = res?.queued_print_count || 0;
+    const successMsg =
+      payload.submitDoc === false
+        ? __("Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı.", [labelCount, printCount])
+        : __("{0} etiket işlendi, {1} baskı kuyruğa alındı.", [labelCount, printCount]);
     frappe?.show_alert?.({
-      message: __("{0} etiket işlendi, {1} baskı kuyruğa alındı.", [labelCount, printCount]),
+      message: successMsg,
       indicator: "green",
     });
     await Promise.all([fetchDocs(), fetchPreview(selectedDocName.value)]);

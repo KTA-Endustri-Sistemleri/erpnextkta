@@ -1746,3 +1746,9 @@ Depoya iade işlemi tamamlanamadı.,Warehouse return could not be completed.
 Depoya iade işlemi sırasında bir hata oluştu.,An error occurred during warehouse return.
 Depoya İade İşlemi Tamamlandı,Warehouse Return Completed
 {0} adet etiket yazdırıldı / kuyruğa alındı.,{0} labels printed / queued.
+Taslakta Kaydet & Etiket Bas,Save Draft & Print Labels
+Sayımı Onayla ve Tamamla,Submit & Complete Reconciliation
+"Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı.","Draft updated: {0} labels processed, {1} print jobs queued."
+Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,Saves selected rows and prints labels without submitting draft reconciliation.
+İş Emri Etiketi,Work Order Label
+Depo Giriş Etiketi,Warehouse Entry Label

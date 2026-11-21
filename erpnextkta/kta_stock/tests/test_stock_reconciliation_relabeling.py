@@ -547,6 +547,83 @@ class TestStockReconciliationRelabeling(KTABaseTestCase):
         )
         self.assertEqual(frappe.db.count("Batch", {"item": item_code}), batches_before)
 
+    def test_draft_save_and_print_leaves_doc_in_draft_status(self):
+        """Draft Stock Reconciliation saves 7+4 batch updates and prints labels without submitting (docstatus=0)."""
+        from erpnextkta.kta_stock.services.stock_reconciliation_service import (
+            submit_and_print_stock_reconciliation,
+        )
+
+        company, _, wh_a, _ = self._ensure_test_warehouses("drfsav")
+        item_code = self._ensure_batch_item("_TEST-SR-DRAFT-SAVE-ITEM")
+        legacy_batch = f"LEGACY-DRF-SAV-{frappe.generate_hash('', 5).upper()}"
+        self._ensure_batch(legacy_batch, item_code, manufacturing_date="2024-09-01")
+
+        sr = frappe.get_doc(
+            {
+                "doctype": "Stock Reconciliation",
+                "company": company,
+                "purpose": "Stock Reconciliation",
+                "posting_date": nowdate(),
+                "posting_time": nowtime(),
+                "set_warehouse": wh_a,
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "warehouse": wh_a,
+                        "batch_no": legacy_batch,
+                        "qty": 50.0,
+                        "current_qty": 0.0,
+                        "valuation_rate": 20.0,
+                        "use_serial_batch_fields": 1,
+                    }
+                ],
+            }
+        ).insert(ignore_permissions=True)
+
+        row_name = sr.items[0].name
+        with (
+            patch(
+                "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+                return_value=MagicMock(),
+            ),
+            patch(
+                "erpnextkta.kta_stock.services.stock_reconciliation_service.enqueue_print_labels_by_names",
+                wraps=__import__(
+                    "erpnextkta.kta_stock.label_manager",
+                    fromlist=["enqueue_print_labels_by_names"],
+                ).enqueue_print_labels_by_names,
+            ) as mock_enqueue,
+        ):
+            res = submit_and_print_stock_reconciliation(
+                stock_reconciliation=sr.name,
+                selected_items=[
+                    {
+                        "row_name": row_name,
+                        "batch_no": legacy_batch,
+                        "qty": 50.0,
+                        "convert_legacy": 1,
+                        "box_splits": [30.0, 20.0],
+                    }
+                ],
+                print_labels=1,
+                submit_doc=0,
+            )
+
+        doc = frappe.get_doc("Stock Reconciliation", sr.name)
+        self.assertEqual(doc.docstatus, 0)
+        self.assertEqual(res["stock_reconciliation"], sr.name)
+        self.assertEqual(res["docstatus"], 0)
+        self.assertEqual(len(res["labels"]), 2)
+        self.assertEqual(res["queued_print_count"], 2)
+        mock_enqueue.assert_called_once()
+
+        self.assertEqual(len(doc.items), 2)
+        for row in doc.items:
+            self.assertTrue(is_standard_kta_box_batch(row.batch_no))
+
+        for lbl_name in res["labels"]:
+            self.assertTrue(frappe.db.exists("KTA Stock Label", lbl_name))
+
     def test_relabel_submitted_direct_and_split_with_lock_bypass(self):
         """Submitted SR updates single box label without Stock Entry; split/LEGACY creates Package Split even under Draft parent lock."""
         from erpnextkta.kta_stock.services.stock_reconciliation_service import (
@@ -690,3 +767,85 @@ class TestStockReconciliationRelabeling(KTABaseTestCase):
         self.assertEqual(len(split_res["labels"]), 2)
         mock_enqueue_split.assert_called_once_with(split_res["labels"])
         self.assertEqual(get_batch_ledger_balances(item_code, legacy_batch), [])
+
+    def test_preview_supports_work_order_label_type(self):
+        """Preview correctly recognizes İş Emri Etiketi without reporting missing_label and outputs label_type."""
+        from erpnextkta.kta_stock.services.stock_reconciliation_service import (
+            get_stock_reconciliation_label_preview,
+        )
+
+        company, _, wh_a, _ = self._ensure_test_warehouses("wo_prv")
+        item_code = self._ensure_batch_item(
+            f"_TEST-WO-PREV-{frappe.generate_hash('', 5).upper()}"
+        )
+        lot_prefix = f"W{frappe.generate_hash('', 6).upper()}"
+        wo_batch = f"{lot_prefix}0001"
+
+        self._ensure_batch(wo_batch, item_code)
+        self._receive_stock(item_code, wh_a, wo_batch, 25.0, rate=20.0, company=company)
+
+        # Create İş Emri Etiketi
+        wo_lbl = frappe.get_doc(
+            {
+                "doctype": "KTA Stock Label",
+                "label_type": "İş Emri Etiketi",
+                "reference_doctype": "Work Order",
+                "reference_name": "MFG-WO-TEST-9999",
+                "work_order": "MFG-WO-TEST-9999",
+                "item_code": item_code,
+                "qty": 25.0,
+                "uom": self._ensure_fractional_uom(),
+                "batch": wo_batch,
+                "sut_barcode": wo_batch,
+                "target_warehouse": wh_a,
+                "quality_ref": "ATLA 5/1",
+                "supplier_delivery_note": "-",
+                "gr_posting_date": nowdate(),
+            }
+        )
+        wo_lbl.flags.ignore_links = True
+        wo_lbl.insert(ignore_permissions=True)
+
+        sr = frappe.get_doc(
+            {
+                "doctype": "Stock Reconciliation",
+                "company": company,
+                "purpose": "Stock Reconciliation",
+                "posting_date": nowdate(),
+                "posting_time": nowtime(),
+                "set_warehouse": wh_a,
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "warehouse": wh_a,
+                        "qty": 25.0,
+                        "current_qty": 25.0,
+                        "valuation_rate": 20.0,
+                        "current_valuation_rate": 20.0,
+                        "batch_no": wo_batch,
+                        "use_serial_batch_fields": 1,
+                    }
+                ],
+            }
+        )
+        sr.insert(ignore_permissions=True)
+
+        preview = get_stock_reconciliation_label_preview(sr.name)
+        rows = preview.get("rows", [])
+        self.assertEqual(len(rows), 1)
+        row = rows[0]
+        self.assertEqual(row["batch_no"], wo_batch)
+        self.assertEqual(row["label_type"], "İş Emri Etiketi")
+        self.assertEqual(row["status"], "valid")
+        self.assertEqual(row["label_name"], str(wo_lbl.name))
+        self.assertEqual(preview["summary"]["valid"], 1)
+        self.assertEqual(preview["summary"]["missing_label"], 0)
+
+        # Test qty_changed status when counted qty differs
+        sr.items[0].qty = 20.0
+        sr.save(ignore_permissions=True)
+        preview_changed = get_stock_reconciliation_label_preview(sr.name)
+        row_changed = preview_changed["rows"][0]
+        self.assertEqual(row_changed["status"], "qty_changed")
+        self.assertEqual(row_changed["label_type"], "İş Emri Etiketi")
+        self.assertEqual(preview_changed["summary"]["qty_changed"], 1)
