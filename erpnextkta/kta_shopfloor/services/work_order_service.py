@@ -5,6 +5,10 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, cint, flt, today
 
+from erpnextkta.kta_shopfloor.services.line_transfer_service import (
+    is_valid_production_warehouse,
+)
+
 DEFAULT_MANUFACTURING_LEAD_DAYS = 14
 
 
@@ -77,6 +81,11 @@ def check_work_order_material_availability(work_order) -> dict:
         other_warehouses_qty, other_warehouses = _get_other_warehouses_stock(
             d.item_code, company, warehouse
         )
+        sibling_line_warehouses = [
+            w
+            for w in other_warehouses
+            if is_valid_production_warehouse(w["warehouse"], warehouse)
+        ]
 
         if line_available_qty >= required_qty:
             availability_status = "available"
@@ -126,6 +135,8 @@ def check_work_order_material_availability(work_order) -> dict:
                 "availability_status": availability_status,
                 "other_warehouses_qty": other_warehouses_qty,
                 "other_warehouses": other_warehouses,
+                "sibling_line_warehouses": sibling_line_warehouses,
+                "has_sibling_line_stock": bool(sibling_line_warehouses),
                 "stock_uom": d.get("stock_uom") or "",
             }
         )

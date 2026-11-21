@@ -1,0 +1,23 @@
+{
+ "doctype": "Page",
+ "icon": "octicon octicon-sync",
+ "module": "kta_shopfloor",
+ "name": "line-replenishment-hub",
+ "page_name": "line-replenishment-hub",
+ "roles": [
+  {
+   "role": "Manufacturing Manager"
+  },
+  {
+   "role": "Manufacturing User"
+  },
+  {
+   "role": "Stock Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "standard": "Yes",
+ "title": "Line Replenishment Hub"
+}

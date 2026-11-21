@@ -85,7 +85,7 @@ SAP CO11N yaklaşımıyla tasarlanmış bağımsız üretim teyit ve stok tüket
 **Öne çıkan özellikler:**
 
 - [Shopfloor Hub (CO11N) Üretim Teyit Kılavuzu](kta_shopfloor_hub_kilavuzu.html) ⚡
-- **Hızlı Teyit Kokpiti (Vue 3 SPA):** Barkod okutarak anında operasyon yükleme, sağlam miktar bildirimi ve tek tıkla teyit.
+- **Çoklu Görünüm Üretim Kokpiti (Vue 3 SPA):** `Work Orders` (iş emri açma/uygunluk matrisi/serbest bırakma), `Operations` (hızlı barkodlu teyit), `Work Cards` (alt operasyon analitiği) ve `Line Transfers` (hatlar arası `150x ↔ 150x` LIFO stok aktarımı).
 - **Orantısal Hammadde Sarfiyatı (261 Backflush):** Ara operasyonlarda yalnızca operasyona bağlı hammaddelerin BOM oranına göre sarf edilmesi.
 - **Mamul Girişi (101 GR) & WIP Rollup:** Son operasyonda ara operasyon maliyetlerini mamule yansıtarak mamul ambarına devir alma.
 - **Son Teyit (Kalanı Kapat):** Fire veya eksik üretimde kalan reçete bakiyesini küsurat yuvarlamasız kapatma ve Job Card / Work Order tamamlama.
@@ -94,14 +94,16 @@ SAP CO11N yaklaşımıyla tasarlanmış bağımsız üretim teyit ve stok tüket
 **Dosya yapısı (örnek):**
 
 - `kta_shopfloor/`
-  - `doctype/kta_uretim_teyidi/` (Submittable Teyit Dokümanı)
+  - `doctype/kta_production_confirmation/` (Submittable Teyit Dokümanı)
   - `services/`
     - `confirmation_service.py` (Teyit Koordinatörü)
     - `backflush_service.py` (Reçete Sarfiyat & Mamul Girişi)
     - `reversal_service.py` (CORS İptal ve Ters Kayıt)
-  - `page/kta_co11n/` (Desk Sayfası)
+    - `line_transfer_service.py` (Hatlar Arası LIFO Transfer & Rezerve Koruması)
+    - `work_order_service.py` & `reservation_deficit_service.py`
+  - `page/shopfloor_hub/` & `page/line_replenishment_hub/` (Desk Sayfaları)
   - `api.py` (Whitelisted API Facade)
-- `public/kta-co11n/` (Vue 3 SPA Arayüzü)
+- `public/shopfloor-hub/` & `public/line-replenishment-hub/` (Vue 3 SPA Arayüzleri)
 
 </section>
 
@@ -114,6 +116,8 @@ KTA’nın depo, etiketleme ve lojistik modeli için geliştirilmiş kritik kıs
 **Öne çıkan özellikler:**
 
 - [KTA Stok ve Lojistik Kılavuzu](kta_stok_lojistik_kilavuzu.html) (Depo süreçleri, Etiketleme ve Karantina detayları) 📦
+- [Hat İkmal Kılavuzu](developer_guides/line_replenishment_guide.html) (Line Replenishment) 🚛
+- **Hat İkmal Sistemi (Line Replenishment):** Proaktif rezervasyon açığı tarama, yalnızca `110 HAMMADDE` yaprak raflarından tam koli/makara FIFO parti tahsisi ve mobil PDA ile barkodlu atomik transfer fişi üretimi (`150x ↔ 150x` hatlar arası transferler ise `Shopfloor Hub → Hatlar Arası Transfer` sekmesinden yürütülür).
 - **Akıllı Parti Bölme (Smart Batch Splitting):** Mal kabul ve depo içi işlemlerde (Repack/Manufacture) ürünleri paket miktarlarına göre anında böler ve Zebra yazıcılardan otomatik SUT etiketleri basar.
 - **GKK Transfer Kısıtı (Güvenlik Duvarı):** Kalite onayı almamış (GKK Bekleyen) partilerin `Stock Entry` ve `Delivery Note` ile transferini kesin bir dille engeller.
 - **Negatif Stok Kontrolü:** KTA'nın üretim modeline uygun olarak negatif stok girişlerine kontrollü izin verir ve standart ERPNext stok kurallarını genişletir.

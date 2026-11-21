@@ -92,7 +92,7 @@ KTA Enjeksiyon Kalibi,KTA Enjeksiyon Kalıbı
 Kalıp Adı,Kalıp Adı
 Mevcut Kalıp Adedi,Mevcut Kalıp Adedi
 Varsayılan Kalite Şablonu,Varsayılan Kalite Şablonu
-"Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.","Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı."
+Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.,Seçilen kalıp numarası ({0}) sistemde tanımlı değil veya devre dışı.
 KTA Production Confirmation,KTA Üretim Teyidi
 KTA Uretim Teyidi,KTA Üretim Teyidi
 CO11N Üretim Teyit Ekranı,CO11N Üretim Teyit Ekranı
@@ -101,7 +101,7 @@ CO11N Hızlı Üretim Teyidi,CO11N Hızlı Üretim Teyidi
 Yeni Okutma,Yeni Okutma
 Barkod veya İş Emri No Okutun…,Barkod veya İş Emri No Okutun…
 Teyit Başarıyla Tamamlandı,Teyit Başarıyla Tamamlandı
-"Teyit Başarıyla Kaydedildi: {0}","Teyit Başarıyla Kaydedildi: {0}"
+Teyit Başarıyla Kaydedildi: {0},Teyit Başarıyla Kaydedildi: {0}
 Teyit Belgesi,Teyit Belgesi
 Stok Fişi,Stok Fişi
 İlişkili Stok Fişi,İlişkili Stok Fişi
@@ -141,7 +141,7 @@ Sağlam Miktar (yield_qty) sıfırdan büyük olmalıdır.,Sağlam Miktar (yield
 Sağlam Miktar (Yield Qty) sıfırdan büyük olmalıdır.,Sağlam Miktar (Yield Qty) sıfırdan büyük olmalıdır.
 Üretim teyidi bulunamadı: {0},Üretim teyidi bulunamadı: {0}
 Üretim teyidi zaten iptal edilmiş: {0},Üretim teyidi zaten iptal edilmiş: {0}
-"Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0}","Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0}"
+Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0},Yalnızca onaylanmış (teslim edilmiş) teyitler iptal edilebilir: {0}
 Üretim teyidini iptal etme yetkiniz bulunmamaktadır.,Üretim teyidini iptal etme yetkiniz bulunmamaktadır.
 Aktif İş Emirleri,Aktif İş Emirleri
 İş Emirleri,İş Emirleri
@@ -338,18 +338,18 @@ Target quantity updated: {0},Hedef miktar güncellendi: {0}
 Only draft Work Orders can have their quantity changed: {0},Yalnızca taslak durumundaki İş Emirlerinin miktarı değiştirilebilir: {0}
 Work Order production target quantity updated: {0} -> {1}.,İş Emri üretim hedef miktarı {0} -> {1} olarak güncellendi.
 Hat İkmal Onayı (Üretim Deposu Stok Yetersiz),Hat İkmal Onayı (Üretim Deposu Stok Yetersiz)
-"Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.","Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz."
-"Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.","Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz."
+Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.,Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından ikmal transferi yaparak teyidi tamamlayabilirsiniz.
+Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.,Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hat transferi yapılamaz. Lütfen depo biriminden hat ikmali talep ediniz.
 Transfer Miktarı,Transfer Miktarı
 Kaynak Üretim Deposu,Kaynak Üretim Deposu
 Üretim depolarında stok yok,Üretim depolarında stok yok
 ⚡ Hatta Aktar ve Teyit Et,⚡ Hatta Aktar ve Teyit Et
 Aktarılıyor ve Teyit Ediliyor…,Aktarılıyor ve Teyit Ediliyor…
-"Hat İkmali Yapıldı: {0}","Hat İkmali Yapıldı: {0}"
-"Mevcut: {0} {1}","Mevcut: {0} {1}"
+Hat İkmali Yapıldı: {0},Hat İkmali Yapıldı: {0}
+Mevcut: {0} {1},Mevcut: {0} {1}
 Hat ikmali transferi gerçekleştirilemedi.,Hat ikmali transferi gerçekleştirilemedi.
 Hat ikmali transferi sırasında bir hata oluştu.,Hat ikmali transferi sırasında bir hata oluştu.
-"İş Emri: {0}","İş Emri: {0}"
+İş Emri: {0},İş Emri: {0}
 Work Cards,Çalışma Kartları
 Çalışma Kartları,Çalışma Kartları
 Alt Operasyon Analitiği ve Tüketim Mutabakatı,Alt Operasyon Analitiği ve Mutabakat
@@ -413,3 +413,517 @@ Operatörler,Operatörler
 Operators Who Consumed This Material,Bu Malzemeyi Tüketen Operatörler
 Consumption Share,Tüketim Payı
 Operators,Operatörler
+Line Replenishment Hub,Hat İkmal Kokpiti
+Line Replenishment Picking,Hat İkmal Toplama
+Line Replenishment Order,Hat İkmal Emri
+Smart Sourcing (WIP First),Akıllı Kaynak (Önce WIP)
+Direct Central Store,Doğrudan Ana Ambar
+Line Transfer,Hatlar Arası Dengeleme
+Central Warehouse,Ana Ambar
+Scan Deficits,Açıkları Tara
+Create Replenishment Order,Hat İkmal Emri Oluştur
+Complete Transfer,Transferi Tamamla
+Override to Central,Tümünü Ana Ambara Çevir
+Target Line Warehouse,Hedef Hat Deposu
+Deficit Qty,Net Açık Miktarı
+Picked Qty,Toplanan Miktar
+Tolerance Warning,Tolerans Uyarısı
+Barcode Scanner,Barkod Okuyucu
+Select Replenishment Order,İkmal Emri Seçin
+Hedef WIP Deposu,Hedef WIP Deposu
+Tedarik Stratejisi,Tedarik Stratejisi
+Açıkları Yenile,Açıkları Yenile
+Hedef Depo Seçimi Zorunlu,Hedef Depo Seçimi Zorunlu
+Hedef WIP Deposu Seçin,Hedef WIP Deposu Seçin
+Rezervasyon Açığı Bulunmamaktadır,Rezervasyon Açığı Bulunmamaktadır
+Açık Olan Hammaddeler,Açık Olan Hammaddeler
+Toplam Net Açık,Toplam Net Açık
+🔄 Hat İçi Dengeleme,🔄 Hat İçi Dengeleme
+📦 Ana Ambar Tedariki,📦 Ana Ambar Tedariki
+Ana Ambara Çevir,Ana Ambara Çevir
+Hat Transferi,Hat Transferi
+Kalem Seçilmedi,Kalem Seçilmedi
+Toplandı,Toplandı
+İhtiyaç,İhtiyaç
+Kaynak Depo,Kaynak Depo
+Parti (Batch),Parti (Batch)
+Belirtilmedi,Belirtilmedi
+Tolerans,Tolerans
+Toplanan Miktar:,Toplanan Miktar:
+Tolerans Aşıldı!,Tolerans Aşıldı!
+Transfer Tamamlandı:,Transfer Tamamlandı:
+Raf Lokasyonu,Raf Lokasyonu
+Shelf Location,Raf Lokasyonu
+Tam Koli Çıkışı,Tam Koli Çıkışı
+Full Batch Issue,Tam Koli Çıkışı
+Parti No,Parti No
+Batch No,Parti No
+Hat İkmal Emri raf ve parti tahsislerine göre başarıyla oluşturuldu: {0},Hat İkmal Emri raf ve parti tahsislerine göre başarıyla oluşturuldu: {0}
+Switch All to Central Warehouse,Tümünü Ana Ambara Çevir
+Tümünü Ana Ambara Çevir,Tümünü Ana Ambara Çevir
+Taslak İkmalde,Taslak İkmalde
+In Draft Replenishment,Taslak İkmalde
+Depoda Stok Yok (Seçilemez),Depoda Stok Yok (Seçilemez)
+Out of Stock (Not Selectable),Depoda Stok Yok (Seçilemez)
+Mükerrer Talep Engellendi,Mükerrer Talep Engellendi
+Duplicate Request Blocked,Mükerrer Talep Engellendi
+Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.,Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.
+None of the selected items have available stock in the warehouse or sibling lines.,Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.
+-- Sipariş Seçiniz --,-- Sipariş Seçiniz --
+Aktif İkmal Siparişi,Aktif İkmal Siparişi
+Ana Ambar,Ana Ambar
+Artır (+1),Artır (+1)
+Azalt (-1),Azalt (-1)
+Açık siparişler:,Açık siparişler:
+Açıklar Taranıyor...,Açıklar Taranıyor...
+Aşağıdaki kalemler için toplanan miktar %15 tolerans sınırını aşıyor: {0},Aşağıdaki kalemler için toplanan miktar %15 tolerans sınırını aşıyor: {0}
+Barkod Okut (PDA Scanner),Barkod Okut (PDA Scanner)
+Barkod eşleşmedi veya bu sipariş listesinde yok: {0},Barkod eşleşmedi veya bu sipariş listesinde yok: {0}
+Barkod sorgulanırken hata oluştu.,Barkod sorgulanırken hata oluştu.
+Belirtilmemiş,Belirtilmemiş
+Birim:,Birim:
+Bu siparişte toplanacak kalem bulunamadı.,Bu siparişte toplanacak kalem bulunamadı.
+Depodan Çıkacak Miktar,Depodan Çıkacak Miktar
+Diğer Depo...,Diğer Depo...
+Eşleşti: {0}{1},Eşleşti: {0}{1}
+Hammadde Kodu & Adı,Hammadde Kodu & Adı
+Hat Rezervasyon Açıkları ve Çekme İkmal Yönetimi,Hat Rezervasyon Açıkları ve Çekme İkmal Yönetimi
+Hat Stoğu,Hat Stoğu
+Hat rezervasyon açıkları taranırken bir hata oluştu.,Hat rezervasyon açıkları taranırken bir hata oluştu.
+Hat rezervasyonları ve ambar stok durumu sorgulanıyor.,Hat rezervasyonları ve ambar stok durumu sorgulanıyor.
+Hat İkmal Emri Oluştur,Hat İkmal Emri Oluştur
+Hat İkmal Emri Oluşturuldu,Hat İkmal Emri Oluşturuldu
+Hat İkmal Emri Oluşturuluyor...,Hat İkmal Emri Oluşturuluyor...
+Hat İkmal Emri başarıyla oluşturuldu: {0},Hat İkmal Emri başarıyla oluşturuldu: {0}
+Hat İkmal Toplama (PDA),Hat İkmal Toplama (PDA)
+Hedef,Hedef
+Hedef Depo Seçin,Hedef Depo Seçin
+Hedef WIP Ambarını Girin (örn. 1501 KESMELER - KTA):,Hedef WIP Ambarını Girin (örn. 1501 KESMELER - KTA):
+Hızlı Hat Seçimi:,Hızlı Hat Seçimi:
+Kaynak Depo / Raf,Kaynak Depo / Raf
+Kaynak Tipi,Kaynak Tipi
+Kodu Kopyala,Kodu Kopyala
+Kopyalandı: {0},Kopyalandı: {0}
+Kısmi Stok,Kısmi Stok
+Kısmi Taslak:,Kısmi Taslak:
+Lütfen hammadde rezervasyon açıklarını görüntülemek için yukarıdaki hızlı butonlardan veya diğer ambar seçeneğinden bir üretim hattı seçin.,Lütfen hammadde rezervasyon açıklarını görüntülemek için yukarıdaki hızlı butonlardan veya diğer ambar seçeneğinden bir üretim hattı seçin.
+Lütfen önce bir Hedef WIP Deposu seçin.,Lütfen önce bir Hedef WIP Deposu seçin.
+Lütfen önce bir ikmal siparişi seçiniz.,Lütfen önce bir ikmal siparişi seçiniz.
+Maks,Maks
+Malzeme Transferi Gerçekleştiriliyor...,Malzeme Transferi Gerçekleştiriliyor...
+Net Açık (Deficit),Net Açık (Deficit)
+Oluşturuluyor...,Oluşturuluyor...
+Parti,Parti
+Raf,Raf
+Seçilen hatta üretim emirleri için rezerve edilmiş tüm hammaddeler hat stoğunda mevcuttur veya bekleyen açık bulunmamaktadır.,Seçilen hatta üretim emirleri için rezerve edilmiş tüm hammaddeler hat stoğunda mevcuttur veya bekleyen açık bulunmamaktadır.
+Seçilen kalemler için Malzeme Transferi (Stock Entry) oluşturulsun mu?,Seçilen kalemler için Malzeme Transferi (Stock Entry) oluşturulsun mu?
+Sipariş Kalemleri Yükleniyor...,Sipariş Kalemleri Yükleniyor...
+Stok Yok,Stok Yok
+Strateji,Strateji
+Taranıyor...,Taranıyor...
+Tolerans Aşıldı! (+%15 Üzeri),Tolerans Aşıldı! (+%15 Üzeri)
+Toplama yapmak için yukarıdan açık bir sipariş seçin.,Toplama yapmak için yukarıdan açık bir sipariş seçin.
+Toplanan Miktar,Toplanan Miktar
+Transfer Tamamlandı: {0},Transfer Tamamlandı: {0}
+Transferi Tamamla,Transferi Tamamla
+Tüm kalemler toplanmalı ve miktarlar sıfırdan büyük olmalıdır: {0},Tüm kalemler toplanmalı ve miktarlar sıfırdan büyük olmalıdır: {0}
+Tüm kalemler toplanmalıdır,Tüm kalemler toplanmalıdır
+Tümünü Al,Tümünü Al
+Tümünü Seç / Kaldır,Tümünü Seç / Kaldır
+Uygula,Uygula
+{0} / {1} Kalem Toplandı,{0} / {1} Kalem Toplandı
+{0} adet seçilmemiş veya temin edilemeyen kalem hariç tutuldu,{0} adet seçilmemiş veya temin edilemeyen kalem hariç tutuldu
+"{0} hammadde seçildi, toplam {1} adet aktarılacak","{0} hammadde seçildi, toplam {1} adet aktarılacak"
+Ürün / SUT / Parti Barkodu Okutun...,Ürün / SUT / Parti Barkodu Okutun...
+İkmal Emri listesi güncellendi: {0},İkmal Emri listesi güncellendi: {0}
+İlerleme,İlerleme
+Cancelled,İptal Edildi
+KTA Line Replenishment Order,KTA Hat İkmal Emri
+KTA Line Replenishment Item,KTA Hat İkmal Kalemi
+Line Replenishment Item,Hat İkmal Kalemi
+Line Transfers,Hatlar Arası Transfer
+Hatlar Arası Transfer,Hatlar Arası Transfer
+Hatlar Arası Hızlı Transfer,Hatlar Arası Hızlı Transfer
+Hatlar Arası Transfer Yapıldı: {0},Hatlar Arası Transfer Yapıldı: {0}
+Hatlar Arası Transfer Tamamlandı: {0},Hatlar Arası Transfer Tamamlandı: {0}
+Hatlar Arası Transfer Başarıyla Tamamlandı,Hatlar Arası Transfer Başarıyla Tamamlandı
+Üretim Hatları Arası Serbest Stok ve Açık Karşılama Yönetimi,Üretim Hatları Arası Serbest Stok ve Açık Karşılama Yönetimi
+Ana Hammadde Ambarından Hatlara Çekme İkmal Yönetimi,Ana Hammadde Ambarından Hatlara Çekme İkmal Yönetimi
+Ana Ambar Raf / Parti,Ana Ambar Raf / Parti
+Açık Karşılama,Açık Karşılama
+Atıl Hat Stoğu,Atıl Hat Stoğu
+Manuel Transfer,Manuel Transfer
+Manuel Hat Transferi,Manuel Hat Transferi
+Hat Seçimi,Hat Seçimi
+Hedef Üretim Hattı,Hedef Üretim Hattı
+Kaynak Üretim Hattı,Kaynak Üretim Hattı
+Hedef Üretim Hattı Seçin,Hedef Üretim Hattı Seçin
+Kaynak Üretim Hattı Seçin,Kaynak Üretim Hattı Seçin
+Diğer Üretim Deposu...,Diğer Üretim Deposu...
+Üretim Deposu Seçin,Üretim Deposu Seçin
+Üretim Deposu Girin (örn. 1501 KESMELER - KTA):,Üretim Deposu Girin (örn. 1501 KESMELER - KTA):
+Hat Stoğu / Açık,Hat Stoğu / Açık
+Kaynak 150x Hat,Kaynak 150x Hat
+Hedef 150x Hat,Hedef 150x Hat
+Aktarılacak Miktar,Aktarılacak Miktar
+Gönderilecek Miktar,Gönderilecek Miktar
+Fiziksel / Rezerve / Boşta (Serbest),Fiziksel / Rezerve / Boşta (Serbest)
+Serbest / Fiziksel,Serbest / Fiziksel
+Serbestten Hazır,Serbestten Hazır
+Öncelik Kaydırma (Rezerve),Öncelik Kaydırma (Rezerve)
+Öncelik Kaydırma (Rezerve Stok Kullanımı) Onayı,Öncelik Kaydırma (Rezerve Stok Kullanımı) Onayı
+Onayla ve Transfer Et,Onayla ve Transfer Et
+Seçilenleri Hatta Aktar,Seçilenleri Hatta Aktar
+Seçilenleri Gönder,Seçilenleri Gönder
+⚡ Transferi Başlat,⚡ Transferi Başlat
+Kardeş Hattan Transfer Yap,Kardeş Hattan Transfer Yap
+Kaynak hattın rezerve stoğundan öncelik kaydırarak kullanmayı onaylıyorum,Kaynak hattın rezerve stoğundan öncelik kaydırarak kullanmayı onaylıyorum
+Kardeş Hatlardan Karşılanacak Açık Yok,Kardeş Hatlardan Karşılanacak Açık Yok
+Atıl Serbest Stok Bulunamadı,Atıl Serbest Stok Bulunamadı
+Hat Açıkları Taranıyor...,Hat Açıkları Taranıyor...
+Atıl Stoklar Taranıyor...,Atıl Stoklar Taranıyor...
+-- Hedef Hat Seçin --,-- Hedef Hat Seçin --
+-- Kaynak Hat Seçin --,-- Kaynak Hat Seçin --
+Açık,Açık
+Açık:,Açık:
+Hat:,Hat:
+Fiziksel,Fiziksel
+Rezerve,Rezerve
+Eklendi,Eklendi
+Geçersiz Miktar,Geçersiz Miktar
+Geçersiz miktar,Geçersiz Miktar
+Hat Deposu,Hat Deposu
+Kaynak Hat,Kaynak Hat
+Kaynak Hat Stok Listesi,Kaynak Hat Stok Listesi
+Malzeme,Malzeme
+Rezerve aşımı,Rezerve Aşımı
+Rezerve stok kullanılacak,Rezerve stok kullanılacak
+Satırı Kaldır,Satırı Kaldır
+Stok sınırı aşıldı veya geçersiz,Stok sınırı aşıldı veya geçersiz
+Transfer Edilecek Kalemler ({0}),Transfer Edilecek Kalemler ({0})
+Transfer Ediliyor...,Transfer Ediliyor...
+Transfer Modu,Transfer Modu
+Transfer Yapılıyor...,Transfer Yapılıyor...
+Transfer tamamlanamadı.,Transfer tamamlanamadı.
+Hat transfer listesi yüklenirken bir hata oluştu.,Hat transfer listesi yüklenirken bir hata oluştu.
+Hatlar arası transfer sırasında bir hata oluştu.,Hatlar arası transfer sırasında bir hata oluştu.
+Kaynak depodaki malzemeler yüklenemedi.,Kaynak depodaki malzemeler yüklenemedi.
+Kaynak hatta stoklu hammadde kodu veya adı ara...,Kaynak hatta stoklu hammadde kodu veya adı ara...
+Gösterilecek stoklu malzeme bulunamadı.,Gösterilecek stoklu malzeme bulunamadı.
+Hatta boşta bekleyen (serbest) stokları diğer hatlara göndermek için yukarıdan bir kaynak hat seçin.,Hatta boşta bekleyen (serbest) stokları diğer hatlara göndermek için yukarıdan bir kaynak hat seçin.
+Kardeş üretim hatlarından karşılanabilecek hammadde açıklarını görmek için yukarıdan bir hedef hat seçin.,Kardeş üretim hatlarından karşılanabilecek hammadde açıklarını görmek için yukarıdan bir hedef hat seçin.
+Seçilen hatta bekleyen üretim açığı bulunmuyor veya diğer üretim hatlarında kullanılabilir stok mevcut değil.,Seçilen hatta bekleyen üretim açığı bulunmuyor veya diğer üretim hatlarında kullanılabilir stok mevcut değil.
+Seçilen hattaki rezerve dışı serbest stoklar analiz ediliyor.,Seçilen hattaki rezerve dışı serbest stoklar analiz ediliyor.
+Üretim hatlarındaki serbest ve rezerve stoklar kontrol ediliyor.,Üretim hatlarındaki serbest ve rezerve stoklar kontrol ediliyor.
+Bu üretim hattında iş emri rezervasyonu dışında boşta bekleyen hammadde bulunmamaktadır.,Bu üretim hattında iş emri rezervasyonu dışında boşta bekleyen hammadde bulunmamaktadır.
+Aşağıdaki kalemlerde istenen transfer miktarı kaynak hattaki serbest (rezerve dışı) stoğu aşmaktadır. Onaylarsanız diğer iş emirlerine rezerve edilmiş stoktan öncelik kaydırılarak transfer yapılacaktır.,Aşağıdaki kalemlerde istenen transfer miktarı kaynak hattaki serbest (rezerve dışı) stoğu aşmaktadır. Onaylarsanız diğer iş emirlerine rezerve edilmiş stoktan öncelik kaydırılarak transfer yapılacaktır.
+Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hatlar arası transfer yapılamaz. Lütfen depo biriminden hatlar arası transfer veya ambar ikmali talep ediniz.,Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hatlar arası transfer yapılamaz. Lütfen depo biriminden hatlar arası transfer veya ambar ikmali talep ediniz.
+Seçili kaynak hatlarda serbest stok yetersiz; transfer için başka iş emirlerine rezerve edilmiş stoktan öncelik kaydırılacak.,Seçili kaynak hatlarda serbest stok yetersiz; transfer için başka iş emirlerine rezerve edilmiş stoktan öncelik kaydırılacak.
+Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından hatlar arası transfer yaparak teyidi tamamlayabilirsiniz.,Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından hatlar arası transfer yaparak teyidi tamamlayabilirsiniz.
+Üretim hatları arasında serbest veya onaylı stok aktarımı,Üretim hatları arasında serbest veya onaylı stok aktarımı
+Seçili satırlarda geçerli bir hedef hat ve miktar belirtin,Seçili satırlarda geçerli bir hedef hat ve miktar belirtin
+Seçili satırlarda stok sınırını aşan veya geçersiz miktar var,Seçili satırlarda stok sınırını aşan veya geçersiz miktar var
+"{0} kalem seçildi, toplam {1} miktar aktarılacak","{0} kalem seçildi, toplam {1} miktar aktarılacak"
+"{0} kalem seçildi, toplam {1} miktar gönderilecek","{0} kalem seçildi, toplam {1} miktar gönderilecek"
+{0} kalemde rezerve stok kullanılacak,{0} kalemde rezerve stok kullanılacak
+Önerilen Açık:,Önerilen Açık:
+Geçerli bir hedef depo zorunludur: {0},Geçerli bir hedef depo zorunludur: {0}
+Geçerli bir kaynak depo zorunludur: {0},Geçerli bir kaynak depo zorunludur: {0}
+Geçerli bir malzeme kodu zorunludur: {0},Geçerli bir malzeme kodu zorunludur: {0}
+Geçerli bir üretim/hat deposu seçilmelidir (hammadde veya grup depoları seçilemez): {0},Geçerli bir üretim/hat deposu seçilmelidir (hammadde veya grup depoları seçilemez): {0}
+Geçerli bir İş Emri zorunludur: {0},Geçerli bir İş Emri zorunludur: {0}
+Hammadde veya grup depolarına hat transferi yapılamaz. Hedef yalnızca geçerli bir üretim deposu olabilir: {0},Hammadde veya grup depolarına hat transferi yapılamaz. Hedef yalnızca geçerli bir üretim deposu olabilir: {0}
+Hammadde veya grup depolarından hat transferi yapılamaz. Kaynak yalnızca geçerli bir üretim deposu olabilir: {0},Hammadde veya grup depolarından hat transferi yapılamaz. Kaynak yalnızca geçerli bir üretim deposu olabilir: {0}
+Hat transferi oluşturma yetkiniz bulunmamaktadır.,Hat transferi oluşturma yetkiniz bulunmamaktadır.
+Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0},Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0}
+Hatlar Arası Transfer (Line Transfer),Hatlar Arası Transfer (Line Transfer)
+Kaynak depo ({0}) ve hedef depo ({1}) aynı şirkete ait olmalıdır.,Kaynak depo ({0}) ve hedef depo ({1}) aynı şirkete ait olmalıdır.
+Kaynak depo ve hedef depo aynı olamaz: {0},Kaynak depo ve hedef depo aynı olamaz: {0}
+"Kaynak depoda ({0}) {1} için yeterli geçerli parti stoğu bulunamadı. Mevcut: {2}, İstenen: {3}","Kaynak depoda ({0}) {1} için yeterli geçerli parti stoğu bulunamadı. Mevcut: {2}, İstenen: {3}"
+"Kaynak depoda ({0}) {1} için yeterli stok yok. Mevcut: {2}, İstenen: {3}","Kaynak depoda ({0}) {1} için yeterli stok yok. Mevcut: {2}, İstenen: {3}"
+Kaynak depoda ({0}) {1} kaleminin serbest stoğu ({2}) yetersiz; {3} miktarında başka iş emirlerine rezerve stok kullanılacak. Devam etmek için rezerve stok kullanımını onaylayın.,Kaynak depoda ({0}) {1} kaleminin serbest stoğu ({2}) yetersiz; {3} miktarında başka iş emirlerine rezerve stok kullanılacak. Devam etmek için rezerve stok kullanımını onaylayın.
+Transfer edilecek geçerli malzeme bulunamadı.,Transfer edilecek geçerli malzeme bulunamadı.
+Transfer edilecek malzeme listesi boş olamaz.,Transfer edilecek malzeme listesi boş olamaz.
+Transfer miktarı sıfırdan büyük olmalıdır.,Transfer miktarı sıfırdan büyük olmalıdır.
+{0} numaralı hat transferi başarıyla tamamlandı.,{0} numaralı hat transferi başarıyla tamamlandı.
+"""{0}"" alternatifi iş emrine başarıyla atandı.","""{0}"" alternatifi iş emrine başarıyla atandı."
+"""{0}"" numaralı teyit belgesini ve ilişkili stok hareketlerini ters kayıt (storno) ile iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.","""{0}"" numaralı teyit belgesini ve ilişkili stok hareketlerini ters kayıt (storno) ile iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+"""{0}"" satırındaki muadil hammadde yerine orijinal ""{1}"" koduna dönmek istediğinize emin misiniz?","""{0}"" satırındaki muadil hammadde yerine orijinal ""{1}"" koduna dönmek istediğinize emin misiniz?"
+'{0}' kalemi '{1}' için onaylı bir alternatif değildir.,'{0}' kalemi '{1}' için onaylı bir alternatif değildir.
+Alternatif Kodu & Adı,Alternatif Kodu & Adı
+Alternatif atanırken bir hata oluştu.,Alternatif atanırken bir hata oluştu.
+Alternatifler yüklenirken bir hata oluştu.,Alternatifler yüklenirken bir hata oluştu.
+Eylem,Eylem
+Geri Yükleniyor…,Geri Yükleniyor…
+Grup ambarı hedef WIP deposu olarak seçilemez: {0},Grup ambarı hedef WIP deposu olarak seçilemez: {0}
+Grup ambarı hedef ambar olarak seçilemez: {0},Grup ambarı hedef ambar olarak seçilemez: {0}
+Hedef WIP deposu seçimi zorunludur.,Hedef WIP deposu seçimi zorunludur.
+Hedef ambar (Target Warehouse) seçimi zorunludur.,Hedef ambar (Target Warehouse) seçimi zorunludur.
+Hedef miktar güncellenirken bir hata oluştu.,Hedef miktar güncellenirken bir hata oluştu.
+Kalem {0} ikmal siparişinde bulunamadı.,Kalem {0} ikmal siparişinde bulunamadı.
+Kalem {0} için fazla toplama izin verilen %15 toleransı aşmaktadır.,Kalem {0} için fazla toplama izin verilen %15 toleransı aşmaktadır.
+Kart,Kart
+Kaynak ambar {0} grup ambarıdır ve altında yaprak ambar bulunamadı.,Kaynak ambar {0} grup ambarıdır ve altında yaprak ambar bulunamadı.
+Malzeme Adı,Malzeme Adı
+Malzeme Kodu,Malzeme Kodu
+Malzeme kontrolü sırasında hata oluştu.,Malzeme kontrolü sırasında hata oluştu.
+Mevcut Kalem:,Mevcut Kalem:
+Muadil,Muadil
+Muadil Seç,Muadil Seç
+Muadili Değiştir,Muadili Değiştir
+Onaylı Muadil Seç,Onaylı Muadil Seç
+Onaylı Muadili İncele / Seç,Onaylı Muadili İncele / Seç
+Operatör Dağılımını Gizle,Operatör Dağılımını Gizle
+Operatör Dağılımını Göster,Operatör Dağılımını Göster
+Orijinal hammaddeye dönülürken bir hata oluştu.,Orijinal hammaddeye dönülürken bir hata oluştu.
+Orijinal reçete hammaddesi ({0}) geri yüklendi.,Orijinal reçete hammaddesi ({0}) geri yüklendi.
+Orijinal: {0},Orijinal: {0}
+Sadece Taslak (Draft) durumdaki siparişlerin kaynak ambarı değiştirilebilir.,Sadece Taslak (Draft) durumdaki siparişlerin kaynak ambarı değiştirilebilir.
+Satır #{0}: '{1}' hammaddesi yerine alternatif '{2}' atandı.,Satır #{0}: '{1}' hammaddesi yerine alternatif '{2}' atandı.
+Satır #{0}: Alternatif '{1}' iptal edilerek orijinal '{2}' geri yüklendi.,Satır #{0}: Alternatif '{1}' iptal edilerek orijinal '{2}' geri yüklendi.
+Satırda kayıtlı orijinal hammadde bulunamadı.,Satırda kayıtlı orijinal hammadde bulunamadı.
+Seçiliyor…,Seçiliyor…
+Sipariş numarası (Order Name) zorunludur.,Sipariş numarası (Order Name) zorunludur.
+"Sipariş {0} zaten {1} durumunda, işlem yapılamaz.","Sipariş {0} zaten {1} durumunda, işlem yapılamaz."
+Ters Kayıt (Storno) ile Bu Teyidi İptal Et,Ters Kayıt (Storno) ile Bu Teyidi İptal Et
+Tüketilen Miktar,Tüketilen Miktar
+Tüketim veya transfer yapılmış satır değiştirilemez.,Tüketim veya transfer yapılmış satır değiştirilemez.
+Tüketim veya transfer yapılmış satır geri yüklenemez.,Tüketim veya transfer yapılmış satır geri yüklenemez.
+Yalnızca taslak iş emirlerinde hammadde alternatifi değiştirilebilir.,Yalnızca taslak iş emirlerinde hammadde alternatifi değiştirilebilir.
+Yalnızca taslak iş emirlerinde orijinal kalem geri yüklenebilir.,Yalnızca taslak iş emirlerinde orijinal kalem geri yüklenebilir.
+dk,dk
+Çift Yönlü Muadil,Çift Yönlü Muadil
+İkmal kalemleri (Items) boş olamaz.,İkmal kalemleri (Items) boş olamaz.
+İkmal listesinde açık miktarı (deficit_qty > 0) olan en az bir kalem bulunmalıdır.,İkmal listesinde açık miktarı (deficit_qty > 0) olan en az bir kalem bulunmalıdır.
+İş Emri satırı bulunamadı: {0},İş Emri satırı bulunamadı: {0}
+Ara,Ara
+Ekle,Ekle
+Gönderiliyor...,Gönderiliyor...
+Hammadde,Hammadde
+Kart Sayısı,Kart Sayısı
+Kaydet,Kaydet
+Operatör,Operatör
+Operatör Adı,Operatör Adı
+Yükleniyor...,Yükleniyor...
+İstenen,İstenen
+Çalışıyor,Çalışıyor
+Duruşta,Duruşta
+Bitmiş,Bitmiş
+Stopped,Durduruldu
+Closed,Kapatıldı
+Target Warehouse is mandatory.,Hedef Ambar zorunludur.
+Order Details,Sipariş Detayları
+Total Deficit Qty,Toplam Açık Miktar
+Total Picked Qty,Toplam Toplanan Miktar
+Items to Replenish,İkmal Edilecek Kalemler
+Replenishment Items,İkmal Kalemleri
+Shelf & Batch Allocation,Raf ve Parti Tahsisi
+Line Actual Qty,Hat Fiili Miktarı
+Suggested Source Warehouse,Önerilen Kaynak Ambar
+Suggested Batch No,Önerilen Parti No
+Picked Source Warehouse,Toplanan Kaynak Ambar
+Picked Batch No,Toplanan Parti No
+Is Picked,Toplandı mı
+Quantities & Transfer,Miktarlar ve Transfer
+Milestone Confirmation,Kilometre Taşı Teyidi
+Genel Bilgiler,Genel Bilgiler
+Saat,Saat
+Teyit Eden,Teyit Eden
+Üretim Miktarı ve Sarfiyat,Üretim Miktarı ve Sarfiyat
+Serbest Stok,Serbest Stok
+Talep Edilen,Talep Edilen
+Malzeme Ara,Malzeme Ara
+Return from Production Supply,Üretim Tedarik Alanından İade
+Package Split,Koli Bölme
+Package Split allows only one item per Stock Entry.,Koli Bölme hareketi stok belgesi başına yalnızca bir ürün destekler.
+Benzersiz 7 haneli lot ön eki üretilemedi.,Benzersiz 7 haneli lot ön eki üretilemedi.
+Lot {0} için maksimum koli soneki (9999) aşıldı.,Lot {0} için maksimum koli soneki (9999) aşıldı.
+"Ürün, kaynak depo ve hedef depo zorunludur.","Ürün, kaynak depo ve hedef depo zorunludur."
+Bölme miktarları boş olamaz ve tüm değerler sıfırdan büyük olmalıdır.,Bölme miktarları boş olamaz ve tüm değerler sıfırdan büyük olmalıdır.
+"Kaynak depoda yeterli stok yok. Mevcut: {0}, İstenen: {1}","Kaynak depoda yeterli stok yok. Mevcut: {0}, İstenen: {1}"
+Depo Grubu zorunludur,Depo Grubu zorunludur
+Şirket zorunludur,Şirket zorunludur
+Arkaplan görevi sıraya alındı. Tamamlandığında bildirim alacaksınız.,Arkaplan görevi sıraya alındı. Tamamlandığında bildirim alacaksınız.
+Seçilen depo bir grup olmalıdır,Seçilen depo bir grup olmalıdır
+Bu depo grubunda stoğu olan ürün bulunamadı,Bu depo grubunda stoğu olan ürün bulunamadı
+Toplu Stok Uzlaştırması Tamamlandı,Toplu Stok Uzlaştırması Tamamlandı
+Lütfen en az bir satır seçin.,Lütfen en az bir satır seçin.
+Seçilen satır bulunamadı: {0},Seçilen satır bulunamadı: {0}
+Seçilen ürün/depo satırı bulunamadı: {0} ({1}),Seçilen ürün/depo satırı bulunamadı: {0} ({1})
+Tüm kutu miktarları sıfırdan büyük olmalıdır.,Tüm kutu miktarları sıfırdan büyük olmalıdır.
+Kutu kırılım toplamı ({0}) satır miktarı ({1}) ile eşleşmiyor.,Kutu kırılım toplamı ({0}) satır miktarı ({1}) ile eşleşmiyor.
+Yalnızca Taslak (Draft) sayım belgeleri bu işlemle onaylanabilir.,Yalnızca Taslak (Draft) sayım belgeleri bu işlemle onaylanabilir.
+Seçili satır miktarı sıfırdan büyük olmalıdır.,Seçili satır miktarı sıfırdan büyük olmalıdır.
+Bu işlem yalnızca onaylanmış (Submitted) sayım belgeleri için kullanılabilir.,Bu işlem yalnızca onaylanmış (Submitted) sayım belgeleri için kullanılabilir.
+Parti numarası olmayan satır için etiketleme/bölme yapılamaz: {0},Parti numarası olmayan satır için etiketleme/bölme yapılamaz: {0}
+Sayım sonrası koli bölme ({0}),Sayım sonrası koli bölme ({0})
+Sayım sonrası standart koli dönüştürme ({0}),Sayım sonrası standart koli dönüştürme ({0})
+Stok Uzlaştırma Panosu,Stok Uzlaştırma Panosu
+Ürün Kodu,Ürün Kodu
+Boş Stokları Yoksay,Boş Stokları Yoksay
+Ürünleri Getir,Ürünleri Getir
+Güncelle,Güncelle
+Sayım ve Etiket Merkezinde Aç,Sayım ve Etiket Merkezinde Aç
+Sayım belgeleri yüklenemedi.,Sayım belgeleri yüklenemedi.
+Belge etiket önizlemesi alınamadı.,Belge etiket önizlemesi alınamadı.
+"{0} etiket işlendi, {1} baskı kuyruğa alındı.","{0} etiket işlendi, {1} baskı kuyruğa alındı."
+Etiketleme işlemi sırasında bir hata oluştu.,Etiketleme işlemi sırasında bir hata oluştu.
+Toplu sayım oluşturma arka plan görevi sıraya alındı.,Toplu sayım oluşturma arka plan görevi sıraya alındı.
+KTA Sayım ve Etiket Merkezi,KTA Sayım ve Etiket Merkezi
+Canlı,Canlı
+Çevrimdışı,Çevrimdışı
+Sayım Operasyonları & Etiketleme,Sayım Operasyonları & Etiketleme
+Fark & Anomali Analizi,Fark & Anomali Analizi
+Toplu Sayım Oluştur,Toplu Sayım Oluştur
+Etiketleme Tamamlandı:,Etiketleme Tamamlandı:
+{0} etiket oluşturuldu/güncellendi · {1} baskı Zebra kuyruğuna eklendi.,{0} etiket oluşturuldu/güncellendi · {1} baskı Zebra kuyruğuna eklendi.
+Oluşan Stok Fişleri:,Oluşan Stok Fişleri:
+Depo grupları yüklenemedi.,Depo grupları yüklenemedi.
+Şirket listesi yüklenemedi.,Şirket listesi yüklenemedi.
+"Lütfen şirket, depo grubu ve tarih alanlarını doldurun.","Lütfen şirket, depo grubu ve tarih alanlarını doldurun."
+Toplu sayım belgeleri kuyruğa alınırken bir hata oluştu.,Toplu sayım belgeleri kuyruğa alınırken bir hata oluştu.
+Depo Grubundan Toplu Sayım Oluştur,Depo Grubundan Toplu Sayım Oluştur
+Seçilen depo grubundaki tüm alt depolar için taslak sayım belgesi oluşturulur.,Seçilen depo grubundaki tüm alt depolar için taslak sayım belgesi oluşturulur.
+Şirket,Şirket
+-- Şirket Seçin --,-- Şirket Seçin --
+Depo Grubu,Depo Grubu
+Depo grubu adıyla filtrele...,Depo grubu adıyla filtrele...
+-- Depo Grubu Seçin --,-- Depo Grubu Seçin --
+Sayım Tarihi,Sayım Tarihi
+Sayım Saati,Sayım Saati
+⚡ Toplu Sayım Başlat,⚡ Toplu Sayım Başlat
+Sayım Belgeleri,Sayım Belgeleri
+Belgeleri Yenile,Belgeleri Yenile
+Belge No veya Depo Ara...,Belge No veya Depo Ara...
+Sayım belgeleri yükleniyor...,Sayım belgeleri yükleniyor...
+Eşleşen sayım belgesi bulunamadı.,Eşleşen sayım belgesi bulunamadı.
+Onaylı,Onaylı
+Çoklu Depo,Çoklu Depo
+Uyumlu,Uyumlu
+Miktar Değişti,Miktar Değişti
+Etiket Eksik,Etiket Eksik
+LEGACY / Partisiz,LEGACY / Partisiz
+Sayım Belgesi Seçin,Sayım Belgesi Seçin
+Etiket sağlığını incelemek ve toplu barkod basımı yapmak için soldaki listeden bir sayım belgesi seçin.,Etiket sağlığını incelemek ve toplu barkod basımı yapmak için soldaki listeden bir sayım belgesi seçin.
+Etiket Önizlemesi Yükleniyor...,Etiket Önizlemesi Yükleniyor...
+Toplam,Toplam
+Değişen,Değişen
+Fiziksel Kutu Esas,Fiziksel Kutu Esas
+Sistem Partisi Esas,Sistem Partisi Esas
+Pozitif Stok Kalemi Bulunamadı,Pozitif Stok Kalemi Bulunamadı
+Bu sayım belgesinde miktarı sıfırdan büyük kalem yer almıyor.,Bu sayım belgesinde miktarı sıfırdan büyük kalem yer almıyor.
+Malzeme & Depo,Malzeme & Depo
+Parti & Etiket Durumu,Parti & Etiket Durumu
+Sistem / Etiket Miktarı,Sistem / Etiket Miktarı
+Kutu Kırılımı,Kutu Kırılımı
+Partisiz,Partisiz
+Standart Koliye Çevir,Standart Koliye Çevir
+Etiket,Etiket
+Kutu Böl,Kutu Böl
+Kalan Fark,Kalan Fark
+Etiketleri Zebra Yazıcıya Gönder,Etiketleri Zebra Yazıcıya Gönder
+{0} satır seçili · {1} etiket üretilecek,{0} satır seçili · {1} etiket üretilecek
+Seçili satırlarda kutu kırılım toplamı sistem miktarıyla eşleşmiyor,Seçili satırlarda kutu kırılım toplamı sistem miktarıyla eşleşmiyor
+İşleniyor...,İşleniyor...
+Onayla ve Etiketleri Bas,Onayla ve Etiketleri Bas
+Etiketleri Güncelle ve Bas,Etiketleri Güncelle ve Bas
+Yenilendi,Yenilendi
+CSV dışa aktarıldı,CSV dışa aktarıldı
+Ürün mevcut listede bulunamadı: {0},Ürün mevcut listede bulunamadı: {0}
+Son güncelleme: {0},Son güncelleme: {0}
+CSV Dışa Aktar,CSV Dışa Aktar
+Yıl,Yıl
+Eşik (Mutlak Fark),Eşik (Mutlak Fark)
+Yön,Yön
+"Ürün kodu, adı veya depo...","Ürün kodu, adı veya depo..."
+Etkilenen Ürünler,Etkilenen Ürünler
+Filtrelenmiş görünüm,Filtrelenmiş görünüm
+Depolar,Depolar
+Hareket gören,Hareket gören
+Belge (Ürün Başı Maks),Belge (Ürün Başı Maks)
+En yüksek sıklık,En yüksek sıklık
+Toplam +,Toplam +
+Artı farklar toplamı,Artı farklar toplamı
+Toplam −,Toplam −
+Eksi farklar toplamı,Eksi farklar toplamı
+Net,Net
+İlerleme %,İlerleme %
+Taslak: {0} • Onaylı: {1},Taslak: {0} • Onaylı: {1}
+Açık: %{0},Açık: %{0}
+Anomaliler,Anomaliler
+Otomatik Kural Analizi,Otomatik Kural Analizi
+Skor: {0},Skor: {0}
+Mevcut filtreler için anomali tespit edilmedi.,Mevcut filtreler için anomali tespit edilmedi.
+En Yüksek Riskler,En Yüksek Riskler
+{0} belge • {1} depo,{0} belge • {1} depo
+Mevcut filtreler için kayıt yok.,Mevcut filtreler için kayıt yok.
+Ürünler,Ürünler
+{0} satır,{0} satır
+Ürün Adı,Ürün Adı
+Belgeler,Belgeler
+Veri bulunamadı.,Veri bulunamadı.
+Risk,Risk
+Depo Dağılımı,Depo Dağılımı
+Depo verisi bulunamadı.,Depo verisi bulunamadı.
+Belge,Belge
+Fark,Fark
+Belge bulunamadı.,Belge bulunamadı.
+Depolar arası zıt yön,Depolar arası zıt yön
+{0} depolar arasında hem + hem − fark gösteriyor.,{0} depolar arasında hem + hem − fark gösteriyor.
+Tek depoda toplandı,Tek depoda toplandı
+"Hareketin %{0} kadarı ""{1}"" deposundan ({2}).","Hareketin %{0} kadarı ""{1}"" deposundan ({2})."
+Sık değişiklik,Sık değişiklik
+{0} kalemi {1} belgede yer alıyor (yüksek denetim riski).,{0} kalemi {1} belgede yer alıyor (yüksek denetim riski).
+Gidiş-geliş hareketi,Gidiş-geliş hareketi
+Toplam hareket {0} ancak net {1} (oran %{2}).,Toplam hareket {0} ancak net {1} (oran %{2}).
+Tek belge sonuca hakim,Tek belge sonuca hakim
+{0} belgesi ürün hareketinin %{1} kadarını oluşturuyor ({2}).,{0} belgesi ürün hareketinin %{1} kadarını oluşturuyor ({2}).
+Belgeler arası gidiş-geliş,Belgeler arası gidiş-geliş
+Toplam belge hareketi {0} ancak net {1} (oran %{2}).,Toplam belge hareketi {0} ancak net {1} (oran %{2}).
+Etiket Miktarı,Etiket Miktarı
+Depo iadesi oluşturma yetkiniz bulunmamaktadır.,Depo iadesi oluşturma yetkiniz bulunmamaktadır.
+Hatlar Arası Koli Bölme Transferi: {0} -> {1},Hatlar Arası Koli Bölme Transferi: {0} -> {1}
+İade miktarı sıfırdan büyük olmalıdır.,İade miktarı sıfırdan büyük olmalıdır.
+Geçerli bir kaynak üretim deposu zorunludur: {0},Geçerli bir kaynak üretim deposu zorunludur: {0}
+Depo iadesi yalnızca geçerli üretim hatlarından yapılabilir: {0},Depo iadesi yalnızca geçerli üretim hatlarından yapılabilir: {0}
+Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0},Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0}
+Parti takipsiz kalem için parti seçilemez: {0},Parti takipsiz kalem için parti seçilemez: {0}
+İade edilecek geçerli malzeme bulunamadı.,İade edilecek geçerli malzeme bulunamadı.
+Geçerli ve aktif bir parti seçilmelidir: {0},Geçerli ve aktif bir parti seçilmelidir: {0}
+Seçilen partinin son kullanma tarihi dolmuştur: {0},Seçilen partinin son kullanma tarihi dolmuştur: {0}
+"Seçilen parti ({0}) için kaynak depoda ({1}) yeterli bakiye yok. Mevcut: {2}, İstenen: {3}","Seçilen parti ({0}) için kaynak depoda ({1}) yeterli bakiye yok. Mevcut: {2}, İstenen: {3}"
+Üretim Tedarik Alanından Koli Bölme İadesi: {0} -> {1},Üretim Tedarik Alanından Koli Bölme İadesi: {0} -> {1}
+Üretim Tedarik Alanından Depo İadesi (150x -> 110),Üretim Tedarik Alanından Depo İadesi (150x -> 110)
+{0} numaralı depo iadesi başarıyla tamamlandı.,{0} numaralı depo iadesi başarıyla tamamlandı.
+110 hammadde iade rafları yüklenemedi.,110 hammadde iade rafları yüklenemedi.
+Seçili parti bakiyesi aşıldı ({0}),Seçili parti bakiyesi aşıldı ({0})
+Hat stoğu sınırı aşıldı,Hat stoğu sınırı aşıldı
+Üretim Tedarik Alanından Depoya İade (110),Üretim Tedarik Alanından Depoya İade (110)
+Kaynak Üretim Hattı: {0},Kaynak Üretim Hattı: {0}
+Tam kalan standart kutular Return from Production Supply fişiyle iade edilir; kısmi bölünen veya LEGACY partiler otomatik Package Split ile 110 depoya etiketlenerek aktarılır.,Tam kalan standart kutular Return from Production Supply fişiyle iade edilir; kısmi bölünen veya LEGACY partiler otomatik Package Split ile 110 depoya etiketlenerek aktarılır.
+Hedef 110 Hammadde Rafı,Hedef 110 Hammadde Rafı
+-- Hedef 110 Rafı Seçin --,-- Hedef 110 Rafı Seçin --
+Açıklama (Opsiyonel),Açıklama (Opsiyonel)
+İade nedeni veya not ekleyin...,İade nedeni veya not ekleyin...
+İade edilecek kalem bulunmuyor.,İade edilecek kalem bulunmuyor.
+Kaynak Kutu / Parti,Kaynak Kutu / Parti
+İade Miktarı,İade Miktarı
+Otomatik (LIFO — Yeni Açılan İlk),Otomatik (LIFO — Yeni Açılan İlk)
+İade İşleniyor...,İade İşleniyor...
+↩️ Depoya İade Et,↩️ Depoya İade Et
+Hat Açığı,Hat Açığı
+Yeni Koliye Böl ve Etiket Bas,Yeni Koliye Böl ve Etiket Bas
+Hat transferi için seçili satırlarda hedef hat belirtin,Hat transferi için seçili satırlarda hedef hat belirtin
+Depoya İade (110),Depoya İade (110)
+Depoya iade işlemi başarıyla tamamlandı.,Depoya iade işlemi başarıyla tamamlandı.
+Depoya iade işlemi tamamlanamadı.,Depoya iade işlemi tamamlanamadı.
+Depoya iade işlemi sırasında bir hata oluştu.,Depoya iade işlemi sırasında bir hata oluştu.
+Depoya İade İşlemi Tamamlandı,Depoya İade İşlemi Tamamlandı
+{0} adet etiket yazdırıldı / kuyruğa alındı.,{0} adet etiket yazdırıldı / kuyruğa alındı.
+Taslakta Kaydet & Etiket Bas,Taslakta Kaydet & Etiket Bas
+Sayımı Onayla ve Tamamla,Sayımı Onayla ve Tamamla
+"Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı.","Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı."
+Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.
+İş Emri,İş Emri
+İş Emri Etiketi,İş Emri Etiketi
+Depo Giriş Etiketi,Depo Giriş Etiketi
