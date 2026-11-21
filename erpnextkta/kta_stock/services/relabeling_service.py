@@ -345,7 +345,7 @@ def upsert_box_label(
     quality_ref: str | None = None,
     supplier_delivery_note: str | None = None,
     fallback_ref: str = "SAYIM",
-) -> str:
+) -> str | int:
     """Create or update the single Depo Giriş Etiketi record for a box batch, preserving PR refs."""
     meta = resolve_batch_label_metadata(item_code, batch_no, fallback_ref=fallback_ref)
     eff_quality_ref = quality_ref or meta.get("quality_ref") or fallback_ref
