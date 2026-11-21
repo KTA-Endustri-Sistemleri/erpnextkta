@@ -1428,3 +1428,139 @@ Unit Rate,Unit Rate
 Unassigned Operation,Unassigned Operation
 Show Operation & Material Breakdown,Show Operation & Material Breakdown
 WIP Return / Adjustment,WIP Return / Adjustment
+Line Replenishment Hub,Line Replenishment Hub
+Line Replenishment Picking,Line Replenishment Picking
+Line Replenishment Order,Line Replenishment Order
+Smart Sourcing (WIP First),Smart Sourcing (WIP First)
+Direct Central Store,Direct Central Store
+Line Transfer,Line Transfer
+Central Warehouse,Central Warehouse
+Scan Deficits,Scan Deficits
+Create Replenishment Order,Create Replenishment Order
+Complete Transfer,Complete Transfer
+Override to Central,Override to Central
+Target Line Warehouse,Target Line Warehouse
+Deficit Qty,Deficit Qty
+Picked Qty,Picked Qty
+Tolerance Warning,Tolerance Warning
+Barcode Scanner,Barcode Scanner
+Select Replenishment Order,Select Replenishment Order
+Hat İkmal Kokpiti,Line Replenishment Hub
+Hat İkmal Toplama,Line Replenishment Picking
+Hat İkmal Emri,Line Replenishment Order
+Akıllı Kaynak (Önce WIP),Smart Sourcing (WIP First)
+Doğrudan Ana Ambar,Direct Central Store
+Hatlar Arası Dengeleme,Line Transfer
+Açıkları Tara,Scan Deficits
+Hat İkmal Emri Oluştur,Create Replenishment Order
+Transferi Tamamla,Complete Transfer
+Tümünü Ana Ambara Çevir,Switch All to Central Warehouse
+Hedef Hat Deposu,Target Line Warehouse
+Net Açık Miktarı,Deficit Qty
+Toplanan Miktar,Picked Quantity
+Tolerans Uyarısı,Tolerance Warning
+Barkod Okuyucu,Barcode Scanner
+İkmal Emri Seçin,Select Replenishment Order
+Hedef WIP Deposu,Target WIP Warehouse
+Tedarik Stratejisi,Sourcing Strategy
+Açıkları Yenile,Refresh Deficits
+Hedef Depo Seçimi Zorunlu,Target Warehouse Selection Required
+Hedef WIP Deposu Seçin,Select Target WIP Warehouse
+Rezervasyon Açığı Bulunmamaktadır,No Reservation Deficit Found
+Açık Olan Hammaddeler,Deficit Raw Materials
+Toplam Net Açık,Total Net Deficit
+🔄 Hat İçi Dengeleme,🔄 Line Balancing
+📦 Ana Ambar Tedariki,📦 Central Warehouse Sourcing
+Ana Ambara Çevir,Switch to Central Warehouse
+Hat Transferi,Line Transfer
+Kalem Seçilmedi,No Item Selected
+Toplandı,Picked
+Parti (Batch),Batch
+Belirtilmedi,Not Specified
+Tolerans,Tolerance
+Toplanan Miktar:,Picked Qty:
+Tolerans Aşıldı!,Tolerance Exceeded!
+Transfer Tamamlandı:,Transfer Completed:
+Raf Lokasyonu,Shelf Location
+Shelf Location,Shelf Location
+Tam Koli Çıkışı,Full Batch Issue
+Full Batch Issue,Full Batch Issue
+Parti No,Batch No
+Batch No,Batch No
+Hat İkmal Emri raf ve parti tahsislerine göre başarıyla oluşturuldu: {0},Line Replenishment Order successfully created based on shelf and batch allocations: {0}
+Switch All to Central Warehouse,Switch All to Central Warehouse
+Taslak İkmalde,In Draft Replenishment
+In Draft Replenishment,In Draft Replenishment
+Depoda Stok Yok (Seçilemez),Out of Stock (Not Selectable)
+Out of Stock (Not Selectable),Out of Stock (Not Selectable)
+Mükerrer Talep Engellendi,Duplicate Request Blocked
+Duplicate Request Blocked,Duplicate Request Blocked
+Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.,None of the selected items have available stock in the warehouse or sibling lines.
+None of the selected items have available stock in the warehouse or sibling lines.,None of the selected items have available stock in the warehouse or sibling lines.
+-- Sipariş Seçiniz --,-- Select Order --
+Aktif İkmal Siparişi,Active Replenishment Order
+Ana Ambar,Central Warehouse
+Artır (+1),Increase (+1)
+Azalt (-1),Decrease (-1)
+Açık siparişler:,Open Orders:
+Açıklar Taranıyor...,Scanning Deficits...
+Aşağıdaki kalemler için toplanan miktar %15 tolerans sınırını aşıyor: {0},Picked quantity exceeds +15% tolerance limit for the following items: {0}
+Barkod Okut (PDA Scanner),Scan Barcode (PDA Scanner)
+Barkod eşleşmedi veya bu sipariş listesinde yok: {0},Barcode did not match or is not in this order list: {0}
+Barkod sorgulanırken hata oluştu.,An error occurred while querying the barcode.
+Belirtilmemiş,Not Specified
+Birim:,UOM:
+Bu siparişte toplanacak kalem bulunamadı.,No items found to pick in this order.
+Depodan Çıkacak Miktar,Quantity to Issue
+Diğer Depo...,Other Warehouse...
+Eşleşti: {0}{1},Matched: {0}{1}
+Hammadde Kodu & Adı,Raw Material Code & Name
+Hat Rezervasyon Açıkları ve Çekme İkmal Yönetimi,Line Reservation Deficits and Pull Replenishment Management
+Hat Stoğu,Line Stock
+Hat rezervasyon açıkları taranırken bir hata oluştu.,An error occurred while scanning line reservation deficits.
+Hat rezervasyonları ve ambar stok durumu sorgulanıyor.,Querying line reservations and warehouse stock status.
+Hat İkmal Emri Oluşturuldu,Replenishment Order Created
+Hat İkmal Emri Oluşturuluyor...,Creating Replenishment Order...
+Hat İkmal Emri başarıyla oluşturuldu: {0},Replenishment Order created successfully: {0}
+Hat İkmal Toplama (PDA),Line Replenishment Picking (PDA)
+Hedef Depo Seçin,Select Target Warehouse
+Hedef WIP Ambarını Girin (örn. 1501 KESMELER - KTA):,Enter Target WIP Warehouse (e.g. 1501 KESMELER - KTA):
+Hızlı Hat Seçimi:,Quick Line Selection:
+Kaynak Depo / Raf,Source Warehouse / Bin
+Kaynak Tipi,Source Type
+Kodu Kopyala,Copy Code
+Kopyalandı: {0},Copied: {0}
+Kısmi Stok,Partial Stock
+Kısmi Taslak:,Partial Draft:
+Lütfen hammadde rezervasyon açıklarını görüntülemek için yukarıdaki hızlı butonlardan veya diğer ambar seçeneğinden bir üretim hattı seçin.,Please select a production line from the quick buttons above or other warehouse options to view raw material reservation deficits.
+Lütfen önce bir Hedef WIP Deposu seçin.,Please select a Target WIP Warehouse first.
+Lütfen önce bir ikmal siparişi seçiniz.,Please select a replenishment order first.
+Maks,Max
+Malzeme Transferi Gerçekleştiriliyor...,Executing Material Transfer...
+Net Açık (Deficit),Net Deficit
+Oluşturuluyor...,Creating...
+Parti,Batch
+Raf,Shelf
+Seçilen hatta üretim emirleri için rezerve edilmiş tüm hammaddeler hat stoğunda mevcuttur veya bekleyen açık bulunmamaktadır.,All raw materials reserved for production orders on the selected line are available in line stock or no pending deficits exist.
+Seçilen kalemler için Malzeme Transferi (Stock Entry) oluşturulsun mu?,Create a Material Transfer (Stock Entry) for the selected items?
+Sipariş Kalemleri Yükleniyor...,Loading Order Items...
+Stok Yok,No Stock
+Strateji,Strategy
+Taranıyor...,Scanning...
+Tolerans Aşıldı! (+%15 Üzeri),Tolerance Exceeded! (Over +15%)
+Toplama yapmak için yukarıdan açık bir sipariş seçin.,Select an open order from above to start picking.
+Transfer Tamamlandı: {0},Transfer Completed: {0}
+Tüm kalemler toplanmalı ve miktarlar sıfırdan büyük olmalıdır: {0},All items must be picked and quantities must be greater than zero: {0}
+Tüm kalemler toplanmalıdır,All items must be picked
+Tümünü Al,Pick All
+Tümünü Seç / Kaldır,Select / Deselect All
+Uygula,Apply
+{0} / {1} Kalem Toplandı,{0} / {1} Items Picked
+{0} adet seçilmemiş veya temin edilemeyen kalem hariç tutuldu,{0} unselected or unavailable items excluded
+"{0} hammadde seçildi, toplam {1} adet aktarılacak","{0} raw materials selected, total {1} units will be transferred"
+Ürün / SUT / Parti Barkodu Okutun...,Scan Item / SUT / Batch Barcode...
+İkmal Emri listesi güncellendi: {0},Replenishment Order list updated: {0}
+İlerleme,Progress
+KTA Line Replenishment Order,KTA Line Replenishment Order
+KTA Line Replenishment Item,KTA Line Replenishment Item
+Line Replenishment Item,Line Replenishment Item

@@ -1417,3 +1417,139 @@ Unit Rate,Einzelpreis
 Unassigned Operation,Nicht Zugewiesener Vorgang
 Show Operation & Material Breakdown,Vorgangs- und Materialaufschlüsselung Anzeigen
 WIP Return / Adjustment,WIP-Rückgabe / Korrektur
+Line Replenishment Hub,Liniennachschub-Hub
+Line Replenishment Picking,Liniennachschub-Kommissionierung
+Line Replenishment Order,Liniennachschubauftrag
+Smart Sourcing (WIP First),Smart Sourcing (Zuerst WIP)
+Direct Central Store,Direktes Zentrallager
+Line Transfer,Linientransfer
+Central Warehouse,Zentrallager
+Scan Deficits,Fehlbestände scannen
+Create Replenishment Order,Nachschubauftrag erstellen
+Complete Transfer,Transfer abschließen
+Override to Central,Alles auf Zentrallager umstellen
+Target Line Warehouse,Ziellinienlager
+Deficit Qty,Fehlmenge
+Picked Qty,Kommissionierte Menge
+Tolerance Warning,Toleranzwarnung
+Barcode Scanner,Barcodescanner
+Select Replenishment Order,Nachschubauftrag auswählen
+Hat İkmal Kokpiti,Liniennachschub-Hub
+Hat İkmal Toplama,Liniennachschub-Kommissionierung
+Hat İkmal Emri,Liniennachschubauftrag
+Akıllı Kaynak (Önce WIP),Smart Sourcing (Zuerst WIP)
+Doğrudan Ana Ambar,Direktes Zentrallager
+Hatlar Arası Dengeleme,Linientransfer
+Açıkları Tara,Fehlbestände scannen
+Hat İkmal Emri Oluştur,Nachschubauftrag Erstellen
+Transferi Tamamla,Transfer Abschließen
+Tümünü Ana Ambara Çevir,Alle auf Zentrallager umstellen
+Hedef Hat Deposu,Ziellinienlager
+Net Açık Miktarı,Fehlmenge
+Toplanan Miktar,Kommissionierte Menge
+Tolerans Uyarısı,Toleranzwarnung
+Barkod Okuyucu,Barcodescanner
+İkmal Emri Seçin,Nachschubauftrag auswählen
+Hedef WIP Deposu,Ziel-WIP-Lager
+Tedarik Stratejisi,Beschaffungsstrategie
+Açıkları Yenile,Fehlbestände Aktualisieren
+Hedef Depo Seçimi Zorunlu,Auswahl Des Ziellagers Erforderlich
+Hedef WIP Deposu Seçin,Ziel-WIP-Lager Auswählen
+Rezervasyon Açığı Bulunmamaktadır,Keine Reservierungsfehlbestände Vorhanden
+Açık Olan Hammaddeler,Fehlende Rohstoffe
+Toplam Net Açık,Gesamte Nettofehlmenge
+🔄 Hat İçi Dengeleme,🔄 Linienausgleich
+📦 Ana Ambar Tedariki,📦 Zentrallagerbeschaffung
+Ana Ambara Çevir,Auf Zentrallager umstellen
+Hat Transferi,Linientransfer
+Kalem Seçilmedi,Kein Artikel ausgewählt
+Toplandı,Kommissioniert
+Parti (Batch),Charge
+Belirtilmedi,Nicht Angegeben
+Tolerans,Toleranz
+Toplanan Miktar:,Kommissionierte Menge:
+Tolerans Aşıldı!,Toleranz überschritten!
+Transfer Tamamlandı:,Transfer abgeschlossen:
+Raf Lokasyonu,Regalplatz
+Shelf Location,Regalplatz
+Tam Koli Çıkışı,Komplette Chargenausgabe
+Full Batch Issue,Komplette Chargenausgabe
+Parti No,Chargennummer
+Batch No,Chargennummer
+Hat İkmal Emri raf ve parti tahsislerine göre başarıyla oluşturuldu: {0},Liniennachschubauftrag erfolgreich basierend auf Regalplatz- und Chargenzuweisungen erstellt: {0}
+Switch All to Central Warehouse,Alle auf Zentrallager umstellen
+Taslak İkmalde,Im Entwurfsnachschub
+In Draft Replenishment,Im Entwurfsnachschub
+Depoda Stok Yok (Seçilemez),Nicht auf Lager (Nicht wählbar)
+Out of Stock (Not Selectable),Nicht auf Lager (Nicht wählbar)
+Mükerrer Talep Engellendi,Doppelte Anforderung blockiert
+Duplicate Request Blocked,Doppelte Anforderung blockiert
+Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.,Keiner der ausgewählten Artikel ist im Lager oder in den Linien verfügbar.
+None of the selected items have available stock in the warehouse or sibling lines.,Keiner der ausgewählten Artikel ist im Lager oder in den Linien verfügbar.
+-- Sipariş Seçiniz --,-- Auftrag Auswählen --
+Aktif İkmal Siparişi,Aktiver Nachschubauftrag
+Ana Ambar,Zentrallager
+Artır (+1),Erhöhen (+1)
+Azalt (-1),Verringern (-1)
+Açık siparişler:,Offene Aufträge:
+Açıklar Taranıyor...,Fehlbestände Werden Gescannt...
+Aşağıdaki kalemler için toplanan miktar %15 tolerans sınırını aşıyor: {0},Kommissionierte Menge überschreitet das Toleranzlimit von +15% für folgende Artikel: {0}
+Barkod Okut (PDA Scanner),Barcode Scannen (PDA Scanner)
+Barkod eşleşmedi veya bu sipariş listesinde yok: {0},Barcode stimmt nicht überein oder ist nicht in dieser Auftragsliste: {0}
+Barkod sorgulanırken hata oluştu.,Beim Abfragen des Barcodes ist ein Fehler aufgetreten.
+Belirtilmemiş,Nicht Angegeben
+Birim:,Einheit:
+Bu siparişte toplanacak kalem bulunamadı.,In diesem Auftrag wurden keine zu kommissionierenden Artikel gefunden.
+Depodan Çıkacak Miktar,Ausgabemenge
+Diğer Depo...,Anderes Lager...
+Eşleşti: {0}{1},Übereinstimmung: {0}{1}
+Hammadde Kodu & Adı,Rohmaterialcode & -name
+Hat Rezervasyon Açıkları ve Çekme İkmal Yönetimi,Linienreservierungs-Fehlbestände und Pull-Nachschubverwaltung
+Hat Stoğu,Linienbestand
+Hat rezervasyon açıkları taranırken bir hata oluştu.,Beim Scannen von Linienreservierungs-Fehlbeständen ist ein Fehler aufgetreten.
+Hat rezervasyonları ve ambar stok durumu sorgulanıyor.,Linienreservierungen und Lagerbestandsstatus werden abgefragt.
+Hat İkmal Emri Oluşturuldu,Nachschubauftrag Erstellt
+Hat İkmal Emri Oluşturuluyor...,Nachschubauftrag Wird Erstellt...
+Hat İkmal Emri başarıyla oluşturuldu: {0},Nachschubauftrag erfolgreich erstellt: {0}
+Hat İkmal Toplama (PDA),Liniennachschub-Kommissionierung (PDA)
+Hedef Depo Seçin,Ziellager Auswählen
+Hedef WIP Ambarını Girin (örn. 1501 KESMELER - KTA):,Ziel-WIP-Lager eingeben (z. B. 1501 KESMELER - KTA):
+Hızlı Hat Seçimi:,Schnelle Linienauswahl:
+Kaynak Depo / Raf,Quelllager / Regal
+Kaynak Tipi,Quelltyp
+Kodu Kopyala,Code Kopieren
+Kopyalandı: {0},Kopiert: {0}
+Kısmi Stok,Teilbestand
+Kısmi Taslak:,Teilentwurf:
+Lütfen hammadde rezervasyon açıklarını görüntülemek için yukarıdaki hızlı butonlardan veya diğer ambar seçeneğinden bir üretim hattı seçin.,"Bitte wählen Sie eine Produktionslinie aus den obigen Schnellschaltflächen oder anderen Lageroptionen aus, um Fehlbestände an Rohmaterialreservierungen anzuzeigen."
+Lütfen önce bir Hedef WIP Deposu seçin.,Bitte wählen Sie zuerst ein Ziel-WIP-Lager aus.
+Lütfen önce bir ikmal siparişi seçiniz.,Bitte wählen Sie zuerst einen Nachschubauftrag aus.
+Maks,Max
+Malzeme Transferi Gerçekleştiriliyor...,Materialtransfer Wird Ausgeführt...
+Net Açık (Deficit),Netto-Fehlbestand
+Oluşturuluyor...,Wird Erstellt...
+Parti,Charge
+Raf,Regal
+Seçilen hatta üretim emirleri için rezerve edilmiş tüm hammaddeler hat stoğunda mevcuttur veya bekleyen açık bulunmamaktadır.,Alle für Fertigungsaufträge auf der ausgewählten Linie reservierten Rohmaterialien sind im Linienbestand verfügbar oder es liegen keine offenen Fehlbestände vor.
+Seçilen kalemler için Malzeme Transferi (Stock Entry) oluşturulsun mu?,Materialtransfer (Stock Entry) für die ausgewählten Artikel erstellen?
+Sipariş Kalemleri Yükleniyor...,Auftragspositionen Werden Geladen...
+Stok Yok,Kein Bestand
+Strateji,Strategie
+Taranıyor...,Wird Gescannt...
+Tolerans Aşıldı! (+%15 Üzeri),Toleranz Überschritten! (Über +15%)
+Toplama yapmak için yukarıdan açık bir sipariş seçin.,"Wählen Sie oben einen offenen Auftrag aus, um mit der Kommissionierung zu beginnen."
+Transfer Tamamlandı: {0},Transfer Abgeschlossen: {0}
+Tüm kalemler toplanmalı ve miktarlar sıfırdan büyük olmalıdır: {0},Alle Positionen müssen kommissioniert werden und die Mengen müssen größer als null sein: {0}
+Tüm kalemler toplanmalıdır,Alle Positionen müssen kommissioniert werden
+Tümünü Al,Alles Entnehmen
+Tümünü Seç / Kaldır,Alle Auswählen / Abwählen
+Uygula,Anwenden
+{0} / {1} Kalem Toplandı,{0} / {1} Positionen Kommissioniert
+{0} adet seçilmemiş veya temin edilemeyen kalem hariç tutuldu,{0} nicht ausgewählte oder nicht verfügbare Artikel ausgeschlossen
+"{0} hammadde seçildi, toplam {1} adet aktarılacak","{0} Rohmaterialien ausgewählt, insgesamt {1} Einheiten werden übertragen"
+Ürün / SUT / Parti Barkodu Okutun...,Artikel- / SUT- / Chargenbarcode Scannen...
+İkmal Emri listesi güncellendi: {0},Nachschubauftragsliste aktualisiert: {0}
+İlerleme,Fortschritt
+KTA Line Replenishment Order,KTA Liniennachschubauftrag
+KTA Line Replenishment Item,KTA Liniennachschub-Position
+Line Replenishment Item,Liniennachschub-Position

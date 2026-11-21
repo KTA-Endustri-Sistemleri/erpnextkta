@@ -588,3 +588,128 @@ Unit Rate,Birim Fiyat
 Unassigned Operation,Atanmamış Operasyon
 Show Operation & Material Breakdown,Operasyon ve Malzeme Kırılımını Göster
 WIP Return / Adjustment,WIP İade / Düzeltme
+Line Replenishment Hub,Hat İkmal Kokpiti
+Line Replenishment Picking,Hat İkmal Toplama
+Line Replenishment Order,Hat İkmal Emri
+Smart Sourcing (WIP First),Akıllı Kaynak (Önce WIP)
+Direct Central Store,Doğrudan Ana Ambar
+Line Transfer,Hatlar Arası Dengeleme
+Central Warehouse,Ana Ambar
+Scan Deficits,Açıkları Tara
+Create Replenishment Order,Hat İkmal Emri Oluştur
+Complete Transfer,Transferi Tamamla
+Override to Central,Tümünü Ana Ambara Çevir
+Target Line Warehouse,Hedef Hat Deposu
+Deficit Qty,Net Açık Miktarı
+Picked Qty,Toplanan Miktar
+Tolerance Warning,Tolerans Uyarısı
+Barcode Scanner,Barkod Okuyucu
+Select Replenishment Order,İkmal Emri Seçin
+Hedef WIP Deposu,Hedef WIP Deposu
+Tedarik Stratejisi,Tedarik Stratejisi
+Açıkları Yenile,Açıkları Yenile
+Hedef Depo Seçimi Zorunlu,Hedef Depo Seçimi Zorunlu
+Hedef WIP Deposu Seçin,Hedef WIP Deposu Seçin
+Rezervasyon Açığı Bulunmamaktadır,Rezervasyon Açığı Bulunmamaktadır
+Açık Olan Hammaddeler,Açık Olan Hammaddeler
+Toplam Net Açık,Toplam Net Açık
+🔄 Hat İçi Dengeleme,🔄 Hat İçi Dengeleme
+📦 Ana Ambar Tedariki,📦 Ana Ambar Tedariki
+Ana Ambara Çevir,Ana Ambara Çevir
+Hat Transferi,Hat Transferi
+Kalem Seçilmedi,Kalem Seçilmedi
+Toplandı,Toplandı
+Parti (Batch),Parti (Batch)
+Belirtilmedi,Belirtilmedi
+Tolerans,Tolerans
+Toplanan Miktar:,Toplanan Miktar:
+Tolerans Aşıldı!,Tolerans Aşıldı!
+Transfer Tamamlandı:,Transfer Tamamlandı:
+Raf Lokasyonu,Raf Lokasyonu
+Shelf Location,Raf Lokasyonu
+Tam Koli Çıkışı,Tam Koli Çıkışı
+Full Batch Issue,Tam Koli Çıkışı
+Parti No,Parti No
+Batch No,Parti No
+Hat İkmal Emri raf ve parti tahsislerine göre başarıyla oluşturuldu: {0},Hat İkmal Emri raf ve parti tahsislerine göre başarıyla oluşturuldu: {0}
+Switch All to Central Warehouse,Tümünü Ana Ambara Çevir
+Tümünü Ana Ambara Çevir,Tümünü Ana Ambara Çevir
+Taslak İkmalde,Taslak İkmalde
+In Draft Replenishment,Taslak İkmalde
+Depoda Stok Yok (Seçilemez),Depoda Stok Yok (Seçilemez)
+Out of Stock (Not Selectable),Depoda Stok Yok (Seçilemez)
+Mükerrer Talep Engellendi,Mükerrer Talep Engellendi
+Duplicate Request Blocked,Mükerrer Talep Engellendi
+Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.,Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.
+None of the selected items have available stock in the warehouse or sibling lines.,Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.
+-- Sipariş Seçiniz --,-- Sipariş Seçiniz --
+Aktif İkmal Siparişi,Aktif İkmal Siparişi
+Ana Ambar,Ana Ambar
+Artır (+1),Artır (+1)
+Azalt (-1),Azalt (-1)
+Açık siparişler:,Açık siparişler:
+Açıklar Taranıyor...,Açıklar Taranıyor...
+Aşağıdaki kalemler için toplanan miktar %15 tolerans sınırını aşıyor: {0},Aşağıdaki kalemler için toplanan miktar %15 tolerans sınırını aşıyor: {0}
+Barkod Okut (PDA Scanner),Barkod Okut (PDA Scanner)
+Barkod eşleşmedi veya bu sipariş listesinde yok: {0},Barkod eşleşmedi veya bu sipariş listesinde yok: {0}
+Barkod sorgulanırken hata oluştu.,Barkod sorgulanırken hata oluştu.
+Belirtilmemiş,Belirtilmemiş
+Birim:,Birim:
+Bu siparişte toplanacak kalem bulunamadı.,Bu siparişte toplanacak kalem bulunamadı.
+Depodan Çıkacak Miktar,Depodan Çıkacak Miktar
+Diğer Depo...,Diğer Depo...
+Eşleşti: {0}{1},Eşleşti: {0}{1}
+Hammadde Kodu & Adı,Hammadde Kodu & Adı
+Hat Rezervasyon Açıkları ve Çekme İkmal Yönetimi,Hat Rezervasyon Açıkları ve Çekme İkmal Yönetimi
+Hat Stoğu,Hat Stoğu
+Hat rezervasyon açıkları taranırken bir hata oluştu.,Hat rezervasyon açıkları taranırken bir hata oluştu.
+Hat rezervasyonları ve ambar stok durumu sorgulanıyor.,Hat rezervasyonları ve ambar stok durumu sorgulanıyor.
+Hat İkmal Emri Oluştur,Hat İkmal Emri Oluştur
+Hat İkmal Emri Oluşturuldu,Hat İkmal Emri Oluşturuldu
+Hat İkmal Emri Oluşturuluyor...,Hat İkmal Emri Oluşturuluyor...
+Hat İkmal Emri başarıyla oluşturuldu: {0},Hat İkmal Emri başarıyla oluşturuldu: {0}
+Hat İkmal Toplama (PDA),Hat İkmal Toplama (PDA)
+Hedef,Hedef
+Hedef Depo Seçin,Hedef Depo Seçin
+Hedef WIP Ambarını Girin (örn. 1501 KESMELER - KTA):,Hedef WIP Ambarını Girin (örn. 1501 KESMELER - KTA):
+Hızlı Hat Seçimi:,Hızlı Hat Seçimi:
+Kaynak Depo / Raf,Kaynak Depo / Raf
+Kaynak Tipi,Kaynak Tipi
+Kodu Kopyala,Kodu Kopyala
+Kopyalandı: {0},Kopyalandı: {0}
+Kısmi Stok,Kısmi Stok
+Kısmi Taslak:,Kısmi Taslak:
+Lütfen hammadde rezervasyon açıklarını görüntülemek için yukarıdaki hızlı butonlardan veya diğer ambar seçeneğinden bir üretim hattı seçin.,Lütfen hammadde rezervasyon açıklarını görüntülemek için yukarıdaki hızlı butonlardan veya diğer ambar seçeneğinden bir üretim hattı seçin.
+Lütfen önce bir Hedef WIP Deposu seçin.,Lütfen önce bir Hedef WIP Deposu seçin.
+Lütfen önce bir ikmal siparişi seçiniz.,Lütfen önce bir ikmal siparişi seçiniz.
+Maks,Maks
+Malzeme Transferi Gerçekleştiriliyor...,Malzeme Transferi Gerçekleştiriliyor...
+Net Açık (Deficit),Net Açık (Deficit)
+Oluşturuluyor...,Oluşturuluyor...
+Parti,Parti
+Raf,Raf
+Seçilen hatta üretim emirleri için rezerve edilmiş tüm hammaddeler hat stoğunda mevcuttur veya bekleyen açık bulunmamaktadır.,Seçilen hatta üretim emirleri için rezerve edilmiş tüm hammaddeler hat stoğunda mevcuttur veya bekleyen açık bulunmamaktadır.
+Seçilen kalemler için Malzeme Transferi (Stock Entry) oluşturulsun mu?,Seçilen kalemler için Malzeme Transferi (Stock Entry) oluşturulsun mu?
+Sipariş Kalemleri Yükleniyor...,Sipariş Kalemleri Yükleniyor...
+Stok Yok,Stok Yok
+Strateji,Strateji
+Taranıyor...,Taranıyor...
+Tolerans Aşıldı! (+%15 Üzeri),Tolerans Aşıldı! (+%15 Üzeri)
+Toplama yapmak için yukarıdan açık bir sipariş seçin.,Toplama yapmak için yukarıdan açık bir sipariş seçin.
+Toplanan Miktar,Toplanan Miktar
+Transfer Tamamlandı: {0},Transfer Tamamlandı: {0}
+Transferi Tamamla,Transferi Tamamla
+Tüm kalemler toplanmalı ve miktarlar sıfırdan büyük olmalıdır: {0},Tüm kalemler toplanmalı ve miktarlar sıfırdan büyük olmalıdır: {0}
+Tüm kalemler toplanmalıdır,Tüm kalemler toplanmalıdır
+Tümünü Al,Tümünü Al
+Tümünü Seç / Kaldır,Tümünü Seç / Kaldır
+Uygula,Uygula
+{0} / {1} Kalem Toplandı,{0} / {1} Kalem Toplandı
+{0} adet seçilmemiş veya temin edilemeyen kalem hariç tutuldu,{0} adet seçilmemiş veya temin edilemeyen kalem hariç tutuldu
+"{0} hammadde seçildi, toplam {1} adet aktarılacak","{0} hammadde seçildi, toplam {1} adet aktarılacak"
+Ürün / SUT / Parti Barkodu Okutun...,Ürün / SUT / Parti Barkodu Okutun...
+İkmal Emri listesi güncellendi: {0},İkmal Emri listesi güncellendi: {0}
+İlerleme,İlerleme
+KTA Line Replenishment Order,KTA Hat İkmal Emri
+KTA Line Replenishment Item,KTA Hat İkmal Kalemi
+Line Replenishment Item,Hat İkmal Kalemi

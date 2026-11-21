@@ -15,6 +15,9 @@ from erpnextkta.kta_shopfloor.services.report_service import (
 from erpnextkta.kta_shopfloor.services.report_service import (
     get_operation_completion_report as get_operation_completion_report_service,
 )
+from erpnextkta.kta_shopfloor.services.reservation_deficit_service import (
+    get_line_reservation_deficits,
+)
 from erpnextkta.kta_shopfloor.services.reversal_service import ReversalService
 from erpnextkta.kta_shopfloor.services.work_order_service import (
     check_work_order_material_availability,
@@ -1005,3 +1008,12 @@ def get_confirmations_for_management(
         "filter_options": filter_options,
         "can_cancel": ReversalService.can_cancel_confirmations(frappe.session.user),
     }
+
+
+@frappe.whitelist()
+def get_line_deficits(
+    target_warehouse: str, sourcing_strategy: str | None = None
+) -> list[dict]:
+    """API endpoint to get central warehouse reservation deficits for a target WIP warehouse."""
+    frappe.has_permission("Work Order", "read", throw=True)
+    return get_line_reservation_deficits(target_warehouse)
