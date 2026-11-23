@@ -1,52 +1,57 @@
+import inspect
+
 import frappe
 from erpnext.stock.doctype.stock_entry.stock_entry import (
-	OperationsNotCompleteError,
-	StockEntry,
+    OperationsNotCompleteError,
+    StockEntry,
 )
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
 from erpnextkta.kta_stock.batch_manager import BatchSplitManager
 
 
 class KTAStockEntry(StockEntry):
-	def get_work_order_raw_materials(self, qty):
-		"""Override to deduct quantities already consumed via
-		operation-based Material Consumption Stock Entries."""
-		item_dict = super().get_work_order_raw_materials(qty)
+    def get_work_order_raw_materials(self, qty):
+        """Override to deduct quantities already consumed via
+        operation-based Material Consumption Stock Entries."""
+        if self.purpose == "Manufacture" and self._should_use_consumption_entry_cost():
+            return {}
 
-		if not (self.work_order and self.pro_doc and self.pro_doc.skip_transfer):
-			return item_dict
+        item_dict = super().get_work_order_raw_materials(qty)
 
-		consumed = self._get_already_consumed_qty()
-		if not consumed:
-			return item_dict
+        if not (self.work_order and self.pro_doc and self.pro_doc.skip_transfer):
+            return item_dict
 
-		items_to_remove = []
-		for item_code, row in item_dict.items():
-			already = flt(consumed.get(row.get("item_code") or item_code, 0))
-			if already <= 0:
-				continue
-			remaining = flt(row.qty) - already
-			if remaining <= 0:
-				items_to_remove.append(item_code)
-			else:
-				row.qty = flt(
-					remaining,
-					frappe.get_precision("Stock Entry Detail", "qty"),
-				)
+        consumed = self._get_already_consumed_qty()
+        if not consumed:
+            return item_dict
 
-		for key in items_to_remove:
-			del item_dict[key]
+        items_to_remove = []
+        for item_code, row in item_dict.items():
+            already = flt(consumed.get(row.get("item_code") or item_code, 0))
+            if already <= 0:
+                continue
+            remaining = flt(row.qty) - already
+            if remaining <= 0:
+                items_to_remove.append(item_code)
+            else:
+                row.qty = flt(
+                    remaining,
+                    frappe.get_precision("Stock Entry Detail", "qty"),
+                )
 
-		return item_dict
+        for key in items_to_remove:
+            del item_dict[key]
 
-	def _get_already_consumed_qty(self):
-		"""Return {item_code: consumed_qty} from submitted
-		Material Consumption for Manufacture Stock Entries
-		against this Work Order."""
-		data = frappe.db.sql(
-			"""
+        return item_dict
+
+    def _get_already_consumed_qty(self):
+        """Return {item_code: consumed_qty} from submitted
+        Material Consumption for Manufacture Stock Entries
+        against this Work Order."""
+        data = frappe.db.sql(
+            """
             SELECT detail.item_code, SUM(detail.qty) as qty
             FROM `tabStock Entry` entry
             INNER JOIN `tabStock Entry Detail` detail ON detail.parent = entry.name
@@ -56,300 +61,684 @@ class KTAStockEntry(StockEntry):
                 AND detail.s_warehouse IS NOT NULL
             GROUP BY detail.item_code
             """,
-			(self.work_order,),
-			as_dict=True,
-		)
-		return {d.item_code: flt(d.qty) for d in data} if data else {}
+            (self.work_order,),
+            as_dict=True,
+        )
+        return {d.item_code: flt(d.qty) for d in data} if data else {}
 
-	def check_if_operations_completed(self):
-		"""Override to validate operation completed quantities directly against
-		fg_completed_qty without requiring submitted Job Cards or failing on missing Job Cards.
-		"""
-		if self.purpose == "Material Consumption for Manufacture":
-			return
+    def get_unconsumed_raw_materials(self):
+        """Skip adding raw materials for Manufacture entries costed from consumption entries."""
+        if self.purpose == "Manufacture" and self._should_use_consumption_entry_cost():
+            return
+        if hasattr(super(), "get_unconsumed_raw_materials"):
+            super().get_unconsumed_raw_materials()
 
-		if self.purpose != "Manufacture" or not self.work_order:
-			return
+    def add_transfered_raw_materials_in_items(self):
+        """Skip adding transferred raw materials for Manufacture entries costed from consumption entries."""
+        if self.purpose == "Manufacture" and self._should_use_consumption_entry_cost():
+            return
+        if hasattr(super(), "add_transfered_raw_materials_in_items"):
+            super().add_transfered_raw_materials_in_items()
 
-		prod_order = frappe.get_doc("Work Order", self.work_order)
-		allowance_percentage = flt(
-			frappe.db.get_single_value("Manufacturing Settings", "overproduction_percentage_for_work_order")
-		)
+    def validate_component_and_quantities(self):
+        """Skip BOM raw material presence check when Manufacture entry uses consumption entries."""
+        if self.purpose == "Manufacture" and self._should_use_consumption_entry_cost():
+            self._validate_no_raw_materials_in_manufacture_entry(
+                frappe.get_single("Manufacturing Settings")
+            )
+            return
+        super().validate_component_and_quantities()
 
-		precision = self.precision("fg_completed_qty") or 2
+    def get_basic_rate_for_manufactured_item(
+        self, finished_item_qty, outgoing_items_cost=0, has_consumption_basis=False
+    ) -> float:
+        """Compute finished good basic rate from Work Order consumption pool across partial entries."""
+        settings = frappe.get_single("Manufacturing Settings")
+        if not self._should_use_consumption_entry_cost(settings):
+            return self._call_super_basic_rate(
+                finished_item_qty, outgoing_items_cost, has_consumption_basis
+            )
 
-		for d in prod_order.get("operations", []):
-			total_completed_qty = flt(self.fg_completed_qty) + flt(prod_order.produced_qty)
-			completed_qty = (
-				flt(d.completed_qty)
-				+ flt(d.process_loss_qty)
-				+ (allowance_percentage / 100 * flt(d.completed_qty))
-			)
-			if flt(total_completed_qty, precision) > flt(completed_qty, precision):
-				frappe.throw(
-					_(
-						"Row #{0}: Operation {1} has not been sufficiently confirmed yet for Work Order {2}. Required finished goods qty: {3}, confirmed operation qty: {4}."
-					).format(
-						d.idx,
-						frappe.bold(d.operation),
-						frappe.bold(self.work_order),
-						frappe.bold(str(total_completed_qty)),
-						frappe.bold(str(flt(d.completed_qty) + flt(d.process_loss_qty))),
-					),
-					OperationsNotCompleteError,
+        self._validate_no_raw_materials_in_manufacture_entry(settings)
+
+        fg_qty = flt(finished_item_qty)
+        if fg_qty <= 0:
+            return 0.0
+
+        scrap_items_cost = sum(
+            flt(d.basic_amount) for d in (self.get("items") or []) if d.is_scrap_item
+        )
+        manual_qty, manual_cost = self._get_manual_finished_items_qty_and_cost()
+
+        allocated_cost = self._resolve_consumption_pool_allocated_cost(
+            fg_qty, manual_qty
+        )
+        cost_left = flt(allocated_cost) - scrap_items_cost - manual_cost
+        if self.flags.get("via_repost"):
+            cost_left = max(cost_left, 0.0)
+
+        return flt(cost_left / fg_qty)
+
+    def _should_use_consumption_entry_cost(self, settings=None) -> bool:
+        """Return True when Manufacturing Settings and submitted consumption entries apply."""
+        if not self.work_order:
+            return False
+        settings = settings or frappe.get_single("Manufacturing Settings")
+        return bool(
+            cint(settings.get("material_consumption"))
+            and cint(settings.get("get_rm_cost_from_consumption_entry"))
+            and self._has_submitted_consumption_entries()
+        )
+
+    def _has_submitted_consumption_entries(self) -> bool:
+        """Return True if the Work Order has any submitted Material Consumption entry."""
+        if not self.work_order:
+            return False
+        return bool(
+            frappe.db.exists(
+                "Stock Entry",
+                {
+                    "docstatus": 1,
+                    "work_order": self.work_order,
+                    "purpose": "Material Consumption for Manufacture",
+                },
+            )
+        )
+
+    def _call_super_basic_rate(
+        self, finished_item_qty, outgoing_items_cost=0, has_consumption_basis=False
+    ) -> float:
+        """Invoke base get_basic_rate_for_manufactured_item compatibly across ERPNext v15 versions."""
+        params = inspect.signature(
+            super().get_basic_rate_for_manufactured_item
+        ).parameters
+        if "has_consumption_basis" in params:
+            return flt(
+                super().get_basic_rate_for_manufactured_item(
+                    finished_item_qty, outgoing_items_cost, has_consumption_basis
+                )
+            )
+        return flt(
+            super().get_basic_rate_for_manufactured_item(
+                finished_item_qty, outgoing_items_cost
+            )
+        )
+
+    def _get_manual_finished_items_qty_and_cost(self) -> tuple[float, float]:
+        """Return manually rated finished goods (qty, cost) if supported by base StockEntry."""
+        if hasattr(super(), "get_manually_rated_finished_items"):
+            qty, cost = self.get_manually_rated_finished_items()
+            return (flt(qty), flt(cost))
+        return (0.0, 0.0)
+
+    def _validate_no_raw_materials_in_manufacture_entry(self, settings) -> None:
+        """Ensure Manufacture entry does not contain raw materials when consumption costing applies."""
+        for item in self.get("items") or []:
+            if not item.is_finished_item and not item.is_scrap_item:
+                label = frappe.get_meta(settings.doctype).get_label(
+                    "get_rm_cost_from_consumption_entry"
+                )
+                frappe.throw(
+                    _(
+                        "Row {0}: As {1} is enabled, raw materials cannot be added to {2} entry. Use {3} entry to consume raw materials."
+                    ).format(
+                        item.idx,
+                        frappe.bold(label),
+                        frappe.bold(_("Manufacture")),
+                        frappe.bold(_("Material Consumption for Manufacture")),
+                    )
+                )
+
+    def _get_total_consumed_cost(self) -> float:
+        """Return total actual cost of submitted Material Consumption entries for the Work Order."""
+        if not self.work_order:
+            return 0.0
+        res = frappe.db.sql(
+            """
+			SELECT COALESCE(SUM(COALESCE(detail.valuation_rate, 0) * COALESCE(detail.transfer_qty, 0)), 0)
+			FROM `tabStock Entry` entry
+			INNER JOIN `tabStock Entry Detail` detail ON detail.parent = entry.name
+			WHERE entry.work_order = %s
+				AND entry.purpose = 'Material Consumption for Manufacture'
+				AND entry.docstatus = 1
+				AND IFNULL(detail.s_warehouse, '') != ''
+			""",
+            (self.work_order,),
+        )
+        return flt(res[0][0]) if res else 0.0
+
+    def _get_previous_fg_only_manufacture_cost(self) -> float:
+        """Return already-allocated cost from prior submitted FG-only Manufacture entries."""
+        if not self.work_order:
+            return 0.0
+        current_name = self.name or ""
+        res = frappe.db.sql(
+            """
+			SELECT COALESCE(SUM(COALESCE(detail.basic_amount, 0)), 0)
+			FROM `tabStock Entry` entry
+			INNER JOIN `tabStock Entry Detail` detail ON detail.parent = entry.name
+			WHERE entry.work_order = %s
+				AND entry.purpose = 'Manufacture'
+				AND entry.docstatus = 1
+				AND entry.name != %s
+				AND COALESCE(entry.total_outgoing_value, 0) = 0
+				AND (detail.is_finished_item = 1 OR detail.is_scrap_item = 1)
+				AND NOT EXISTS (
+					SELECT 1
+					FROM `tabStock Entry Detail` out_detail
+					WHERE out_detail.parent = entry.name
+						AND IFNULL(out_detail.s_warehouse, '') != ''
 				)
+			""",
+            (self.work_order, current_name),
+        )
+        return flt(res[0][0]) if res else 0.0
 
-	def validate_purpose(self):
-		valid_purposes = [
-			"Material Issue",
-			"Material Receipt",
-			"Material Transfer",
-			"Material Transfer for Manufacture",
-			"Manufacture",
-			"Repack",
-			"Send to Subcontractor",
-			"Material Consumption for Manufacture",
-			"Disassemble",
-		]
+    def _is_final_manufacture_entry(self, finished_item_qty: float, wo_data) -> bool:
+        """Determine whether this Manufacture entry closes the remaining consumption pool."""
+        if getattr(self.flags, "kta_is_final_confirmation", False):
+            return True
+        if (
+            self.get("custom_confirmation")
+            and frappe.db.exists(
+                "KTA Production Confirmation", self.custom_confirmation
+            )
+            and cint(
+                frappe.db.get_value(
+                    "KTA Production Confirmation",
+                    self.custom_confirmation,
+                    "is_final_confirmation",
+                )
+            )
+        ):
+            return True
 
-		if self.purpose not in valid_purposes:
-			frappe.throw(_("Purpose must be one of {0}").format(", ".join(valid_purposes)))
+        wo_qty = flt(wo_data.get("qty")) if wo_data else 0.0
+        produced_qty = flt(wo_data.get("produced_qty")) if wo_data else 0.0
+        if wo_qty <= 0:
+            return False
+        precision = self.precision("fg_completed_qty") or 4
+        return flt(produced_qty + flt(finished_item_qty), precision) >= flt(
+            wo_qty, precision
+        )
 
-		# KTA Override: Allow 'Material Consumption for Manufacture' against Job Card
-		allowed_job_card_purposes = [
-			"Material Transfer for Manufacture",
-			"Repack",
-			"Material Consumption for Manufacture",
-		]
-		if self.job_card and self.purpose not in allowed_job_card_purposes:
-			frappe.throw(
-				_("For job card {0}, you can only make {1} type stock entries").format(
-					self.job_card, ", ".join(allowed_job_card_purposes)
-				)
-			)
+    def _resolve_consumption_pool_allocated_cost(
+        self, finished_item_qty: float, manual_qty: float = 0.0
+    ) -> float:
+        """Allocate consumption pool cost for partial or final Manufacture entries."""
+        total_consumed_cost = self._get_total_consumed_cost()
+        prev_fg_only_cost = self._get_previous_fg_only_manufacture_cost()
+        remaining_pool_cost = max(0.0, total_consumed_cost - prev_fg_only_cost)
+        if remaining_pool_cost <= 0:
+            return self._get_fallback_bom_cost(finished_item_qty, manual_qty)
 
-	def validate_raw_materials_exists(self):
-		"""Override upstream ERPNext v15.95+ raw materials presence check.
+        wo_data = frappe.db.get_value(
+            "Work Order", self.work_order, ["qty", "produced_qty"], as_dict=True
+        )
+        if self._is_final_manufacture_entry(finished_item_qty, wo_data):
+            return remaining_pool_cost
 
-		In KTA Shopfloor architecture:
-		- Confirmations (custom_confirmation) create FG-only Stock Entries because
-		  materials are backflushed separately via 'Material Consumption for Manufacture'.
-		- If a Work Order already has submitted Material Consumption entries, FG entries
-		  do not need to re-include raw materials.
-		- Legacy or ad-hoc Work Orders without a BOM do not require raw materials.
-		"""
-		if self.purpose not in ["Manufacture", "Repack", "Disassemble"]:
-			return
+        wo_qty = flt(wo_data.get("qty")) if wo_data else 0.0
+        proportional_cost = self._get_proportional_actual_cost(
+            finished_item_qty, wo_qty
+        )
+        if proportional_cost > 0:
+            return min(remaining_pool_cost, proportional_cost)
+        if wo_qty > 0:
+            return min(
+                remaining_pool_cost,
+                flt((finished_item_qty / wo_qty) * total_consumed_cost),
+            )
+        return remaining_pool_cost
 
-		if frappe.db.get_single_value("Manufacturing Settings", "material_consumption"):
-			return
+    def _get_proportional_actual_cost(
+        self, finished_item_qty: float, wo_qty: float
+    ) -> float:
+        """Calculate proportional actual material cost per BOM/Work Order required item ratios."""
+        if wo_qty <= 0 or finished_item_qty <= 0:
+            return 0.0
 
-		if self.purpose == "Manufacture" and self.work_order:
-			if self.get("custom_confirmation"):
-				return
+        wo_items = self._get_work_order_required_items()
+        consumption_rows = self._get_submitted_consumption_rows()
+        if not consumption_rows:
+            return 0.0
+        if not wo_items:
+            return flt(
+                (flt(finished_item_qty) / flt(wo_qty))
+                * sum(
+                    flt(r.get("valuation_rate")) * flt(r.get("transfer_qty"))
+                    for r in consumption_rows
+                )
+            )
 
-			if frappe.db.exists(
-				"Stock Entry",
-				{
-					"work_order": self.work_order,
-					"purpose": "Material Consumption for Manufacture",
-					"docstatus": 1,
-				},
-			):
-				return
+        required_qty_by_key, item_to_key = self._build_work_order_item_map(wo_items)
+        cost_by_key, qty_by_key = self._aggregate_consumption_by_key(
+            consumption_rows, required_qty_by_key, item_to_key
+        )
 
-			bom_no = self.get("bom_no") or frappe.db.get_value("Work Order", self.work_order, "bom_no")
-			if not bom_no:
-				return
+        ratio = flt(finished_item_qty) / flt(wo_qty)
+        total = 0.0
+        for key, total_qty in qty_by_key.items():
+            if total_qty <= 0:
+                continue
+            req_qty = required_qty_by_key.get(key, 0.0)
+            if req_qty <= 0:
+                continue
+            avg_rate = cost_by_key[key] / total_qty
+            total += ratio * req_qty * avg_rate
 
-		if hasattr(super(), "validate_raw_materials_exists"):
-			super().validate_raw_materials_exists()
+        return flt(total)
 
-	def get_matched_items(self, item_code):
-		matched = super().get_matched_items(item_code)
-		if matched:
-			return matched
+    def _get_work_order_required_items(self) -> list:
+        """Fetch Work Order Item rows including custom_original_item when present."""
+        if not self.work_order:
+            return []
+        fields = ["item_code", "required_qty"]
+        if frappe.db.has_column("Work Order Item", "custom_original_item"):
+            fields.append("custom_original_item")
+        return frappe.get_all(
+            "Work Order Item",
+            filters={"parent": self.work_order},
+            fields=fields,
+        )
 
-		matched_items = []
-		# Check if any item row was substituted from item_code
-		for item in self.items:
-			orig = item.get("custom_original_item") or item.get("original_item")
-			if orig and orig == item_code:
-				matched_items.append(item)
-				continue
+    def _get_submitted_consumption_rows(self) -> list:
+        """Fetch submitted outgoing rows from Material Consumption entries for the Work Order."""
+        if not self.work_order:
+            return []
+        custom_orig_select = (
+            ", detail.custom_original_item"
+            if frappe.db.has_column("Stock Entry Detail", "custom_original_item")
+            else ""
+        )
+        return frappe.db.sql(
+            f"""
+			SELECT detail.item_code,
+				detail.original_item
+				{custom_orig_select},
+				COALESCE(detail.valuation_rate, 0) AS valuation_rate,
+				COALESCE(detail.transfer_qty, 0) AS transfer_qty
+			FROM `tabStock Entry` entry
+			INNER JOIN `tabStock Entry Detail` detail ON detail.parent = entry.name
+			WHERE entry.work_order = %s
+				AND entry.purpose = 'Material Consumption for Manufacture'
+				AND entry.docstatus = 1
+				AND IFNULL(detail.s_warehouse, '') != ''
+			""",
+            (self.work_order,),
+            as_dict=True,
+        )
 
-			# Check approved Item Alternative relationship
-			if (
-				item.item_code
-				and item_code
-				and (
-					frappe.db.exists(
-						"Item Alternative",
-						{
-							"item_code": item_code,
-							"alternative_item_code": item.item_code,
-						},
-					)
-					or frappe.db.exists(
-						"Item Alternative",
-						{
-							"item_code": item.item_code,
-							"alternative_item_code": item_code,
-							"two_way": 1,
-						},
-					)
-				)
-			):
-				matched_items.append(item)
+    @staticmethod
+    def _build_work_order_item_map(wo_items) -> tuple[dict[str, float], dict[str, str]]:
+        """Map required Work Order items and substituted items to canonical original item keys."""
+        required_qty_by_key: dict[str, float] = {}
+        item_to_key: dict[str, str] = {}
+        for row in wo_items:
+            item_code = row.get("item_code")
+            canonical_key = row.get("custom_original_item") or item_code
+            if not canonical_key:
+                continue
+            required_qty_by_key[canonical_key] = required_qty_by_key.get(
+                canonical_key, 0.0
+            ) + flt(row.get("required_qty"))
+            if item_code:
+                item_to_key[item_code] = canonical_key
+            item_to_key[canonical_key] = canonical_key
+        return required_qty_by_key, item_to_key
 
-		return matched_items
+    @staticmethod
+    def _aggregate_consumption_by_key(
+        consumption_rows,
+        required_qty_by_key: dict[str, float],
+        item_to_key: dict[str, str],
+    ) -> tuple[dict[str, float], dict[str, float]]:
+        """Aggregate consumed cost and quantity per canonical Work Order item key."""
+        cost_by_key: dict[str, float] = {}
+        qty_by_key: dict[str, float] = {}
+        for row in consumption_rows:
+            item_code = row.get("item_code")
+            orig = row.get("custom_original_item") or row.get("original_item")
+            if orig and orig in required_qty_by_key:
+                key = orig
+            elif item_code in item_to_key:
+                key = item_to_key[item_code]
+            else:
+                key = orig or item_code
+            if not key:
+                continue
+            qty = flt(row.get("transfer_qty"))
+            cost = flt(row.get("valuation_rate")) * qty
+            cost_by_key[key] = cost_by_key.get(key, 0.0) + cost
+            qty_by_key[key] = qty_by_key.get(key, 0.0) + qty
+        return cost_by_key, qty_by_key
 
-	def validate(self):
-		# 1. Standart ERPNext kontrollerini yap
-		super().validate()
+    def _get_fallback_bom_cost(
+        self, finished_item_qty: float, manual_qty: float = 0.0
+    ) -> float:
+        """Return BOM-based fallback cost when no consumption pool balance remains."""
+        if not self.get("bom_no"):
+            return 0.0
+        target_qty = flt(finished_item_qty) + flt(manual_qty)
+        if target_qty <= 0:
+            return 0.0
+        params = inspect.signature(self.get_bom_raw_materials).parameters
+        if "split_alternative_items" in params:
+            bom_items = self.get_bom_raw_materials(
+                target_qty, split_alternative_items=False
+            )
+        else:
+            bom_items = self.get_bom_raw_materials(target_qty)
+        return sum(
+            flt(row.get("qty")) * flt(row.get("rate"))
+            for row in (bom_items or {}).values()
+        )
 
-		# 2. Sadece Manufacture tipinde ve Draft (0) durumundaysa calis
-		if self.purpose == "Manufacture" and self.work_order and self.docstatus == 0:
-			# 3. Sonsuz dongu korumasi (Flag)
-			if not self.get("__splitting_batches"):
-				self.set("__splitting_batches", True)
-				BatchSplitManager.split_manufacturing_batches(self)
+    def check_if_operations_completed(self):
+        """Override to validate operation completed quantities directly against
+        fg_completed_qty without requiring submitted Job Cards or failing on missing Job Cards.
+        """
+        if self.purpose == "Material Consumption for Manufacture":
+            return
 
-	def update_stock_ledger(self, allow_negative_stock=False, via_landed_cost_voucher=False):
-		"""
-		Base StockEntry.update_stock_ledger does not accept via_landed_cost_voucher, swallow it here
-		"""
-		super().update_stock_ledger(allow_negative_stock=allow_negative_stock)
+        if self.purpose != "Manufacture" or not self.work_order:
+            return
 
-	def on_submit(self):
-		super().on_submit()
-		frappe.enqueue(
-			"erpnextkta.overrides.KTAStockEntry.print_labels_on_submit",
-			stock_entry=self.name,
-			user=frappe.session.user,
-			queue="short",
-			timeout=120,
-			now=frappe.flags.in_test,
-			enqueue_after_commit=True,
-		)
+        prod_order = frappe.get_doc("Work Order", self.work_order)
+        allowance_percentage = flt(
+            frappe.db.get_single_value(
+                "Manufacturing Settings", "overproduction_percentage_for_work_order"
+            )
+        )
 
-	def on_cancel(self):
-		batches_to_disable = []
-		if self.purpose == "Manufacture":
-			batches_to_disable = self._get_generated_batches()
+        precision = self.precision("fg_completed_qty") or 2
 
-		super().on_cancel()
+        for d in prod_order.get("operations", []):
+            total_completed_qty = flt(self.fg_completed_qty) + flt(
+                prod_order.produced_qty
+            )
+            completed_qty = (
+                flt(d.completed_qty)
+                + flt(d.process_loss_qty)
+                + (allowance_percentage / 100 * flt(d.completed_qty))
+            )
+            if flt(total_completed_qty, precision) > flt(completed_qty, precision):
+                frappe.throw(
+                    _(
+                        "Row #{0}: Operation {1} has not been sufficiently confirmed yet for Work Order {2}. Required finished goods qty: {3}, confirmed operation qty: {4}."
+                    ).format(
+                        d.idx,
+                        frappe.bold(d.operation),
+                        frappe.bold(self.work_order),
+                        frappe.bold(str(total_completed_qty)),
+                        frappe.bold(
+                            str(flt(d.completed_qty) + flt(d.process_loss_qty))
+                        ),
+                    ),
+                    OperationsNotCompleteError,
+                )
 
-		self._delete_associated_labels()
+    def validate_purpose(self):
+        valid_purposes = [
+            "Material Issue",
+            "Material Receipt",
+            "Material Transfer",
+            "Material Transfer for Manufacture",
+            "Manufacture",
+            "Repack",
+            "Send to Subcontractor",
+            "Material Consumption for Manufacture",
+            "Disassemble",
+        ]
 
-		if self.purpose == "Manufacture":
-			for batch_name in batches_to_disable:
-				if frappe.db.exists("Batch", batch_name):
-					frappe.db.set_value(
-						"Batch",
-						batch_name,
-						{"batch_qty": 0, "disabled": 1},
-						update_modified=False,
-					)
+        if self.purpose not in valid_purposes:
+            frappe.throw(
+                _("Purpose must be one of {0}").format(", ".join(valid_purposes))
+            )
 
-	def on_trash(self):
-		batches_to_delete = []
-		if self.purpose == "Manufacture":
-			batches_to_delete = self._get_generated_batches()
+        # KTA Override: Allow 'Material Consumption for Manufacture' against Job Card
+        allowed_job_card_purposes = [
+            "Material Transfer for Manufacture",
+            "Repack",
+            "Material Consumption for Manufacture",
+        ]
+        if self.job_card and self.purpose not in allowed_job_card_purposes:
+            frappe.throw(
+                _("For job card {0}, you can only make {1} type stock entries").format(
+                    self.job_card, ", ".join(allowed_job_card_purposes)
+                )
+            )
 
-		self._delete_associated_labels()
-		super().on_trash()
+    def validate_raw_materials_exists(self):
+        """Override upstream ERPNext v15.95+ raw materials presence check.
 
-		if self.purpose == "Manufacture":
-			for batch_name in batches_to_delete:
-				if frappe.db.exists("Batch", batch_name):
-					try:
-						frappe.delete_doc("Batch", batch_name, ignore_permissions=True)
-					except Exception:
-						# If deletion fails (e.g., due to LinkExistsError), ensure it's empty and disabled
-						frappe.db.set_value(
-							"Batch",
-							batch_name,
-							{"batch_qty": 0, "disabled": 1},
-							update_modified=False,
-						)
+        In KTA Shopfloor architecture:
+        - Confirmations (custom_confirmation) create FG-only Stock Entries because
+          materials are backflushed separately via 'Material Consumption for Manufacture'.
+        - If a Work Order already has submitted Material Consumption entries, FG entries
+          do not need to re-include raw materials.
+        - Legacy or ad-hoc Work Orders without a BOM do not require raw materials.
+        """
+        if self.purpose not in ["Manufacture", "Repack", "Disassemble"]:
+            return
 
-	def _delete_associated_labels(self):
-		labels = frappe.get_all(
-			"KTA Stock Label",
-			filters={"reference_doctype": "Stock Entry", "reference_name": self.name},
-			pluck="name",
-		)
-		for label in labels:
-			logs = frappe.get_all(
-				"KTA Print Log",
-				filters={"label_doctype": "KTA Stock Label", "label_name": label},
-				pluck="name",
-			)
-			for log in logs:
-				try:
-					frappe.delete_doc("KTA Print Log", log, ignore_permissions=True, force=True)
-				except Exception:
-					frappe.log_error(
-						f"Failed to delete KTA Print Log {log} for label {label} (Stock Entry {self.name}).\n{frappe.get_traceback()}",
-						"KTAStockEntry cleanup",
-					)
-			try:
-				frappe.delete_doc("KTA Stock Label", label, ignore_permissions=True, force=True)
-			except Exception:
-				frappe.log_error(
-					f"Failed to delete KTA Stock Label {label} (Stock Entry {self.name}).\n{frappe.get_traceback()}",
-					"KTAStockEntry cleanup",
-				)
+        if frappe.db.get_single_value("Manufacturing Settings", "material_consumption"):
+            return
 
-	def _get_generated_batches(self):
-		batches = set()
+        if self.purpose == "Manufacture" and self.work_order:
+            if self.get("custom_confirmation"):
+                return
 
-		# 1. Try to find bundles via voucher_no in DB (works even if doc is cancelled and row links are cleared)
-		bundles = frappe.get_all(
-			"Serial and Batch Bundle",
-			filters={"voucher_type": "Stock Entry", "voucher_no": self.name},
-			pluck="name",
-		)
+            if frappe.db.exists(
+                "Stock Entry",
+                {
+                    "work_order": self.work_order,
+                    "purpose": "Material Consumption for Manufacture",
+                    "docstatus": 1,
+                },
+            ):
+                return
 
-		# 2. Fallback to row fields if not found (e.g. before save/submit)
-		if not bundles:
-			bundles = [
-				row.get("serial_and_batch_bundle")
-				for row in self.get("items", [])
-				if row.get("is_finished_item") and row.get("serial_and_batch_bundle")
-			]
+            bom_no = self.get("bom_no") or frappe.db.get_value(
+                "Work Order", self.work_order, "bom_no"
+            )
+            if not bom_no:
+                return
 
-		for bundle in bundles:
-			entries = frappe.get_all(
-				"Serial and Batch Entry",
-				filters={"parent": bundle, "is_outward": 0},
-				pluck="batch_no",
-			)
-			for b in entries:
-				if b:
-					batches.add(b)
-		return list(batches)
+        if hasattr(super(), "validate_raw_materials_exists"):
+            super().validate_raw_materials_exists()
+
+    def get_matched_items(self, item_code):
+        matched = super().get_matched_items(item_code)
+        if matched:
+            return matched
+
+        matched_items = []
+        # Check if any item row was substituted from item_code
+        for item in self.items:
+            orig = item.get("custom_original_item") or item.get("original_item")
+            if orig and orig == item_code:
+                matched_items.append(item)
+                continue
+
+            # Check approved Item Alternative relationship
+            if (
+                item.item_code
+                and item_code
+                and (
+                    frappe.db.exists(
+                        "Item Alternative",
+                        {
+                            "item_code": item_code,
+                            "alternative_item_code": item.item_code,
+                        },
+                    )
+                    or frappe.db.exists(
+                        "Item Alternative",
+                        {
+                            "item_code": item.item_code,
+                            "alternative_item_code": item_code,
+                            "two_way": 1,
+                        },
+                    )
+                )
+            ):
+                matched_items.append(item)
+
+        return matched_items
+
+    def validate(self):
+        # 1. Standart ERPNext kontrollerini yap
+        super().validate()
+
+        # 2. Sadece Manufacture tipinde ve Draft (0) durumundaysa calis
+        if self.purpose == "Manufacture" and self.work_order and self.docstatus == 0:
+            # 3. Sonsuz dongu korumasi (Flag)
+            if not self.get("__splitting_batches"):
+                self.set("__splitting_batches", True)
+                BatchSplitManager.split_manufacturing_batches(self)
+
+    def update_stock_ledger(
+        self, allow_negative_stock=False, via_landed_cost_voucher=False
+    ):
+        """
+        Base StockEntry.update_stock_ledger does not accept via_landed_cost_voucher, swallow it here
+        """
+        super().update_stock_ledger(allow_negative_stock=allow_negative_stock)
+
+    def on_submit(self):
+        super().on_submit()
+        frappe.enqueue(
+            "erpnextkta.overrides.KTAStockEntry.print_labels_on_submit",
+            stock_entry=self.name,
+            user=frappe.session.user,
+            queue="short",
+            timeout=120,
+            now=frappe.flags.in_test,
+            enqueue_after_commit=True,
+        )
+
+    def on_cancel(self):
+        batches_to_disable = []
+        if self.purpose == "Manufacture":
+            batches_to_disable = self._get_generated_batches()
+
+        super().on_cancel()
+
+        self._delete_associated_labels()
+
+        if self.purpose == "Manufacture":
+            for batch_name in batches_to_disable:
+                if frappe.db.exists("Batch", batch_name):
+                    frappe.db.set_value(
+                        "Batch",
+                        batch_name,
+                        {"batch_qty": 0, "disabled": 1},
+                        update_modified=False,
+                    )
+
+    def on_trash(self):
+        batches_to_delete = []
+        if self.purpose == "Manufacture":
+            batches_to_delete = self._get_generated_batches()
+
+        self._delete_associated_labels()
+        super().on_trash()
+
+        if self.purpose == "Manufacture":
+            for batch_name in batches_to_delete:
+                if frappe.db.exists("Batch", batch_name):
+                    try:
+                        frappe.delete_doc("Batch", batch_name, ignore_permissions=True)
+                    except Exception:
+                        # If deletion fails (e.g., due to LinkExistsError), ensure it's empty and disabled
+                        frappe.db.set_value(
+                            "Batch",
+                            batch_name,
+                            {"batch_qty": 0, "disabled": 1},
+                            update_modified=False,
+                        )
+
+    def _delete_associated_labels(self):
+        labels = frappe.get_all(
+            "KTA Stock Label",
+            filters={"reference_doctype": "Stock Entry", "reference_name": self.name},
+            pluck="name",
+        )
+        for label in labels:
+            logs = frappe.get_all(
+                "KTA Print Log",
+                filters={"label_doctype": "KTA Stock Label", "label_name": label},
+                pluck="name",
+            )
+            for log in logs:
+                try:
+                    frappe.delete_doc(
+                        "KTA Print Log", log, ignore_permissions=True, force=True
+                    )
+                except Exception:
+                    frappe.log_error(
+                        f"Failed to delete KTA Print Log {log} for label {label} (Stock Entry {self.name}).\n{frappe.get_traceback()}",
+                        "KTAStockEntry cleanup",
+                    )
+            try:
+                frappe.delete_doc(
+                    "KTA Stock Label", label, ignore_permissions=True, force=True
+                )
+            except Exception:
+                frappe.log_error(
+                    f"Failed to delete KTA Stock Label {label} (Stock Entry {self.name}).\n{frappe.get_traceback()}",
+                    "KTAStockEntry cleanup",
+                )
+
+    def _get_generated_batches(self):
+        batches = set()
+
+        # 1. Try to find bundles via voucher_no in DB (works even if doc is cancelled and row links are cleared)
+        bundles = frappe.get_all(
+            "Serial and Batch Bundle",
+            filters={"voucher_type": "Stock Entry", "voucher_no": self.name},
+            pluck="name",
+        )
+
+        # 2. Fallback to row fields if not found (e.g. before save/submit)
+        if not bundles:
+            bundles = [
+                row.get("serial_and_batch_bundle")
+                for row in self.get("items", [])
+                if row.get("is_finished_item") and row.get("serial_and_batch_bundle")
+            ]
+
+        for bundle in bundles:
+            entries = frappe.get_all(
+                "Serial and Batch Entry",
+                filters={"parent": bundle, "is_outward": 0},
+                pluck="batch_no",
+            )
+            for b in entries:
+                if b:
+                    batches.add(b)
+        return list(batches)
 
 
 def print_labels_on_submit(stock_entry, user=None):
-	if user:
-		frappe.set_user(user)
+    if user:
+        frappe.set_user(user)
 
-	from erpnextkta.kta_stock.label_manager import print_stock_entry_labels
+    from erpnextkta.kta_stock.label_manager import print_stock_entry_labels
 
-	try:
-		doc = frappe.get_doc("Stock Entry", stock_entry)
-		if doc.stock_entry_type:
-			is_printable = frappe.db.get_value(
-				"Stock Entry Type", doc.stock_entry_type, "custom_etiket_basilabilir"
-			)
-			if is_printable:
-				print_stock_entry_labels(stock_entry)
-	except Exception:
-		import traceback
+    try:
+        doc = frappe.get_doc("Stock Entry", stock_entry)
+        if doc.stock_entry_type:
+            is_printable = frappe.db.get_value(
+                "Stock Entry Type", doc.stock_entry_type, "custom_etiket_basilabilir"
+            )
+            if is_printable:
+                print_stock_entry_labels(stock_entry)
+    except Exception:
+        import traceback
 
-		frappe.log_error(
-			f"Stock Entry Print Error: {traceback.format_exc()}",
-			"Stock Entry Submit Print Error",
-		)
+        frappe.log_error(
+            f"Stock Entry Print Error: {traceback.format_exc()}",
+            "Stock Entry Submit Print Error",
+        )
