@@ -489,6 +489,33 @@ flowchart TD
         </pre>
       </div>
     </div>
+
+    <div class="step-item">
+      <h4>6. İş Emri Yazdırma, Şablon Seçimi ve Barkod Önizleme (<code>🖨️ Yazdır</code>)</h4>
+      <p>
+        Yetkili kullanıcılar sahadaki iş emri gezgin kartlarını veya standart çıktıları doğrudan Shopfloor Hub içinden önizleyip yazdırabilir ve PDF olarak indirebilir:
+      </p>
+      <ul>
+        <li>
+          <strong>İki Görünümden Doğrudan Erişim:</strong> Yazdırma penceresi hem <code>[ ⚡ Work Orders ]</code> görünümünde <code>WorkOrderReleasePanel</code> üst eylem çubuğunda <strong><code>↻ Stok Yenile</code></strong> butonunun yanında, hem de <code>[ 📋 Operations ]</code> görünümünde <code>WoStatsCard</code> başlık çubuğunda kompakt <strong><code>🖨️ Yazdır</code></strong> butonu (<code>WorkOrderPrintButton</code>) üzerinden açılır.
+        </li>
+        <li>
+          <strong>Şablon, Antet ve Yetki Denetimi (<code>get_work_order_print_options</code>):</strong> Pencere açıldığında backend üzerinden iş emrine ait tüm aktif <code>Print Format</code> şablonları (varsayılan şablon en üstte vurgulanır ve <code>"Standard"</code> her zaman listede yer alır), aktif <code>Letter Head</code> kayıtları, <code>Print Settings</code> kuralları (<code>allow_print_for_draft</code>, <code>allow_print_for_cancelled</code>, <code>with_letterhead</code>) ve kullanıcının yazdırma yetkisi yüklenir. Taslak veya iptal edilmiş iş emirlerinde ayarlar izin vermiyorsa yazdırma aksiyonları güvenli biçimde kilitlenir ve bilgilendirme uyarısı gösterilir.
+        </li>
+        <li>
+          <strong>Seçilebilir Şablon ve Tarayıcı Hafızası:</strong> Kullanıcı açılır listeden <code>"Standard"</code> veya <em>özel iş emri şablonu</em> seçebilir. Seçilen son şablon tarayıcıda (<code>localStorage</code>) saklanarak sonraki açılışlarda otomatik olarak hatırlanır.
+        </li>
+        <li>
+          <strong>Antet Seçeneği (<code>Antetli Yazdır</code> / <code>Antet</code>):</strong> <em>Antetli Yazdır</em> kutucuğu ile <em>varsayılan antet</em> veya diğer aktif antetler seçilebilir ya da antetsiz çıktı alınabilir.
+        </li>
+        <li>
+          <strong>Canlı HTML Önizleme ve Barkod Desteği:</strong> Standart/HTML tabanlı şablonlarda <code>&lt;iframe src="/printview?..."&gt;</code> üzerinden canlı önizleme yüklenir; iş emri şablonlarında yer alan İş Emri ve Job Card barkodları <code>JsBarcode</code> ile doğrudan önizlemede oluşturulur. Ham yazdırma (<code>Raw Printing</code>) şablonları seçildiğinde HTML önizleme yerine bilgilendirme mesajı gösterilir.
+        </li>
+        <li>
+          <strong>Çıktı Aksiyonları:</strong> Alt çubuktan <strong><code>Tam Sayfa Önizle</code></strong> (yeni sekmede <code>/printview</code>), <strong><code>PDF İndir</code></strong> (<code>frappe.utils.print_format.download_pdf</code> veya Print Format Builder Beta şablonlarında <code>weasyprint.download_pdf</code>) ve doğrudan tarayıcı yazdırma penceresini açan <strong><code>Yazdır</code></strong> (<code>trigger_print=1</code>) işlemleri tek tıkla başlatılır.
+        </li>
+      </ul>
+    </div>
   </div>
 
   <div class="callout-box success">
@@ -536,6 +563,7 @@ flowchart TD
       </p>
       <ul>
         <li><strong>Numarayı Kopyala:</strong> İş emri başlığında bulunan kopyalama simgesine tıklayarak iş emri numarasını tek tıkla panoya alabilirsiniz (<em>Kopyalandı!</em> bildirimi gösterilir).</li>
+        <li><strong>İş Emri Yazdır (<code>🖨️ Yazdır</code>):</strong> Kartın sağ üst başlık çubuğunda yer alan kompakt yazdırma butonu (<code>WorkOrderPrintButton</code>) üzerinden <code>WorkOrderPrintModal</code> penceresini açarak şablon ve antet seçimiyle önizleme, PDF indirme veya doğrudan yazdırma yapabilirsiniz.</li>
         <li><strong>Görsel KPI ve İlerleme Kartı:</strong> Kartın üst kısmında <em>Hedef Miktar</em>, <em>Üretilen Mamul</em> ve <em>Kalan Mamul</em> KPI sayaçları ile birlikte renkli ve gradyan geçişli <strong>Üretim İlerlemesi</strong> çubuğu (% rozetiyle) dinamik olarak güncellenir.</li>
       </ul>
     </div>
@@ -1168,6 +1196,10 @@ flowchart TD
     <li>
       <strong><code>stage_confirmation_materials</code> (Kullanıcı Onaylı Hat İkmali):</strong>
       Kullanıcının seçtiği kaynak üretim depolarından hedef hat deposuna eksik miktarlar için tek tıkla <code>Material Transfer for Manufacture</code> stok fişi oluşturup onaylar (<code>submit</code>) ve teyit sürecinin önünü açar.
+    </li>
+    <li>
+      <strong><code>get_work_order_print_options</code> (İş Emri Yazdırma Seçenekleri):</strong>
+      Seçili iş emri (opsiyonel <code>work_order</code>) için aktif <code>Print Format</code> şablonlarını (varsayılan şablon en üstte, <code>"Standard"</code> her zaman dahil), aktif <code>Letter Head</code> kayıtlarını, <code>Print Settings</code> bayraklarını (<code>allow_print_for_draft</code>, <code>allow_print_for_cancelled</code>, <code>with_letterhead</code>) ve yazdırma yetkisi/durum kontrolünü (<code>can_print</code>) döner.
     </li>
   </ul>
 </div>

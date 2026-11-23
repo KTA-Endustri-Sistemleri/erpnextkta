@@ -1260,3 +1260,21 @@ Operatörler,Operators
 Operators Who Consumed This Material,Operators Who Consumed This Material
 Consumption Share,Consumption Share
 Operators,Operators
+Standard,Standard
+Yazdır,Print
+İş Emrini Yazdır / Şablon Seç,Print Work Order / Select Template
+İş Emri Yazdır,Print Work Order
+Yazdırma seçenekleri yükleniyor...,Loading print options...
+Yazdırma seçenekleri alınamadı.,Could not fetch print options.
+Bu iş emrini yazdırma yetkiniz yok veya belge durumu yazdırmaya izin vermiyor.,You do not have permission to print this work order or the document status does not allow printing.
+Lütfen tarayıcı açılır pencere (pop-up) iznini etkinleştirin.,Please enable browser pop-up permissions.
+Yazdırma Şablonu,Print Format
+Varsayılan,Default
+Antetli Yazdır,Print with Letter Head
+Antet,Letter Head
+Kullanılabilir yazdırma şablonu bulunamadı.,No available print formats found.
+Bu şablon ham yazdırma (Raw Printing) formatındadır; HTML önizleme desteklenmiyor.,This format uses Raw Printing; HTML preview is not supported.
+Önizleme yükleniyor...,Loading preview...
+İş Emri Önizleme,Work Order Preview
+Tam Sayfa Önizle,Full Page Preview
+PDF İndir,Download PDF

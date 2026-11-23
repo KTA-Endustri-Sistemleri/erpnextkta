@@ -6,6 +6,7 @@ import type {
   MaterialAvailabilityItem,
 } from "../types";
 import ItemAlternativesModal from "./ItemAlternativesModal.vue";
+import WorkOrderPrintButton from "./WorkOrderPrintButton.vue";
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
@@ -589,6 +590,7 @@ onUnmounted(() => {
         </div>
 
         <div class="summary-actions">
+          <WorkOrderPrintButton v-if="workOrder" :work-order="workOrder" />
           <button
             type="button"
             class="btn-refresh-matrix"
@@ -1508,6 +1510,13 @@ onUnmounted(() => {
   100% {
     background-position: -200% 0;
   }
+}
+
+.summary-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .btn-refresh-matrix {

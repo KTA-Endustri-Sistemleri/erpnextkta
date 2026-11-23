@@ -98,6 +98,7 @@ SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sa�
   - Stok tam ise `wo.submit()` (`docstatus = 1`) ile iş emrini serbest bırakır.
   - Eksik hammadde varken `allow_shortage=0` gönderilirse `ValidationError` fırlatır; `allow_shortage=1` onayında `Work Order.custom_released_with_shortage = 1` işaretler, eksik listesini `Comment` olarak aktivite geçmişine ekler ve submit eder.
   - **Stok Rezervasyonu ve Tüketim Yaşam Döngüsü:** İş emri submit edildiğinde ERPNext standart motoru ilgili depodaki `Bin.reserved_qty_for_production` değerini artırarak hammadde rezervasyonu oluşturur. `Operations` sekmesinden backflush malzeme tüketimi (`Material Consumption for Manufacture`) yapıldığında `consumed_qty` artar ve rezervasyon otomatik olarak tüketilen miktar kadar azalır (`reserved_qty_for_production = required_qty - consumed_qty`). Teyit SAP CORS ile iptal edildiğinde rezervasyon otomatik olarak eski haline döner.
+- **İş Emri Yazdırma Seçenekleri (`get_work_order_print_options`):** `Print Settings` (`allow_print_for_draft`, `allow_print_for_cancelled`, `with_letterhead`) ayarlarını, `Work Order` okuma/yazdırma yetkilerini ve taslak/iptal belge durumu engelini (`can_print`) denetler. Aktif `Work Order` `Print Format` kayıtlarını (varsayılan şablon en üstte, `"Standard"` her zaman dahil; `default_print_language`, `raw_printing`, `print_format_builder_beta` alanlarıyla) ve aktif `Letter Head` listesini (`default_letter_head` dahil) döner.
 
 ### 2.5 Confirmation Pre-Flight Kontrolü ve Hat İkmal Modali (`services/confirmation_service.py`)
 - **Teyit Öncesi Pre-Flight Kontrolü (`check_confirmation_materials`):** Teyit verilmek istenen operasyonda tüketilecek reçete hammaddelerinin hat deposundaki (`wip_warehouse`) fiili serbest stoklarını hesaplar.
@@ -146,6 +147,7 @@ SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sa�
 | `create_work_order` | `item_code`, `qty`, `bom_no`, `source_warehouse`, `wip_warehouse`, `fg_warehouse`, `planned_start_date`, `planned_end_date`, `company`, `customer` | Varsayılan BOM, depo ve $T_{\text{prod}}$ termin hesabıyla `Draft` statüsünde yeni iş emri oluşturur. |
 | `check_material_availability` | `work_order` (str) | Seçili iş emrinin bileşenleri için `Bin.actual_qty` bazlı stok uygunluk matrisini ve hazır olma yüzdesini döner. |
 | `release_work_order` | `work_order` (str), `allow_shortage` (int) | Stok uygunluğunu kontrol eder; eksik yoksa veya `allow_shortage=1` ise iş emrini submit ederek serbest bırakır. |
+| `get_work_order_print_options` | `work_order` (str, opsiyonel) | Aktif `Work Order` `Print Format` şablonlarını (varsayılan ilk sırada, `"Standard"` her zaman dahil), aktif `Letter Head` kayıtlarını, `Print Settings` bayraklarını (`allow_print_for_draft`, `allow_print_for_cancelled`, `with_letterhead`) ve `can_print` yetki/durum bilgisini döner. |
 | `check_confirmation_materials` | `work_order` (str), `operation` (str), `yield_qty` (float), `is_final_confirmation` (int) | Teyit öncesi hat deposu malzeme uygunluğunu denetler, eksik varsa alternatif üretim (WIP) depolarındaki stokları döner. |
 | `stage_confirmation_materials` | `work_order` (str), `transfers` (list[dict]) | Hat deposuna ikmal için `Material Transfer for Manufacture` stok fişi oluşturup submit eder. |
 | `submit_production_confirmation` *(legacy: `submit_co11n_confirmation`)* | `payload` (dict/json) | CO11N üretim teyidini işler ve stok hareketini oluşturur. |
@@ -162,9 +164,11 @@ SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sa�
   - `components/ShopfloorNavbar.vue`: Üst navigasyon çubuğu (`[ ⚡ Work Orders ]` ve `[ 📋 Operations ]`).
   - `components/WorkOrderSidebar.vue`: Bağlamsal sol iş emri kenar çubuğu (`Work Orders`: `Tümü`, `Taslak`, `Serbest` + `+ Yeni İş Emri Aç` butonu; `Operations`: `Tümü`, `Devam Eden`, `Başlanmamış` [`Not Started`]; tamamlanan kayıtlar kokpitte gösterilmez).
   - `components/CreateWorkOrderModal.vue`: Hızlı taslak iş emri açma penceresi, otomatik BOM/termin ($T_{\text{prod}}$) yükleme ve Gelişmiş Seçenekler akordeonu.
-  - `components/WorkOrderReleasePanel.vue`: Hammadde Stok Uygunluk Matrisi, hazır olma ilerleme çubuğu, Eksik Hammadde Uyarısı (`Force Release`) modali ve `Operasyon Teyidine Geç` aksiyonu.
+  - `components/WorkOrderReleasePanel.vue`: Hammadde Stok Uygunluk Matrisi, hazır olma ilerleme çubuğu, Eksik Hammadde Uyarısı (`Force Release`) modali, `Stok Yenile` yanında `WorkOrderPrintButton` (`🖨️ Yazdır`) ve `Operasyon Teyidine Geç` aksiyonu.
   - `components/MaterialStagingModal.vue`: Hat deposu (`wip_warehouse`) stok yetersizliğinde açılan kullanıcı onaylı ikmal penceresi; kaynak WIP depo seçimi ve tek tıkla `Material Transfer for Manufacture` transferi.
-  - `components/WoStatsCard.vue`: İş emri başlık ve özet metrik kartı.
+  - `components/WoStatsCard.vue`: İş emri başlık, sağ üst başlık çubuğunda kompakt `WorkOrderPrintButton` (`🖨️ Yazdır`) ve özet metrik kartı.
+  - `components/WorkOrderPrintButton.vue`: Hem `[ ⚡ Work Orders ]` (`WorkOrderReleasePanel.vue`, `Stok Yenile` yanında) hem de `[ 📋 Operations ]` (`WoStatsCard.vue` başlık çubuğunda `compact` modda) görünümlerinde `🖨️ Yazdır` tetikleyicisini sunar.
+  - `components/WorkOrderPrintModal.vue`: `erpnextkta.kta_shopfloor.api.get_work_order_print_options` ile aktif `Print Format` / `Letter Head` ve `Print Settings` izinlerini yükler; seçilen son şablonu tarayıcı `localStorage` (`kta_shopfloor_wo_print_format`) içinde saklar; opsiyonel `Antetli Yazdır` / `Antet` seçimi, canlı HTML `<iframe src="/printview?...">` önizlemesi (İş Emri ve Job Card barkodlarını `JsBarcode` ile oluşturur; `raw_printing` şablonlarında bilgilendirme uyarısı gösterir), `Tam Sayfa Önizle`, doğrudan tarayıcı `Yazdır` (`trigger_print=1`) ve `PDF İndir` (`frappe.utils.print_format.download_pdf` / `frappe.utils.weasyprint.download_pdf`) aksiyonlarını sunar.
   - `components/OperationsList.vue`: Operasyon adımları ve seçim listesi.
   - `components/ConfirmationPanel.vue`: Teyit miktarı girişi ve onay paneli.
   - `components/ConfirmationHistory.vue`: Geçmiş teyitler, çoklu stok fişi bağlantıları ve iptal (CORS) akışı.
@@ -173,6 +177,7 @@ SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sa�
   - **Çoklu Görünüm & Bağlamsal Kenar Çubuğu:** Sekme değişiminde sol liste ve durum filtreleri otomatik uyarlanır.
   - **Hızlı İş Emri Açma & $T_{\text{prod}}$ Termin:** Yalnızca mamul ve miktar girerek taslak iş emri oluşturma; gelişmiş seçeneklerde reçete, depo ve tarih düzenleme.
   - **Hammadde Uygunluk Matrisi & Esnek Release:** Kalem bazında karşılama oranı (%), eksik uyarısıyla kontrollü serbest bırakma ve aktivite kaydı.
+  - **İş Emri Yazdırma & Şablon/Antet Önizleme:** `[ ⚡ Work Orders ]` (`Stok Yenile` yanı) ve `[ 📋 Operations ]` (`WoStatsCard` başlık çubuğu) üzerinden `🖨️ Yazdır` ile varsayılan antet / özel iş emri şablonu seçimi, `localStorage` şablon hafızası, `JsBarcode` barkodlu canlı HTML önizleme, `Tam Sayfa Önizle`, `Yazdır` ve `PDF İndir` akışı.
   - **Kullanıcı Onaylı Hat İkmal Modali (User-Confirmed Staging):** Teyit öncesi pre-flight stok kontrolü, yalnızca üretim/WIP depolarından hat ikmali ve tek tıkla transfer + teyit akışı.
   - **Operasyon Teyit Kokpiti:** Dinamik operasyon listesi, milestone rozeti, dokunmatik uyumlu hızlı miktar butonları (`+1`, `+5`, `+10`, `+25`, `+50`, `Kalanın Tümü`), "Son Teyit (Kalanı Kapat)" bayrağı ve oluşan tüketim/üretim fişlerine doğrudan bağlantılar.
 

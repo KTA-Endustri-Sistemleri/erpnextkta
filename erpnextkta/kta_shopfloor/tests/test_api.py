@@ -19,6 +19,7 @@ from erpnextkta.kta_shopfloor.api import (
     get_item_default_bom,
     get_production_confirmations,
     get_shopfloor_hub_context,
+    get_work_order_print_options,
     release_work_order,
     stage_confirmation_materials,
     submit_co11n_confirmation,
@@ -1608,3 +1609,30 @@ class TestCO11NAPI(KTATestCase):
             yield_qty=100.0,
         )
         self.assertIs(chk_after["has_shortage"], False)
+
+    def test_api_get_work_order_print_options_contract(self):
+        """get_work_order_print_options returns expected contract keys for a submitted Work Order."""
+        res = get_work_order_print_options(work_order=self.wo_name)
+        expected_keys = {
+            "doctype",
+            "work_order",
+            "can_print",
+            "default_print_format",
+            "print_formats",
+            "default_letter_head",
+            "letter_heads",
+            "with_letterhead",
+            "allow_print_for_draft",
+            "allow_print_for_cancelled",
+        }
+        self.assertTrue(expected_keys.issubset(res.keys()))
+        self.assertEqual(res["doctype"], "Work Order")
+        self.assertEqual(res["work_order"], self.wo_name)
+        self.assertIsInstance(res["can_print"], bool)
+        self.assertTrue(res["can_print"])
+        self.assertIsInstance(res["print_formats"], list)
+        self.assertTrue(any(pf["name"] == "Standard" for pf in res["print_formats"]))
+        self.assertIsInstance(res["letter_heads"], list)
+        self.assertIn(res["with_letterhead"], (0, 1))
+        self.assertIn(res["allow_print_for_draft"], (0, 1))
+        self.assertIn(res["allow_print_for_cancelled"], (0, 1))

@@ -12,6 +12,7 @@ from erpnextkta.kta_shopfloor.services.work_order_service import (
     create_draft_work_order,
     get_item_alternatives,
     get_work_order_item_alternatives,
+    get_work_order_print_options,
     release_work_order_service,
     resolve_manufacturing_lead_days,
     restore_work_order_item_original,
@@ -1138,3 +1139,165 @@ class TestWorkOrderService(KTABaseTestCase):
         noop_res = update_work_order_qty(wo_name, 10)
         self.assertEqual(noop_res["qty"], 10.0)
         self.assertEqual(noop_res["old_qty"], 10.0)
+
+    def _create_test_print_format(self, name: str, disabled: int = 0) -> str:
+        if frappe.db.exists("Print Format", name):
+            frappe.db.set_value(
+                "Print Format",
+                name,
+                {
+                    "doc_type": "Work Order",
+                    "disabled": disabled,
+                    "standard": "No",
+                    "custom_format": 1,
+                    "print_format_type": "Jinja",
+                },
+            )
+            return name
+        pf = frappe.get_doc(
+            {
+                "doctype": "Print Format",
+                "name": name,
+                "doc_type": "Work Order",
+                "module": "Manufacturing",
+                "standard": "No",
+                "custom_format": 1,
+                "print_format_type": "Jinja",
+                "html": "<div>{{ doc.name }}</div>",
+                "disabled": disabled,
+            }
+        )
+        pf.flags.ignore_permissions = True
+        pf.insert(ignore_permissions=True)
+        return pf.name
+
+    def test_get_work_order_print_options_formats_and_default_ordering(self):
+        """Active custom Print Formats appear, disabled ones are excluded, Standard is present,
+        and configured default_print_format is ordered first (with fallback if disabled).
+        """
+        uid = frappe.generate_hash(length=6)
+        active_pf = self._create_test_print_format(
+            f"_Test WO Print Active {uid}", disabled=0
+        )
+        default_pf = self._create_test_print_format(
+            f"_Test WO Print Default {uid}", disabled=0
+        )
+        disabled_pf = self._create_test_print_format(
+            f"_Test WO Print Disabled {uid}", disabled=1
+        )
+        self.addCleanup(
+            lambda: [
+                frappe.delete_doc(
+                    "Print Format", name, force=1, ignore_permissions=True
+                )
+                for name in (active_pf, default_pf, disabled_pf)
+                if frappe.db.exists("Print Format", name)
+            ]
+        )
+
+        orig_ps_name = frappe.db.get_value(
+            "Property Setter",
+            {"doc_type": "Work Order", "property": "default_print_format"},
+            "name",
+        )
+        orig_ps_val = (
+            frappe.db.get_value("Property Setter", orig_ps_name, "value")
+            if orig_ps_name
+            else None
+        )
+
+        def restore_default_print_format():
+            if orig_ps_name:
+                frappe.db.set_value(
+                    "Property Setter", orig_ps_name, "value", orig_ps_val
+                )
+            else:
+                frappe.db.delete(
+                    "Property Setter",
+                    {"doc_type": "Work Order", "property": "default_print_format"},
+                )
+            frappe.clear_cache(doctype="Work Order")
+
+        self.addCleanup(restore_default_print_format)
+
+        if orig_ps_name:
+            frappe.db.set_value("Property Setter", orig_ps_name, "value", default_pf)
+        else:
+            frappe.make_property_setter(
+                {
+                    "doctype": "Work Order",
+                    "doctype_or_field": "DocType",
+                    "property": "default_print_format",
+                    "value": default_pf,
+                    "property_type": "Data",
+                }
+            )
+        frappe.clear_cache(doctype="Work Order")
+
+        res = get_work_order_print_options()
+        names = [pf["name"] for pf in res["print_formats"]]
+
+        self.assertEqual(res["doctype"], "Work Order")
+        self.assertIsNone(res["work_order"])
+        self.assertIn(active_pf, names)
+        self.assertIn(default_pf, names)
+        self.assertIn("Standard", names)
+        self.assertNotIn(disabled_pf, names)
+        self.assertEqual(res["default_print_format"], default_pf)
+        self.assertEqual(res["print_formats"][0]["name"], default_pf)
+        self.assertTrue(res["print_formats"][0]["is_default"])
+
+        # If configured default format is disabled, first remaining format becomes default
+        frappe.db.set_value("Print Format", default_pf, "disabled", 1)
+        res_fallback = get_work_order_print_options()
+        fallback_names = [pf["name"] for pf in res_fallback["print_formats"]]
+        self.assertNotIn(default_pf, fallback_names)
+        self.assertEqual(
+            res_fallback["default_print_format"],
+            res_fallback["print_formats"][0]["name"],
+        )
+        self.assertTrue(res_fallback["print_formats"][0]["is_default"])
+
+    def test_get_work_order_print_options_draft_setting_and_validation(self):
+        """allow_print_for_draft controls can_print on Draft WO, and nonexistent WO raises ValidationError."""
+        orig_with_lh = frappe.db.get_single_value("Print Settings", "with_letterhead")
+        orig_allow_draft = frappe.db.get_single_value(
+            "Print Settings", "allow_print_for_draft"
+        )
+        orig_allow_cancelled = frappe.db.get_single_value(
+            "Print Settings", "allow_print_for_cancelled"
+        )
+        self.addCleanup(
+            frappe.db.set_single_value,
+            "Print Settings",
+            {
+                "with_letterhead": orig_with_lh,
+                "allow_print_for_draft": orig_allow_draft,
+                "allow_print_for_cancelled": orig_allow_cancelled,
+            },
+        )
+
+        res = create_draft_work_order(
+            item_code=self.fg_item,
+            qty=5,
+            bom_no=self.bom_no,
+            source_warehouse=self.src_warehouse,
+            wip_warehouse=self.wip_warehouse,
+            fg_warehouse=self.fg_warehouse,
+            company=self.company,
+        )
+        wo_name = res["name"]
+
+        frappe.db.set_single_value("Print Settings", "allow_print_for_draft", 0)
+        opts_blocked = get_work_order_print_options(wo_name)
+        self.assertEqual(opts_blocked["work_order"], wo_name)
+        self.assertFalse(opts_blocked["can_print"])
+        self.assertEqual(opts_blocked["allow_print_for_draft"], 0)
+
+        frappe.db.set_single_value("Print Settings", "allow_print_for_draft", 1)
+        opts_allowed = get_work_order_print_options(wo_name)
+        self.assertTrue(opts_allowed["can_print"])
+        self.assertEqual(opts_allowed["allow_print_for_draft"], 1)
+
+        with self.assertRaises(frappe.ValidationError):
+            get_work_order_print_options("NON-EXISTENT-WO-PRINT-99999")

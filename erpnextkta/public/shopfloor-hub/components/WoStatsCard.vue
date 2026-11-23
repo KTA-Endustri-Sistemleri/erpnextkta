@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { WorkOrderContext } from '../types';
+import WorkOrderPrintButton from './WorkOrderPrintButton.vue';
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
@@ -60,10 +61,13 @@ function copyWorkOrderNumber() {
         </button>
       </div>
 
-      <span class="status-pill" :class="statusClass">
-        <span class="status-dot" />
-        {{ __(context.status) }}
-      </span>
+      <div class="wo-header-right">
+        <WorkOrderPrintButton v-if="context?.work_order" :work-order="context.work_order" compact />
+        <span class="status-pill" :class="statusClass">
+          <span class="status-dot" />
+          {{ __(context.status) }}
+        </span>
+      </div>
     </div>
 
     <!-- Product Details -->
@@ -154,6 +158,13 @@ function copyWorkOrderNumber() {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.wo-header-right {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .wo-chip-wrapper {
