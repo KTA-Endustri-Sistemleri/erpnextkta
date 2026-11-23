@@ -85,14 +85,22 @@ class BackflushService:
 
         if target_op_qty is not None:
             target_cumulative_qty = flt(target_op_qty)
+        elif is_final:
+            target_cumulative_qty = wo_qty
         else:
             op_completed = (
-                flt(getattr(current_op, "completed_qty", 0) or 0) if current_op else 0.0
+                flt(
+                    (
+                        current_op.get("completed_qty")
+                        if isinstance(current_op, dict)
+                        else getattr(current_op, "completed_qty", 0)
+                    )
+                    or 0
+                )
+                if current_op
+                else 0.0
             )
-            if op_completed > 0 and op_completed >= flt(yield_qty):
-                target_cumulative_qty = op_completed
-            else:
-                target_cumulative_qty = op_completed + flt(yield_qty)
+            target_cumulative_qty = op_completed + flt(yield_qty)
 
         target_cumulative_qty = min(wo_qty, target_cumulative_qty)
 

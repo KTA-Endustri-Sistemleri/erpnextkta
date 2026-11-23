@@ -9,50 +9,50 @@ from frappe.utils import cint, flt, nowdate, nowtime
 
 from erpnextkta.kta_shopfloor.services.backflush_service import BackflushService
 from erpnextkta.kta_shopfloor.services.work_order_service import (
-	_get_other_warehouses_stock,
+    _get_other_warehouses_stock,
 )
 
 
 class ConfirmationService:
-	"""Core coordinator service for CO11N production confirmations."""
+    """Core coordinator service for CO11N production confirmations."""
 
-	@staticmethod
-	def get_operation_quantities(wo_or_name, operation: str) -> dict:
-		"""Calculate normalized operation quantities using single source of truth.
+    @staticmethod
+    def get_operation_quantities(wo_or_name, operation: str) -> dict:
+        """Calculate normalized operation quantities using single source of truth.
 
-		completed_qty = min(wo_qty, legacy_manufacture_qty + co11n_qty)
-		pending_qty = max(0.0, wo_qty - completed_qty)
-		"""
-		if isinstance(wo_or_name, str):
-			wo_name = wo_or_name
-			wo_qty = flt(frappe.db.get_value("Work Order", wo_name, "qty") or 0)
-		elif hasattr(wo_or_name, "name"):
-			wo_name = wo_or_name.name
-			wo_qty = flt(getattr(wo_or_name, "qty", 0) or 0)
-		elif isinstance(wo_or_name, dict):
-			wo_name = wo_or_name.get("name")
-			wo_qty = flt(wo_or_name.get("qty") or 0)
-		else:
-			wo_name = str(wo_or_name)
-			wo_qty = flt(frappe.db.get_value("Work Order", wo_name, "qty") or 0)
+        completed_qty = min(wo_qty, legacy_manufacture_qty + co11n_qty)
+        pending_qty = max(0.0, wo_qty - completed_qty)
+        """
+        if isinstance(wo_or_name, str):
+            wo_name = wo_or_name
+            wo_qty = flt(frappe.db.get_value("Work Order", wo_name, "qty") or 0)
+        elif hasattr(wo_or_name, "name"):
+            wo_name = wo_or_name.name
+            wo_qty = flt(getattr(wo_or_name, "qty", 0) or 0)
+        elif isinstance(wo_or_name, dict):
+            wo_name = wo_or_name.get("name")
+            wo_qty = flt(wo_or_name.get("qty") or 0)
+        else:
+            wo_name = str(wo_or_name)
+            wo_qty = flt(frappe.db.get_value("Work Order", wo_name, "qty") or 0)
 
-		# 1. Confirmed CO11N confirmations for this WO and operation
-		co11n_res = frappe.db.sql(
-			"""
+        # 1. Confirmed CO11N confirmations for this WO and operation
+        co11n_res = frappe.db.sql(
+            """
             SELECT COALESCE(SUM(yield_qty), 0)
             FROM `tabKTA Production Confirmation`
             WHERE work_order = %s
               AND operation = %s
               AND docstatus = 1
             """,
-			(wo_name, operation),
-		)
-		co11n_qty = flt(co11n_res[0][0]) if co11n_res else 0.0
+            (wo_name, operation),
+        )
+        co11n_qty = flt(co11n_res[0][0]) if co11n_res else 0.0
 
-		# 2. Confirmed standard Manufacture Stock Entries not generated via
-		# KTA Production Confirmation
-		legacy_res = frappe.db.sql(
-			"""
+        # 2. Confirmed standard Manufacture Stock Entries not generated via
+        # KTA Production Confirmation
+        legacy_res = frappe.db.sql(
+            """
             SELECT COALESCE(SUM(fg_completed_qty), 0)
             FROM `tabStock Entry`
             WHERE work_order = %s
@@ -67,801 +67,915 @@ class ConfirmationService:
                     AND stock_entry != ''
               )
             """,
-			(wo_name, wo_name),
-		)
-		legacy_manufacture_qty = flt(legacy_res[0][0]) if legacy_res else 0.0
+            (wo_name, wo_name),
+        )
+        legacy_manufacture_qty = flt(legacy_res[0][0]) if legacy_res else 0.0
 
-		total_completed = legacy_manufacture_qty + co11n_qty
-		completed_qty = min(wo_qty, total_completed) if wo_qty > 0 else total_completed
-		pending_qty = max(0.0, wo_qty - completed_qty)
+        total_completed = legacy_manufacture_qty + co11n_qty
+        completed_qty = min(wo_qty, total_completed) if wo_qty > 0 else total_completed
+        pending_qty = max(0.0, wo_qty - completed_qty)
 
-		if wo_qty > 0:
-			if pending_qty <= 0:
-				status = "Completed"
-			elif completed_qty > 0:
-				status = "Work In Progress"
-			else:
-				status = "Pending"
-		else:
-			status = "Completed" if completed_qty > 0 else "Pending"
+        if wo_qty > 0:
+            if pending_qty <= 0:
+                status = "Completed"
+            elif completed_qty > 0:
+                status = "Work In Progress"
+            else:
+                status = "Pending"
+        else:
+            status = "Completed" if completed_qty > 0 else "Pending"
 
-		return {
-			"completed_qty": completed_qty,
-			"pending_qty": pending_qty,
-			"status": status,
-			"co11n_qty": co11n_qty,
-			"legacy_manufacture_qty": legacy_manufacture_qty,
-		}
+        return {
+            "completed_qty": completed_qty,
+            "pending_qty": pending_qty,
+            "status": status,
+            "co11n_qty": co11n_qty,
+            "legacy_manufacture_qty": legacy_manufacture_qty,
+        }
 
-	@staticmethod
-	def confirm_operation(payload: dict | str | None = None, **kwargs) -> dict:
-		data = _normalize_payload(payload, kwargs)
-		_validate_payload(data)
+    @staticmethod
+    def confirm_operation(payload: dict | str | None = None, **kwargs) -> dict:
+        data = _normalize_payload(payload, kwargs)
+        _validate_payload(data)
 
-		wo_name = data["work_order"]
-		operation = data["operation"]
-		yield_qty = flt(data["yield_qty"])
-		is_final = bool(data.get("is_final_confirmation"))
-		posting_date = data.get("posting_date") or nowdate()
-		posting_time = data.get("posting_time") or nowtime()
-		confirmed_by = data.get("confirmed_by") or frappe.session.user or "Administrator"
+        wo_name = data["work_order"]
+        operation = data["operation"]
+        yield_qty = flt(data["yield_qty"])
+        is_final = bool(data.get("is_final_confirmation"))
+        posting_date = data.get("posting_date") or nowdate()
+        posting_time = data.get("posting_time") or nowtime()
+        confirmed_by = (
+            data.get("confirmed_by") or frappe.session.user or "Administrator"
+        )
 
-		wo = frappe.get_doc("Work Order", wo_name)
-		job_card = data.get("job_card") or _resolve_job_card(wo_name, operation)
+        wo = frappe.get_doc("Work Order", wo_name)
+        job_card = data.get("job_card") or _resolve_job_card(wo_name, operation)
 
-		ops = wo.get("operations") or []
-		sorted_ops = sorted(
-			ops,
-			key=lambda d: (
-				getattr(d, "sequence_id", None) or d.get("sequence_id") or 0,
-				getattr(d, "idx", None) or d.get("idx") or 0,
-			),
-		)
-		is_last_op = bool(
-			sorted_ops
-			and (getattr(sorted_ops[-1], "operation", None) or sorted_ops[-1].get("operation")) == operation
-		)
-		is_milestone = is_last_op or not ops
+        sorted_ops = _sort_work_order_operations(wo)
+        is_milestone = _is_milestone_operation(sorted_ops, operation)
 
-		wo_produced_before = flt(frappe.db.get_value("Work Order", wo_name, "produced_qty"))
-		savepoint_name = f"co11n_{frappe.generate_hash(length=10)}"
+        wo_produced_before = flt(
+            frappe.db.get_value("Work Order", wo_name, "produced_qty")
+        )
+        savepoint_name = f"co11n_{frappe.generate_hash(length=10)}"
 
-		try:
-			frappe.db.savepoint(savepoint_name)
+        try:
+            frappe.db.savepoint(savepoint_name)
 
-			target_op_qty = None
-			catchup_confs = []
-			if is_milestone:
-				target_op_qty, catchup_confs = _auto_catchup_preceding_operations(
-					wo=wo,
-					sorted_ops=sorted_ops,
-					current_op_name=operation,
-					yield_qty=yield_qty,
-					is_final=is_final,
-					posting_date=posting_date,
-					posting_time=posting_time,
-					confirmed_by=confirmed_by,
-				)
+            target_op_qty = None
+            catchup_confs = []
+            if is_milestone:
+                target_op_qty, catchup_confs = _auto_catchup_preceding_operations(
+                    wo=wo,
+                    sorted_ops=sorted_ops,
+                    current_op_name=operation,
+                    yield_qty=yield_qty,
+                    is_final=is_final,
+                    posting_date=posting_date,
+                    posting_time=posting_time,
+                    confirmed_by=confirmed_by,
+                )
 
-			conf_doc = _create_confirmation_doc(
-				wo_name=wo_name,
-				operation=operation,
-				job_card=job_card,
-				yield_qty=yield_qty,
-				is_final=is_final,
-				posting_date=posting_date,
-				posting_time=posting_time,
-				confirmed_by=confirmed_by,
-			)
-			conf_doc.flags.ignore_permissions = True
-			conf_doc.flags.ignore_links = True
-			conf_doc.submit()
+            conf_doc = _create_confirmation_doc(
+                wo_name=wo_name,
+                operation=operation,
+                job_card=job_card,
+                yield_qty=yield_qty,
+                is_final=is_final,
+                posting_date=posting_date,
+                posting_time=posting_time,
+                confirmed_by=confirmed_by,
+            )
+            conf_doc.flags.ignore_permissions = True
+            conf_doc.flags.ignore_links = True
+            conf_doc.submit()
 
-			_update_operation_progress(wo, operation, yield_qty, is_final)
-			_update_job_card_progress(job_card, yield_qty, is_final)
+            _update_operation_progress(wo, operation, yield_qty, is_final)
+            _update_job_card_progress(job_card, yield_qty, is_final)
 
-			if catchup_confs and frappe.db.has_column(
-				"KTA Production Confirmation", "milestone_confirmation"
-			):
-				for c_doc in catchup_confs:
-					c_doc.db_set("milestone_confirmation", conf_doc.name)
-					c_doc.milestone_confirmation = conf_doc.name
+            if catchup_confs and frappe.db.has_column(
+                "KTA Production Confirmation", "milestone_confirmation"
+            ):
+                for c_doc in catchup_confs:
+                    c_doc.db_set("milestone_confirmation", conf_doc.name)
+                    c_doc.milestone_confirmation = conf_doc.name
 
-			consumption_se, fg_se, stock_entries = _trigger_backflush(
-				wo=wo,
-				operation=operation,
-				yield_qty=yield_qty,
-				is_final=is_final,
-				is_milestone=is_milestone,
-				conf_name=conf_doc.name,
-				target_op_qty=target_op_qty,
-			)
+            consumption_se, fg_se, stock_entries = _trigger_backflush(
+                wo=wo,
+                operation=operation,
+                yield_qty=yield_qty,
+                is_final=is_final,
+                is_milestone=is_milestone,
+                conf_name=conf_doc.name,
+                target_op_qty=target_op_qty,
+            )
 
-			stock_entry_name = fg_se or consumption_se
-			if stock_entry_name:
-				conf_doc.db_set("stock_entry", stock_entry_name)
-				conf_doc.stock_entry = stock_entry_name
+            stock_entry_name = fg_se or consumption_se
+            if stock_entry_name:
+                conf_doc.db_set("stock_entry", stock_entry_name)
+                conf_doc.stock_entry = stock_entry_name
 
-			if consumption_se and catchup_confs:
-				for c_doc in catchup_confs:
-					c_doc.db_set("stock_entry", consumption_se)
-					c_doc.stock_entry = consumption_se
+            if consumption_se and catchup_confs:
+                for c_doc in catchup_confs:
+                    c_doc.db_set("stock_entry", consumption_se)
+                    c_doc.stock_entry = consumption_se
 
-			_update_work_order_progress(wo, is_milestone, is_final, yield_qty, wo_produced_before)
+            _update_work_order_progress(
+                wo, is_milestone, is_final, yield_qty, wo_produced_before
+            )
 
-			frappe.db.release_savepoint(savepoint_name)
+            frappe.db.release_savepoint(savepoint_name)
 
-			return {
-				"success": True,
-				"confirmation": conf_doc.name,
-				"stock_entry": stock_entry_name,
-				"consumption_stock_entry": consumption_se,
-				"stock_entries": stock_entries,
-				"catchup_confirmations": [c.name for c in catchup_confs],
-				"is_final": is_final,
-			}
+            return {
+                "success": True,
+                "confirmation": conf_doc.name,
+                "stock_entry": stock_entry_name,
+                "consumption_stock_entry": consumption_se,
+                "stock_entries": stock_entries,
+                "catchup_confirmations": [c.name for c in catchup_confs],
+                "is_final": is_final,
+            }
 
-		except Exception:
-			frappe.db.rollback(save_point=savepoint_name)
-			raise
+        except Exception:
+            frappe.db.rollback(save_point=savepoint_name)
+            raise
 
-	@staticmethod
-	def check_confirmation_materials(
-		work_order: str,
-		operation: str,
-		yield_qty: float,
-		is_final_confirmation: int | bool = 0,
-	) -> dict:
-		"""Check line stock availability for raw materials to be consumed in this confirmation.
+    @staticmethod
+    def check_confirmation_materials(
+        work_order: str,
+        operation: str,
+        yield_qty: float,
+        is_final_confirmation: int | bool = 0,
+    ) -> dict:
+        """Check line stock availability for raw materials to be consumed in this confirmation.
 
-		Returns shortage status and available replenishment sources across other company warehouses.
-		"""
-		if not work_order or not frappe.db.exists("Work Order", work_order):
-			frappe.throw(
-				_("Geçerli bir İş Emri zorunludur: {0}").format(work_order),
-				frappe.ValidationError,
-			)
+        Returns shortage status and available replenishment sources across other company warehouses.
+        """
+        if not work_order or not frappe.db.exists("Work Order", work_order):
+            frappe.throw(
+                _("Geçerli bir İş Emri zorunludur: {0}").format(work_order),
+                frappe.ValidationError,
+            )
 
-		wo = frappe.get_doc("Work Order", work_order)
-		wo.check_permission("read")
+        wo = frappe.get_doc("Work Order", work_order)
+        wo.check_permission("read")
 
-		yield_val = flt(yield_qty)
-		is_final = bool(cint(is_final_confirmation))
+        yield_val = flt(yield_qty)
+        is_final = bool(cint(is_final_confirmation))
 
-		if yield_val <= 0:
-			return {"has_shortage": False, "shortages": []}
+        if yield_val <= 0:
+            return {"has_shortage": False, "shortages": []}
 
-		raw_materials = BackflushService.calculate_operation_raw_materials(
-			wo, operation, yield_val, is_final=is_final
-		)
-		if not raw_materials:
-			return {"has_shortage": False, "shortages": []}
+        sorted_ops = _sort_work_order_operations(wo)
+        is_milestone = _is_milestone_operation(sorted_ops, operation)
+        target_op_qty = (
+            _compute_milestone_target_qty(wo, operation, yield_val, is_final)
+            if is_milestone
+            else None
+        )
 
-		# Aggregate required quantities per (item_code, target_warehouse)
-		aggregated: dict[tuple[str, str], dict] = {}
-		for item in raw_materials:
-			item_code = item.get("item_code")
-			if not item_code:
-				continue
-			target_wh = item.get("source_warehouse") or wo.get("source_warehouse") or wo.get("wip_warehouse")
-			if not target_wh:
-				continue
+        raw_materials = BackflushService.calculate_operation_raw_materials(
+            wo,
+            operation,
+            yield_val,
+            is_final=is_final,
+            target_op_qty=target_op_qty,
+        )
+        if not raw_materials:
+            return {"has_shortage": False, "shortages": []}
 
-			key = (item_code, target_wh)
-			if key not in aggregated:
-				aggregated[key] = {
-					"item_code": item_code,
-					"item_name": item.get("item_name") or item_code,
-					"target_warehouse": target_wh,
-					"required_qty": 0.0,
-					"stock_uom": item.get("stock_uom") or item.get("uom") or "Nos",
-				}
-			aggregated[key]["required_qty"] += flt(item.get("qty") or 0.0)
+        # Aggregate required quantities per (item_code, target_warehouse)
+        aggregated: dict[tuple[str, str], dict] = {}
+        for item in raw_materials:
+            item_code = item.get("item_code")
+            if not item_code:
+                continue
+            target_wh = (
+                item.get("source_warehouse")
+                or wo.get("source_warehouse")
+                or wo.get("wip_warehouse")
+            )
+            if not target_wh:
+                continue
 
-		shortages: list[dict] = []
-		for (item_code, target_wh), data in aggregated.items():
-			req_qty = flt(data["required_qty"], 4)
-			actual_qty = flt(
-				frappe.db.get_value(
-					"Bin",
-					{"item_code": item_code, "warehouse": target_wh},
-					"actual_qty",
-				)
-				or 0.0
-			)
+            key = (item_code, target_wh)
+            if key not in aggregated:
+                aggregated[key] = {
+                    "item_code": item_code,
+                    "item_name": item.get("item_name") or item_code,
+                    "target_warehouse": target_wh,
+                    "required_qty": 0.0,
+                    "stock_uom": item.get("stock_uom") or item.get("uom") or "Nos",
+                }
+            aggregated[key]["required_qty"] += flt(item.get("qty") or 0.0)
 
-			if actual_qty < req_qty:
-				shortage_qty = flt(req_qty - max(0.0, actual_qty), 4)
-				_other_avail_qty, other_warehouses = _get_other_warehouses_stock(
-					item_code, wo.company, target_wh
-				)
+        shortages: list[dict] = []
+        for (item_code, target_wh), data in aggregated.items():
+            req_qty = flt(data["required_qty"], 4)
+            actual_qty = _get_consumable_warehouse_qty(item_code, target_wh)
 
-				# User rule: Replenishment is strictly between production/WIP warehouses
-				prod_warehouses = [
-					w for w in other_warehouses if _is_production_warehouse(w["warehouse"], target_wh)
-				]
+            if actual_qty < req_qty:
+                shortage_qty = flt(req_qty - max(0.0, actual_qty), 4)
+                _other_avail_qty, other_warehouses = _get_other_warehouses_stock(
+                    item_code, wo.company, target_wh
+                )
 
-				suggested_source = prod_warehouses[0]["warehouse"] if prod_warehouses else None
-				suggested_avail = flt(prod_warehouses[0]["actual_qty"], 4) if prod_warehouses else 0.0
+                # User rule: Replenishment is strictly between production/WIP warehouses
+                prod_warehouses = []
+                for w in other_warehouses:
+                    if not _is_production_warehouse(w["warehouse"], target_wh):
+                        continue
+                    usable_qty = _get_consumable_warehouse_qty(
+                        item_code, w["warehouse"]
+                    )
+                    if usable_qty <= 0:
+                        continue
+                    prod_warehouses.append(
+                        {
+                            **w,
+                            "actual_qty": usable_qty,
+                            "available_qty": min(
+                                flt(w.get("available_qty", usable_qty)),
+                                usable_qty,
+                            ),
+                        }
+                    )
+                prod_warehouses.sort(key=lambda w: flt(w["actual_qty"]), reverse=True)
 
-				available_sources = [
-					{
-						"warehouse": w["warehouse"],
-						"actual_qty": flt(w["actual_qty"], 4),
-						"available_qty": flt(w.get("available_qty", w["actual_qty"]), 4),
-					}
-					for w in prod_warehouses
-				]
+                suggested_source = (
+                    prod_warehouses[0]["warehouse"] if prod_warehouses else None
+                )
+                suggested_avail = (
+                    flt(prod_warehouses[0]["actual_qty"], 4) if prod_warehouses else 0.0
+                )
 
-				shortages.append(
-					{
-						"item_code": item_code,
-						"item_name": data["item_name"],
-						"required_qty": req_qty,
-						"line_actual_qty": flt(actual_qty, 4),
-						"shortage_qty": shortage_qty,
-						"target_warehouse": target_wh,
-						"source_warehouse": suggested_source,
-						"source_available_qty": suggested_avail,
-						"available_sources": available_sources,
-						"stock_uom": data["stock_uom"],
-					}
-				)
+                available_sources = [
+                    {
+                        "warehouse": w["warehouse"],
+                        "actual_qty": flt(w["actual_qty"], 4),
+                        "available_qty": flt(
+                            w.get("available_qty", w["actual_qty"]), 4
+                        ),
+                    }
+                    for w in prod_warehouses
+                ]
 
-		return {
-			"has_shortage": len(shortages) > 0,
-			"shortages": shortages,
-		}
+                shortages.append(
+                    {
+                        "item_code": item_code,
+                        "item_name": data["item_name"],
+                        "required_qty": req_qty,
+                        "line_actual_qty": flt(actual_qty, 4),
+                        "shortage_qty": shortage_qty,
+                        "target_warehouse": target_wh,
+                        "source_warehouse": suggested_source,
+                        "source_available_qty": suggested_avail,
+                        "available_sources": available_sources,
+                        "stock_uom": data["stock_uom"],
+                    }
+                )
 
-	@staticmethod
-	def stage_confirmation_materials(
-		work_order: str,
-		transfers: list[dict] | str,
-	) -> dict:
-		"""Create and submit a Material Transfer for Manufacture Stock Entry to replenish line stock."""
-		if not work_order or not frappe.db.exists("Work Order", work_order):
-			frappe.throw(
-				_("Geçerli bir İş Emri zorunludur: {0}").format(work_order),
-				frappe.ValidationError,
-			)
+        return {
+            "has_shortage": len(shortages) > 0,
+            "shortages": shortages,
+        }
 
-		wo = frappe.get_doc("Work Order", work_order)
-		wo.check_permission("write")
+    @staticmethod
+    def stage_confirmation_materials(
+        work_order: str,
+        transfers: list[dict] | str,
+    ) -> dict:
+        """Create and submit a Material Transfer for Manufacture Stock Entry to replenish line stock."""
+        if not work_order or not frappe.db.exists("Work Order", work_order):
+            frappe.throw(
+                _("Geçerli bir İş Emri zorunludur: {0}").format(work_order),
+                frappe.ValidationError,
+            )
 
-		if isinstance(transfers, str):
-			try:
-				transfers_list = json.loads(transfers)
-			except (json.JSONDecodeError, TypeError, ValueError):
-				transfers_list = frappe.parse_json(transfers)
-		else:
-			transfers_list = transfers
+        wo = frappe.get_doc("Work Order", work_order)
+        wo.check_permission("write")
 
-		if not transfers_list or not isinstance(transfers_list, list):
-			frappe.throw(
-				_("Transfer edilecek malzeme listesi boş olamaz."),
-				frappe.ValidationError,
-			)
+        if isinstance(transfers, str):
+            try:
+                transfers_list = json.loads(transfers)
+            except (json.JSONDecodeError, TypeError, ValueError):
+                transfers_list = frappe.parse_json(transfers)
+        else:
+            transfers_list = transfers
 
-		validated_items: list[dict] = []
-		for t in transfers_list:
-			if not isinstance(t, dict):
-				continue
-			item_code = t.get("item_code")
-			if not item_code or not frappe.db.exists("Item", item_code):
-				frappe.throw(
-					_("Geçerli bir malzeme kodu zorunludur: {0}").format(item_code),
-					frappe.ValidationError,
-				)
+        if not transfers_list or not isinstance(transfers_list, list):
+            frappe.throw(
+                _("Transfer edilecek malzeme listesi boş olamaz."),
+                frappe.ValidationError,
+            )
 
-			qty = flt(t.get("qty"))
-			if qty <= 0:
-				frappe.throw(
-					_("Transfer miktarı sıfırdan büyük olmalıdır."),
-					frappe.ValidationError,
-				)
+        validated_items: list[dict] = []
+        for t in transfers_list:
+            if not isinstance(t, dict):
+                continue
+            item_code = t.get("item_code")
+            if not item_code or not frappe.db.exists("Item", item_code):
+                frappe.throw(
+                    _("Geçerli bir malzeme kodu zorunludur: {0}").format(item_code),
+                    frappe.ValidationError,
+                )
 
-			source_wh = t.get("source_warehouse")
-			target_wh = t.get("target_warehouse")
-			if not source_wh or not frappe.db.exists("Warehouse", source_wh):
-				frappe.throw(
-					_("Geçerli bir kaynak depo zorunludur: {0}").format(source_wh),
-					frappe.ValidationError,
-				)
-			if not target_wh or not frappe.db.exists("Warehouse", target_wh):
-				frappe.throw(
-					_("Geçerli bir hedef depo zorunludur: {0}").format(target_wh),
-					frappe.ValidationError,
-				)
-			if source_wh == target_wh:
-				frappe.throw(
-					_("Kaynak depo ve hedef depo aynı olamaz: {0}").format(source_wh),
-					frappe.ValidationError,
-				)
+            qty = flt(t.get("qty"))
+            if qty <= 0:
+                frappe.throw(
+                    _("Transfer miktarı sıfırdan büyük olmalıdır."),
+                    frappe.ValidationError,
+                )
 
-			if not _is_production_warehouse(source_wh, target_wh):
-				frappe.throw(
-					_(
-						"Hammadde depolarından doğrudan hat transferi yapılamaz. Transfer sadece üretim depoları arasında yapılabilir: {0}"
-					).format(source_wh),
-					frappe.ValidationError,
-				)
+            source_wh = t.get("source_warehouse")
+            target_wh = t.get("target_warehouse")
+            if not source_wh or not frappe.db.exists("Warehouse", source_wh):
+                frappe.throw(
+                    _("Geçerli bir kaynak depo zorunludur: {0}").format(source_wh),
+                    frappe.ValidationError,
+                )
+            if not target_wh or not frappe.db.exists("Warehouse", target_wh):
+                frappe.throw(
+                    _("Geçerli bir hedef depo zorunludur: {0}").format(target_wh),
+                    frappe.ValidationError,
+                )
+            if source_wh == target_wh:
+                frappe.throw(
+                    _("Kaynak depo ve hedef depo aynı olamaz: {0}").format(source_wh),
+                    frappe.ValidationError,
+                )
 
-			src_actual_qty = flt(
-				frappe.db.get_value(
-					"Bin",
-					{"item_code": item_code, "warehouse": source_wh},
-					"actual_qty",
-				)
-				or 0.0
-			)
-			if src_actual_qty < qty:
-				frappe.throw(
-					_("Kaynak depoda ({0}) {1} için yeterli stok yok. Mevcut: {2}, İstenen: {3}").format(
-						source_wh, item_code, src_actual_qty, qty
-					),
-					frappe.ValidationError,
-				)
+            if not _is_production_warehouse(source_wh, target_wh):
+                frappe.throw(
+                    _(
+                        "Hammadde depolarından doğrudan hat transferi yapılamaz. Transfer sadece üretim depoları arasında yapılabilir: {0}"
+                    ).format(source_wh),
+                    frappe.ValidationError,
+                )
 
-			item_uom = frappe.db.get_value("Item", item_code, "stock_uom") or "Nos"
-			validated_items.append(
-				{
-					"item_code": item_code,
-					"qty": qty,
-					"source_warehouse": source_wh,
-					"target_warehouse": target_wh,
-					"stock_uom": item_uom,
-				}
-			)
+            src_actual_qty = _get_consumable_warehouse_qty(item_code, source_wh)
+            if src_actual_qty < qty:
+                frappe.throw(
+                    _(
+                        "Kaynak depoda ({0}) {1} için yeterli stok yok. Mevcut: {2}, İstenen: {3}"
+                    ).format(source_wh, item_code, src_actual_qty, qty),
+                    frappe.ValidationError,
+                )
 
-		if not validated_items:
-			frappe.throw(
-				_("Transfer edilecek geçerli malzeme bulunamadı."),
-				frappe.ValidationError,
-			)
+            item_uom = frappe.db.get_value("Item", item_code, "stock_uom") or "Nos"
+            validated_items.append(
+                {
+                    "item_code": item_code,
+                    "qty": qty,
+                    "source_warehouse": source_wh,
+                    "target_warehouse": target_wh,
+                    "stock_uom": item_uom,
+                }
+            )
 
-		se = frappe.new_doc("Stock Entry")
-		se.purpose = "Material Transfer for Manufacture"
-		se.stock_entry_type = "Material Transfer for Manufacture"
-		se.work_order = wo.name
-		se.company = wo.company
+        if not validated_items:
+            frappe.throw(
+                _("Transfer edilecek geçerli malzeme bulunamadı."),
+                frappe.ValidationError,
+            )
 
-		sources = {d["source_warehouse"] for d in validated_items}
-		targets = {d["target_warehouse"] for d in validated_items}
-		if len(sources) == 1:
-			se.from_warehouse = next(iter(sources))
-		if len(targets) == 1:
-			se.to_warehouse = next(iter(targets))
+        se = frappe.new_doc("Stock Entry")
+        se.purpose = "Material Transfer for Manufacture"
+        se.stock_entry_type = "Material Transfer for Manufacture"
+        se.work_order = wo.name
+        se.company = wo.company
 
-		for d in validated_items:
-			se.append(
-				"items",
-				{
-					"item_code": d["item_code"],
-					"s_warehouse": d["source_warehouse"],
-					"t_warehouse": d["target_warehouse"],
-					"qty": d["qty"],
-					"transfer_qty": d["qty"],
-					"stock_uom": d["stock_uom"],
-					"uom": d["stock_uom"],
-					"conversion_factor": 1.0,
-				},
-			)
+        sources = {d["source_warehouse"] for d in validated_items}
+        targets = {d["target_warehouse"] for d in validated_items}
+        if len(sources) == 1:
+            se.from_warehouse = next(iter(sources))
+        if len(targets) == 1:
+            se.to_warehouse = next(iter(targets))
 
-		se.remarks = _("Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0}").format(wo.name)
-		if hasattr(se, "set_stock_entry_type"):
-			se.set_stock_entry_type()
-		if hasattr(se, "calculate_rate_and_amount"):
-			se.calculate_rate_and_amount(raise_error_if_no_rate=False)
+        for d in validated_items:
+            se.append(
+                "items",
+                {
+                    "item_code": d["item_code"],
+                    "s_warehouse": d["source_warehouse"],
+                    "t_warehouse": d["target_warehouse"],
+                    "qty": d["qty"],
+                    "transfer_qty": d["qty"],
+                    "stock_uom": d["stock_uom"],
+                    "uom": d["stock_uom"],
+                    "conversion_factor": 1.0,
+                },
+            )
 
-		se.flags.ignore_permissions = True
-		se.insert(ignore_permissions=True)
-		se.submit()
+        se.remarks = _("Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0}").format(
+            wo.name
+        )
+        if hasattr(se, "set_stock_entry_type"):
+            se.set_stock_entry_type()
+        if hasattr(se, "calculate_rate_and_amount"):
+            se.calculate_rate_and_amount(raise_error_if_no_rate=False)
 
-		return {
-			"success": True,
-			"stock_entry": se.name,
-			"transferred_items": transfers_list,
-			"message": _("{0} numaralı hat ikmal transferi başarıyla tamamlandı.").format(se.name),
-		}
+        se.flags.ignore_permissions = True
+        se.insert(ignore_permissions=True)
+        se.submit()
+
+        return {
+            "success": True,
+            "stock_entry": se.name,
+            "transferred_items": transfers_list,
+            "message": _(
+                "{0} numaralı hat ikmal transferi başarıyla tamamlandı."
+            ).format(se.name),
+        }
 
 
 @frappe.whitelist()
 def confirm_operation(payload: dict | str | None = None, **kwargs) -> dict:
-	"""Whitelisted endpoint and function alias for CO11N production confirmation."""
-	return ConfirmationService.confirm_operation(payload=payload, **kwargs)
+    """Whitelisted endpoint and function alias for CO11N production confirmation."""
+    return ConfirmationService.confirm_operation(payload=payload, **kwargs)
 
 
 @frappe.whitelist()
 def check_confirmation_materials(
-	work_order: str,
-	operation: str,
-	yield_qty: float,
-	is_final_confirmation: int | bool = 0,
+    work_order: str,
+    operation: str,
+    yield_qty: float,
+    is_final_confirmation: int | bool = 0,
 ) -> dict:
-	"""Check line stock availability for raw materials to be consumed in a confirmation."""
-	return ConfirmationService.check_confirmation_materials(
-		work_order=work_order,
-		operation=operation,
-		yield_qty=yield_qty,
-		is_final_confirmation=is_final_confirmation,
-	)
+    """Check line stock availability for raw materials to be consumed in a confirmation."""
+    return ConfirmationService.check_confirmation_materials(
+        work_order=work_order,
+        operation=operation,
+        yield_qty=yield_qty,
+        is_final_confirmation=is_final_confirmation,
+    )
 
 
 @frappe.whitelist(methods=["POST"])
 def stage_confirmation_materials(
-	work_order: str,
-	transfers: list[dict] | str,
+    work_order: str,
+    transfers: list[dict] | str,
 ) -> dict:
-	"""Create and submit a Material Transfer for Manufacture Stock Entry to replenish line stock."""
-	return ConfirmationService.stage_confirmation_materials(
-		work_order=work_order,
-		transfers=transfers,
-	)
+    """Create and submit a Material Transfer for Manufacture Stock Entry to replenish line stock."""
+    return ConfirmationService.stage_confirmation_materials(
+        work_order=work_order,
+        transfers=transfers,
+    )
 
 
 def _normalize_payload(payload: dict | str | None, kwargs: dict) -> dict:
-	if payload is None:
-		data = dict(kwargs)
-	elif isinstance(payload, str):
-		try:
-			data = json.loads(payload)
-		except (json.JSONDecodeError, TypeError, ValueError):
-			data = frappe.parse_json(payload) or {}
-	elif isinstance(payload, dict):
-		data = dict(payload)
-	else:
-		data = {}
+    if payload is None:
+        data = dict(kwargs)
+    elif isinstance(payload, str):
+        try:
+            data = json.loads(payload)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            data = frappe.parse_json(payload) or {}
+    elif isinstance(payload, dict):
+        data = dict(payload)
+    else:
+        data = {}
 
-	if kwargs:
-		data.update(kwargs)
-	return data
+    if kwargs:
+        data.update(kwargs)
+    return data
 
 
 def _validate_payload(data: dict) -> None:
-	if not data.get("work_order"):
-		frappe.throw(
-			_("İş Emri (work_order) zorunludur."),
-			frappe.ValidationError,
-		)
+    if not data.get("work_order"):
+        frappe.throw(
+            _("İş Emri (work_order) zorunludur."),
+            frappe.ValidationError,
+        )
 
-	if not frappe.db.exists("Work Order", data.get("work_order")):
-		frappe.throw(
-			_("İş Emri bulunamadı: {0}").format(data.get("work_order")),
-			frappe.ValidationError,
-		)
+    if not frappe.db.exists("Work Order", data.get("work_order")):
+        frappe.throw(
+            _("İş Emri bulunamadı: {0}").format(data.get("work_order")),
+            frappe.ValidationError,
+        )
 
-	if not data.get("operation"):
-		frappe.throw(
-			_("Operasyon (operation) zorunludur."),
-			frappe.ValidationError,
-		)
+    if not data.get("operation"):
+        frappe.throw(
+            _("Operasyon (operation) zorunludur."),
+            frappe.ValidationError,
+        )
 
-	if flt(data.get("yield_qty")) <= 0:
-		frappe.throw(
-			_("Sağlam Miktar (yield_qty) sıfırdan büyük olmalıdır."),
-			frappe.ValidationError,
-		)
+    if flt(data.get("yield_qty")) <= 0:
+        frappe.throw(
+            _("Sağlam Miktar (yield_qty) sıfırdan büyük olmalıdır."),
+            frappe.ValidationError,
+        )
 
 
 def _resolve_job_card(work_order: str, operation: str) -> str | None:
-	jc = frappe.db.get_value(
-		"Job Card",
-		{"work_order": work_order, "operation": operation, "docstatus": 0},
-		"name",
-		order_by="creation desc",
-	)
-	if jc:
-		return jc
+    jc = frappe.db.get_value(
+        "Job Card",
+        {"work_order": work_order, "operation": operation, "docstatus": 0},
+        "name",
+        order_by="creation desc",
+    )
+    if jc:
+        return jc
 
-	return frappe.db.get_value(
-		"Job Card",
-		{"work_order": work_order, "operation": operation, "docstatus": ("<", 2)},
-		"name",
-		order_by="creation desc",
-	)
+    return frappe.db.get_value(
+        "Job Card",
+        {"work_order": work_order, "operation": operation, "docstatus": ("<", 2)},
+        "name",
+        order_by="creation desc",
+    )
 
 
 def _create_confirmation_doc(
-	wo_name: str,
-	operation: str,
-	job_card: str | None,
-	yield_qty: float,
-	is_final: bool,
-	posting_date: str,
-	posting_time: str,
-	confirmed_by: str,
-	milestone_confirmation: str | None = None,
+    wo_name: str,
+    operation: str,
+    job_card: str | None,
+    yield_qty: float,
+    is_final: bool,
+    posting_date: str,
+    posting_time: str,
+    confirmed_by: str,
+    milestone_confirmation: str | None = None,
 ):
-	doc_data = {
-		"doctype": "KTA Production Confirmation",
-		"work_order": wo_name,
-		"operation": operation,
-		"job_card": job_card,
-		"yield_qty": yield_qty,
-		"is_final_confirmation": 1 if is_final else 0,
-		"posting_date": posting_date,
-		"posting_time": posting_time,
-		"confirmed_by": confirmed_by,
-	}
-	if milestone_confirmation and frappe.db.has_column(
-		"KTA Production Confirmation", "milestone_confirmation"
-	):
-		doc_data["milestone_confirmation"] = milestone_confirmation
+    doc_data = {
+        "doctype": "KTA Production Confirmation",
+        "work_order": wo_name,
+        "operation": operation,
+        "job_card": job_card,
+        "yield_qty": yield_qty,
+        "is_final_confirmation": 1 if is_final else 0,
+        "posting_date": posting_date,
+        "posting_time": posting_time,
+        "confirmed_by": confirmed_by,
+    }
+    if milestone_confirmation and frappe.db.has_column(
+        "KTA Production Confirmation", "milestone_confirmation"
+    ):
+        doc_data["milestone_confirmation"] = milestone_confirmation
 
-	conf = frappe.get_doc(doc_data)
-	conf.flags.ignore_permissions = True
-	conf.insert(ignore_permissions=True)
-	return conf
+    conf = frappe.get_doc(doc_data)
+    conf.flags.ignore_permissions = True
+    conf.insert(ignore_permissions=True)
+    return conf
+
+
+def _sort_work_order_operations(wo) -> list:
+    """Return Work Order operations ordered by (sequence_id, idx)."""
+    ops = wo.get("operations") or []
+    return sorted(
+        ops,
+        key=lambda d: (
+            getattr(d, "sequence_id", None) or d.get("sequence_id") or 0,
+            getattr(d, "idx", None) or d.get("idx") or 0,
+        ),
+    )
+
+
+def _is_milestone_operation(sorted_ops: list, operation: str) -> bool:
+    """Return True when the operation is the final operation (or the Work Order has no operations)."""
+    if not sorted_ops:
+        return True
+    last_op = sorted_ops[-1]
+    last_op_name = getattr(last_op, "operation", None) or (
+        last_op.get("operation") if isinstance(last_op, dict) else None
+    )
+    return last_op_name == operation
+
+
+def _compute_milestone_target_qty(
+    wo, operation: str, yield_qty: float, is_final: bool
+) -> float:
+    """Compute target cumulative quantity for a milestone operation using single-source-of-truth completed_qty."""
+    wo_qty = flt(
+        getattr(wo, "qty", 0) or (wo.get("qty") if isinstance(wo, dict) else 0) or 0
+    )
+    current_completed = flt(
+        ConfirmationService.get_operation_quantities(wo, operation)["completed_qty"]
+    )
+    if is_final:
+        return wo_qty if wo_qty > 0 else (current_completed + flt(yield_qty))
+    new_completed = current_completed + flt(yield_qty)
+    return min(wo_qty, new_completed) if wo_qty > 0 else new_completed
 
 
 def _auto_catchup_preceding_operations(
-	wo,
-	sorted_ops: list,
-	current_op_name: str,
-	yield_qty: float,
-	is_final: bool,
-	posting_date: str | None = None,
-	posting_time: str | None = None,
-	confirmed_by: str | None = None,
-	milestone_conf_name: str | None = None,
+    wo,
+    sorted_ops: list,
+    current_op_name: str,
+    yield_qty: float,
+    is_final: bool,
+    posting_date: str | None = None,
+    posting_time: str | None = None,
+    confirmed_by: str | None = None,
+    milestone_conf_name: str | None = None,
 ) -> tuple[float, list]:
-	"""For milestone operations, automatically advance any preceding intermediate operations
+    """For milestone operations, automatically advance any preceding intermediate operations
 
-	whose completed_qty is less than the new milestone target_qty by creating and submitting
-	KTA Production Confirmation confirmations. Returns (target_qty, catchup_confs).
-	"""
-	current_op = None
-	for op in sorted_ops:
-		if (getattr(op, "operation", None) or op.get("operation")) == current_op_name:
-			current_op = op
-			break
+    whose completed_qty is less than the new milestone target_qty by creating and submitting
+    KTA Production Confirmation confirmations. Returns (target_qty, catchup_confs).
+    """
+    current_op = None
+    for op in sorted_ops:
+        if (getattr(op, "operation", None) or op.get("operation")) == current_op_name:
+            current_op = op
+            break
 
-	wo_qty = flt(getattr(wo, "qty", 0) or 0)
-	current_completed = flt(getattr(current_op, "completed_qty", 0) or 0) if current_op else 0.0
-	if is_final:
-		target_qty = wo_qty if wo_qty > 0 else (current_completed + flt(yield_qty))
-	else:
-		new_completed = current_completed + flt(yield_qty)
-		target_qty = min(wo_qty, new_completed) if wo_qty > 0 else new_completed
+    wo_qty = flt(
+        getattr(wo, "qty", 0) or (wo.get("qty") if isinstance(wo, dict) else 0) or 0
+    )
+    target_qty = _compute_milestone_target_qty(wo, current_op_name, yield_qty, is_final)
 
-	if not current_op:
-		return target_qty, []
+    if not current_op:
+        return target_qty, []
 
-	curr_idx = getattr(current_op, "idx", None) or current_op.get("idx") or 0
-	curr_pos = sorted_ops.index(current_op) if current_op in sorted_ops else 0
-	catchup_confs = []
+    curr_idx = getattr(current_op, "idx", None) or current_op.get("idx") or 0
+    curr_pos = sorted_ops.index(current_op) if current_op in sorted_ops else 0
+    catchup_confs = []
 
-	wo_name = getattr(wo, "name", None) or (wo.get("name") if isinstance(wo, dict) else str(wo))
+    wo_name = getattr(wo, "name", None) or (
+        wo.get("name") if isinstance(wo, dict) else str(wo)
+    )
 
-	for idx_pos, prev_op in enumerate(sorted_ops):
-		prev_idx = getattr(prev_op, "idx", None) or prev_op.get("idx") or 0
-		if idx_pos >= curr_pos and prev_idx >= curr_idx:
-			continue
+    for idx_pos, prev_op in enumerate(sorted_ops):
+        prev_idx = getattr(prev_op, "idx", None) or prev_op.get("idx") or 0
+        if idx_pos >= curr_pos and prev_idx >= curr_idx:
+            continue
 
-		prev_op_name = getattr(prev_op, "operation", None) or (
-			prev_op.get("operation") if isinstance(prev_op, dict) else None
-		)
-		if not prev_op_name:
-			continue
+        prev_op_name = getattr(prev_op, "operation", None) or (
+            prev_op.get("operation") if isinstance(prev_op, dict) else None
+        )
+        if not prev_op_name:
+            continue
 
-		op_qtys = ConfirmationService.get_operation_quantities(wo, prev_op_name)
-		prev_completed = flt(op_qtys["completed_qty"])
+        op_qtys = ConfirmationService.get_operation_quantities(wo, prev_op_name)
+        prev_completed = flt(op_qtys["completed_qty"])
 
-		if prev_completed < target_qty:
-			catchup_delta = target_qty - prev_completed
-			prev_jc = _resolve_job_card(wo_name, prev_op_name) if wo_name else None
+        if prev_completed < target_qty:
+            catchup_delta = target_qty - prev_completed
+            prev_jc = _resolve_job_card(wo_name, prev_op_name) if wo_name else None
 
-			# 1. Create and submit KTA Production Confirmation document for the catchup delta
-			catchup_doc = _create_confirmation_doc(
-				wo_name=wo_name,
-				operation=prev_op_name,
-				job_card=prev_jc,
-				yield_qty=catchup_delta,
-				is_final=is_final,
-				posting_date=posting_date or nowdate(),
-				posting_time=posting_time or nowtime(),
-				confirmed_by=confirmed_by or frappe.session.user or "Administrator",
-				milestone_confirmation=milestone_conf_name,
-			)
-			catchup_doc.flags.ignore_permissions = True
-			catchup_doc.flags.ignore_links = True
-			catchup_doc.submit()
-			catchup_confs.append(catchup_doc)
+            # 1. Create and submit KTA Production Confirmation document for the catchup delta
+            catchup_doc = _create_confirmation_doc(
+                wo_name=wo_name,
+                operation=prev_op_name,
+                job_card=prev_jc,
+                yield_qty=catchup_delta,
+                is_final=is_final,
+                posting_date=posting_date or nowdate(),
+                posting_time=posting_time or nowtime(),
+                confirmed_by=confirmed_by or frappe.session.user or "Administrator",
+                milestone_confirmation=milestone_conf_name,
+            )
+            catchup_doc.flags.ignore_permissions = True
+            catchup_doc.flags.ignore_links = True
+            catchup_doc.submit()
+            catchup_confs.append(catchup_doc)
 
-			# 2. Update Work Order Operation row
-			_update_operation_progress(wo, prev_op_name, catchup_delta, is_final)
+            # 2. Update Work Order Operation row
+            _update_operation_progress(wo, prev_op_name, catchup_delta, is_final)
 
-			# 3. Update Job Card progress
-			if prev_jc:
-				_update_job_card_progress(prev_jc, catchup_delta, is_final)
+            # 3. Update Job Card progress
+            if prev_jc:
+                _update_job_card_progress(prev_jc, catchup_delta, is_final)
 
-			# 4. In-memory op sync
-			prev_status = "Completed" if target_qty >= wo_qty else "Work In Progress"
-			if hasattr(prev_op, "completed_qty"):
-				prev_op.completed_qty = target_qty
-				prev_op.status = prev_status
-			elif isinstance(prev_op, dict):
-				prev_op["completed_qty"] = target_qty
-				prev_op["status"] = prev_status
+            # 4. In-memory op sync
+            prev_status = "Completed" if target_qty >= wo_qty else "Work In Progress"
+            if hasattr(prev_op, "completed_qty"):
+                prev_op.completed_qty = target_qty
+                prev_op.status = prev_status
+            elif isinstance(prev_op, dict):
+                prev_op["completed_qty"] = target_qty
+                prev_op["status"] = prev_status
 
-	return target_qty, catchup_confs
+    return target_qty, catchup_confs
 
 
 def _trigger_backflush(
-	wo,
-	operation: str,
-	yield_qty: float,
-	is_final: bool,
-	is_milestone: bool,
-	conf_name: str,
-	target_op_qty: float | None = None,
+    wo,
+    operation: str,
+    yield_qty: float,
+    is_final: bool,
+    is_milestone: bool,
+    conf_name: str,
+    target_op_qty: float | None = None,
 ) -> tuple[str | None, str | None, list[dict]]:
-	consumption_se = None
-	fg_se = None
-	stock_entries = []
+    consumption_se = None
+    fg_se = None
+    stock_entries = []
 
-	if is_milestone:
-		consumption_se = BackflushService.create_consumption_entry(
-			wo,
-			operation,
-			yield_qty,
-			is_final=is_final,
-			confirmation_name=conf_name,
-			target_op_qty=target_op_qty,
-		)
-		fg_se = BackflushService.create_finished_goods_entry(
-			wo, yield_qty, is_final=is_final, confirmation_name=conf_name
-		)
-	else:
-		consumption_se = BackflushService.create_consumption_entry(
-			wo,
-			operation,
-			yield_qty,
-			is_final=is_final,
-			confirmation_name=conf_name,
-			target_op_qty=target_op_qty,
-		)
+    if is_milestone:
+        consumption_se = BackflushService.create_consumption_entry(
+            wo,
+            operation,
+            yield_qty,
+            is_final=is_final,
+            confirmation_name=conf_name,
+            target_op_qty=target_op_qty,
+        )
+        fg_se = BackflushService.create_finished_goods_entry(
+            wo, yield_qty, is_final=is_final, confirmation_name=conf_name
+        )
+    else:
+        consumption_se = BackflushService.create_consumption_entry(
+            wo,
+            operation,
+            yield_qty,
+            is_final=is_final,
+            confirmation_name=conf_name,
+            target_op_qty=target_op_qty,
+        )
 
-	if consumption_se:
-		stock_entries.append(
-			{
-				"name": consumption_se,
-				"purpose": "Material Consumption for Manufacture",
-				"type": "consumption",
-				"label": _("Tüketim"),
-			}
-		)
-	if fg_se:
-		stock_entries.append(
-			{
-				"name": fg_se,
-				"purpose": "Manufacture",
-				"type": "manufacture",
-				"label": _("Üretim"),
-			}
-		)
+    if consumption_se:
+        stock_entries.append(
+            {
+                "name": consumption_se,
+                "purpose": "Material Consumption for Manufacture",
+                "type": "consumption",
+                "label": _("Tüketim"),
+            }
+        )
+    if fg_se:
+        stock_entries.append(
+            {
+                "name": fg_se,
+                "purpose": "Manufacture",
+                "type": "manufacture",
+                "label": _("Üretim"),
+            }
+        )
 
-	return consumption_se, fg_se, stock_entries
-
-
-def _update_operation_progress(wo, operation: str, yield_qty: float, is_final: bool) -> None:
-	op_qtys = ConfirmationService.get_operation_quantities(wo, operation)
-	new_completed = op_qtys["completed_qty"]
-	status = "Completed" if is_final else op_qtys["status"]
-
-	for d in wo.get("operations") or []:
-		if d.operation == operation:
-			vals = {"completed_qty": new_completed, "status": status}
-			frappe.db.set_value("Work Order Operation", d.name, vals)
-			d.completed_qty = new_completed
-			d.status = status
-			break
+    return consumption_se, fg_se, stock_entries
 
 
-def _update_job_card_progress(job_card: str | None, yield_qty: float, is_final: bool) -> None:
-	if not job_card or not frappe.db.exists("Job Card", job_card):
-		return
+def _update_operation_progress(
+    wo, operation: str, yield_qty: float, is_final: bool
+) -> None:
+    op_qtys = ConfirmationService.get_operation_quantities(wo, operation)
+    new_completed = op_qtys["completed_qty"]
+    status = "Completed" if is_final else op_qtys["status"]
 
-	jc_docstatus = frappe.db.get_value("Job Card", job_card, "docstatus")
-	if jc_docstatus != 0:
-		return
+    for d in wo.get("operations") or []:
+        if d.operation == operation:
+            vals = {"completed_qty": new_completed, "status": status}
+            frappe.db.set_value("Work Order Operation", d.name, vals)
+            d.completed_qty = new_completed
+            d.status = status
+            break
 
-	current_qty = flt(frappe.db.get_value("Job Card", job_card, "total_completed_qty"))
-	for_qty = flt(frappe.db.get_value("Job Card", job_card, "for_quantity"))
-	current_status = frappe.db.get_value("Job Card", job_card, "status")
 
-	new_qty = current_qty + yield_qty
-	vals = {"total_completed_qty": new_qty}
+def _update_job_card_progress(
+    job_card: str | None, yield_qty: float, is_final: bool
+) -> None:
+    if not job_card or not frappe.db.exists("Job Card", job_card):
+        return
 
-	if is_final or (for_qty and new_qty >= for_qty):
-		vals["status"] = "Completed"
-	elif current_status in ("Open", "Pending"):
-		vals["status"] = "Work In Progress"
+    jc_docstatus = frappe.db.get_value("Job Card", job_card, "docstatus")
+    if jc_docstatus != 0:
+        return
 
-	# IMPORTANT: Keep docstatus = 0 (Draft container), DO NOT submit Job Card
-	frappe.db.set_value("Job Card", job_card, vals)
+    current_qty = flt(frappe.db.get_value("Job Card", job_card, "total_completed_qty"))
+    for_qty = flt(frappe.db.get_value("Job Card", job_card, "for_quantity"))
+    current_status = frappe.db.get_value("Job Card", job_card, "status")
+
+    new_qty = current_qty + yield_qty
+    vals = {"total_completed_qty": new_qty}
+
+    if is_final or (for_qty and new_qty >= for_qty):
+        vals["status"] = "Completed"
+    elif current_status in ("Open", "Pending"):
+        vals["status"] = "Work In Progress"
+
+    # IMPORTANT: Keep docstatus = 0 (Draft container), DO NOT submit Job Card
+    frappe.db.set_value("Job Card", job_card, vals)
 
 
 def _update_work_order_progress(
-	wo,
-	is_milestone: bool,
-	is_final: bool,
-	yield_qty: float,
-	wo_produced_before: float,
+    wo,
+    is_milestone: bool,
+    is_final: bool,
+    yield_qty: float,
+    wo_produced_before: float,
 ) -> None:
-	if is_milestone:
-		current_produced = flt(frappe.db.get_value("Work Order", wo.name, "produced_qty"))
-		if current_produced == wo_produced_before:
-			# When Manufacture Stock Entry didn't increment produced_qty (e.g. mocked SE)
-			current_produced = wo_produced_before + yield_qty
-			frappe.db.set_value("Work Order", wo.name, "produced_qty", current_produced)
+    if is_milestone:
+        current_produced = flt(
+            frappe.db.get_value("Work Order", wo.name, "produced_qty")
+        )
+        if current_produced == wo_produced_before:
+            # When Manufacture Stock Entry didn't increment produced_qty (e.g. mocked SE)
+            current_produced = wo_produced_before + yield_qty
+            frappe.db.set_value("Work Order", wo.name, "produced_qty", current_produced)
 
-		wo_vals = {}
-		if is_final or current_produced >= flt(wo.qty):
-			wo_vals["status"] = "Completed"
-		elif wo.status == "Not Started":
-			wo_vals["status"] = "In Process"
+        wo_vals = {}
+        if is_final or current_produced >= flt(wo.qty):
+            wo_vals["status"] = "Completed"
+        elif wo.status == "Not Started":
+            wo_vals["status"] = "In Process"
 
-		if wo_vals:
-			frappe.db.set_value("Work Order", wo.name, wo_vals)
-	else:
-		if wo.status == "Not Started":
-			frappe.db.set_value("Work Order", wo.name, "status", "In Process")
+        if wo_vals:
+            frappe.db.set_value("Work Order", wo.name, wo_vals)
+    else:
+        if wo.status == "Not Started":
+            frappe.db.set_value("Work Order", wo.name, "status", "In Process")
 
 
-def _is_production_warehouse(warehouse: str | None, target_warehouse: str | None = None) -> bool:
-	"""Check if a warehouse is a production/line warehouse (WIP / Üretim),
+def _is_production_warehouse(
+    warehouse: str | None, target_warehouse: str | None = None
+) -> bool:
+    """Check if a warehouse is a production/line warehouse (WIP / Üretim),
 
-	and NOT a raw material / central store (Hammadde / Stores / Giriş).
-	"""
-	if not warehouse:
-		return False
+    and NOT a raw material / central store (Hammadde / Stores / Giriş).
+    """
+    if not warehouse:
+        return False
 
-	wh_data = frappe.db.get_value(
-		"Warehouse",
-		warehouse,
-		["name", "warehouse_name", "parent_warehouse", "warehouse_type"],
-		as_dict=True,
-	)
-	if not wh_data:
-		return False
+    wh_data = frappe.db.get_value(
+        "Warehouse",
+        warehouse,
+        ["name", "warehouse_name", "parent_warehouse", "warehouse_type"],
+        as_dict=True,
+    )
+    if not wh_data:
+        return False
 
-	name_lower = (wh_data.name or "").lower()
-	wh_title_lower = (wh_data.warehouse_name or "").lower()
-	parent_lower = (wh_data.parent_warehouse or "").lower()
+    name_lower = (wh_data.name or "").lower()
+    wh_title_lower = (wh_data.warehouse_name or "").lower()
+    parent_lower = (wh_data.parent_warehouse or "").lower()
 
-	# 1. Blacklist keywords: raw materials, central stores, reception
-	forbidden_keywords = [
-		"hammadde",
-		"raw material",
-		"tesellum",
-		"tesellüm",
-		"giriş",
-		"giris",
-		"ana depo",
-		"central",
-		"stores",
-	]
-	for kw in forbidden_keywords:
-		if kw in name_lower or kw in wh_title_lower:
-			return False
+    # 1. Blacklist keywords: raw materials, central stores, reception
+    forbidden_keywords = [
+        "hammadde",
+        "raw material",
+        "tesellum",
+        "tesellüm",
+        "giriş",
+        "giris",
+        "ana depo",
+        "central",
+        "stores",
+    ]
+    for kw in forbidden_keywords:
+        if kw in name_lower or kw in wh_title_lower:
+            return False
 
-	# 2. Whitelist keywords: production, WIP, shopfloor
-	allowed_keywords = [
-		"üretim",
-		"uretim",
-		"production",
-		"wip",
-		"work in progress",
-	]
-	for kw in allowed_keywords:
-		if kw in name_lower or kw in wh_title_lower or kw in parent_lower:
-			return True
+    # 2. Whitelist keywords: production, WIP, shopfloor
+    allowed_keywords = [
+        "üretim",
+        "uretim",
+        "production",
+        "wip",
+        "work in progress",
+    ]
+    for kw in allowed_keywords:
+        if kw in name_lower or kw in wh_title_lower or kw in parent_lower:
+            return True
 
-	# 3. Same parent warehouse as target line warehouse
-	if target_warehouse:
-		target_parent = frappe.db.get_value("Warehouse", target_warehouse, "parent_warehouse")
-		if target_parent and wh_data.parent_warehouse and target_parent == wh_data.parent_warehouse:
-			return True
+    # 3. Same parent warehouse as target line warehouse
+    if target_warehouse:
+        target_parent = frappe.db.get_value(
+            "Warehouse", target_warehouse, "parent_warehouse"
+        )
+        if (
+            target_parent
+            and wh_data.parent_warehouse
+            and target_parent == wh_data.parent_warehouse
+        ):
+            return True
 
-	return False
+    return False
+
+
+def _get_consumable_warehouse_qty(item_code: str, warehouse: str) -> float:
+    """Return usable stock quantity in a warehouse, capped by available batch qty for batch items."""
+    bin_qty = flt(
+        frappe.db.get_value(
+            "Bin",
+            {"item_code": item_code, "warehouse": warehouse},
+            "actual_qty",
+        )
+        or 0.0
+    )
+    if bin_qty <= 0:
+        return bin_qty
+
+    has_batch_no = cint(frappe.db.get_value("Item", item_code, "has_batch_no") or 0)
+    if not has_batch_no:
+        return bin_qty
+
+    from erpnext.stock.doctype.batch.batch import get_available_batches
+
+    based_on = (
+        frappe.db.get_single_value("Stock Settings", "pick_serial_and_batch_based_on")
+        or "FIFO"
+    )
+    batches = get_available_batches(
+        frappe._dict(
+            {
+                "item_code": item_code,
+                "warehouse": warehouse,
+                "posting_date": nowdate(),
+                "posting_time": nowtime(),
+                "based_on": based_on,
+            }
+        )
+    )
+    batch_qty = sum(flt(qty) for qty in (batches or {}).values() if flt(qty) > 0)
+    return min(bin_qty, batch_qty)
