@@ -319,5 +319,38 @@ class TestBackflushService(KTATestCase):
         self.assertEqual(mock_se.fg_completed_qty, 100.0)
         self.assertEqual(mock_se.to_warehouse, self.mock_wo.fg_warehouse)
         self.assertEqual(mock_se.custom_confirmation, "CONF-2026-0002")
+        self.assertIs(mock_se.flags.kta_is_final_confirmation, True)
         mock_se.insert.assert_called_once()
         mock_se.submit.assert_called_once()
+
+    @patch("erpnextkta.kta_shopfloor.services.backflush_service.frappe.get_doc")
+    @patch("erpnextkta.kta_shopfloor.services.backflush_service.frappe.new_doc")
+    def test_create_finished_goods_entry_sets_final_confirmation_flag(
+        self, mock_new_doc, mock_get_doc
+    ):
+        """kta_is_final_confirmation flag reflects is_final and is set before get_items()."""
+        mock_get_doc.return_value = self.mock_wo
+
+        for expected_flag in (True, False):
+            mock_se = MagicMock()
+            mock_se.name = f"MFG-STE-FLAG-{int(expected_flag)}"
+            mock_se.flags = frappe._dict()
+            mock_se.meta.has_field.return_value = True
+            mock_se.items = []
+            flag_at_get_items = []
+
+            def capture_flag_on_get_items(se_ref=mock_se, captured=flag_at_get_items):
+                captured.append(se_ref.flags.get("kta_is_final_confirmation"))
+
+            mock_se.get_items.side_effect = capture_flag_on_get_items
+            mock_new_doc.return_value = mock_se
+
+            create_finished_goods_entry(
+                self.mock_wo,
+                yield_qty=50.0,
+                is_final=expected_flag,
+                confirmation_name=f"CONF-FLAG-{int(expected_flag)}",
+            )
+
+            self.assertIs(mock_se.flags.kta_is_final_confirmation, expected_flag)
+            self.assertEqual(flag_at_get_items, [expected_flag])

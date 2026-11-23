@@ -12,7 +12,15 @@ from erpnextkta.kta_shopfloor.services.confirmation_service import (
     confirm_operation,
 )
 from erpnextkta.kta_shopfloor.services.reversal_service import ReversalService
-from erpnextkta.tests.test_utils import KTATestCase
+from erpnextkta.tests.test_utils import (
+    KTABaseTestCase,
+    KTATestCase,
+    create_test_company,
+    create_test_erpnext_operation,
+    create_test_item_group,
+    create_test_warehouse,
+    create_test_workstation,
+)
 
 
 class TestConfirmationService(KTATestCase):
@@ -1035,3 +1043,645 @@ class TestConfirmationService(KTATestCase):
             "completed_qty",
         )
         self.assertEqual(flt(db_completed), 720.0)
+
+
+class TestShopfloorPartialManufactureCostingE2E(KTABaseTestCase):
+    """Unmocked E2E tests for Shopfloor partial Manufacture, consumption pool costing,
+    legacy Work Order continuation, ahead-of-schedule op isolation, short close, and CORS reversal.
+    """
+
+    def setUp(self):
+        super().setUp()
+        orig_material_consumption = frappe.db.get_single_value(
+            "Manufacturing Settings", "material_consumption"
+        )
+        orig_get_rm_cost = frappe.db.get_single_value(
+            "Manufacturing Settings", "get_rm_cost_from_consumption_entry"
+        )
+        orig_make_batch_from_wo = frappe.db.get_single_value(
+            "Manufacturing Settings", "make_serial_no_batch_from_work_order"
+        )
+        orig_neg_stock = frappe.db.get_single_value(
+            "Stock Settings", "allow_negative_stock"
+        )
+
+        self.addCleanup(
+            frappe.db.set_single_value,
+            "Manufacturing Settings",
+            {
+                "material_consumption": orig_material_consumption,
+                "get_rm_cost_from_consumption_entry": orig_get_rm_cost,
+                "make_serial_no_batch_from_work_order": orig_make_batch_from_wo,
+            },
+        )
+        self.addCleanup(
+            frappe.db.set_single_value,
+            "Stock Settings",
+            "allow_negative_stock",
+            orig_neg_stock or 0,
+        )
+
+        frappe.db.set_single_value(
+            "Manufacturing Settings",
+            {
+                "material_consumption": 1,
+                "get_rm_cost_from_consumption_entry": 1,
+                "make_serial_no_batch_from_work_order": 0,
+            },
+        )
+        frappe.db.set_single_value("Stock Settings", "allow_negative_stock", 0)
+
+        self.company = create_test_company()
+        self.item_group = create_test_item_group()
+        self.src_warehouse = create_test_warehouse(self.company, "_Test SF E2E Source")
+        self.wip_warehouse = create_test_warehouse(self.company, "_Test SF E2E WIP")
+        self.fg_warehouse = create_test_warehouse(self.company, "_Test SF E2E FG")
+        self.workstation = create_test_workstation("_Test SF E2E Workstation")
+        frappe.db.set_value("Workstation", self.workstation, "hour_rate", 0.0)
+        self.op_10 = create_test_erpnext_operation("0010 Kesim", self.workstation)
+        self.op_20 = create_test_erpnext_operation("0020 Krimp", self.workstation)
+        self.op_30 = create_test_erpnext_operation("0030 Test", self.workstation)
+        self._tag = frappe.generate_hash(length=6)
+
+    def _make_stock_item(
+        self, label: str, valuation_method: str = "Moving Average"
+    ) -> str:
+        code = f"_Test SFE2E {label} {self._tag}"
+        doc = frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": code,
+                "item_name": code,
+                "item_group": self.item_group,
+                "is_stock_item": 1,
+                "stock_uom": "Nos",
+                "has_batch_no": 0,
+                "has_serial_no": 0,
+                "valuation_method": valuation_method,
+            }
+        )
+        doc.insert(ignore_permissions=True)
+        return doc.name
+
+    def _receive_stock(
+        self, item_code: str, qty: float, rate: float, warehouse: str | None = None
+    ):
+        wh = warehouse or self.src_warehouse
+        se = frappe.new_doc("Stock Entry")
+        se.purpose = "Material Receipt"
+        se.stock_entry_type = "Material Receipt"
+        se.company = self.company
+        se.to_warehouse = wh
+        se.append(
+            "items",
+            {
+                "item_code": item_code,
+                "qty": qty,
+                "uom": "Nos",
+                "stock_uom": "Nos",
+                "conversion_factor": 1.0,
+                "t_warehouse": wh,
+                "basic_rate": rate,
+            },
+        )
+        se.insert(ignore_permissions=True)
+        se.submit()
+        return se
+
+    def _create_bom(
+        self, fg_item: str, raw_items_spec: list[dict], operations: list[str]
+    ):
+        currency = (
+            frappe.db.get_value("Company", self.company, "default_currency") or "TRY"
+        )
+        bom = frappe.new_doc("BOM")
+        bom.item = fg_item
+        bom.quantity = 1.0
+        bom.company = self.company
+        bom.currency = currency
+        bom.conversion_rate = 1.0
+        bom.rm_cost_as_per = "Valuation Rate"
+        bom.with_operations = 1
+        bom.inspection_required = 0
+        for op in operations:
+            bom.append(
+                "operations",
+                {
+                    "operation": op,
+                    "workstation": self.workstation,
+                    "time_in_mins": 10,
+                    "hour_rate": 0.0,
+                },
+            )
+        for spec in raw_items_spec:
+            bom.append(
+                "items",
+                {
+                    "item_code": spec["item_code"],
+                    "qty": spec["qty"],
+                    "uom": "Nos",
+                    "stock_uom": "Nos",
+                    "rate": spec["rate"],
+                    "operation": spec.get("operation"),
+                    "source_warehouse": self.src_warehouse,
+                },
+            )
+        bom.insert(ignore_permissions=True)
+        bom.submit()
+        return bom
+
+    def _create_work_order(self, fg_item: str, bom_no: str, qty: float = 1000.0):
+        wo = frappe.new_doc("Work Order")
+        wo.production_item = fg_item
+        wo.bom_no = bom_no
+        wo.qty = qty
+        wo.company = self.company
+        wo.source_warehouse = self.src_warehouse
+        wo.wip_warehouse = self.wip_warehouse
+        wo.fg_warehouse = self.fg_warehouse
+        wo.use_multi_level_bom = 0
+        wo.skip_transfer = 1
+        wo.set_work_order_operations()
+        wo.set_required_items()
+        for row in wo.required_items:
+            row.source_warehouse = self.src_warehouse
+        wo.insert(ignore_permissions=True)
+        wo.submit()
+        return wo
+
+    def _get_wo_stock_entries(
+        self, wo_name: str, purpose: str, docstatus: int = 1
+    ) -> list:
+        names = frappe.get_all(
+            "Stock Entry",
+            filters={
+                "work_order": wo_name,
+                "purpose": purpose,
+                "docstatus": docstatus,
+            },
+            order_by="creation asc",
+            pluck="name",
+        )
+        return [frappe.get_doc("Stock Entry", name) for name in names]
+
+    def test_e2e_multiple_partial_manufacture_costing_300_300_400(self):
+        """Scenario 1: Unmocked 300 + 300 + Final 400 confirmations produce 3 consumption
+        and 3 Manufacture entries at actual RM rate without batch cost inflation.
+        """
+        fg_item = self._make_stock_item("FG-MULTI")
+        rm1 = self._make_stock_item("RM1-MULTI")
+        rm2 = self._make_stock_item("RM2-MULTI")
+        rm3 = self._make_stock_item("RM3-MULTI")
+
+        # Initial receipt before BOM (BOM captures RM1=10.0, RM2=5.0, RM3=6.0 -> BOM cost = 26.0)
+        self._receive_stock(rm1, 500.0, 10.0)
+        self._receive_stock(rm2, 2000.0, 5.0)
+        self._receive_stock(rm3, 1000.0, 6.0)
+
+        bom = self._create_bom(
+            fg_item,
+            [
+                {"item_code": rm1, "qty": 1.0, "rate": 10.0, "operation": self.op_10},
+                {"item_code": rm2, "qty": 2.0, "rate": 5.0, "operation": self.op_20},
+                {"item_code": rm3, "qty": 1.0, "rate": 6.0, "operation": self.op_30},
+            ],
+            [self.op_10, self.op_20, self.op_30],
+        )
+        wo = self._create_work_order(fg_item, bom.name, qty=1000.0)
+
+        # Second receipt after BOM: Moving Average RM1 = (500*10 + 500*18)/1000 = 14.0
+        # Actual FG unit cost = 1*14.0 + 2*5.0 + 1*6.0 = 30.0 (!= BOM 26.0)
+        self._receive_stock(rm1, 500.0, 18.0)
+
+        batches = [
+            (300.0, 0),
+            (300.0, 0),
+            (400.0, 1),
+        ]
+        mfg_docs = []
+        cons_docs = []
+
+        for batch_qty, is_final in batches:
+            res = ConfirmationService.confirm_operation(
+                {
+                    "work_order": wo.name,
+                    "operation": self.op_30,
+                    "yield_qty": batch_qty,
+                    "is_final_confirmation": is_final,
+                }
+            )
+            self.assertTrue(res.get("success"))
+            self.assertTrue(res.get("consumption_stock_entry"))
+            self.assertTrue(res.get("stock_entry"))
+
+            cons_se = frappe.get_doc("Stock Entry", res["consumption_stock_entry"])
+            mfg_se = frappe.get_doc("Stock Entry", res["stock_entry"])
+            self.assertEqual(cons_se.docstatus, 1)
+            self.assertEqual(mfg_se.docstatus, 1)
+
+            fg_rows = [d for d in mfg_se.items if d.is_finished_item]
+            rm_rows = [
+                d
+                for d in mfg_se.items
+                if not d.is_finished_item and not d.is_scrap_item
+            ]
+            self.assertEqual(len(fg_rows), 1)
+            self.assertEqual(rm_rows, [])
+            self.assertAlmostEqual(flt(fg_rows[0].basic_rate), 30.0, places=2)
+            self.assertAlmostEqual(
+                flt(fg_rows[0].basic_amount), batch_qty * 30.0, places=2
+            )
+
+            cons_docs.append(cons_se)
+            mfg_docs.append(mfg_se)
+
+        self.assertEqual(
+            len(
+                self._get_wo_stock_entries(
+                    wo.name, "Material Consumption for Manufacture"
+                )
+            ),
+            3,
+        )
+        self.assertEqual(
+            len(self._get_wo_stock_entries(wo.name, "Manufacture")),
+            3,
+        )
+
+        sum_mfg_basic_amount = sum(
+            flt(d.basic_amount)
+            for mfg in mfg_docs
+            for d in mfg.items
+            if d.is_finished_item
+        )
+        sum_cons_outgoing_value = sum(
+            flt(cons.total_outgoing_value) for cons in cons_docs
+        )
+        self.assertLessEqual(abs(sum_mfg_basic_amount - sum_cons_outgoing_value), 0.01)
+        self.assertAlmostEqual(sum_mfg_basic_amount, 30000.0, places=2)
+
+        wo.reload()
+        self.assertEqual(flt(wo.produced_qty), 1000.0)
+        self.assertEqual(wo.status, "Completed")
+
+        for jc_docstatus in frappe.get_all(
+            "Job Card", filters={"work_order": wo.name}, pluck="docstatus"
+        ):
+            self.assertEqual(jc_docstatus, 0)
+
+    def test_e2e_legacy_manufacture_followed_by_shopfloor_partial_and_final(self):
+        """Scenario 2: Legacy RM-bearing Manufacture (300) followed by Shopfloor Hub
+        confirmations (300 partial + 400 final) succeeds without 'Only one Manufacture entry',
+        isolates legacy cost from the consumption pool, and balances FG-only vs Consumption.
+        """
+        fg_item = self._make_stock_item("FG-LEGACY")
+        rm1 = self._make_stock_item("RM1-LEGACY")
+        rm2 = self._make_stock_item("RM2-LEGACY")
+        rm3 = self._make_stock_item("RM3-LEGACY")
+
+        # Initial stock for legacy Manufacture (300 FG @ 26.0 = 7,800.0)
+        self._receive_stock(rm1, 300.0, 10.0)
+        self._receive_stock(rm2, 2000.0, 5.0)
+        self._receive_stock(rm3, 1000.0, 6.0)
+
+        bom = self._create_bom(
+            fg_item,
+            [
+                {"item_code": rm1, "qty": 1.0, "rate": 10.0, "operation": self.op_10},
+                {"item_code": rm2, "qty": 2.0, "rate": 5.0, "operation": self.op_20},
+                {"item_code": rm3, "qty": 1.0, "rate": 6.0, "operation": self.op_30},
+            ],
+            [self.op_10, self.op_20, self.op_30],
+        )
+        wo = self._create_work_order(fg_item, bom.name, qty=1000.0)
+
+        # 1. Submit legacy standard Manufacture entry for 300 units with operations completed_qty=300
+        for op_row in wo.operations:
+            frappe.db.set_value(
+                "Work Order Operation",
+                op_row.name,
+                {"completed_qty": 300.0, "status": "Work In Progress"},
+            )
+
+        legacy_mfg = frappe.new_doc("Stock Entry")
+        legacy_mfg.purpose = "Manufacture"
+        legacy_mfg.stock_entry_type = "Manufacture"
+        legacy_mfg.work_order = wo.name
+        legacy_mfg.company = self.company
+        legacy_mfg.from_bom = 1
+        legacy_mfg.bom_no = bom.name
+        legacy_mfg.fg_completed_qty = 300.0
+        legacy_mfg.from_warehouse = self.src_warehouse
+        legacy_mfg.to_warehouse = self.fg_warehouse
+        for item_code, qty in ((rm1, 300.0), (rm2, 600.0), (rm3, 300.0)):
+            legacy_mfg.append(
+                "items",
+                {
+                    "item_code": item_code,
+                    "qty": qty,
+                    "uom": "Nos",
+                    "stock_uom": "Nos",
+                    "conversion_factor": 1.0,
+                    "s_warehouse": self.src_warehouse,
+                },
+            )
+        legacy_mfg.append(
+            "items",
+            {
+                "item_code": fg_item,
+                "qty": 300.0,
+                "uom": "Nos",
+                "stock_uom": "Nos",
+                "conversion_factor": 1.0,
+                "t_warehouse": self.fg_warehouse,
+                "is_finished_item": 1,
+            },
+        )
+        legacy_mfg.insert(ignore_permissions=True)
+        legacy_mfg.submit()
+        self.assertEqual(legacy_mfg.docstatus, 1)
+        self.assertAlmostEqual(flt(legacy_mfg.total_outgoing_value), 7800.0, places=2)
+
+        # Replenish RM1 at a higher rate (22.0) for subsequent Shopfloor Hub batches
+        # New actual FG unit cost = 1*22.0 + 2*5.0 + 1*6.0 = 38.0 (!= legacy 26.0)
+        self._receive_stock(rm1, 700.0, 22.0)
+
+        # 2. Continue via Shopfloor Hub: 300 partial, then 400 final
+        cons_docs = []
+        fg_only_docs = []
+        for batch_qty, is_final in ((300.0, 0), (400.0, 1)):
+            res = ConfirmationService.confirm_operation(
+                {
+                    "work_order": wo.name,
+                    "operation": self.op_30,
+                    "yield_qty": batch_qty,
+                    "is_final_confirmation": is_final,
+                }
+            )
+            self.assertTrue(res.get("success"))
+            cons_se = frappe.get_doc("Stock Entry", res["consumption_stock_entry"])
+            mfg_se = frappe.get_doc("Stock Entry", res["stock_entry"])
+            self.assertEqual(cons_se.docstatus, 1)
+            self.assertEqual(mfg_se.docstatus, 1)
+
+            fg_rows = [d for d in mfg_se.items if d.is_finished_item]
+            rm_rows = [
+                d
+                for d in mfg_se.items
+                if not d.is_finished_item and not d.is_scrap_item
+            ]
+            self.assertEqual(len(fg_rows), 1)
+            self.assertEqual(rm_rows, [])
+            self.assertAlmostEqual(flt(fg_rows[0].basic_rate), 38.0, places=2)
+            self.assertAlmostEqual(
+                flt(fg_rows[0].basic_amount), batch_qty * 38.0, places=2
+            )
+
+            cons_docs.append(cons_se)
+            fg_only_docs.append(mfg_se)
+
+        sum_fg_only_amount = sum(
+            flt(d.basic_amount)
+            for mfg in fg_only_docs
+            for d in mfg.items
+            if d.is_finished_item
+        )
+        sum_cons_outgoing = sum(flt(cons.total_outgoing_value) for cons in cons_docs)
+        self.assertAlmostEqual(sum_fg_only_amount, sum_cons_outgoing, places=2)
+        self.assertAlmostEqual(sum_fg_only_amount, 26600.0, places=2)
+
+        wo.reload()
+        self.assertEqual(flt(wo.produced_qty), 1000.0)
+        self.assertEqual(wo.status, "Completed")
+
+    def test_e2e_ahead_of_schedule_intermediate_op_cost_isolation(self):
+        """Scenario 3: OP10 consumes all 1000 units ahead of OP30 (300 then 700 final).
+        The 300-unit Manufacture only absorbs 300 units' share of OP10 cost, and the
+        final 700-unit Manufacture closes the remaining pool exactly.
+        """
+        fg_item = self._make_stock_item("FG-AHEAD")
+        rm_op1 = self._make_stock_item("RM1-AHEAD")
+        rm_op2 = self._make_stock_item("RM2-AHEAD")
+        rm_op3 = self._make_stock_item("RM3-AHEAD")
+
+        self._receive_stock(rm_op1, 1000.0, 10.0)
+        self._receive_stock(rm_op2, 1000.0, 15.0)
+        self._receive_stock(rm_op3, 1000.0, 25.0)
+
+        bom = self._create_bom(
+            fg_item,
+            [
+                {
+                    "item_code": rm_op1,
+                    "qty": 1.0,
+                    "rate": 10.0,
+                    "operation": self.op_10,
+                },
+                {
+                    "item_code": rm_op2,
+                    "qty": 1.0,
+                    "rate": 15.0,
+                    "operation": self.op_20,
+                },
+                {
+                    "item_code": rm_op3,
+                    "qty": 1.0,
+                    "rate": 25.0,
+                    "operation": self.op_30,
+                },
+            ],
+            [self.op_10, self.op_20, self.op_30],
+        )
+        wo = self._create_work_order(fg_item, bom.name, qty=1000.0)
+
+        # 1. OP10 confirms and consumes all 1000 units ahead of schedule (10,000.0)
+        res_op1 = ConfirmationService.confirm_operation(
+            {
+                "work_order": wo.name,
+                "operation": self.op_10,
+                "yield_qty": 1000.0,
+                "is_final_confirmation": 1,
+            }
+        )
+        self.assertTrue(res_op1.get("success"))
+        cons_op1 = frappe.get_doc("Stock Entry", res_op1["consumption_stock_entry"])
+        self.assertEqual(cons_op1.docstatus, 1)
+        self.assertAlmostEqual(flt(cons_op1.total_outgoing_value), 10000.0, places=2)
+        self.assertEqual(len(self._get_wo_stock_entries(wo.name, "Manufacture")), 0)
+
+        # 2. OP30 (milestone) confirms 300 partial -> should absorb 300*(10+15+25) = 15,000.0
+        res_op3_p1 = ConfirmationService.confirm_operation(
+            {
+                "work_order": wo.name,
+                "operation": self.op_30,
+                "yield_qty": 300.0,
+                "is_final_confirmation": 0,
+            }
+        )
+        self.assertTrue(res_op3_p1.get("success"))
+        cons_p1 = frappe.get_doc("Stock Entry", res_op3_p1["consumption_stock_entry"])
+        mfg_p1 = frappe.get_doc("Stock Entry", res_op3_p1["stock_entry"])
+
+        fg_row_1 = next(d for d in mfg_p1.items if d.is_finished_item)
+        self.assertAlmostEqual(flt(fg_row_1.basic_rate), 50.0, places=2)
+        self.assertAlmostEqual(flt(fg_row_1.basic_amount), 15000.0, places=2)
+
+        # 3. OP30 (milestone) confirms remaining 700 final -> closes remaining 35,000.0
+        res_op3_p2 = ConfirmationService.confirm_operation(
+            {
+                "work_order": wo.name,
+                "operation": self.op_30,
+                "yield_qty": 700.0,
+                "is_final_confirmation": 1,
+            }
+        )
+        self.assertTrue(res_op3_p2.get("success"))
+        cons_p2 = frappe.get_doc("Stock Entry", res_op3_p2["consumption_stock_entry"])
+        mfg_p2 = frappe.get_doc("Stock Entry", res_op3_p2["stock_entry"])
+
+        fg_row_2 = next(d for d in mfg_p2.items if d.is_finished_item)
+        self.assertAlmostEqual(flt(fg_row_2.basic_rate), 50.0, places=2)
+        self.assertAlmostEqual(flt(fg_row_2.basic_amount), 35000.0, places=2)
+
+        sum_mfg = flt(fg_row_1.basic_amount) + flt(fg_row_2.basic_amount)
+        sum_cons = (
+            flt(cons_op1.total_outgoing_value)
+            + flt(cons_p1.total_outgoing_value)
+            + flt(cons_p2.total_outgoing_value)
+        )
+        self.assertAlmostEqual(sum_mfg, sum_cons, places=2)
+        self.assertAlmostEqual(sum_mfg, 50000.0, places=2)
+
+        wo.reload()
+        self.assertEqual(flt(wo.produced_qty), 1000.0)
+        self.assertEqual(wo.status, "Completed")
+
+    def test_e2e_short_close_reversal_and_reconfirmation(self):
+        """Scenario 4: Partial 300 -> short-close 500 (is_final=1, total 800 < 1000) ->
+        CORS cancel of conf2 -> re-confirm 600 (is_final=1, total 900 < 1000), ensuring
+        cancelled entries (docstatus=2) never pollute the cost pool.
+        """
+        fg_item = self._make_stock_item("FG-SHORT-CORS")
+        rm1 = self._make_stock_item("RM1-SHORT-CORS")
+        rm2 = self._make_stock_item("RM2-SHORT-CORS")
+        rm3 = self._make_stock_item("RM3-SHORT-CORS")
+
+        self._receive_stock(rm1, 1000.0, 10.0)
+        self._receive_stock(rm2, 1000.0, 15.0)
+        self._receive_stock(rm3, 1000.0, 25.0)
+
+        bom = self._create_bom(
+            fg_item,
+            [
+                {"item_code": rm1, "qty": 1.0, "rate": 10.0, "operation": self.op_10},
+                {"item_code": rm2, "qty": 1.0, "rate": 15.0, "operation": self.op_20},
+                {"item_code": rm3, "qty": 1.0, "rate": 25.0, "operation": self.op_30},
+            ],
+            [self.op_10, self.op_20, self.op_30],
+        )
+        wo = self._create_work_order(fg_item, bom.name, qty=1000.0)
+
+        # 1. Partial confirmation: 300 units on 0030 Test
+        res1 = ConfirmationService.confirm_operation(
+            {
+                "work_order": wo.name,
+                "operation": self.op_30,
+                "yield_qty": 300.0,
+                "is_final_confirmation": 0,
+            }
+        )
+        self.assertTrue(res1.get("success"))
+        cons1 = frappe.get_doc("Stock Entry", res1["consumption_stock_entry"])
+        mfg1 = frappe.get_doc("Stock Entry", res1["stock_entry"])
+        mfg1_fg = next(d for d in mfg1.items if d.is_finished_item)
+        self.assertAlmostEqual(flt(mfg1_fg.basic_rate), 50.0, places=2)
+        self.assertAlmostEqual(flt(mfg1_fg.basic_amount), 15000.0, places=2)
+
+        # 2. Short close: 500 units with is_final_confirmation=1 (produced=800 < 1000)
+        res2 = ConfirmationService.confirm_operation(
+            {
+                "work_order": wo.name,
+                "operation": self.op_30,
+                "yield_qty": 500.0,
+                "is_final_confirmation": 1,
+            }
+        )
+        self.assertTrue(res2.get("success"))
+        conf2_name = res2["confirmation"]
+        cons2 = frappe.get_doc("Stock Entry", res2["consumption_stock_entry"])
+        mfg2 = frappe.get_doc("Stock Entry", res2["stock_entry"])
+        mfg2_fg = next(d for d in mfg2.items if d.is_finished_item)
+
+        # All remaining 700 recipe units (35,000.0) consumed and absorbed into 500 FG (70.0/unit)
+        self.assertAlmostEqual(flt(cons2.total_outgoing_value), 35000.0, places=2)
+        self.assertAlmostEqual(flt(mfg2_fg.basic_rate), 70.0, places=2)
+        self.assertAlmostEqual(flt(mfg2_fg.basic_amount), 35000.0, places=2)
+
+        sum_mfg_before_cancel = flt(mfg1_fg.basic_amount) + flt(mfg2_fg.basic_amount)
+        sum_cons_before_cancel = flt(cons1.total_outgoing_value) + flt(
+            cons2.total_outgoing_value
+        )
+        self.assertAlmostEqual(sum_mfg_before_cancel, sum_cons_before_cancel, places=2)
+
+        wo.reload()
+        self.assertEqual(flt(wo.produced_qty), 800.0)
+        self.assertEqual(wo.status, "Completed")
+
+        # 3. CORS cancel conf2
+        cancel_res = ReversalService.cancel_confirmation(
+            conf2_name, user="Administrator"
+        )
+        self.assertTrue(cancel_res.get("success"))
+
+        self.assertEqual(
+            frappe.db.get_value("KTA Production Confirmation", conf2_name, "docstatus"),
+            2,
+        )
+        self.assertEqual(frappe.db.get_value("Stock Entry", mfg2.name, "docstatus"), 2)
+        self.assertEqual(frappe.db.get_value("Stock Entry", cons2.name, "docstatus"), 2)
+
+        wo.reload()
+        self.assertEqual(flt(wo.produced_qty), 300.0)
+        self.assertEqual(wo.status, "In Process")
+
+        # 4. Re-confirm 600 units with is_final_confirmation=1 (produced=900 < 1000)
+        res3 = ConfirmationService.confirm_operation(
+            {
+                "work_order": wo.name,
+                "operation": self.op_30,
+                "yield_qty": 600.0,
+                "is_final_confirmation": 1,
+            }
+        )
+        self.assertTrue(res3.get("success"))
+        cons3 = frappe.get_doc("Stock Entry", res3["consumption_stock_entry"])
+        mfg3 = frappe.get_doc("Stock Entry", res3["stock_entry"])
+        mfg3_fg = next(d for d in mfg3.items if d.is_finished_item)
+
+        self.assertEqual(cons3.docstatus, 1)
+        self.assertEqual(mfg3.docstatus, 1)
+        self.assertAlmostEqual(flt(cons3.total_outgoing_value), 35000.0, places=2)
+        self.assertAlmostEqual(flt(mfg3_fg.basic_amount), 35000.0, places=2)
+
+        active_mfg_docs = self._get_wo_stock_entries(
+            wo.name, "Manufacture", docstatus=1
+        )
+        active_cons_docs = self._get_wo_stock_entries(
+            wo.name, "Material Consumption for Manufacture", docstatus=1
+        )
+        self.assertEqual(len(active_mfg_docs), 2)
+        self.assertEqual(len(active_cons_docs), 2)
+
+        total_active_mfg = sum(
+            flt(d.basic_amount)
+            for se in active_mfg_docs
+            for d in se.items
+            if d.is_finished_item
+        )
+        total_active_cons = sum(flt(se.total_outgoing_value) for se in active_cons_docs)
+        self.assertAlmostEqual(total_active_mfg, total_active_cons, places=2)
+        self.assertAlmostEqual(total_active_mfg, 50000.0, places=2)
+
+        wo.reload()
+        self.assertEqual(flt(wo.produced_qty), 900.0)
+        self.assertEqual(wo.status, "Completed")
