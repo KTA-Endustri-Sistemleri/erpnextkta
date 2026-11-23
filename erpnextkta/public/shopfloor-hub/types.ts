@@ -301,3 +301,30 @@ export interface WorkCardAnalyticsResponse {
 
 export type WorkOrderCardAnalyticsResponse = WorkCardAnalyticsResponse;
 
+export interface WorkOrderPrintFormatOption {
+  name: string;
+  label: string;
+  is_default: boolean;
+  default_print_language?: string;
+  raw_printing?: number;
+  print_format_builder_beta?: number;
+}
+
+export interface LetterHeadOption {
+  name: string;
+  is_default: number;
+}
+
+export interface WorkOrderPrintOptionsResponse {
+  doctype: string;
+  work_order: string | null;
+  can_print: boolean;
+  default_print_format: string;
+  print_formats: WorkOrderPrintFormatOption[];
+  default_letter_head: string;
+  letter_heads: LetterHeadOption[];
+  with_letterhead: number;
+  allow_print_for_draft: number;
+  allow_print_for_cancelled: number;
+}
+

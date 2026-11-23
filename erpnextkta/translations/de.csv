@@ -1249,3 +1249,21 @@ Operatörler,Bediener
 Operators Who Consumed This Material,Bediener Die Dieses Material Verbraucht Haben
 Consumption Share,Verbrauchsanteil
 Operators,Bediener
+Standard,Standard
+Yazdır,Drucken
+İş Emrini Yazdır / Şablon Seç,Fertigungsauftrag drucken / Vorlage auswählen
+İş Emri Yazdır,Fertigungsauftrag drucken
+Yazdırma seçenekleri yükleniyor...,Druckoptionen werden geladen...
+Yazdırma seçenekleri alınamadı.,Druckoptionen konnten nicht abgerufen werden.
+Bu iş emrini yazdırma yetkiniz yok veya belge durumu yazdırmaya izin vermiyor.,"Sie sind nicht berechtigt, diesen Fertigungsauftrag zu drucken, oder der Dokumentstatus lässt keinen Druck zu."
+Lütfen tarayıcı açılır pencere (pop-up) iznini etkinleştirin.,Bitte aktivieren Sie die Pop-up-Berechtigung in Ihrem Browser.
+Yazdırma Şablonu,Druckvorlage
+Varsayılan,Standardvorgabe
+Antetli Yazdır,Mit Briefkopf drucken
+Antet,Briefkopf
+Kullanılabilir yazdırma şablonu bulunamadı.,Keine verfügbaren Druckvorlagen gefunden.
+Bu şablon ham yazdırma (Raw Printing) formatındadır; HTML önizleme desteklenmiyor.,Diese Vorlage verwendet Raw Printing; eine HTML-Vorschau wird nicht unterstützt.
+Önizleme yükleniyor...,Vorschau wird geladen...
+İş Emri Önizleme,Fertigungsauftrag-Vorschau
+Tam Sayfa Önizle,Vollbildvorschau
+PDF İndir,PDF herunterladen

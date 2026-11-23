@@ -666,6 +666,126 @@ def update_work_order_qty(work_order: str, qty: float) -> dict:
     return res
 
 
+def get_work_order_print_options(work_order: str | None = None) -> dict:
+    """Return active Work Order Print Formats, Letter Heads, and print permissions."""
+    with_letterhead = cint(
+        frappe.db.get_single_value("Print Settings", "with_letterhead") or 0
+    )
+    allow_print_for_draft = cint(
+        frappe.db.get_single_value("Print Settings", "allow_print_for_draft") or 0
+    )
+    allow_print_for_cancelled = cint(
+        frappe.db.get_single_value("Print Settings", "allow_print_for_cancelled") or 0
+    )
+
+    if work_order:
+        if not frappe.db.exists("Work Order", work_order):
+            frappe.throw(
+                _("İş Emri bulunamadı: {0}").format(work_order),
+                frappe.ValidationError,
+            )
+        wo = frappe.get_doc("Work Order", work_order)
+        wo.check_permission("read")
+        has_print_perm = bool(wo.has_permission("print"))
+        blocked_by_status = (wo.docstatus == 0 and not allow_print_for_draft) or (
+            wo.docstatus == 2 and not allow_print_for_cancelled
+        )
+        can_print = has_print_perm and not blocked_by_status
+    else:
+        work_order = None
+        frappe.has_permission("Work Order", "read", throw=True)
+        can_print = bool(frappe.has_permission("Work Order", "print"))
+
+    has_beta_col = frappe.db.has_column("Print Format", "print_format_builder_beta")
+    pf_fields = [
+        "name",
+        "default_print_language",
+        "raw_printing",
+        "print_format_type",
+    ]
+    if has_beta_col:
+        pf_fields.append("print_format_builder_beta")
+
+    pf_rows = frappe.get_all(
+        "Print Format",
+        filters={"doc_type": "Work Order", "disabled": 0, "docstatus": ["<", 2]},
+        fields=pf_fields,
+        order_by="name asc",
+    )
+    default_print_format = (
+        frappe.db.get_value(
+            "Property Setter",
+            {"doc_type": "Work Order", "property": "default_print_format"},
+            "value",
+        )
+        or frappe.get_meta("Work Order").default_print_format
+        or "Standard"
+    )
+
+    print_formats = [
+        {
+            "name": pf.name,
+            "label": pf.name,
+            "is_default": pf.name == default_print_format,
+            "default_print_language": pf.get("default_print_language") or "",
+            "raw_printing": cint(pf.get("raw_printing") or 0),
+            "print_format_builder_beta": cint(pf.get("print_format_builder_beta") or 0),
+        }
+        for pf in pf_rows
+    ]
+
+    if not any(pf["name"] == "Standard" for pf in print_formats):
+        print_formats.append(
+            {
+                "name": "Standard",
+                "label": _("Standard"),
+                "is_default": default_print_format == "Standard",
+                "default_print_language": "",
+                "raw_printing": 0,
+                "print_format_builder_beta": 0,
+            }
+        )
+
+    print_formats.sort(
+        key=lambda x: (
+            not x["is_default"],
+            x["name"] == "Standard",
+            x["name"].lower(),
+        )
+    )
+
+    if print_formats and not any(pf["is_default"] for pf in print_formats):
+        default_print_format = print_formats[0]["name"]
+        print_formats[0]["is_default"] = True
+
+    letter_heads = frappe.get_all(
+        "Letter Head",
+        filters={"disabled": 0},
+        fields=["name", "is_default"],
+        order_by="is_default desc, name asc",
+    )
+    default_letter_head = next(
+        (lh["name"] for lh in letter_heads if cint(lh.get("is_default") or 0) == 1),
+        "",
+    )
+
+    return {
+        "doctype": "Work Order",
+        "work_order": work_order,
+        "can_print": can_print,
+        "default_print_format": default_print_format,
+        "print_formats": print_formats,
+        "default_letter_head": default_letter_head,
+        "letter_heads": [
+            {"name": lh["name"], "is_default": cint(lh.get("is_default") or 0)}
+            for lh in letter_heads
+        ],
+        "with_letterhead": with_letterhead,
+        "allow_print_for_draft": allow_print_for_draft,
+        "allow_print_for_cancelled": allow_print_for_cancelled,
+    }
+
+
 def _load_work_order(work_order):
     if not work_order:
         frappe.throw(
