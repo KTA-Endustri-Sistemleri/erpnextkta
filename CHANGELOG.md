@@ -3,6 +3,35 @@
 
 
 
+## 🚀 v4.5.3 (2026-11-23)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **shopfloor**: fix milestone target qty and batch-aware staging checks
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.5.2 (2026-11-23)
 
 
