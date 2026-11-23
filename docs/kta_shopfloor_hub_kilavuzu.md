@@ -68,14 +68,14 @@ BOM reçetesine dayalı orantısal hammadde sarfiyatı ve mamul girişini hesapl
 - **Orantısal Sarfiyat:**
   $$\text{Tüketim Miktarı} = \left( \frac{\text{Sağlam Miktar}}{\text{İş Emri Miktarı}} \right) \times \text{BOM İhtiyaç Miktarı}$$
 - **Ara Operasyon:** Reçetede yalnızca o operasyona atanmış kalemler için `Material Consumption for Manufacture` stok fişi oluşturur.
-- **Son Operasyon (Milestone):** Operasyonsuz genel sarfları (bant, etiket vb.) düşer, ara operasyon maliyetlerini mamule yansıtır (WIP Rollup) ve `Manufacture` stok fişi ile ürünü `fg_warehouse` ambarına teslim alır.
-- **Son Teyit (Kalanı Kapat):** `is_final=True` bayrağında küsurat yuvarlamaları engellenerek kalan tüm bakiye farkı doğrudan sarfiyata yazılır.
+- **Son Operasyon (Milestone):** Operasyonsuz genel sarflar ile önceki ara operasyonların telafi sarflarını (`Auto-Catchup Backflush`) ayrı `Material Consumption for Manufacture` fişinden düşer; ardından `create_finished_goods_entry()` ile yalnızca mamul/hurda satırlarını içeren (`FG-Only`) `Manufacture` fişini oluşturarak ürünü `fg_warehouse` ambarına alır. Fiili maliyet dağıtımı `KTAStockEntry` tüketim havuzu motoru üzerinden yapılır.
+- **Son Teyit (Kalanı Kapat):** `is_final=True` bayrağında küsurat yuvarlamaları engellenerek kalan hammadde miktar bakiye farkı doğrudan sarfiyata yazılır. Ayrıca `create_finished_goods_entry()`, final / kısa kapanış teyitlerinde `se.flags.kta_is_final_confirmation` bayrağını `Stock Entry` belgesine ileterek kalan tüketim maliyet havuzunun son partide sıfırlanmasını sağlar.
 - **Otomatik FIFO:** `auto_create_serial_and_batch_bundle_for_outward = 1` ayarıyla parti/lot tahsisi ERPNext yerel motoru tarafından FIFO ile gerçekleştirilir.
 
 ### 2.3 ReversalService (`services/reversal_service.py`)
 SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sağlar:
 - Kullanıcının yetkili rollere (`System Manager`, `Manufacturing Manager`, `KTA Çalışma Kartı Yöneticisi`) sahip olduğunu doğrular.
-- Teyide bağlı `Stock Entry` fişini iptal (`cancel`) eder; stoklar otomatik olarak ambara iade edilir.
+- Teyide bağlı `Stock Entry` fişlerini (`Material Consumption for Manufacture` ve `Manufacture`) iptal (`cancel` / `docstatus = 2`) eder; stoklar otomatik olarak ambara iade edilir. İptal edilen fişler `KTAStockEntry` maliyet havuzu sorgularının (`docstatus = 1`) dışında bırakıldığı için yeniden teyit verildiğinde maliyetler sıfırdan tutarlı hesaplanır.
 - Job Card ve Work Order üzerindeki ilerleme miktarlarını eksiltir.
 - `KTA Production Confirmation` dokümanını iptal durumuna (`docstatus = 2`) alır.
 
@@ -104,6 +104,35 @@ SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sa�
 - **Kullanıcı Onaylı Hat İkmal Modali (User-Confirmed Staging):** Hat deposunda eksik hammadde tespit edildiğinde otomatik açılır (`MaterialStagingModal.vue`).
 - **İş Kuralı (Yalnızca WIP Depolar Arası Transfer):** Hat ikmali transferleri **yalnızca üretim/WIP depoları** arasında yapılabilir (örn. `WIP Hat A` → `WIP Hat B`). Ana hammadde ve merkez depolardan operatör tarafından doğrudan çekim yapılması engellenmiştir. Diğer hatlarda da stok yoksa modal uyarı verir ve ambar biriminden resmi ikmal talep edilmesini ister.
 - **Tek Tıkla Hat İkmali ve Otomatik Teyit (`stage_confirmation_materials`):** Kullanıcı kaynak üretim deposunu ve transfer miktarlarını onayladığında, sistem tek tıkla `Material Transfer for Manufacture` stok fişi oluşturup submit eder, ardından bekleyen operasyon teyidini otomatik olarak tamamlar.
+
+### 2.6 KTAStockEntry Override — Çoklu / Kısmi `Manufacture` Stoklaştırma ve Fiili Tüketim Maliyetleme (`overrides/KTAStockEntry.py`)
+`Manufacturing Settings` altında `material_consumption = 1` ve `get_rm_cost_from_consumption_entry = 1` etkinken çoklu ve kısmi `Manufacture` fişlerinin gerçek fiili tüketim maliyetleriyle stoklanmasını sağlar:
+
+- **Standart Sınırlamanın Aşılması ve Korumanın Sürdürülmesi:**
+  - ERPNext çekirdeğinin `"Only one Manufacture entry can be created against the Work Order"` engeli `KTAStockEntry.get_basic_rate_for_manufactured_item()` override'ı ile kaldırılır; aynı iş emrinde birden fazla kısmi `FG-Only Manufacture` fişi (örn. `1.000` adetlik iş emrinde `300 + 300 + 400` adet) açılabilir.
+  - `get_work_order_raw_materials()`, `get_unconsumed_raw_materials()`, `add_transfered_raw_materials_in_items()`, `validate_component_and_quantities()` ve `validate_raw_materials_exists()` kancaları `FG-Only Manufacture` akışıyla uyumludur.
+  - Buna karşın `_validate_no_raw_materials_in_manufacture_entry()` ile standart koruma korunur: tüketim fişi varken `Manufacture` fişine doğrudan hammadde satırı (`not is_finished_item and not is_scrap_item`) eklenmesi `ValidationError` ile engellenmeye devam eder.
+  - `BackflushService.create_finished_goods_entry()`, final ve kısa kapanış (short-close) teyitlerinde `se.flags.kta_is_final_confirmation` bayrağını iletir.
+
+- **Fiili Tüketim Havuzu Maliyetleme Formülü:**
+  - **Toplam Fiili Tüketim Maliyeti (`_get_total_consumed_cost`):** İş emrine bağlı onaylı (`docstatus = 1`) `Material Consumption for Manufacture` fişlerindeki çıkış satırlarının (`s_warehouse != ''`) `valuation_rate * transfer_qty` toplamıdır.
+  - **Önceki FG-Only Manufacture Maliyeti (`_get_previous_fg_only_manufacture_cost`):** Aynı iş emrine bağlı, mevcut fiş hariç onaylı (`docstatus = 1`) ve hammadde çıkışı içermeyen (`total_outgoing_value == 0` ve `s_warehouse` satırı olmayan) `Manufacture` fişlerindeki mamul/hurda (`is_finished_item = 1` veya `is_scrap_item = 1`) `basic_amount` toplamıdır.
+  - **Kalan Dağıtılmamış Havuz:**
+    $$\text{Kalan Dağıtılmamış Havuz} = \max(0,\; \text{Toplam Fiili Tüketim Maliyeti} - \text{Önceki FG-Only Manufacture Maliyeti})$$
+    *(İlgili envanter düzeltme / WIP hesabında bekleyen net fiili hammadde maliyeti.)*
+  - Atanan tutardan hurda (`is_scrap_item`) ve manuel fiyatlı mamul maliyetleri düşüldükten sonra `basic_rate = cost_left / finished_item_qty` hesaplanır (`via_repost` sırasında `cost_left = max(cost_left, 0)` uygulanır).
+
+- **Kısmi Stoklaştırma, Önden Giden Ara Operasyon Koruması ve Final Kapanış:**
+
+| Durum | Koşul | Maliyetleme Davranışı |
+|---|---|---|
+| **Ara / Kısmi Stoklaştırma** | Final değil ve `Kalan Dağıtılmamış Havuz > 0` | `_get_proportional_actual_cost()` çalışır. Önden tüketim yapan ara operasyon (örn. `OP10` `1.000` adedi tüketirken `OP30` `300` adet stoklaştırıyorsa) tüm havuzu kısmi partiye yüklemez. Onaylı `Material Consumption` satırlarından her bileşen için (muadiller `custom_original_item` / `original_item` ile eşlenerek) ağırlıklı ortalama fiili çıkış birim maliyeti hesaplanır; `(partideki_miktar / is_emri_miktari) * recete_ihtiyac_miktari` ile çarpılarak **Orantısal Fiili Maliyet** bulunur ve `min(Kalan Dağıtılmamış Havuz, Orantısal Fiili Maliyet)` partiye atanır (`örnek birim maliyet` korunur). |
+| **Final / Kısa Kapanış** | `se.flags.kta_is_final_confirmation`, bağlı `KTA Production Confirmation.is_final_confirmation = 1` veya `produced_qty + parti_miktarı >= wo.qty` | `_is_final_manufacture_entry()` tetiklenir ve `Kalan Dağıtılmamış Havuz` tutarının tamamı son `Manufacture` partisine aktarılır. Kısa kapanışta (örn. `300 + 500 = 800 < 1.000`) dahi envanter düzeltme / WIP hesabı kuruşu kuruşuna sıfırlanır (`0.00`). |
+| **Havuz Sıfır (Fallback)** | `Kalan Dağıtılmamış Havuz <= 0` | Hata fırlatılmadan `_get_fallback_bom_cost()` üzerinden BOM tabanlı maliyete veya BOM/miktar yoksa güvenli `0` değerine düşülür. |
+
+- **Eski Belgeli (`Legacy Manufacture`) İş Emirleri ve SAP CORS İptal Davranışı:**
+  - **Legacy İzolasyonu:** Önceden standart hammadde satırlı `Manufacture` fişi (`total_outgoing_value > 0` veya `s_warehouse` satırı içeren) işlenmiş eski iş emirlerinden Shopfloor Hub üzerinden devam edildiğinde, eski fişler kendi içinde muhasebesel olarak dengelendiği için `Önceki FG-Only Manufacture Maliyeti` havuzuna dahil edilmez; yeni partiler yalnızca yeni `Material Consumption` fişlerinden doğru fiili maliyetle stoklanır.
+  - **SAP CORS İptal (`docstatus = 2`):** İptal edilen `Stock Entry` fişleri (`docstatus = 2`) tüm maliyet havuzu sorgularının (`entry.docstatus = 1`) dışında bırakılır; yeniden teyit verildiğinde maliyetler sıfırdan tutarlı biçimde hesaplanır.
 
 ---
 
@@ -151,7 +180,8 @@ SAP CORS (Cancel Confirmation) modelinde hatalı teyitlerin iptal edilmesini sa�
 
 ## 🧪 5. Test Kapsamı
 
-Tüm servisler, şema alanları ve API uç noktaları için kapsamlı otomatik testler mevcuttur:
+Tüm servisler, stok girişi override'ları, şema alanları ve API uç noktaları için kapsamlı otomatik testler mevcuttur:
+- `erpnextkta/tests/test_stock_entry_override.py` (`TestStockEntryOverride`, `TestStockEntryConsumptionCosting`)
 - `erpnextkta/kta_shopfloor/tests/test_work_order_service.py`
 - `erpnextkta/kta_shopfloor/tests/test_schema.py`
 - `erpnextkta/kta_shopfloor/tests/test_confirmation_service.py`
