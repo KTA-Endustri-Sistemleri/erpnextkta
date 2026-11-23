@@ -3,6 +3,73 @@
 
 
 
+## 🚀 v4.5.2 (2026-11-23)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **shopfloor**: support multi/partial manufacture consumption costing
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Documentation
+
+    
+      
+      
+        
+- **shopfloor**: document partial manufacture consumption costing
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Testing
+
+    
+      
+      
+        
+- **shopfloor**: disable capacity planning in costing e2e tests
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.5.1 (2026-11-20)
 
 
