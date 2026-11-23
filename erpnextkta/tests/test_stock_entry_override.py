@@ -461,12 +461,20 @@ class TestStockEntryConsumptionCosting(KTABaseTestCase):
         orig_get_rm_cost = frappe.db.get_single_value(
             "Manufacturing Settings", "get_rm_cost_from_consumption_entry"
         )
+        orig_disable_capacity_planning = frappe.db.get_single_value(
+            "Manufacturing Settings", "disable_capacity_planning"
+        )
+        orig_make_batch_from_wo = frappe.db.get_single_value(
+            "Manufacturing Settings", "make_serial_no_batch_from_work_order"
+        )
         self.addCleanup(
             frappe.db.set_single_value,
             "Manufacturing Settings",
             {
                 "material_consumption": orig_material_consumption,
                 "get_rm_cost_from_consumption_entry": orig_get_rm_cost,
+                "disable_capacity_planning": orig_disable_capacity_planning,
+                "make_serial_no_batch_from_work_order": orig_make_batch_from_wo,
             },
         )
         frappe.db.set_single_value(
@@ -474,6 +482,8 @@ class TestStockEntryConsumptionCosting(KTABaseTestCase):
             {
                 "material_consumption": 1,
                 "get_rm_cost_from_consumption_entry": 1,
+                "disable_capacity_planning": 1,
+                "make_serial_no_batch_from_work_order": 0,
             },
         )
 

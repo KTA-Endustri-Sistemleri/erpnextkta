@@ -1061,6 +1061,9 @@ class TestShopfloorPartialManufactureCostingE2E(KTABaseTestCase):
         orig_make_batch_from_wo = frappe.db.get_single_value(
             "Manufacturing Settings", "make_serial_no_batch_from_work_order"
         )
+        orig_disable_capacity_planning = frappe.db.get_single_value(
+            "Manufacturing Settings", "disable_capacity_planning"
+        )
         orig_neg_stock = frappe.db.get_single_value(
             "Stock Settings", "allow_negative_stock"
         )
@@ -1072,6 +1075,7 @@ class TestShopfloorPartialManufactureCostingE2E(KTABaseTestCase):
                 "material_consumption": orig_material_consumption,
                 "get_rm_cost_from_consumption_entry": orig_get_rm_cost,
                 "make_serial_no_batch_from_work_order": orig_make_batch_from_wo,
+                "disable_capacity_planning": orig_disable_capacity_planning,
             },
         )
         self.addCleanup(
@@ -1087,6 +1091,7 @@ class TestShopfloorPartialManufactureCostingE2E(KTABaseTestCase):
                 "material_consumption": 1,
                 "get_rm_cost_from_consumption_entry": 1,
                 "make_serial_no_batch_from_work_order": 0,
+                "disable_capacity_planning": 1,
             },
         )
         frappe.db.set_single_value("Stock Settings", "allow_negative_stock", 0)
