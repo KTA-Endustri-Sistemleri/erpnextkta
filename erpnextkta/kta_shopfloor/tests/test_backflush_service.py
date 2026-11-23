@@ -354,3 +354,79 @@ class TestBackflushService(KTATestCase):
 
             self.assertIs(mock_se.flags.kta_is_final_confirmation, expected_flag)
             self.assertEqual(flag_at_get_items, [expected_flag])
+
+    def test_milestone_partial_confirmation_computes_target_cumulative_qty(self):
+        """When target_op_qty is omitted on a partially completed milestone, target_cumulative_qty
+        adds yield_qty on top of completed_qty even when yield_qty <= completed_qty (and closes
+        remaining balance when is_final=True).
+        """
+        wo = frappe._dict(
+            {
+                "name": "TEST-WO-PARTIAL-MILESTONE",
+                "qty": 1800.0,
+                "wip_warehouse": self.wip_warehouse,
+                "skip_transfer": 1,
+                "operations": [
+                    frappe._dict(
+                        {
+                            "operation": "OP10",
+                            "sequence_id": 1,
+                            "idx": 1,
+                            "completed_qty": 990.0,
+                        }
+                    ),
+                    frappe._dict(
+                        {
+                            "operation": "OP20",
+                            "sequence_id": 2,
+                            "idx": 2,
+                            "completed_qty": 990.0,
+                        }
+                    ),
+                    frappe._dict(
+                        {
+                            "operation": "OP30",
+                            "sequence_id": 3,
+                            "idx": 3,
+                            "completed_qty": 990.0,
+                        }
+                    ),
+                ],
+                "required_items": [
+                    frappe._dict(
+                        {
+                            "item_code": "_TEST_RM_OP10",
+                            "operation": "OP10",
+                            "required_qty": 1800.0,
+                            "consumed_qty": 990.0,
+                            "stock_uom": "Nos",
+                            "source_warehouse": self.wip_warehouse,
+                        }
+                    )
+                ],
+            }
+        )
+
+        # Case 1: yield_qty=330.0 (<= 990.0) with target_op_qty=None -> 990 + 330 - 990 = 330.0
+        items_330 = calculate_operation_raw_materials(
+            wo, "OP30", yield_qty=330.0, is_final=False, target_op_qty=None
+        )
+        self.assertEqual(len(items_330), 1)
+        self.assertEqual(items_330[0]["item_code"], "_TEST_RM_OP10")
+        self.assertEqual(flt(items_330[0]["qty"]), 330.0)
+
+        # Case 2: yield_qty=810.0 (<= 990.0) with target_op_qty=None -> 990 + 810 - 990 = 810.0
+        items_810 = calculate_operation_raw_materials(
+            wo, "OP30", yield_qty=810.0, is_final=False, target_op_qty=None
+        )
+        self.assertEqual(len(items_810), 1)
+        self.assertEqual(items_810[0]["item_code"], "_TEST_RM_OP10")
+        self.assertEqual(flt(items_810[0]["qty"]), 810.0)
+
+        # Case 3: yield_qty=100.0 with is_final=True, target_op_qty=None -> remaining 810.0
+        items_final = calculate_operation_raw_materials(
+            wo, "OP30", yield_qty=100.0, is_final=True, target_op_qty=None
+        )
+        self.assertEqual(len(items_final), 1)
+        self.assertEqual(items_final[0]["item_code"], "_TEST_RM_OP10")
+        self.assertEqual(flt(items_final[0]["qty"]), 810.0)
