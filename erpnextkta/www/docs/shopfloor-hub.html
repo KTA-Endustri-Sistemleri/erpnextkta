@@ -776,6 +776,9 @@ flowchart TD
       <li>
         <strong>Son Operasyonda İş Emri Kapanır:</strong> Eğer son operasyon teyit ediliyorsa veya tüm operasyonlar bittiyse Work Order durumu <code>Completed</code> yapılarak kapatılır.
       </li>
+      <li>
+        <strong>Fiili Tüketim Havuzu Sıfırlanır:</strong> Son operasyondaki final / kısa kapanış teyitlerinde <code>BackflushService.create_finished_goods_entry()</code> tarafından <code>se.flags.kta_is_final_confirmation</code> bayrağı iletilir. Böylece <code>KTAStockEntry</code> maliyetleme motoru, envanter düzeltme/WIP hesabında kalan tüm <em>Kalan Dağıtılmamış Havuz</em> tutarını son <code>Manufacture</code> partisine aktararak hesabı kuruşu kuruşuna (<code>0.00</code>) kapatır.
+      </li>
     </ol>
   </div>
 
@@ -897,10 +900,10 @@ flowchart TD
       </tr>
       <tr>
         <td><strong>Son Operasyon</strong> (Milestone / Nihai Montaj)</td>
-        <td><span class="co11n-badge green">101 GR + WIP Rollup</span></td>
+        <td><span class="co11n-badge green">101 GR (FG-Only)</span></td>
         <td><code>Manufacture</code></td>
         <td>
-          Operasyona atanmamış genel sarflar (bant, etiket vb.) düşülür. Varsa önceki ara operasyonlarda eksik kalmış hammaddelerin telafi sarfiyatı (<strong>Auto-Catchup Backflush</strong>) fişe otomatik dahil edilir. Önceki ara operasyonlarda harcanan hammadde maliyetleri mamule orantısal yansıtılır (WIP Rollup) ve bitmiş ürün mamul ambarına (<code>fg_warehouse</code>) alınır.
+          Operasyona atanmamış genel sarflar ile önceki ara operasyonlardaki eksik sarfların telafisi (<strong>Auto-Catchup Backflush</strong>) ayrı <code>Material Consumption for Manufacture</code> fişiyle düşülür. <code>Manufacture</code> fişi ise yalnızca mamul/hurda girişini (<code>FG-Only</code>) gerçekleştirir ve <code>KTAStockEntry</code> fiili tüketim havuzu maliyetlemesi üzerinden mamul ambarına (<code>fg_warehouse</code>) gerçek fiili maliyetle stoklanır.
         </td>
       </tr>
     </tbody>
@@ -959,7 +962,134 @@ flowchart TD
 
   <hr />
 
-  <h2>🔄 5. Hatalı Teyitlerin İptali ve Ters Kayıt (SAP CORS)</h2>
+  <h2>💰 5. Çoklu / Kısmi Manufacture Stoklaştırma ve Fiili Tüketim Maliyetleme</h2>
+  <p>
+    Shopfloor Hub üzerinde büyük partilerin tek seferde kapanmasını beklemeden (örneğin <code>1.000</code> adetlik bir iş emrinde <code>300 + 300 + 400</code> adetlik parçalar halinde) çoklu ve kısmi mamul girişi (<code>Manufacture</code>) yapılabilmesi için <strong><code>KTAStockEntry</code></strong> (<code>erpnextkta/overrides/KTAStockEntry.py</code>) çekirdek maliyetleme motoru genişletilmiştir.
+  </p>
+
+  <h3>A. <code>Manufacturing Settings</code> Yapılandırması ve Standart Kısıtlamanın Aşılması</h3>
+  <p>
+    <code>Manufacturing Settings</code> altında <strong><code>material_consumption = 1</code></strong> ve <strong><code>get_rm_cost_from_consumption_entry = 1</code></strong> ayarları etkinken, ERPNext çekirdeği standart olarak iş emrinde tüketim fişi bulunduğunda ikinci bir mamul girişi açılmasını <em>"Only one Manufacture entry can be created against the Work Order"</em> hatasıyla engeller.
+  </p>
+  <div class="flow-card-grid">
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🔓</span>
+        <h4 class="flow-card-title">Çoklu / Kısmi Manufacture İzni</h4>
+      </div>
+      <p class="flow-card-desc">
+        <code>KTAStockEntry</code> override'ı (<code>get_basic_rate_for_manufactured_item</code> ve hammadde satır bastırma kancaları) ile tek <code>Manufacture</code> fişi sınırı kaldırılır; aynı iş emri altında birden fazla <code>FG-Only</code> mamul stoklaştırma fişi onaylanabilir.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🛡️</span>
+        <h4 class="flow-card-title">Hammadde Satırı Koruması Sürer</h4>
+      </div>
+      <p class="flow-card-desc">
+        Standart koruma (<code>_validate_no_raw_materials_in_manufacture_entry</code>) aktif kalmaya devam eder: tüketim esası geçerliyken <code>Manufacture</code> fişine doğrudan hammadde çıkış satırı eklenmeye çalışılırsa <code>ValidationError</code> fırlatılır; tüm sarfiyatlar <code>Material Consumption for Manufacture</code> üzerinden yürütülür.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🏁</span>
+        <h4 class="flow-card-title">Final / Kısa Kapanış Bayrağı</h4>
+      </div>
+      <p class="flow-card-desc">
+        <code>BackflushService.create_finished_goods_entry()</code> tarafından final ve kısa kapanış (short-close) teyitlerinde oluşturulan stok fişine <code>se.flags.kta_is_final_confirmation</code> bayrağı iletilir; <code>KTAStockEntry</code> ayrıca bağlı <code>KTA Production Confirmation.is_final_confirmation</code> değerini ve kümülatif miktar eşiğini denetler.
+      </p>
+    </div>
+  </div>
+
+  <h3>B. Fiili Tüketim Havuzu Maliyetleme Formülü</h3>
+  <p>
+    Her kısmi veya final <code>Manufacture</code> fişinde mamul maliyeti, BOM varsayımı yerine iş emrinin gerçek ambar çıkışları ve önceki mamul stoklaştırmaları arasındaki net havuz dengesinden hesaplanır:
+  </p>
+  <div class="formula-box">
+    Toplam Fiili Tüketim Maliyeti = ∑ (valuation_rate × transfer_qty)<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;[İş emrine bağlı onaylı (docstatus = 1) "Material Consumption for Manufacture" çıkış satırları (s_warehouse dolu)]<br/><br/>
+    Önceki FG-Only Manufacture Maliyeti = ∑ (basic_amount)<br/>
+    &nbsp;&nbsp;&nbsp;&nbsp;[Aynı iş emrine bağlı, mevcut fiş hariç onaylı (docstatus = 1), hammadde çıkışı içermeyen (total_outgoing_value == 0 ve s_warehouse satırı olmayan) "Manufacture" fişlerindeki is_finished_item = 1 veya is_scrap_item = 1 satırları]<br/><br/>
+    <strong>Kalan Dağıtılmamış Havuz = max(0, Toplam Fiili Tüketim Maliyeti - Önceki FG-Only Manufacture Maliyeti)</strong>
+  </div>
+  <p>
+    <strong>Kalan Dağıtılmamış Havuz</strong>, ilgili envanter düzeltme / WIP hesabında bekleyen ve henüz mamule aktarılmamış net fiili hammadde maliyetini ifade eder. Partiye atanan tutardan varsa hurda (<code>is_scrap_item</code>) ve manuel fiyatlandırılmış mamul tutarları düşülerek kalan tutar mamul miktarına bölünür ve <code>basic_rate</code> belirlenir.
+  </p>
+
+  <h3>C. Kısmi Stoklaştırma, Önden Giden Ara Operasyon Koruması ve Final Kapanış</h3>
+  <p>
+    Çok operasyonlu hatlarda önceki bir istasyonun (örneğin <code>OP10</code>) iş emrinin tamamını önden tüketip sonraki bir istasyonun (örneğin <code>OP30</code>) henüz kısmi stoklaştırma yaptığı durumlarda maliyet çarpılmasını önlemek için üç kademeli dağıtım kuralı uygulanır:
+  </p>
+
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th style="width: 210px;">Senaryo</th>
+        <th style="width: 260px;">Tetikleme Koşulu</th>
+        <th>Maliyet Atama Davranışı</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="co11n-badge blue">Ara / Kısmi Stoklaştırma</span></td>
+        <td>Final / kısa kapanış değil ve <code>Kalan Dağıtılmamış Havuz &gt; 0</code></td>
+        <td>
+          Kalan havuzun tamamı kısmi partiye yüklenmez. İş emrindeki onaylı <code>Material Consumption for Manufacture</code> satırlarından her bileşen için (muadil kullanıldıysa <code>custom_original_item</code> / <code>original_item</code> eşlemesiyle) ağırlıklı ortalama fiili çıkış birim maliyeti hesaplanır ve <code>(partideki miktar / iş emri miktarı) × reçete ihtiyaç miktarı</code> ile çarpılarak <strong>Orantısal Fiili Maliyet</strong> bulunur. Partiye <code>min(Kalan Dağıtılmamış Havuz, Orantısal Fiili Maliyet)</code> atanır.
+        </td>
+      </tr>
+      <tr>
+        <td><span class="co11n-badge green">Final / Kısa Kapanış</span></td>
+        <td><code>se.flags.kta_is_final_confirmation</code>, <code>is_final_confirmation = 1</code> veya <code>produced_qty + parti_miktarı &gt;= wo.qty</code></td>
+        <td>
+          <strong>Kalan Dağıtılmamış Havuz</strong> tutarının tamamı son <code>Manufacture</code> partisine aktarılır. Kısa kapanışta (örneğin <code>1.000</code> adetlik iş emrinde <code>300 + 500 = 800</code> adetle final teyit) dahi envanter düzeltme / WIP hesabı kuruşu kuruşuna sıfırlanır (<code>0.00</code>).
+        </td>
+      </tr>
+      <tr>
+        <td><span class="co11n-badge amber">Havuz Sıfır (Fallback)</span></td>
+        <td><code>Kalan Dağıtılmamış Havuz &lt;= 0</code></td>
+        <td>
+          Hata fırlatılmadan güvenli biçimde BOM tabanlı hammadde maliyetine (veya reçete/miktar yoksa <code>0</code> değerine) düşülür.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="formula-box">
+    Ağırlıklı Ortalama Fiili Çıkış Birim Maliyeti (bileşen k) = ∑(valuation_rate × transfer_qty) / ∑(transfer_qty)<br/>
+    Orantısal Fiili Maliyet = ∑ [ (Partideki Miktar / İş Emri Miktarı) × Reçete İhtiyaç Miktarı(k) × Ağırlıklı Ortalama Birim Maliyet(k) ]<br/>
+    Ara Parti Maliyeti = min(Kalan Dağıtılmamış Havuz, Orantısal Fiili Maliyet)
+  </div>
+
+  <div class="callout-box success">
+    <div class="callout-title">🛡️ Önden Giden Ara Operasyon Koruması — Kavramsal Senaryo</div>
+    <p>
+      <code>1.000</code> adetlik bir iş emrinde <code>OP10</code> operasyonu ham madde ihtiyacının tamamını (<code>1.000</code> adet) önden tükettiğinde, tüm <code>OP10</code> fiili maliyeti tüketim havuzuna girer. Ardından <code>OP30</code> üzerinden <code>300</code> adetlik kısmi mamul girişi yapıldığında:
+    </p>
+    <ul>
+      <li><code>300</code> adetlik kısmi parti, yalnızca <code>(300 / 1.000)</code> oranındaki fiili <code>OP10</code> ve <code>OP30</code> bileşen maliyetlerini (<code>örnek birim maliyet × 300</code>) üstlenir; kalan <code>700</code> adetlik <code>OP10</code> maliyeti havuzda korunur.</li>
+      <li>Kalan <code>700</code> adetlik son parti (veya kısa kapanış partisi) onaylandığında havuzdaki tüm kalan tutar bu partiye devredilir ve toplam mamul girişi ile toplam fiili tüketim kuruşu kuruşuna eşitlenir.</li>
+      <li>Muadil hammadde kullanılmış satırlarda <code>custom_original_item</code> / <code>original_item</code> eşlemesi sayesinde, fiilen tüketilen alternatif bileşenin ağırlıklı ortalama birim maliyeti ilgili reçete satırına doğru şekilde yansıtılır.</li>
+    </ul>
+  </div>
+
+  <h3>D. Eski Belgeli (<code>Legacy Manufacture</code>) İş Emirlerinden Devam ve İptal Davranışı</h3>
+  <div class="callout-box warning">
+    <div class="callout-title">📜 Legacy Manufacture İzolasyonu ve SAP CORS Yeniden Hesaplama</div>
+    <ul>
+      <li>
+        <strong>Eski Belgeli İş Emirlerinden Devam:</strong> Geçmişte doğrudan hammadde satırı taşıyan standart <code>Manufacture</code> fişi (<code>total_outgoing_value &gt; 0</code> veya <code>s_warehouse</code> çıkış satırı içeren; örn. ilk <code>300</code> adet) işlenmiş bir iş emrinde kalan miktarlar (<code>300 + 400</code> adet) için Shopfloor Hub üzerinden devam edildiğinde, eski fişler kendi içinde muhasebesel olarak zaten dengelenmiştir. Bu nedenle eski fişler <em>Önceki FG-Only Manufacture Maliyeti</em> sorgusunun dışında bırakılır; yeni partiler yalnızca yeni <code>Material Consumption for Manufacture</code> fişlerinden doğru fiili maliyetle stoklanır.
+      </li>
+      <li>
+        <strong>SAP CORS İptal Etkisi (<code>docstatus = 2</code>):</strong> Bir teyit SAP CORS ile iptal edildiğinde, iptal edilen tüketim ve mamul girişi fişleri <code>docstatus = 2</code> durumuna geçer ve tüm maliyet havuzu sorgularının dışında bırakılır. Sonrasında düzeltilmiş yeni teyit verildiğinde maliyetler sıfırdan ve tutarlı biçimde yeniden hesaplanır.
+      </li>
+    </ul>
+  </div>
+
+  <hr />
+
+  <h2>🔄 6. Hatalı Teyitlerin İptali ve Ters Kayıt (SAP CORS)</h2>
   <p>
     Eğer yetkili bir kullanıcı yanlış bir iş emri veya yanlış bir sağlam miktar girdiyse, SAP CORS (Cancel Confirmation) mantığıyla işlem geri alınabilir.
   </p>
@@ -978,10 +1108,10 @@ flowchart TD
     <div class="flow-card">
       <div class="flow-card-header">
         <span class="flow-card-icon">↩️</span>
-        <h4 class="flow-card-title">2. Stok Fişi İptali</h4>
+        <h4 class="flow-card-title">2. Stok Fişi ve Maliyet Havuzu İptali</h4>
       </div>
       <p class="flow-card-desc">
-        Teyide bağlı olarak üretilmiş olan <code>Stock Entry</code> fişi (tüketim veya mamul girişi) otomatik olarak <code>cancel</code> durumuna alınır. Sarf edilen hammaddeler ambar stoklarına iade edilir.
+        Teyide bağlı olarak üretilmiş olan <code>Stock Entry</code> fişleri (tüketim ve mamul girişi) otomatik olarak <code>cancel</code> (<code>docstatus = 2</code>) durumuna alınır. Sarf edilen hammaddeler ambar stoklarına iade edilir ve iptal edilen fişler maliyet havuzu sorgularından otomatik düşülür; yeniden teyit verildiğinde maliyetler sıfırdan tutarlı hesaplanır.
       </p>
     </div>
 
@@ -998,7 +1128,7 @@ flowchart TD
 
   <hr />
 
-  <h2>📑 6. Frappe Desk Dokümanı: "KTA Production Confirmation"</h2>
+  <h2>📑 7. Frappe Desk Dokümanı: "KTA Production Confirmation"</h2>
   <p>
     Arama çubuğuna <strong>KTA Production Confirmation</strong> yazarak geçmiş tüm
     teyit işlemlerine ulaşabilirsiniz.
@@ -1022,7 +1152,7 @@ flowchart TD
 
   <hr />
 
-  <h2>🔌 7. Entegrasyon ve API Uç Noktaları</h2>
+  <h2>🔌 8. Entegrasyon ve API Uç Noktaları</h2>
   <p>
     Shopfloor Hub ve operasyon teyit motoru tarafından kullanılan temel API uç noktaları:
   </p>
