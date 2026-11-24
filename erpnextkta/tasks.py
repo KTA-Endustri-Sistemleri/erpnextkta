@@ -28,6 +28,8 @@ def submit_draft_calisma_kartlari():
     )
 
     for k in kartlar:
+        prev_sync_flag = getattr(frappe.flags, "syncing_hurda_from_card", False)
+        frappe.flags.syncing_hurda_from_card = True
         try:
             doc = frappe.get_doc("Calisma Karti", k.name)
             doc.submit()
@@ -36,6 +38,8 @@ def submit_draft_calisma_kartlari():
         except Exception as e:
             frappe.db.rollback()
             frappe.log_error(title=f"submit_draft_calisma_kartlari hatası: {k.name}", message=frappe.get_traceback())
+        finally:
+            frappe.flags.syncing_hurda_from_card = prev_sync_flag
 
 def auto_close_timed_out_cards():
     """
@@ -137,7 +141,12 @@ def auto_close_timed_out_cards():
 
             if doc.docstatus == 1:
                 doc.flags.ignore_validate_update_after_submit = True
-            doc.save(ignore_permissions=True)
+            prev_sync_flag = getattr(frappe.flags, "syncing_hurda_from_card", False)
+            frappe.flags.syncing_hurda_from_card = True
+            try:
+                doc.save(ignore_permissions=True)
+            finally:
+                frappe.flags.syncing_hurda_from_card = prev_sync_flag
 
             # DB zorunlu güncelleme
             frappe.db.set_value("Calisma Karti", doc.name, {
