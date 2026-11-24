@@ -275,9 +275,34 @@ def sync_stock_entry_to_calisma_karti(se_doc, method=None):
     finally:
         frappe.flags.syncing_hurda_from_se = False
 
+def _get_finalized_scrap_detail_ids(ck_hurdalar) -> set[str]:
+    """Return Stock Entry Detail IDs that already belong to Submitted (1) or Cancelled (2) Stock Entries."""
+    detail_ids = [
+        h.stock_entry_detail_id
+        for h in ck_hurdalar
+        if getattr(h, "stock_entry_detail_id", None)
+    ]
+    if not detail_ids:
+        return set()
+
+    rows = frappe.db.sql(
+        """
+        SELECT sed.name
+        FROM `tabStock Entry Detail` sed
+        INNER JOIN `tabStock Entry` se ON se.name = sed.parent
+        WHERE sed.name IN %s AND se.docstatus IN (1, 2)
+        """,
+        (tuple(detail_ids),),
+        as_list=True,
+    )
+    return {r[0] for r in rows}
+
+
 def sync_calisma_karti_hurdalar_to_se(ck_doc, method=None):
     """
     Triggered on Calisma Karti on_update.
+    Only syncs hurda rows that are NOT already linked to a Submitted (1) or Cancelled (2) Stock Entry,
+    preventing duplicate Draft Stock Entries from being created on card submit/update.
     """
     # Skip if triggered by our own SE sync
     if frappe.flags.syncing_hurda_from_card or frappe.flags.syncing_hurda_from_se:
@@ -289,24 +314,51 @@ def sync_calisma_karti_hurdalar_to_se(ck_doc, method=None):
     if not ck_hurdalar:
         return
 
+    # Exclude rows already finalized in a Submitted or Cancelled Stock Entry
+    finalized_detail_ids = _get_finalized_scrap_detail_ids(ck_hurdalar)
+    pending_hurdalar = [
+        h for h in ck_hurdalar
+        if getattr(h, "stock_entry_detail_id", None) not in finalized_detail_ids
+    ]
+
+    existing_se_name = frappe.db.get_value("Calisma Karti", ck_doc.name, "scrap_stock_entry")
+    existing_se_docstatus = (
+        frappe.db.get_value("Stock Entry", existing_se_name, "docstatus")
+        if existing_se_name
+        else None
+    )
+
+    if not pending_hurdalar:
+        # All hurda rows are already finalized (Submitted/Cancelled).
+        # Only proceed if an open Draft SE exists and needs cleanup; never create a new SE.
+        if existing_se_docstatus != 0:
+            return
+
     # Use _get_or_create_scrap_se for consistency
     frappe.flags.syncing_hurda_from_card = True
     try:
         se_doc, se_name, is_new = _get_or_create_scrap_se(ck_doc.name, ck_doc)
         if not se_doc:
             return
+        if is_new and not pending_hurdalar:
+            return
 
         expense_account = _get_expense_account()
         wo = ck_doc.custom_work_order
 
-        # Build a map of SE row IDs that are still in the card
-        card_se_ids = {h.stock_entry_detail_id for h in ck_hurdalar if h.stock_entry_detail_id}
+        # Build a map of pending SE row IDs that are still in the card
+        card_se_ids = {
+            h.stock_entry_detail_id
+            for h in pending_hurdalar
+            if getattr(h, "stock_entry_detail_id", None)
+        }
 
-        # 1. Remove SE rows whose IDs no longer appear in the card
+        # 1. Remove SE rows whose IDs no longer appear in pending card rows
         se_doc.items = [d for d in se_doc.items if d.name in card_se_ids or not getattr(d, "is_scrap_item", 0)]
 
-        # 2. Update or add SE rows for each hurda row
-        for h in ck_hurdalar:
+        # 2. Update or add SE rows for each pending (non-finalized) hurda row
+        newly_appended_hurdalar = []
+        for h in pending_hurdalar:
             src_wh, stock_uom = _get_item_wo_defaults(ck_doc, h.parca_no)
             description = f"Çalışma Kartı Hurdası: {h.hurda_nedeni}"
             if h.aciklama:
@@ -326,9 +378,9 @@ def sync_calisma_karti_hurdalar_to_se(ck_doc, method=None):
                     se_row.is_scrap_item = 1
                     se_row.description = description
                     continue
-            
-            # No ID yet — append a new row
-            new_row = se_doc.append("items", {
+
+            # Not linked to an existing row in this Draft SE — append a new row
+            se_doc.append("items", {
                 "item_code": h.parca_no,
                 "qty": h.miktar,
                 "uom": stock_uom or h.birim or "Nos",
@@ -340,6 +392,7 @@ def sync_calisma_karti_hurdalar_to_se(ck_doc, method=None):
                 "is_scrap_item": 1,
                 "description": description,
             })
+            newly_appended_hurdalar.append(h)
 
         if se_doc.items:
             if is_new:
@@ -353,20 +406,35 @@ def sync_calisma_karti_hurdalar_to_se(ck_doc, method=None):
             if wo:
                 frappe.db.set_value("Stock Entry", se_name, "work_order", wo, update_modified=False)
             frappe.db.commit()
-            
+
             # Write back stock_entry_detail_ids for any newly added rows
-            se_doc.reload()
-            changed = False
-            for h in ck_hurdalar:
-                if not h.stock_entry_detail_id:
-                    matched = next((d for d in se_doc.items if d.item_code == h.parca_no and abs(float(d.qty) - float(h.miktar)) < 0.001 and getattr(d, "is_scrap_item", 0)), None)
+            if newly_appended_hurdalar:
+                se_doc.reload()
+                used_se_row_names = {
+                    h.stock_entry_detail_id
+                    for h in pending_hurdalar
+                    if h not in newly_appended_hurdalar and getattr(h, "stock_entry_detail_id", None)
+                }
+                changed = False
+                for h in newly_appended_hurdalar:
+                    matched = next(
+                        (
+                            d for d in se_doc.items
+                            if d.name not in used_se_row_names
+                            and d.item_code == h.parca_no
+                            and abs(float(d.qty) - float(h.miktar)) < 0.001
+                            and getattr(d, "is_scrap_item", 0)
+                        ),
+                        None,
+                    )
                     if matched:
+                        used_se_row_names.add(matched.name)
                         frappe.db.set_value("Calisma Karti Hurda", h.name, "stock_entry_detail_id", matched.name, update_modified=False)
                         changed = True
-            if changed:
-                frappe.db.commit()
-        else:
-            # All items removed — delete the SE and clear the link
+                if changed:
+                    frappe.db.commit()
+        elif not is_new and se_doc.docstatus == 0:
+            # All draft items removed — delete the Draft SE and clear the link
             try:
                 se_doc.delete(ignore_permissions=True)
                 frappe.db.set_value("Calisma Karti", ck_doc.name, "scrap_stock_entry", None, update_modified=False)
@@ -511,26 +579,27 @@ def update_hurda(
 
     frappe.flags.syncing_hurda_from_card = True
     try:
-        # Update SE row if we have a detail ID
+        # Update SE row if we have a detail ID and SE is still Draft
         se_name = frappe.db.get_value("Calisma Karti", name, "scrap_stock_entry")
         if se_name and target.stock_entry_detail_id:
             try:
                 se_doc = frappe.get_doc("Stock Entry", se_name)
-                se_row = next((d for d in se_doc.items if d.name == target.stock_entry_detail_id), None)
-                if se_row:
-                    src_wh, stock_uom = _get_item_wo_defaults(doc, parca_no)
-                    se_row.item_code = parca_no
-                    se_row.qty = float(miktar or 0)
-                    se_row.uom = stock_uom or se_row.uom
-                    se_row.stock_uom = stock_uom or se_row.stock_uom
-                    se_row.s_warehouse = src_wh or se_row.s_warehouse
-                    se_row.cost_center = hurda_nedeni
-                    se_row.expense_account = _get_expense_account()
-                    description = f"Çalışma Kartı Hurdası: {hurda_nedeni}"
-                    if aciklama:
-                        description += f" - {aciklama}"
-                    se_row.description = description
-                    se_doc.save(ignore_permissions=True)
+                if se_doc.docstatus == 0:
+                    se_row = next((d for d in se_doc.items if d.name == target.stock_entry_detail_id), None)
+                    if se_row:
+                        src_wh, stock_uom = _get_item_wo_defaults(doc, parca_no)
+                        se_row.item_code = parca_no
+                        se_row.qty = float(miktar or 0)
+                        se_row.uom = stock_uom or se_row.uom
+                        se_row.stock_uom = stock_uom or se_row.stock_uom
+                        se_row.s_warehouse = src_wh or se_row.s_warehouse
+                        se_row.cost_center = hurda_nedeni
+                        se_row.expense_account = _get_expense_account()
+                        description = f"Çalışma Kartı Hurdası: {hurda_nedeni}"
+                        if aciklama:
+                            description += f" - {aciklama}"
+                        se_row.description = description
+                        se_doc.save(ignore_permissions=True)
             except Exception:
                 frappe.log_error(title="HURDA UPDATE ERROR", message=frappe.get_traceback())
 
