@@ -22,6 +22,7 @@ const tabs: NavTab[] = [
   { id: 'work_orders', icon: '⚡', label: 'Work Orders' },
   { id: 'operations', icon: '📋', label: 'Operations' },
   { id: 'work_cards', icon: '⏱️', label: 'Work Cards' },
+  { id: 'reports', icon: '📊', label: 'Reports' },
 ];
 
 function handleSelectTab(view: WorkOrderViewMode) {
@@ -164,6 +165,8 @@ function handleSelectTab(view: WorkOrderViewMode) {
 
   .navbar-tabs {
     justify-self: end;
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   .navbar-spacer {

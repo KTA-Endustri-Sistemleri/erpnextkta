@@ -1,6 +1,7 @@
 // Types for Shopfloor Hub Cockpit
+import type { Component } from "vue";
 
-export type WorkOrderViewMode = "work_orders" | "operations" | "work_cards";
+export type WorkOrderViewMode = "work_orders" | "operations" | "work_cards" | "reports";
 
 export interface LinkedStockEntry {
   name: string;
@@ -326,5 +327,165 @@ export interface WorkOrderPrintOptionsResponse {
   with_letterhead: number;
   allow_print_for_draft: number;
   allow_print_for_cancelled: number;
+}
+
+export type ReportCategory = "Üretim Teyitleri" | "Malzeme ve Stok" | "Analitik";
+
+export interface ReportDefinition {
+  id: string;
+  title: string;
+  description: string;
+  category: ReportCategory;
+  icon: string;
+  component: Component;
+}
+
+export type OperationCompletionStatusFilter = "completed" | "partial" | "unconfirmed" | "all";
+
+export interface OperationCompletionRow {
+  work_order: string;
+  production_item: string;
+  item_name?: string | null;
+  stock_uom?: string | null;
+  wo_status?: string;
+  operation: string;
+  workstation?: string | null;
+  sequence_id?: number;
+  qty: number;
+  completed_qty: number;
+  confirmed_qty: number;
+  pending_qty?: number;
+  completion_pct: number;
+  is_completed: boolean;
+  confirmation_count: number;
+  final_confirmation_count: number;
+  stock_entry_count?: number;
+  last_confirmation_at?: string | null;
+  last_confirmed_by?: string | null;
+  last_confirmation?: string | null;
+  wo_creation?: string | null;
+  custom_released_with_shortage?: number;
+  source_type?: "co11n" | "legacy" | "mixed" | "none";
+  wo_qty?: number;
+  co11n_qty?: number;
+  legacy_manufacture_qty?: number;
+  completion_percent?: number;
+  status?: "completed" | "partial" | "unconfirmed";
+  has_final_confirmation?: number;
+  last_posting_date?: string | null;
+  last_posting_time?: string | null;
+}
+
+export interface OperationCompletionSummary {
+  completed_operations: number;
+  partial_operations: number;
+  unconfirmed_operations: number;
+  shortage_operations?: number;
+  unique_work_orders: number;
+  total_confirmed_qty: number;
+}
+
+export interface OperationCompletionCounts {
+  completed: number;
+  partial: number;
+  unconfirmed: number;
+  shortage?: number;
+  all: number;
+}
+
+export interface OperationCompletionFilterOptions {
+  operations: string[];
+  workstations: string[];
+}
+
+export interface OperationCompletionResponse {
+  rows: OperationCompletionRow[];
+  summary: OperationCompletionSummary;
+  counts: OperationCompletionCounts;
+  filter_options: OperationCompletionFilterOptions;
+}
+
+export interface OperationCompletionWorkOrderGroup {
+  work_order: string;
+  wo_status: string;
+  custom_released_with_shortage: number;
+  production_item: string;
+  item_name: string;
+  stock_uom: string;
+  qty: number;
+  operations: OperationCompletionRow[];
+  completed_count: number;
+  partial_count: number;
+  unconfirmed_count: number;
+  overall_pct: number;
+  wo_creation: string;
+  last_confirmation_at: string;
+  last_confirmed_by: string;
+}
+
+export type MaterialShortageStatusFilter =
+  | "all"
+  | "active_shortage"
+  | "critical"
+  | "transfer_required"
+  | "resolved";
+
+export interface MaterialShortageItemRow {
+  item_code: string;
+  item_name?: string | null;
+  operation?: string | null;
+  source_warehouse?: string | null;
+  stock_uom?: string | null;
+  required_qty?: number;
+  consumed_qty?: number;
+  remaining_required_qty: number;
+  line_actual_qty: number;
+  other_warehouses_qty: number;
+  shortage_qty: number;
+  availability_status: "critical" | "critical_shortage" | "transfer_required" | "available";
+}
+
+export interface MaterialShortageWorkOrderRow {
+  work_order: string;
+  wo_status: string;
+  production_item: string;
+  item_name?: string | null;
+  stock_uom?: string | null;
+  qty: number;
+  produced_qty: number;
+  wo_creation?: string | null;
+  planned_start_date?: string | null;
+  shortage_status: "critical" | "transfer_required" | "resolved";
+  shortage_items_count: number;
+  total_items: number;
+  readiness_pct: number;
+  items: MaterialShortageItemRow[];
+}
+
+export interface MaterialShortageSummary {
+  total_work_orders: number;
+  critical_work_orders: number;
+  transfer_work_orders: number;
+  resolved_work_orders?: number;
+  total_shortage_items: number;
+}
+
+export interface MaterialShortageCounts {
+  all: number;
+  active_shortage?: number;
+  critical: number;
+  transfer_required: number;
+  resolved: number;
+}
+
+export interface MaterialShortageFilterOptions {
+  warehouses: string[];
+}
+
+export interface MaterialShortageResponse {
+  rows: MaterialShortageWorkOrderRow[];
+  summary: MaterialShortageSummary;
+  counts: MaterialShortageCounts;
+  filter_options: MaterialShortageFilterOptions;
 }
 

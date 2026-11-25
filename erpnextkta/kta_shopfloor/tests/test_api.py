@@ -17,6 +17,8 @@ from erpnextkta.kta_shopfloor.api import (
     get_co11n_confirmations,
     get_co11n_context,
     get_item_default_bom,
+    get_material_shortage_report,
+    get_operation_completion_report,
     get_production_confirmations,
     get_shopfloor_hub_context,
     get_work_order_print_options,
@@ -89,15 +91,14 @@ class TestCO11NAPI(KTATestCase):
             }
         ).insert(ignore_permissions=True)
 
-        frappe.db.set_value(
-            "Work Order",
-            self.wo_name,
-            {
-                "docstatus": 1,
-                "status": "Not Started",
-                "produced_qty": 0.0,
-            },
-        )
+        wo_reset = {
+            "docstatus": 1,
+            "status": "Not Started",
+            "produced_qty": 0.0,
+        }
+        if frappe.db.has_column("Work Order", "custom_released_with_shortage"):
+            wo_reset["custom_released_with_shortage"] = 0
+        frappe.db.set_value("Work Order", self.wo_name, wo_reset)
         self.wo = frappe.get_doc("Work Order", self.wo_name)
         self.jc1 = self._get_or_create_draft_job_card("TEST-JC-API-001", self.op1)
         self.jc2 = self._get_or_create_draft_job_card("TEST-JC-API-002", self.op2)
@@ -1636,3 +1637,176 @@ class TestCO11NAPI(KTATestCase):
         self.assertIn(res["with_letterhead"], (0, 1))
         self.assertIn(res["allow_print_for_draft"], (0, 1))
         self.assertIn(res["allow_print_for_cancelled"], (0, 1))
+
+    def test_api_get_operation_completion_report(self):
+        """get_operation_completion_report exposes expected contract, counts, and filter behavior."""
+        with patch(
+            "erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry",
+            return_value=None,
+        ):
+            submit_co11n_confirmation(
+                {
+                    "work_order": self.wo_name,
+                    "operation": self.op1,
+                    "job_card": self.jc1,
+                    "yield_qty": 40.0,
+                    "is_final_confirmation": 0,
+                }
+            )
+
+        res = get_operation_completion_report(
+            status_filter="partial",
+            company=self.company,
+            search=self.wo_name,
+        )
+        self.assertEqual(
+            set(res.keys()), {"rows", "summary", "counts", "filter_options"}
+        )
+        self.assertEqual(len(res["rows"]), 1)
+        row = res["rows"][0]
+        self.assertEqual(row["work_order"], self.wo_name)
+        self.assertRegex(row["wo_creation"], r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
+        self.assertEqual(row["operation"], self.op1)
+        self.assertEqual(flt(row["completed_qty"]), 40.0)
+        self.assertEqual(flt(row["confirmed_qty"]), 40.0)
+        self.assertEqual(row["confirmation_count"], 1)
+        self.assertEqual(row["custom_released_with_shortage"], 0)
+        self.assertEqual(res["counts"]["partial"], 1)
+        self.assertEqual(res["counts"]["unconfirmed"], 1)
+        self.assertEqual(res["counts"]["shortage"], 0)
+        self.assertEqual(
+            res["counts"]["all"],
+            res["counts"]["completed"]
+            + res["counts"]["partial"]
+            + res["counts"]["unconfirmed"],
+        )
+        self.assertEqual(res["summary"]["unconfirmed_operations"], 1)
+        self.assertEqual(res["summary"]["shortage_operations"], 0)
+        self.assertEqual(res["summary"]["unique_work_orders"], 1)
+        self.assertEqual(flt(res["summary"]["total_confirmed_qty"]), 40.0)
+
+        res_unconfirmed = get_operation_completion_report(
+            status_filter="unconfirmed",
+            company=self.company,
+            search=self.wo_name,
+        )
+        self.assertEqual(len(res_unconfirmed["rows"]), 1)
+        unconf_row = res_unconfirmed["rows"][0]
+        self.assertEqual(unconf_row["operation"], self.op2)
+        self.assertEqual(unconf_row["status"], "unconfirmed")
+        self.assertEqual(unconf_row["source_type"], "none")
+        self.assertEqual(unconf_row["last_posting_date"], "")
+        self.assertEqual(unconf_row["confirmation_count"], 0)
+
+        # Before shortage flag is set, only_shortage=1 excludes self.wo_name
+        res_empty_shortage = get_operation_completion_report(
+            status_filter="all",
+            company=self.company,
+            search=self.wo_name,
+            only_shortage=1,
+        )
+        self.assertEqual(res_empty_shortage["rows"], [])
+        self.assertEqual(res_empty_shortage["counts"]["shortage"], 0)
+
+        if frappe.db.has_column("Work Order", "custom_released_with_shortage"):
+            try:
+                frappe.db.set_value(
+                    "Work Order",
+                    self.wo_name,
+                    "custom_released_with_shortage",
+                    1,
+                    update_modified=False,
+                )
+                res_shortage = get_operation_completion_report(
+                    status_filter="all",
+                    company=self.company,
+                    search=self.wo_name,
+                    only_shortage=1,
+                )
+                self.assertEqual(len(res_shortage["rows"]), 2)
+                self.assertTrue(
+                    all(
+                        r["custom_released_with_shortage"] == 1
+                        for r in res_shortage["rows"]
+                    )
+                )
+                self.assertEqual(res_shortage["counts"]["shortage"], 2)
+                self.assertEqual(res_shortage["counts"]["partial"], 1)
+                self.assertEqual(res_shortage["counts"]["unconfirmed"], 1)
+                self.assertEqual(res_shortage["summary"]["shortage_operations"], 2)
+
+                res_shortage_unconf = get_operation_completion_report(
+                    status_filter="unconfirmed",
+                    company=self.company,
+                    search=self.wo_name,
+                    only_shortage=1,
+                )
+                self.assertEqual(len(res_shortage_unconf["rows"]), 1)
+                self.assertEqual(res_shortage_unconf["rows"][0]["operation"], self.op2)
+                self.assertEqual(
+                    res_shortage_unconf["rows"][0]["custom_released_with_shortage"], 1
+                )
+            finally:
+                frappe.db.set_value(
+                    "Work Order",
+                    self.wo_name,
+                    "custom_released_with_shortage",
+                    0,
+                    update_modified=False,
+                )
+
+        with self.assertRaises(frappe.ValidationError):
+            get_operation_completion_report(
+                status_filter="unknown",
+                company=self.company,
+            )
+
+    def test_api_get_material_shortage_report(self):
+        """get_material_shortage_report exposes expected contract, shortage classification, and filters."""
+        if not frappe.db.has_column("Work Order", "custom_released_with_shortage"):
+            self.skipTest("custom_released_with_shortage column not migrated")
+
+        res_before = get_material_shortage_report(
+            shortage_filter="all", company=self.company, search=self.wo_name
+        )
+        self.assertEqual(
+            set(res_before.keys()), {"rows", "summary", "counts", "filter_options"}
+        )
+        self.assertEqual(res_before["rows"], [])
+
+        try:
+            frappe.db.set_value(
+                "Work Order",
+                self.wo_name,
+                "custom_released_with_shortage",
+                1,
+                update_modified=False,
+            )
+            res_after = get_material_shortage_report(
+                shortage_filter="all", company=self.company, search=self.wo_name
+            )
+            self.assertEqual(len(res_after["rows"]), 1)
+            row = res_after["rows"][0]
+            self.assertEqual(row["work_order"], self.wo_name)
+            self.assertRegex(
+                row["wo_creation"], r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
+            )
+            self.assertEqual(
+                set(res_after["counts"].keys()),
+                {"all", "active_shortage", "critical", "transfer_required", "resolved"},
+            )
+            self.assertIn("warehouses", res_after["filter_options"])
+            self.assertEqual(res_after["summary"]["total_work_orders"], 1)
+        finally:
+            frappe.db.set_value(
+                "Work Order",
+                self.wo_name,
+                "custom_released_with_shortage",
+                0,
+                update_modified=False,
+            )
+
+        with self.assertRaises(frappe.ValidationError):
+            get_material_shortage_report(
+                shortage_filter="unknown", company=self.company
+            )

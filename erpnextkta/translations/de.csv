@@ -1267,3 +1267,79 @@ Bu şablon ham yazdırma (Raw Printing) formatındadır; HTML önizleme destekle
 İş Emri Önizleme,Fertigungsauftrag-Vorschau
 Tam Sayfa Önizle,Vollbildvorschau
 PDF İndir,PDF herunterladen
+Reports,Berichte
+Raporlar,Berichte
+Üretim Teyitleri ve Saha Analiz Raporları,Produktionsrückmeldungen und Werkstatt-Analyseberichte
+{0} Rapor,{0} Berichte
+Rapor Ara…,Berichte suchen…
+Aramanıza uygun rapor bulunamadı.,Keine Berichte entsprechen Ihrer Suche.
+Aktif,Aktiv
+Bir Rapor Seçin,Bericht auswählen
+Lütfen sol paneldeki katalogdan görüntülemek istediğiniz raporu seçin.,Bitte wählen Sie den gewünschten Bericht aus dem Katalog im linken Bereich aus.
+Üretim Teyitleri,Produktionsrückmeldungen
+İş Emri Operasyon Tamamlanma Özeti,Abschlussübersicht der Fertigungsauftragsvorgänge
+"Aktif iş emirlerinde teyit edilmiş tamamlanan ve kısmi operasyonların durumu, son onay bilgisi ve fiş detayları.","Status rückgemeldeter abgeschlossener und teilweiser Vorgänge in aktiven Fertigungsaufträgen, letzte Rückmeldung und Buchungsdetails."
+Bu ilerleme doğrudan standart Üretim (Manufacture) stok fişinden gelmektedir.,Dieser Fortschritt stammt direkt aus einer Standard-Produktionsbuchung (Manufacture).
+Bu operasyon için onaylı üretim teyidi bulunamadı.,Keine gebuchte Produktionsrückmeldung für diesen Vorgang gefunden.
+Teyit Eden,Rückgemeldet von
+Tamamlananlar,Abgeschlossen
+Kısmi Üretimler,Teilproduktionen
+Operasyon tamamlanma raporu alınamadı.,Vorgangsabschlussbericht konnte nicht abgerufen werden.
+İş Emri Durumu,Fertigungsauftragsstatus
+Ürün Adı,Produktname
+Planlanan,Geplant
+Onaylı (CO11N),Rückgemeldet (CO11N)
+İlerleme %,Fortschritt %
+Teyit Sayısı,Anzahl Rückmeldungen
+Son Onay,Letzte Rückmeldung
+Kısmi,Teilweise
+CSV İndir,CSV exportieren
+Tamamlanan Operasyon,Abgeschlossene Vorgänge
+Kısmi Operasyon,Teilvorgänge
+Aktif İş Emri,Aktive Fertigungsaufträge
+Toplam Onaylanan Miktar,Gesamtrückmeldemenge
+"İş Emri, Ürün, Operasyon veya Kullanıcı Ara…","Fertigungsauftrag, Produkt, Vorgang oder Benutzer suchen…"
+Tüm Operasyonlar,Alle Vorgänge
+Tüm İş İstasyonları,Alle Arbeitsstationen
+Filtreleri Temizle,Filter zurücksetzen
+Rapor verileri yükleniyor…,Berichtsdaten werden geladen…
+Kayıt Bulunamadı,Keine Einträge gefunden
+Seçili filtrelere uygun aktif iş emri operasyonu yok.,Keine aktiven Fertigungsauftragsvorgänge entsprechen den ausgewählten Filtern.
+Eski Usul,Altbestand
+İş Emrine Git,Zum Fertigungsauftrag
+Malzeme kontrolü sırasında hata oluştu.,Bei der Materialprüfung ist ein Fehler aufgetreten.
+Geçersiz durum filtresi: {0},Ungültiger Statusfilter: {0}
+Teyit Olmayanlar,Ohne Rückmeldung
+Teyit Olmayan Operasyon,Vorgänge ohne Rückmeldung
+Teyit Yok,Keine Rückmeldung
+Eksik Malzemeliler,Mit Materialfehlbestand
+Eksik Malzeme,Materialfehlbestand
+Evet,Ja
+Hayır,Nein
+Tümünü Genişlet,Alle aufklappen
+Tümünü Daralt,Alle einklappen
+{0} Operasyon,{0} Vorgänge
+Eksik Malzeme ile Açılan İş Emirleri,Mit Materialfehlbestand freigegebene Fertigungsaufträge
+"Eksik hammadde ile serbest bırakılmış aktif iş emirlerinin canlı stok karşılama durumu, eksik kalemleri ve depo detayları.","Live-Bestandsdeckungsstatus, Fehlbestandspositionen und Lagerdetails aktiver Fertigungsaufträge, die mit Rohstoffmangel freigegeben wurden."
+Malzeme ve Stok,Material & Bestand
+Kalan İhtiyaç,Restbedarf
+Hat Deposu,Linienlager
+Diğer Depolar,Andere Lager
+Stok Tamamlandı,Bestand vollständig
+Eksik malzeme raporu alınamadı.,Materialfehlbestandsbericht konnte nicht geladen werden.
+Üretilen,Produziert
+Stok Durumu,Bestandsstatus
+Hazırlık %,Bereitschaft %
+Hammadde Adı,Rohstoffname
+Hammadde Birimi,Rohstoffeinheit
+Kalem Durumu,Positionsstatus
+Eksikle Açılan İş Emri,Mit Fehlbestand freigegebene Aufträge
+Toplam Eksik Kalem,Fehlbestandspositionen gesamt
+"İş Emri, Ürün veya Hammadde Ara…","Fertigungsauftrag, Produkt oder Rohstoff suchen…"
+Tüm Kaynak Depolar,Alle Quelllager
+Seçili filtrelere uygun eksik malzemeli aktif iş emri yok.,Keine aktiven Fertigungsaufträge mit Materialfehlbestand entsprechen den ausgewählten Filtern.
+Planlanan / Üretilen,Geplant / Produziert
+{0}/{1} Eksik,{0}/{1} Fehlbestand
+Geçersiz eksik malzeme filtresi: {0},Ungültiger Materialfehlbestandsfilter: {0}
+Oluşturma,Erstellt
+Oluşturma Tarihi,Erstellungsdatum

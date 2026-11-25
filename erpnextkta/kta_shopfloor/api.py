@@ -9,6 +9,12 @@ from erpnextkta.kta_shopfloor.services.confirmation_service import (
     ConfirmationService,
     _resolve_job_card,
 )
+from erpnextkta.kta_shopfloor.services.report_service import (
+    get_material_shortage_report as get_material_shortage_report_service,
+)
+from erpnextkta.kta_shopfloor.services.report_service import (
+    get_operation_completion_report as get_operation_completion_report_service,
+)
 from erpnextkta.kta_shopfloor.services.reversal_service import ReversalService
 from erpnextkta.kta_shopfloor.services.work_order_service import (
     check_work_order_material_availability,
@@ -624,3 +630,43 @@ def update_work_order_quantity(work_order: str, qty: float) -> dict:
 def get_work_order_print_options(work_order: str | None = None) -> dict:
     """Retrieve active Print Formats, letter heads, and print permissions for a Work Order."""
     return get_work_order_print_options_service(work_order=work_order)
+
+
+@frappe.whitelist()
+def get_operation_completion_report(
+    status_filter: str = "completed",
+    operation: str | None = None,
+    workstation: str | None = None,
+    from_date: str | None = None,
+    to_date: str | None = None,
+    search: str | None = None,
+    company: str | None = None,
+    only_shortage: int | bool | None = 0,
+) -> dict:
+    """Retrieve operation completion summary across active submitted Work Orders."""
+    return get_operation_completion_report_service(
+        status_filter=status_filter,
+        operation=operation,
+        workstation=workstation,
+        from_date=from_date,
+        to_date=to_date,
+        search=search,
+        company=company,
+        only_shortage=only_shortage,
+    )
+
+
+@frappe.whitelist()
+def get_material_shortage_report(
+    shortage_filter: str = "all",
+    warehouse: str | None = None,
+    search: str | None = None,
+    company: str | None = None,
+) -> dict:
+    """Retrieve material shortage report across active shortage-released Work Orders."""
+    return get_material_shortage_report_service(
+        shortage_filter=shortage_filter,
+        warehouse=warehouse,
+        search=search,
+        company=company,
+    )

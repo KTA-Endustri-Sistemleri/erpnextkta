@@ -11,6 +11,10 @@ from erpnextkta.kta_shopfloor.services.confirmation_service import (
     ConfirmationService,
     confirm_operation,
 )
+from erpnextkta.kta_shopfloor.services.report_service import (
+    get_material_shortage_report,
+    get_operation_completion_report,
+)
 
 __all__ = [
     "BackflushService",
@@ -19,4 +23,6 @@ __all__ = [
     "confirm_operation",
     "create_consumption_entry",
     "create_finished_goods_entry",
+    "get_material_shortage_report",
+    "get_operation_completion_report",
 ]

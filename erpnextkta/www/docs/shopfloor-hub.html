@@ -212,8 +212,7 @@
   </p>
   <p>
     Sayfanın en üstündeki sabit navigasyon çubuğunda (<code>ShopfloorNavbar</code>)
-    üç ana görünüm sekmesi bulunur ve sol iş emri kenar çubuğu
-    (<code>WorkOrderSidebar</code>) aktif sekmeye göre bağlamsal olarak filtrelenir:
+    dört ana görünüm sekmesi bulunur ve sol kenar çubuğu aktif sekmeye göre bağlamsal olarak değişir (<code>WorkOrderSidebar</code> veya rapor kataloğu <code>ReportsSidebar</code>):
   </p>
 
   <div class="flow-card-grid">
@@ -257,6 +256,23 @@
         canlı izler. Tam rota kontrol listesi (Checklist), tüketimsiz süreç adımları,
         mükerrerliksiz tekil süre toplamı, fiili hammadde sarfiyatı ve hurda
         mutabakatını görselleştirir.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">📊</span>
+        <h4 class="flow-card-title">[ 📊 Raporlar ] Görünümü</h4>
+      </div>
+      <p class="flow-card-desc">
+        <strong>Genişletilebilir Rapor Kataloğu ve Saha Analizi:</strong> Sol
+        çekmecede <code>ReportsSidebar</code> üzerinden kategori bazlı rapor
+        kataloğunu sunar: <em>Üretim Teyitleri</em> altında
+        <em>İş Emri Operasyon Tamamlanma Özeti</em> (aktif iş emirlerindeki
+        tamamlanan/kısmi/teyitsiz operasyonlar, CO11N detayları) ve
+        <em>Malzeme ve Stok</em> altında <em>Eksik Malzeme ile Açılan İş Emirleri</em>
+        (canlı depo stok karşılama, kritik eksik / transfer gerekli ayrımı ve
+        genişletilebilir hammadde kırılımı) tek ekrandan yönetilir.
       </p>
     </div>
 
@@ -774,6 +790,86 @@ flowchart TD
     </div>
   </div>
 
+  <h3>D. Raporlar Görünümü: Genişletilebilir Rapor Kataloğu, Operasyon Tamamlanma Özeti ve Eksik Malzeme Raporu</h3>
+  <div class="step-container">
+    <div class="step-item">
+      <h4>1. Genişletilebilir Sol Rapor Kataloğu (<code>ReportsSidebar</code>)</h4>
+      <p>
+        Üst navigasyonda <strong>[ 📊 Raporlar ]</strong> (<code>Reports</code>) sekmesi seçildiğinde, sol çekmece iş emri listesi yerine deklaratif kayıt defterinden (<code>reports/registry.ts</code> — <code>REPORT_CATALOG</code>) beslenen genişletilebilir rapor kataloğunu (<code>ReportsSidebar</code>) yükler:
+      </p>
+      <ul>
+        <li>
+          <strong>Kategori Gruplama ve Arama:</strong> Raporlar kategori başlıkları (<em>Üretim Teyitleri</em> altında <code>operation_completion</code> — <em>İş Emri Operasyon Tamamlanma Özeti</em> ve <em>Malzeme ve Stok</em> altında 2. rapor olarak <code>material_shortage</code> — <em>Eksik Malzeme ile Açılan İş Emirleri</em>) altında listelenir; sol paneldeki <code>Rapor Ara…</code> kutusuyla rapor adı, açıklama veya kategoriye göre anlık süzme yapılır.
+        </li>
+        <li>
+          <strong>Modüler Genişletilebilirlik:</strong> Seçilen rapor sağdaki çalışma alanında (<code>ReportsWorkspace</code>) dinamik olarak render edilir; yeni Shopfloor raporları mevcut çekirdek kokpit kodunu değiştirmeden kataloğa eklenebilir.
+        </li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>2. İş Emri Operasyon Tamamlanma Özeti (Aktif İş Emri Kapsamı)</h4>
+      <p>
+        Kataloğun ilk raporu olan <strong>İş Emri Operasyon Tamamlanma Özeti</strong>, aktif üretim sahasındaki tamamlanan ve kısmi ilerleme almış operasyonları tek ekranda konsolide eder:
+      </p>
+      <ul>
+        <li>
+          <strong>Yalnızca Aktif İş Emri Kapsamı:</strong> Yalnızca onaylı (<code>docstatus = 1</code>) ve durumu <code>Not Started</code> veya <code>In Process</code> olan iş emirlerinin <strong>tüm</strong> operasyon satırları — henüz teyit almamış (<code>completed_qty = 0</code>) operasyonlar dahil — rapora dahil edilir (bu satırlar <em>Teyit Olmayanlar</em> ve <em>Tümü</em> sekmelerinde listelenir). <code>Completed</code>, <code>Closed</code>, <code>Cancelled</code>, <code>Stopped</code> ve taslak (<code>Draft</code>) iş emirleri kapsam dışında bırakılır.
+        </li>
+        <li>
+          <strong>Durum Sekmeleri ve 5'li KPI Şeridi:</strong> Üst araç çubuğunda varsayılan olarak seçili gelen <span class="co11n-badge green">Tamamlananlar</span> (hedef miktara ulaşmış veya <em>Son Teyit</em> işaretlenmiş operasyonlar), <span class="co11n-badge amber">Kısmi Üretimler</span>, <span class="co11n-badge rose">Teyit Olmayanlar</span> (<code>unconfirmed</code>; <code>status = "unconfirmed"</code>, <code>source_type = "none"</code> — aynı iş emrindeki başka operasyonların <code>Manufacture</code> fişlerinden tarih/kullanıcı devralmaz) ve <span class="co11n-badge blue">Tümü</span> sekmeleri dinamik adet rozetleriyle (<code>counts.completed</code>, <code>counts.partial</code>, <code>counts.unconfirmed</code>, <code>counts.all</code>) yer alır. Üstteki 5 KPI kartında <em>Tamamlanan Operasyon</em>, <em>Kısmi Operasyon</em>, <em>Teyit Olmayan Operasyon</em> (durum sekmesi öncesindeki filtreli toplam), <em>Aktif İş Emri</em> ve <em>Toplam Onaylanan Miktar</em> (aktif sekme tablo toplamı) gösterilir.
+        </li>
+        <li>
+          <strong>Çok Boyutlu Filtreleme (<code>OperationCompletionFilters</code>) ve Pasif Eksik Malzeme Göstergesi:</strong> Ayrı <code>OperationCompletionFilters.vue</code> bileşenine ayrıştırılmış filtre çubuğunda <code>İş Emri, Ürün, Operasyon veya Kullanıcı Ara…</code> (serbest metin arama), <code>Tüm Operasyonlar</code> (<code>operation</code>), <code>Tüm İş İstasyonları</code> (<code>workstation</code>), <code>Başlangıç</code> / <code>Bitiş</code> son teyit tarih aralığı (<code>from_date</code> / <code>to_date</code>), <code>Filtreleri Temizle</code> ve <code>Yenile</code> kontrolleri sunulur. Önceden filtre çubuğunda bulunan <em>⚠️ Eksik Malzemeliler</em> açma/kapama düğmesi özel <em>Eksik Malzeme ile Açılan İş Emirleri</em> raporuna taşındığı için arayüz filtre çubuğundan kaldırılmıştır; buna karşılık eksik hammaddeyle serbest bırakılmış (<code>custom_released_with_shortage = 1</code>) iş emirlerine ait grup satırlarında <code>.wo-cell</code> içindeki pasif <span class="co11n-badge amber">⚠️ Eksik Malzeme</span> uyarı etiketi ve CSV çıktısındaki <code>"Eksik Malzeme"</code> sütunu korunur.
+        </li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>3. İş Emri Bazlı Akordeon Gruplama, İç İçe Operasyon / CO11N Detayı ve CSV Dışa Aktarma</h4>
+      <ul>
+        <li>
+          <strong>İş Emri Bazlı Akordeon Gruplama (<code>groupRowsByWorkOrder</code>), 9 Sütunlu Tablo ve Etkileşimli Sıralama (<code>SortableTh.vue</code> / <code>tableSort.ts</code>):</strong> <code>OperationCompletionReport.vue</code>, <code>reports/operationFormatters.ts</code> içindeki <code>groupRowsByWorkOrder</code> yardımcısıyla operasyon satırlarını iş emri (<code>work_order</code>) bazında gruplayarak ana tabloda her iş emri için tek bir akordeon satırı oluşturur. Genişletme düğmesi ve <code>İşlem</code> kolonu dahil <strong>9 sütunlu</strong> tabloda <code>İş Emri</code> (durum ve varsa <span class="co11n-badge amber">⚠️ Eksik Malzeme</span> uyarı etiketi), <code>Ürün</code>, <code>Operasyonlar</code> (toplam <code>{0} Operasyon</code>, mini durum özet rozetleri <code>✓ completed_count</code>, <code>◐ partial_count</code>, <code>○ unconfirmed_count</code> ve operasyon önizlemesi), <code>Planlanan</code>, ortalama tamamlanma yüzdesi <code>İlerleme %</code> (<code>overall_pct</code>), <strong><code>Oluşturma</code></strong> (<code>wo_creation</code> — <code>Work Order.creation</code>, backend tarafından <code>YYYY-MM-DD HH:MM:SS</code> biçiminde döner), <code>Son Onay</code> ve <code>İş Emrine Git</code> aksiyonu yer alır. Rapor varsayılan olarak en yeni iş emirlerini üste getirecek şekilde <code>wo_creation DESC, work_order DESC</code> sırasıyla açılır (her iş emri içindeki operasyonlar ise <code>sequence_id ASC</code> sırasını korur). <code>components/reports/SortableTh.vue</code> ve <code>reports/tableSort.ts</code> aracılığıyla 7 veri sütununun tamamında başlığa tıklanarak artan/azalan (<code>asc</code> / <code>desc</code>) etkileşimli sıralama yapılabilir; başlık solundaki <strong><code>Tümünü Genişlet</code></strong> / <strong><code>Tümünü Daralt</code></strong> (<code>toggleExpandAll</code>) düğmesiyle tüm iş emri akordeonları tek seferde açılıp kapatılabilir.
+        </li>
+        <li>
+          <strong>İç İçe Operasyon Listesi (<code>OperationCompletionGroupRows.vue</code>) ve Tembel CO11N Detayı (<code>&lt;OperationCompletionDetail /&gt;</code>):</strong> Bir iş emri satırı genişletildiğinde <code>OperationCompletionGroupRows.vue</code> bileşeni o iş emrine ait operasyonları <code>sequence_id</code> değerine göre artan sırada (eşitlik durumunda operasyon adına göre alfabetik) alt tabloda listeler; her alt satırda operasyon durumu, <code>Son</code> / <span class="co11n-badge purple">Eski Usul</span> etiketleri, iş istasyonu, tamamlanan / CO11N onaylı miktarlar, ilerleme yüzdesi, son onay ve operasyona özel <code>İş Emrine Git →</code> düğmesi yer alır. Herhangi bir iç operasyon satırı genişletildiğinde ise iç içe <code>&lt;OperationCompletionDetail /&gt;</code> bileşeni açılır ve ilgili iş emri/operasyona ait onaylı (<code>docstatus = 1</code>) <code>KTA Production Confirmation</code> belgeleri <code>get_production_confirmations</code> üzerinden tembel (lazy) olarak yüklenip önbelleğe alınır; <code>source_type === "none"</code> olan teyitsiz satırlarda ek ağ çağrısı yapılmadan doğrudan kısa devre ile boş teyit bilgilendirmesi gösterilir. Detay panelinde <em>Teyit No</em>, <em>Tarih / Saat</em>, <em>Teyit Eden</em>, <em>Miktar</em>, <em>Son</em> rozeti ve ilişkili <em>Üretim</em> / <em>Tüketim</em> <code>Stock Entry</code> bağlantıları listelenir; CO11N kaydı olmaksızın doğrudan standart <code>Manufacture</code> fişiyle ilerlemiş satırlar <span class="co11n-badge purple">Eski Usul</span> etiketiyle ayırt edilir.
+        </li>
+        <li>
+          <strong>Tek Tıkla İş Emrine Geçiş (<code>İş Emrine Git</code>):</strong> Gerek üst iş emri grup satırındaki (ilk operasyon bağlamıyla) gerekse açılan iç operasyon satırlarındaki <strong><code>İş Emrine Git →</code></strong> butonu tıklandığında kullanıcı doğrudan <code>Work Orders</code> görünümüne yönlendirilerek ilgili iş emri yüklenir.
+        </li>
+        <li>
+          <strong>Düz Operasyon Bazlı CSV Dışa Aktarma (<code>⬇ CSV İndir</code>):</strong> Tablo arayüzü ekranda iş emri bazlı akordeon satırları halinde gruplanmış olsa da, e-tablo ve pivot uyumluluğunu korumak için <strong><code>⬇ CSV İndir</code></strong> komutu filtrelenmiş <strong>düz (flat) operasyon bazlı satırları</strong> <code>"Oluşturma Tarihi"</code> (<code>wo_creation</code>) sütunu da dahil olmak üzere dışa aktarmayı sürdürür. Çıktı UTF-8 BOM (<code>\uFEFF</code>) desteği ve formül enjeksiyon korumasıyla (<code>csvExport.ts</code>) <code>shopfloor-operasyon-tamamlanma-YYYY-MM-DD.csv</code> dosyası olarak indirilir (<code>Eksik Malzeme</code> sütununda <em>Evet</em> / <em>Hayır</em>, durum sütununda ise <em>Tamamlandı</em>, <em>Kısmi</em> ve teyit almamış satırlar için <em>Teyit Yok</em> etiketleri yazılır).
+        </li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>4. Eksik Malzeme ile Açılan İş Emirleri (<code>material_shortage</code>)</h4>
+      <p>
+        Kataloğun <strong>Malzeme ve Stok</strong> kategorisindeki 2. özel raporu (<code>reports/registry.ts</code> — <code>id: "material_shortage"</code>), <code>MaterialShortageReport.vue</code> ve <code>MaterialShortageItemsRow.vue</code> bileşenleri üzerinden eksik hammadde onayıyla serbest bırakılmış aktif iş emirlerinin canlı stok karşılama durumunu ve depo bazlı transfer ihtiyaçlarını izler:
+      </p>
+      <ul>
+        <li>
+          <strong>Kapsam ve Sınırlı Toplu SQL (Zero N+1):</strong> <code>get_material_shortage_report</code> (<code>report_service.py</code> &amp; <code>api.py</code>), <code>Work Order</code> okuma yetkisini doğruladıktan sonra onaylı, aktif ve eksikle serbest bırakılmış iş emirlerini (<code>docstatus = 1</code>, <code>status IN ('Not Started', 'In Process')</code>, <code>custom_released_with_shortage = 1</code>) yalnızca sınırlı toplu SQL sorgularıyla (&le; 4 sorgu: şirket çözümleme, <code>tabWork Order</code>, <code>tabWork Order Item</code> ve aktif/grup dışı depolar için <code>tabBin</code> + <code>tabWarehouse</code>) N+1 sorgu olmadan çeker.
+        </li>
+        <li>
+          <strong>Canlı <code>Bin</code> + <code>Warehouse</code> Stok Matematiği ve Kalem Sınıflandırması:</strong> Her hammadde satırı için kalan ihtiyaç <code>remaining_required_qty = max(0, required_qty - consumed_qty)</code> olarak hesaplanır; hedef kaynak/hat deposundaki canlı serbest stok (<code>line_actual_qty</code>) ile aynı şirkete bağlı diğer aktif ve grup dışı depolardaki toplam stok (<code>other_warehouses_qty</code>) karşılaştırılarak <code>shortage_qty = max(0, remaining_required_qty - line_actual_qty)</code> ve <code>coverage_pct</code> türetilir:
+          <ul>
+            <li><span class="co11n-badge green">✅ Mevcut</span> (<code>available</code>): <code>shortage_qty &lt;= 0</code> — hat/kaynak deposunda kalan ihtiyaç tamamen karşılanmıştır.</li>
+            <li><span class="co11n-badge amber">⚠️ Transfer Gerekli</span> (<code>transfer_required</code>): Hat deposu yetersizdir ancak <code>line_actual_qty + other_warehouses_qty &gt;= remaining_required_qty</code> koşulu sağlandığından şirket içi diğer depolardan transferle kapatılabilir.</li>
+            <li><span class="co11n-badge rose">🚫 Kritik Eksik</span> (<code>critical_shortage</code>): Şirket içi tüm aktif depolardaki toplam serbest stok dahi kalan ihtiyacı karşılayamamaktadır (satın alma / tedarik gereksinimi).</li>
+          </ul>
+        </li>
+        <li>
+          <strong>İş Emri Seviyesi, 9 Sütunlu Etkileşimli Sıralanabilir Tablo ve 4'lü KPI Şeridi:</strong> İş emri toplam durumu (<code>shortage_status</code>) herhangi bir kalem kritikse <code>critical</code>, yalnızca transfer bekleyen eksikler varsa <code>transfer_required</code>, tüm eksikler kapandıysa <code>resolved</code> (<em>Stok Tamamlandı</em>) olarak sınıflanır ve kalemlerin ortalama <code>coverage_pct</code> değeri <code>readiness_pct</code> olarak gösterilir. Genişletme düğmesi ve <code>İşlem</code> kolonu dahil <strong>9 sütunlu</strong> tablo (<code>İş Emri</code>, <code>Ürün</code>, <code>Planlanan / Üretilen</code>, <code>Stok Durumu</code>, <code>Hazırlık %</code>, <strong><code>Oluşturma</code></strong> [<code>wo_creation</code> — <code>YYYY-MM-DD HH:MM:SS</code>], <code>Planlanan Başlangıç</code>) varsayılan olarak en yeni iş emirlerini en üste getiren <code>wo_creation DESC, work_order DESC</code> sırasıyla açılır; <code>SortableTh.vue</code> ve <code>tableSort.ts</code> ile tüm veri sütun başlıklarında artan/azalan (<code>asc</code> / <code>desc</code>) etkileşimli sıralama desteklenir. Üst bölümde durum sekmeleri (<em>Tümü</em>, <em>Kritik Eksik</em>, <em>Transfer Gerekli</em>, <em>Stok Tamamlandı</em>; backend API ek olarak <code>active_shortage</code> filtresini de kabul eder), 4 KPI kartı (<em>Eksikle Açılan İş Emri</em>, <em>Kritik Eksik</em>, <em>Transfer Gerekli</em>, <em>Toplam Eksik Kalem</em>), <code>İş Emri, Ürün veya Hammadde Ara…</code> (<code>search</code>) ve <code>Tüm Kaynak Depolar</code> (<code>warehouse</code>) filtreleri ile başlıkta <code>Tümünü Genişlet</code> / <code>Tümünü Daralt</code> kontrolü sunulur.
+        </li>
+        <li>
+          <strong>Genişletilebilir Hammadde Kırılımı ve Düz CSV Dışa Aktarma:</strong> Herhangi bir iş emri satırı genişletildiğinde <code>MaterialShortageItemsRow.vue</code> alt tablosu <em>Hammadde</em>, <em>Operasyon</em>, <em>Kaynak Depo</em>, <em>Kalan İhtiyaç</em>, <em>Hat Deposu</em>, <em>Diğer Depolar</em>, <em>Eksik Miktar</em> ve <em>Durum</em> sütunlarını listeler; <code>İş Emrine Git →</code> düğmesiyle ilgili iş emri doğrudan <code>Work Orders</code> görünümünde açılır. <strong><code>⬇ CSV İndir</code></strong> komutu ise e-tablo uyumluluğu için iş emri-hammadde ikilisi bazında <code>"Oluşturma Tarihi"</code> (<code>wo_creation</code>) sütununu da içeren <strong>düz <code>(İş Emri, Hammadde)</code> satırları</strong> halinde (<code>shopfloor-eksik-malzeme-YYYY-MM-DD.csv</code>) dışa aktarır.
+        </li>
+      </ul>
+    </div>
+  </div>
+
   <hr />
 
   <h2>📊 3. Kısmi Teyit ve "Son Teyit (Kalanı Kapat)" Mantığı</h2>
@@ -1200,6 +1296,14 @@ flowchart TD
     <li>
       <strong><code>get_work_order_print_options</code> (İş Emri Yazdırma Seçenekleri):</strong>
       Seçili iş emri (opsiyonel <code>work_order</code>) için aktif <code>Print Format</code> şablonlarını (varsayılan şablon en üstte, <code>"Standard"</code> her zaman dahil), aktif <code>Letter Head</code> kayıtlarını, <code>Print Settings</code> bayraklarını (<code>allow_print_for_draft</code>, <code>allow_print_for_cancelled</code>, <code>with_letterhead</code>) ve yazdırma yetkisi/durum kontrolünü (<code>can_print</code>) döner.
+    </li>
+    <li>
+      <strong><code>get_operation_completion_report</code> (İş Emri Operasyon Tamamlanma Özeti Raporu):</strong>
+      <code>Work Order</code> ve <code>KTA Production Confirmation</code> okuma yetkilerini doğrular; onaylı ve aktif (<code>docstatus = 1</code>, <code>status IN ('Not Started', 'In Process')</code>) iş emirlerinin tüm operasyonlarını (<code>completed_qty = 0</code> olan teyit almamış operasyonlar, <code>custom_released_with_shortage</code> bayrağı ve <code>YYYY-MM-DD HH:MM:SS</code> biçimli <code>wo_creation</code> [<code>Work Order.creation</code>] alanı dahil) N+1 sorgu olmadan sınırlı toplu SQL ile derler ve varsayılan olarak <code>wo_creation DESC, work_order DESC</code> (operasyon içi <code>sequence_id ASC</code>) sırasıyla döner. <code>status_filter</code> (<code>completed</code>, <code>partial</code>, <code>unconfirmed</code>, <code>all</code>), <code>operation</code>, <code>workstation</code>, <code>from_date</code>, <code>to_date</code>, <code>search</code>, <code>company</code> ve geriye dönük uyumlu <code>only_shortage</code> (<code>0</code>/<code>1</code>) parametrelerini kabul ederek <code>rows</code>, <code>summary</code> (<code>unconfirmed_operations</code> ve <code>shortage_operations</code> dahil), <code>counts</code> (<code>shortage</code> dahil) ve <code>filter_options</code> alanlarını döner.
+    </li>
+    <li>
+      <strong><code>get_material_shortage_report</code> (Eksik Malzeme ile Açılan İş Emirleri Raporu):</strong>
+      <code>Work Order</code> okuma yetkisini doğrular; <code>custom_released_with_shortage = 1</code> olan aktif iş emirlerinin (<code>docstatus = 1</code>, <code>status IN ('Not Started', 'In Process')</code>) canlı <code>Bin</code> ve aktif grup dışı <code>Warehouse</code> stoklarını &le; 4 toplu SQL sorgusuyla (N+1 olmadan) hesaplar; her iş emri satırında <code>YYYY-MM-DD HH:MM:SS</code> biçimli <code>wo_creation</code> (<code>Work Order.creation</code>) alanını döndürüp varsayılan olarak <code>wo_creation DESC, work_order DESC</code> sırasıyla sıralar. <code>shortage_filter</code> (<code>all</code>, <code>active_shortage</code>, <code>critical</code>, <code>transfer_required</code>, <code>resolved</code>), <code>warehouse</code>, <code>search</code> ve <code>company</code> parametrelerini kabul ederek iş emri/kalem kırılımını (<code>line_actual_qty</code>, <code>other_warehouses_qty</code>, <code>availability_status</code>, <code>shortage_status</code>), <code>summary</code>, <code>counts</code> ve <code>filter_options</code> alanlarını döner.
     </li>
   </ul>
 </div>
