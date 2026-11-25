@@ -3,6 +3,82 @@
 
 
 
+## 🚀 v4.6.0 (2026-11-25)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Bug fixes
+
+    
+      
+      
+        
+- **mrp**: isolate manufacture auto-reorder logic and clean stale drafts
+      
+      
+    
+      
+      
+        
+- **calisma-karti**: return empty list when no allowed hammadde found
+      
+      
+    
+      
+      
+        
+- **calisma-karti**: prevent duplicate stock entry creation for finalized scrap rows
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **shopfloor**: add bulk confirmation reversal tab and clean roles
+      
+      
+    
+      
+      
+        
+- **shopfloor**: add reports hub with completion and shortage reports
+      
+      
+    
+      
+      
+        
+- **shopfloor**: add work order print button and template selector
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.5.3 (2026-11-23)
 
 
