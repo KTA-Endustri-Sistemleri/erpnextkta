@@ -108,6 +108,7 @@ function createOrder() {
     deficit_qty: row.deficit_qty,
     reserved_qty: row.reserved_qty || 0,
     line_actual_qty: row.line_actual_qty ?? row.line_stock_qty ?? 0,
+    source_parent_warehouse: row.source_parent_warehouse || "",
     suggested_source_warehouse: row.suggested_source_warehouse,
     suggested_batch_no: row.suggested_batch_no || null,
     allocated_batches: row.allocated_batches || [],

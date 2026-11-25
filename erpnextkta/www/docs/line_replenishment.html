@@ -430,7 +430,11 @@
         Tabloda her kalem için <strong>Net Açık (Deficit)</strong>, <strong>Hat Stoğu</strong>,
         <strong>⚡ Depodan Çıkacak Miktar</strong> ve <strong>Ana Ambar Raf / Parti</strong> sütununda
         önerilen fiziksel yaprak raf ile parti bilgisi (<code>🏢 W1A-01-01</code>, <code>🏷️ Parti No</code>)
-        gösterilir. Açıkta bekleyen bir taslak ikmal emrinde bulunan malzemeler
+        gösterilir. Bir açık tek koli ile karşılanamayıp birden fazla koli veya farklı raflardan
+        tahsis gerektiriyorsa (<code>allocated_batches.length &gt; 1</code>), Hub (<code>DeficitTable.vue</code>)
+        hücrede <code>📦 N Koli</code> (birden fazla rafta ise <code>📦 N Koli · M Raf</code>) rozetini ve
+        tüm raf/parti/miktar kırılımını açıp kapatan (<code>+N koli daha</code> / <code>Gizle</code>)
+        genişletilebilir listeyi sunar. Açıkta bekleyen bir taslak ikmal emrinde bulunan malzemeler
         <span class="badge-doc-draft">⏳ Taslak İkmalde</span> rozetine bürünür ve mükerrer talep
         oluşması engellenir. Ana ambar raflarında stoğu bulunmayan malzemeler ise
         <span class="badge-doc-nostock">🔴 Stok Yok</span> uyarısıyla seçimden kilitlenir; kısmi stok
@@ -443,9 +447,12 @@
       <p>
         Yalnızca seçilebilir ve ana ambarda stoğu olan kalemler işaretlenerek (sıfır stoklu ve taslakta
         tamamlanmış olanlar otomatik kilitlenir) <strong>⚡ Hat İkmal Emri Oluştur</strong>
-        butonuna basılır. Sistem arka planda <code>allocate_fifo_batches</code> motoru ile FIFO
-        parti ve fiziksel raf ayrıştırmasını tamamlar; çoklu partili kalemleri bağımsız satırlara
-        bölerek resmi <code>KTA Line Replenishment Order</code> belgesini <em>Draft</em> statüsünde oluşturur.
+        butonuna basılır. Sistem arka planda <code>source_parent_warehouse</code> değerini
+        (eksikse NestedSet <code>lft/rgt</code> en yakın ortak grup ambarı — LCA fallback — ile
+        çözümleyerek) <code>allocate_fifo_batches</code> motoruna aktarır; böylece <code>110 HAMMADDE</code>
+        altındaki farklı raflara dağılmış tüm koliler eksiksiz biçimde ayrı toplama satırlarına
+        (<code>KTA Line Replenishment Item</code>) bölünerek resmi <code>KTA Line Replenishment Order</code>
+        belgesi <em>Draft</em> statüsünde oluşturulur.
       </p>
     </div>
   </div>

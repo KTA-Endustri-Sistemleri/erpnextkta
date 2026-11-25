@@ -802,3 +802,131 @@ class TestLineReplenishmentService(FrappeTestCase):
         self.assertEqual(len(bulk_after[item_code]), 1)
         self.assertEqual(bulk_after[item_code][0]["batch_no"], b_old.name)
         self.assertEqual(bulk_after[item_code][0]["warehouse"], shelf_b)
+
+    def test_create_order_multi_shelf_hub_payload_allocates_all_boxes(self):
+        """Hub payload spanning multiple shelves allocates all FIFO boxes across shelves."""
+        from frappe.utils import add_days, nowdate, nowtime
+
+        uid = frappe.generate_hash("", 5).upper()
+        item_code = f"_TEST-LRO-MULTI-SHELF-{uid}"
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": item_code,
+                "item_name": item_code,
+                "item_group": create_test_item_group(),
+                "stock_uom": "Nos",
+                "is_stock_item": 1,
+                "has_batch_no": 1,
+                "create_new_batch": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        b1 = frappe.get_doc(
+            {
+                "doctype": "Batch",
+                "batch_id": f"BMS1-{uid}",
+                "item": item_code,
+                "manufacturing_date": "2026-01-10",
+                "expiry_date": add_days(nowdate(), 60),
+                "batch_qty": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        b2 = frappe.get_doc(
+            {
+                "doctype": "Batch",
+                "batch_id": f"BMS2-{uid}",
+                "item": item_code,
+                "manufacturing_date": "2026-02-10",
+                "expiry_date": add_days(nowdate(), 120),
+                "batch_qty": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        for batch_name, shelf_wh, qty in (
+            (b1.name, self.fifo_shelf_a, 50.0),
+            (b2.name, self.fifo_shelf_b, 100.0),
+        ):
+            se = frappe.get_doc(
+                {
+                    "doctype": "Stock Entry",
+                    "stock_entry_type": "Material Receipt",
+                    "purpose": "Material Receipt",
+                    "company": self.company,
+                    "posting_date": nowdate(),
+                    "posting_time": nowtime(),
+                    "items": [
+                        {
+                            "item_code": item_code,
+                            "t_warehouse": shelf_wh,
+                            "qty": qty,
+                            "allow_zero_valuation_rate": 1,
+                            "batch_no": batch_name,
+                            "use_serial_batch_fields": 1,
+                        }
+                    ],
+                }
+            )
+            se.insert(ignore_permissions=True)
+            se.submit()
+
+        allocated_payload = [
+            {
+                "warehouse": self.fifo_shelf_a,
+                "batch_no": b1.name,
+                "allocated_qty": 50.0,
+            },
+            {
+                "warehouse": self.fifo_shelf_b,
+                "batch_no": b2.name,
+                "allocated_qty": 100.0,
+            },
+        ]
+
+        # Test Case A: explicit source_parent_warehouse with leaf suggested_source_warehouse
+        order_a_name = create_line_replenishment_order(
+            target_warehouse=self.fifo_target_wh,
+            items=[
+                {
+                    "item_code": item_code,
+                    "deficit_qty": 120.0,
+                    "source_parent_warehouse": self.fifo_group_wh,
+                    "suggested_source_warehouse": self.fifo_shelf_a,
+                    "allocated_batches": allocated_payload,
+                }
+            ],
+            company=self.company,
+        )
+        doc_a = frappe.get_doc("KTA Line Replenishment Order", order_a_name)
+        self.assertEqual(len(doc_a.items), 2)
+        self.assertEqual(doc_a.items[0].suggested_source_warehouse, self.fifo_shelf_a)
+        self.assertEqual(doc_a.items[0].suggested_batch_no, b1.name)
+        self.assertEqual(doc_a.items[0].deficit_qty, 50.0)
+        self.assertEqual(doc_a.items[1].suggested_source_warehouse, self.fifo_shelf_b)
+        self.assertEqual(doc_a.items[1].suggested_batch_no, b2.name)
+        self.assertEqual(doc_a.items[1].deficit_qty, 100.0)
+        self.assertEqual(doc_a.total_deficit_qty, 150.0)
+
+        # Test Case B: omitted source_parent_warehouse falls back via allocated_batches LCA
+        order_b_name = create_line_replenishment_order(
+            target_warehouse=self.fifo_target_wh,
+            items=[
+                {
+                    "item_code": item_code,
+                    "deficit_qty": 120.0,
+                    "suggested_source_warehouse": self.fifo_shelf_a,
+                    "allocated_batches": allocated_payload,
+                }
+            ],
+            company=self.company,
+        )
+        doc_b = frappe.get_doc("KTA Line Replenishment Order", order_b_name)
+        self.assertEqual(len(doc_b.items), 2)
+        self.assertEqual(doc_b.items[0].suggested_source_warehouse, self.fifo_shelf_a)
+        self.assertEqual(doc_b.items[0].suggested_batch_no, b1.name)
+        self.assertEqual(doc_b.items[0].deficit_qty, 50.0)
+        self.assertEqual(doc_b.items[1].suggested_source_warehouse, self.fifo_shelf_b)
+        self.assertEqual(doc_b.items[1].suggested_batch_no, b2.name)
+        self.assertEqual(doc_b.items[1].deficit_qty, 100.0)
+        self.assertEqual(doc_b.total_deficit_qty, 150.0)

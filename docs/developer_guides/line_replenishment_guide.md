@@ -138,7 +138,8 @@ Hedef WIP deposundaki net açıkları tarar, açıkta bekleyen taslak ikmal sipa
 - **Sıfır Stok Koruması:**
   - Kalemin ana ambar yaprak raflarında stoğu yoksa (`has_stock == False`), `selectable = False` olarak işaretlenir ve arayüzde kilitlenir.
 - **Dönüş Değeri (`list[dict]`):**
-  - Her satırda: `item_code`, `item_name`, `uom`, `reserved_qty`, `line_actual_qty`, `deficit_qty`, `suggested_source_warehouse`, `suggested_batch_no`, `allocated_batches`, `has_stock`, `available_stock`, `covered_by_draft`, `draft_covered_qty`, `draft_orders`, `selectable`.
+  - Her satırda: `item_code`, `item_name`, `uom`, `reserved_qty`, `line_actual_qty`, `deficit_qty`, `suggested_source_warehouse`, `source_parent_warehouse`, `suggested_batch_no`, `allocated_batches`, `box_count`, `has_stock`, `available_stock`, `covered_by_draft`, `draft_covered_qty`, `draft_orders`, `selectable`.
+  - Çoklu koli/raf gerektiren kalemlerde (`allocated_batches.length > 1`) Hub (`DeficitTable.vue`) `📦 N Koli · M Raf` rozetini ve genişletilebilir raf/parti dökümünü (`+N koli daha` / `Gizle`) gösterir.
 
 ### 3.2 `erpnextkta.kta_stock.line_replenishment_service.get_leaf_warehouses`
 Grup ambarı hiyerarşisi altındaki tüm fiziksel yaprak rafları (`is_group = 0`) çözümler.
@@ -173,7 +174,7 @@ Seçilen açık kalemleri için FIFO parti ve raf tahsisini tamamlayarak `KTA Li
   - `items` (list[dict] | str, zorunlu): `deficit_qty > 0` olan kalem listesi.
   - `company` (str, opsiyonel): Belirtilmezse hedef depo/varsayılan şirket çözümlenir.
   - `**_kwargs`: Eski istemci çağrılarından gelebilecek `sourcing_strategy` gibi artık kullanılmayan parametreleri sessizce yok saymak için geriye dönük uyumluluk sağlar.
-- **Çoklu Parti Ayrıştırması:** Net açık birden fazla parti gerektiriyorsa (Örn: 29m açık için 15m + 15m), tek bir malzeme satırı yerine her parti ve raf lokasyonu için bağımsız birer `KTA Line Replenishment Item` child satırı açılır.
+- **Çoklu Parti & Çoklu Raf Ayrıştırması:** Net açık birden fazla koli veya farklı yaprak raflar gerektiriyorsa (`allocated_batches.length > 1`), `_resolve_allocation_parent_warehouse` öncelikle `source_parent_warehouse` değerini (yoksa NestedSet `lft/rgt` üzerinden `_find_common_group_warehouse` LCA grup ambarı fallback'ini) kullanarak `allocate_fifo_batches` çağrısını `110 HAMMADDE` ağaç kapsamına genişletir; böylece farklı raflardaki tüm koliler için ayrı birer `KTA Line Replenishment Item` toplama satırı açılır.
 - **Sıfır Stok Güvenlik Doğrulaması:**
   - Metot, gönderilen her kalemin yaprak raflardaki (`get_warehouse_leaf_stock`) stok durumunu denetler.
   - Stoğu 0 olan kalemler filtrelenir; eğer seçilen kalemlerin hiçbirinde stok yoksa işlem `frappe.ValidationError` ile engellenir (*"Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı."*).

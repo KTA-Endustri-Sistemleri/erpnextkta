@@ -133,8 +133,15 @@ async function fetchDeficits() {
           ),
           reserved_qty: Number(row.reserved_qty || 0),
           available_stock: availableStock,
+          source_parent_warehouse: row.source_parent_warehouse || "",
           suggested_source_warehouse: row.suggested_source_warehouse || "",
           suggested_batch_no: row.suggested_batch_no || null,
+          box_count: Number(
+            row.box_count ??
+              (Array.isArray(row.allocated_batches)
+                ? row.allocated_batches.length
+                : 0)
+          ),
           has_stock: hasStock,
           in_flight_draft_orders: drafts,
           draft_orders: drafts,

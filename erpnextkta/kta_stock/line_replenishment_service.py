@@ -576,6 +576,99 @@ def get_warehouse_leaf_stock(
     return max(sle_stock, 0.0)
 
 
+def _find_common_group_warehouse(
+    warehouses: list[str], company: str | None
+) -> str | None:
+    """Return the lowest common ancestor group Warehouse via NestedSet (lft/rgt)."""
+    if not warehouses:
+        return None
+
+    wh_bounds = frappe.get_all(
+        "Warehouse",
+        filters={"name": ["in", warehouses]},
+        fields=["name", "lft", "rgt"],
+    )
+    if not wh_bounds:
+        return None
+
+    lfts = [cint(b.get("lft")) for b in wh_bounds if cint(b.get("lft")) > 0]
+    rgts = [cint(b.get("rgt")) for b in wh_bounds if cint(b.get("rgt")) > 0]
+    if len(lfts) != len(wh_bounds) or len(rgts) != len(wh_bounds):
+        return None
+
+    lca_filters: dict = {
+        "is_group": 1,
+        "lft": ["<=", min(lfts)],
+        "rgt": [">=", max(rgts)],
+    }
+    if company:
+        lca_filters["company"] = company
+
+    lca_list = frappe.get_all(
+        "Warehouse",
+        filters=lca_filters,
+        pluck="name",
+        order_by="lft desc",
+        limit_page_length=1,
+    )
+    return lca_list[0] if lca_list else None
+
+
+def _resolve_allocation_parent_warehouse(
+    d: dict, suggested_source_wh: str | None, company: str | None
+) -> str | None:
+    """Resolve the parent/group warehouse to allocate FIFO batches from."""
+    source_parent_wh = d.get("source_parent_warehouse")
+    if isinstance(source_parent_wh, str):
+        source_parent_wh = source_parent_wh.strip()
+    if source_parent_wh:
+        return source_parent_wh
+
+    allocated_batches = d.get("allocated_batches")
+    if isinstance(allocated_batches, list) and allocated_batches:
+        batch_warehouses = sorted(
+            {
+                b.get("warehouse")
+                for b in allocated_batches
+                if isinstance(b, dict) and b.get("warehouse")
+            }
+        )
+        needs_parent_expansion = bool(
+            batch_warehouses
+            and (
+                len(batch_warehouses) > 1
+                or not suggested_source_wh
+                or batch_warehouses[0] != suggested_source_wh
+            )
+        )
+        if needs_parent_expansion:
+            lca_wh = _find_common_group_warehouse(batch_warehouses, company)
+            if lca_wh:
+                return lca_wh
+
+            try:
+                from erpnextkta.kta_shopfloor.services.reservation_deficit_service import (
+                    get_central_warehouse,
+                )
+
+                central_wh = get_central_warehouse(company)
+                if central_wh and frappe.db.exists("Warehouse", central_wh):
+                    return central_wh
+            except Exception as exc:  # noqa: BLE001
+                frappe.logger().debug(
+                    f"Central warehouse fallback lookup failed for {company}: {exc}"
+                )
+
+            if suggested_source_wh:
+                parent_wh = frappe.db.get_value(
+                    "Warehouse", suggested_source_wh, "parent_warehouse"
+                )
+                if parent_wh:
+                    return parent_wh
+
+    return suggested_source_wh
+
+
 @frappe.whitelist()
 def create_line_replenishment_order(
     target_warehouse: str | None = None,
@@ -654,12 +747,15 @@ def create_line_replenishment_order(
         line_actual_qty = flt(d.get("line_actual_qty") or 0)
         suggested_source_wh = d.get("suggested_source_warehouse")
         suggested_batch_no = d.get("suggested_batch_no")
+        allocation_parent_wh = _resolve_allocation_parent_warehouse(
+            d, suggested_source_wh, company
+        )
 
         allocations = []
-        if suggested_source_wh:
+        if allocation_parent_wh:
             allocations = allocate_fifo_batches(
                 item_code=item_code,
-                parent_warehouse=suggested_source_wh,
+                parent_warehouse=allocation_parent_wh,
                 required_qty=deficit_qty,
                 target_warehouse=target_wh,
             )
@@ -684,10 +780,10 @@ def create_line_replenishment_order(
             leaf_stock = (
                 get_warehouse_leaf_stock(
                     item_code=item_code,
-                    warehouse=suggested_source_wh,
+                    warehouse=allocation_parent_wh,
                     target_warehouse=target_wh,
                 )
-                if suggested_source_wh
+                if allocation_parent_wh
                 else 0.0
             )
 
@@ -703,7 +799,8 @@ def create_line_replenishment_order(
                     "line_actual_qty": line_actual_qty,
                     "deficit_qty": deficit_qty,
                     "picked_qty": deficit_qty,
-                    "suggested_source_warehouse": suggested_source_wh,
+                    "suggested_source_warehouse": suggested_source_wh
+                    or allocation_parent_wh,
                     "suggested_batch_no": suggested_batch_no,
                 }
             )

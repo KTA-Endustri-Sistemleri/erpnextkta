@@ -19,8 +19,10 @@ export interface DeficitItem {
   line_actual_qty?: number;
   reserved_qty?: number;
   available_stock: number; // Depodan Çıkacak Miktar
+  source_parent_warehouse?: string;
   suggested_source_warehouse: string;
   suggested_batch_no?: string | null;
+  box_count?: number;
   has_stock: boolean;
   in_flight_draft_orders?: string[];
   draft_orders?: string[];

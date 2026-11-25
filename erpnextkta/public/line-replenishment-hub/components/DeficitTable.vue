@@ -149,6 +149,29 @@
             <!-- Ana Ambar Raf / Parti -->
             <td class="col-source">
               <div class="source-cell">
+                <div
+                  v-if="getBoxes(item).length > 1"
+                  class="multi-box-row"
+                >
+                  <span class="multi-box-badge">
+                    📦 {{ __("{0} Koli", [getBoxes(item).length]) }}
+                    <template v-if="getUniqueShelfCount(item) > 1">
+                      · {{ __("{0} Raf", [getUniqueShelfCount(item)]) }}
+                    </template>
+                  </span>
+                  <button
+                    type="button"
+                    class="btn-expand-boxes"
+                    @click.stop="toggleExpandItem(item.item_code)"
+                  >
+                    {{
+                      expandedItems[item.item_code]
+                        ? __("Gizle")
+                        : __("+{0} koli daha", [getBoxes(item).length - 1])
+                    }}
+                  </button>
+                </div>
+
                 <span
                   class="warehouse-badge"
                   :title="item.suggested_source_warehouse"
@@ -162,6 +185,37 @@
                 >
                   🏷️ {{ item.suggested_batch_no }}
                 </span>
+
+                <div
+                  v-if="getBoxes(item).length > 1 && expandedItems[item.item_code]"
+                  class="box-sublist"
+                  @click.stop
+                >
+                  <div
+                    v-for="(box, idx) in getBoxes(item)"
+                    :key="`${box.warehouse}-${box.batch_no}-${idx}`"
+                    class="box-sublist-item"
+                  >
+                    <div class="box-loc">
+                      <span class="box-wh" :title="box.warehouse">
+                        🏢 {{ formatWarehouse(box.warehouse) }}
+                      </span>
+                      <span
+                        v-if="box.batch_no"
+                        class="box-batch"
+                        :title="box.batch_no"
+                      >
+                        🏷️ {{ box.batch_no }}
+                      </span>
+                    </div>
+                    <span class="box-qty">
+                      {{
+                        formatNumber(box.allocated_qty) +
+                        (item.uom ? " " + item.uom : "")
+                      }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </td>
 
@@ -219,10 +273,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { type DeficitItem, isSelectable, getInFlightDrafts } from "../types";
+import { ref, computed } from "vue";
+import {
+  type DeficitItem,
+  type AllocatedBatch,
+  isSelectable,
+  getInFlightDrafts,
+} from "../types";
 
 const __ = (...args: any[]) => (window as any).__(...args);
+
+const expandedItems = ref<Record<string, boolean>>({});
 
 interface Props {
   items: DeficitItem[];
@@ -285,6 +346,23 @@ function formatNumber(num: number | null | undefined): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 3,
   }).format(num);
+}
+
+function getBoxes(item: DeficitItem): AllocatedBatch[] {
+  return item.allocated_batches || [];
+}
+
+function getUniqueShelfCount(item: DeficitItem): number {
+  const warehouses = new Set(
+    getBoxes(item)
+      .map((box) => box.warehouse)
+      .filter(Boolean)
+  );
+  return warehouses.size;
+}
+
+function toggleExpandItem(itemCode: string) {
+  expandedItems.value[itemCode] = !expandedItems.value[itemCode];
 }
 
 function formatWarehouse(wh: string | undefined): string {
@@ -356,12 +434,31 @@ function copyItemCode(code: string) {
 .prominent-cell.no-stock .prominent-val { color: #dc2626; }
 [data-theme="dark"] .prominent-cell.no-stock .prominent-val { color: #f87171; }
 .prominent-cell .prominent-uom { font-size: 0.72rem; font-weight: 600; color: var(--text-muted, #64748b); }
-.col-source { min-width: 160px; }
-.source-cell { display: flex; flex-direction: column; gap: 0.25rem; }
+.col-source { min-width: 190px; }
+.source-cell { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; }
+.multi-box-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.1rem; }
+.multi-box-badge { display: inline-flex; align-items: center; gap: 0.2rem; padding: 0.15rem 0.45rem; font-size: 0.72rem; font-weight: 700; border-radius: 4px; background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; white-space: nowrap; }
+[data-theme="dark"] .multi-box-badge { background: rgba(245, 158, 11, 0.18); color: #fcd34d; border-color: rgba(245, 158, 11, 0.38); }
+.btn-expand-boxes { padding: 0.14rem 0.42rem; font-size: 0.7rem; font-weight: 600; border-radius: 4px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; cursor: pointer; transition: background-color 0.15s ease; white-space: nowrap; }
+.btn-expand-boxes:hover { background: #dbeafe; }
+[data-theme="dark"] .btn-expand-boxes { background: rgba(59, 130, 246, 0.18); color: #93c5fd; border-color: rgba(59, 130, 246, 0.38); }
+[data-theme="dark"] .btn-expand-boxes:hover { background: rgba(59, 130, 246, 0.28); }
 .warehouse-badge { display: inline-block; padding: 0.2rem 0.5rem; font-size: 0.76rem; font-weight: 600; background: var(--control-bg, #f1f5f9); color: var(--text-color, #334155); border-radius: 4px; border: 1px solid var(--border-color, #cbd5e1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
 [data-theme="dark"] .warehouse-badge { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); color: #e2e8f0; }
 .batch-pill { display: inline-block; font-size: 0.72rem; font-family: monospace; font-weight: 600; color: #0369a1; background: #e0f2fe; padding: 0.15rem 0.4rem; border-radius: 4px; }
 [data-theme="dark"] .batch-pill { color: #7dd3fc; background: rgba(14, 165, 233, 0.18); }
+.box-sublist { width: 100%; margin-top: 0.2rem; padding: 0.35rem 0.45rem; border-radius: 6px; background: var(--control-bg, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); display: flex; flex-direction: column; gap: 0.25rem; cursor: default; }
+[data-theme="dark"] .box-sublist { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.12); }
+.box-sublist-item { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; font-size: 0.72rem; line-height: 1.3; padding-bottom: 0.2rem; border-bottom: 1px dashed var(--border-color, #e2e8f0); }
+.box-sublist-item:last-child { padding-bottom: 0; border-bottom: none; }
+[data-theme="dark"] .box-sublist-item { border-bottom-color: rgba(255, 255, 255, 0.1); }
+.box-loc { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; }
+.box-wh { font-weight: 600; color: var(--text-color, #334155); }
+[data-theme="dark"] .box-wh { color: #e2e8f0; }
+.box-batch { font-family: monospace; color: #0369a1; }
+[data-theme="dark"] .box-batch { color: #7dd3fc; }
+.box-qty { font-weight: 700; color: var(--primary, #1d4ed8); white-space: nowrap; }
+[data-theme="dark"] .box-qty { color: #60a5fa; }
 .col-status { min-width: 160px; }
 .status-cell-group { display: inline-flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; }
 .status-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.3rem 0.65rem; font-size: 0.76rem; font-weight: 700; border-radius: 9999px; white-space: nowrap; }

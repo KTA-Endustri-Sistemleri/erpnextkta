@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import add_days, nowdate
 
 from erpnextkta.kta_shopfloor.api import get_line_deficits
 from erpnextkta.kta_shopfloor.services.reservation_deficit_service import (
@@ -426,3 +427,136 @@ class TestReservationDeficitService(FrappeTestCase):
         finally:
             if created_temp and frappe.db.exists("Warehouse", company_central):
                 frappe.delete_doc("Warehouse", company_central, force=True)
+
+    def test_multi_shelf_multi_box_deficit_contract_clean_ci(self):
+        """Net deficit spanning 2 boxes across 2 leaf shelves returns parent, box_count=2, and both boxes."""
+        uid = frappe.generate_hash(length=6)
+        item_group = create_test_item_group()
+        item_code = f"_TEST-DEF-MS-{uid}"
+        central_group_name = f"_Test Central MultiShelf {uid}"
+        shelf_1_name = f"_Test Central Shelf 1 {uid}"
+        shelf_2_name = f"_Test Central Shelf 2 {uid}"
+        batch_1 = f"_TEST-MS-BATCH-1-{uid}"
+        batch_2 = f"_TEST-MS-BATCH-2-{uid}"
+
+        central_wh_doc = frappe.get_doc(
+            {
+                "doctype": "Warehouse",
+                "warehouse_name": central_group_name,
+                "company": self.company,
+                "is_group": 1,
+            }
+        )
+        central_wh_doc.flags.ignore_permissions = True
+        central_wh_doc.insert()
+        central_group_wh = central_wh_doc.name
+
+        shelf_1_doc = frappe.get_doc(
+            {
+                "doctype": "Warehouse",
+                "warehouse_name": shelf_1_name,
+                "company": self.company,
+                "parent_warehouse": central_group_wh,
+                "is_group": 0,
+            }
+        )
+        shelf_1_doc.flags.ignore_permissions = True
+        shelf_1_doc.insert()
+        shelf_1_wh = shelf_1_doc.name
+
+        shelf_2_doc = frappe.get_doc(
+            {
+                "doctype": "Warehouse",
+                "warehouse_name": shelf_2_name,
+                "company": self.company,
+                "parent_warehouse": central_group_wh,
+                "is_group": 0,
+            }
+        )
+        shelf_2_doc.flags.ignore_permissions = True
+        shelf_2_doc.insert()
+        shelf_2_wh = shelf_2_doc.name
+
+        item_doc = frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": item_code,
+                "item_name": f"Test Multi Shelf Item {uid}",
+                "item_group": item_group,
+                "stock_uom": "Nos",
+                "is_stock_item": 1,
+                "has_batch_no": 1,
+                "create_new_batch": 1,
+                "valuation_rate": 10.0,
+            }
+        )
+        item_doc.flags.ignore_permissions = True
+        item_doc.insert()
+
+        for b_no, exp_date in [
+            (batch_1, add_days(nowdate(), 30)),
+            (batch_2, add_days(nowdate(), 60)),
+        ]:
+            b_doc = frappe.new_doc("Batch")
+            b_doc.name = b_no
+            b_doc.batch_id = b_no
+            b_doc.item = item_code
+            b_doc.expiry_date = exp_date
+            b_doc.flags.ignore_permissions = True
+            b_doc.insert()
+
+        for wh, b_no, qty in [
+            (shelf_1_wh, batch_1, 4.0),
+            (shelf_2_wh, batch_2, 6.0),
+        ]:
+            se = frappe.new_doc("Stock Entry")
+            se.purpose = "Material Receipt"
+            se.stock_entry_type = "Material Receipt"
+            se.company = self.company
+            se.append(
+                "items",
+                {
+                    "item_code": item_code,
+                    "t_warehouse": wh,
+                    "qty": qty,
+                    "basic_rate": 10.0,
+                    "uom": "Nos",
+                    "conversion_factor": 1.0,
+                    "batch_no": b_no,
+                    "use_serial_batch_fields": 1,
+                },
+            )
+            se.flags.ignore_permissions = True
+            se.insert()
+            se.submit()
+
+        self._set_bin_quantities(item_code, self.target_wh, 0.0, 10.0)
+
+        with patch(
+            "erpnextkta.kta_shopfloor.services.reservation_deficit_service.get_central_warehouse",
+            return_value=central_group_wh,
+        ):
+            results = get_line_reservation_deficits(self.target_wh)
+
+        res_map = {d["item_code"]: d for d in results}
+        self.assertIn(item_code, res_map)
+        row = res_map[item_code]
+
+        self.assertEqual(row["source_parent_warehouse"], central_group_wh)
+        self.assertEqual(row["box_count"], 2)
+        self.assertEqual(row["deficit_qty"], 10.0)
+        self.assertEqual(row["available_stock"], 10.0)
+        self.assertTrue(row["has_stock"])
+        self.assertTrue(row["selectable"])
+
+        allocated = row["allocated_batches"]
+        self.assertEqual(len(allocated), 2)
+        self.assertEqual(
+            {(b["warehouse"], b["batch_no"], b["allocated_qty"]) for b in allocated},
+            {
+                (shelf_1_wh, batch_1, 4.0),
+                (shelf_2_wh, batch_2, 6.0),
+            },
+        )
+        self.assertEqual(row["suggested_source_warehouse"], shelf_1_wh)
+        self.assertEqual(row["suggested_batch_no"], batch_1)
