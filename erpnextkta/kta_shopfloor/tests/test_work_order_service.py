@@ -925,12 +925,10 @@ class TestWorkOrderService(KTABaseTestCase):
             fields=["content"],
         )
         comment_texts = [c["content"] for c in comments]
-        self.assertTrue(
-            any(
-                "iptal edilerek orijinal" in txt and self.rm_item_1 in txt
-                for txt in comment_texts
-            )
-        )
+        expected_comment = frappe._(
+            "Satır #{0}: Alternatif '{1}' iptal edilerek orijinal '{2}' geri yüklendi."
+        ).format(restored_row.idx or 1, alt_item, self.rm_item_1)
+        self.assertTrue(any(expected_comment in txt for txt in comment_texts))
 
     def test_material_availability_includes_alternative_metadata(self):
         """Material availability returns row_name, is_alternative, has_alternatives, and can_swap flags."""

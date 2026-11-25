@@ -1572,3 +1572,215 @@ Lot {0} için maksimum koli soneki (9999) aşıldı.,Maximum box suffix (9999) e
 "Ürün, kaynak depo ve hedef depo zorunludur.","Item, source warehouse, and target warehouse are mandatory."
 Bölme miktarları boş olamaz ve tüm değerler sıfırdan büyük olmalıdır.,Split quantities cannot be empty and all values must be greater than zero.
 "Kaynak depoda yeterli stok yok. Mevcut: {0}, İstenen: {1}","Insufficient stock in source warehouse. Available: {0}, Requested: {1}"
+Line Transfers,Line Transfers
+Hatlar Arası Transfer,Line Transfers
+Hatlar Arası Hızlı Transfer,Quick Line Transfer
+Hatlar Arası Transfer Yapıldı: {0},Line Transfer Executed: {0}
+Hatlar Arası Transfer Tamamlandı: {0},Line Transfer Completed: {0}
+Hatlar Arası Transfer Başarıyla Tamamlandı,Line Transfer Completed Successfully
+Üretim Hatları Arası Serbest Stok ve Açık Karşılama Yönetimi,Free Stock and Deficit Fulfillment Management Between Production Lines
+Ana Hammadde Ambarından Hatlara Çekme İkmal Yönetimi,Pull Replenishment Management from Central Raw Material Warehouse to Lines
+Ana Ambar Raf / Parti,Central Warehouse Shelf / Batch
+Açık Karşılama,Deficit Fulfillment
+Atıl Hat Stoğu,Idle Line Stock
+Manuel Transfer,Manual Transfer
+Manuel Hat Transferi,Manual Line Transfer
+Hat Seçimi,Line Selection
+Hedef Üretim Hattı,Target Production Line
+Kaynak Üretim Hattı,Source Production Line
+Hedef Üretim Hattı Seçin,Select Target Production Line
+Kaynak Üretim Hattı Seçin,Select Source Production Line
+Diğer Üretim Deposu...,Other Production Warehouse...
+Üretim Deposu Seçin,Select Production Warehouse
+Üretim Deposu Girin (örn. 1501 KESMELER - KTA):,Enter Production Warehouse (e.g. 1501 KESMELER - KTA):
+Hat Stoğu / Açık,Line Stock / Deficit
+Kaynak 150x Hat,Source 150x Line
+Hedef 150x Hat,Target 150x Line
+Aktarılacak Miktar,Transfer Quantity
+Gönderilecek Miktar,Quantity to Send
+Fiziksel / Rezerve / Boşta (Serbest),Physical / Reserved / Idle (Free)
+Serbest / Fiziksel,Free / Physical
+Serbestten Hazır,Ready from Free
+Öncelik Kaydırma (Rezerve),Priority Shift (Reserved)
+Öncelik Kaydırma (Rezerve Stok Kullanımı) Onayı,Priority Shift (Reserved Stock Usage) Confirmation
+Onayla ve Transfer Et,Confirm and Transfer
+Seçilenleri Hatta Aktar,Transfer Selected to Line
+Seçilenleri Gönder,Send Selected
+⚡ Transferi Başlat,⚡ Start Transfer
+Kardeş Hattan Transfer Yap,Transfer from Sibling Line
+Kaynak hattın rezerve stoğundan öncelik kaydırarak kullanmayı onaylıyorum,I confirm using the source line reserved stock by shifting priority
+Kardeş Hatlardan Karşılanacak Açık Yok,No Deficit Coverable from Sibling Lines
+Atıl Serbest Stok Bulunamadı,No Idle Free Stock Found
+Hat Açıkları Taranıyor...,Scanning Line Deficits...
+Atıl Stoklar Taranıyor...,Scanning Idle Stocks...
+-- Hedef Hat Seçin --,-- Select Target Line --
+-- Kaynak Hat Seçin --,-- Select Source Line --
+Açık,Deficit
+Açık:,Deficit:
+Hat:,Line:
+Fiziksel,Physical
+Rezerve,Reserved
+Eklendi,Added
+Geçersiz Miktar,Invalid Quantity
+Geçersiz miktar,Invalid Quantity
+Kaynak Hat,Source Line
+Kaynak Hat Stok Listesi,Source Line Stock List
+Malzeme,Material
+Rezerve aşımı,Reserved Overflow
+Rezerve stok kullanılacak,Reserved stock will be used
+Satırı Kaldır,Remove Row
+Stok sınırı aşıldı veya geçersiz,Stock limit exceeded or invalid
+Transfer Edilecek Kalemler ({0}),Items to Transfer ({0})
+Transfer Ediliyor...,Transferring...
+Transfer Modu,Transfer Mode
+Transfer Yapılıyor...,Transferring...
+Transfer tamamlanamadı.,Transfer could not be completed.
+Hat transfer listesi yüklenirken bir hata oluştu.,An error occurred while loading the line transfer list.
+Hatlar arası transfer sırasında bir hata oluştu.,An error occurred during the line transfer.
+Kaynak depodaki malzemeler yüklenemedi.,Materials in the source warehouse could not be loaded.
+Kaynak hatta stoklu hammadde kodu veya adı ara...,Search stocked raw material code or name on source line...
+Gösterilecek stoklu malzeme bulunamadı.,No stocked materials found to display.
+Hatta boşta bekleyen (serbest) stokları diğer hatlara göndermek için yukarıdan bir kaynak hat seçin.,Select a source line above to send idle (free) stocks waiting on the line to other lines.
+Kardeş üretim hatlarından karşılanabilecek hammadde açıklarını görmek için yukarıdan bir hedef hat seçin.,Select a target line above to view raw material deficits coverable from sibling production lines.
+Seçilen hatta bekleyen üretim açığı bulunmuyor veya diğer üretim hatlarında kullanılabilir stok mevcut değil.,The selected line has no pending production deficits or no usable stock is available in other production lines.
+Seçilen hattaki rezerve dışı serbest stoklar analiz ediliyor.,Analyzing unreserved free stocks on the selected line.
+Üretim hatlarındaki serbest ve rezerve stoklar kontrol ediliyor.,Checking free and reserved stocks across production lines.
+Bu üretim hattında iş emri rezervasyonu dışında boşta bekleyen hammadde bulunmamaktadır.,This production line has no idle raw materials outside work order reservations.
+Aşağıdaki kalemlerde istenen transfer miktarı kaynak hattaki serbest (rezerve dışı) stoğu aşmaktadır. Onaylarsanız diğer iş emirlerine rezerve edilmiş stoktan öncelik kaydırılarak transfer yapılacaktır.,"The requested transfer quantity exceeds the free (unreserved) stock on the source line for the items below. If confirmed, stock reserved for other work orders will be transferred by shifting priority."
+Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hatlar arası transfer yapılamaz. Lütfen depo biriminden hatlar arası transfer veya ambar ikmali talep ediniz.,No stock was found in other production lines for some materials. Direct line transfer from the raw material warehouse is not allowed. Please request a warehouse replenishment from the warehouse team.
+Seçili kaynak hatlarda serbest stok yetersiz; transfer için başka iş emirlerine rezerve edilmiş stoktan öncelik kaydırılacak.,Free stock is insufficient on the selected source lines; stock reserved for other work orders will be shifted by priority.
+Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından hatlar arası transfer yaparak teyidi tamamlayabilirsiniz.,Raw material on the production line is insufficient for confirmation. You can complete the confirmation by performing a line transfer from other production lines.
+Üretim hatları arasında serbest veya onaylı stok aktarımı,Free or approved stock transfer between production lines
+Seçili satırlarda geçerli bir hedef hat ve miktar belirtin,Specify a valid target line and quantity for the selected rows
+Seçili satırlarda stok sınırını aşan veya geçersiz miktar var,Selected rows contain an invalid quantity or exceed the stock limit
+"{0} kalem seçildi, toplam {1} miktar aktarılacak","{0} items selected, total {1} quantity will be transferred"
+"{0} kalem seçildi, toplam {1} miktar gönderilecek","{0} items selected, total {1} quantity will be sent"
+{0} kalemde rezerve stok kullanılacak,Reserved stock will be used on {0} item(s)
+Önerilen Açık:,Suggested Deficit:
+Geçerli bir hedef depo zorunludur: {0},A valid target warehouse is required: {0}
+Geçerli bir kaynak depo zorunludur: {0},A valid source warehouse is required: {0}
+Geçerli bir malzeme kodu zorunludur: {0},A valid item code is required: {0}
+Geçerli bir üretim/hat deposu seçilmelidir (hammadde veya grup depoları seçilemez): {0},A valid production/line warehouse must be selected (raw material or group warehouses cannot be selected): {0}
+Geçerli bir İş Emri zorunludur: {0},A valid Work Order is required: {0}
+Hammadde veya grup depolarına hat transferi yapılamaz. Hedef yalnızca geçerli bir üretim deposu olabilir: {0},Line transfer cannot be made to raw material or group warehouses. Target can only be a valid production warehouse: {0}
+Hammadde veya grup depolarından hat transferi yapılamaz. Kaynak yalnızca geçerli bir üretim deposu olabilir: {0},Line transfer cannot be made from raw material or group warehouses. Source can only be a valid production warehouse: {0}
+Hat transferi oluşturma yetkiniz bulunmamaktadır.,You do not have permission to create line transfers.
+Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0},Line Replenishment Transfer (Shopfloor Hub) - Work Order: {0}
+Hatlar Arası Transfer (Line Transfer),Line Transfer
+Kaynak depo ({0}) ve hedef depo ({1}) aynı şirkete ait olmalıdır.,Source warehouse ({0}) and target warehouse ({1}) must belong to the same company.
+Kaynak depo ve hedef depo aynı olamaz: {0},Source warehouse and target warehouse cannot be the same: {0}
+"Kaynak depoda ({0}) {1} için yeterli geçerli parti stoğu bulunamadı. Mevcut: {2}, İstenen: {3}","Insufficient valid batch stock for {1} in source warehouse ({0}). Available: {2}, Requested: {3}"
+"Kaynak depoda ({0}) {1} için yeterli stok yok. Mevcut: {2}, İstenen: {3}","Insufficient stock for {1} in source warehouse ({0}). Available: {2}, Requested: {3}"
+Kaynak depoda ({0}) {1} kaleminin serbest stoğu ({2}) yetersiz; {3} miktarında başka iş emirlerine rezerve stok kullanılacak. Devam etmek için rezerve stok kullanımını onaylayın.,Free stock ({2}) for item {1} in source warehouse ({0}) is insufficient; {3} reserved for other work orders will be used. Confirm reserved stock usage to continue.
+Transfer edilecek geçerli malzeme bulunamadı.,No valid materials found to transfer.
+Transfer edilecek malzeme listesi boş olamaz.,Transfer materials list cannot be empty.
+Transfer miktarı sıfırdan büyük olmalıdır.,Transfer quantity must be greater than zero.
+{0} numaralı hat transferi başarıyla tamamlandı.,Line transfer {0} completed successfully.
+"""{0}"" alternatifi iş emrine başarıyla atandı.","Alternative ""{0}"" successfully assigned to work order."
+"""{0}"" numaralı teyit belgesini ve ilişkili stok hareketlerini ters kayıt (storno) ile iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.","Are you sure you want to cancel confirmation ""{0}"" and reverse its linked stock movements? This action cannot be undone."
+"""{0}"" satırındaki muadil hammadde yerine orijinal ""{1}"" koduna dönmek istediğinize emin misiniz?","Are you sure you want to revert the alternative material on row ""{0}"" back to the original code ""{1}""?"
+'{0}' kalemi '{1}' için onaylı bir alternatif değildir.,Item '{0}' is not an approved alternative for '{1}'.
+Alternatif Kodu & Adı,Alternative Code & Name
+Alternatif atanırken bir hata oluştu.,An error occurred while assigning the alternative.
+Alternatifler yüklenirken bir hata oluştu.,An error occurred while loading alternatives.
+Eylem,Action
+Geri Yükleniyor…,Restoring…
+Grup ambarı hedef WIP deposu olarak seçilemez: {0},A group warehouse cannot be selected as the target WIP warehouse: {0}
+Grup ambarı hedef ambar olarak seçilemez: {0},A group warehouse cannot be selected as the target warehouse: {0}
+Hedef WIP deposu seçimi zorunludur.,Target WIP warehouse selection is mandatory.
+Hedef ambar (Target Warehouse) seçimi zorunludur.,Target Warehouse selection is mandatory.
+Hedef miktar güncellenirken bir hata oluştu.,An error occurred while updating the target quantity.
+Kalem {0} ikmal siparişinde bulunamadı.,Item {0} was not found in the replenishment order.
+Kalem {0} için fazla toplama izin verilen %15 toleransı aşmaktadır.,Over-picking for item {0} exceeds the allowed 15% tolerance.
+Kart,Card
+Kaynak ambar {0} grup ambarıdır ve altında yaprak ambar bulunamadı.,Source warehouse {0} is a group warehouse and no leaf warehouses were found under it.
+Malzeme Adı,Material Name
+Malzeme Kodu,Material Code
+Mevcut Kalem:,Current Item:
+Muadil,Alternative
+Muadil Seç,Select Alternative
+Muadili Değiştir,Change Alternative
+Onaylı Muadil Seç,Select Approved Alternative
+Onaylı Muadili İncele / Seç,Review / Select Approved Alternative
+Operatör Dağılımını Gizle,Hide Operator Breakdown
+Operatör Dağılımını Göster,Show Operator Breakdown
+Orijinal hammaddeye dönülürken bir hata oluştu.,An error occurred while reverting to the original raw material.
+Orijinal reçete hammaddesi ({0}) geri yüklendi.,Original BOM raw material ({0}) restored.
+Orijinal: {0},Original: {0}
+Sadece Taslak (Draft) durumdaki siparişlerin kaynak ambarı değiştirilebilir.,Only Draft orders can have their source warehouse changed.
+Satır #{0}: '{1}' hammaddesi yerine alternatif '{2}' atandı.,Row #{0}: Alternative '{2}' assigned instead of raw material '{1}'.
+Satır #{0}: Alternatif '{1}' iptal edilerek orijinal '{2}' geri yüklendi.,Row #{0}: Alternative '{1}' cancelled and original '{2}' restored.
+Satırda kayıtlı orijinal hammadde bulunamadı.,No original raw material recorded on this row.
+Seçiliyor…,Selecting…
+Sipariş numarası (Order Name) zorunludur.,Order Name is required.
+"Sipariş {0} zaten {1} durumunda, işlem yapılamaz.","Order {0} is already in {1} status, cannot process."
+Ters Kayıt (Storno) ile Bu Teyidi İptal Et,Cancel This Confirmation via Reversal
+Tüketilen Miktar,Consumed Quantity
+Tüketim veya transfer yapılmış satır değiştirilemez.,A row with consumption or transfer cannot be modified.
+Tüketim veya transfer yapılmış satır geri yüklenemez.,A row with consumption or transfer cannot be restored.
+Yalnızca taslak iş emirlerinde hammadde alternatifi değiştirilebilir.,Material alternatives can only be changed on draft work orders.
+Yalnızca taslak iş emirlerinde orijinal kalem geri yüklenebilir.,Original items can only be restored on draft work orders.
+dk,min
+Çift Yönlü Muadil,Two-Way Alternative
+İkmal kalemleri (Items) boş olamaz.,Replenishment items cannot be empty.
+İkmal listesinde açık miktarı (deficit_qty > 0) olan en az bir kalem bulunmalıdır.,Replenishment list must contain at least one item with deficit quantity (deficit_qty > 0).
+İş Emri satırı bulunamadı: {0},Work Order row not found: {0}
+Target Warehouse is mandatory.,Target Warehouse is mandatory.
+Order Details,Order Details
+Total Deficit Qty,Total Deficit Qty
+Total Picked Qty,Total Picked Qty
+Items to Replenish,Items to Replenish
+Replenishment Items,Replenishment Items
+Shelf & Batch Allocation,Shelf & Batch Allocation
+Line Actual Qty,Line Actual Qty
+Suggested Source Warehouse,Suggested Source Warehouse
+Suggested Batch No,Suggested Batch No
+Picked Source Warehouse,Picked Source Warehouse
+Picked Batch No,Picked Batch No
+Is Picked,Is Picked
+Quantities & Transfer,Quantities & Transfer
+Milestone Confirmation,Milestone Confirmation
+Genel Bilgiler,General Information
+Saat,Time
+Üretim Miktarı ve Sarfiyat,Production Quantity & Consumption
+Serbest Stok,Free Stock
+Talep Edilen,Requested
+Malzeme Ara,Search Items
+Depo iadesi oluşturma yetkiniz bulunmamaktadır.,You do not have permission to create a warehouse return.
+Hatlar Arası Koli Bölme Transferi: {0} -> {1},Inter-Line Package Split Transfer: {0} -> {1}
+İade miktarı sıfırdan büyük olmalıdır.,Return quantity must be greater than zero.
+Geçerli bir kaynak üretim deposu zorunludur: {0},A valid source production warehouse is mandatory: {0}
+Depo iadesi yalnızca geçerli üretim hatlarından yapılabilir: {0},Warehouse return can only be performed from valid production lines: {0}
+Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0},Target warehouse must be a valid 110 raw material leaf shelf: {0}
+Parti takipsiz kalem için parti seçilemez: {0},Batch cannot be selected for a non-batch item: {0}
+İade edilecek geçerli malzeme bulunamadı.,No valid items found to return.
+Geçerli ve aktif bir parti seçilmelidir: {0},A valid and active batch must be selected: {0}
+Seçilen partinin son kullanma tarihi dolmuştur: {0},The selected batch has expired: {0}
+"Seçilen parti ({0}) için kaynak depoda ({1}) yeterli bakiye yok. Mevcut: {2}, İstenen: {3}","Insufficient balance for selected batch ({0}) in source warehouse ({1}). Available: {2}, Requested: {3}"
+Üretim Tedarik Alanından Koli Bölme İadesi: {0} -> {1},Package Split Return from Production Supply: {0} -> {1}
+Üretim Tedarik Alanından Depo İadesi (150x -> 110),Warehouse Return from Production Supply (150x -> 110)
+{0} numaralı depo iadesi başarıyla tamamlandı.,Warehouse return {0} completed successfully.
+110 hammadde iade rafları yüklenemedi.,Failed to load 110 raw material return shelves.
+Seçili parti bakiyesi aşıldı ({0}),Selected batch balance exceeded ({0})
+Hat stoğu sınırı aşıldı,Line stock limit exceeded
+Üretim Tedarik Alanından Depoya İade (110),Return from Production Supply to Warehouse (110)
+Kaynak Üretim Hattı: {0},Source Production Line: {0}
+Tam kalan standart kutular Return from Production Supply fişiyle iade edilir; kısmi bölünen veya LEGACY partiler otomatik Package Split ile 110 depoya etiketlenerek aktarılır.,Full remaining standard boxes are returned via Return from Production Supply; partially split or LEGACY batches are automatically transferred via Package Split with labels to 110 warehouse.
+Hedef 110 Hammadde Rafı,Target 110 Raw Material Shelf
+-- Hedef 110 Rafı Seçin --,-- Select Target 110 Shelf --
+İade nedeni veya not ekleyin...,Add Return Reason or Note...
+İade edilecek kalem bulunmuyor.,No items to return.
+Kaynak Kutu / Parti,Source Box / Batch
+İade Miktarı,Return Qty
+Otomatik (LIFO — Yeni Açılan İlk),Automatic (LIFO — Newly Opened First)
+İade İşleniyor...,Processing Return...
+↩️ Depoya İade Et,↩️ Return to Warehouse
+Hat Açığı,Line Deficit
+Yeni Koliye Böl ve Etiket Bas,Split into New Box and Print Label
+Hat transferi için seçili satırlarda hedef hat belirtin,Specify a target line on selected rows for line transfer
+Depoya İade (110),Return to Warehouse (110)
+Depoya iade işlemi başarıyla tamamlandı.,Warehouse return completed successfully.
+Depoya iade işlemi tamamlanamadı.,Warehouse return could not be completed.
+Depoya iade işlemi sırasında bir hata oluştu.,An error occurred during warehouse return.
+Depoya İade İşlemi Tamamlandı,Warehouse Return Completed
+{0} adet etiket yazdırıldı / kuyruğa alındı.,{0} labels printed / queued.

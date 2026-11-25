@@ -97,4 +97,63 @@ Sistemdeki MRP ve stok seviyesi (Re-Order) kurallarına göre otomatik olarak a�
 - **Günlük Otomatik Temizlik:** Önceki günlerden onaylanmadan taslakta (`Draft`) kalan otomatik üretim malzeme talepleri ve bunlara bağlı görevler (`ToDo`), bir sonraki günün otomatik hesaplaması çalışırken sistem tarafından otomatik olarak temizlenir.
 - **Kapsam Dışı Kayıtlar:** Kullanıcıların manuel olarak açtığı taslaklara veya `Purchase`, `Material Transfer` gibi diğer talep tiplerine dokunulmaz.
 
+---
+
+## 📐 8. 7+4 Kutu Barkod Standardı, LEGACY Dönüşümü ve Özel Stock Entry Tipleri
+
+Fiziksel kutu izlenebilirliğinin mal kabul, sayım ve üretim iade döngüleri boyunca bozulmadan sürmesi için **7 Hane Lot + 4 Hane Kutu No** standardı ile özel `Stock Entry Type` ayrımı uygulanır:
+
+### 7+4 Standart Kutu Formatı ve LEGACY Dönüşümü
+- **Format Kuralı (`is_standard_kta_box_batch`):** `^[A-Z0-9]{7}(?!0000)[0-9]{4}$` (tam 7 haneli büyük harf/rakam Lot kökü + `0001..9999` 4 haneli Kutu soneki, ör. `6640A670001`). Sistemde `Batch == sut_barcode` birebir eşleşmesi korunur.
+- **Kısmi Bölme & FIFO/GKK Mirası (`allocate_next_box_batches`):** Standart bir kutu bölündüğünde aynı 7 haneli lottan sıradaki `000x` kutu üretilir. Kaynak `Batch` üzerindeki `supplier`, `reference_doctype` / `reference_name` (mal kabul ve GKK kilidi izlenebilirliği), `manufacturing_date` (FIFO yaşı) ve `expiry_date` alanları birebir kopyalanır.
+- **LEGACY ve Partisiz Stok Standardizasyonu (`generate_new_base_lot`):** `LEGACY-...` veya standart dışı partilerde benzersiz yeni 7 haneli kök lot ve `{7Hane}0001..N` kutular oluşturulur.
+- **Boş Etiket Temizliği (`clear_empty_labels`):** Yalnızca SABE kaydı hiç olmayanlar değil, hareket görüp tüm depolardaki net `SLE + SBE` bakiyesi `<= 0` seviyesine düşen tüm `Depo Giriş Etiketi` kayıtları da güvenle temizlenir.
+
+### Özel Stock Entry Type Kuralları (`erpnextkta/kta_stock/setup.py`)
+`hooks.py:after_migrate` üzerinden idempotent kurulan ve etiket davranışını yöneten tipler:
+
+| Stock Entry Type | Purpose | `custom_etiket_basilabilir` | Şablon | İş Kuralı ve Davranış |
+|---|---|---|---|---|
+| `Return from Production Supply` | `Material Transfer` | `1` | `Depo Giriş Etiketi` | Üretim hatlarından (`150x`) hammadde raflarına (`110`) **tam kalan** standart kutuların iadesidir. `upsert_box_label` mevcut `Purchase Receipt` referansını silmeden miktar/depo alanlarını günceller ve etiket basar; iptalde etiket defter bakiyesine geri senkronlanır. |
+| `Package Split` | `Repack` | `1` | `Depo Giriş Etiketi` | Koli/parti bölme ve `LEGACY` dönüşümleri içindir (`create_package_split_repack`). **Tek belge = tek `item_code` ve tek kaynak kutu** kuralı `KTAStockEntry.validate()` ile korunur (`Package Split allows only one item per Stock Entry.`). Yeni `000x` kutulara etiket basılır, kaynak kutu kalan bakiyesi senkronize edilir. |
+| Standart `Material Transfer` & Standart `Repack` | `Material Transfer` / `Repack` | `0` | *Yok* | Normal masaüstü transfer/repack belgeleri ile `110 → 150x` tam koli hat ikmalleri tamamen sessizdir (otomatik etiket basılmaz). |
+
+> **Önemli ERPNext Çekirdek Kuralı (`set_stock_entry_type`):** ERPNext'te `se.set_stock_entry_type()` metodu `stock_entry_type` alanını `is_standard = 1` ile ezer. Bu nedenle `Return from Production Supply` veya `Package Split` oluşturan servisler `se.stock_entry_type` atandıktan sonra `set_stock_entry_type()` çağırmamalıdır.
+
+---
+
+## 📊 9. Sayım ve Etiket Merkezi (`/app/stock-reco-dashboard`)
+
+### Kullanım Akışı ve Desk Kısayolu
+- **Form Kısayolu (`erpnextkta/public/js/stock_reconciliation.js`):** `Stock Reconciliation` formu üzerindeki **Sayım ve Etiket Merkezinde Aç** butonu `frappe.route_options = { doc, tab: "operations" }` ile ilgili belgeyi doğrudan merkezin operasyon sekmesinde açar.
+- **Toplu Sayım Oluşturma (`BulkCreateRecoModal.vue`):** Depo grubu (`is_group = 1`), tarih/saat ve `Boş Stokları Yoksay` seçimiyle tüm alt yaprak depolar için `create_stock_reco_docs_for_warehouse_group` arka plan görevini başlatır.
+- **Etiket Sağlık Durumları (`get_stock_reconciliation_label_preview`):** ERPNext v15 `serial_and_batch_bundle` / `batch_no` satırlarını okuyarak her pozitif kalemi `valid` (`Uyumlu`), `qty_changed` (`Miktar Değişti`), `missing_label` (`Etiket Eksik`) veya `legacy_batch` (`LEGACY / Partisiz`) olarak sınıflar.
+- **Mod 1 (Fiziksel Kutu Esas) vs. Mod 2 (Sistem Partisi Esas):** Mod 1 yalnızca `qty_changed`, `missing_label` ve `legacy_batch` satırlarını seçerken, Mod 2 belgedeki tüm pozitif stok satırlarını kapsar.
+- **Taslak (`submit_and_print_stock_reconciliation`) & Onaylı (`relabel_submitted_stock_reconciliation`):**
+  - Taslakta `LEGACY` dönüşümleri için eski partiyi sıfırlama satırı korunup yeni `7+4` satırlar yazılır; çoklu kutu kırılımında sıradaki `000x` satırları eklenir, belge submit edilir ve etiketler Zebra kuyruğuna gönderilir.
+  - Onaylı belgede tekil standart kutular `upsert_box_label` ile güncellenir; bölme veya `LEGACY` dönüşümlerinde `create_package_split_repack(..., ignore_reco_lock=is_reco_manager)` ile `Stock Entry (Package Split)` kesilir. `ignore_reco_lock=True`, yalnızca sistem kaynaklı sayım düzeltmelerinde geçici `frappe.flags.kta_ignore_reco_lock` bayrağıyla `stock_reconciliation_lock` engelini güvenli biçimde aşar.
+- **Fark & Anomali Analizi (`RecoAnalyticsTab.vue` + `RecoItemDrawer.vue`):** Yıl/tarih/eşik/yön filtreleri, 7 KPI kartı, Taslak/Onaylı ilerleme barı, kural tabanlı anomali tespiti, risk puanlaması, CSV dışa aktarma ve Socket.IO (`stock_reco_dashboard_update`) canlı yenileme içerir.
+
+---
+
+## 🧱 10. Teknik Mimari, Servis Katmanı ve Dosya Yapısı
+
+Eski `erpnextkta/rest-api/` klasörü kaldırılarak tüm stok ve sayım servisleri modül içi `erpnextkta/kta_stock/services/` altında birleştirilmiştir:
+
+- **Backend Servisleri (`erpnextkta/kta_stock/`):**
+  - `erpnextkta/kta_stock/setup.py`: `after_migrate` hook'u ile özel `Stock Entry Type` kayıtlarını güvenceye alır.
+  - `erpnextkta/kta_stock/services/relabeling_service.py`: `is_standard_kta_box_batch`, `extract_base_lot`, `generate_new_base_lot`, `allocate_next_box_batches`, `resolve_batch_label_metadata`, `get_batch_ledger_balances`, `delete_labels_with_print_logs`, `upsert_box_label`, `sync_batch_label_to_ledger_balance`, `create_package_split_repack`.
+  - `erpnextkta/kta_stock/services/stock_reconciliation_service.py`: `get_items_static`, `create_stock_reco_docs_for_warehouse_group`, `list_stock_reconciliations`, `get_stock_reconciliation_label_preview`, `submit_and_print_stock_reconciliation`, `relabel_submitted_stock_reconciliation`.
+  - `erpnextkta/kta_stock/services/stock_reconciliation_dashboard_service.py`: `get_years`, `get_dashboard`, `get_item_details`.
+  - `erpnextkta/kta_stock/services/stock_reconciliation_lock.py`: `validate_unique_draft_stock_reco_per_set_warehouse` ve `validate_stock_entry_warehouse_lock`.
+  - `erpnextkta/kta_stock/label_manager.py` & `erpnextkta/overrides/KTAStockEntry.py`: v15 `serial_and_batch_bundle` kaynak depo çözümü, `enqueue_print_labels_by_names`, `Package Split` tek ürün validasyonu ve iptalde PR etiketlerinin defter bakiyesine geri senkronizasyonu (`erpnextkta/overrides/serial_batch_bundle_doc.py` `autoname()` genişletmesi dahil).
+- **Frontend SPA (`erpnextkta/public/stock-reco-dashboard/`):**
+  - `App.vue`, `types.ts`, `utils/analyticsHelpers.ts`, `components/BulkCreateRecoModal.vue`, `components/RecoDocumentsList.vue`, `components/RecoLabelingWorkspace.vue`, `components/RecoAnalyticsTab.vue`, `components/RecoItemDrawer.vue` (`erpnextkta/kta_stock/page/stock_reco_dashboard/`).
+- **Otomatik Testler:**
+  - `erpnextkta/kta_stock/tests/test_relabeling_service.py`
+  - `erpnextkta/kta_stock/tests/test_label_manager.py`
+  - `erpnextkta/kta_stock/tests/test_stock_reconciliation_relabeling.py`
+  - `erpnextkta/tests/test_stock_entry_labeling.py`
+
 </main>
+

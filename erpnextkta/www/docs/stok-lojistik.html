@@ -126,5 +126,96 @@
   <li><strong>Kapsam Dışı Kayıtlar:</strong> Kullanıcıların manuel olarak açtığı taslaklara veya <code>Purchase</code>, <code>Material Transfer</code> gibi diğer talep tiplerine dokunulmaz.</li>
 </ul>
 
+
+<hr />
+
+<h2>📐 8. 7+4 Kutu Barkod Standardı, LEGACY Dönüşümü ve Özel Stock Entry Tipleri</h2>
+
+<p>Fiziksel depo düzeninin mal kabulden üretime ve üretimden depoya iadeye kadar tüm hareketlerde bozulmadan korunması için <strong><code>7 Hane Lot + 4 Hane Kutu No</code></strong> standardı ve iki özel <code>Stock Entry Type</code> politikası uygulanır.</p>
+
+<h3>7+4 Kutu Barkod Standardı ve LEGACY Dönüşümü</h3>
+<ul>
+  <li><strong>Standart Kutu Formatı (<code>^[A-Z0-9]{7}(?!0000)[0-9]{4}$</code>):</strong> Her fiziksel kutu veya makara sistemde tekil 11 karakterli bir <code>Batch</code> (<code>== sut_barcode</code>) olarak izlenir (ör. <code>6640A670001</code>). İlk 7 karakter kök lotu, son 4 hane (<code>0001..9999</code>) ise o lot altındaki kutu sırasını gösterir.</li>
+  <li><strong>Kısmi Bölmede Sıradaki Kutu &amp; FIFO/GKK Mirası:</strong> Açılan bir standart kutu bölündüğünde, aynı 7 haneli lottan sıradaki boş kutu numarası (<code>0006</code>, <code>0007</code> vb.) üretilir. Yeni açılan kutu; kaynak partinin <code>supplier</code>, GKK referansı (<code>reference_doctype</code> / <code>reference_name</code>), ilk giriş tarihi (<code>manufacturing_date</code> — FIFO yaşı bozulmaz) ve <code>expiry_date</code> bilgilerini birebir miras alır.</li>
+  <li><strong>LEGACY ve Partisiz Stok Standardizasyonu:</strong> Eski <code>LEGACY-...</code> formatındaki veya partisiz stoklar bölündüğünde benzersiz yeni 7 haneli bir lot kökü ve <code>{7Hane}0001..N</code> kutuları açılır.</li>
+  <li><strong>Boş Etiket Temizliği:</strong> Bakiyesi sıfır veya altına düşen (<code>&lt;= 0</code>) partilere ait <code>KTA Stock Label</code> kayıtları <code>clear_empty_labels()</code> ile otomatik temizlenir.</li>
+</ul>
+
+<h3>Özel Stock Entry Type Kuralları ve Etiket Politikası</h3>
+<div class="kta-doc-table-wrap">
+  <table class="kta-doc-table">
+    <thead>
+      <tr>
+        <th>Stock Entry Type</th>
+        <th>Amaç (Purpose)</th>
+        <th>Etiket Basımı</th>
+        <th>Kullanım Kapsamı ve Davranış</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Return from Production Supply</code><br/><span class="kta-doc-badge green">Üretim Tedarik Alanından İade</span></td>
+        <td><code>Material Transfer</code></td>
+        <td><span class="kta-doc-badge blue">Depo Giriş Etiketi</span></td>
+        <td>Üretim hatlarından (<code>150x</code>) hammadde raflarına (<code>110 HAMMADDE</code>) <strong>tam kutu</strong> olarak iade edilen standart <code>7+4</code> partiler içindir. Mevcut <code>Purchase Receipt</code> etiket referansını silmeden miktar ve hedef depo bilgisini günceller, yeni Zebra etiketi basar. Belge iptal edilirse mal kabul etiketi silinmez, defter bakiyesine geri senkronlanır.</td>
+      </tr>
+      <tr>
+        <td><code>Package Split</code><br/><span class="kta-doc-badge purple">Koli Bölme</span></td>
+        <td><code>Repack</code></td>
+        <td><span class="kta-doc-badge blue">Depo Giriş Etiketi</span></td>
+        <td>Kısmi kutu/makara bölme ve <code>LEGACY</code> standartlaştırma hareketleri içindir. <strong>Tek belge = tek ürün ve tek kaynak kutu</strong> kuralıyla çalışır; üretilen yeni <code>000x</code> kutulara otomatik etiket basılır, kaynak kutunun kalan bakiyesi &gt; 0 ise eski etiketi güncellenir, 0 olduysa temizlenir.</td>
+      </tr>
+      <tr>
+        <td>Standart <code>Material Transfer</code> &amp; <code>Repack</code></td>
+        <td><code>Material Transfer</code> / <code>Repack</code></td>
+        <td><span class="kta-doc-badge gray">Sessiz (Etiket Basılmaz)</span></td>
+        <td>Masaüstü standart transfer/repack hareketleri ve <code>110 HAMMADDE → 150x</code> tam koli hat ikmalleri otomatik etiket basımı tetiklemeden hızlı/sessiz çalışır.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr />
+
+<h2>📊 9. Sayım ve Etiket Merkezi (<code>/app/stock-reco-dashboard</code>)</h2>
+
+<p>Depo sayımlarının (<code>Stock Reconciliation</code>) yönetimini, raf kutusu bazlı yeniden etiketlemeyi ve sayım farkı analizlerini tek merkezde toplayan çalışma alanıdır.</p>
+
+<div class="kta-doc-info">
+  <strong>Hızlı Erişim:</strong> Masaüstünde herhangi bir <code>Stock Reconciliation</code> formundaki <strong>Sayım ve Etiket Merkezinde Aç</strong> butonuna tıklayarak ilgili belgeyi doğrudan merkezin operasyon ekranında açabilirsiniz. Ayrıca merkezdeki <strong>+ Toplu Sayım Oluştur</strong> penceresinden bir depo grubunun tüm alt yaprak depoları için arka planda toplu taslak sayım fişleri oluşturulabilir.
+</div>
+
+<h3>A. Sayım Operasyonları &amp; Etiketleme Sekmesi</h3>
+<ul>
+  <li><strong>Etiket Sağlık Sınıflandırması:</strong> Seçilen belgedeki her pozitif stok satırı anlık taranarak şu durum rozetlerinden birini alır:
+    <span class="kta-doc-badge green">Uyumlu</span> (standart <code>7+4</code> etiket ve miktar eşit),
+    <span class="kta-doc-badge orange">Miktar Değişti</span> (açılmış kutu/makara),
+    <span class="kta-doc-badge red">Etiket Eksik</span>,
+    <span class="kta-doc-badge gray">LEGACY / Partisiz</span>.
+  </li>
+  <li><strong>İki Hazır Seçim Modu:</strong>
+    <ul>
+      <li><strong>Mod 1 — Fiziksel Kutu Esas:</strong> Yalnızca <code>Miktar Değişti</code>, <code>Etiket Eksik</code> ve <code>LEGACY / Partisiz</code> satırlarını otomatik seçer; etiketi uyumlu kapalı kutuları atlar.</li>
+      <li><strong>Mod 2 — Sistem Partisi Esas:</strong> Belgedeki tüm pozitif stok satırlarını yeniden etiketleme için seçer.</li>
+    </ul>
+  </li>
+  <li><strong>Satır İçi Kutu Kırılımı (<code>+ Kutu Böl</code>) &amp; <code>Standart Koliye Çevir</code>:</strong> Kullanıcı seçili bir satırı raftaki fiziksel kutulara göre birden fazla kutu miktarına bölebilir (ör. <code>7.750</code> miktarını <code>5.000 + 2.750</code> şeklinde iki kutuya ayırma). Kırılım toplamı satır miktarına eşit olmadan onay işlemi kilitli kalır.</li>
+  <li><strong>Belge Durumuna Göre İşlem Akışı:</strong>
+    <ul>
+      <li><strong>Taslak (<code>Draft</code>) Belgede — <em>Onayla ve Etiketleri Bas</em>:</strong> <code>LEGACY</code> sıfırlama/yeni <code>7+4</code> kutu satırları ile çoklu kutu kırılımları belgeye işlenir, belge onaylanır (<code>Submit</code>), etiketler senkronize edilir ve isteğe bağlı olarak Zebra yazıcı kuyruğuna gönderilir.</li>
+      <li><strong>Onaylı (<code>Submitted</code>) Belgede — <em>Etiketleri Güncelle ve Bas</em>:</strong> Bölünmeyen standart kutuların <code>KTA Stock Label</code> kayıtları doğrudan güncellenip yazdırılır; çoklu kutu bölmesi veya <code>LEGACY</code> dönüşümlerinde ise arka planda otomatik <code>Stock Entry (Package Split)</code> fişleri kesilir. Sistem destekli bu düzeltmeler taslak sayım depo kilidini güvenli biçimde aşar.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>B. Fark &amp; Anomali Analizi Sekmesi</h3>
+<ul>
+  <li>Yıl, tarih aralığı, mutlak fark eşiği, yön (<code>Tümü / + / −</code>) ve ürün/depo arama filtreleriyle tüm sayım farklarını özetler.</li>
+  <li><strong>7 KPI Kartı &amp; Taslak/Onaylı İlerleme Çubuğu:</strong> Etkilenen ürünler, hareket gören depolar, ürün başı maksimum belge sıklığı, toplam <code>+</code> / <code>−</code> / net fark ve onaylanma yüzdesini canlı izler.</li>
+  <li><strong>Kural Tabanlı Anomali &amp; Risk Motoru:</strong> Depolar arası zıt yön, tek depoda yoğunlaşma, sık değişiklik, gidiş-geliş hareketi ve tek belge baskınlığı anomalilerini puanlar; sağ detay çekmecesinden (Drawer) depo dağılımını ve ilişkili sayım belgelerini açar.</li>
+  <li>Tek tıkla CSV dışa aktarma ve canlı Socket.IO otomatik yenileme desteği sunar.</li>
+</ul>
+
 </div>
 {% endblock %}
+

@@ -6,17 +6,45 @@ from frappe import _
 from frappe.utils import flt
 
 
+def _get_mrp_settings_central_warehouse() -> str | None:
+    """Resolve central warehouse from KTA MRP Settings when the DocType and field exist."""
+    if not frappe.db.exists("DocType", "KTA MRP Settings"):
+        return None
+
+    meta = frappe.get_meta("KTA MRP Settings")
+    for fieldname in (
+        "central_warehouse",
+        "raw_material_warehouse",
+        "default_raw_material_warehouse",
+    ):
+        if meta.has_field(fieldname):
+            val = frappe.db.get_single_value("KTA MRP Settings", fieldname)
+            if val and frappe.db.exists("Warehouse", val):
+                return val
+    return None
+
+
 def get_central_warehouse(company: str | None = None) -> str:
     """Resolve default central raw material warehouse for replenishment."""
-    if frappe.db.exists("Warehouse", "110 HAMMADDE - KTA"):
-        return "110 HAMMADDE - KTA"
-
     if company:
-        default_wh = frappe.db.get_value(
-            "Company", company, "default_raw_material_warehouse"
+        if frappe.get_meta("Company").has_field("default_raw_material_warehouse"):
+            default_wh = frappe.db.get_value(
+                "Company", company, "default_raw_material_warehouse"
+            )
+            if default_wh:
+                return default_wh
+
+        exact_wh = frappe.db.get_value(
+            "Warehouse",
+            {
+                "company": company,
+                "warehouse_name": "110 HAMMADDE",
+                "disabled": 0,
+            },
+            "name",
         )
-        if default_wh:
-            return default_wh
+        if exact_wh:
+            return exact_wh
 
         wh = frappe.db.get_value(
             "Warehouse",
@@ -24,15 +52,39 @@ def get_central_warehouse(company: str | None = None) -> str:
                 "company": company,
                 "warehouse_name": ["like", "%HAMMADDE%"],
                 "is_group": 0,
+                "disabled": 0,
             },
             "name",
         )
         if wh:
             return wh
 
+        wh_group = frappe.db.get_value(
+            "Warehouse",
+            {
+                "company": company,
+                "warehouse_name": ["like", "%HAMMADDE%"],
+                "disabled": 0,
+            },
+            "name",
+        )
+        if wh_group:
+            return wh_group
+
+    mrp_wh = _get_mrp_settings_central_warehouse()
+    if mrp_wh:
+        return mrp_wh
+
+    if frappe.db.exists("Warehouse", "110 HAMMADDE - KTA"):
+        return "110 HAMMADDE - KTA"
+
     wh = frappe.db.get_value(
         "Warehouse",
-        {"warehouse_name": ["like", "%HAMMADDE%"], "is_group": 0},
+        {
+            "warehouse_name": ["like", "%HAMMADDE%"],
+            "is_group": 0,
+            "disabled": 0,
+        },
         "name",
     )
     if wh:

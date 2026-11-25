@@ -26,6 +26,7 @@ const emit = defineEmits<{
   (e: "switch-to-operations", workOrderName: string): void;
   (e: "refresh"): void;
   (e: "qty-updated", qty: number): void;
+  (e: "open-line-transfers", targetWarehouse: string): void;
 }>();
 
 const loading = ref<boolean>(false);
@@ -1053,45 +1054,57 @@ onUnmounted(() => {
               <td v-if="!isReleased" class="text-center">
                 <div
                   v-if="
-                    (item.has_alternatives || item.is_alternative) && isDraft
+                    ((item.has_alternatives || item.is_alternative) && isDraft) ||
+                    (getItemStatus(item) !== 'available' && item.has_sibling_line_stock)
                   "
                   class="alt-actions-cell"
                 >
-                  <div v-if="item.is_alternative" class="alt-actions-group">
+                  <template v-if="(item.has_alternatives || item.is_alternative) && isDraft">
+                    <div v-if="item.is_alternative" class="alt-actions-group">
+                      <button
+                        type="button"
+                        class="btn-alt-action btn-alt-change"
+                        :title="__('Muadili Değiştir')"
+                        @click="openAlternativesModal(item)"
+                      >
+                        🔄 {{ __("Değiştir") }}
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-alt-action btn-alt-restore"
+                        :title="__('Orijinal Reçete Koduna Dön')"
+                        @click="restoreDirectly(item)"
+                      >
+                        ↩️ {{ __("Orijinal") }}
+                      </button>
+                    </div>
                     <button
+                      v-else-if="getItemStatus(item) !== 'available'"
                       type="button"
-                      class="btn-alt-action btn-alt-change"
-                      :title="__('Muadili Değiştir')"
+                      class="btn-alt-action btn-alt-highlight"
+                      :title="__('Onaylı Muadil Seç')"
                       @click="openAlternativesModal(item)"
                     >
-                      🔄 {{ __("Değiştir") }}
+                      🔄 {{ __("Muadil Seç") }}
                     </button>
                     <button
+                      v-else
                       type="button"
-                      class="btn-alt-action btn-alt-restore"
-                      :title="__('Orijinal Reçete Koduna Dön')"
-                      @click="restoreDirectly(item)"
+                      class="btn-alt-action btn-alt-secondary"
+                      :title="__('Onaylı Muadili İncele / Seç')"
+                      @click="openAlternativesModal(item)"
                     >
-                      ↩️ {{ __("Orijinal") }}
+                      🔄 {{ __("Muadil") }}
                     </button>
-                  </div>
+                  </template>
                   <button
-                    v-else-if="getItemStatus(item) !== 'available'"
+                    v-if="getItemStatus(item) !== 'available' && item.has_sibling_line_stock"
                     type="button"
-                    class="btn-alt-action btn-alt-highlight"
-                    :title="__('Onaylı Muadil Seç')"
-                    @click="openAlternativesModal(item)"
+                    class="btn-alt-action btn-line-transfer"
+                    :title="__('Kardeş Hattan Transfer Yap')"
+                    @click="emit('open-line-transfers', item.warehouse || item.source_warehouse || '')"
                   >
-                    🔄 {{ __("Muadil Seç") }}
-                  </button>
-                  <button
-                    v-else
-                    type="button"
-                    class="btn-alt-action btn-alt-secondary"
-                    :title="__('Onaylı Muadili İncele / Seç')"
-                    @click="openAlternativesModal(item)"
-                  >
-                    🔄 {{ __("Muadil") }}
+                    🔄 {{ __("Hat Transferi") }}
                   </button>
                 </div>
                 <span v-else class="no-alt-text">—</span>
@@ -2207,6 +2220,28 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.btn-line-transfer {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+.btn-line-transfer:hover {
+  background: #fef3c7;
+}
+
+[data-theme="dark"] .btn-line-transfer {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(251, 191, 36, 0.35);
+  color: #fcd34d;
+}
+
+[data-theme="dark"] .btn-line-transfer:hover {
+  background: rgba(245, 158, 11, 0.25);
 }
 
 .alt-actions-group {
