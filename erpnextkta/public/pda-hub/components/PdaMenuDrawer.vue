@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from "vue";
-import type { PdaMenuCategory, PdaModuleKey, PdaScreenKey } from "../types";
+import type {
+  PdaMenuCategory,
+  PdaModuleKey,
+  PdaScreenKey,
+  PdaUtilityScreenKey,
+} from "../types";
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
@@ -20,7 +25,13 @@ const emit = defineEmits<{
   (e: "select-screen", key: PdaScreenKey): void;
   (e: "select-category", key: string): void;
   (e: "select-all-modules"): void;
+  (e: "select-utility", key: PdaUtilityScreenKey): void;
 }>();
+
+function onSelectUtility(key: PdaUtilityScreenKey) {
+  emit("select-utility", key);
+  emit("close");
+}
 
 function handleKeyDown(e: KeyboardEvent) {
   if (props.isOpen && e.key === "Escape") {
@@ -139,6 +150,30 @@ onUnmounted(() => {
                 </span>
               </button>
             </div>
+          </section>
+
+          <section
+            class="pda-drawer-group pda-drawer-settings-group"
+            data-testid="drawer-settings-group"
+          >
+            <div class="pda-drawer-cat-head pda-drawer-static-head">
+              <span>⚙️</span>
+              <span>{{ __("AYARLAR") }}</span>
+            </div>
+            <button
+              type="button"
+              class="pda-drawer-item"
+              :class="{ active: activeScreen === 'settings' }"
+              data-testid="drawer-item-settings"
+              @click="onSelectUtility('settings')"
+            >
+              <span class="pda-drawer-item-left">
+                <span class="pda-drawer-item-icon">🛠️</span>
+                <span class="pda-drawer-item-title">
+                  {{ __("Kullanıcı & Cihaz Ayarları") }}
+                </span>
+              </span>
+            </button>
           </section>
         </nav>
       </aside>
@@ -312,5 +347,15 @@ onUnmounted(() => {
   text-align: center;
   font-size: 0.88rem;
   color: var(--text-muted, #64748b);
+}
+
+.pda-drawer-settings-group {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.pda-drawer-static-head {
+  cursor: default;
 }
 </style>

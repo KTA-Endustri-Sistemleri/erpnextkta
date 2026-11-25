@@ -24,6 +24,17 @@ function getAudioContext(): AudioContext | null {
  */
 export async function playBeep(success: boolean): Promise<void> {
   try {
+    if (
+      typeof localStorage !== "undefined" &&
+      localStorage.getItem("kta_pda_sound") === "0"
+    ) {
+      return;
+    }
+  } catch {
+    // Ignore localStorage access errors.
+  }
+
+  try {
     const ctx = getAudioContext();
     if (!ctx) {
       return;

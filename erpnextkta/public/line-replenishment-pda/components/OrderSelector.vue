@@ -145,8 +145,21 @@ function getStatusClass(status?: string): string {
   border: 1px solid var(--border-color, #cbd5e1);
   border-radius: 6px;
   background-color: var(--btn-default-bg, #f8fafc);
+  color: var(--text-color, #0f172a);
   cursor: pointer;
   font-size: 1.1rem;
+}
+
+[data-theme="dark"] .order-select {
+  background-color: var(--bg-color, #0f172a);
+  color: var(--text-color, #f8fafc);
+  border-color: var(--border-color, rgba(255, 255, 255, 0.16));
+}
+
+[data-theme="dark"] .btn-refresh {
+  background-color: var(--pda-surface-alt, #1e293b);
+  color: var(--text-color, #f8fafc);
+  border-color: var(--border-color, rgba(255, 255, 255, 0.16));
 }
 
 .btn-refresh:disabled {
@@ -207,5 +220,30 @@ function getStatusClass(status?: string): string {
 .status-draft {
   background-color: #ede9fe;
   color: #6d28d9;
+}
+
+[data-theme="dark"] .badge-target-warehouse {
+  background-color: rgba(14, 165, 233, 0.22);
+  color: #7dd3fc;
+}
+
+[data-theme="dark"] .badge-status {
+  background-color: rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .status-completed {
+  background-color: rgba(34, 197, 94, 0.22);
+  color: #86efac;
+}
+
+[data-theme="dark"] .status-in-progress {
+  background-color: rgba(245, 158, 11, 0.22);
+  color: #fcd34d;
+}
+
+[data-theme="dark"] .status-draft {
+  background-color: rgba(139, 92, 246, 0.22);
+  color: #c4b5fd;
 }
 </style>

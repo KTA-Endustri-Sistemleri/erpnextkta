@@ -1,6 +1,8 @@
 export type PdaScreenKey = "picking" | "split" | "merge" | "transfer" | "lookup";
 
-export type PdaModuleKey = "home" | PdaScreenKey;
+export type PdaUtilityScreenKey = "settings";
+
+export type PdaModuleKey = "home" | PdaScreenKey | PdaUtilityScreenKey;
 
 export interface PdaMenuScreenItem {
   key: PdaScreenKey;
@@ -45,6 +47,8 @@ export interface VerifyPdaPinResponse {
   csrf_token: string;
   menu_categories?: PdaMenuCategory[];
   open_picking_count?: number;
+  lang?: string;
+  messages?: Record<string, string>;
 }
 
 export interface HandoverLogoutResponse {
@@ -52,6 +56,8 @@ export interface HandoverLogoutResponse {
   is_locked: boolean;
   device_authorized: boolean;
   csrf_token: string;
+  lang?: string;
+  messages?: Record<string, string>;
 }
 
 export interface BoxWarehouseBalance {
@@ -156,3 +162,43 @@ export type StockLookupResult =
   | (BoxScanResult & { kind: "batch" })
   | StockLookupWarehouseResult
   | StockLookupItemResult;
+
+export interface PdaPrinterOption {
+  name: string;
+  printer_name: string;
+  ip: string | null;
+  port: number;
+}
+
+export interface PdaPrinterPreferences {
+  printer: string | null;
+  fallback_printer: string | null;
+  disabled: number;
+}
+
+export interface PdaSettingsData {
+  has_employee: boolean;
+  employee: string | null;
+  employee_name: string | null;
+  department: string | null;
+  has_pin: boolean;
+  can_manage_operator_pins: boolean;
+  authorized_printers: PdaPrinterOption[];
+  printer_preferences: PdaPrinterPreferences;
+  user_language: string;
+  manageable_operators: PdaOperator[];
+}
+
+export interface PdaPrinterTestResponse {
+  ok: boolean;
+  printer: string;
+  online: boolean;
+  status: string;
+  message: string;
+}
+
+export interface PdaLanguageUpdateResponse {
+  ok: boolean;
+  lang: string;
+  messages: Record<string, string>;
+}

@@ -9,8 +9,13 @@ from urllib.parse import unquote
 import frappe
 from erpnext.stock.utils import get_incoming_rate
 from frappe import _
+from frappe.translate import get_all_translations
 from frappe.utils import cint, flt, nowdate, nowtime
-from frappe.utils.password import get_decrypted_password
+from frappe.utils.password import (
+    check_password,
+    get_decrypted_password,
+    set_encrypted_password,
+)
 
 from erpnextkta.kta_stock.label_manager import enqueue_print_labels_by_names
 from erpnextkta.kta_stock.services.relabeling_service import (
@@ -98,6 +103,9 @@ _LABEL_TYPES = ("Depo Giriş Etiketi", "İş Emri Etiketi")
 _PDA_PIN_MAX_FAILURES = 5
 _PDA_PIN_LOCKOUT_SECONDS = 300
 _PDA_PIN_RE = re.compile(r"^[0-9]{4}$")
+_PDA_SUPPORTED_LANGS = ("tr", "en", "de")
+_PDA_PIN_ADMIN_ROLES = {"Stock Manager", "System Manager"}
+_PDA_PWD_LOCKOUT_PREFIX = "pda_pwd_fail:"
 
 
 def _get_pda_signing_secret() -> bytes:
@@ -486,6 +494,8 @@ def verify_pda_pin(employee: str, pin: str) -> dict:
             {"status": ["in", ["Draft", "In Progress"]]},
         )
     )
+    trans_payload = _build_pda_translations_payload(emp.user_id)
+    frappe.local.lang = trans_payload["lang"]
 
     return {
         "ok": True,
@@ -495,6 +505,7 @@ def verify_pda_pin(employee: str, pin: str) -> dict:
         "csrf_token": csrf_token,
         "menu_categories": get_authorized_menu_categories(emp.user_id),
         "open_picking_count": open_picking_count,
+        **trans_payload,
     }
 
 
@@ -511,12 +522,15 @@ def pda_handover_logout() -> dict:
 
     set_pda_device_cookie()
     csrf_token = frappe.sessions.get_csrf_token()
+    trans_payload = _build_pda_translations_payload("Guest")
+    frappe.local.lang = trans_payload["lang"]
 
     return {
         "ok": True,
         "is_locked": True,
         "device_authorized": True,
         "csrf_token": csrf_token,
+        **trans_payload,
     }
 
 
@@ -1424,3 +1438,388 @@ def pda_stock_lookup(barcode: str) -> dict:
     frappe.throw(
         _("Barkod sistemde bulunamadı: {0}").format(code), frappe.ValidationError
     )
+
+
+def _normalize_pda_lang(raw_lang: str | None) -> str:
+    """Normalize a user/locale language string into tr, en, or de (default tr)."""
+    cleaned = str(raw_lang or "").strip().lower().replace("_", "-")
+    prefix = cleaned.split("-", 1)[0] if cleaned else ""
+    if prefix in _PDA_SUPPORTED_LANGS:
+        return prefix
+    return "tr"
+
+
+def _build_pda_translations_payload(user_or_lang: str | None = None) -> dict:
+    """Build live translation payload (lang + message dict) for a user or language code."""
+    if user_or_lang in _PDA_SUPPORTED_LANGS:
+        resolved_lang = str(user_or_lang)
+    elif (
+        user_or_lang
+        and user_or_lang != "Guest"
+        and frappe.db.exists("User", user_or_lang)
+    ):
+        resolved_lang = _normalize_pda_lang(
+            frappe.db.get_value("User", user_or_lang, "language")
+        )
+    else:
+        resolved_lang = "tr"
+
+    messages = dict(get_all_translations(resolved_lang) or {})
+    return {"lang": resolved_lang, "messages": messages}
+
+
+def _get_manageable_pda_operators(caller_user: str) -> list[dict]:
+    """Return active PDA operators whose PIN the caller is authorized to reset."""
+    caller_roles = set(frappe.get_roles(caller_user))
+    if not caller_roles.intersection(_PDA_PIN_ADMIN_ROLES):
+        return []
+
+    is_sys_mgr = "System Manager" in caller_roles
+    manageable: list[dict] = []
+    for op in get_pda_operators():
+        target_user = op.get("user_id")
+        if not target_user or target_user == caller_user:
+            continue
+        if not is_sys_mgr and set(frappe.get_roles(target_user)).intersection(
+            _PDA_PIN_ADMIN_ROLES
+        ):
+            continue
+        manageable.append(op)
+    return manageable
+
+
+def _get_authorized_zebra_printers(user: str) -> list[dict]:
+    """Return all KTA Zebra Printers that the given user is permitted to print to."""
+    if not frappe.db.exists("DocType", "KTA Zebra Printers"):
+        return []
+
+    from kta_system_utils.kta_zebra_utils.printer_manager import ZebraPrinterManager
+
+    rows = frappe.get_all(
+        "KTA Zebra Printers",
+        fields=["name", "printer_name", "ip", "port"],
+        order_by="name asc",
+    )
+    return [
+        {
+            "name": row.name,
+            "printer_name": row.printer_name or row.name,
+            "ip": row.ip,
+            "port": cint(row.port or 9100),
+        }
+        for row in rows
+        if ZebraPrinterManager._user_can_print(user, row.name)
+    ]
+
+
+def _verify_account_password_with_rate_limit(
+    user: str, account_password: str | None
+) -> None:
+    """Verify Frappe account password with 5-attempt / 300s lockout via cache."""
+    pwd_fail_key = f"{_PDA_PWD_LOCKOUT_PREFIX}{user}"
+    fail_count = cint(frappe.cache().get_value(pwd_fail_key, expires=True) or 0)
+    if fail_count >= _PDA_PIN_MAX_FAILURES:
+        frappe.throw(
+            _(
+                "Çok fazla hatalı hesap şifresi denemesi. Lütfen 5 dakika sonra tekrar deneyin."
+            ),
+            frappe.ValidationError,
+        )
+
+    raw_pwd = str(account_password or "")
+    if not raw_pwd:
+        frappe.throw(_("Hesap şifresi zorunludur."), frappe.ValidationError)
+
+    try:
+        check_password(user, raw_pwd)
+    except frappe.AuthenticationError:
+        new_count = fail_count + 1
+        frappe.cache().set_value(
+            pwd_fail_key, new_count, expires_in_sec=_PDA_PIN_LOCKOUT_SECONDS
+        )
+        if new_count >= _PDA_PIN_MAX_FAILURES:
+            frappe.throw(
+                _(
+                    "Çok fazla hatalı hesap şifresi denemesi. Hesap 5 dakika süreyle kilitlendi."
+                ),
+                frappe.ValidationError,
+            )
+        remaining = _PDA_PIN_MAX_FAILURES - new_count
+        frappe.throw(
+            _("Hesap şifresi hatalı. Kalan deneme hakkı: {0}.").format(remaining),
+            frappe.ValidationError,
+        )
+
+    frappe.cache().delete_value(pwd_fail_key)
+
+
+@frappe.whitelist()
+def pda_get_settings_data() -> dict:
+    """Return self-service settings payload, Zebra printers, and RBAC-filtered operators."""
+    user = _require_pda_operator()
+    emp = frappe.db.get_value(
+        "Employee",
+        {"user_id": user, "status": "Active"},
+        ["name", "employee_name", "department"],
+        as_dict=True,
+    )
+
+    prefs = None
+    if frappe.db.exists("DocType", "KTA User Zebra Printers"):
+        prefs = frappe.db.get_value(
+            "KTA User Zebra Printers",
+            user,
+            ["printer", "fallback_printer", "disabled"],
+            as_dict=True,
+        )
+    if not prefs or cint(prefs.disabled) == 1:
+        printer_preferences = {
+            "printer": None,
+            "fallback_printer": None,
+            "disabled": 1,
+        }
+    else:
+        printer_preferences = {
+            "printer": prefs.printer or None,
+            "fallback_printer": prefs.fallback_printer or None,
+            "disabled": 0,
+        }
+
+    return {
+        "has_employee": bool(emp),
+        "employee": emp.name if emp else None,
+        "employee_name": emp.employee_name if emp else None,
+        "department": emp.department if emp else None,
+        "has_pin": _employee_has_pda_pin(emp.name) if emp else False,
+        "can_manage_operator_pins": bool(
+            set(frappe.get_roles(user)) & _PDA_PIN_ADMIN_ROLES
+        ),
+        "authorized_printers": _get_authorized_zebra_printers(user),
+        "printer_preferences": printer_preferences,
+        "user_language": _normalize_pda_lang(
+            frappe.db.get_value("User", user, "language")
+        ),
+        "manageable_operators": _get_manageable_pda_operators(user),
+    }
+
+
+@frappe.whitelist(methods=["POST"])
+def pda_update_own_pin(
+    new_pin: str,
+    confirm_pin: str,
+    mode: str = "initial",
+    current_pin: str | None = None,
+    account_password: str | None = None,
+) -> dict:
+    """Allow an authorized operator to set or update their own 4-digit PIN without Employee.save()."""
+    user = _require_pda_operator()
+    emp = frappe.db.get_value(
+        "Employee",
+        {"user_id": user, "status": "Active"},
+        ["name", "employee_name"],
+        as_dict=True,
+    )
+    if not emp:
+        frappe.throw(
+            _("Bu kullanıcıya bağlı aktif personel kaydı bulunamadı."),
+            frappe.ValidationError,
+        )
+
+    clean_new = str(new_pin or "").strip()
+    clean_confirm = str(confirm_pin or "").strip()
+    if not _PDA_PIN_RE.fullmatch(clean_new):
+        frappe.throw(
+            _("PIN kodu tam olarak 4 sayısal rakamdan oluşmalıdır."),
+            frappe.ValidationError,
+        )
+    if clean_new != clean_confirm:
+        frappe.throw(
+            _("Yeni PIN kodları birbiriyle eşleşmiyor."),
+            frappe.ValidationError,
+        )
+
+    if _employee_has_pda_pin(emp.name):
+        clean_mode = str(mode or "").strip()
+        if clean_mode == "current_pin":
+            clean_current = str(current_pin or "").strip()
+            if not _PDA_PIN_RE.fullmatch(clean_current):
+                frappe.throw(
+                    _("PIN kodu tam olarak 4 sayısal rakamdan oluşmalıdır."),
+                    frappe.ValidationError,
+                )
+            _verify_pin_with_rate_limit(emp.name, clean_current)
+        elif clean_mode == "account_password":
+            _verify_account_password_with_rate_limit(user, account_password)
+        else:
+            frappe.throw(
+                _("Mevcut PIN veya hesap şifresi doğrulaması zorunludur."),
+                frappe.ValidationError,
+            )
+
+    set_encrypted_password("Employee", emp.name, clean_new, fieldname="custom_pda_pin")
+    frappe.cache().delete_value(f"pda_pin_fail:{emp.name}")
+    return {"ok": True, "employee": emp.name, "has_pin": True}
+
+
+@frappe.whitelist(methods=["POST"])
+def pda_admin_reset_operator_pin(
+    target_employee: str,
+    new_pin: str,
+    confirm_pin: str,
+) -> dict:
+    """Allow Stock/System Managers to reset subordinate operators' PINs under strict RBAC."""
+    caller = _require_pda_operator()
+    caller_roles = set(frappe.get_roles(caller))
+    if not caller_roles.intersection(_PDA_PIN_ADMIN_ROLES):
+        frappe.throw(
+            _("Operatör PIN sıfırlama yetkiniz bulunmamaktadır."),
+            frappe.PermissionError,
+        )
+
+    clean_target = str(target_employee or "").strip()
+    if not clean_target:
+        frappe.throw(_("Personel seçimi zorunludur."), frappe.ValidationError)
+
+    emp = _validate_pda_operator_record(clean_target)
+    if emp.user_id == caller:
+        frappe.throw(
+            _("Kendi PIN kodunuzu yönetici sıfırlamasıyla değiştiremezsiniz."),
+            frappe.PermissionError,
+        )
+    if "System Manager" not in caller_roles and set(
+        frappe.get_roles(emp.user_id)
+    ).intersection(_PDA_PIN_ADMIN_ROLES):
+        frappe.throw(
+            _("Bu operatörün PIN kodunu sıfırlama yetkiniz bulunmamaktadır."),
+            frappe.PermissionError,
+        )
+
+    clean_new = str(new_pin or "").strip()
+    clean_confirm = str(confirm_pin or "").strip()
+    if not _PDA_PIN_RE.fullmatch(clean_new):
+        frappe.throw(
+            _("PIN kodu tam olarak 4 sayısal rakamdan oluşmalıdır."),
+            frappe.ValidationError,
+        )
+    if clean_new != clean_confirm:
+        frappe.throw(
+            _("Yeni PIN kodları birbiriyle eşleşmiyor."),
+            frappe.ValidationError,
+        )
+
+    set_encrypted_password("Employee", emp.name, clean_new, fieldname="custom_pda_pin")
+    frappe.cache().delete_value(f"pda_pin_fail:{emp.name}")
+    frappe.cache().delete_value(f"{_PDA_PWD_LOCKOUT_PREFIX}{emp.user_id}")
+    return {
+        "ok": True,
+        "employee": emp.name,
+        "employee_name": emp.employee_name,
+        "has_pin": True,
+    }
+
+
+@frappe.whitelist(methods=["POST"])
+def pda_save_printer_preferences(
+    printer: str | None = None,
+    fallback_printer: str | None = None,
+) -> dict:
+    """Save or clear the current user's default and fallback Zebra printer preferences."""
+    user = _require_pda_operator()
+    p1 = (printer or "").strip() or None
+    p2 = (fallback_printer or "").strip() or None
+    if p1 and p2 and p1 == p2:
+        frappe.throw(
+            _("Varsayılan ve yedek yazıcı aynı olamaz."),
+            frappe.ValidationError,
+        )
+
+    from kta_system_utils.kta_zebra_utils.printer_manager import ZebraPrinterManager
+
+    for p_name in (p for p in (p1, p2) if p):
+        if not frappe.db.exists("KTA Zebra Printers", p_name):
+            frappe.throw(
+                _("Zebra yazıcı bulunamadı: {0}").format(p_name),
+                frappe.ValidationError,
+            )
+        if not ZebraPrinterManager._user_can_print(user, p_name):
+            frappe.throw(
+                _("Seçilen yazıcı için yazdırma yetkiniz yok: {0}").format(p_name),
+                frappe.PermissionError,
+            )
+
+    disabled = 0 if (p1 or p2) else 1
+    if frappe.db.exists("KTA User Zebra Printers", user):
+        pref_doc = frappe.get_doc("KTA User Zebra Printers", user)
+        pref_doc.printer = p1
+        pref_doc.fallback_printer = p2
+        pref_doc.disabled = disabled
+        pref_doc.save(ignore_permissions=True)
+    else:
+        frappe.get_doc(
+            {
+                "doctype": "KTA User Zebra Printers",
+                "user": user,
+                "printer": p1,
+                "fallback_printer": p2,
+                "disabled": disabled,
+            }
+        ).insert(ignore_permissions=True)
+
+    return {
+        "ok": True,
+        "printer": p1,
+        "fallback_printer": p2,
+        "disabled": disabled,
+    }
+
+
+@frappe.whitelist(methods=["POST"])
+def pda_test_printer_connection(printer_name: str) -> dict:
+    """Check Zebra printer connection status without dispatching any print job or log."""
+    user = _require_pda_operator()
+    clean_name = (printer_name or "").strip()
+    if not clean_name or not frappe.db.exists("KTA Zebra Printers", clean_name):
+        frappe.throw(
+            _("Zebra yazıcı bulunamadı: {0}").format(clean_name),
+            frappe.ValidationError,
+        )
+
+    from kta_system_utils.kta_zebra_utils.printer_manager import ZebraPrinterManager
+
+    if not ZebraPrinterManager._user_can_print(user, clean_name):
+        frappe.throw(
+            _("Seçilen yazıcı için yazdırma yetkiniz yok: {0}").format(clean_name),
+            frappe.PermissionError,
+        )
+
+    status_info = ZebraPrinterManager().check_printer_status(clean_name) or {}
+    status_text = str(status_info.get("status") or "")
+    online = bool(
+        status_info.get("color") == "green"
+        or status_text.lower() in ("ready", "online", "ok", "connected")
+    )
+    return {
+        "ok": True,
+        "printer": clean_name,
+        "online": online,
+        "status": status_text or "Error",
+        "message": str(status_info.get("message") or ""),
+    }
+
+
+@frappe.whitelist(methods=["POST"])
+def pda_update_user_language(language: str) -> dict:
+    """Update the active user's User.language and return fresh translation dict for 0ms UI swap."""
+    user = _require_pda_operator()
+    clean_lang = str(language or "").strip().lower()
+    if clean_lang not in _PDA_SUPPORTED_LANGS:
+        frappe.throw(
+            _("Desteklenmeyen dil seçimi: {0}").format(clean_lang),
+            frappe.ValidationError,
+        )
+
+    frappe.db.set_value("User", user, "language", clean_lang)
+    frappe.clear_cache(user=user)
+    trans_payload = _build_pda_translations_payload(clean_lang)
+    frappe.local.lang = trans_payload["lang"]
+    return {"ok": True, **trans_payload}

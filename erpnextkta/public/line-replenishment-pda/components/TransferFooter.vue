@@ -66,9 +66,17 @@ const emit = defineEmits<{
   color: #334155;
 }
 
+[data-theme="dark"] .footer-summary {
+  color: var(--text-color, #e2e8f0);
+}
+
 .summary-hint {
   font-size: 0.78rem;
   color: #d97706;
+}
+
+[data-theme="dark"] .summary-hint {
+  color: #fbbf24;
 }
 
 .btn-complete-transfer {
@@ -102,6 +110,11 @@ const emit = defineEmits<{
   box-shadow: none;
   cursor: not-allowed;
   opacity: 0.65;
+}
+
+[data-theme="dark"] .btn-complete-transfer:disabled {
+  background-color: #475569;
+  color: #cbd5e1;
 }
 
 .btn-icon {

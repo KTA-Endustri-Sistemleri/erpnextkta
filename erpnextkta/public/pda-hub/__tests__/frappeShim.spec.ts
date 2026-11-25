@@ -3,7 +3,11 @@ import {
   initFrappeShim,
   updateCsrfToken,
   overlayState,
+  translate,
+  setRuntimeTranslations,
+  runtimeLocaleState,
 } from "../utils/frappeShim";
+import { playBeep } from "../../line-replenishment-pda/utils/audio";
 
 describe("frappeShim", () => {
   it("sends POST to /api/method/<method> with X-Frappe-CSRF-Token and updates token via updateCsrfToken", async () => {
@@ -178,5 +182,28 @@ describe("frappeShim", () => {
     expect(seenFreezingDuringRequest).toBe(true);
     expect(seenFreezeMessage).toBe("İşlem yapılıyor...");
     expect(overlayState.freezing).toBe(false);
+  });
+
+  it("updates reactive runtimeLocaleState, frappe._messages, and html lang via setRuntimeTranslations", () => {
+    initFrappeShim();
+    setRuntimeTranslations("en", { Menü: "Menu" });
+
+    expect(runtimeLocaleState.lang).toBe("en");
+    expect(translate("Menü")).toBe("Menu");
+    expect(window.__("Menü")).toBe("Menu");
+    expect(document.documentElement.lang).toBe("en");
+    expect(window.frappe._messages["Menü"]).toBe("Menu");
+  });
+
+  it("skips AudioContext instantiation in playBeep when kta_pda_sound is 0", async () => {
+    const audioCtor = vi.fn();
+    vi.stubGlobal("AudioContext", audioCtor);
+    localStorage.setItem("kta_pda_sound", "0");
+    try {
+      await playBeep(true);
+      expect(audioCtor).not.toHaveBeenCalled();
+    } finally {
+      localStorage.removeItem("kta_pda_sound");
+    }
   });
 });

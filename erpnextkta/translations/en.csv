@@ -2107,3 +2107,65 @@ Yeni bir 7+4 karma lot numarası üretilecek ve etikete KARMA LOT ibaresi basıl
 {0} depo bulunamadı: {1},{0} warehouse not found: {1}
 {0} depo işlem için uygun değil: {1},{0} warehouse is not eligible for this transaction: {1}
 Ürün ve hedef depo bilgileri zorunludur.,Item and target warehouse details are required.
+Çok fazla hatalı hesap şifresi denemesi. Lütfen 5 dakika sonra tekrar deneyin.,Too many failed account password attempts. Please try again in 5 minutes.
+Hesap şifresi zorunludur.,Account password is required.
+Çok fazla hatalı hesap şifresi denemesi. Hesap 5 dakika süreyle kilitlendi.,Too many failed account password attempts. Account locked for 5 minutes.
+Hesap şifresi hatalı. Kalan deneme hakkı: {0}.,Incorrect account password. Remaining attempts: {0}.
+Bu kullanıcıya bağlı aktif personel kaydı bulunamadı.,No active employee record found linked to this user.
+Yeni PIN kodları birbiriyle eşleşmiyor.,New PIN codes do not match.
+Mevcut PIN veya hesap şifresi doğrulaması zorunludur.,Current PIN or account password verification is required.
+Operatör PIN sıfırlama yetkiniz bulunmamaktadır.,You are not authorized to reset operator PINs.
+Kendi PIN kodunuzu yönetici sıfırlamasıyla değiştiremezsiniz.,You cannot change your own PIN using administrator reset.
+Bu operatörün PIN kodunu sıfırlama yetkiniz bulunmamaktadır.,You are not authorized to reset this operator's PIN.
+Varsayılan ve yedek yazıcı aynı olamaz.,Default and fallback printers cannot be the same.
+Zebra yazıcı bulunamadı: {0},Zebra printer not found: {0}
+Seçilen yazıcı için yazdırma yetkiniz yok: {0},You do not have print permission for the selected printer: {0}
+Desteklenmeyen dil seçimi: {0},Unsupported language selection: {0}
+Ayarlar,Settings
+AYARLAR,Settings
+Kullanıcı & Cihaz Ayarları,User & Device Settings
+Hızlı geçiş için 4 haneli PDA PIN kodunuz henüz tanımlı değil.,Your 4-digit PDA PIN is not set yet for quick switching.
+Şimdi Belirle,Set Now
+Mevcut PIN kodu 4 sayısal rakamdan oluşmalıdır.,Current PIN must consist of 4 numeric digits.
+PDA PIN kodunuz güncellendi.,Your PDA PIN has been updated.
+PIN güncellenemedi.,Failed to update PIN.
+Lütfen bir operatör seçiniz.,Please select an operator.
+Operatör PIN kodu sıfırlandı.,Operator PIN has been reset.
+Operatör PIN sıfırlanamadı.,Failed to reset operator PIN.
+Kişisel PDA PIN Kodu,Personal PDA PIN Code
+Bu kullanıcıya bağlı aktif personel kartı bulunmadığından kişisel PIN tanımlanamaz.,A personal PIN cannot be set because no active employee record is linked to this user.
+Mevcut PIN İle,With Current PIN
+PIN'imi Unuttum (Şifre İle),Forgot PIN (With Password)
+Mevcut 4 Haneli PIN,Current 4-Digit PIN
+Frappe Hesap Şifreniz,Your Frappe Account Password
+Yeni 4 Haneli PIN,New 4-Digit PIN
+Yeni PIN Tekrar,Confirm New PIN
+PIN Güncelle,Update PIN
+PIN Oluştur,Create PIN
+Operatör PIN Sıfırlama (Yönetici),Operator PIN Reset (Manager)
+Sıfırlama yetkiniz kapsamında başka aktif PDA operatörü bulunamadı.,No other active PDA operators found within your reset scope.
+Operatör Seçimi,Select Operator
+-- Operatör Seçiniz --,-- Select Operator --
+Operatör PIN'ini Sıfırla,Reset Operator PIN
+Ayar bilgileri alınamadı.,Could not retrieve settings information.
+Ayar bilgileri yüklenemedi.,Failed to load settings information.
+Zebra yazıcı tercihleri kaydedildi.,Zebra printer preferences saved.
+Yazıcı tercihleri kaydedilemedi.,Failed to save printer preferences.
+Yazıcı bağlantısı test edilemedi.,Failed to test printer connection.
+Arayüz dili güncellendi.,Interface language updated.
+Dil güncellenemedi.,Failed to update language.
+Ayarlar yükleniyor...,Loading settings...
+Zebra Yazıcı Tercihleri,Zebra Printer Preferences
+Varsayılan Yazıcı,Default Printer
+-- Seçilmedi --,-- Not Selected --
+Yedek Yazıcı,Fallback Printer
+Bağlantıyı Test Et,Test Connection
+Yazıcı Tercihlerini Kaydet,Save Printer Preferences
+Terminal & Görünüm,Terminal & Appearance
+Tema,Theme
+Açık Tema,Light Theme
+Koyu Tema,Dark Theme
+Sesli Uyarılar,Audio Alerts
+Sesli Uyarılar Açık,Audio Alerts On
+Sesli Uyarılar Kapalı,Audio Alerts Off
+Arayüz Dili,Interface Language

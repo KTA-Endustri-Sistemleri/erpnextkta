@@ -217,6 +217,30 @@ describe("LauncherHome.vue", () => {
     expect(emptyEl.exists()).toBe(true);
     expect(emptyEl.text()).toContain("Yetkili Modül Bulunamadı");
   });
+
+  it("shows missing-pin banner when showMissingPinBanner is true and emits open-settings on CTA click", async () => {
+    const wrapperWithBanner = mount(LauncherHome, {
+      props: {
+        menuCategories: [stockCategory],
+        openPickingCount: 2,
+        operatorName: "Ali Yılmaz",
+        showMissingPinBanner: true,
+      },
+    });
+    expect(wrapperWithBanner.find("[data-testid='missing-pin-banner']").exists()).toBe(true);
+    await wrapperWithBanner.find("[data-testid='missing-pin-cta']").trigger("click");
+    expect(wrapperWithBanner.emitted("open-settings")).toHaveLength(1);
+
+    const wrapperWithoutBanner = mount(LauncherHome, {
+      props: {
+        menuCategories: [stockCategory],
+        openPickingCount: 2,
+        operatorName: "Ali Yılmaz",
+        showMissingPinBanner: false,
+      },
+    });
+    expect(wrapperWithoutBanner.find("[data-testid='missing-pin-banner']").exists()).toBe(false);
+  });
 });
 
 describe("PdaMenuDrawer.vue", () => {
@@ -248,16 +272,31 @@ describe("PdaMenuDrawer.vue", () => {
     expect(singleWrapper.emitted("select-screen")).toEqual([["transfer"]]);
     expect(singleWrapper.emitted("close")).toHaveLength(1);
 
+    const settingsGroup = document.body.querySelector(
+      "[data-testid='drawer-settings-group']"
+    ) as HTMLElement;
+    expect(settingsGroup).not.toBeNull();
+    expect(settingsGroup.textContent).toContain("AYARLAR");
+
+    const settingsBtn = document.body.querySelector(
+      "[data-testid='drawer-item-settings']"
+    ) as HTMLElement;
+    expect(settingsBtn).not.toBeNull();
+    settingsBtn.click();
+    await flushPromises();
+    expect(singleWrapper.emitted("select-utility")).toEqual([["settings"]]);
+    expect(singleWrapper.emitted("close")).toHaveLength(2);
+
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     await flushPromises();
-    expect(singleWrapper.emitted("close")).toHaveLength(2);
+    expect(singleWrapper.emitted("close")).toHaveLength(3);
 
     const backdrop = document.body.querySelector(
       "[data-testid='drawer-backdrop']"
     ) as HTMLElement;
     backdrop.click();
     await flushPromises();
-    expect(singleWrapper.emitted("close")).toHaveLength(3);
+    expect(singleWrapper.emitted("close")).toHaveLength(4);
     singleWrapper.unmount();
 
     const multiWrapper = mount(PdaMenuDrawer, {

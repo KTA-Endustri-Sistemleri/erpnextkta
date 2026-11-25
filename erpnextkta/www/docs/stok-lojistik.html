@@ -262,10 +262,11 @@
   <li><strong>Zebra Yazıcı Eşitlemesi &amp; 8 DocType İzin Matrisi:</strong> Kurulum/migration (<code>setup_pda_roles_and_permissions</code> ve <code>setup_pda_stock_role_and_backfill</code>) sırasında saf <code>KTA PDA Stock User</code> rolüne 8 çekirdek belge için (<code>Stock Entry</code>, <code>Serial and Batch Bundle</code>, <code>Batch</code>, <code>Stock Ledger Entry</code>, <code>Item</code>, <code>Warehouse</code>, <code>KTA Stock Label</code>, <code>KTA Line Replenishment Order</code>) gerekli <code>Custom DocPerm</code> izinleri tanımlanır. Ayrıca <code>KTA Printer Permission</code> tablosunda <code>Stock User</code> yazıcı kısıtı bulunan Zebra yazıcılara <code>KTA PDA Stock User</code> izni idempotent olarak eklenir (izin satırı olmayan açık yazıcılara dokunulmaz).</li>
 </ul>
 
-<h3>B. Çok-Modüllü Ana Menü (<code>Stock</code>) ve İki Satırlı Çekmece Navigasyonu</h3>
+<h3>B. Çok-Modüllü Ana Menü (<code>Stock</code>), İki Satırlı Çekmece ve Ayarlar Girişi</h3>
 <ul>
   <li><strong>Akıllı Açılış &amp; Yetki Filtresi:</strong> Oturum/PIN açılışı sonrasında sunucudan gelen yetkili <code>menu_categories</code> ağacına göre yalnızca kullanıcının yetkili olduğu kategoriler ve ekranlar gösterilir. Tek modül kategorisi (<strong>Stock</strong>) yetkisi varsa doğrudan 5 depo ekranı kartı açılır; birden fazla kategori yetkisinde önce ana modül kartları listelenir; hiç yetkili modül yoksa bilgilendirme ekranı (<em>Yetkili Modül Bulunamadı</em>) sunulur.</li>
-  <li><strong>İki Satırlı Üst Bar &amp; Adanmış Alt Bar (<code>.pda-topbar</code> + <code>.pda-subbar</code>):</strong> Dar el terminali ekranlarında (<code>360px–420px</code>) taşmayı önlemek için üst bar (<strong>Satır 1</strong>) yalnızca <strong>[☰ Menü]</strong> çekmece butonu, statik <strong>KTA PDA</strong> markası ve sağdaki operatör/sayaç/<strong>[Devret ↩]</strong> kontrollerini taşır. Bir modül ekranına veya çoklu kategori klasörüne girildiğinde hemen altında açılan adanmış alt bar (<strong>Satır 2</strong>), solunda <strong>[← Geri]</strong> butonu ve yanında tam genişlikte esneyen bağlamsal konum başlığını (ör. <code>Stock › Koli Birleştirme</code> veya <code>Ana Modüller › Stock</code>) gösterir; canlı açık ikmal emri sayısı çekmece ve kart rozetinde izlenir.</li>
+  <li><strong>İki Satırlı Üst Bar &amp; Adanmış Alt Bar (<code>.pda-topbar</code> + <code>.pda-subbar</code>):</strong> Dar el terminali ekranlarında (<code>360px–420px</code>) taşmayı önlemek için üst bar (<strong>Satır 1</strong>) yalnızca <strong>[☰ Menü]</strong> çekmece butonu, statik <strong>KTA PDA</strong> markası ve sağdaki operatör/sayaç/<strong>[Devret ↩]</strong> kontrollerini taşır. Bir modül ekranına, çoklu kategori klasörüne veya <strong>Ayarlar</strong> sayfasına girildiğinde hemen altında açılan adanmış alt bar (<strong>Satır 2</strong>), solunda <strong>[← Geri]</strong> butonu ve yanında tam genişlikte esneyen bağlamsal konum başlığını (ör. <code>Stock › Koli Birleştirme</code>, <code>Ana Modüller › Stock</code> veya <code>Ayarlar</code>) gösterir; canlı açık ikmal emri sayısı çekmece ve kart rozetinde izlenir.</li>
+  <li><strong>Sabit Ayarlar Menüsü (<code>☰ Menü → AYARLAR</code>) &amp; Eksik PIN Uyarısı:</strong> Ana ekrandaki 5 iş modülü kartını kalabalıklaştırmadan tüm PDA rolleri için çekmece menüsünün altında sabit <strong>AYARLAR</strong> (<em>Kullanıcı &amp; Cihaz Ayarları</em>) girişi yer alır. Kişisel 4 haneli PIN kodu henüz tanımlı olmayan operatörlere ana ekranda tek satırlık uyarı bandı (<code>missing-pin-banner</code>) üzerinden <strong>[Şimdi Belirle]</strong> kısayolu gösterilir.</li>
 </ul>
 
 <h3>C. 5 Saha Depo Modülü (<code>Stock</code> Menüsü)</h3>
@@ -325,6 +326,54 @@
     <li><strong>Aynı Ana Lot vs. Karma / Standart Dışı Lot:</strong> Tüm kaynak kutular standart <code>7+4</code> formatında ve aynı 7 haneli lot ön ekine sahipse uyarı olmadan aynı lottan ardışık kutu üretilir (orijinal mal kabul/üretim meta verileri ve en erken SKT devralınır). Farklı lot ön ekleri veya standart dışı (<code>LEGACY</code>) partiler tespit edildiğinde onay modalı açılır; kullanıcı riskleri onaylarsa (<code>allow_mixed_lots = 1</code>) en erken SKT (<code>min(expiry_date)</code>) ve ağırlıklı ortalama değerleme ile yeni <code>7+4</code> karma lot üretilir ve etiket kalite referansına <strong><code>KARMA LOT</code></strong> basılır.</li>
     <li><strong>3 Katmanlı Denetim İzi &amp; İptal/Silme Geri Alma:</strong> Hareketler <code>Stock Entry Type = "Package Merge"</code>, detaylı kaynak/hedef dökümü içeren <code>Stock Entry.remarks</code> ve hedef <code>Batch.description</code> kayıtlarıyla izlenir. Belge iptal edilir veya silinirse oluşan hedef etiket temizlenip boş hedef parti pasife alınır ve bakiyesi dönen kaynak kutuların mal kabul/üretim kökenli <code>KTA Stock Label</code> kayıtları otomatik geri yüklenir.</li>
   </ul>
+</div>
+
+<h3>D. Kullanıcı &amp; Cihaz Ayarları (<code>☰ Menü → AYARLAR</code>)</h3>
+<p>Saf <code>Website User</code> (<code>desk_access = 0</code>) saha operatörlerinin Desk erişimine ihtiyaç duymadan kişisel PIN kodlarını, Zebra yazıcı tercihlerini, cihaz görünümünü ve arayüz dilini doğrudan el terminali üzerinden yönetmesini sağlar. Ayarlar ekranı ana sayfa modül kartlarını kalabalıklaştırmadan yalnızca <strong>☰ Menü → AYARLAR → Kullanıcı &amp; Cihaz Ayarları</strong> yolundan veya eksik PIN uyarısındaki <strong>[Şimdi Belirle]</strong> butonundan açılır ve <code>.pda-subbar</code> üzerinde <code>← Geri | Ayarlar</code> başlığıyla görüntülenir.</p>
+
+<div class="kta-doc-table-wrap">
+  <table class="kta-doc-table">
+    <thead>
+      <tr>
+        <th>Bölüm</th>
+        <th>İşlev ve Kullanım</th>
+        <th>Güvenlik &amp; Davranış Kuralları</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. Kişisel PDA PIN Kodu</strong><br/><span class="kta-doc-badge blue">Self-Servis</span></td>
+        <td>İlk PIN oluşturma, mevcut PIN ile değiştirme veya <em>PIN'imi Unuttum (Şifre İle)</em> sıfırlama</td>
+        <td>
+          <strong>4 Modlu Yaşam Döngüsü:</strong><br/>
+          • <em>İlk Kurulum:</em> <code>/login?redirect-to=/pda</code> ile giriş yapan ve henüz PIN'i olmayan operatör doğrudan 4 sayısal rakamlı PIN oluşturur.<br/>
+          • <em>Mevcut PIN İle Güncelleme:</em> Mevcut PIN doğrulanır (5 hatalı denemede <code>300 sn</code> kilit).<br/>
+          • <em>Hesap Şifresiyle Sıfırlama:</em> Frappe hesap şifresi doğrulamasıyla yeni PIN tanımlanır; ayrı <code>5 deneme / 300 sn</code> şifre kilidiyle korunur.<br/>
+          Aktif <code>Employee</code> kaydı olmayan yöneticilere kişisel PIN formu yerine bilgilendirme mesajı gösterilir; PIN kaydı <code>Employee</code> belgesini tetiklemeden güvenli parola kasasına yazılır.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>2. Operatör PIN Sıfırlama</strong><br/><span class="kta-doc-badge orange">Yönetici RBAC</span></td>
+        <td>PIN'ini unutan veya kilitleyen başka bir operatöre yeni 4 haneli PIN tanımlama ve kilidi açma</td>
+        <td>
+          <strong>Katı Yetki Sınırı:</strong><br/>
+          • Yalnızca <code>Stock Manager</code> ve <code>System Manager</code> rollerine görünür; kendi kendine sıfırlama kesinlikle yasaktır.<br/>
+          • <code>Stock Manager</code> yalnızca diğer saf <code>KTA PDA *</code> saha operatörlerini (başka yöneticiler hariç) sıfırlayabilir.<br/>
+          • <code>System Manager</code> kendisi dışındaki tüm aktif PDA operatörlerinin PIN'ini sıfırlayabilir ve hem PIN hem şifre kilidini temizler.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>3. Zebra Yazıcı Tercihleri</strong><br/><span class="kta-doc-badge green">Baskı</span></td>
+        <td>Varsayılan ve Yedek Zebra yazıcı seçimi + <strong>[Bağlantıyı Test Et]</strong></td>
+        <td>Yalnızca kullanıcının yazdırma iznine (<code>_user_can_print</code>) sahip olduğu yazıcılar listelenir ve seçilen tercih <code>KTA User Zebra Printers</code> kaydına işlenir. Varsayılan ve yedek yazıcı aynı olamaz. Bağlantı testi boş etiket harcamadan yazıcı durumunu anlık sorgular.</td>
+      </tr>
+      <tr>
+        <td><strong>4. Terminal, Ses &amp; Dil</strong><br/><span class="kta-doc-badge purple">Görünüm</span></td>
+        <td>Açık/Koyu tema, sesli uyarı anahtarı ve canlı <code>TR / EN / DE</code> arayüz dili</td>
+        <td>Açık/Koyu tema (<code>[data-theme="dark"]</code> tüm 5 depo modülü ve hat ikmal bileşenleriyle tam uyumludur) ile sesli uyarı tercihi (<code>kta_pda_theme</code>, <code>kta_pda_sound</code>) fiziksel terminale yerel olarak kaydedilir. Dil seçimi ise <code>User.language</code> alanına kalıcı işlenir ve sayfa yenilenmeden anında arayüze yansır; PIN girişi ve <strong>[Devret ↩]</strong> geçişlerinde yeni operatörün kendi dili otomatik yüklenir.</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 </div>

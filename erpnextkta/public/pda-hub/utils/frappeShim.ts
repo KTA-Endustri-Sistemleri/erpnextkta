@@ -35,6 +35,14 @@ export const overlayState = reactive<{
   confirm: null,
 });
 
+export const runtimeLocaleState = reactive<{
+  lang: string;
+  messages: Record<string, string>;
+}>({
+  lang: "tr",
+  messages: {},
+});
+
 let nextAlertId = 1;
 let activeFreezeCount = 0;
 let authExpiredCallback: (() => void) | undefined;
@@ -45,11 +53,34 @@ export function updateCsrfToken(token: string): void {
   }
 }
 
+export function setRuntimeTranslations(
+  lang: string,
+  messages?: Record<string, string>,
+): void {
+  const cleanLang = String(lang || "tr").trim() || "tr";
+  const nextDict: Record<string, string> = { ...(messages || {}) };
+  runtimeLocaleState.lang = cleanLang;
+  runtimeLocaleState.messages = nextDict;
+  if (typeof document !== "undefined") {
+    document.documentElement.lang = cleanLang;
+  }
+  if (typeof window !== "undefined") {
+    window.frappe = window.frappe || {};
+    window.frappe._messages = nextDict;
+    window.frappe.boot = window.frappe.boot || {};
+    window.frappe.boot.__messages = nextDict;
+  }
+}
+
 export function translate(txt: string, replace?: any[]): string {
+  void runtimeLocaleState.lang;
   const win = typeof window !== "undefined" ? (window as any) : {};
-  const dict =
-    win.frappe?._messages || win.frappe?.boot?.__messages || {};
-  let msg = String(dict[txt] ?? txt ?? "");
+  const raw =
+    runtimeLocaleState.messages[txt] ??
+    win.frappe?._messages?.[txt] ??
+    win.frappe?.boot?.__messages?.[txt] ??
+    txt;
+  let msg = String(raw ?? "");
   if (Array.isArray(replace)) {
     replace.forEach((val, idx) => {
       msg = msg.replace(new RegExp(`\\{${idx}\\}`, "g"), String(val ?? ""));
@@ -251,10 +282,23 @@ export function initFrappeShim(options?: { onAuthExpired?: () => void }): void {
 
   window.__ = translate;
   const existing = window.frappe || {};
+  const initialLang =
+    String(
+      existing.boot?.lang ||
+        (typeof document !== "undefined" && document.documentElement.lang) ||
+        "tr",
+    ).trim() || "tr";
+  const initialMessages = {
+    ...(existing.boot?.__messages || {}),
+    ...(existing._messages || {}),
+  };
+  runtimeLocaleState.lang = initialLang;
+  runtimeLocaleState.messages = initialMessages;
+
   window.frappe = {
     ...existing,
-    boot: existing.boot || { __messages: {} },
-    _messages: existing._messages || existing.boot?.__messages || {},
+    boot: { ...(existing.boot || {}), __messages: runtimeLocaleState.messages },
+    _messages: runtimeLocaleState.messages,
     call: frappeCall,
     msgprint: showMsgprint,
     show_alert: showAlert,

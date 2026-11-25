@@ -2096,3 +2096,65 @@ Yeni bir 7+4 karma lot numarası üretilecek ve etikete KARMA LOT ibaresi basıl
 {0} depo bulunamadı: {1},{0}-Lager nicht gefunden: {1}
 {0} depo işlem için uygun değil: {1},{0}-Lager ist für diesen Vorgang nicht geeignet: {1}
 Ürün ve hedef depo bilgileri zorunludur.,Artikel- und Ziellagerdaten sind erforderlich.
+Çok fazla hatalı hesap şifresi denemesi. Lütfen 5 dakika sonra tekrar deneyin.,Zu viele fehlgeschlagene Kontopasswort-Versuche. Bitte versuchen Sie es in 5 Minuten erneut.
+Hesap şifresi zorunludur.,Das Kontopasswort ist erforderlich.
+Çok fazla hatalı hesap şifresi denemesi. Hesap 5 dakika süreyle kilitlendi.,Zu viele fehlgeschlagene Kontopasswort-Versuche. Das Konto wurde für 5 Minuten gesperrt.
+Hesap şifresi hatalı. Kalan deneme hakkı: {0}.,Falsches Kontopasswort. Verbleibende Versuche: {0}.
+Bu kullanıcıya bağlı aktif personel kaydı bulunamadı.,Kein aktiver Mitarbeiterdatensatz für diesen Benutzer gefunden.
+Yeni PIN kodları birbiriyle eşleşmiyor.,Die neuen PIN-Codes stimmen nicht überein.
+Mevcut PIN veya hesap şifresi doğrulaması zorunludur.,Eine Verifizierung über die aktuelle PIN oder das Kontopasswort ist erforderlich.
+Operatör PIN sıfırlama yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, Bediener-PINs zurückzusetzen."
+Kendi PIN kodunuzu yönetici sıfırlamasıyla değiştiremezsiniz.,Sie können Ihre eigene PIN nicht über das Zurücksetzen durch Administratoren ändern.
+Bu operatörün PIN kodunu sıfırlama yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, die PIN dieses Bedieners zurückzusetzen."
+Varsayılan ve yedek yazıcı aynı olamaz.,Standard- und Ersatzdrucker dürfen nicht identisch sein.
+Zebra yazıcı bulunamadı: {0},Zebra-Drucker nicht gefunden: {0}
+Seçilen yazıcı için yazdırma yetkiniz yok: {0},Sie haben keine Druckberechtigung für den ausgewählten Drucker: {0}
+Desteklenmeyen dil seçimi: {0},Nicht unterstützte Sprachauswahl: {0}
+Ayarlar,Einstellungen
+AYARLAR,Einstellungen
+Kullanıcı & Cihaz Ayarları,Benutzer- & Geräteeinstellungen
+Hızlı geçiş için 4 haneli PDA PIN kodunuz henüz tanımlı değil.,Ihre 4-stellige PDA-PIN für den schnellen Wechsel ist noch nicht festgelegt.
+Şimdi Belirle,Jetzt Festlegen
+Mevcut PIN kodu 4 sayısal rakamdan oluşmalıdır.,Die aktuelle PIN muss aus 4 Ziffern bestehen.
+PDA PIN kodunuz güncellendi.,Ihre PDA-PIN wurde aktualisiert.
+PIN güncellenemedi.,PIN konnte nicht aktualisiert werden.
+Lütfen bir operatör seçiniz.,Bitte wählen Sie einen Bediener aus.
+Operatör PIN kodu sıfırlandı.,Bediener-PIN wurde zurückgesetzt.
+Operatör PIN sıfırlanamadı.,Bediener-PIN konnte nicht zurückgesetzt werden.
+Kişisel PDA PIN Kodu,Persönlicher PDA-PIN-Code
+Bu kullanıcıya bağlı aktif personel kartı bulunmadığından kişisel PIN tanımlanamaz.,"Eine persönliche PIN kann nicht festgelegt werden, da diesem Benutzer kein aktiver Mitarbeiterdatensatz zugeordnet ist."
+Mevcut PIN İle,Mit Aktueller PIN
+PIN'imi Unuttum (Şifre İle),PIN Vergessen (Mit Passwort)
+Mevcut 4 Haneli PIN,Aktuelle 4-Stellige PIN
+Frappe Hesap Şifreniz,Ihr Frappe-Kontopasswort
+Yeni 4 Haneli PIN,Neue 4-Stellige PIN
+Yeni PIN Tekrar,Neue PIN Wiederholen
+PIN Güncelle,PIN Aktualisieren
+PIN Oluştur,PIN Erstellen
+Operatör PIN Sıfırlama (Yönetici),Bediener-PIN Zurücksetzen (Manager)
+Sıfırlama yetkiniz kapsamında başka aktif PDA operatörü bulunamadı.,Keine weiteren aktiven PDA-Bediener in Ihrem Berechtigungsbereich gefunden.
+Operatör Seçimi,Bediener Auswählen
+-- Operatör Seçiniz --,-- Bediener Auswählen --
+Operatör PIN'ini Sıfırla,Bediener-PIN Zurücksetzen
+Ayar bilgileri alınamadı.,Einstellungsinformationen konnten nicht abgerufen werden.
+Ayar bilgileri yüklenemedi.,Einstellungsinformationen konnten nicht geladen werden.
+Zebra yazıcı tercihleri kaydedildi.,Zebra-Druckereinstellungen gespeichert.
+Yazıcı tercihleri kaydedilemedi.,Druckereinstellungen konnten nicht gespeichert werden.
+Yazıcı bağlantısı test edilemedi.,Druckerverbindung konnte nicht getestet werden.
+Arayüz dili güncellendi.,Oberflächensprache aktualisiert.
+Dil güncellenemedi.,Sprache konnte nicht aktualisiert werden.
+Ayarlar yükleniyor...,Einstellungen werden geladen...
+Zebra Yazıcı Tercihleri,Zebra-Druckereinstellungen
+Varsayılan Yazıcı,Standarddrucker
+-- Seçilmedi --,-- Nicht Ausgewählt --
+Yedek Yazıcı,Ersatzdrucker
+Bağlantıyı Test Et,Verbindung Testen
+Yazıcı Tercihlerini Kaydet,Druckereinstellungen Speichern
+Terminal & Görünüm,Terminal & Erscheinungsbild
+Tema,Design
+Açık Tema,Helles Design
+Koyu Tema,Dunkles Design
+Sesli Uyarılar,Akustische Hinweise
+Sesli Uyarılar Açık,Akustische Hinweise Ein
+Sesli Uyarılar Kapalı,Akustische Hinweise Aus
+Arayüz Dili,Oberflächensprache

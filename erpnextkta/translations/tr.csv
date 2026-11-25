@@ -1291,3 +1291,65 @@ Yeni bir 7+4 karma lot numarası üretilecek ve etikete KARMA LOT ibaresi basıl
 {0} depo bulunamadı: {1},{0} depo bulunamadı: {1}
 {0} depo işlem için uygun değil: {1},{0} depo işlem için uygun değil: {1}
 Ürün ve hedef depo bilgileri zorunludur.,Ürün ve hedef depo bilgileri zorunludur.
+Çok fazla hatalı hesap şifresi denemesi. Lütfen 5 dakika sonra tekrar deneyin.,Çok fazla hatalı hesap şifresi denemesi. Lütfen 5 dakika sonra tekrar deneyin.
+Hesap şifresi zorunludur.,Hesap şifresi zorunludur.
+Çok fazla hatalı hesap şifresi denemesi. Hesap 5 dakika süreyle kilitlendi.,Çok fazla hatalı hesap şifresi denemesi. Hesap 5 dakika süreyle kilitlendi.
+Hesap şifresi hatalı. Kalan deneme hakkı: {0}.,Hesap şifresi hatalı. Kalan deneme hakkı: {0}.
+Bu kullanıcıya bağlı aktif personel kaydı bulunamadı.,Bu kullanıcıya bağlı aktif personel kaydı bulunamadı.
+Yeni PIN kodları birbiriyle eşleşmiyor.,Yeni PIN kodları birbiriyle eşleşmiyor.
+Mevcut PIN veya hesap şifresi doğrulaması zorunludur.,Mevcut PIN veya hesap şifresi doğrulaması zorunludur.
+Operatör PIN sıfırlama yetkiniz bulunmamaktadır.,Operatör PIN sıfırlama yetkiniz bulunmamaktadır.
+Kendi PIN kodunuzu yönetici sıfırlamasıyla değiştiremezsiniz.,Kendi PIN kodunuzu yönetici sıfırlamasıyla değiştiremezsiniz.
+Bu operatörün PIN kodunu sıfırlama yetkiniz bulunmamaktadır.,Bu operatörün PIN kodunu sıfırlama yetkiniz bulunmamaktadır.
+Varsayılan ve yedek yazıcı aynı olamaz.,Varsayılan ve yedek yazıcı aynı olamaz.
+Zebra yazıcı bulunamadı: {0},Zebra yazıcı bulunamadı: {0}
+Seçilen yazıcı için yazdırma yetkiniz yok: {0},Seçilen yazıcı için yazdırma yetkiniz yok: {0}
+Desteklenmeyen dil seçimi: {0},Desteklenmeyen dil seçimi: {0}
+Ayarlar,Ayarlar
+AYARLAR,AYARLAR
+Kullanıcı & Cihaz Ayarları,Kullanıcı & Cihaz Ayarları
+Hızlı geçiş için 4 haneli PDA PIN kodunuz henüz tanımlı değil.,Hızlı geçiş için 4 haneli PDA PIN kodunuz henüz tanımlı değil.
+Şimdi Belirle,Şimdi Belirle
+Mevcut PIN kodu 4 sayısal rakamdan oluşmalıdır.,Mevcut PIN kodu 4 sayısal rakamdan oluşmalıdır.
+PDA PIN kodunuz güncellendi.,PDA PIN kodunuz güncellendi.
+PIN güncellenemedi.,PIN güncellenemedi.
+Lütfen bir operatör seçiniz.,Lütfen bir operatör seçiniz.
+Operatör PIN kodu sıfırlandı.,Operatör PIN kodu sıfırlandı.
+Operatör PIN sıfırlanamadı.,Operatör PIN sıfırlanamadı.
+Kişisel PDA PIN Kodu,Kişisel PDA PIN Kodu
+Bu kullanıcıya bağlı aktif personel kartı bulunmadığından kişisel PIN tanımlanamaz.,Bu kullanıcıya bağlı aktif personel kartı bulunmadığından kişisel PIN tanımlanamaz.
+Mevcut PIN İle,Mevcut PIN İle
+PIN'imi Unuttum (Şifre İle),PIN'imi Unuttum (Şifre İle)
+Mevcut 4 Haneli PIN,Mevcut 4 Haneli PIN
+Frappe Hesap Şifreniz,Frappe Hesap Şifreniz
+Yeni 4 Haneli PIN,Yeni 4 Haneli PIN
+Yeni PIN Tekrar,Yeni PIN Tekrar
+PIN Güncelle,PIN Güncelle
+PIN Oluştur,PIN Oluştur
+Operatör PIN Sıfırlama (Yönetici),Operatör PIN Sıfırlama (Yönetici)
+Sıfırlama yetkiniz kapsamında başka aktif PDA operatörü bulunamadı.,Sıfırlama yetkiniz kapsamında başka aktif PDA operatörü bulunamadı.
+Operatör Seçimi,Operatör Seçimi
+-- Operatör Seçiniz --,-- Operatör Seçiniz --
+Operatör PIN'ini Sıfırla,Operatör PIN'ini Sıfırla
+Ayar bilgileri alınamadı.,Ayar bilgileri alınamadı.
+Ayar bilgileri yüklenemedi.,Ayar bilgileri yüklenemedi.
+Zebra yazıcı tercihleri kaydedildi.,Zebra yazıcı tercihleri kaydedildi.
+Yazıcı tercihleri kaydedilemedi.,Yazıcı tercihleri kaydedilemedi.
+Yazıcı bağlantısı test edilemedi.,Yazıcı bağlantısı test edilemedi.
+Arayüz dili güncellendi.,Arayüz dili güncellendi.
+Dil güncellenemedi.,Dil güncellenemedi.
+Ayarlar yükleniyor...,Ayarlar yükleniyor...
+Zebra Yazıcı Tercihleri,Zebra Yazıcı Tercihleri
+Varsayılan Yazıcı,Varsayılan Yazıcı
+-- Seçilmedi --,-- Seçilmedi --
+Yedek Yazıcı,Yedek Yazıcı
+Bağlantıyı Test Et,Bağlantıyı Test Et
+Yazıcı Tercihlerini Kaydet,Yazıcı Tercihlerini Kaydet
+Terminal & Görünüm,Terminal & Görünüm
+Tema,Tema
+Açık Tema,Açık Tema
+Koyu Tema,Koyu Tema
+Sesli Uyarılar,Sesli Uyarılar
+Sesli Uyarılar Açık,Sesli Uyarılar Açık
+Sesli Uyarılar Kapalı,Sesli Uyarılar Kapalı
+Arayüz Dili,Arayüz Dili

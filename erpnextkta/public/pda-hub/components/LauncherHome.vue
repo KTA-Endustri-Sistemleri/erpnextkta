@@ -10,13 +10,15 @@ const props = withDefaults(
     selectedCategoryKey?: string | null;
     openPickingCount: number;
     operatorName?: string;
+    showMissingPinBanner?: boolean;
   }>(),
-  { selectedCategoryKey: null, operatorName: "" },
+  { selectedCategoryKey: null, operatorName: "", showMissingPinBanner: false },
 );
 
 const emit = defineEmits<{
   (e: "select", moduleKey: PdaScreenKey): void;
   (e: "select-category", categoryKey: string | null): void;
+  (e: "open-settings"): void;
 }>();
 
 const activeCategory = computed<PdaMenuCategory | null>(() => {
@@ -45,6 +47,24 @@ function categoryHasPicking(category: PdaMenuCategory): boolean {
             : __("Başlamak için işlem seçin.")
         }}
       </p>
+    </div>
+
+    <div
+      v-if="showMissingPinBanner"
+      class="missing-pin-banner"
+      data-testid="missing-pin-banner"
+    >
+      <div class="missing-pin-text">
+        🔑 {{ __("Hızlı geçiş için 4 haneli PDA PIN kodunuz henüz tanımlı değil.") }}
+      </div>
+      <button
+        type="button"
+        class="missing-pin-cta"
+        data-testid="missing-pin-cta"
+        @click="emit('open-settings')"
+      >
+        {{ __("Şimdi Belirle") }}
+      </button>
     </div>
 
     <div
@@ -150,4 +170,30 @@ function categoryHasPicking(category: PdaMenuCategory): boolean {
 [data-theme="dark"] .count-badge { background: rgba(37, 99, 235, 0.25); color: #93c5fd; }
 .card-title { margin: 0; font-size: 1.02rem; font-weight: 800; }
 .card-desc { margin: 0.25rem 0 0; font-size: 0.8rem; color: var(--text-muted, #64748b); line-height: 1.35; }
+.missing-pin-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #92400e;
+}
+[data-theme="dark"] .missing-pin-banner { color: #fcd34d; border-color: rgba(251, 191, 36, 0.45); }
+.missing-pin-text { font-size: 0.84rem; font-weight: 700; line-height: 1.35; }
+.missing-pin-cta {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #d97706;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
 </style>

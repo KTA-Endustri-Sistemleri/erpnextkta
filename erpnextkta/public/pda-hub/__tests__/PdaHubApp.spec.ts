@@ -96,10 +96,18 @@ describe("PdaHubApp", () => {
     window.csrf_token = "initial-csrf";
     window.__ = (s: string) => s;
     window.__KTA_PDA_BOOT__ = makeBoot({ menu_categories: [] });
+    localStorage.removeItem("kta_pda_theme");
+    localStorage.removeItem("kta_pda_sound");
+    document.documentElement.removeAttribute("data-theme");
+    document.documentElement.lang = "tr";
     document.body.innerHTML = "";
   });
 
   afterEach(() => {
+    localStorage.removeItem("kta_pda_theme");
+    localStorage.removeItem("kta_pda_sound");
+    document.documentElement.removeAttribute("data-theme");
+    document.documentElement.lang = "tr";
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
@@ -361,6 +369,113 @@ describe("PdaHubApp", () => {
     await wrapper.find('[data-testid="topbar-back-btn"]').trigger("click");
     expect(wrapper.find('[data-testid="pda-subbar"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="category-card-stock"]').exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("applies stored dark theme, navigates to PdaSettingsView via drawer, and syncs live translations on unlock/handover", async () => {
+    localStorage.setItem("kta_pda_theme", "dark");
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("verify_pda_pin")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            message: {
+              ok: true,
+              user: "ali@example.com",
+              employee: "EMP-0001",
+              employee_name: "Ali Yılmaz",
+              csrf_token: "csrf-en",
+              menu_categories: [STOCK_CATEGORY],
+              open_picking_count: 1,
+              lang: "en",
+              messages: {
+                Menü: "Menu",
+                Ayarlar: "Settings",
+                Geri: "Back",
+                Devret: "Handover",
+              },
+            },
+          }),
+        };
+      }
+      if (url.includes("pda_get_settings_data")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            message: {
+              has_employee: true,
+              employee: "EMP-0001",
+              employee_name: "Ali Yılmaz",
+              department: "AMBAR - KTA",
+              has_pin: true,
+              can_manage_operator_pins: false,
+              authorized_printers: [],
+              printer_preferences: { printer: null, fallback_printer: null, disabled: 1 },
+              user_language: "en",
+              manageable_operators: [],
+            },
+          }),
+        };
+      }
+      if (url.includes("pda_handover_logout")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            message: {
+              ok: true,
+              csrf_token: "csrf-tr",
+              lang: "tr",
+              messages: { "PDA Terminal Kilidi": "PDA Terminal Kilidi" },
+            },
+          }),
+        };
+      }
+      if (url.includes("get_pda_boot_data")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            message: makeBoot({ is_locked: false, open_picking_count: 1 }),
+          }),
+        };
+      }
+      return { ok: true, status: 200, json: async () => ({ message: {} }) };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const wrapper = mount(PdaHubApp);
+    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+
+    await wrapper.findAll('[data-testid="operator-card"]')[0].trigger("click");
+    for (const d of ["1", "2", "3", "4"]) {
+      await wrapper.find(`[data-testid="pin-key-${d}"]`).trigger("click");
+    }
+    await flushPromises();
+
+    expect(document.documentElement.lang).toBe("en");
+    expect(wrapper.find('[data-testid="topbar-menu-btn"]').text()).toContain("Menu");
+    expect(wrapper.find('[data-testid="handover-btn"]').text()).toContain("Handover");
+
+    await wrapper.find('[data-testid="topbar-menu-btn"]').trigger("click");
+    const settingsBtn = document.body.querySelector(
+      '[data-testid="drawer-item-settings"]',
+    ) as HTMLElement;
+    expect(settingsBtn).not.toBeNull();
+    settingsBtn.click();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="pda-subbar"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="topbar-back-btn"]').text()).toContain("Back");
+    expect(wrapper.find('[data-testid="topbar-breadcrumb"]').text()).toBe("Settings");
+    expect(wrapper.find('[data-testid="own-pin-card"]').exists()).toBe(true);
+
+    await wrapper.find('[data-testid="handover-btn"]').trigger("click");
+    await flushPromises();
+    expect(document.documentElement.lang).toBe("tr");
+    expect(wrapper.find('[data-testid="operator-card"]').exists()).toBe(true);
     wrapper.unmount();
   });
 });

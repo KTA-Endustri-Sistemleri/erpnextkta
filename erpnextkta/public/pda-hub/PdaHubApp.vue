@@ -6,9 +6,15 @@ import type {
   PdaModuleKey,
   PdaOperator,
   PdaScreenKey,
+  PdaUtilityScreenKey,
   VerifyPdaPinResponse,
 } from "./types";
-import { initFrappeShim, updateCsrfToken } from "./utils/frappeShim";
+import {
+  initFrappeShim,
+  setRuntimeTranslations,
+  updateCsrfToken,
+} from "./utils/frappeShim";
+import { applyTheme, getStoredTheme } from "./utils/pdaPreferences";
 import { useInactivityLock } from "./composables/useInactivityLock";
 import PdaOverlays from "./components/PdaOverlays.vue";
 import PdaMenuDrawer from "./components/PdaMenuDrawer.vue";
@@ -19,8 +25,11 @@ import PackageSplitView from "./views/PackageSplitView.vue";
 import PackageMergeView from "./views/PackageMergeView.vue";
 import MaterialTransferView from "./views/MaterialTransferView.vue";
 import StockLookupView from "./views/StockLookupView.vue";
+import PdaSettingsView from "./views/PdaSettingsView.vue";
 
 const __ = (...args: any[]) => (window as any).__(...args);
+
+applyTheme(getStoredTheme());
 
 const rawBoot: PdaBootData | null =
   typeof window !== "undefined" && window.__KTA_PDA_BOOT__ ? window.__KTA_PDA_BOOT__ : null;
@@ -76,6 +85,13 @@ async function handleHandoverLogout() {
     if (res?.message?.csrf_token) {
       updateCsrfToken(res.message.csrf_token);
     }
+    if (
+      res?.message?.lang &&
+      res?.message?.messages &&
+      typeof res.message.messages === "object"
+    ) {
+      setRuntimeTranslations(res.message.lang, res.message.messages);
+    }
   } catch {
     // Always fall back to locked state on device handover even if network drops.
   } finally {
@@ -116,6 +132,8 @@ const activeModuleTitle = computed(() => {
       return __("Malzeme Transfer");
     case "lookup":
       return __("Stok Sorgu");
+    case "settings":
+      return __("Ayarlar");
     default:
       return __("KTA PDA");
   }
@@ -143,6 +161,9 @@ function handleSubbarBack() {
 }
 
 const breadcrumbText = computed(() => {
+  if (activeModule.value === "settings") {
+    return __("Ayarlar");
+  }
   if (activeModule.value !== "home") {
     const ownerCategory =
       menuCategories.value.find((cat) =>
@@ -200,6 +221,13 @@ function handleUnlocked(payload: { response: VerifyPdaPinResponse; operator: Pda
   if (payload.response?.csrf_token) {
     updateCsrfToken(payload.response.csrf_token);
   }
+  if (
+    payload.response?.lang &&
+    payload.response?.messages &&
+    typeof payload.response.messages === "object"
+  ) {
+    setRuntimeTranslations(payload.response.lang, payload.response.messages);
+  }
   const nextCategories = Array.isArray(payload.response?.menu_categories)
     ? payload.response.menu_categories
     : [];
@@ -213,6 +241,21 @@ function handleUnlocked(payload: { response: VerifyPdaPinResponse; operator: Pda
   authExpiredWarning.value = false;
   activeModule.value = "home";
   isDrawerOpen.value = false;
+  void refreshBootState();
+}
+
+function onSelectUtility(utilityKey: PdaUtilityScreenKey) {
+  activeModule.value = utilityKey;
+  isDrawerOpen.value = false;
+}
+
+function handlePinUpdated() {
+  if (activeOperator.value) {
+    activeOperator.value = { ...activeOperator.value, has_pin: true };
+    operators.value = operators.value.map((op) =>
+      op.name === activeOperator.value?.name ? { ...op, has_pin: true } : op,
+    );
+  }
   void refreshBootState();
 }
 
@@ -308,8 +351,10 @@ function onSelectAllModulesFromDrawer() {
           :selected-category-key="selectedCategoryKey"
           :open-picking-count="openPickingCount"
           :operator-name="operatorDisplayName"
+          :show-missing-pin-banner="Boolean(activeOperator && !activeOperator.has_pin)"
           @select="onSelectModule"
           @select-category="selectedCategoryKey = $event"
+          @open-settings="activeModule = 'settings'"
         />
         <PickingModuleView
           v-else-if="activeModule === 'picking'"
@@ -319,6 +364,10 @@ function onSelectAllModulesFromDrawer() {
         <PackageMergeView v-else-if="activeModule === 'merge'" />
         <MaterialTransferView v-else-if="activeModule === 'transfer'" />
         <StockLookupView v-else-if="activeModule === 'lookup'" />
+        <PdaSettingsView
+          v-else-if="activeModule === 'settings'"
+          @pin-updated="handlePinUpdated"
+        />
       </main>
     </div>
 
@@ -332,6 +381,7 @@ function onSelectAllModulesFromDrawer() {
       @select-screen="onSelectScreenFromDrawer"
       @select-category="onSelectCategoryFromDrawer"
       @select-all-modules="onSelectAllModulesFromDrawer"
+      @select-utility="onSelectUtility"
     />
 
     <PdaOverlays />
