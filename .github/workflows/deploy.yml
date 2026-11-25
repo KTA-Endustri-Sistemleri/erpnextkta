@@ -27,12 +27,12 @@ jobs:
     steps:
       - name: Check for New Release
         id: check_version
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          FORCE: ${{ github.event.inputs.force }}
         run: |
           cd /home/erpnext/frappe-bench/apps/erpnextkta
-          git fetch --tags origin
-
-          INPUT_TAG="${{ github.event.inputs.tag }}"
-          FORCE="${{ github.event.inputs.force }}"
+          git fetch --tags --force origin
 
           if [ -n "$INPUT_TAG" ]; then
             TARGET_REF="$INPUT_TAG"
@@ -58,12 +58,28 @@ jobs:
 
       - name: Update erpnextkta to Target
         if: steps.check_version.outputs.should_deploy == 'true'
+        env:
+          TARGET: ${{ steps.check_version.outputs.target_ref }}
         run: |
           cd /home/erpnext/frappe-bench/apps/erpnextkta
-          TARGET="${{ steps.check_version.outputs.target_ref }}"
+
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "UYARI: Sunucuda yerel degisiklikler tespit edildi! Diff loglaniyor ve stash'e aliniyor..."
+            git status -s || true
+            git diff HEAD || true
+            git -c user.name="deploy-bot" -c user.email="deploy@localhost" \
+              stash push -u -m "pre-deploy-${TARGET}-$(date +%Y%m%d_%H%M%S)" || true
+            git reset --hard
+          fi
+
           echo "Checking out $TARGET..."
-          git checkout "$TARGET"
-          git pull origin "$TARGET" || true
+          if git show-ref --verify --quiet "refs/tags/$TARGET"; then
+            git checkout -f "refs/tags/$TARGET"
+          elif git fetch origin "$TARGET" 2>/dev/null; then
+            git checkout -f -B "$TARGET" FETCH_HEAD
+          else
+            git checkout -f "$TARGET"
+          fi
 
       - name: Install Python Dependencies
         if: steps.check_version.outputs.should_deploy == 'true'
