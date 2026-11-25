@@ -227,8 +227,9 @@
         <h3 class="flow-card-title">Mobil PDA ile Sıfır Hata</h3>
       </div>
       <p class="flow-card-desc">
-        Ambar personeli forklift üzerinde el terminaliyle barkodları tarar, +%15 tolerans
-        denetimiyle miktarları doğrular ve tek tuşla ERPNext Stock Entry fişini üretir.
+        Ambar personeli el terminali veya tabletle fiziksel raf yürüyüş sırasına göre koli/SUT
+        barkodlarını okutur; partili ürünlerde sıfır manuel giriş, tek tıkla onaylı FIFO sapma
+        denetimi ve yetkili yönetici için eksik ürün atlama RBAC'ı ile tek tuşla transfer fişi üretir.
       </p>
     </div>
   </div>
@@ -237,9 +238,9 @@
     <div class="callout-title">🔄 Üretim Hatları Arası Transferler (150x ↔ 150x) Nereden Yapılır?</div>
     <p>
       Ana hammadde ambarından hatlara yapılan planlı çekme ikmalleri (<code>110 HAMMADDE → 150x</code>)
-      <strong>Line Replenishment Hub</strong> (<code>/app/line-replenishment-hub</code>) ve mobil
-      <strong>PDA Toplama</strong> (<code>/app/line-replenishment-picking</code>) ekranlarından depo
-      ekibince kapalı koli/makara FIFO disipliniyle yürütülür.
+      <strong>Line Replenishment Hub</strong> (<code>/app/line-replenishment-hub</code>) ve bağımsız
+      <strong>PDA Depo Merkezi</strong> (<code>/pda</code> → <em>Hat İkmal Toplama</em> / legacy
+      <code>/app/line-replenishment-picking</code>) ekranlarından depo ekibince kapalı koli/makara FIFO disipliniyle yürütülür.
     </p>
     <p style="margin-top: 8px;">
       Üretim hatları arasındaki anlık serbest stok aktarımları, açık karşılama ve öncelik
@@ -281,7 +282,7 @@
   </p>
   <ul>
     <li><strong>Doğrudan Adresleme:</strong> Depo personeline genel "Hammadde Ambarı" yerine tam koridor ve raf adresi (<code>W1A-01-01</code>) iletilir.</li>
-    <li><strong>FEFO / FIFO Önceliği:</strong> Aynı hammadde birden fazla rafta bulunuyorsa, önce son kullanma tarihi en yakın olan (FEFO), ardından kayıt tarihi en eski olan (FIFO) raflar ve partiler önceliklendirilir.</li>
+    <li><strong>FEFO / FIFO Önceliği (<code>expiry_date → manufacturing_date → creation</code>):</strong> Aynı hammadde birden fazla rafta bulunuyorsa, motor (<code>allocate_fifo_batches</code> ve <code>bulk_allocate_fifo_batches</code>) önce son kullanma tarihi en yakın olanı (<code>expiry_date</code>), ardından üretim/irsaliye tarihi en eski olanı (<code>manufacturing_date</code>) ve son olarak kayıt zamanı en eski olanı (<code>creation</code>) sıralar. Bu sayede raf transferi, koli bölme/birleştirme (<code>manufacturing_date</code> mirası) ve geçmiş tarihli irsaliyelerde en eski irsaliye tarihli (ör. <code>IRS01</code>) koli daima ilk sırada kalır.</li>
   </ul>
 
   <h3>3. Tam Koli / Parti Çıkışı (Bölmeme ve Yukarı Yuvarlama İlkesi):</h3>
@@ -320,6 +321,7 @@
   <ul>
     <li><strong>Tam Karşılanan Talepler (D_net == 0):</strong> Açık ihtiyaç zaten onay bekleyen veya toplanmakta olan bir taslak ikmal emrinde mevcuttur. Kalem <code>covered_by_draft = True</code> ve <code>selectable = False</code> olarak işaretlenir. Arayüzde <span class="badge-doc-draft">⏳ Taslak İkmalde (LRO-...)</span> rozeti ile gösterilir ve seçim kutusu kilitlenir.</li>
     <li><strong>Kısmi Karşılanan Talepler (D_net &gt; 0):</strong> Ham ihtiyaç taslak sipariş miktarından büyükse (örneğin 250 adet ihtiyaç, 200 adet taslakta bekliyor), yalnızca aradaki fark olan 50 adet net açık (D_net) için ana ambardan parti ve raf tahsisi yapılır ve <em>Kısmi Taslak</em> rozeti eklenir.</li>
+    <li><strong>Atlanan Kalemlerin Otomatik Yeniden Açığa Düşmesi:</strong> <code>_get_drafts_by_item()</code> yalnızca <code>docstatus = 0 AND status = 'Draft'</code> ikmal emirlerini açık hesabından düşer. PDA'da bir veya tüm satırlar atlanıp emir <code>Completed</code> ya da <code>Cancelled</code> durumuna geçtiğinde, atlanan kalemler bir sonraki ikmal taramasında otomatik olarak yeniden açık (<code>deficit</code>) listesine düşer.</li>
   </ul>
 
   <h3>5. Sıfır Stoklu Kalemlerin Kesin Kilitlenmesi (Hard Selection Lock):</h3>
@@ -451,67 +453,121 @@
   <hr />
 
   <!-- BÖLÜM 5 -->
-  <h2>📱 Bölüm 5: Mobil El Terminali (PDA) ile Barkodlu Toplama</h2>
+  <h2>📱 Bölüm 5: Mobil El Terminali (PDA) & Tablet ile Barkodlu Toplama</h2>
   <p>
-    Ambar operatörleri için tasarlanan mobil sayfa (<code>/app/line-replenishment-picking</code>),
-    endüstriyel barkod okuyucu terminallerle (Zebra, Datalogic, Honeywell) tam uyumlu,
-    dokunmatik ve yüksek kontrastlı bir SPA arayüzüdür:
+    Ambar operatörleri için tasarlanan bağımsız <strong><code>/pda</code> → Hat İkmal Toplama</strong>
+    ekranı (<code>PickingModuleView.vue</code>) ve masaüstü/legacy <code>/app/line-replenishment-picking</code>
+    sayfası (<code>PdaApp.vue</code>), ortak <code>useLineReplenishmentPicking</code> iş mantığını paylaşarak
+    el terminalleri ve tabletlerde %100 tutarlı çalışır.
   </p>
 
   <div class="flow-card-grid">
     <div class="flow-card">
       <div class="flow-card-header">
-        <span class="flow-card-icon">1️⃣</span>
-        <h3 class="flow-card-title">Sipariş Seçimi</h3>
+        <span class="flow-card-icon">🧭</span>
+        <h3 class="flow-card-title">Yaklaşım A: Doğal Raf Yürüyüş Sırası & Sekmeler</h3>
       </div>
       <p class="flow-card-desc">
-        Açılan listeden işlem yapılacak aktif <code>KTA Line Replenishment Order</code> seçilir.
-        Hedef hat, ilgili raf lokasyonları ve kalemler otomatik olarak ekrana yüklenir.
+        Bekleyen kartlar doğal alfanümerik raf sırasıyla (<code>W1A-02-01 → W1A-10-01</code>) dizilir.
+        <code>Bekleyen / Toplanan / Atlanan</code> sekmeleriyle liste yönetilir; okutulan veya atlanan
+        kartlar tek satırlık kompakt özet satırına katlanır (<code>↩ Geri Al</code> destekli).
       </p>
     </div>
 
     <div class="flow-card">
       <div class="flow-card-header">
-        <span class="flow-card-icon">2️⃣</span>
-        <h3 class="flow-card-title">Sıfır Manuel Giriş (Zero-Input)</h3>
+        <span class="flow-card-icon">📦</span>
+        <h3 class="flow-card-title">Partili Kalemde Sıfır Manuel Giriş</h3>
       </div>
       <p class="flow-card-desc">
-        Depocu fiziksel rafa gidip koli veya makara barkodunu okuttuğu anda sistem partiyi
-        otomatik eşleştirir. Klavye açmaya veya miktar girmeye gerek kalmadan satır anında
-        yeşile döner ve tam parti miktarıyla tek adımda onaylanır.
+        Partili (<code>1 Kutu = 1 Parti</code>) ürünlerde manuel <em>Toplandı</em> onay kutusu,
+        <code>- / +</code> düğmeleri ve <em>Tümünü Al</em> kaldırılmıştır; toplama yalnızca fiziksel
+        koli/SUT parti barkodu okutularak yapılır. Yalnızca partisiz (<code>has_batch_no = 0</code>)
+        ürünlerde miktar girişi + <code>✓ Onayla</code> (<code>+%15</code> tolerans) istisnası sunulur.
       </p>
     </div>
 
     <div class="flow-card">
       <div class="flow-card-header">
-        <span class="flow-card-icon">3️⃣</span>
-        <h3 class="flow-card-title">Tam Koli & Tolerans Denetimi</h3>
+        <span class="flow-card-icon">⚠️</span>
+        <h3 class="flow-card-title">Katı FIFO & Tek Tıkla FIFO Sapma Onayı</h3>
       </div>
       <p class="flow-card-desc">
-        Bölünmeyen tam koli ve makaralarda, partinin tam miktarı toplanır. Net açığa kıyasla
-        +%15'e kadar olan yukarı yuvarlamalar sistem tarafından güvenli kabul edilir; %15 aşılırsa
-        arayüzde kırmızı uyarı verilerek işlem kilitlenir.
+        Önerilen FIFO partisi okutulursa satır sessizce onaylanır. Farklı bir parti okutulduğunda
+        canlı raf ve tam koli bakiyesi doğrulamalı <strong>FIFO Sapma Uyarı Modalı</strong> açılır;
+        tek tıkla onaylandığında <code>Stock Entry.remarks</code> ve
+        <code>KTA Line Replenishment Order.remarks</code> içine <code>[FIFO SAPMASI]</code> denetim kaydı işlenir.
       </p>
     </div>
 
     <div class="flow-card">
       <div class="flow-card-header">
-        <span class="flow-card-icon">4️⃣</span>
-        <h3 class="flow-card-title">Tek Tıkla Transfer</h3>
+        <span class="flow-card-icon">🛡️</span>
+        <h3 class="flow-card-title">Çift Okutma, Hedef & Eksik Ürün Atlama RBAC</h3>
       </div>
       <p class="flow-card-desc">
-        <strong>"Transferi Tamamla"</strong> butonuna basıldığında arka planda resmi ERPNext
-        <code>Stock Entry (Material Transfer)</code> fişi oluşturulup submit edilir.
+        Aynı koliyi ikinci kez okutmada miktar ikiye katlanmaz; pasif parti, sıfır bakiye ve
+        zaten hedef hattaki (<code>already_in_target</code>) koliler engellenir. Bulunmayan kalemler
+        yalnızca <strong><code>Stock Manager</code> / <code>System Manager</code></strong> tarafından
+        <code>Atla</code> ile geçilebilir (<code>PermissionError</code> korumalı).
       </p>
     </div>
   </div>
 
+  <h3>📱 Tablet Yerleşimi, Sabit Alt Bar & Eksik Ürün Atlama Kuralları</h3>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>Özellik / Kural</th>
+        <th>Uygulama Davranışı</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Tablet (<code>&gt;= 768px</code>) & Sabit Alt Bar UX</strong></td>
+        <td>
+          <code>768px</code> ve üzeri ekranlarda ana içerik <code>960px</code> kapsayıcıda ortalanır,
+          sipariş seçici ile barkod çubuğu yan yana, bekleyen kartlar ise <strong>2 kolonlu grid</strong>
+          düzeninde gösterilir. <code>TransferFooter</code> viewport altına sabitlenir
+          (<code>position: fixed; bottom: 0</code>) ve sayfa sonuna kaydırıldığında asla yukarı kaymaz.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Tam Koli Doğrulaması &amp; FIFO Sapması</strong></td>
+        <td>
+          Partili kalemlerde okutulan kolinin canlı kaynak raftaki tam bakiye ile birebir eşleşmesi
+          (<code>1 Kutu = 1 Parti</code>) zorunludur. Alternatif FIFO partisinin kapalı koli bakiyesi
+          başlangıç açığının <code>%15</code> üstünde olsa bile gerçek tam koli bakiyesi esas alınarak kabul edilir;
+          satırda <code>is_fifo_override = 1</code> ve <code>⚠️ FIFO Sapması</code> rozeti işlenir.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Kısmi Atlama vs. Tüm Satırları Atlama</strong></td>
+        <td>
+          <code>Stock Manager</code> bazı satırları <code>Atla</code> ile geçerse yalnızca toplanan koliler
+          için <code>Stock Entry</code> oluşturulur (<code>Completed</code>). Tüm satırlar atlanırsa alt buton
+          <strong>Emri İptal Et (Tümü Atlandı)</strong> durumuna geçer; boş <code>Stock Entry</code> oluşturulmadan
+          emir <code>Cancelled</code> olarak kapatılır ve <code>[ATLANAN KALEMLER]</code> notu kaydedilir.
+        </td>
+      </tr>
+      <tr>
+        <td><strong><code>KTA Line Replenishment Item</code> Yeni Alanları</strong></td>
+        <td>
+          Alt tabloda izlenebilirlik için <code>is_skipped</code> (Atlandı mı),
+          <code>skipped_by</code> (Atlayan Kullanıcı) ve <code>is_fifo_override</code> (FIFO Sapması)
+          alanları tutulur. Atlanan kalemler bir sonraki ikmal taramasında otomatik olarak yeniden açığa düşer.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
   <div class="callout-box success">
-    <div class="callout-title">🎉 Sıfır Ekstra Evrak Yükü</div>
+    <div class="callout-title">🎉 Sıfır Ekstra Evrak Yükü & Tam Denetim İzi</div>
     <p>
       Operatörün ERPNext stok fişi ekranına gidip tek tek kaynak depo, hedef depo ve parti
-      seçmesine gerek kalmaz. PDA ekranında barkod okutulup transfer tamamlandığında tüm
-      muhasebe ve stok defteri hareketleri anında resmileşir.
+      seçmesine gerek kalmaz. PDA ekranında barkodlar okutulup transfer tamamlandığında tüm
+      muhasebe, stok defteri ve <code>[FIFO SAPMASI]</code> / <code>[ATLANAN KALEMLER]</code> denetim
+      kayıtları anında resmileşir.
     </p>
   </div>
 
@@ -527,6 +583,11 @@
       <strong>Otomatik Stock Entry İptali:</strong> Tamamlanmış (Completed) bir Hat İkmal Emri
       iptal edildiğinde (Cancelled), bağlı bulunan <code>Stock Entry (Material Transfer)</code>
       belgesi de Frappe standartlarında otomatik olarak iptal edilir (cancel).
+    </li>
+    <li>
+      <strong>Tüm Satırlar Atlandığında Boş Fiş Oluşturmama:</strong> Tüm kalemler yetkili yönetici
+      tarafından atlandığında sistem boş <code>Stock Entry</code> üretmeden emri doğrudan
+      <code>Cancelled</code> olarak kapatır; atlanan kalemler bir sonraki taramada yeniden listelenir.
     </li>
     <li>
       <strong>Stokların Eski Kaynağa Dönüşü:</strong> İptal edilen transfer fişinin tüm parti

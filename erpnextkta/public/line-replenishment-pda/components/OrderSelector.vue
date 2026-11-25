@@ -32,7 +32,6 @@
       </div>
     </div>
 
-    <!-- Active Order Meta Badges -->
     <div v-if="activeOrder" class="order-meta-info">
       <span class="pda-badge badge-target-warehouse">
         📍 {{ __("Hedef") }}: {{ activeOrder.target_warehouse }}
@@ -46,11 +45,22 @@
       >
         {{ __("Durum") }}: {{ __(activeOrder.status) }}
       </span>
+      <span v-if="totalCount > 0" class="pda-badge badge-progress">
+        {{ __("Toplanan: {0} / {1}", [pickedCount, totalCount]) }}
+      </span>
+    </div>
+
+    <div v-if="activeOrder && totalCount > 0" class="order-progress-track">
+      <div
+        class="order-progress-fill"
+        :style="{ width: `${progressPercent}%` }"
+      ></div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import type { ReplenishmentOrder } from "../types";
 
 const __ = (...args: any[]) => (window as any).__(...args);
@@ -60,19 +70,31 @@ interface Props {
   selectedOrderName: string;
   activeOrder: ReplenishmentOrder | null;
   loading: boolean;
+  pickedCount?: number;
+  skippedCount?: number;
+  totalCount?: number;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  pickedCount: 0,
+  skippedCount: 0,
+  totalCount: 0,
+});
 
 const emit = defineEmits<{
   (e: "select", orderName: string): void;
   (e: "refresh"): void;
 }>();
 
+const progressPercent = computed(() => {
+  if (!props.totalCount) return 0;
+  const done = Math.min(props.totalCount, props.pickedCount + props.skippedCount);
+  return Math.round((done / props.totalCount) * 100);
+});
+
 function onSelectChange(event: Event) {
   const target = event.target as HTMLSelectElement | null;
-  const value = target ? target.value : "";
-  emit("select", value);
+  emit("select", target ? target.value : "");
 }
 
 function getStatusClass(status?: string): string {
@@ -93,7 +115,7 @@ function getStatusClass(status?: string): string {
 .order-selector-card {
   background: var(--card-bg, #ffffff);
   border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -108,7 +130,6 @@ function getStatusClass(status?: string): string {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-color, #1e293b);
-  margin-bottom: 2px;
 }
 
 .selector-row {
@@ -119,6 +140,7 @@ function getStatusClass(status?: string): string {
 
 .order-select {
   flex: 1;
+  min-width: 0;
   min-height: 44px;
   padding: 8px 12px;
   font-size: 0.95rem;
@@ -131,7 +153,7 @@ function getStatusClass(status?: string): string {
 
 .order-select:focus {
   outline: none;
-  border-color: var(--primary-color, #2563eb);
+  border-color: var(--pda-primary, #2563eb);
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
@@ -144,7 +166,7 @@ function getStatusClass(status?: string): string {
   padding: 0;
   border: 1px solid var(--border-color, #cbd5e1);
   border-radius: 6px;
-  background-color: var(--btn-default-bg, #f8fafc);
+  background-color: var(--pda-surface-alt, #f8fafc);
   color: var(--text-color, #0f172a);
   cursor: pointer;
   font-size: 1.1rem;
@@ -182,8 +204,8 @@ function getStatusClass(status?: string): string {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px dashed var(--border-color, #e2e8f0);
 }
 
@@ -191,9 +213,9 @@ function getStatusClass(status?: string): string {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 600;
 }
 
@@ -205,6 +227,12 @@ function getStatusClass(status?: string): string {
 .badge-status {
   background-color: #f3f4f6;
   color: #374151;
+}
+
+.badge-progress {
+  background-color: #dcfce7;
+  color: #15803d;
+  margin-left: auto;
 }
 
 .status-completed {
@@ -232,6 +260,7 @@ function getStatusClass(status?: string): string {
   color: #cbd5e1;
 }
 
+[data-theme="dark"] .badge-progress,
 [data-theme="dark"] .status-completed {
   background-color: rgba(34, 197, 94, 0.22);
   color: #86efac;
@@ -245,5 +274,31 @@ function getStatusClass(status?: string): string {
 [data-theme="dark"] .status-draft {
   background-color: rgba(139, 92, 246, 0.22);
   color: #c4b5fd;
+}
+
+.order-progress-track {
+  margin-top: 6px;
+  width: 100%;
+  height: 4px;
+  background-color: var(--pda-surface-alt, #e2e8f0);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.order-progress-fill {
+  height: 100%;
+  background-color: var(--pda-success, #16a34a);
+  transition: width 0.25s ease;
+}
+
+@media (min-width: 768px) {
+  .order-selector-card {
+    padding: 10px;
+  }
+
+  .order-select,
+  .btn-refresh {
+    min-height: 40px;
+  }
 }
 </style>

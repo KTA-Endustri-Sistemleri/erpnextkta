@@ -7,6 +7,7 @@ from frappe.tests.utils import FrappeTestCase
 from erpnextkta.kta_stock.line_replenishment_service import (
     allocate_fifo_batch,
     allocate_fifo_batches,
+    bulk_allocate_fifo_batches,
     create_line_replenishment_order,
     get_warehouse_leaf_stock,
     override_item_source,
@@ -110,6 +111,52 @@ class TestLineReplenishmentService(FrappeTestCase):
                 wh.warehouse_name = s_wh.replace(" - KTA", "").replace(" - _TC", "")
                 wh.company = cls.company
                 wh.parent_warehouse = cls.central_wh
+                wh.is_group = 0
+                wh.flags.ignore_permissions = True
+                wh.insert()
+                setattr(cls, attr, wh.name)
+
+        abbr = frappe.db.get_value("Company", cls.company, "abbr") or "_TC"
+        root_wh = frappe.db.get_value(
+            "Warehouse",
+            {
+                "company": cls.company,
+                "is_group": 1,
+                "parent_warehouse": ["in", ["", None]],
+            },
+            "name",
+        ) or frappe.db.get_value(
+            "Warehouse", {"company": cls.company, "is_group": 1}, "name"
+        )
+
+        cls.fifo_group_wh = f"_Test Line FIFO Group - {abbr}"
+        cls.fifo_shelf_a = f"_Test Line FIFO Shelf A - {abbr}"
+        cls.fifo_shelf_b = f"_Test Line FIFO Shelf B - {abbr}"
+        cls.fifo_target_wh = f"_Test Line FIFO Target - {abbr}"
+
+        if not frappe.db.exists("Warehouse", cls.fifo_group_wh):
+            fifo_grp = frappe.new_doc("Warehouse")
+            fifo_grp.warehouse_name = "_Test Line FIFO Group"
+            fifo_grp.company = cls.company
+            if root_wh:
+                fifo_grp.parent_warehouse = root_wh
+            fifo_grp.is_group = 1
+            fifo_grp.flags.ignore_permissions = True
+            fifo_grp.insert()
+            cls.fifo_group_wh = fifo_grp.name
+
+        for attr, wh_label, parent_wh in (
+            ("fifo_shelf_a", "_Test Line FIFO Shelf A", cls.fifo_group_wh),
+            ("fifo_shelf_b", "_Test Line FIFO Shelf B", cls.fifo_group_wh),
+            ("fifo_target_wh", "_Test Line FIFO Target", root_wh),
+        ):
+            wh_name = getattr(cls, attr)
+            if not frappe.db.exists("Warehouse", wh_name):
+                wh = frappe.new_doc("Warehouse")
+                wh.warehouse_name = wh_label
+                wh.company = cls.company
+                if parent_wh:
+                    wh.parent_warehouse = parent_wh
                 wh.is_group = 0
                 wh.flags.ignore_permissions = True
                 wh.insert()
@@ -590,3 +637,168 @@ class TestLineReplenishmentService(FrappeTestCase):
         # Total deficit and picked are 30.0
         self.assertEqual(doc.total_deficit_qty, 30.0)
         self.assertEqual(doc.total_picked_qty, 30.0)
+
+    def test_fifo_prioritizes_manufacturing_date_over_creation_and_preserves_after_shelf_transfer(
+        self,
+    ):
+        """Older manufacturing_date wins over newer creation, and survives shelf Material Transfer."""
+        from frappe.utils import nowdate, nowtime
+
+        uid = frappe.generate_hash("", 5).upper()
+        grp_wh = self.fifo_group_wh
+        shelf_a = self.fifo_shelf_a
+        shelf_b = self.fifo_shelf_b
+        target_line_wh = self.fifo_target_wh
+
+        item_code = f"_TEST-LRO-MFG-FIFO-{uid}"
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": item_code,
+                "item_name": item_code,
+                "item_group": create_test_item_group(),
+                "stock_uom": "Nos",
+                "is_stock_item": 1,
+                "has_batch_no": 1,
+                "create_new_batch": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        batch_newer_mfg = f"BNEW{uid}0001"
+        batch_older_mfg = f"BOLD{uid}0001"
+
+        # Insert newer-mfg batch first so it has an earlier creation timestamp
+        b_new = frappe.get_doc(
+            {
+                "doctype": "Batch",
+                "batch_id": batch_newer_mfg,
+                "item": item_code,
+                "manufacturing_date": "2026-02-15",
+                "expiry_date": None,
+                "batch_qty": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        b_old = frappe.get_doc(
+            {
+                "doctype": "Batch",
+                "batch_id": batch_older_mfg,
+                "item": item_code,
+                "manufacturing_date": "2026-01-05",
+                "expiry_date": None,
+                "batch_qty": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        # Ensure creation timestamp of b_old is strictly later than b_new
+        frappe.db.set_value(
+            "Batch",
+            b_new.name,
+            "creation",
+            "2026-02-15 08:00:00",
+            update_modified=False,
+        )
+        frappe.db.set_value(
+            "Batch",
+            b_old.name,
+            "creation",
+            "2026-02-20 12:00:00",
+            update_modified=False,
+        )
+
+        # Receive both batches into shelf_a via Material Receipt
+        for batch_name, qty in ((b_new.name, 50.0), (b_old.name, 40.0)):
+            se = frappe.get_doc(
+                {
+                    "doctype": "Stock Entry",
+                    "stock_entry_type": "Material Receipt",
+                    "purpose": "Material Receipt",
+                    "company": self.company,
+                    "posting_date": nowdate(),
+                    "posting_time": nowtime(),
+                    "items": [
+                        {
+                            "item_code": item_code,
+                            "t_warehouse": shelf_a,
+                            "qty": qty,
+                            "allow_zero_valuation_rate": 1,
+                            "batch_no": batch_name,
+                            "use_serial_batch_fields": 1,
+                        }
+                    ],
+                }
+            )
+            se.insert(ignore_permissions=True)
+            se.submit()
+
+        single_alloc = allocate_fifo_batches(
+            item_code=item_code,
+            parent_warehouse=grp_wh,
+            required_qty=30.0,
+            target_warehouse=target_line_wh,
+        )
+        self.assertEqual(len(single_alloc), 1)
+        self.assertEqual(single_alloc[0]["batch_no"], b_old.name)
+        self.assertEqual(single_alloc[0]["warehouse"], shelf_a)
+
+        bulk_alloc = bulk_allocate_fifo_batches(
+            [
+                {
+                    "item_code": item_code,
+                    "parent_warehouse": grp_wh,
+                    "required_qty": 30.0,
+                }
+            ],
+            target_warehouse=target_line_wh,
+        )
+        self.assertEqual(len(bulk_alloc[item_code]), 1)
+        self.assertEqual(bulk_alloc[item_code][0]["batch_no"], b_old.name)
+        self.assertEqual(bulk_alloc[item_code][0]["warehouse"], shelf_a)
+
+        # Execute real Material Transfer moving older-mfg batch from shelf_a to shelf_b
+        move_se = frappe.get_doc(
+            {
+                "doctype": "Stock Entry",
+                "stock_entry_type": "Material Transfer",
+                "purpose": "Material Transfer",
+                "company": self.company,
+                "posting_date": nowdate(),
+                "posting_time": nowtime(),
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "s_warehouse": shelf_a,
+                        "t_warehouse": shelf_b,
+                        "qty": 40.0,
+                        "batch_no": b_old.name,
+                        "use_serial_batch_fields": 1,
+                    }
+                ],
+            }
+        )
+        move_se.insert(ignore_permissions=True)
+        move_se.submit()
+
+        single_after = allocate_fifo_batches(
+            item_code=item_code,
+            parent_warehouse=grp_wh,
+            required_qty=30.0,
+            target_warehouse=target_line_wh,
+        )
+        self.assertEqual(len(single_after), 1)
+        self.assertEqual(single_after[0]["batch_no"], b_old.name)
+        self.assertEqual(single_after[0]["warehouse"], shelf_b)
+
+        bulk_after = bulk_allocate_fifo_batches(
+            [
+                {
+                    "item_code": item_code,
+                    "parent_warehouse": grp_wh,
+                    "required_qty": 30.0,
+                }
+            ],
+            target_warehouse=target_line_wh,
+        )
+        self.assertEqual(len(bulk_after[item_code]), 1)
+        self.assertEqual(bulk_after[item_code][0]["batch_no"], b_old.name)
+        self.assertEqual(bulk_after[item_code][0]["warehouse"], shelf_b)

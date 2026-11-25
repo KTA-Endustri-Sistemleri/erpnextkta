@@ -136,7 +136,7 @@
 <h3>7+4 Kutu Barkod Standardı ve LEGACY Dönüşümü</h3>
 <ul>
   <li><strong>Standart Kutu Formatı (<code>^[A-Z0-9]{7}(?!0000)[0-9]{4}$</code>):</strong> Her fiziksel kutu veya makara sistemde tekil 11 karakterli bir <code>Batch</code> (<code>== sut_barcode</code>) olarak izlenir (ör. <code>6640A670001</code>). İlk 7 karakter kök lotu, son 4 hane (<code>0001..9999</code>) ise o lot altındaki kutu sırasını gösterir.</li>
-  <li><strong>Kısmi Bölmede Sıradaki Kutu &amp; FIFO/GKK Mirası:</strong> Açılan bir standart kutu bölündüğünde, aynı 7 haneli lottan sıradaki boş kutu numarası (<code>0006</code>, <code>0007</code> vb.) üretilir. Yeni açılan kutu; kaynak partinin <code>supplier</code>, GKK referansı (<code>reference_doctype</code> / <code>reference_name</code>), ilk giriş tarihi (<code>manufacturing_date</code> — FIFO yaşı bozulmaz) ve <code>expiry_date</code> bilgilerini birebir miras alır.</li>
+  <li><strong>Kısmi Bölmede Sıradaki Kutu &amp; FIFO/GKK Mirası:</strong> Açılan bir standart kutu bölündüğünde, aynı 7 haneli lottan sıradaki boş kutu numarası (<code>0006</code>, <code>0007</code> vb.) üretilir. Yeni açılan kutu; kaynak partinin <code>supplier</code>, GKK referansı (<code>reference_doctype</code> / <code>reference_name</code>), ilk giriş tarihi (<code>manufacturing_date</code>) ve <code>expiry_date</code> bilgilerini birebir miras alır. Hat ikmali FIFO tahsisinde <code>expiry_date → manufacturing_date → creation</code> sırası esas alındığından raf transferi, koli bölme/birleştirme ve geçmiş tarihli irsaliyelerde en eski üretim/irsaliye tarihli koli daima ilk sırada kalır.</li>
   <li><strong>LEGACY ve Partisiz Stok Standardizasyonu:</strong> Eski <code>LEGACY-...</code> formatındaki veya partisiz stoklar bölündüğünde benzersiz yeni 7 haneli bir lot kökü ve <code>{7Hane}0001..N</code> kutuları açılır.</li>
   <li><strong>Boş Etiket Temizliği:</strong> Bakiyesi sıfır veya altına düşen (<code>&lt;= 0</code>) partilere ait <code>KTA Stock Label</code> kayıtları <code>clear_empty_labels()</code> ile otomatik temizlenir.</li>
 </ul>
@@ -282,8 +282,8 @@
     <tbody>
       <tr>
         <td><strong>1. Hat İkmal Toplama</strong><br/><span class="kta-doc-badge blue">Picking</span></td>
-        <td>Açık emir seç → Kutu/parti barkodu okut → Miktar doğrula → Hatta aktar</td>
-        <td>Açık <code>KTA Line Replenishment Order</code> kayıtlarını listeler, tolerans sınırını denetler ve mevcut hat ikmal toplama servisiyle tam uyumlu çalışır.</td>
+        <td>Açık emir seç → Raf yürüyüş sırasına göre koli/SUT okut → (Gerekirse FIFO Sapması / Yönetici Atla) → Hatta aktar</td>
+        <td>Açık <code>KTA Line Replenishment Order</code> kayıtlarını doğal raf yürüyüş sırasıyla (<code>W1A-02-01 → W1A-10-01</code>) listeler; partili kalemlerde sıfır manuel giriş (<code>1 Kutu = 1 Parti</code>), tek tıkla onaylı FIFO sapma modalı, <code>Stock Manager</code> eksik ürün atlama RBAC'ı, tablet 2 kolonlu düzen ve sabit alt aksiyon çubuğu ile çalışır.</td>
       </tr>
       <tr>
         <td><strong>2. Koli Bölme ve Etiketleme</strong><br/><span class="kta-doc-badge orange">Package Split</span></td>
@@ -307,6 +307,16 @@
       </tr>
     </tbody>
   </table>
+</div>
+
+<div class="kta-doc-info">
+  <strong>Hat İkmal Toplama (<code>Picking</code>) UX, FIFO Sapma Denetimi &amp; Eksik Ürün RBAC Kuralları</strong> (Detaylar için <a href="/docs/line_replenishment">Hat İkmal Yönetimi Kılavuzu</a>):
+  <ul>
+    <li><strong>Yaklaşım A Yürüyüş Listesi &amp; Tablet / Sabit Alt Bar UX:</strong> Bekleyen kalemler doğal alfanümerik raf yürüyüş sırasıyla (<code>W1A-02-01 → W1A-10-01</code>) dizilir ve <code>Bekleyen / Toplanan / Atlanan</code> sekmeleriyle yönetilir. Okutulan veya atlanan kartlar tek satırlık özet satırına katlanır. Partili (<code>1 Kutu = 1 Parti</code>) ürünlerde manuel <em>Toplandı</em> checkbox'ı, <code>- / +</code> miktar değiştirme ve <em>Tümünü Al</em> kaldırılmıştır (yalnızca partisiz <code>has_batch_no = 0</code> ürünlerde miktar onayı istisnası vardır). Çift okutma koruması (miktar artmaz), pasif parti, sıfır bakiye ve <code>already_in_target</code> (zaten hedef hatta) korumaları aktiftir. Tabletlerde (<code>&gt;= 768px</code>) 2 kolonlu grid yerleşim ve viewport'a sabit (<code>position: fixed</code>) tek alt aksiyon çubuğu sunulur.</li>
+    <li><strong>Katı FIFO &amp; Tek Tıkla Onaylı FIFO Sapma Denetimi:</strong> Önerilen FIFO partisi okutulursa sessiz onaylanır; farklı parti okutulduğunda canlı raf ve gerçek tam koli bakiyesi doğrulamalı <strong>FIFO Sapma Uyarı Modalı</strong> açılır. Tek tıkla onaylandığında <code>KTA Line Replenishment Item.is_fifo_override = 1</code> işaretlenir; partili tam koli transferinde <code>%15</code> manuel tavan yerine gerçek tam koli bakiyesi kabul edilir ve hem <code>Stock Entry.remarks</code> hem <code>KTA Line Replenishment Order.remarks</code> içine <code>[FIFO SAPMASI]</code> denetim kaydı işlenir.</li>
+    <li><strong>Eksik Ürün Atlama (RBAC) &amp; Tüm Satırlar Atlanırsa Otomatik İptal:</strong> Fiziksel olarak bulunmayan kalemleri yalnızca <code>Stock Manager</code> / <code>System Manager</code> yetkisine sahip kullanıcılar <strong>Atla</strong> aksiyonu ile geçebilir (<code>PermissionError</code> korumalı; <code>is_skipped</code>, <code>skipped_by</code> alanlarına işlenir). Kısmi atlamada yalnızca toplanan kalemler için <code>Stock Entry</code> oluşturulur (<code>Completed</code>); tüm satırlar atlanırsa boş <code>Stock Entry</code> üretilmeden emir <code>Cancelled</code> kapanır. Atlanan kalemler <code>_get_drafts_by_item()</code> (<code>status = 'Draft'</code>) mekanizmasıyla bir sonraki ikmal taramasında otomatik olarak yeniden açığa (<code>deficit</code>) düşer.</li>
+    <li><strong>FIFO Sıralama Kuralı (<code>expiry_date → manufacturing_date → creation</code>):</strong> Raf transferi, koli bölme/birleştirme (<code>manufacturing_date</code> mirası) ve geçmiş tarihli irsaliyelerde en eski üretim/irsaliye tarihli (<code>IRS01</code>) koli daima ilk sırada kalır.</li>
+  </ul>
 </div>
 
 <div class="kta-doc-info">

@@ -2169,3 +2169,61 @@ Sesli Uyarılar,Audio Alerts
 Sesli Uyarılar Açık,Audio Alerts On
 Sesli Uyarılar Kapalı,Audio Alerts Off
 Arayüz Dili,Interface Language
+({0} Atlandı),({0} Skipped)
+Atla,Skip
+Atlanan ({0}),Skipped ({0})
+Atlandı,Skipped
+Aynı koli/parti ({0}) birden fazla satırda kullanılamaz.,The same box/batch ({0}) cannot be used in multiple rows.
+Bekleyen ({0}),Pending ({0})
+Bu değişim Stock Entry notlarına otomatik kaydedilecektir.,This change will be automatically recorded in the Stock Entry remarks.
+Bu kalem mevcut transferden hariç tutulacak ve bir sonraki ikmal taramasında otomatik olarak yeniden listelenecektir.,This item will be excluded from the current transfer and will automatically reappear in the next replenishment scan.
+Bu koli ({0}) zaten okutuldu.,This box ({0}) has already been scanned.
+Bu koli zaten hedef üretim hattında ({0}) bulunuyor.,This box is already at the target production line ({0}).
+Bu malzeme parti takiplidir. Lütfen koli/SUT parti barkodunu okutun.,This item is batch-tracked. Please scan the box/SUT batch barcode.
+Bu malzemenin bekleyen kolisi kalmadı.,No pending boxes remain for this item.
+Bu partinin uygun kaynak raflarda kullanılabilir bakiyesi yok.,This batch has no available balance in eligible source shelves.
+Bu sekmede gösterilecek kalem yok.,No items to display in this tab.
+Eksik Kalem Atlama Onayı,Missing Item Skip Confirmation
+Emri İptal Et (Tümü Atlandı),Cancel Order (All Skipped)
+FIFO Sapması,FIFO Deviation
+FIFO Sapması Tespit Edildi,FIFO Deviation Detected
+FIFO sapması onaylandı: {0} [{1}],FIFO deviation confirmed: {0} [{1}]
+Geri Al,Undo
+Girilen miktar sıfırdan büyük olmalıdır.,Entered quantity must be greater than zero.
+Gönderilen kalem ikmal emrindeki bekleyen bir satırla eşleşmedi.,Submitted item did not match any pending row in the replenishment order.
+Kalem atlama işlemi için Stok Yöneticisi (Stock Manager) yetkisi gereklidir.,Stock Manager permission is required to skip items.
+Kalem atlandı: {0},Item skipped: {0}
+Kalem {0} için kaynak ambar zorunludur.,Source warehouse is required for item {0}.
+Kalem {0} için toplama veya atlama durumu net olmalıdır.,Pick or skip status must be explicit for item {0}.
+Kalem {0} için toplanan miktar sıfırdan büyük olmalıdır.,Picked quantity must be greater than zero for item {0}.
+Kalemi Atla,Skip Item
+Kaynak ambar bulunamadı: {0},Source warehouse not found: {0}
+Kaynak ambar hedef ambar ({0}) ile aynı olamaz.,Source warehouse cannot be the same as target warehouse ({0}).
+Kaynak ambar {0} transfer için uygun değil.,Source warehouse {0} is not eligible for transfer.
+Okutulan Koli,Scanned Box
+Okutulan parti pasif durumdadır.,Scanned batch is disabled.
+Okutulan parti {0} pasif durumdadır.,Scanned batch {0} is disabled.
+Okutuldu: {0},Scanned: {0}
+Okutuldu: {0} [{1}],Scanned: {0} [{1}]
+Onaylandı: {0},Confirmed: {0}
+Parti takipli kalem {0} için parti numarası zorunludur.,Batch number is required for batch-tracked item {0}.
+Parti {0} için kaynak rafta ({1}) kullanılabilir bakiye kalmamış.,No available balance left for batch {0} at source shelf ({1}).
+Parti {0} ürün {1} ile eşleşmiyor.,Batch {0} does not match item {1}.
+Partili kalemde yalnızca tam koli bakiyesi ({0}) transfer edilebilir.,Only the full box balance ({0}) can be transferred for a batch-tracked item.
+Toplanan ({0}),Picked ({0})
+Toplanan kalem kaydı geçersiz formatta.,Picked item record is in an invalid format.
+Toplanan kalem listesi geçersiz formatta.,Picked items list is in an invalid format.
+Toplanan: {0} / {1},Picked: {0} / {1}
+Tüm kalemler atlandı — Emri iptal edebilirsiniz,All items skipped — You can cancel the order
+Tüm kalemler atlandığı için ikmal emri iptal edildi.,Replenishment order cancelled because all items were skipped.
+Tüm kalemler atlandığı için ikmal emri iptal edilsin mi?,All items were skipped. Cancel the replenishment order?
+Tüm kalemler işlendi — Transferi tamamlamaya hazır,All items processed — Ready to complete transfer
+Yine de Kullan (FIFO Sapması),Use Anyway (FIFO Deviation)
+{0} / {1} Tamamlandı,{0} / {1} Completed
+{0} koli bekliyor,{0} boxes pending
+Önerilen FIFO,Suggested FIFO
+İkmal Emri İptal Ediliyor...,Cancelling Replenishment Order...
+İkmal emrindeki tüm satırlar toplanmalı veya atlanmalıdır. Eksik kalem: {0},All rows in the replenishment order must be picked or skipped. Missing item: {0}
+Is Skipped,Is Skipped
+Skipped By,Skipped By
+FIFO Override,FIFO Override

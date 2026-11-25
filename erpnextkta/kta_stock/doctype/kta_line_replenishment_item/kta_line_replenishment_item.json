@@ -19,7 +19,10 @@
   "picked_qty",
   "picked_source_warehouse",
   "picked_batch_no",
-  "is_picked"
+  "is_picked",
+  "is_skipped",
+  "skipped_by",
+  "is_fifo_override"
  ],
  "fields": [
   {
@@ -123,6 +126,30 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Picked"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_skipped",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Skipped",
+   "read_only": 0
+  },
+  {
+   "fieldname": "skipped_by",
+   "fieldtype": "Link",
+   "in_list_view": 0,
+   "label": "Skipped By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_fifo_override",
+   "fieldtype": "Check",
+   "in_list_view": 0,
+   "label": "FIFO Override",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,

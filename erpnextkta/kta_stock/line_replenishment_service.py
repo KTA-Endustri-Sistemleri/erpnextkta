@@ -5,9 +5,29 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
+from erpnextkta.kta_stock.services.relabeling_service import get_batch_ledger_balances
 from erpnextkta.kta_stock.setup import PDA_ROLE_STOCK_USER
+
+
+def _fifo_candidate_sort_key(candidate: dict) -> tuple:
+    """Sort FIFO batch candidates by expiry_date, manufacturing_date, creation, batch, and warehouse."""
+    exp = candidate.get("expiry_date")
+    mfg = candidate.get("manufacturing_date")
+    created = candidate.get("creation")
+    exp_str = str(exp) if exp else ""
+    mfg_str = str(mfg) if mfg else ""
+    created_str = str(created) if created else ""
+    return (
+        exp is None,
+        exp_str,
+        mfg is None,
+        mfg_str,
+        created_str,
+        candidate.get("batch_no") or "",
+        candidate.get("warehouse") or "",
+    )
 
 
 def get_leaf_warehouses(parent_warehouse: str | None) -> list[str]:
@@ -228,7 +248,7 @@ def allocate_fifo_batches(
     batch_records = frappe.get_all(
         "Batch",
         filters={"name": ["in", candidate_batch_nos], "disabled": 0},
-        fields=["name", "expiry_date", "creation"],
+        fields=["name", "expiry_date", "manufacturing_date", "creation"],
     )
     batch_meta = {b.name: b for b in batch_records}
 
@@ -242,6 +262,7 @@ def allocate_fifo_batches(
                     "batch_no": b_no,
                     "qty": qty,
                     "expiry_date": meta.get("expiry_date"),
+                    "manufacturing_date": meta.get("manufacturing_date"),
                     "creation": meta.get("creation"),
                 }
             )
@@ -249,20 +270,7 @@ def allocate_fifo_batches(
     if not active_candidates:
         return []
 
-    def _fifo_sort_key(c):
-        exp = c.get("expiry_date")
-        created = c.get("creation")
-        exp_str = str(exp) if exp else ""
-        created_str = str(created) if created else ""
-        return (
-            exp is None,
-            exp_str,
-            created_str,
-            c.get("batch_no") or "",
-            c.get("warehouse") or "",
-        )
-
-    sorted_candidates = sorted(active_candidates, key=_fifo_sort_key)
+    sorted_candidates = sorted(active_candidates, key=_fifo_candidate_sort_key)
 
     # Full batch accumulation without splitting
     allocated = []
@@ -432,7 +440,7 @@ def bulk_allocate_fifo_batches(
         batch_records = frappe.get_all(
             "Batch",
             filters={"name": ["in", batch_nos], "disabled": 0},
-            fields=["name", "expiry_date", "creation"],
+            fields=["name", "expiry_date", "manufacturing_date", "creation"],
         )
         batch_meta = {b.name: b for b in batch_records}
 
@@ -466,22 +474,17 @@ def bulk_allocate_fifo_batches(
                 "batch_no": b_no,
                 "qty": qty,
                 "expiry_date": meta.get("expiry_date"),
+                "manufacturing_date": meta.get("manufacturing_date"),
                 "creation": meta.get("creation"),
             }
         )
-
-    def _fifo_sort_key(c):
-        exp = c.get("expiry_date")
-        exp_str = str(exp) if exp else ""
-        created_str = str(c.get("creation")) if c.get("creation") else ""
-        return (exp is None, exp_str, created_str)
 
     # 6. Allocate FIFO per item
     for c in batch_item_codes:
         item_req = items_by_code[c]
         req_qty = flt(item_req["required_qty"] or 0)
         cands = candidates_by_item.get(c, [])
-        cands.sort(key=_fifo_sort_key)
+        cands.sort(key=_fifo_candidate_sort_key)
 
         allocated = []
         accumulated_qty = 0.0
@@ -788,6 +791,8 @@ def override_item_source(
 _PICKING_ALLOWED_ROLES = frozenset(
     {PDA_ROLE_STOCK_USER, "Stock User", "Stock Manager", "System Manager"}
 )
+_SKIP_ALLOWED_ROLES = frozenset({"Stock Manager", "System Manager"})
+_BOX_BALANCE_EPSILON = 1e-6
 
 
 def _require_replenishment_picking_access() -> None:
@@ -811,6 +816,379 @@ def _require_replenishment_picking_access() -> None:
         )
 
 
+def _match_picked_item_row(
+    order_items: list,
+    p_item: dict,
+    matched_row_names: set[str],
+):
+    """Match a picked_items entry 1-to-1 to an unmatched child row on the order."""
+    row_id = p_item.get("name")
+    item_code = p_item.get("item_code")
+    p_batch = p_item.get("picked_batch_no") or p_item.get("batch_no")
+
+    if row_id:
+        for row in order_items:
+            if row.name not in matched_row_names and row.name == row_id:
+                return row
+        return None
+
+    if item_code and p_batch:
+        for row in order_items:
+            if (
+                row.name not in matched_row_names
+                and row.item_code == item_code
+                and (
+                    row.suggested_batch_no == p_batch or row.picked_batch_no == p_batch
+                )
+            ):
+                return row
+
+    if item_code:
+        for row in order_items:
+            if row.name not in matched_row_names and row.item_code == item_code:
+                return row
+
+    return None
+
+
+def _resolve_picked_rows_from_payload(order, picked_items: list) -> None:
+    """Validate and apply explicit picked_items payload onto all order child rows."""
+    if not isinstance(picked_items, list):
+        frappe.throw(
+            _("Toplanan kalem listesi geçersiz formatta."),
+            frappe.ValidationError,
+        )
+
+    matched_row_names: set[str] = set()
+    has_any_skip = False
+
+    for p_item in picked_items:
+        if not isinstance(p_item, dict):
+            frappe.throw(
+                _("Toplanan kalem kaydı geçersiz formatta."),
+                frappe.ValidationError,
+            )
+
+        row = _match_picked_item_row(order.items, p_item, matched_row_names)
+        if not row:
+            frappe.throw(
+                _("Gönderilen kalem ikmal emrindeki bekleyen bir satırla eşleşmedi."),
+                frappe.ValidationError,
+            )
+        matched_row_names.add(row.name)
+
+        has_pick_key = "is_picked" in p_item
+        has_skip_key = "is_skipped" in p_item
+        if not has_pick_key and not has_skip_key:
+            is_picked = 1
+            is_skipped = 0
+        else:
+            is_skipped = cint(p_item.get("is_skipped") or 0)
+            is_picked = cint(p_item.get("is_picked") or 0)
+
+        if (is_picked and is_skipped) or (not is_picked and not is_skipped):
+            frappe.throw(
+                _("Kalem {0} için toplama veya atlama durumu net olmalıdır.").format(
+                    row.item_code
+                ),
+                frappe.ValidationError,
+            )
+
+        if is_skipped:
+            has_any_skip = True
+            row.is_skipped = 1
+            row.skipped_by = frappe.session.user
+            row.is_picked = 0
+            row.picked_qty = 0.0
+            row.is_fifo_override = 0
+        else:
+            row.is_skipped = 0
+            row.skipped_by = None
+            row.is_picked = 1
+            if "picked_qty" in p_item and p_item.get("picked_qty") is not None:
+                row.picked_qty = flt(p_item.get("picked_qty"))
+            if p_item.get("picked_source_warehouse"):
+                row.picked_source_warehouse = p_item.get("picked_source_warehouse")
+            p_batch = p_item.get("picked_batch_no") or p_item.get("batch_no")
+            if p_batch:
+                row.picked_batch_no = p_batch
+
+    unresolved = [
+        row.item_code for row in order.items if row.name not in matched_row_names
+    ]
+    if unresolved:
+        frappe.throw(
+            _(
+                "İkmal emrindeki tüm satırlar toplanmalı veya atlanmalıdır. Eksik kalem: {0}"
+            ).format(", ".join(unresolved)),
+            frappe.ValidationError,
+        )
+
+    if has_any_skip:
+        user_roles = set(frappe.get_roles(frappe.session.user))
+        if not user_roles.intersection(_SKIP_ALLOWED_ROLES):
+            frappe.throw(
+                _(
+                    "Kalem atlama işlemi için Stok Yöneticisi (Stock Manager) yetkisi gereklidir."
+                ),
+                frappe.PermissionError,
+            )
+
+
+def _resolve_leaf_source_warehouse(
+    row,
+    t_warehouse: str,
+    batch_no: str | None,
+) -> tuple[str, bool]:
+    """Resolve group warehouses to a leaf warehouse and validate active non-target source."""
+    s_warehouse = row.picked_source_warehouse or row.suggested_source_warehouse
+    if not s_warehouse:
+        frappe.throw(
+            _("Kalem {0} için kaynak ambar zorunludur.").format(row.item_code),
+            frappe.ValidationError,
+        )
+
+    wh_meta = frappe.db.get_value(
+        "Warehouse",
+        s_warehouse,
+        ["name", "is_group", "disabled", "is_rejected_warehouse"],
+        as_dict=True,
+    )
+    if not wh_meta:
+        frappe.throw(
+            _("Kaynak ambar bulunamadı: {0}").format(s_warehouse),
+            frappe.ValidationError,
+        )
+
+    was_group_resolved = False
+    if cint(wh_meta.is_group):
+        was_group_resolved = True
+        leafs = get_leaf_warehouses(s_warehouse)
+        candidate_leafs = [l for l in leafs if l != t_warehouse] or leafs
+        if not candidate_leafs:
+            frappe.throw(
+                _(
+                    "Kaynak ambar {0} grup ambarıdır ve altında yaprak ambar bulunamadı."
+                ).format(s_warehouse),
+                frappe.ValidationError,
+            )
+
+        leaf_found = None
+        if batch_no:
+            for l_wh in candidate_leafs:
+                if frappe.db.exists(
+                    "Stock Ledger Entry",
+                    {
+                        "item_code": row.item_code,
+                        "batch_no": batch_no,
+                        "warehouse": l_wh,
+                        "is_cancelled": 0,
+                    },
+                ):
+                    leaf_found = l_wh
+                    break
+        else:
+            for l_wh in candidate_leafs:
+                stock_qty = frappe.db.get_value(
+                    "Bin",
+                    {"item_code": row.item_code, "warehouse": l_wh},
+                    "actual_qty",
+                )
+                if stock_qty and flt(stock_qty) > 0:
+                    leaf_found = l_wh
+                    break
+
+        s_warehouse = leaf_found or candidate_leafs[0]
+        wh_meta = frappe.db.get_value(
+            "Warehouse",
+            s_warehouse,
+            ["name", "is_group", "disabled", "is_rejected_warehouse"],
+            as_dict=True,
+        )
+
+    if (
+        not wh_meta
+        or cint(wh_meta.is_group)
+        or cint(wh_meta.disabled)
+        or cint(wh_meta.is_rejected_warehouse)
+    ):
+        frappe.throw(
+            _("Kaynak ambar {0} transfer için uygun değil.").format(s_warehouse),
+            frappe.ValidationError,
+        )
+
+    if s_warehouse == t_warehouse:
+        frappe.throw(
+            _("Kaynak ambar hedef ambar ({0}) ile aynı olamaz.").format(t_warehouse),
+            frappe.ValidationError,
+        )
+
+    return s_warehouse, was_group_resolved
+
+
+def _validate_and_prepare_picked_row(
+    row,
+    order,
+    has_batch: bool,
+    explicit_pda_mode: bool,
+    used_boxes: set[tuple[str, str, str]],
+) -> tuple[dict, str | None]:
+    """Validate a single picked row (batch, intact box, tolerance) and build SE item dict."""
+    if explicit_pda_mode:
+        picked_qty = (
+            flt(row.picked_qty) if row.picked_qty is not None else flt(row.deficit_qty)
+        )
+    else:
+        picked_qty = (
+            flt(row.picked_qty)
+            if (row.picked_qty is not None and flt(row.picked_qty) > 0)
+            else flt(row.deficit_qty)
+        )
+
+    if picked_qty <= 0:
+        frappe.throw(
+            _("Kalem {0} için toplanan miktar sıfırdan büyük olmalıdır.").format(
+                row.item_code
+            ),
+            frappe.ValidationError,
+        )
+
+    batch_no = row.picked_batch_no or row.suggested_batch_no
+    s_warehouse, was_group_resolved = _resolve_leaf_source_warehouse(
+        row, order.target_warehouse, batch_no
+    )
+
+    fifo_note = None
+    if has_batch or batch_no:
+        if not batch_no:
+            frappe.throw(
+                _("Parti takipli kalem {0} için parti numarası zorunludur.").format(
+                    row.item_code
+                ),
+                frappe.ValidationError,
+            )
+
+        batch_meta = frappe.db.get_value(
+            "Batch", batch_no, ["name", "item", "disabled"], as_dict=True
+        )
+        if not batch_meta or batch_meta.item != row.item_code:
+            frappe.throw(
+                _("Parti {0} ürün {1} ile eşleşmiyor.").format(batch_no, row.item_code),
+                frappe.ValidationError,
+            )
+        if cint(batch_meta.disabled):
+            frappe.throw(
+                _("Okutulan parti {0} pasif durumdadır.").format(batch_no),
+                frappe.ValidationError,
+            )
+
+        box_key = (row.item_code, batch_no, s_warehouse)
+        if box_key in used_boxes:
+            frappe.throw(
+                _("Aynı koli/parti ({0}) birden fazla satırda kullanılamaz.").format(
+                    batch_no
+                ),
+                frappe.ValidationError,
+            )
+        used_boxes.add(box_key)
+
+        if explicit_pda_mode:
+            balances = get_batch_ledger_balances(row.item_code, batch_no)
+            live_qty = flt(
+                next(
+                    (
+                        b.get("qty")
+                        for b in balances
+                        if b.get("warehouse") == s_warehouse
+                    ),
+                    0.0,
+                )
+            )
+            if live_qty <= _BOX_BALANCE_EPSILON:
+                frappe.throw(
+                    _(
+                        "Parti {0} için kaynak rafta ({1}) kullanılabilir bakiye kalmamış."
+                    ).format(batch_no, s_warehouse),
+                    frappe.ValidationError,
+                )
+            if abs(picked_qty - live_qty) > _BOX_BALANCE_EPSILON:
+                frappe.throw(
+                    _(
+                        "Partili kalemde yalnızca tam koli bakiyesi ({0}) transfer edilebilir."
+                    ).format(live_qty),
+                    frappe.ValidationError,
+                )
+
+        batch_differs = bool(
+            row.suggested_batch_no and batch_no != row.suggested_batch_no
+        ) or (not row.suggested_batch_no and bool(batch_no))
+        wh_differs = bool(
+            row.suggested_source_warehouse
+            and not was_group_resolved
+            and s_warehouse != row.suggested_source_warehouse
+        )
+        if batch_differs or wh_differs:
+            row.is_fifo_override = 1
+            fifo_note = (
+                f"- {row.item_code}: Önerilen {row.suggested_batch_no or '-'} "
+                f"({row.suggested_source_warehouse or '-'}) -> "
+                f"Okutulan {batch_no} ({s_warehouse}, {picked_qty} {row.uom or ''}) "
+                f"[Onay: {frappe.session.user}]"
+            )
+        else:
+            row.is_fifo_override = 0
+    else:
+        deficit_qty = flt(row.deficit_qty)
+        max_allowed = max(deficit_qty * 1.15, deficit_qty + 1.0)
+        if picked_qty > max_allowed:
+            frappe.throw(
+                _(
+                    "Kalem {0} için fazla toplama izin verilen %15 toleransı aşmaktadır."
+                ).format(row.item_code),
+                frappe.ValidationError,
+            )
+        row.is_fifo_override = 0
+
+    row.picked_qty = picked_qty
+    row.picked_source_warehouse = s_warehouse
+    row.picked_batch_no = batch_no
+    row.is_picked = 1
+    row.is_skipped = 0
+    row.skipped_by = None
+
+    item_row = {
+        "item_code": row.item_code,
+        "qty": picked_qty,
+        "s_warehouse": s_warehouse,
+        "t_warehouse": order.target_warehouse,
+        "uom": row.uom,
+    }
+    if batch_no:
+        item_row["batch_no"] = batch_no
+        item_row["use_serial_batch_fields"] = 1
+
+    return item_row, fifo_note
+
+
+def _build_replenishment_audit_remarks(
+    order,
+    fifo_notes: list[str],
+    skip_notes: list[str],
+) -> str:
+    """Build structured audit remarks for Stock Entry and Line Replenishment Order."""
+    if not fifo_notes and not skip_notes:
+        return ""
+
+    sections = [f"[HAT İKMAL: {order.name}]"]
+    if fifo_notes:
+        sections.append("[FIFO SAPMASI]")
+        sections.extend(fifo_notes)
+    if skip_notes:
+        sections.append("[ATLANAN KALEMLER]")
+        sections.extend(skip_notes)
+    return "\n".join(sections)
+
+
 @frappe.whitelist()
 def complete_line_replenishment_picking(
     order_name: str,
@@ -818,12 +1196,9 @@ def complete_line_replenishment_picking(
 ) -> str:
     """Complete picking for a KTA Line Replenishment Order and execute Material Transfer.
 
-    Validates that the order exists and is not already Completed or Cancelled.
-    Applies over-picking tolerance check (max 15% over deficit_qty).
-    Ensures s_warehouse is always a leaf warehouse (never a group warehouse).
-    Creates and submits a Material Transfer Stock Entry atomically.
-    Updates the order status to Completed and links the Stock Entry.
-    Returns the created Stock Entry name.
+    Supports explicit picked/skipped rows from PDA with strict RBAC and intact-box checks,
+    as well as legacy headless completion when picked_items is None.
+    Returns created Stock Entry name, or "" when all rows are skipped and order is Cancelled.
     """
     _require_replenishment_picking_access()
     if not order_name:
@@ -845,125 +1220,73 @@ def complete_line_replenishment_picking(
     if isinstance(picked_items, str):
         picked_items = json.loads(picked_items)
 
-    if picked_items and isinstance(picked_items, list):
-        for p_item in picked_items:
-            row_id = p_item.get("name")
-            item_code = p_item.get("item_code")
-            p_batch = p_item.get("picked_batch_no") or p_item.get("batch_no")
+    explicit_pda_mode = picked_items is not None
+    if explicit_pda_mode:
+        _resolve_picked_rows_from_payload(order, picked_items)
 
-            for row in order.items:
-                matched = False
-                if row_id and row.name == row_id:
-                    matched = True
-                elif item_code and row.item_code == item_code:
-                    if p_batch:
-                        if (
-                            row.suggested_batch_no == p_batch
-                            or row.picked_batch_no == p_batch
-                        ):
-                            matched = True
-                    else:
-                        matched = True
-
-                if matched:
-                    if "picked_qty" in p_item and p_item.get("picked_qty") is not None:
-                        row.picked_qty = flt(p_item.get("picked_qty"))
-                    if p_item.get("picked_source_warehouse"):
-                        row.picked_source_warehouse = p_item.get(
-                            "picked_source_warehouse"
-                        )
-                    if p_item.get("picked_batch_no"):
-                        row.picked_batch_no = p_item.get("picked_batch_no")
-                    row.is_picked = 1
-                    if row_id or p_batch:
-                        break
+    item_codes = list({row.item_code for row in order.items if row.item_code})
+    item_has_batch = (
+        {
+            d.name: cint(d.has_batch_no)
+            for d in frappe.get_all(
+                "Item",
+                filters={"name": ["in", item_codes]},
+                fields=["name", "has_batch_no"],
+            )
+        }
+        if item_codes
+        else {}
+    )
 
     se_items = []
+    fifo_notes: list[str] = []
+    skip_notes: list[str] = []
+    used_boxes: set[tuple[str, str, str]] = set()
     total_picked = 0.0
 
     for row in order.items:
-        picked_qty = (
-            flt(row.picked_qty)
-            if (row.picked_qty is not None and flt(row.picked_qty) > 0)
-            else flt(row.deficit_qty)
-        )
-        deficit_qty = flt(row.deficit_qty)
-        max_allowed = max(deficit_qty * 1.15, deficit_qty + 1.0)
-
-        if picked_qty > max_allowed:
-            frappe.throw(
-                _(
-                    "Kalem {0} için fazla toplama izin verilen %15 toleransı aşmaktadır."
-                ).format(row.item_code),
-                frappe.ValidationError,
+        if explicit_pda_mode and cint(row.is_skipped):
+            skip_notes.append(
+                f"- {row.item_code}: {flt(row.deficit_qty)} {row.uom or ''} "
+                f"(Önerilen: {row.suggested_batch_no or '-'} @ "
+                f"{row.suggested_source_warehouse or '-'}) "
+                f"[Atlayan: {row.skipped_by or frappe.session.user}]"
             )
+            continue
 
-        row.picked_qty = picked_qty
-        row.is_picked = 1
-        total_picked += picked_qty
-
-        s_warehouse = row.picked_source_warehouse or row.suggested_source_warehouse
-        t_warehouse = order.target_warehouse
-        batch_no = row.picked_batch_no or row.suggested_batch_no
-
-        if s_warehouse and frappe.db.get_value("Warehouse", s_warehouse, "is_group"):
-            leafs = get_leaf_warehouses(s_warehouse)
-            candidate_leafs = [l for l in leafs if l != t_warehouse]
-            if not candidate_leafs:
-                candidate_leafs = leafs
-
-            if candidate_leafs:
-                leaf_found = None
-                if batch_no:
-                    for l_wh in candidate_leafs:
-                        b_exists = frappe.db.exists(
-                            "Stock Ledger Entry",
-                            {
-                                "item_code": row.item_code,
-                                "batch_no": batch_no,
-                                "warehouse": l_wh,
-                                "is_cancelled": 0,
-                            },
-                        )
-                        if b_exists:
-                            leaf_found = l_wh
-                            break
-                if not leaf_found and not batch_no:
-                    for l_wh in candidate_leafs:
-                        stock_qty = frappe.db.get_value(
-                            "Bin",
-                            {"item_code": row.item_code, "warehouse": l_wh},
-                            "actual_qty",
-                        )
-                        if stock_qty and flt(stock_qty) > 0:
-                            leaf_found = l_wh
-                            break
-                s_warehouse = leaf_found or candidate_leafs[0]
-            else:
-                frappe.throw(
-                    _(
-                        "Kaynak ambar {0} grup ambarıdır ve altında yaprak ambar bulunamadı."
-                    ).format(s_warehouse),
-                    frappe.ValidationError,
-                )
-
-        item_row = {
-            "item_code": row.item_code,
-            "qty": picked_qty,
-            "s_warehouse": s_warehouse,
-            "t_warehouse": t_warehouse,
-            "uom": row.uom,
-        }
-        if batch_no:
-            item_row["batch_no"] = batch_no
-            item_row["use_serial_batch_fields"] = 1
-
+        item_row, fifo_note = _validate_and_prepare_picked_row(
+            row=row,
+            order=order,
+            has_batch=bool(item_has_batch.get(row.item_code, 0)),
+            explicit_pda_mode=explicit_pda_mode,
+            used_boxes=used_boxes,
+        )
+        total_picked += flt(item_row["qty"])
         se_items.append(item_row)
+        if fifo_note:
+            fifo_notes.append(fifo_note)
+
+    audit_remarks = _build_replenishment_audit_remarks(order, fifo_notes, skip_notes)
+
+    if not se_items:
+        order.stock_entry = None
+        order.total_picked_qty = 0.0
+        order.status = "Cancelled"
+        if audit_remarks:
+            order.remarks = (
+                f"{order.remarks}\n{audit_remarks}".strip()
+                if order.remarks
+                else audit_remarks
+            )
+        order.save(ignore_permissions=True)
+        return ""
 
     se = frappe.new_doc("Stock Entry")
     se.stock_entry_type = "Material Transfer"
     se.purpose = "Material Transfer"
     se.company = order.company
+    if audit_remarks:
+        se.remarks = audit_remarks
     for item_data in se_items:
         se.append("items", item_data)
     se.insert(ignore_permissions=True)
@@ -972,6 +1295,12 @@ def complete_line_replenishment_picking(
     order.status = "Completed"
     order.stock_entry = se.name
     order.total_picked_qty = total_picked
+    if audit_remarks:
+        order.remarks = (
+            f"{order.remarks}\n{audit_remarks}".strip()
+            if order.remarks
+            else audit_remarks
+        )
     order.save(ignore_permissions=True)
 
     return se.name

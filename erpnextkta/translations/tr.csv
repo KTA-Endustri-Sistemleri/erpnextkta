@@ -1353,3 +1353,61 @@ Sesli Uyarılar,Sesli Uyarılar
 Sesli Uyarılar Açık,Sesli Uyarılar Açık
 Sesli Uyarılar Kapalı,Sesli Uyarılar Kapalı
 Arayüz Dili,Arayüz Dili
+({0} Atlandı),({0} Atlandı)
+Atla,Atla
+Atlanan ({0}),Atlanan ({0})
+Atlandı,Atlandı
+Aynı koli/parti ({0}) birden fazla satırda kullanılamaz.,Aynı koli/parti ({0}) birden fazla satırda kullanılamaz.
+Bekleyen ({0}),Bekleyen ({0})
+Bu değişim Stock Entry notlarına otomatik kaydedilecektir.,Bu değişim Stock Entry notlarına otomatik kaydedilecektir.
+Bu kalem mevcut transferden hariç tutulacak ve bir sonraki ikmal taramasında otomatik olarak yeniden listelenecektir.,Bu kalem mevcut transferden hariç tutulacak ve bir sonraki ikmal taramasında otomatik olarak yeniden listelenecektir.
+Bu koli ({0}) zaten okutuldu.,Bu koli ({0}) zaten okutuldu.
+Bu koli zaten hedef üretim hattında ({0}) bulunuyor.,Bu koli zaten hedef üretim hattında ({0}) bulunuyor.
+Bu malzeme parti takiplidir. Lütfen koli/SUT parti barkodunu okutun.,Bu malzeme parti takiplidir. Lütfen koli/SUT parti barkodunu okutun.
+Bu malzemenin bekleyen kolisi kalmadı.,Bu malzemenin bekleyen kolisi kalmadı.
+Bu partinin uygun kaynak raflarda kullanılabilir bakiyesi yok.,Bu partinin uygun kaynak raflarda kullanılabilir bakiyesi yok.
+Bu sekmede gösterilecek kalem yok.,Bu sekmede gösterilecek kalem yok.
+Eksik Kalem Atlama Onayı,Eksik Kalem Atlama Onayı
+Emri İptal Et (Tümü Atlandı),Emri İptal Et (Tümü Atlandı)
+FIFO Sapması,FIFO Sapması
+FIFO Sapması Tespit Edildi,FIFO Sapması Tespit Edildi
+FIFO sapması onaylandı: {0} [{1}],FIFO sapması onaylandı: {0} [{1}]
+Geri Al,Geri Al
+Girilen miktar sıfırdan büyük olmalıdır.,Girilen miktar sıfırdan büyük olmalıdır.
+Gönderilen kalem ikmal emrindeki bekleyen bir satırla eşleşmedi.,Gönderilen kalem ikmal emrindeki bekleyen bir satırla eşleşmedi.
+Kalem atlama işlemi için Stok Yöneticisi (Stock Manager) yetkisi gereklidir.,Kalem atlama işlemi için Stok Yöneticisi (Stock Manager) yetkisi gereklidir.
+Kalem atlandı: {0},Kalem atlandı: {0}
+Kalem {0} için kaynak ambar zorunludur.,Kalem {0} için kaynak ambar zorunludur.
+Kalem {0} için toplama veya atlama durumu net olmalıdır.,Kalem {0} için toplama veya atlama durumu net olmalıdır.
+Kalem {0} için toplanan miktar sıfırdan büyük olmalıdır.,Kalem {0} için toplanan miktar sıfırdan büyük olmalıdır.
+Kalemi Atla,Kalemi Atla
+Kaynak ambar bulunamadı: {0},Kaynak ambar bulunamadı: {0}
+Kaynak ambar hedef ambar ({0}) ile aynı olamaz.,Kaynak ambar hedef ambar ({0}) ile aynı olamaz.
+Kaynak ambar {0} transfer için uygun değil.,Kaynak ambar {0} transfer için uygun değil.
+Okutulan Koli,Okutulan Koli
+Okutulan parti pasif durumdadır.,Okutulan parti pasif durumdadır.
+Okutulan parti {0} pasif durumdadır.,Okutulan parti {0} pasif durumdadır.
+Okutuldu: {0},Okutuldu: {0}
+Okutuldu: {0} [{1}],Okutuldu: {0} [{1}]
+Onaylandı: {0},Onaylandı: {0}
+Parti takipli kalem {0} için parti numarası zorunludur.,Parti takipli kalem {0} için parti numarası zorunludur.
+Parti {0} için kaynak rafta ({1}) kullanılabilir bakiye kalmamış.,Parti {0} için kaynak rafta ({1}) kullanılabilir bakiye kalmamış.
+Parti {0} ürün {1} ile eşleşmiyor.,Parti {0} ürün {1} ile eşleşmiyor.
+Partili kalemde yalnızca tam koli bakiyesi ({0}) transfer edilebilir.,Partili kalemde yalnızca tam koli bakiyesi ({0}) transfer edilebilir.
+Toplanan ({0}),Toplanan ({0})
+Toplanan kalem kaydı geçersiz formatta.,Toplanan kalem kaydı geçersiz formatta.
+Toplanan kalem listesi geçersiz formatta.,Toplanan kalem listesi geçersiz formatta.
+Toplanan: {0} / {1},Toplanan: {0} / {1}
+Tüm kalemler atlandı — Emri iptal edebilirsiniz,Tüm kalemler atlandı — Emri iptal edebilirsiniz
+Tüm kalemler atlandığı için ikmal emri iptal edildi.,Tüm kalemler atlandığı için ikmal emri iptal edildi.
+Tüm kalemler atlandığı için ikmal emri iptal edilsin mi?,Tüm kalemler atlandığı için ikmal emri iptal edilsin mi?
+Tüm kalemler işlendi — Transferi tamamlamaya hazır,Tüm kalemler işlendi — Transferi tamamlamaya hazır
+Yine de Kullan (FIFO Sapması),Yine de Kullan (FIFO Sapması)
+{0} / {1} Tamamlandı,{0} / {1} Tamamlandı
+{0} koli bekliyor,{0} koli bekliyor
+Önerilen FIFO,Önerilen FIFO
+İkmal Emri İptal Ediliyor...,İkmal Emri İptal Ediliyor...
+İkmal emrindeki tüm satırlar toplanmalı veya atlanmalıdır. Eksik kalem: {0},İkmal emrindeki tüm satırlar toplanmalı veya atlanmalıdır. Eksik kalem: {0}
+Is Skipped,Atlandı mı
+Skipped By,Atlayan Kullanıcı
+FIFO Override,FIFO Sapması

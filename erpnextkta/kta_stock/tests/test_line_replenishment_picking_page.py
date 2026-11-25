@@ -363,3 +363,339 @@ class TestLineReplenishmentPickingPage(FrappeTestCase):
         self.assertEqual(
             frappe.db.get_value("Stock Entry", se_name, "owner"), pure_email
         )
+
+    def test_order_details_walk_order_sorting_role_flags_and_has_batch(self):
+        from erpnextkta.tests.test_utils import (
+            create_test_company,
+            create_test_item_group,
+        )
+
+        setup_pda_roles_and_permissions()
+        uid = frappe.generate_hash("", 5).upper()
+        company = frappe.db.get_value(
+            "Company", "_Test Company", "name"
+        ) or create_test_company("_Test Company")
+        abbr = frappe.db.get_value("Company", company, "abbr") or "_TC"
+        parent_wh = frappe.db.get_value(
+            "Warehouse", {"company": company, "is_group": 1}, "name"
+        )
+
+        def ensure_leaf(label: str) -> str:
+            wh_name = f"{label} - {abbr}"
+            if not frappe.db.exists("Warehouse", wh_name):
+                wh_doc = frappe.get_doc(
+                    {
+                        "doctype": "Warehouse",
+                        "warehouse_name": label,
+                        "company": company,
+                        "parent_warehouse": parent_wh,
+                        "is_group": 0,
+                    }
+                ).insert(ignore_permissions=True)
+                return wh_doc.name
+            return wh_name
+
+        wh_target = ensure_leaf(f"_Test Walk Tgt {uid}")
+        wh_w1a_10 = ensure_leaf(f"W1A-10-01-{uid}")
+        wh_w1a_02 = ensure_leaf(f"W1A-02-01-{uid}")
+        wh_w1b_01 = ensure_leaf(f"W1B-01-01-{uid}")
+
+        item_group = create_test_item_group()
+        batch_item = f"_TEST-WALK-BATCH-{uid}"
+        non_batch_item = f"_TEST-WALK-NOBATCH-{uid}"
+        for code, has_batch in ((batch_item, 1), (non_batch_item, 0)):
+            frappe.get_doc(
+                {
+                    "doctype": "Item",
+                    "item_code": code,
+                    "item_name": code,
+                    "item_group": item_group,
+                    "is_stock_item": 1,
+                    "stock_uom": "Nos",
+                    "has_batch_no": has_batch,
+                    "create_new_batch": 0,
+                }
+            ).insert(ignore_permissions=True)
+
+        b1 = frappe.get_doc(
+            {
+                "doctype": "Batch",
+                "batch_id": f"W{uid}0001",
+                "item": batch_item,
+                "batch_qty": 0,
+            }
+        ).insert(ignore_permissions=True)
+        b2 = frappe.get_doc(
+            {
+                "doctype": "Batch",
+                "batch_id": f"W{uid}0002",
+                "item": batch_item,
+                "batch_qty": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        order = frappe.get_doc(
+            {
+                "doctype": "KTA Line Replenishment Order",
+                "target_warehouse": wh_target,
+                "company": company,
+                "items": [
+                    {
+                        "item_code": batch_item,
+                        "deficit_qty": 20.0,
+                        "suggested_source_warehouse": wh_w1a_10,
+                        "suggested_batch_no": b1.name,
+                        "uom": "Nos",
+                    },
+                    {
+                        "item_code": non_batch_item,
+                        "deficit_qty": 15.0,
+                        "suggested_source_warehouse": wh_w1b_01,
+                        "uom": "Nos",
+                    },
+                    {
+                        "item_code": batch_item,
+                        "deficit_qty": 10.0,
+                        "suggested_source_warehouse": wh_w1a_02,
+                        "suggested_batch_no": b2.name,
+                        "uom": "Nos",
+                    },
+                ],
+            }
+        )
+        order.flags.ignore_mandatory = True
+        order.insert(ignore_permissions=True)
+
+        pda_user = f"walk_pda_{uid.lower()}@example.com"
+        stock_user = f"walk_su_{uid.lower()}@example.com"
+        mgr_user = f"walk_mgr_{uid.lower()}@example.com"
+        for email, role in (
+            (pda_user, PDA_ROLE_STOCK_USER),
+            (stock_user, "Stock User"),
+            (mgr_user, "Stock Manager"),
+        ):
+            frappe.get_doc(
+                {
+                    "doctype": "User",
+                    "email": email,
+                    "first_name": email.split("@")[0],
+                    "enabled": 1,
+                    "send_welcome_email": 0,
+                    "roles": [{"role": role}],
+                }
+            ).insert(ignore_permissions=True)
+            frappe.clear_cache(user=email)
+
+        for user_email in (pda_user, stock_user):
+            frappe.set_user(user_email)
+            details = get_replenishment_order_details(order.name)
+            self.assertFalse(details.get("can_skip_items"))
+            self.assertEqual(
+                [r["suggested_source_warehouse"] for r in details["items"]],
+                [wh_w1a_02, wh_w1a_10, wh_w1b_01],
+            )
+            self.assertEqual([r["has_batch_no"] for r in details["items"]], [1, 1, 0])
+            for r in details["items"]:
+                self.assertEqual(r["is_skipped"], 0)
+                self.assertIsNone(r["skipped_by"])
+                self.assertEqual(r["is_fifo_override"], 0)
+
+        frappe.set_user(mgr_user)
+        mgr_details = get_replenishment_order_details(order.name)
+        self.assertTrue(mgr_details.get("can_skip_items"))
+
+    def test_resolve_scanned_barcode_returns_live_shelf_and_target_flags(self):
+        from erpnextkta.tests.test_utils import (
+            create_test_company,
+            create_test_item_group,
+        )
+
+        uid = frappe.generate_hash("", 5).upper()
+        company = frappe.db.get_value(
+            "Company", "_Test Company", "name"
+        ) or create_test_company("_Test Company")
+        abbr = frappe.db.get_value("Company", company, "abbr") or "_TC"
+        parent_wh = frappe.db.get_value(
+            "Warehouse", {"company": company, "is_group": 1}, "name"
+        )
+
+        def ensure_leaf(label: str) -> str:
+            wh_name = f"{label} - {abbr}"
+            if not frappe.db.exists("Warehouse", wh_name):
+                wh_doc = frappe.get_doc(
+                    {
+                        "doctype": "Warehouse",
+                        "warehouse_name": label,
+                        "company": company,
+                        "parent_warehouse": parent_wh,
+                        "is_group": 0,
+                    }
+                ).insert(ignore_permissions=True)
+                return wh_doc.name
+            return wh_name
+
+        wh_source = ensure_leaf(f"_Test Scan Src {uid}")
+        wh_target = ensure_leaf(f"_Test Scan Tgt {uid}")
+
+        item_group = create_test_item_group()
+        item_code = f"_TEST-SCAN-LIVE-{uid}"
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": item_code,
+                "item_name": item_code,
+                "item_group": item_group,
+                "is_stock_item": 1,
+                "stock_uom": "Nos",
+                "has_batch_no": 1,
+                "create_new_batch": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        active_batch = f"S{uid}0001"
+        disabled_batch = f"S{uid}0002"
+        frappe.get_doc(
+            {
+                "doctype": "Batch",
+                "batch_id": active_batch,
+                "item": item_code,
+                "batch_qty": 0,
+            }
+        ).insert(ignore_permissions=True)
+        frappe.get_doc(
+            {
+                "doctype": "Batch",
+                "batch_id": disabled_batch,
+                "item": item_code,
+                "disabled": 1,
+                "batch_qty": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        # Receive 45.0 live ledger qty into wh_source
+        receipt = frappe.get_doc(
+            {
+                "doctype": "Stock Entry",
+                "stock_entry_type": "Material Receipt",
+                "purpose": "Material Receipt",
+                "company": company,
+                "posting_date": nowdate(),
+                "posting_time": nowtime(),
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "t_warehouse": wh_source,
+                        "qty": 45.0,
+                        "allow_zero_valuation_rate": 1,
+                        "batch_no": active_batch,
+                        "use_serial_batch_fields": 1,
+                    }
+                ],
+            }
+        )
+        receipt.insert(ignore_permissions=True)
+        receipt.submit()
+
+        # Create KTA Stock Label with intentionally stale qty (999.0)
+        lbl = frappe.get_doc(
+            {
+                "doctype": "KTA Stock Label",
+                "label_type": "Depo Giriş Etiketi",
+                "reference_doctype": "Purchase Receipt",
+                "reference_name": f"MAT-PRE-{uid}",
+                "item_code": item_code,
+                "qty": 999.0,
+                "uom": "Nos",
+                "batch": active_batch,
+                "sut_barcode": f"SUT-{active_batch}",
+                "target_warehouse": wh_source,
+                "quality_ref": "ATLA 5/1",
+                "supplier_delivery_note": f"DN-{uid}",
+                "gr_posting_date": nowdate(),
+            }
+        )
+        lbl.flags.ignore_links = True
+        lbl.insert(ignore_permissions=True)
+
+        order = frappe.get_doc(
+            {
+                "doctype": "KTA Line Replenishment Order",
+                "target_warehouse": wh_target,
+                "company": company,
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "deficit_qty": 45.0,
+                        "suggested_source_warehouse": wh_source,
+                        "suggested_batch_no": active_batch,
+                        "uom": "Nos",
+                    }
+                ],
+            }
+        )
+        order.flags.ignore_mandatory = True
+        order.insert(ignore_permissions=True)
+
+        # 1. Scanning via Batch returns live shelf & live qty
+        res_batch = resolve_scanned_barcode(active_batch, order_name=order.name)
+        self.assertEqual(res_batch["item_code"], item_code)
+        self.assertEqual(res_batch["batch_no"], active_batch)
+        self.assertEqual(res_batch["warehouse"], wh_source)
+        self.assertEqual(flt(res_batch["qty"]), 45.0)
+        self.assertFalse(res_batch["already_in_target"])
+        self.assertFalse(res_batch["batch_disabled"])
+        self.assertEqual(res_batch["has_batch_no"], 1)
+        self.assertEqual(
+            res_batch["available_balances"], [{"warehouse": wh_source, "qty": 45.0}]
+        )
+
+        # 2. Scanning via KTA Stock Label SUT barcode returns live qty (45.0), NOT stale 999.0
+        res_label = resolve_scanned_barcode(
+            f"SUT-{active_batch}", order_name=order.name
+        )
+        self.assertEqual(res_label["warehouse"], wh_source)
+        self.assertEqual(flt(res_label["qty"]), 45.0)
+
+        # 3. Backward-compatible call without order_name
+        res_legacy = resolve_scanned_barcode(active_batch)
+        self.assertEqual(res_legacy["item_code"], item_code)
+        self.assertEqual(res_legacy["batch_no"], active_batch)
+        self.assertEqual(res_legacy["warehouse"], wh_source)
+        self.assertEqual(flt(res_legacy["qty"]), 45.0)
+
+        # 4. Disabled batch returns batch_disabled=True, qty=0.0, warehouse=None
+        res_disabled = resolve_scanned_barcode(disabled_batch, order_name=order.name)
+        self.assertTrue(res_disabled["batch_disabled"])
+        self.assertIsNone(res_disabled["warehouse"])
+        self.assertEqual(flt(res_disabled["qty"]), 0.0)
+        self.assertEqual(res_disabled["available_balances"], [])
+
+        # 5. Transfer batch into order.target_warehouse -> already_in_target=True
+        transfer = frappe.get_doc(
+            {
+                "doctype": "Stock Entry",
+                "stock_entry_type": "Material Transfer",
+                "purpose": "Material Transfer",
+                "company": company,
+                "posting_date": nowdate(),
+                "posting_time": nowtime(),
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "s_warehouse": wh_source,
+                        "t_warehouse": wh_target,
+                        "qty": 45.0,
+                        "batch_no": active_batch,
+                        "use_serial_batch_fields": 1,
+                    }
+                ],
+            }
+        )
+        transfer.insert(ignore_permissions=True)
+        transfer.submit()
+
+        res_in_target = resolve_scanned_barcode(active_batch, order_name=order.name)
+        self.assertTrue(res_in_target["already_in_target"])
+        self.assertIsNone(res_in_target["warehouse"])
+        self.assertEqual(flt(res_in_target["qty"]), 0.0)
+        self.assertEqual(res_in_target["available_balances"], [])

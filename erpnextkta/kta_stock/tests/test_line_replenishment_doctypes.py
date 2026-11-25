@@ -98,6 +98,9 @@ class TestLineReplenishmentDocTypes(FrappeTestCase):
             "picked_source_warehouse",
             "picked_batch_no",
             "is_picked",
+            "is_skipped",
+            "skipped_by",
+            "is_fifo_override",
         }
         self.assertTrue(expected.issubset(fieldnames))
         self.assertNotIn("sourcing_type", fieldnames)

@@ -2158,3 +2158,61 @@ Sesli Uyarılar,Akustische Hinweise
 Sesli Uyarılar Açık,Akustische Hinweise Ein
 Sesli Uyarılar Kapalı,Akustische Hinweise Aus
 Arayüz Dili,Oberflächensprache
+({0} Atlandı),({0} Übersprungen)
+Atla,Überspringen
+Atlanan ({0}),Übersprungen ({0})
+Atlandı,Übersprungen
+Aynı koli/parti ({0}) birden fazla satırda kullanılamaz.,Dasselbe Paket/dieselbe Charge ({0}) kann nicht in mehreren Zeilen verwendet werden.
+Bekleyen ({0}),Ausstehend ({0})
+Bu değişim Stock Entry notlarına otomatik kaydedilecektir.,Diese Änderung wird automatisch in den Stock-Entry-Bemerkungen gespeichert.
+Bu kalem mevcut transferden hariç tutulacak ve bir sonraki ikmal taramasında otomatik olarak yeniden listelenecektir.,Dieser Artikel wird vom aktuellen Transfer ausgeschlossen und erscheint automatisch beim nächsten Nachschub-Scan wieder.
+Bu koli ({0}) zaten okutuldu.,Dieses Paket ({0}) wurde bereits gescannt.
+Bu koli zaten hedef üretim hattında ({0}) bulunuyor.,Dieses Paket befindet sich bereits an der Zielproduktionslinie ({0}).
+Bu malzeme parti takiplidir. Lütfen koli/SUT parti barkodunu okutun.,Dieser Artikel ist chargenpflichtig. Bitte scannen Sie den Paket-/SUT-Chargen-Barcode.
+Bu malzemenin bekleyen kolisi kalmadı.,Für diesen Artikel sind keine ausstehenden Pakete mehr vorhanden.
+Bu partinin uygun kaynak raflarda kullanılabilir bakiyesi yok.,Diese Charge hat keinen verfügbaren Bestand in zulässigen Quellregalen.
+Bu sekmede gösterilecek kalem yok.,In diesem Tab sind keine Artikel anzuzeigen.
+Eksik Kalem Atlama Onayı,Bestätigung zum Überspringen Fehlender Artikel
+Emri İptal Et (Tümü Atlandı),Auftrag Stornieren (Alle Übersprungen)
+FIFO Sapması,FIFO-Abweichung
+FIFO Sapması Tespit Edildi,FIFO-Abweichung Erkannt
+FIFO sapması onaylandı: {0} [{1}],FIFO-Abweichung bestätigt: {0} [{1}]
+Geri Al,Rückgängig
+Girilen miktar sıfırdan büyük olmalıdır.,Die eingegebene Menge muss größer als null sein.
+Gönderilen kalem ikmal emrindeki bekleyen bir satırla eşleşmedi.,Der gesendete Artikel stimmt mit keiner ausstehenden Zeile im Nachschubauftrag überein.
+Kalem atlama işlemi için Stok Yöneticisi (Stock Manager) yetkisi gereklidir.,Für das Überspringen von Artikeln ist die Berechtigung Stock Manager erforderlich.
+Kalem atlandı: {0},Artikel übersprungen: {0}
+Kalem {0} için kaynak ambar zorunludur.,Das Quelllager ist für Artikel {0} erforderlich.
+Kalem {0} için toplama veya atlama durumu net olmalıdır.,Der Kommissionier- oder Überspringstatus muss für Artikel {0} eindeutig sein.
+Kalem {0} için toplanan miktar sıfırdan büyük olmalıdır.,Die kommissionierte Menge für Artikel {0} muss größer als null sein.
+Kalemi Atla,Artikel Überspringen
+Kaynak ambar bulunamadı: {0},Quelllager nicht gefunden: {0}
+Kaynak ambar hedef ambar ({0}) ile aynı olamaz.,Das Quelllager darf nicht mit dem Ziellager ({0}) identisch sein.
+Kaynak ambar {0} transfer için uygun değil.,Quelllager {0} ist für den Transfer nicht geeignet.
+Okutulan Koli,Gescanntes Paket
+Okutulan parti pasif durumdadır.,Die gescannte Charge ist deaktiviert.
+Okutulan parti {0} pasif durumdadır.,Die gescannte Charge {0} ist deaktiviert.
+Okutuldu: {0},Gescannt: {0}
+Okutuldu: {0} [{1}],Gescannt: {0} [{1}]
+Onaylandı: {0},Bestätigt: {0}
+Parti takipli kalem {0} için parti numarası zorunludur.,Für den chargenpflichtigen Artikel {0} ist eine Chargennummer erforderlich.
+Parti {0} için kaynak rafta ({1}) kullanılabilir bakiye kalmamış.,Für Charge {0} ist im Quellregal ({1}) kein verfügbarer Bestand mehr vorhanden.
+Parti {0} ürün {1} ile eşleşmiyor.,Charge {0} stimmt nicht mit Artikel {1} überein.
+Partili kalemde yalnızca tam koli bakiyesi ({0}) transfer edilebilir.,Bei einem chargenpflichtigen Artikel kann nur der volle Paketbestand ({0}) transferiert werden.
+Toplanan ({0}),Kommissioniert ({0})
+Toplanan kalem kaydı geçersiz formatta.,Der Eintrag des kommissionierten Artikels hat ein ungültiges Format.
+Toplanan kalem listesi geçersiz formatta.,Die Liste der kommissionierten Artikel hat ein ungültiges Format.
+Toplanan: {0} / {1},Kommissioniert: {0} / {1}
+Tüm kalemler atlandı — Emri iptal edebilirsiniz,Alle Artikel übersprungen — Sie können den Auftrag stornieren
+Tüm kalemler atlandığı için ikmal emri iptal edildi.,"Nachschubauftrag storniert, da alle Artikel übersprungen wurden."
+Tüm kalemler atlandığı için ikmal emri iptal edilsin mi?,Alle Artikel wurden übersprungen. Nachschubauftrag stornieren?
+Tüm kalemler işlendi — Transferi tamamlamaya hazır,Alle Artikel bearbeitet — Bereit zum Abschließen des Transfers
+Yine de Kullan (FIFO Sapması),Trotzdem Verwenden (FIFO-Abweichung)
+{0} / {1} Tamamlandı,{0} / {1} Abgeschlossen
+{0} koli bekliyor,{0} Pakete ausstehend
+Önerilen FIFO,Vorgeschlagenes FIFO
+İkmal Emri İptal Ediliyor...,Nachschubauftrag wird storniert...
+İkmal emrindeki tüm satırlar toplanmalı veya atlanmalıdır. Eksik kalem: {0},Alle Zeilen im Nachschubauftrag müssen kommissioniert oder übersprungen werden. Fehlender Artikel: {0}
+Is Skipped,Übersprungen
+Skipped By,Übersprungen von
+FIFO Override,FIFO-Abweichung

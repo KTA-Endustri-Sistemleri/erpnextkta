@@ -1,248 +1,199 @@
 <template>
+  <!-- State C: Picked collapsed 1-line green card -->
   <div
+    v-if="isPickedBool && !isSkippedBool"
     :id="`card-row-${item.name}`"
-    :class="[
-      'item-card',
-      { 'picked-card': isPickedBool },
-      { 'highlight-scan': highlighted },
-      { 'has-over-tolerance': overTolerance },
-    ]"
+    :data-testid="`picking-card-${item.name}`"
+    :class="['collapsed-row', 'picked-row', { 'highlight-scan': highlighted }]"
   >
-    <div class="item-card-header">
-      <div class="item-code-wrapper">
-        <span class="item-code-title">{{ item.item_code }}</span>
-      </div>
-      <label class="pda-check-label">
-        <input
-          type="checkbox"
-          class="pda-picked-check"
-          :checked="isPickedBool"
-          @change="onToggleCheck"
-        />
-        <span class="check-text">{{ __("Toplandı") }}</span>
-      </label>
+    <span class="row-icon icon-picked" aria-hidden="true">✓</span>
+    <span class="row-shelf">{{ shelfLocation }}</span>
+    <span class="row-code mono">{{ item.item_code }}</span>
+    <span class="row-qty">{{ item.picked_qty }} {{ item.uom || "" }}</span>
+    <span v-if="pickedBatchLabel" class="row-batch mono">{{ pickedBatchLabel }}</span>
+    <span v-if="isFifoOverrideBool" data-testid="fifo-override-badge" class="fifo-override-badge">
+      ⚠️ {{ __("FIFO Sapması") }}
+    </span>
+    <button type="button" class="btn-undo" data-testid="card-undo-btn" :title="__('Geri Al')" @click="emit('undo')">
+      ↩
+    </button>
+  </div>
+
+  <!-- State D: Skipped collapsed 1-line muted/amber card -->
+  <div
+    v-else-if="isSkippedBool"
+    :id="`card-row-${item.name}`"
+    :data-testid="`picking-card-${item.name}`"
+    class="collapsed-row skipped-row"
+  >
+    <span class="row-icon icon-skipped" aria-hidden="true">⊘</span>
+    <span class="row-shelf">{{ shelfLocation }}</span>
+    <span class="row-code mono">{{ item.item_code }}</span>
+    <span class="skipped-pill">{{ __("Atlandı") }}</span>
+    <button v-if="canSkip" type="button" class="btn-undo" data-testid="card-undo-btn" :title="__('Geri Al')" @click="emit('undo')">
+      ↩
+    </button>
+  </div>
+
+  <!-- State A & B: Pending compact walk-order card -->
+  <div
+    v-else
+    :id="`card-row-${item.name}`"
+    :data-testid="`picking-card-${item.name}`"
+    :class="['pending-card', { 'highlight-scan': highlighted }, { 'has-over-tolerance': !isBatchTracked && overTolerance }]"
+  >
+    <div class="card-top-row">
+      <span class="shelf-badge">📍 {{ shelfLocation }}</span>
+      <span class="box-qty-badge">{{ item.deficit_qty }} {{ item.uom || "" }}</span>
     </div>
 
-    <div v-if="item.item_name" class="item-name-desc">{{ item.item_name }}</div>
-
-    <div class="item-card-badges">
-      <span class="pda-badge shelf-badge">📍 {{ __("Raf") }}: {{ shelfLocation }}</span>
-      <span class="pda-badge batch-badge">🏷️ {{ __("Parti") }}: {{ batchNumber }}</span>
-      <span class="pda-badge qty-badge">📦 {{ item.deficit_qty }} {{ item.uom || "" }}</span>
+    <div class="card-mid-row">
+      <div class="item-code-title mono">{{ item.item_code }}</div>
+      <div v-if="item.item_name" class="item-name-clipped">{{ item.item_name }}</div>
     </div>
 
-    <div class="progress-section">
-      <div class="progress-labels">
-        <span class="progress-info">
-          {{ __("İlerleme") }}: {{ item.picked_qty }} / {{ item.deficit_qty }} {{ item.uom || "" }}
-        </span>
-        <span class="progress-percent">{{ progressPercent }}%</span>
-      </div>
-      <div class="progress-track">
-        <div
-          class="progress-fill"
-          :class="{ 'fill-complete': progressPercent >= 100, 'fill-over': overTolerance }"
-          :style="{ width: `${Math.min(100, progressPercent)}%` }"
-        ></div>
-      </div>
-    </div>
-
-    <div class="item-card-grid">
-      <div class="grid-cell">
-        <span class="cell-label">{{ __("İhtiyaç") }}</span>
-        <span class="cell-val bold">{{ item.deficit_qty }} {{ item.uom || "" }}</span>
-      </div>
-      <div class="grid-cell">
-        <span class="cell-label">{{ __("Kaynak Depo") }}</span>
-        <span class="cell-val small">{{ shelfLocation }}</span>
-      </div>
-      <div class="grid-cell cell-batch">
-        <span class="cell-label">{{ __("Parti (Batch)") }}</span>
-        <span class="cell-val small batch-tag">{{ batchNumber }}</span>
-      </div>
-      <div class="grid-cell cell-tolerance">
-        <span class="cell-label">{{ __("Tolerans") }}</span>
-        <span class="cell-val small text-muted">{{ __("Maks") }} {{ maxAllowed.toFixed(2) }} (+%15)</span>
-      </div>
-    </div>
-
-    <div class="item-card-actions">
-      <div class="qty-control-wrapper">
-        <label class="qty-label">{{ __("Toplanan Miktar") }}:</label>
-        <div class="qty-input-group">
-          <button type="button" class="btn btn-qty-step btn-step-dec" :title="__('Azalt (-1)')" @click="decrementQty">-</button>
-          <input
-            type="number"
-            step="any"
-            class="pda-picked-qty-input"
-            :class="{ 'input-over-tolerance': overTolerance }"
-            :value="item.picked_qty"
-            @input="onInputQty"
-          />
-          <button type="button" class="btn btn-qty-step btn-step-inc" :title="__('Artır (+1)')" @click="incrementQty">+</button>
-        </div>
-      </div>
-
-      <button type="button" class="btn-pick-all" :title="__('Tümünü Al')" @click="emit('pick-all')">
-        ⚡ {{ __("Tümünü Al") }}
+    <div v-if="isBatchTracked" class="card-bottom-row">
+      <span class="batch-pill mono">🏷️ {{ item.suggested_batch_no || __("Belirtilmedi") }}</span>
+      <button v-if="canSkip" type="button" class="btn-skip-subtle" data-testid="card-skip-btn" @click="emit('request-skip')">
+        {{ __("Atla") }}
       </button>
     </div>
 
-    <div v-if="overTolerance" class="tolerance-warning">
-      ⚠️ {{ __("Tolerans Aşıldı! (+%15 Üzeri)") }}
+    <div v-else class="non-batch-row">
+      <div class="non-batch-controls">
+        <input
+          type="number"
+          step="any"
+          min="0"
+          data-testid="non-batch-qty-input"
+          class="non-batch-input"
+          :class="{ 'input-over-tolerance': overTolerance }"
+          :value="item.picked_qty"
+          @input="onInputQty"
+        />
+        <button type="button" class="btn-confirm-non-batch" data-testid="confirm-non-batch-btn" @click="emit('confirm-non-batch')">
+          ✓ {{ __("Onayla") }}
+        </button>
+        <button v-if="canSkip" type="button" class="btn-skip-subtle" data-testid="card-skip-btn" @click="emit('request-skip')">
+          {{ __("Atla") }}
+        </button>
+      </div>
+      <div v-if="overTolerance" class="tolerance-warning">⚠️ {{ __("Tolerans Aşıldı! (+%15 Üzeri)") }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { type PickingItem, calculateMaxAllowed, isOverTolerance } from "../types";
+import { type PickingItem, isOverTolerance } from "../types";
+import { isBatchTrackedRow } from "../composables/useLineReplenishmentPicking";
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
-interface Props {
-  item: PickingItem;
-  highlighted?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), { highlighted: false });
+const props = withDefaults(
+  defineProps<{ item: PickingItem; highlighted?: boolean; canSkip?: boolean }>(),
+  { highlighted: false, canSkip: false },
+);
 
 const emit = defineEmits<{
+  (e: "undo"): void;
+  (e: "request-skip"): void;
   (e: "update-qty", qty: number): void;
-  (e: "toggle-picked", isPicked: boolean): void;
-  (e: "pick-all"): void;
+  (e: "confirm-non-batch"): void;
 }>();
 
 const isPickedBool = computed(() => Boolean(props.item.is_picked));
-
-const shelfLocation = computed(
-  () => props.item.picked_source_warehouse || props.item.suggested_source_warehouse || "-",
-);
-
-const batchNumber = computed(
-  () => props.item.picked_batch_no || props.item.suggested_batch_no || __("Belirtilmedi"),
-);
-
-const maxAllowed = computed(() => calculateMaxAllowed(props.item.deficit_qty));
+const isSkippedBool = computed(() => Boolean(props.item.is_skipped));
+const isFifoOverrideBool = computed(() => Boolean(props.item.is_fifo_override));
+const isBatchTracked = computed(() => isBatchTrackedRow(props.item));
+const shelfLocation = computed(() => props.item.picked_source_warehouse || props.item.suggested_source_warehouse || "-");
+const pickedBatchLabel = computed(() => props.item.picked_batch_no || props.item.suggested_batch_no || "");
 const overTolerance = computed(() => isOverTolerance(props.item.picked_qty, props.item.deficit_qty));
-
-const progressPercent = computed(() => {
-  const deficit = Number(props.item.deficit_qty) || 0;
-  if (deficit <= 0) return 100;
-  const picked = Number(props.item.picked_qty) || 0;
-  return Math.round((picked / deficit) * 100);
-});
 
 function onInputQty(event: Event) {
   const target = event.target as HTMLInputElement | null;
-  const val = target ? parseFloat(target.value) || 0 : 0;
-  emit("update-qty", Math.max(0, val));
-}
-
-function decrementQty() {
-  const current = Number(props.item.picked_qty) || 0;
-  emit("update-qty", Math.max(0, current - 1));
-}
-
-function incrementQty() {
-  const current = Number(props.item.picked_qty) || 0;
-  emit("update-qty", current + 1);
-}
-
-function onToggleCheck(event: Event) {
-  const target = event.target as HTMLInputElement | null;
-  emit("toggle-picked", target ? target.checked : false);
+  emit("update-qty", Math.max(0, target ? parseFloat(target.value) || 0 : 0));
 }
 </script>
 
 <style scoped>
-.item-card {
-  background: var(--card-bg, #ffffff);
-  border: 2px solid var(--border-color, #e2e8f0);
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.25s ease;
-  position: relative;
+.mono { font-family: monospace; }
+.pending-card {
+  background: var(--card-bg, #ffffff); border: 1.5px solid var(--border-color, #cbd5e1);
+  border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.item-card.picked-card { border-color: #22c55e; background-color: #f0fdf4; }
-[data-theme="dark"] .item-card.picked-card { background-color: rgba(34, 197, 94, 0.14); border-color: #22c55e; }
-.item-card.has-over-tolerance { border-color: #ef4444; }
-.item-card.highlight-scan { animation: scanHighlight 1.5s ease-out; }
+.pending-card.has-over-tolerance { border-color: var(--pda-danger, #dc2626); }
+.highlight-scan { animation: scanHighlight 1.4s ease-out; }
 @keyframes scanHighlight {
-  0% { box-shadow: 0 0 0 4px #3b82f6; transform: scale(1.02); }
-  100% { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); transform: scale(1); }
+  0% { box-shadow: 0 0 0 3px var(--pda-primary, #2563eb); }
+  100% { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
 }
-.item-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
-.item-code-wrapper { display: flex; align-items: center; gap: 6px; }
-.item-code-title { font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--text-color, #0f172a); }
-.pda-check-label {
-  display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 8px;
-  border-radius: 6px; background-color: #f1f5f9; user-select: none; min-height: 36px;
+.card-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.shelf-badge {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px;
+  background-color: #0f172a; color: #fef08a; border: 1px solid #334155;
+  font-size: 0.82rem; font-weight: 800; letter-spacing: 0.02em; word-break: break-word;
 }
-[data-theme="dark"] .pda-check-label { background-color: rgba(148, 163, 184, 0.16); }
-.pda-picked-check { width: 20px; height: 20px; accent-color: #22c55e; cursor: pointer; }
-.check-text { font-size: 0.85rem; font-weight: 600; color: #334155; }
-[data-theme="dark"] .check-text { color: var(--text-color, #f8fafc); }
-.item-name-desc { font-size: 0.9rem; color: #475569; margin-bottom: 8px; line-height: 1.3; }
-[data-theme="dark"] .item-name-desc { color: var(--text-muted, #cbd5e1); }
-.item-card-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.pda-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
-.shelf-badge { background-color: #0f172a; color: #fef08a; border: 1px solid #334155; font-weight: 700; letter-spacing: 0.02em; }
-.batch-badge { background-color: #e0e7ff; color: #3730a3; }
-[data-theme="dark"] .batch-badge { background-color: rgba(99, 102, 241, 0.24); color: #c7d2fe; }
-.qty-badge { background-color: #f1f5f9; color: #334155; }
-[data-theme="dark"] .qty-badge { background-color: rgba(148, 163, 184, 0.18); color: var(--text-color, #f8fafc); }
-.progress-section { margin-bottom: 10px; }
-.progress-labels { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 4px; }
-[data-theme="dark"] .progress-labels { color: var(--text-muted, #cbd5e1); }
-.progress-track { width: 100%; height: 8px; background-color: #e2e8f0; border-radius: 4px; overflow: hidden; }
-[data-theme="dark"] .progress-track { background-color: rgba(255, 255, 255, 0.14); }
-.progress-fill { height: 100%; background-color: #3b82f6; border-radius: 4px; transition: width 0.3s ease; }
-.progress-fill.fill-complete { background-color: #22c55e; }
-.progress-fill.fill-over { background-color: #ef4444; }
-.item-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; padding: 8px; background-color: #f8fafc; border-radius: 6px; margin-bottom: 10px; font-size: 0.8rem; }
-[data-theme="dark"] .item-card-grid { background-color: rgba(15, 23, 42, 0.55); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)); }
-.grid-cell { display: flex; flex-direction: column; }
-.cell-label { color: #64748b; font-size: 0.72rem; text-transform: uppercase; font-weight: 600; }
-[data-theme="dark"] .cell-label { color: var(--text-muted, #94a3b8); }
-.cell-val { color: #0f172a; }
-[data-theme="dark"] .cell-val { color: var(--text-color, #f8fafc); }
-.cell-val.bold { font-weight: 700; }
-.cell-val.small { font-size: 0.78rem; }
-.batch-tag { font-family: monospace; }
-.item-card-actions { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.qty-control-wrapper { display: flex; flex-direction: column; gap: 4px; }
-.qty-label { font-size: 0.78rem; font-weight: 600; color: #475569; }
-[data-theme="dark"] .qty-label { color: var(--text-muted, #cbd5e1); }
-.qty-input-group { display: flex; align-items: center; }
-.btn-qty-step {
-  min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem; font-weight: 700; background-color: #e2e8f0; border: 1px solid #cbd5e1; color: #0f172a; cursor: pointer; user-select: none;
+.box-qty-badge {
+  display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 6px;
+  background: var(--pda-surface-alt, #f1f5f9); color: var(--text-color, #0f172a);
+  border: 1px solid var(--border-color, #e2e8f0); font-size: 0.84rem; font-weight: 800; white-space: nowrap;
 }
-[data-theme="dark"] .btn-qty-step { background-color: rgba(148, 163, 184, 0.2); border-color: var(--border-color, rgba(255, 255, 255, 0.16)); color: var(--text-color, #f8fafc); }
-.btn-step-dec { border-radius: 6px 0 0 6px; }
-.btn-step-inc { border-radius: 0 6px 6px 0; }
-.btn-qty-step:active { background-color: #cbd5e1; }
-[data-theme="dark"] .btn-qty-step:active { background-color: rgba(148, 163, 184, 0.35); }
-.pda-picked-qty-input {
-  width: 76px; min-height: 44px; text-align: center; font-size: 1.1rem; font-weight: 700;
-  border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; border-left: none; border-right: none;
-  background-color: #ffffff; color: #0f172a;
+.card-mid-row { display: flex; flex-direction: column; gap: 2px; }
+.item-code-title { font-size: 1.05rem; font-weight: 800; color: var(--text-color, #0f172a); word-break: break-word; }
+.item-name-clipped {
+  font-size: 0.85rem; line-height: 1.3; color: var(--text-muted, #64748b);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-[data-theme="dark"] .pda-picked-qty-input { border-color: var(--border-color, rgba(255, 255, 255, 0.16)); background-color: var(--bg-color, #0f172a); color: var(--text-color, #f8fafc); }
-.pda-picked-qty-input:focus { outline: none; }
-.input-over-tolerance { color: #dc2626 !important; background-color: #fef2f2 !important; }
-[data-theme="dark"] .input-over-tolerance { color: #fca5a5 !important; background-color: rgba(239, 68, 68, 0.2) !important; }
-.btn-pick-all {
-  min-height: 44px; padding: 8px 14px; display: flex; align-items: center; gap: 4px;
-  background-color: #2563eb; color: #ffffff; border: none; border-radius: 6px;
-  font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease;
+.card-bottom-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.batch-pill {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px;
+  background: #e0e7ff; color: #3730a3; font-size: 0.8rem; font-weight: 700;
 }
-.btn-pick-all:active { background-color: #1d4ed8; }
-.tolerance-warning {
-  margin-top: 8px; padding: 6px 10px; border-radius: 6px; background-color: #fee2e2;
-  border: 1px solid #fca5a5; color: #991b1b; font-size: 0.8rem; font-weight: 700;
+[data-theme="dark"] .batch-pill { background: rgba(99, 102, 241, 0.24); color: #c7d2fe; }
+.btn-skip-subtle {
+  min-height: 36px; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border-color, #cbd5e1);
+  background: var(--pda-surface-alt, #f8fafc); color: var(--text-muted, #475569);
+  font-size: 0.8rem; font-weight: 700; cursor: pointer; margin-left: auto;
 }
-[data-theme="dark"] .tolerance-warning { background-color: rgba(239, 68, 68, 0.18); border-color: rgba(248, 113, 113, 0.45); color: #fecaca; }
+.btn-skip-subtle:hover { color: var(--pda-danger, #dc2626); border-color: var(--pda-danger, #dc2626); }
+.non-batch-row { display: flex; flex-direction: column; gap: 6px; }
+.non-batch-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.non-batch-input {
+  width: 90px; min-height: 40px; padding: 4px 8px; border-radius: 6px; border: 1.5px solid var(--border-color, #cbd5e1);
+  background: var(--control-bg, #ffffff); color: var(--text-color, #0f172a); font-size: 0.95rem; font-weight: 700; text-align: center;
+}
+.input-over-tolerance { border-color: var(--pda-danger, #dc2626); color: var(--pda-danger, #dc2626); }
+.btn-confirm-non-batch {
+  min-height: 40px; padding: 6px 12px; border: none; border-radius: 6px;
+  background: var(--pda-primary, #2563eb); color: #ffffff; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+}
+.tolerance-warning { font-size: 0.78rem; font-weight: 700; color: var(--pda-danger, #dc2626); }
+.collapsed-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px;
+  border-radius: 8px; background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); font-size: 0.84rem;
+}
+.picked-row { border-left: 4px solid var(--pda-success, #16a34a); background: #f0fdf4; }
+[data-theme="dark"] .picked-row { background: rgba(34, 197, 94, 0.12); }
+.skipped-row { opacity: 0.85; border-left: 4px solid #d97706; background: var(--pda-surface-alt, #f8fafc); }
+.row-icon { font-weight: 900; font-size: 0.95rem; }
+.icon-picked { color: var(--pda-success, #16a34a); }
+.icon-skipped { color: #d97706; }
+.row-shelf, .row-code { font-weight: 800; color: var(--text-color, #0f172a); }
+.row-qty { font-weight: 700; color: var(--pda-success, #16a34a); }
+.row-batch { font-size: 0.78rem; color: var(--text-muted, #64748b); }
+.fifo-override-badge, .skipped-pill {
+  padding: 2px 7px; border-radius: 999px; background: rgba(245, 158, 11, 0.2);
+  color: #b45309; font-size: 0.72rem; font-weight: 800;
+}
+[data-theme="dark"] .fifo-override-badge, [data-theme="dark"] .skipped-pill { color: #fcd34d; }
+.btn-undo {
+  margin-left: auto; min-width: 34px; min-height: 34px; border-radius: 6px; border: 1px solid var(--border-color, #cbd5e1);
+  background: var(--card-bg, #ffffff); color: var(--text-color, #0f172a); font-size: 0.95rem; font-weight: 700; cursor: pointer;
+}
+@media (min-width: 768px) {
+  .pending-card { padding: 10px; gap: 6px; }
+  .non-batch-input, .btn-confirm-non-batch { min-height: 40px; }
+}
 </style>
