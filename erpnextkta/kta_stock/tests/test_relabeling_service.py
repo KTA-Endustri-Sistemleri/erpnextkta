@@ -656,3 +656,155 @@ class TestRelabelingService(KTABaseTestCase):
 
         self.assertEqual(get_batch_ledger_balances(item_code, legacy_batch), [])
         self.assertFalse(frappe.db.exists("KTA Stock Label", stale_label.name))
+
+    def test_resolve_item_default_label_type(self):
+        """resolve_item_default_label_type returns İş Emri Etiketi for non-purchase/BOM/product items and Depo Giriş Etiketi for raw materials."""
+        from erpnextkta.kta_stock.services.relabeling_service import (
+            resolve_item_default_label_type,
+        )
+
+        # 1. Non-purchase item
+        mfg_item_code = f"_TEST-MFG-ITEM-{frappe.generate_hash('', 5).upper()}"
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": mfg_item_code,
+                "item_name": mfg_item_code,
+                "item_group": "_Test Item Group KTA",
+                "is_stock_item": 1,
+                "is_purchase_item": 0,
+                "stock_uom": "Nos",
+            }
+        ).insert(ignore_permissions=True)
+
+        self.assertEqual(
+            resolve_item_default_label_type(mfg_item_code),
+            "İş Emri Etiketi",
+        )
+
+        # 2. Purchase item with BOM
+        bom_item_code = f"_TEST-BOM-ITEM-{frappe.generate_hash('', 5).upper()}"
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": bom_item_code,
+                "item_name": bom_item_code,
+                "item_group": "_Test Item Group KTA",
+                "is_stock_item": 1,
+                "is_purchase_item": 1,
+                "default_bom": "BOM-FAKE-001",
+                "stock_uom": "Nos",
+            }
+        ).insert(ignore_permissions=True)
+
+        self.assertEqual(
+            resolve_item_default_label_type(bom_item_code),
+            "İş Emri Etiketi",
+        )
+
+        # 3. Standard purchase item (raw material)
+        raw_item_code = f"_TEST-RAW-ITEM-{frappe.generate_hash('', 5).upper()}"
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": raw_item_code,
+                "item_name": raw_item_code,
+                "item_group": "_Test Item Group KTA",
+                "is_stock_item": 1,
+                "is_purchase_item": 1,
+                "stock_uom": "Nos",
+            }
+        ).insert(ignore_permissions=True)
+
+        self.assertEqual(
+            resolve_item_default_label_type(raw_item_code),
+            "Depo Giriş Etiketi",
+        )
+
+    def test_upsert_box_label_for_work_order_and_manufactured_item(self):
+        """upsert_box_label automatically creates and updates İş Emri Etiketi for manufactured items or WO batches."""
+        from erpnextkta.kta_stock.services.relabeling_service import (
+            upsert_box_label,
+        )
+
+        _company, wh_src, wh_dst = self._ensure_test_warehouses()
+        mfg_item = f"_TEST-FG-UPSERT-{frappe.generate_hash('', 5).upper()}"
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": mfg_item,
+                "item_name": mfg_item,
+                "item_group": "_Test Item Group KTA",
+                "is_stock_item": 1,
+                "is_purchase_item": 0,
+                "has_batch_no": 1,
+                "create_new_batch": 0,
+                "stock_uom": "Nos",
+            }
+        ).insert(ignore_permissions=True)
+
+        lot_prefix = f"M{frappe.generate_hash('', 6).upper()}"
+        wo_batch = f"{lot_prefix}0001"
+
+        # Batch linked to Work Order
+        wo_name = f"MFG-WO-TEST-{frappe.generate_hash('', 5).upper()}"
+        wo = frappe.get_doc(
+            {
+                "doctype": "Work Order",
+                "name": wo_name,
+                "production_item": mfg_item,
+                "qty": 100.0,
+                "company": "_Test Company",
+                "wip_warehouse": wh_src,
+                "fg_warehouse": wh_dst,
+                "planned_start_date": "2026-11-20 08:00:00",
+            }
+        )
+        wo.flags.ignore_mandatory = True
+        wo.flags.ignore_links = True
+        wo.insert(ignore_permissions=True)
+
+        batch_doc = frappe.get_doc(
+            {
+                "doctype": "Batch",
+                "batch_id": wo_batch,
+                "item": mfg_item,
+                "batch_qty": 0,
+                "reference_doctype": "Work Order",
+                "reference_name": wo.name,
+            }
+        )
+        batch_doc.flags.ignore_links = True
+        batch_doc.insert(ignore_permissions=True)
+
+        lbl_name = upsert_box_label(
+            item_code=mfg_item,
+            batch_no=wo_batch,
+            qty=50.0,
+            target_warehouse=wh_dst,
+            reference_doctype="Work Order",
+            reference_name=wo.name,
+            fallback_ref="SAYIM",
+        )
+
+        lbl = frappe.get_doc("KTA Stock Label", lbl_name)
+        self.assertEqual(lbl.label_type, "İş Emri Etiketi")
+        self.assertEqual(lbl.work_order, wo.name)
+        self.assertEqual(flt(lbl.qty), 50.0)
+        self.assertEqual(lbl.target_warehouse, wh_dst)
+        self.assertEqual(lbl.quality_ref, "ATLA 5/1")
+        self.assertEqual(lbl.supplier_delivery_note, "-")
+
+        # Update existing label via upsert_box_label
+        updated_lbl_name = upsert_box_label(
+            item_code=mfg_item,
+            batch_no=wo_batch,
+            qty=75.0,
+            target_warehouse=wh_src,
+        )
+        self.assertEqual(str(lbl_name), str(updated_lbl_name))
+        lbl.reload()
+        self.assertEqual(flt(lbl.qty), 75.0)
+        self.assertEqual(lbl.target_warehouse, wh_src)
+        self.assertEqual(lbl.label_type, "İş Emri Etiketi")
+        self.assertEqual(lbl.work_order, wo.name)

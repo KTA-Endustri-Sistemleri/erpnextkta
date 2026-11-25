@@ -38,7 +38,8 @@ frappe.ui.form.on("Stock Reconciliation", {
       function (data) {
         frappe.call({
           // 🔴 IMPORTANT: use our custom server method instead of the core one
-          method: "erpnextkta.kta_stock.services.stock_reconciliation_service.get_items_static",
+          method:
+            "erpnextkta.kta_stock.services.stock_reconciliation_service.get_items_static",
           args: {
             warehouse: data.warehouse,
             posting_date: frm.doc.posting_date,
@@ -71,56 +72,11 @@ frappe.ui.form.on("Stock Reconciliation", {
     );
   },
   refresh(frm) {
-    frm.add_custom_button(__("Depo Grubundan Toplu Reco Oluştur"), () => {
-      frappe.prompt(
-        [
-          {
-            label: __("Depo Grubu"),
-            fieldname: "warehouse_group",
-            fieldtype: "Link",
-            options: "Warehouse",
-            reqd: 1,
-            get_query: () => ({
-              filters: {
-                company: frm.doc.company,
-                is_group: 1,
-              },
-            }),
-          },
-          {
-            label: __("Boş Stokları Yoksay"),
-            fieldname: "ignore_empty_stock",
-            fieldtype: "Check",
-          },
-        ],
-        (data) => {
-          frappe.call({
-            method: "erpnextkta.kta_stock.services.stock_reconciliation_service.create_stock_reco_docs_for_warehouse_group",
-            args: {
-              warehouse_group: data.warehouse_group,
-              company: frm.doc.company,
-              posting_date: frm.doc.posting_date,
-              posting_time: frm.doc.posting_time,
-              ignore_empty_stock: data.ignore_empty_stock,
-            },
-            freeze: true,
-            freeze_message: __("Sayım listeleri oluşturuluyor..."),
-            callback: (r) => {
-              if (!r.message) return;
-
-              if (r.message.queued) {
-                frappe.msgprint({
-                  title: __("İşleme alındı"),
-                  message: __("Sayım listeleri arka planda oluşturuluyor. İşlem tamamlandığında bildirim alacaksınız."),
-                  indicator: "green",
-                });
-              }
-            },
-          });
-        },
-        __("Toplu Oluştur"),
-        __("Oluştur")
-      );
-    });
+    if (!frm.is_new() && frm.doc.docstatus < 2) {
+      frm.add_custom_button(__("Sayım ve Etiket Merkezinde Aç"), () => {
+        frappe.route_options = { doc: frm.doc.name, tab: "operations" };
+        frappe.set_route("stock-reco-dashboard");
+      });
+    }
   },
 });

@@ -126,6 +126,66 @@ def allocate_next_box_batches(
     return created
 
 
+def _is_product_or_semi_finished_group(item_group: str | None) -> bool:
+    if not item_group:
+        return False
+    target_groups = {"ÜRÜNLER", "YARI MAMULLER"}
+    if item_group in target_groups:
+        return True
+    if frappe.db.exists("Item Group", item_group):
+        lft_rgt = frappe.db.get_value("Item Group", item_group, ["lft", "rgt"])
+        if lft_rgt and lft_rgt[0] is not None:
+            from frappe.utils.nestedset import get_ancestors_of
+
+            ancestors = get_ancestors_of("Item Group", item_group) or []
+            if any(anc in target_groups for anc in ancestors):
+                return True
+    return False
+
+
+def _resolve_wo_material_index(wo_name: str, bom_no: str | None) -> str:
+    """Resolve material_index from Work Order custom field or linked BOM customer index."""
+    if frappe.get_meta("Work Order").has_field("material_index"):
+        val = frappe.db.get_value("Work Order", wo_name, "material_index")
+        if val:
+            return str(val)
+
+    if (
+        bom_no
+        and frappe.db.exists("BOM", bom_no)
+        and frappe.get_meta("BOM").has_field("custom_musteri_indeksi_no")
+    ):
+        val = frappe.db.get_value("BOM", bom_no, "custom_musteri_indeksi_no")
+        if val:
+            return str(val)
+
+    return "-"
+
+
+def resolve_item_default_label_type(item_code: str | None) -> str:
+    """Return default label type for item: 'İş Emri Etiketi' for manufactured/BOM/product groups, else 'Depo Giriş Etiketi'."""
+    if not item_code:
+        return "Depo Giriş Etiketi"
+
+    item = frappe.db.get_value(
+        "Item",
+        item_code,
+        ["item_group", "is_purchase_item", "default_bom"],
+        as_dict=True,
+    )
+    if not item:
+        return "Depo Giriş Etiketi"
+
+    if cint(item.get("is_purchase_item")) == 0 or item.get("default_bom"):
+        return "İş Emri Etiketi"
+
+    item_group = item.get("item_group")
+    if _is_product_or_semi_finished_group(item_group):
+        return "İş Emri Etiketi"
+
+    return "Depo Giriş Etiketi"
+
+
 def _merge_missing_meta(target: dict, source: dict | None):
     if not source:
         return
@@ -135,6 +195,9 @@ def _merge_missing_meta(target: dict, source: dict | None):
         "gr_posting_date",
         "reference_doctype",
         "reference_name",
+        "label_type",
+        "work_order",
+        "material_index",
     ):
         val = source.get(key)
         if not val:
@@ -147,6 +210,14 @@ def _merge_missing_meta(target: dict, source: dict | None):
 
 
 def _has_complete_meta(meta: dict) -> bool:
+    if (
+        meta.get("label_type") == "İş Emri Etiketi"
+        or meta.get("reference_doctype") == "Work Order"
+    ):
+        return bool(
+            meta.get("quality_ref")
+            and (meta.get("reference_name") or meta.get("work_order"))
+        )
     return bool(
         meta.get("quality_ref")
         and meta.get("supplier_delivery_note")
@@ -169,6 +240,9 @@ def resolve_batch_label_metadata(
         "gr_posting_date": None,
         "reference_doctype": None,
         "reference_name": None,
+        "label_type": None,
+        "work_order": None,
+        "material_index": None,
     }
     label_fields = [
         "quality_ref",
@@ -176,12 +250,15 @@ def resolve_batch_label_metadata(
         "gr_posting_date",
         "reference_doctype",
         "reference_name",
+        "label_type",
+        "work_order",
+        "material_index",
     ]
 
     if batch_no:
         direct_labels = frappe.get_all(
             "KTA Stock Label",
-            filters={"label_type": "Depo Giriş Etiketi"},
+            filters={"label_type": ["in", ["Depo Giriş Etiketi", "İş Emri Etiketi"]]},
             or_filters=[["sut_barcode", "=", batch_no], ["batch", "=", batch_no]],
             fields=label_fields,
             order_by="creation asc",
@@ -194,7 +271,10 @@ def resolve_batch_label_metadata(
         base_lot = extract_base_lot(batch_no)
         sibling_labels = frappe.get_all(
             "KTA Stock Label",
-            filters={"label_type": "Depo Giriş Etiketi", "item_code": item_code},
+            filters={
+                "label_type": ["in", ["Depo Giriş Etiketi", "İş Emri Etiketi"]],
+                "item_code": item_code,
+            },
             or_filters=[
                 ["batch", "like", f"{base_lot}%"],
                 ["sut_barcode", "like", f"{base_lot}%"],
@@ -216,56 +296,137 @@ def resolve_batch_label_metadata(
         batch_ref = frappe.db.get_value(
             "Batch", batch_no, ["reference_doctype", "reference_name"], as_dict=True
         )
-        if (
-            batch_ref
-            and batch_ref.get("reference_doctype") == "Purchase Receipt"
-            and batch_ref.get("reference_name")
-        ):
-            pr_name = batch_ref.get("reference_name")
-            pr_vals = frappe.db.get_value(
-                "Purchase Receipt",
-                pr_name,
-                ["supplier_delivery_note", "posting_date"],
-                as_dict=True,
-            )
-            qi_name = frappe.db.get_value(
-                "Quality Inspection",
-                {
-                    "reference_type": "Purchase Receipt",
-                    "reference_name": pr_name,
-                    "item_code": item_code,
-                    "docstatus": ["<", 2],
-                },
-                "name",
-                order_by="docstatus desc, modified desc",
-            )
-            if not qi_name:
+        if batch_ref:
+            ref_dt = batch_ref.get("reference_doctype")
+            ref_name = batch_ref.get("reference_name")
+
+            if ref_dt == "Work Order" and ref_name:
+                meta["label_type"] = "İş Emri Etiketi"
+                meta["reference_doctype"] = "Work Order"
+                meta["reference_name"] = ref_name
+                meta["work_order"] = ref_name
+                wo_vals = (
+                    frappe.db.get_value(
+                        "Work Order",
+                        ref_name,
+                        ["bom_no", "planned_start_date"],
+                        as_dict=True,
+                    )
+                    or {}
+                )
+                meta["material_index"] = _resolve_wo_material_index(
+                    ref_name, wo_vals.get("bom_no")
+                )
+                if wo_vals.get("planned_start_date"):
+                    meta["gr_posting_date"] = str(
+                        wo_vals.get("planned_start_date")
+                    ).split(" ")[0]
+                meta["quality_ref"] = "ATLA 5/1"
+                meta["supplier_delivery_note"] = "-"
+
+            elif ref_dt == "Stock Entry" and ref_name:
+                se_vals = (
+                    frappe.db.get_value(
+                        "Stock Entry",
+                        ref_name,
+                        [
+                            "purpose",
+                            "stock_entry_type",
+                            "work_order",
+                            "posting_date",
+                        ],
+                        as_dict=True,
+                    )
+                    or {}
+                )
+                purpose = se_vals.get("purpose")
+                se_type = se_vals.get("stock_entry_type")
+                if purpose == "Manufacture" or se_type == "Manufacture":
+                    meta["label_type"] = "İş Emri Etiketi"
+                    meta["reference_doctype"] = "Stock Entry"
+                    meta["reference_name"] = ref_name
+                    wo_name = se_vals.get("work_order")
+                    if wo_name:
+                        meta["work_order"] = wo_name
+                        wo_vals = (
+                            frappe.db.get_value(
+                                "Work Order",
+                                wo_name,
+                                ["bom_no", "planned_start_date"],
+                                as_dict=True,
+                            )
+                            or {}
+                        )
+                        meta["material_index"] = _resolve_wo_material_index(
+                            wo_name, wo_vals.get("bom_no")
+                        )
+                        if wo_vals.get("planned_start_date") and not se_vals.get(
+                            "posting_date"
+                        ):
+                            meta["gr_posting_date"] = str(
+                                wo_vals.get("planned_start_date")
+                            ).split(" ")[0]
+                    if se_vals.get("posting_date"):
+                        meta["gr_posting_date"] = str(se_vals.get("posting_date"))
+                    meta["quality_ref"] = "ATLA 5/1"
+                    meta["supplier_delivery_note"] = "-"
+
+            elif ref_dt == "Purchase Receipt" and ref_name:
+                pr_name = ref_name
+                meta["label_type"] = "Depo Giriş Etiketi"
+                pr_vals = frappe.db.get_value(
+                    "Purchase Receipt",
+                    pr_name,
+                    ["supplier_delivery_note", "posting_date"],
+                    as_dict=True,
+                )
                 qi_name = frappe.db.get_value(
                     "Quality Inspection",
                     {
                         "reference_type": "Purchase Receipt",
                         "reference_name": pr_name,
+                        "item_code": item_code,
                         "docstatus": ["<", 2],
                     },
                     "name",
                     order_by="docstatus desc, modified desc",
                 )
-            _merge_missing_meta(
-                meta,
-                {
-                    "quality_ref": qi_name or "ATLA 5/1",
-                    "supplier_delivery_note": pr_vals.get("supplier_delivery_note")
-                    if pr_vals
-                    else None,
-                    "gr_posting_date": pr_vals.get("posting_date") if pr_vals else None,
-                    "reference_doctype": "Purchase Receipt",
-                    "reference_name": pr_name,
-                },
-            )
+                if not qi_name:
+                    qi_name = frappe.db.get_value(
+                        "Quality Inspection",
+                        {
+                            "reference_type": "Purchase Receipt",
+                            "reference_name": pr_name,
+                            "docstatus": ["<", 2],
+                        },
+                        "name",
+                        order_by="docstatus desc, modified desc",
+                    )
+                _merge_missing_meta(
+                    meta,
+                    {
+                        "label_type": "Depo Giriş Etiketi",
+                        "quality_ref": qi_name or "ATLA 5/1",
+                        "supplier_delivery_note": pr_vals.get("supplier_delivery_note")
+                        if pr_vals
+                        else None,
+                        "gr_posting_date": pr_vals.get("posting_date")
+                        if pr_vals
+                        else None,
+                        "reference_doctype": "Purchase Receipt",
+                        "reference_name": pr_name,
+                    },
+                )
 
-    meta["quality_ref"] = meta["quality_ref"] or fallback_ref
-    meta["supplier_delivery_note"] = meta["supplier_delivery_note"] or "-"
-    meta["gr_posting_date"] = meta["gr_posting_date"] or today()
+    if not meta.get("label_type"):
+        meta["label_type"] = resolve_item_default_label_type(item_code)
+
+    if meta.get("label_type") == "İş Emri Etiketi":
+        meta["quality_ref"] = meta.get("quality_ref") or "ATLA 5/1"
+    else:
+        meta["quality_ref"] = meta.get("quality_ref") or fallback_ref
+    meta["supplier_delivery_note"] = meta.get("supplier_delivery_note") or "-"
+    meta["gr_posting_date"] = meta.get("gr_posting_date") or today()
     return meta
 
 
@@ -345,16 +506,29 @@ def upsert_box_label(
     quality_ref: str | None = None,
     supplier_delivery_note: str | None = None,
     fallback_ref: str = "SAYIM",
-) -> str:
-    """Create or update the single Depo Giriş Etiketi record for a box batch, preserving PR refs."""
+    label_type: str | None = None,
+) -> str | int:
+    """Create or update the single Depo Giriş / İş Emri Etiketi record for a box batch, preserving PR/WO refs."""
     meta = resolve_batch_label_metadata(item_code, batch_no, fallback_ref=fallback_ref)
-    eff_quality_ref = quality_ref or meta.get("quality_ref") or fallback_ref
+    eff_label_type = (
+        label_type
+        or meta.get("label_type")
+        or resolve_item_default_label_type(item_code)
+    )
+    eff_quality_ref = (
+        quality_ref
+        or meta.get("quality_ref")
+        or ("ATLA 5/1" if eff_label_type == "İş Emri Etiketi" else fallback_ref)
+    )
     eff_sdn = supplier_delivery_note or meta.get("supplier_delivery_note") or "-"
     eff_gr_date = posting_date or meta.get("gr_posting_date") or today()
 
     existing_name = frappe.db.get_value(
         "KTA Stock Label",
-        {"sut_barcode": batch_no, "label_type": "Depo Giriş Etiketi"},
+        {
+            "sut_barcode": batch_no,
+            "label_type": ["in", ["Depo Giriş Etiketi", "İş Emri Etiketi"]],
+        },
         "name",
     )
     if existing_name:
@@ -362,11 +536,14 @@ def upsert_box_label(
             "KTA Stock Label",
             existing_name,
             [
+                "label_type",
                 "reference_doctype",
                 "reference_name",
                 "quality_ref",
                 "supplier_delivery_note",
                 "gr_posting_date",
+                "work_order",
+                "material_index",
             ],
             as_dict=True,
         )
@@ -375,12 +552,18 @@ def upsert_box_label(
             "item_code": item_code,
             "batch": batch_no,
         }
+        if not existing or not existing.get("label_type"):
+            updates["label_type"] = eff_label_type
+
         if target_warehouse is not None:
             updates["target_warehouse"] = target_warehouse
         if source_warehouse is not None:
             updates["source_warehouse"] = source_warehouse
 
-        if existing and existing.get("reference_doctype") != "Purchase Receipt":
+        if existing and existing.get("reference_doctype") not in (
+            "Purchase Receipt",
+            "Work Order",
+        ):
             if reference_doctype:
                 updates["reference_doctype"] = reference_doctype
             if reference_name:
@@ -392,6 +575,10 @@ def upsert_box_label(
             updates["supplier_delivery_note"] = eff_sdn
         if existing and not existing.get("gr_posting_date"):
             updates["gr_posting_date"] = eff_gr_date
+        if meta.get("work_order"):
+            updates["work_order"] = meta.get("work_order")
+        if meta.get("material_index"):
+            updates["material_index"] = meta.get("material_index")
 
         frappe.db.set_value("KTA Stock Label", existing_name, updates)
         return existing_name
@@ -408,9 +595,11 @@ def upsert_box_label(
     label_doc = frappe.get_doc(
         {
             "doctype": "KTA Stock Label",
-            "label_type": "Depo Giriş Etiketi",
+            "label_type": eff_label_type,
             "reference_doctype": reference_doctype or meta.get("reference_doctype"),
             "reference_name": reference_name or meta.get("reference_name"),
+            "work_order": meta.get("work_order"),
+            "material_index": meta.get("material_index"),
             "item_code": item_code,
             "item_name": item_info.get("item_name") or item_code,
             "item_group": item_info.get("item_group"),
@@ -426,15 +615,19 @@ def upsert_box_label(
             "do_not_split": 0,
         }
     )
+    label_doc.flags.ignore_links = True
     label_doc.insert(ignore_permissions=True)
     return label_doc.name
 
 
 def sync_batch_label_to_ledger_balance(item_code: str, batch_no: str) -> None:
-    """Sync existing Depo Giriş Etiketi qty/warehouse to net ledger balance or delete at zero."""
+    """Sync existing Depo Giriş / İş Emri Etiketi qty/warehouse to net ledger balance or delete at zero."""
     label_names = frappe.get_all(
         "KTA Stock Label",
-        filters={"label_type": "Depo Giriş Etiketi", "item_code": item_code},
+        filters={
+            "label_type": ["in", ["Depo Giriş Etiketi", "İş Emri Etiketi"]],
+            "item_code": item_code,
+        },
         or_filters=[["batch", "=", batch_no], ["sut_barcode", "=", batch_no]],
         pluck="name",
     )

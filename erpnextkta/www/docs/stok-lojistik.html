@@ -193,6 +193,13 @@
     <span class="kta-doc-badge red">Etiket Eksik</span>,
     <span class="kta-doc-badge gray">LEGACY / Partisiz</span>.
   </li>
+  <li><strong>Dinamik Etiket Tipi Çözümlemesi (Depo Giriş Etiketi vs. İş Emri Etiketi):</strong>
+    <ul>
+      <li><strong>Malzeme Kökenine Göre Otomatik Ayrım:</strong> Hammaddeler (satın alma kalemleri veya <code>Purchase Receipt</code> kökenli partiler) için <strong>Depo Giriş Etiketi</strong> kullanılırken; mamul ve yarı mamuller (üretim/<code>Work Order</code> veya <code>Stock Entry</code> kökenli, varsayılan BOM'lu veya <code>ÜRÜNLER</code> grubu kalemleri) için sistem otomatik olarak <strong>İş Emri Etiketi</strong> şablonunu belirler.</li>
+      <li><strong>Hatalı "Etiket Eksik" Uyarısının Önlenmesi:</strong> Mamul partiler daha önce yalnızca mal kabul etiketleri sorgulandığı için sistemsel olarak <code>missing_label</code> (Etiket Eksik) statüsüne düşebilmekteydi. Dinamik çözümleme sayesinde mamul partiler kendi <code>İş Emri Etiketi</code> kayıtlarıyla doğru şekilde eşleşir.</li>
+      <li><strong>Görsel Rozet Gösterimi:</strong> Dashboard tablosundaki her parti satırında etiket tipini belirten <span class="kta-doc-badge blue">🏭 İş Emri</span> veya <span class="kta-doc-badge green">📦 Depo</span> rozeti yer alır. Operatörler her satır için hangi etiket formatının geçerli olduğunu doğrudan takip edebilir.</li>
+    </ul>
+  </li>
   <li><strong>İki Hazır Seçim Modu:</strong>
     <ul>
       <li><strong>Mod 1 — Fiziksel Kutu Esas:</strong> Yalnızca <code>Miktar Değişti</code>, <code>Etiket Eksik</code> ve <code>LEGACY / Partisiz</code> satırlarını otomatik seçer; etiketi uyumlu kapalı kutuları atlar.</li>
@@ -202,8 +209,13 @@
   <li><strong>Satır İçi Kutu Kırılımı (<code>+ Kutu Böl</code>) &amp; <code>Standart Koliye Çevir</code>:</strong> Kullanıcı seçili bir satırı raftaki fiziksel kutulara göre birden fazla kutu miktarına bölebilir (ör. <code>7.750</code> miktarını <code>5.000 + 2.750</code> şeklinde iki kutuya ayırma). Kırılım toplamı satır miktarına eşit olmadan onay işlemi kilitli kalır.</li>
   <li><strong>Belge Durumuna Göre İşlem Akışı:</strong>
     <ul>
-      <li><strong>Taslak (<code>Draft</code>) Belgede — <em>Onayla ve Etiketleri Bas</em>:</strong> <code>LEGACY</code> sıfırlama/yeni <code>7+4</code> kutu satırları ile çoklu kutu kırılımları belgeye işlenir, belge onaylanır (<code>Submit</code>), etiketler senkronize edilir ve isteğe bağlı olarak Zebra yazıcı kuyruğuna gönderilir.</li>
-      <li><strong>Onaylı (<code>Submitted</code>) Belgede — <em>Etiketleri Güncelle ve Bas</em>:</strong> Bölünmeyen standart kutuların <code>KTA Stock Label</code> kayıtları doğrudan güncellenip yazdırılır; çoklu kutu bölmesi veya <code>LEGACY</code> dönüşümlerinde ise arka planda otomatik <code>Stock Entry (Package Split)</code> fişleri kesilir. Sistem destekli bu düzeltmeler taslak sayım depo kilidini güvenli biçimde aşar.</li>
+      <li><strong>Taslak (<code>Draft / docstatus = 0</code>) Belgede Kullanıcı Seçenekleri:</strong>
+        <ul>
+          <li><strong>Taslakta Kaydet &amp; Etiket Bas (<code>submit_doc=0</code>):</strong> Sayım belgesini kapatmadan/onaylamadan (<code>docstatus = 0</code> kalarak), yalnızca seçili satırlar için standart <code>7+4</code> parti atamasını / kutu bölmesini taslak belgeye kaydeder ve Zebra yazıcıdan etiketleri basar. Sayım devam ederken kutuları hemen etiketlemek için kullanılır. Taslak aşamasındaki partiler defter bakiyesi henüz oluşmadığı için <code>clear_empty_labels</code> koruması altındadır.</li>
+          <li><strong>Sayımı Onayla ve Tamamla (<code>submit_doc=1</code>):</strong> Sayım operasyonunun tamamı bittiğinde <code>LEGACY</code> sıfırlama ve yeni kutu kırılımlarını kesinleştirir, belgeyi <code>docstatus = 1</code> ile resmi olarak stok defterine (<code>Stock Ledger</code>) işler ve etiketleri Zebra yazıcı kuyruğuna gönderir.</li>
+        </ul>
+      </li>
+      <li><strong>Onaylı (<code>Submitted / docstatus = 1</code>) Belgede — <em>Etiketleri Güncelle ve Bas</em>:</strong> Bölünmeyen standart kutuların <code>KTA Stock Label</code> kayıtları doğrudan güncellenip yazdırılır; çoklu kutu bölmesi veya <code>LEGACY</code> dönüşümlerinde ise arka planda otomatik <code>Stock Entry (Package Split)</code> fişleri kesilir. Sistem destekli bu düzeltmeler taslak sayım depo kilidini güvenli biçimde aşar.</li>
     </ul>
   </li>
 </ul>
@@ -214,6 +226,14 @@
   <li><strong>7 KPI Kartı &amp; Taslak/Onaylı İlerleme Çubuğu:</strong> Etkilenen ürünler, hareket gören depolar, ürün başı maksimum belge sıklığı, toplam <code>+</code> / <code>−</code> / net fark ve onaylanma yüzdesini canlı izler.</li>
   <li><strong>Kural Tabanlı Anomali &amp; Risk Motoru:</strong> Depolar arası zıt yön, tek depoda yoğunlaşma, sık değişiklik, gidiş-geliş hareketi ve tek belge baskınlığı anomalilerini puanlar; sağ detay çekmecesinden (Drawer) depo dağılımını ve ilişkili sayım belgelerini açar.</li>
   <li>Tek tıkla CSV dışa aktarma ve canlı Socket.IO otomatik yenileme desteği sunar.</li>
+</ul>
+
+<h3>C. Sayım İptali ve Silinmesinde Etiket/Parti Otomatik Temizliği (Rollback)</h3>
+<p>Sayım fişlerinin iptal edilmesi veya silinmesi gerektiğinde sistemin kilitlenmesini önlemek ve veritabanı tutarlılığını sağlamak amacıyla otomatik geri alma (rollback) mekanizması devreye girer:</p>
+<ul>
+  <li><strong>Otomatik Etiket ve Yazdırma Günlüğü Temizliği (<code>delete_labels_with_print_logs</code>):</strong> <code>Stock Reconciliation</code> belgesi iptal edildiğinde (<code>Cancel</code>) veya silindiğinde (<code>Delete</code>), bu belgeye referansla oluşturulmuş tüm <code>KTA Stock Label</code> ve ilişkili <code>KTA Print Log</code> kayıtları sistem tarafından otomatik olarak silinir.</li>
+  <li><strong>Bağlantı Hatasının (<code>LinkExistsError</code>) Önlenmesi:</strong> Kullanıcılar artık sayım belgelerini geri alırken ilişkili etiket kayıtları nedeniyle oluşan <code>LinkExistsError</code> (<em>"Cannot delete or cancel because linked with KTA Stock Label"</em>) hatasıyla karşılaşmaz; sistem tüm geri alma (rollback) adımlarını arka planda kullanıcı müdahalesine gerek kalmadan yönetir.</li>
+  <li><strong>Sıfır Bakiyeli Partilerin Pasife Alınması veya Silinmesi:</strong> Sayım esnasında üretilmiş olup defter bakiyesi sıfıra düşen (<code>Stock Ledger Entry</code> net bakiyesi <code>0</code> olan) bölünmüş partiler, belge silindiğinde (<code>on_trash</code>) sistemden tamamen silinir; belge iptal edildiğinde (<code>on_cancel</code>) ise stok defteri tutarlılığı ve denetim izlenebilirliği korunarak pasife alınır ve miktarları sıfırlanır (<code>disabled = 1, batch_qty = 0</code>). Yetim etiket kayıtları ise <code>LabelPrinter.clear_empty_labels()</code> ile temizlenir.</li>
 </ul>
 
 </div>

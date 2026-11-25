@@ -1773,3 +1773,130 @@ Depoya iade işlemi tamamlanamadı.,Lagerrückgabe konnte nicht abgeschlossen we
 Depoya iade işlemi sırasında bir hata oluştu.,Bei der Lagerrückgabe ist ein Fehler aufgetreten.
 Depoya İade İşlemi Tamamlandı,Lagerrückgabe Abgeschlossen
 {0} adet etiket yazdırıldı / kuyruğa alındı.,{0} Etiketten gedruckt / in Warteschlange.
+Lütfen en az bir satır seçin.,Bitte wählen Sie mindestens eine Zeile aus.
+Seçilen satır bulunamadı: {0},Ausgewählte Zeile nicht gefunden: {0}
+Seçilen ürün/depo satırı bulunamadı: {0} ({1}),Ausgewählte Artikel-/Lagerzeile nicht gefunden: {0} ({1})
+Tüm kutu miktarları sıfırdan büyük olmalıdır.,Alle Gebindemengen müssen größer als null sein.
+Kutu kırılım toplamı ({0}) satır miktarı ({1}) ile eşleşmiyor.,Summe der Gebindeaufteilung ({0}) stimmt nicht mit der Zeilenmenge ({1}) überein.
+Yalnızca Taslak (Draft) sayım belgeleri bu işlemle onaylanabilir.,Nur Entwurf-Zählbelege können mit dieser Aktion gebucht werden.
+Seçili satır miktarı sıfırdan büyük olmalıdır.,Die Menge der ausgewählten Zeile muss größer als null sein.
+Bu işlem yalnızca onaylanmış (Submitted) sayım belgeleri için kullanılabilir.,Diese Aktion kann nur für gebuchte Zählbelege verwendet werden.
+Parti numarası olmayan satır için etiketleme/bölme yapılamaz: {0},Etikettierung/Teilung ist für eine Zeile ohne Chargennummer nicht möglich: {0}
+Sayım sonrası koli bölme ({0}),Gebindeteilung nach Zählung ({0})
+Sayım sonrası standart koli dönüştürme ({0}),Standardgebinde-Umwandlung nach Zählung ({0})
+Sayım ve Etiket Merkezinde Aç,Im Zähl- und Etiketten-Hub Öffnen
+Sayım belgeleri yüklenemedi.,Zählbelege konnten nicht geladen werden.
+Belge etiket önizlemesi alınamadı.,Etikettenvorschau des Belegs konnte nicht geladen werden.
+"{0} etiket işlendi, {1} baskı kuyruğa alındı.","{0} Etiketten verarbeitet, {1} Drucke in Warteschlange."
+Etiketleme işlemi sırasında bir hata oluştu.,Beim Etikettierungsvorgang ist ein Fehler aufgetreten.
+Toplu sayım oluşturma arka plan görevi sıraya alındı.,Der Hintergrundjob zum Erstellen der Sammelzählung wurde in die Warteschlange gestellt.
+KTA Sayım ve Etiket Merkezi,KTA Zähl- und Etiketten-Hub
+Canlı,Live
+Çevrimdışı,Offline
+Sayım Operasyonları & Etiketleme,Zähloperationen & Etikettierung
+Fark & Anomali Analizi,Abweichungs- & Anomalieanalyse
+Toplu Sayım Oluştur,Sammelzählung Erstellen
+Etiketleme Tamamlandı:,Etikettierung Abgeschlossen:
+{0} etiket oluşturuldu/güncellendi · {1} baskı Zebra kuyruğuna eklendi.,{0} Etiketten erstellt/aktualisiert · {1} Drucke zur Zebra-Warteschlange hinzugefügt.
+Oluşan Stok Fişleri:,Erstellte Lagerbuchungen:
+Depo grupları yüklenemedi.,Lagergruppen konnten nicht geladen werden.
+Şirket listesi yüklenemedi.,Firmenliste konnte nicht geladen werden.
+"Lütfen şirket, depo grubu ve tarih alanlarını doldurun.","Bitte füllen Sie die Felder Firma, Lagergruppe und Datum aus."
+Toplu sayım belgeleri kuyruğa alınırken bir hata oluştu.,Beim Einreihen der Sammelzählungsbelege in die Warteschlange ist ein Fehler aufgetreten.
+Depo Grubundan Toplu Sayım Oluştur,Sammelzählung aus Lagergruppe Erstellen
+Seçilen depo grubundaki tüm alt depolar için taslak sayım belgesi oluşturulur.,Für alle untergeordneten Lager der ausgewählten Lagergruppe wird ein Entwurf-Zählbeleg erstellt.
+Şirket,Firma
+-- Şirket Seçin --,-- Firma Auswählen --
+Depo grubu adıyla filtrele...,Nach Lagergruppenname Filtern...
+-- Depo Grubu Seçin --,-- Lagergruppe Auswählen --
+Sayım Tarihi,Zähldatum
+Sayım Saati,Zählzeit
+⚡ Toplu Sayım Başlat,⚡ Sammelzählung Starten
+Sayım Belgeleri,Zählbelege
+Belgeleri Yenile,Belege Aktualisieren
+Belge No veya Depo Ara...,Belegnummer oder Lager Suchen...
+Sayım belgeleri yükleniyor...,Zählbelege werden geladen...
+Eşleşen sayım belgesi bulunamadı.,Kein passender Zählbeleg gefunden.
+Onaylı,Gebucht
+Çoklu Depo,Mehrere Lager
+Uyumlu,Gültig
+Miktar Değişti,Menge Geändert
+Etiket Eksik,Etikett Fehlt
+LEGACY / Partisiz,LEGACY / Ohne Charge
+Sayım Belgesi Seçin,Zählbeleg Auswählen
+Etiket sağlığını incelemek ve toplu barkod basımı yapmak için soldaki listeden bir sayım belgesi seçin.,"Wählen Sie links einen Zählbeleg aus der Liste aus, um den Etikettenstatus zu prüfen und Barcodes gesammelt zu drucken."
+Etiket Önizlemesi Yükleniyor...,Etikettenvorschau Wird Geladen...
+Toplam,Gesamt
+Değişen,Geändert
+Fiziksel Kutu Esas,Nach Physischem Gebinde
+Sistem Partisi Esas,Nach Systemcharge
+Pozitif Stok Kalemi Bulunamadı,Keine Positiven Bestandspositionen Gefunden
+Bu sayım belgesinde miktarı sıfırdan büyük kalem yer almıyor.,In diesem Zählbeleg gibt es keine Positionen mit einer Menge größer als null.
+Malzeme & Depo,Artikel & Lager
+Parti & Etiket Durumu,Charge & Etikettenstatus
+Sistem / Etiket Miktarı,System- / Etikettenmenge
+Kutu Kırılımı,Gebindeaufteilung
+Partisiz,Ohne Charge
+Standart Koliye Çevir,In Standardgebinde Umwandeln
+Kutu Böl,Gebinde Teilen
+Kalan Fark,Verbleibende Differenz
+Etiketleri Zebra Yazıcıya Gönder,Etiketten an Zebra-Drucker Senden
+{0} satır seçili · {1} etiket üretilecek,{0} Zeilen ausgewählt · {1} Etiketten werden erstellt
+Seçili satırlarda kutu kırılım toplamı sistem miktarıyla eşleşmiyor,Summe der Gebindeaufteilung stimmt bei ausgewählten Zeilen nicht mit der Systemmenge überein
+Onayla ve Etiketleri Bas,Buchen und Etiketten Drucken
+Etiketleri Güncelle ve Bas,Etiketten Aktualisieren und Drucken
+Yenilendi,Aktualisiert
+CSV dışa aktarıldı,CSV exportiert
+Ürün mevcut listede bulunamadı: {0},Artikel in der aktuellen Liste nicht gefunden: {0}
+Son güncelleme: {0},Zuletzt aktualisiert: {0}
+CSV Dışa Aktar,CSV Exportieren
+Yıl,Jahr
+Eşik (Mutlak Fark),Schwellenwert (Abs. Differenz)
+Yön,Richtung
+"Ürün kodu, adı veya depo...","Artikelcode, Name oder Lager..."
+Etkilenen Ürünler,Betroffene Artikel
+Filtrelenmiş görünüm,Gefilterte Ansicht
+Depolar,Lager
+Hareket gören,Mit Bewegungen
+Belge (Ürün Başı Maks),Belege (Max. pro Artikel)
+En yüksek sıklık,Höchste Häufigkeit
+Toplam +,Gesamt +
+Artı farklar toplamı,Summe positiver Differenzen
+Toplam −,Gesamt −
+Eksi farklar toplamı,Summe negativer Differenzen
+Net,Netto
+Taslak: {0} • Onaylı: {1},Entwurf: {0} • Gebucht: {1}
+Açık: %{0},Offen: {0}%
+Anomaliler,Anomalien
+Otomatik Kural Analizi,Automatische Regelanalyse
+Skor: {0},Score: {0}
+Mevcut filtreler için anomali tespit edilmedi.,Für die aktuellen Filter wurden keine Anomalien erkannt.
+En Yüksek Riskler,Höchste Risiken
+{0} belge • {1} depo,{0} Belege • {1} Lager
+Mevcut filtreler için kayıt yok.,Keine Einträge für die aktuellen Filter gefunden.
+Ürünler,Artikel
+{0} satır,{0} Zeilen
+Belgeler,Belege
+Veri bulunamadı.,Keine Daten gefunden.
+Risk,Risiko
+Depo Dağılımı,Lagerverteilung
+Depo verisi bulunamadı.,Keine Lagerdaten gefunden.
+Belge,Beleg
+Fark,Differenz
+Belge bulunamadı.,Keine Belege gefunden.
+{0} depolar arasında hem + hem − fark gösteriyor.,{0} weist sowohl + als auch − Differenzen zwischen Lagern auf.
+"Hareketin %{0} kadarı ""{1}"" deposundan ({2}).","{0}% der Bewegung stammt aus dem Lager ""{1}"" ({2})."
+Sık değişiklik,Häufige Änderungen
+{0} kalemi {1} belgede yer alıyor (yüksek denetim riski).,Artikel {0} erscheint in {1} Belegen (hohes Prüfungsrisiko).
+Gidiş-geliş hareketi,Hin- und Herbewegung
+Toplam hareket {0} ancak net {1} (oran %{2}).,"Gesamtbewegung beträgt {0}, aber Netto ist {1} (Verhältnis {2}%)."
+{0} belgesi ürün hareketinin %{1} kadarını oluşturuyor ({2}).,Beleg {0} macht {1}% der Artikelbewegung aus ({2}).
+Belgeler arası gidiş-geliş,Belegübergreifende Hin- und Herbewegung
+Toplam belge hareketi {0} ancak net {1} (oran %{2}).,"Gesamte Belegbewegung beträgt {0}, aber Netto ist {1} (Verhältnis {2}%)."
+Etiket Miktarı,Etikettenmenge
+Taslakta Kaydet & Etiket Bas,Entwurf Speichern & Etiketten Drucken
+Sayımı Onayla ve Tamamla,Inventur Abschließen & Bestätigen
+"Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı.","Entwurf aktualisiert: {0} Etiketten verarbeitet, {1} Druckaufträge in Warteschlange."
+Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,"Speichert ausgewählte Zeilen und druckt Etiketten, ohne den Entwurf zu bestätigen."
+İş Emri Etiketi,Fertigungsauftragsetikett
+Depo Giriş Etiketi,Wareneingangsetikett

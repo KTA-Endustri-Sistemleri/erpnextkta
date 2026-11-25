@@ -1784,3 +1784,130 @@ Depoya iade işlemi tamamlanamadı.,Warehouse return could not be completed.
 Depoya iade işlemi sırasında bir hata oluştu.,An error occurred during warehouse return.
 Depoya İade İşlemi Tamamlandı,Warehouse Return Completed
 {0} adet etiket yazdırıldı / kuyruğa alındı.,{0} labels printed / queued.
+Lütfen en az bir satır seçin.,Please select at least one row.
+Seçilen satır bulunamadı: {0},Selected row not found: {0}
+Seçilen ürün/depo satırı bulunamadı: {0} ({1}),Selected item/warehouse row not found: {0} ({1})
+Tüm kutu miktarları sıfırdan büyük olmalıdır.,All box quantities must be greater than zero.
+Kutu kırılım toplamı ({0}) satır miktarı ({1}) ile eşleşmiyor.,Box breakdown total ({0}) does not match row quantity ({1}).
+Yalnızca Taslak (Draft) sayım belgeleri bu işlemle onaylanabilir.,Only Draft stock count documents can be submitted with this action.
+Seçili satır miktarı sıfırdan büyük olmalıdır.,Selected row quantity must be greater than zero.
+Bu işlem yalnızca onaylanmış (Submitted) sayım belgeleri için kullanılabilir.,This action can only be used for submitted stock count documents.
+Parti numarası olmayan satır için etiketleme/bölme yapılamaz: {0},Labeling/splitting cannot be performed for a row without a batch number: {0}
+Sayım sonrası koli bölme ({0}),Post-count package split ({0})
+Sayım sonrası standart koli dönüştürme ({0}),Post-count standard box conversion ({0})
+Sayım ve Etiket Merkezinde Aç,Open in Count & Label Hub
+Sayım belgeleri yüklenemedi.,Failed to load stock count documents.
+Belge etiket önizlemesi alınamadı.,Failed to load document label preview.
+"{0} etiket işlendi, {1} baskı kuyruğa alındı.","{0} labels processed, {1} prints queued."
+Etiketleme işlemi sırasında bir hata oluştu.,An error occurred during the labeling process.
+Toplu sayım oluşturma arka plan görevi sıraya alındı.,Bulk stock count creation background job has been queued.
+KTA Sayım ve Etiket Merkezi,KTA Count & Label Hub
+Canlı,Live
+Çevrimdışı,Offline
+Sayım Operasyonları & Etiketleme,Count Operations & Labeling
+Fark & Anomali Analizi,Difference & Anomaly Analysis
+Toplu Sayım Oluştur,Create Bulk Count
+Etiketleme Tamamlandı:,Labeling Completed:
+{0} etiket oluşturuldu/güncellendi · {1} baskı Zebra kuyruğuna eklendi.,{0} labels created/updated · {1} prints added to Zebra queue.
+Oluşan Stok Fişleri:,Created Stock Entries:
+Depo grupları yüklenemedi.,Failed to load warehouse groups.
+Şirket listesi yüklenemedi.,Failed to load company list.
+"Lütfen şirket, depo grubu ve tarih alanlarını doldurun.","Please fill in the company, warehouse group, and date fields."
+Toplu sayım belgeleri kuyruğa alınırken bir hata oluştu.,An error occurred while queuing bulk stock count documents.
+Depo Grubundan Toplu Sayım Oluştur,Create Bulk Count from Warehouse Group
+Seçilen depo grubundaki tüm alt depolar için taslak sayım belgesi oluşturulur.,A draft stock count document will be created for all child warehouses in the selected warehouse group.
+Şirket,Company
+-- Şirket Seçin --,-- Select Company --
+Depo grubu adıyla filtrele...,Filter by Warehouse Group Name...
+-- Depo Grubu Seçin --,-- Select Warehouse Group --
+Sayım Tarihi,Count Date
+Sayım Saati,Count Time
+⚡ Toplu Sayım Başlat,⚡ Start Bulk Count
+Sayım Belgeleri,Count Documents
+Belgeleri Yenile,Refresh Documents
+Belge No veya Depo Ara...,Search Document No or Warehouse...
+Sayım belgeleri yükleniyor...,Loading count documents...
+Eşleşen sayım belgesi bulunamadı.,No matching count document found.
+Onaylı,Submitted
+Çoklu Depo,Multiple Warehouses
+Uyumlu,Valid
+Miktar Değişti,Qty Changed
+Etiket Eksik,Missing Label
+LEGACY / Partisiz,LEGACY / No Batch
+Sayım Belgesi Seçin,Select Count Document
+Etiket sağlığını incelemek ve toplu barkod basımı yapmak için soldaki listeden bir sayım belgesi seçin.,Select a stock count document from the list on the left to inspect label health and print barcodes in bulk.
+Etiket Önizlemesi Yükleniyor...,Loading Label Preview...
+Toplam,Total
+Değişen,Changed
+Fiziksel Kutu Esas,Physical Box Based
+Sistem Partisi Esas,System Batch Based
+Pozitif Stok Kalemi Bulunamadı,No Positive Stock Items Found
+Bu sayım belgesinde miktarı sıfırdan büyük kalem yer almıyor.,There are no items with a quantity greater than zero in this count document.
+Malzeme & Depo,Item & Warehouse
+Parti & Etiket Durumu,Batch & Label Status
+Sistem / Etiket Miktarı,System / Label Qty
+Kutu Kırılımı,Box Breakdown
+Partisiz,No Batch
+Standart Koliye Çevir,Convert to Standard Box
+Kutu Böl,Split Box
+Kalan Fark,Remaining Difference
+Etiketleri Zebra Yazıcıya Gönder,Send Labels to Zebra Printer
+{0} satır seçili · {1} etiket üretilecek,{0} rows selected · {1} labels will be generated
+Seçili satırlarda kutu kırılım toplamı sistem miktarıyla eşleşmiyor,Box breakdown total does not match system quantity on selected rows
+Onayla ve Etiketleri Bas,Submit and Print Labels
+Etiketleri Güncelle ve Bas,Update and Print Labels
+Yenilendi,Refreshed
+CSV dışa aktarıldı,CSV exported
+Ürün mevcut listede bulunamadı: {0},Item not found in current list: {0}
+Son güncelleme: {0},Last updated: {0}
+CSV Dışa Aktar,Export CSV
+Yıl,Year
+Eşik (Mutlak Fark),Threshold (Absolute Diff)
+Yön,Direction
+"Ürün kodu, adı veya depo...","Item Code, Name or Warehouse..."
+Etkilenen Ürünler,Affected Items
+Filtrelenmiş görünüm,Filtered view
+Depolar,Warehouses
+Hareket gören,With movements
+Belge (Ürün Başı Maks),Docs (Max per Item)
+En yüksek sıklık,Highest frequency
+Toplam +,Total +
+Artı farklar toplamı,Sum of positive differences
+Toplam −,Total −
+Eksi farklar toplamı,Sum of negative differences
+Net,Net
+Taslak: {0} • Onaylı: {1},Draft: {0} • Submitted: {1}
+Açık: %{0},Open: {0}%
+Anomaliler,Anomalies
+Otomatik Kural Analizi,Automated Rule Analysis
+Skor: {0},Score: {0}
+Mevcut filtreler için anomali tespit edilmedi.,No anomalies detected for the current filters.
+En Yüksek Riskler,Top Risks
+{0} belge • {1} depo,{0} docs • {1} warehouses
+Mevcut filtreler için kayıt yok.,No records found for the current filters.
+Ürünler,Items
+{0} satır,{0} rows
+Belgeler,Documents
+Veri bulunamadı.,No data found.
+Risk,Risk
+Depo Dağılımı,Warehouse Breakdown
+Depo verisi bulunamadı.,No warehouse data found.
+Belge,Document
+Fark,Difference
+Belge bulunamadı.,No documents found.
+{0} depolar arasında hem + hem − fark gösteriyor.,{0} shows both + and − differences across warehouses.
+"Hareketin %{0} kadarı ""{1}"" deposundan ({2}).","{0}% of the movement originates from warehouse ""{1}"" ({2})."
+Sık değişiklik,Frequent Changes
+{0} kalemi {1} belgede yer alıyor (yüksek denetim riski).,Item {0} appears in {1} documents (high audit risk).
+Gidiş-geliş hareketi,Oscillating Movement
+Toplam hareket {0} ancak net {1} (oran %{2}).,Total movement is {0} but net is {1} (ratio {2}%).
+{0} belgesi ürün hareketinin %{1} kadarını oluşturuyor ({2}).,Document {0} accounts for {1}% of the item's movement ({2}).
+Belgeler arası gidiş-geliş,Cross-Document Oscillation
+Toplam belge hareketi {0} ancak net {1} (oran %{2}).,Total document movement is {0} but net is {1} (ratio {2}%).
+Etiket Miktarı,Label Qty
+Taslakta Kaydet & Etiket Bas,Save Draft & Print Labels
+Sayımı Onayla ve Tamamla,Submit & Complete Reconciliation
+"Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı.","Draft updated: {0} labels processed, {1} print jobs queued."
+Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,Saves selected rows and prints labels without submitting draft reconciliation.
+İş Emri Etiketi,Work Order Label
+Depo Giriş Etiketi,Warehouse Entry Label

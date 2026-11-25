@@ -24,11 +24,23 @@ class TestStockEntryLabeling(KTABaseTestCase):
             "Buying Settings", "po_required"
         )
         frappe.db.set_single_value("Buying Settings", "po_required", "No")
+        self._prev_delete_linked_ledger_entries = frappe.db.get_single_value(
+            "Accounts Settings", "delete_linked_ledger_entries"
+        )
+        frappe.db.set_single_value(
+            "Accounts Settings", "delete_linked_ledger_entries", 1
+        )
 
     def tearDown(self):
         if getattr(self, "_prev_po_required", None) is not None:
             frappe.db.set_single_value(
                 "Buying Settings", "po_required", self._prev_po_required
+            )
+        if hasattr(self, "_prev_delete_linked_ledger_entries"):
+            frappe.db.set_single_value(
+                "Accounts Settings",
+                "delete_linked_ledger_entries",
+                cint(self._prev_delete_linked_ledger_entries or 0),
             )
         super().tearDown()
 

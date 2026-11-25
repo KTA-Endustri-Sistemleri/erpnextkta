@@ -946,3 +946,146 @@ Depoya iade işlemi tamamlanamadı.,Depoya iade işlemi tamamlanamadı.
 Depoya iade işlemi sırasında bir hata oluştu.,Depoya iade işlemi sırasında bir hata oluştu.
 Depoya İade İşlemi Tamamlandı,Depoya İade İşlemi Tamamlandı
 {0} adet etiket yazdırıldı / kuyruğa alındı.,{0} adet etiket yazdırıldı / kuyruğa alındı.
+Depo Grubu zorunludur,Depo Grubu zorunludur
+Şirket zorunludur,Şirket zorunludur
+Arkaplan görevi sıraya alındı. Tamamlandığında bildirim alacaksınız.,Arkaplan görevi sıraya alındı. Tamamlandığında bildirim alacaksınız.
+Seçilen depo bir grup olmalıdır,Seçilen depo bir grup olmalıdır
+Bu depo grubunda stoğu olan ürün bulunamadı,Bu depo grubunda stoğu olan ürün bulunamadı
+Toplu Stok Uzlaştırması Tamamlandı,Toplu Stok Uzlaştırması Tamamlandı
+Lütfen en az bir satır seçin.,Lütfen en az bir satır seçin.
+Seçilen satır bulunamadı: {0},Seçilen satır bulunamadı: {0}
+Seçilen ürün/depo satırı bulunamadı: {0} ({1}),Seçilen ürün/depo satırı bulunamadı: {0} ({1})
+Tüm kutu miktarları sıfırdan büyük olmalıdır.,Tüm kutu miktarları sıfırdan büyük olmalıdır.
+Kutu kırılım toplamı ({0}) satır miktarı ({1}) ile eşleşmiyor.,Kutu kırılım toplamı ({0}) satır miktarı ({1}) ile eşleşmiyor.
+Yalnızca Taslak (Draft) sayım belgeleri bu işlemle onaylanabilir.,Yalnızca Taslak (Draft) sayım belgeleri bu işlemle onaylanabilir.
+Seçili satır miktarı sıfırdan büyük olmalıdır.,Seçili satır miktarı sıfırdan büyük olmalıdır.
+Bu işlem yalnızca onaylanmış (Submitted) sayım belgeleri için kullanılabilir.,Bu işlem yalnızca onaylanmış (Submitted) sayım belgeleri için kullanılabilir.
+Parti numarası olmayan satır için etiketleme/bölme yapılamaz: {0},Parti numarası olmayan satır için etiketleme/bölme yapılamaz: {0}
+Sayım sonrası koli bölme ({0}),Sayım sonrası koli bölme ({0})
+Sayım sonrası standart koli dönüştürme ({0}),Sayım sonrası standart koli dönüştürme ({0})
+Stok Uzlaştırma Panosu,Stok Uzlaştırma Panosu
+Boş Stokları Yoksay,Boş Stokları Yoksay
+Ürünleri Getir,Ürünleri Getir
+Güncelle,Güncelle
+Sayım ve Etiket Merkezinde Aç,Sayım ve Etiket Merkezinde Aç
+Sayım belgeleri yüklenemedi.,Sayım belgeleri yüklenemedi.
+Belge etiket önizlemesi alınamadı.,Belge etiket önizlemesi alınamadı.
+"{0} etiket işlendi, {1} baskı kuyruğa alındı.","{0} etiket işlendi, {1} baskı kuyruğa alındı."
+Etiketleme işlemi sırasında bir hata oluştu.,Etiketleme işlemi sırasında bir hata oluştu.
+Toplu sayım oluşturma arka plan görevi sıraya alındı.,Toplu sayım oluşturma arka plan görevi sıraya alındı.
+KTA Sayım ve Etiket Merkezi,KTA Sayım ve Etiket Merkezi
+Canlı,Canlı
+Çevrimdışı,Çevrimdışı
+Sayım Operasyonları & Etiketleme,Sayım Operasyonları & Etiketleme
+Fark & Anomali Analizi,Fark & Anomali Analizi
+Toplu Sayım Oluştur,Toplu Sayım Oluştur
+Etiketleme Tamamlandı:,Etiketleme Tamamlandı:
+{0} etiket oluşturuldu/güncellendi · {1} baskı Zebra kuyruğuna eklendi.,{0} etiket oluşturuldu/güncellendi · {1} baskı Zebra kuyruğuna eklendi.
+Oluşan Stok Fişleri:,Oluşan Stok Fişleri:
+Depo grupları yüklenemedi.,Depo grupları yüklenemedi.
+Şirket listesi yüklenemedi.,Şirket listesi yüklenemedi.
+"Lütfen şirket, depo grubu ve tarih alanlarını doldurun.","Lütfen şirket, depo grubu ve tarih alanlarını doldurun."
+Toplu sayım belgeleri kuyruğa alınırken bir hata oluştu.,Toplu sayım belgeleri kuyruğa alınırken bir hata oluştu.
+Depo Grubundan Toplu Sayım Oluştur,Depo Grubundan Toplu Sayım Oluştur
+Seçilen depo grubundaki tüm alt depolar için taslak sayım belgesi oluşturulur.,Seçilen depo grubundaki tüm alt depolar için taslak sayım belgesi oluşturulur.
+Şirket,Şirket
+-- Şirket Seçin --,-- Şirket Seçin --
+Depo Grubu,Depo Grubu
+Depo grubu adıyla filtrele...,Depo grubu adıyla filtrele...
+-- Depo Grubu Seçin --,-- Depo Grubu Seçin --
+Sayım Tarihi,Sayım Tarihi
+Sayım Saati,Sayım Saati
+⚡ Toplu Sayım Başlat,⚡ Toplu Sayım Başlat
+Sayım Belgeleri,Sayım Belgeleri
+Belgeleri Yenile,Belgeleri Yenile
+Belge No veya Depo Ara...,Belge No veya Depo Ara...
+Sayım belgeleri yükleniyor...,Sayım belgeleri yükleniyor...
+Eşleşen sayım belgesi bulunamadı.,Eşleşen sayım belgesi bulunamadı.
+Onaylı,Onaylı
+Çoklu Depo,Çoklu Depo
+Uyumlu,Uyumlu
+Miktar Değişti,Miktar Değişti
+Etiket Eksik,Etiket Eksik
+LEGACY / Partisiz,LEGACY / Partisiz
+Sayım Belgesi Seçin,Sayım Belgesi Seçin
+Etiket sağlığını incelemek ve toplu barkod basımı yapmak için soldaki listeden bir sayım belgesi seçin.,Etiket sağlığını incelemek ve toplu barkod basımı yapmak için soldaki listeden bir sayım belgesi seçin.
+Etiket Önizlemesi Yükleniyor...,Etiket Önizlemesi Yükleniyor...
+Toplam,Toplam
+Değişen,Değişen
+Fiziksel Kutu Esas,Fiziksel Kutu Esas
+Sistem Partisi Esas,Sistem Partisi Esas
+Pozitif Stok Kalemi Bulunamadı,Pozitif Stok Kalemi Bulunamadı
+Bu sayım belgesinde miktarı sıfırdan büyük kalem yer almıyor.,Bu sayım belgesinde miktarı sıfırdan büyük kalem yer almıyor.
+Malzeme & Depo,Malzeme & Depo
+Parti & Etiket Durumu,Parti & Etiket Durumu
+Sistem / Etiket Miktarı,Sistem / Etiket Miktarı
+Kutu Kırılımı,Kutu Kırılımı
+Partisiz,Partisiz
+Standart Koliye Çevir,Standart Koliye Çevir
+Etiket,Etiket
+Kutu Böl,Kutu Böl
+Kalan Fark,Kalan Fark
+Etiketleri Zebra Yazıcıya Gönder,Etiketleri Zebra Yazıcıya Gönder
+{0} satır seçili · {1} etiket üretilecek,{0} satır seçili · {1} etiket üretilecek
+Seçili satırlarda kutu kırılım toplamı sistem miktarıyla eşleşmiyor,Seçili satırlarda kutu kırılım toplamı sistem miktarıyla eşleşmiyor
+İşleniyor...,İşleniyor...
+Onayla ve Etiketleri Bas,Onayla ve Etiketleri Bas
+Etiketleri Güncelle ve Bas,Etiketleri Güncelle ve Bas
+Yenilendi,Yenilendi
+CSV dışa aktarıldı,CSV dışa aktarıldı
+Ürün mevcut listede bulunamadı: {0},Ürün mevcut listede bulunamadı: {0}
+Son güncelleme: {0},Son güncelleme: {0}
+CSV Dışa Aktar,CSV Dışa Aktar
+Yıl,Yıl
+Eşik (Mutlak Fark),Eşik (Mutlak Fark)
+Yön,Yön
+"Ürün kodu, adı veya depo...","Ürün kodu, adı veya depo..."
+Etkilenen Ürünler,Etkilenen Ürünler
+Filtrelenmiş görünüm,Filtrelenmiş görünüm
+Depolar,Depolar
+Hareket gören,Hareket gören
+Belge (Ürün Başı Maks),Belge (Ürün Başı Maks)
+En yüksek sıklık,En yüksek sıklık
+Toplam +,Toplam +
+Artı farklar toplamı,Artı farklar toplamı
+Toplam −,Toplam −
+Eksi farklar toplamı,Eksi farklar toplamı
+Net,Net
+Taslak: {0} • Onaylı: {1},Taslak: {0} • Onaylı: {1}
+Açık: %{0},Açık: %{0}
+Anomaliler,Anomaliler
+Otomatik Kural Analizi,Otomatik Kural Analizi
+Skor: {0},Skor: {0}
+Mevcut filtreler için anomali tespit edilmedi.,Mevcut filtreler için anomali tespit edilmedi.
+En Yüksek Riskler,En Yüksek Riskler
+{0} belge • {1} depo,{0} belge • {1} depo
+Mevcut filtreler için kayıt yok.,Mevcut filtreler için kayıt yok.
+Ürünler,Ürünler
+{0} satır,{0} satır
+Belgeler,Belgeler
+Veri bulunamadı.,Veri bulunamadı.
+Risk,Risk
+Depo Dağılımı,Depo Dağılımı
+Depo verisi bulunamadı.,Depo verisi bulunamadı.
+Belge,Belge
+Fark,Fark
+Belge bulunamadı.,Belge bulunamadı.
+Depolar arası zıt yön,Depolar arası zıt yön
+{0} depolar arasında hem + hem − fark gösteriyor.,{0} depolar arasında hem + hem − fark gösteriyor.
+Tek depoda toplandı,Tek depoda toplandı
+"Hareketin %{0} kadarı ""{1}"" deposundan ({2}).","Hareketin %{0} kadarı ""{1}"" deposundan ({2})."
+Sık değişiklik,Sık değişiklik
+{0} kalemi {1} belgede yer alıyor (yüksek denetim riski).,{0} kalemi {1} belgede yer alıyor (yüksek denetim riski).
+Gidiş-geliş hareketi,Gidiş-geliş hareketi
+Toplam hareket {0} ancak net {1} (oran %{2}).,Toplam hareket {0} ancak net {1} (oran %{2}).
+Tek belge sonuca hakim,Tek belge sonuca hakim
+{0} belgesi ürün hareketinin %{1} kadarını oluşturuyor ({2}).,{0} belgesi ürün hareketinin %{1} kadarını oluşturuyor ({2}).
+Belgeler arası gidiş-geliş,Belgeler arası gidiş-geliş
+Toplam belge hareketi {0} ancak net {1} (oran %{2}).,Toplam belge hareketi {0} ancak net {1} (oran %{2}).
+Etiket Miktarı,Etiket Miktarı
+Taslakta Kaydet & Etiket Bas,Taslakta Kaydet & Etiket Bas
+Sayımı Onayla ve Tamamla,Sayımı Onayla ve Tamamla
+"Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı.","Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı."
+Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.
+İş Emri Etiketi,İş Emri Etiketi
+Depo Giriş Etiketi,Depo Giriş Etiketi

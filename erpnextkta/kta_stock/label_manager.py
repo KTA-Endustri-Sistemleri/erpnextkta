@@ -541,7 +541,7 @@ class LabelPrinter:
             f"""
             SELECT name, item_code, batch
             FROM `tabKTA Stock Label`
-            WHERE label_type = 'Depo Giriş Etiketi'
+            WHERE label_type IN ('Depo Giriş Etiketi', 'İş Emri Etiketi')
               AND IFNULL(item_code, '') != ''
               AND IFNULL(batch, '') != ''
               {pair_filter}
@@ -885,14 +885,14 @@ def custom_split_kta_batches(
 
 @frappe.whitelist()
 def enqueue_print_labels_by_names(
-    label_names: list[str] | str, user: str | None = None
+    label_names: list[str | int] | str, user: str | None = None
 ) -> dict:
     if isinstance(label_names, str):
         import json
 
         label_names = json.loads(label_names) if label_names.strip() else []
 
-    cleaned_names = [name for name in (label_names or []) if name]
+    cleaned_names = [str(name) for name in (label_names or []) if name]
     if not cleaned_names:
         return {"queued": 0, "label_names": []}
 

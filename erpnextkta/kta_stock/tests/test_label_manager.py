@@ -222,6 +222,24 @@ class TestLabelManager(KTAUnitTestCase):
 
 
 class TestLabelManagerIntegration(KTABaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self._ensure_zebra_templates()
+
+    def _ensure_zebra_templates(self):
+        if not frappe.db.exists("DocType", "KTA Zebra Templates"):
+            return
+        for tmpl_name in ("Depo Giriş Etiketi", "İş Emri Etiketi"):
+            if not frappe.db.exists("KTA Zebra Templates", tmpl_name):
+                frappe.get_doc(
+                    {
+                        "doctype": "KTA Zebra Templates",
+                        "doctype_name": tmpl_name,
+                        "zebra_template": "^XA^FD{data.item_code}|{data.sut_barcode}|{data.qty}^FS^XZ",
+                    }
+                ).insert(ignore_permissions=True, ignore_if_duplicate=True)
+            frappe.cache().delete_value(f"kta_zebra_template_{tmpl_name}")
+
     def _ensure_warehouses(self):
         company = "_Test Company"
         parent_wh = frappe.db.get_value(
