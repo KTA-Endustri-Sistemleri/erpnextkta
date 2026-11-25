@@ -146,7 +146,7 @@
 <div class="kta-doc-hero">
   <span class="kta-doc-hero-icon">⚡</span>
   <h1>Shopfloor Hub (Çoklu Görünüm Üretim Kokpiti)</h1>
-  <p>Tek ekranda iki entegre görünümle iş emri oluşturma, hammadde stok uygunluk kontrolü ve üretime serbest bırakma (<code>Work Orders</code>) ile gerçek zamanlı operasyon teyidi, orantısal hammadde sarfiyatı (261 Backflush), mamul girişi (101 GR) ve SAP CORS ters kayıt işlemlerini (<code>Operations</code>) yöneten bağımsız atölye kokpiti.</p>
+  <p>Beş entegre görünümle (<code>Work Orders</code>, <code>Operations</code>, <code>Teyitler</code>, <code>Work Cards</code>, <code>Reports</code>) iş emri oluşturma, hammadde stok uygunluk kontrolü ve üretime serbest bırakma, gerçek zamanlı operasyon teyidi, orantısal hammadde sarfiyatı (261 Backflush), mamul girişi (101 GR), çoklu iş emri teyit izleme ve toplu SAP CORS ters kayıt işlemlerini yöneten bağımsız atölye kokpiti.</p>
 </div>
 
 <div class="kta-doc-section">
@@ -212,7 +212,7 @@
   </p>
   <p>
     Sayfanın en üstündeki sabit navigasyon çubuğunda (<code>ShopfloorNavbar</code>)
-    dört ana görünüm sekmesi bulunur ve sol kenar çubuğu aktif sekmeye göre bağlamsal olarak değişir (<code>WorkOrderSidebar</code> veya rapor kataloğu <code>ReportsSidebar</code>):
+    sırasıyla beş ana görünüm sekmesi bulunur (<code>Work Orders</code> | <code>Operations</code> | <code>Teyitler</code> | <code>Work Cards</code> | <code>Reports</code>) ve sol kenar çubuğu aktif sekmeye göre bağlamsal olarak değişir (<code>WorkOrderSidebar</code>, rapor kataloğu <code>ReportsSidebar</code> veya tam genişlikli <code>Teyitler</code> yönetim görünümü):
   </p>
 
   <div class="flow-card-grid">
@@ -240,15 +240,33 @@
         <strong>Operasyon Teyit ve Sarfiyat Kokpiti:</strong> Sol panelde serbest
         bırakılmış aktif iş emirlerini (<em>Tümü</em>, <em>Devam Eden</em>,
         <em>Başlanmamış</em>) gösterir. Sağlam miktar teyidi (Yield Qty),
-        orantısal backflush (261), çoklu stok fişi takibi (101 GR) ve SAP CORS
+        orantısal backflush (261), çoklu stok fişi takibi (101 GR) ve tekli SAP CORS
         ters kayıt işlemlerini yönetir.
       </p>
     </div>
 
     <div class="flow-card">
       <div class="flow-card-header">
-        <span class="flow-card-icon">📇</span>
-        <h4 class="flow-card-title">[ 📇 Work Cards ] Görünümü</h4>
+        <span class="flow-card-icon">↩️</span>
+        <h4 class="flow-card-title">[ ↩️ Teyitler ] Görünümü</h4>
+      </div>
+      <p class="flow-card-desc">
+        <strong>Çoklu İş Emri Teyit İzleme ve Toplu Ters Kayıt Yönetimi:</strong>
+        Tam genişlikli yönetim ekranında tüm iş emirlerine ait üretim teyitlerini
+        <strong>iş emri bazlı akordeon</strong> gruplamayla listeler; durum
+        (<em>Aktif</em>, <em>İptal Edildi</em>, <em>Tümü</em>), arama, operasyon,
+        kullanıcı ve tarih aralığına göre süzer ve her iki tabloda etkileşimli
+        sıralama sunar. Yetkili yöneticiler (<code>System Manager</code>,
+        <code>Manufacturing Manager</code>) iş emri veya tekil teyit bazında
+        seçim yaparak tekli/toplu SAP CORS iptali gerçekleştirebilir;
+        <code>Manufacturing User</code> kullanıcıları ise ekranı salt-okunur görüntüler.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">⏱️</span>
+        <h4 class="flow-card-title">[ ⏱️ Work Cards ] Görünümü</h4>
       </div>
       <p class="flow-card-desc">
         <strong>Çalışma Kartları ve Alt Operasyon Analitiği:</strong> Sahada
@@ -262,7 +280,7 @@
     <div class="flow-card">
       <div class="flow-card-header">
         <span class="flow-card-icon">📊</span>
-        <h4 class="flow-card-title">[ 📊 Raporlar ] Görünümü</h4>
+        <h4 class="flow-card-title">[ 📊 Raporlar ] (<code>Reports</code>) Görünümü</h4>
       </div>
       <p class="flow-card-desc">
         <strong>Genişletilebilir Rapor Kataloğu ve Saha Analizi:</strong> Sol
@@ -1215,17 +1233,25 @@ flowchart TD
 
   <h2>🔄 6. Hatalı Teyitlerin İptali ve Ters Kayıt (SAP CORS)</h2>
   <p>
-    Eğer yetkili bir kullanıcı yanlış bir iş emri veya yanlış bir sağlam miktar girdiyse, SAP CORS (Cancel Confirmation) mantığıyla işlem geri alınabilir.
+    Eğer yetkili bir kullanıcı yanlış bir iş emri veya yanlış bir sağlam miktar girdiyse, SAP CORS (Cancel Confirmation) mantığıyla hem <code>Operations</code> sekmesinden tekil olarak hem de <strong><code>Teyitler</code></strong> sekmesinden toplu olarak ters kayıt (storno) işlemi gerçekleştirilebilir.
   </p>
 
   <div class="flow-card-grid">
     <div class="flow-card">
       <div class="flow-card-header">
         <span class="flow-card-icon">🚫</span>
-        <h4 class="flow-card-title">1. İptal Yetkisi</h4>
+        <h4 class="flow-card-title">1. Erişim ve İptal Yetki Matrisi</h4>
       </div>
       <p class="flow-card-desc">
-        Güvenlik nedeniyle teyit iptali yalnızca yetkili rollere (<code>System Manager</code>, <code>Manufacturing Manager</code>, <code>KTA Çalışma Kartı Yöneticisi</code>) açıktır.
+        Shopfloor Hub ekranına erişim ve yeni üretim teyidi oluşturma yetkisi
+        <code>System Manager</code>, <code>Manufacturing Manager</code> ve
+        <code>Manufacturing User</code> rollerine açıktır. Buna karşın güvenlik
+        nedeniyle <strong>tekil ve toplu (Bulk SAP CORS) teyit iptali</strong>
+        yalnızca <code>System Manager</code> ve <code>Manufacturing Manager</code>
+        rollerine sınırlandırılmıştır. <code>Manufacturing User</code> kullanıcıları
+        yeni teyit oluşturabilir ve <code>Teyitler</code> sekmesini <strong>salt-okunur</strong>
+        olarak görüntüleyebilir; ancak iptal işlemi yapamaz (arayüzde iptal
+        düğmeleri ve toplu seçim kutuları gizlenir).
       </p>
     </div>
 
@@ -1246,6 +1272,58 @@ flowchart TD
       </div>
       <p class="flow-card-desc">
         İş Emri ve Job Card üzerindeki tamamlanan miktarlar düşülür. Eğer iş emri tamamlandı durumuna geçmişse tekrar <code>In Process</code> statüsüne çevrilir.
+      </p>
+    </div>
+  </div>
+
+  <h3>A. [ ↩️ Teyitler ] Sekmesi ve Toplu Teyit İptali (Bulk SAP CORS)</h3>
+  <p>
+    Üst navigasyon çubuğundaki <strong><code>[ ↩️ Teyitler ]</code></strong> sekmesi, birden fazla iş emrine yayılan üretim teyitlerini tek bir merkezi ekrandan izlemek ve yetkili yöneticiler tarafından güvenli biçimde toplu iptal etmek için tasarlanmıştır.
+  </p>
+
+  <div class="step-container">
+    <div class="step-item">
+      <h4>1. Çoklu İş Emri Filtreleme ve KPI Özeti</h4>
+      <p>
+        Üstteki KPI şeridinde aktif filtrelere göre <strong>Aktif Teyit</strong>, <strong>İş Emri</strong> ve <strong>Toplam Miktar</strong> değerleri anlık özetlenir. Yetkisiz (<code>Manufacturing User</code>) oturumlarda sayfa üstünde salt-okunur bilgilendirme bandı gösterilir. Filtre çubuğunda (<code>ConfirmationsFilters</code>) şu kriterler birlikte kullanılabilir:
+      </p>
+      <ul>
+        <li><strong>Durum Sekmeleri:</strong> <span class="co11n-badge green">Aktif</span>, <span class="co11n-badge rose">İptal Edildi</span> ve <span class="co11n-badge blue">Tümü</span> sekmeleri dinamik kayıt sayaçlarıyla listelenir.</li>
+        <li><strong>Çoklu Kriter Süzme:</strong> <code>search</code> (<em>İş Emri, Ürün veya Teyit No Ara…</em>), <strong>Operasyon</strong> (<em>Tüm Operasyonlar</em>), <strong>Teyit Eden</strong> (<em>Tüm Kullanıcılar</em>) ve <strong>Başlangıç</strong> / <strong>Bitiş</strong> tarih aralığı filtreleri uygulanabilir; <code>Filtreleri Temizle</code> ve <code>Yenile</code> düğmeleriyle liste sıfırlanıp güncellenebilir.</li>
+        <li><strong>Sayfalama:</strong> Varsayılan olarak en güncel <code>200</code> kayıt yüklenir ve <code>Daha Fazla Göster</code> düğmesiyle <code>500</code> kayda kadar genişletilebilir.</li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>2. İş Emri Bazlı Akordeon Düzeni, Etkileşimli Sıralama ve Çoklu Seçim</h4>
+      <p>
+        <code>ConfirmationsManagementPanel.vue</code>, <code>reports/operationFormatters.ts</code> içindeki <code>groupConfirmationsByWorkOrder</code> yardımcısıyla teyit kayıtlarını iş emri bazında gruplayarak her iş emri için tek bir üst akordeon satırı oluşturur ve genişletildiğinde <code>ConfirmationsWorkOrderGroupRows.vue</code> alt tablosunu açar:
+      </p>
+      <ul>
+        <li><strong>İş Emri Üst Satırı:</strong> Dış tabloda her iş emri için tek bir satır yer alır ve <strong>İş Emri</strong> (durum etiketi ve <code>Operations</code> sekmesine geçiş bağlantısıyla), <strong>Ürün</strong>, <strong>Teyit Sayısı</strong> (<code>{0} Teyit</code> veya iptal/seçim varsa <code>{active_count} / {total}</code>, <code>{0} İptal</code> ve <code>{0} Seçili</code> rozetleri), <strong>Toplam Miktar</strong> ve <strong>Son Teyit</strong> (son teyit tarihi/saati ve teyit eden kullanıcı) bilgilerini gösterir.</li>
+        <li><strong>Genişletme / Daraltma ve İç İçe Teyit Satırları:</strong> Tablo üst araç çubuğunda <code>{0} İş Emri · {1} Teyit</code> özetiyle birlikte global <strong><code>Tümünü Genişlet</code></strong> / <strong><code>Tümünü Daralt</code></strong> düğmesi yer alır; kullanıcılar tekil iş emirlerini satır başındaki akordeon okuyla da açıp kapatabilir. Genişletilen iş emrinin altında <code>ConfirmationsWorkOrderGroupRows.vue</code> bileşeni teyitleri alt tablo olarak listeler (<code>Teyit No</code>, <code>Son</code> final rozeti, <code>Operasyon</code>, <code>Miktar</code>, <code>Tarih / Saat</code>, <code>Teyit Eden</code>, <code>İlişkili Stok Fişleri</code>, <code>Durum</code> [<code>Tamamlandı</code> / <code>İptal Edildi</code>] ve tekli <code>İptal</code> düğmesi).</li>
+        <li><strong>Çift Seviyeli Etkileşimli Sütun Sıralama (<code>SortableTh.vue</code> / <code>tableSort.ts</code>):</strong> Hem dış iş emri tablosunun 5 veri sütununda (<code>İş Emri</code>, <code>Ürün</code>, <code>Teyit Sayısı</code>, <code>Toplam Miktar</code>, <code>Son Teyit</code> — varsayılan en yeni teyide göre azalan) hem de genişletilen alt teyit tablosunun 6 veri sütununda (<code>Teyit No</code>, <code>Operasyon</code>, <code>Miktar</code>, <code>Tarih / Saat</code>, <code>Teyit Eden</code>, <code>Durum</code> — varsayılan oluşturulma zamanına göre azalan) başlığa tıklanarak artan/azalan (<code>asc</code> / <code>desc</code>) sıralama yapılabilir.</li>
+        <li><strong>İş Emri ve Satır Bazlı Seçim &amp; Hızlı İptal:</strong> Yalnızca iptal yetkisine sahip (<code>can_cancel = true</code>) kullanıcılar için seçim kutuları ve iptal aksiyonları etkinleştirilir (yalnızca onaylı <code>docstatus = 1</code> teyitler seçilebilir). Üst tablo başlığındaki <strong>Tüm Aktif Teyitleri Seç</strong> kutusu görünür tüm aktif teyitleri işaretler. Her iş emri satırının başındaki <strong><code>Bu İş Emrinin Aktif Teyitlerini Seç</code></strong> onay kutusu o iş emrinin tüm aktif teyitlerini tek tıkla seçer veya bırakır (kısmi seçimde ara durum gösterir), satır sonundaki <strong><code>Tümünü İptal Et</code></strong> düğmesi ise o iş emrinin tüm aktif teyitleri için doğrudan iptal onayını açar. Alt tablodan ise tekil teyitler işaretlenebilir veya satır sonu <code>İptal</code> ile tekli storno başlatılabilir.</li>
+        <li><strong>Yapışkan Toplu İşlem Çubuğu:</strong> En az bir satır seçildiğinde ekranın üstünde <code>{0} Teyit Seçildi ({1} İş Emri)</code> özetiyle birlikte <code>Seçimi Temizle</code> ve <strong><code>Seçilenleri İptal Et</code></strong> çubuğu belirir.</li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>3. Ters Kronolojik Yürütme, Zincirleme İptal Tekilleştirmesi ve Savepoint İzolasyonu</h4>
+      <p>
+        Toplu iptal motoru (<code>bulk_cancel_production_confirmations</code>) veri tutarlılığını korumak için üç katmanlı güvenlik uygular:
+      </p>
+      <ul>
+        <li><strong>Ters Kronolojik Sıra (<code>creation DESC</code>):</strong> Seçilen teyitler iş emri ve operasyon bağımlılıklarını bozmamak için en yeniden en eskiye doğru (<code>creation DESC, name DESC</code>) sırayla iptal edilir.</li>
+        <li><strong>Otomatik Telafi / Zincirleme İptal Tekilleştirmesi (<code>Zincirleme İptal</code>):</strong> Bir milestone teyit iptal edildiğinde önceki ara operasyonlara ait telafi (catchup) teyitleri otomatik olarak iptal edilir. Eğer bu ara teyitler de kullanıcının seçim listesinde yer alıyorsa, sistem bunları mükerrer iptal hatasına düşürmek yerine otomatik olarak tekilleştirir ve sonuç özetinde <strong>Zincirleme İptal</strong> (<code>Tetikleyen Teyit: {0}</code>) olarak raporlar.</li>
+        <li><strong>Kayıt Bazlı Savepoint İzolasyonu (Kısmi Hata Toleransı):</strong> Her bir teyit kendi veritabanı <code>savepoint</code> koruması içinde iptal edilir. Bir kayıtta doğrulama veya stok iade hatası oluşursa yalnızca o kayıt geri alınır ve <code>Hatalı</code> listesine eklenir; diğer seçili teyitlerin iptal işlemi kesintiye uğramadan tamamlanır.</li>
+      </ul>
+    </div>
+
+    <div class="step-item">
+      <h4>4. Onay ve Sonuç Özet Modali (<code>BulkCancelResultModal</code>)</h4>
+      <p>
+        <strong><code>Seçilenleri İptal Et</code></strong> tıklandığında önce <strong>Toplu Teyit İptali Onayı</strong> penceresi açılır; seçili teyit adedi, tekil iş emri sayısı, toplam miktar ve kayıt önizlemesi ile geri dönüşsüz storno uyarısı gösterilir. <strong><code>Evet, Toplu İptal Et</code></strong> onayından sonra işlem tamamlandığında pencere otomatik olarak <strong>Toplu Teyit İptal Sonucu</strong> özetine geçer ve üç KPI sayacıyla (<strong>İptal Edildi</strong>, <strong>Zincirleme İptal</strong>, <strong>Hatalı</strong>) her kayıt için iptal edilen stok fişlerini (<code>İptal Edilen Stok Fişleri: {0}</code>), tetikleyen teyidi veya hata mesajını listeler.
       </p>
     </div>
   </div>
@@ -1282,6 +1360,10 @@ flowchart TD
   </p>
   <ul>
     <li>
+      <strong><code>get_shopfloor_hub_context</code> (İş Emri Kokpit Bağlamı):</strong>
+      Barkod, İş Emri ID veya Job Card ID üzerinden iş emri başlık bilgilerini, operasyon listesini, kalan miktarları ve kullanıcının iptal yetkisini belirten <code>can_cancel_confirmations</code> (<code>System Manager</code> / <code>Manufacturing Manager</code> için <code>true</code>, <code>Manufacturing User</code> için <code>false</code>) alanını döner.
+    </li>
+    <li>
       <strong><code>get_active_work_orders</code> (Aktif İş Emirleri):</strong>
       Varsayılan olarak ve <code>limit=0</code> gönderildiğinde sistemdeki tüm eşleşen aktif iş emirleri sınırlandırma olmaksızın listelenir. Tamamlanmış (<code>Completed</code>), kapatılmış (<code>Closed</code>), iptal edilmiş (<code>Cancelled</code>) veya durdurulmuş (<code>Stopped</code>) iş emirleri API ve arayüz katmanında filtrelenerek kokpitten elenir. <code>Operations</code> görünümünde yalnızca serbest bırakılmış (<code>docstatus = 1</code>) ve durumu <code>Not Started</code> (Başlanmamış) veya <code>In Process</code> (Devam Eden) olan iş emirleri sunulur.
     </li>
@@ -1296,6 +1378,14 @@ flowchart TD
     <li>
       <strong><code>get_work_order_print_options</code> (İş Emri Yazdırma Seçenekleri):</strong>
       Seçili iş emri (opsiyonel <code>work_order</code>) için aktif <code>Print Format</code> şablonlarını (varsayılan şablon en üstte, <code>"Standard"</code> her zaman dahil), aktif <code>Letter Head</code> kayıtlarını, <code>Print Settings</code> bayraklarını (<code>allow_print_for_draft</code>, <code>allow_print_for_cancelled</code>, <code>with_letterhead</code>) ve yazdırma yetkisi/durum kontrolünü (<code>can_print</code>) döner.
+    </li>
+    <li>
+      <strong><code>get_confirmations_for_management</code> (Çoklu İş Emri Teyit Listesi):</strong>
+      <code>KTA Production Confirmation</code> ve <code>Work Order</code> okuma yetkilerini doğrular; <code>status_filter</code> (<code>active</code>, <code>cancelled</code>, <code>all</code>), <code>search</code>, <code>operation</code>, <code>confirmed_by</code>, <code>work_order</code>, <code>from_date</code>, <code>to_date</code>, <code>company</code> ve <code>limit</code> (<code>1–500</code>, varsayılan <code>200</code>) parametreleriyle filtrelenmiş teyit satırlarını (ilişkili tüketim/üretim <code>Stock Entry</code> bağlantılarıyla), durum sayaçlarını (<code>counts</code>), KPI özetini (<code>summary</code>), filtre seçeneklerini (<code>filter_options</code>) ve <code>can_cancel</code> yetki bayrağını döner.
+    </li>
+    <li>
+      <strong><code>bulk_cancel_production_confirmations</code> (Toplu SAP CORS Teyit İptali):</strong>
+      Yalnızca <code>POST</code> yöntemiyle çağrılır; <code>System Manager</code> veya <code>Manufacturing Manager</code> yetkisini doğrular ve verilen <code>confirmation_names</code> listesini ters kronolojik sırada (<code>creation DESC, name DESC</code>) kayıt bazlı <code>savepoint</code> izolasyonu ve zincirleme catchup tekilleştirmesiyle iptal ederek <code>success</code>, <code>partial</code>, <code>cancelled</code>, <code>cascade_cancelled</code>, <code>failed</code> ve <code>affected_work_orders</code> özetini döner.
     </li>
     <li>
       <strong><code>get_operation_completion_report</code> (İş Emri Operasyon Tamamlanma Özeti Raporu):</strong>

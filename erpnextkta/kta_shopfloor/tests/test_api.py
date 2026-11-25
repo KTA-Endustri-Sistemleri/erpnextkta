@@ -8,6 +8,7 @@ from frappe import _
 from frappe.utils import add_days, flt, getdate, now_datetime
 
 from erpnextkta.kta_shopfloor.api import (
+    bulk_cancel_production_confirmations,
     cancel_co11n_confirmation,
     cancel_production_confirmation,
     check_confirmation_materials,
@@ -16,6 +17,7 @@ from erpnextkta.kta_shopfloor.api import (
     get_active_work_orders,
     get_co11n_confirmations,
     get_co11n_context,
+    get_confirmations_for_management,
     get_item_default_bom,
     get_material_shortage_report,
     get_operation_completion_report,
@@ -1810,3 +1812,194 @@ class TestCO11NAPI(KTATestCase):
             get_material_shortage_report(
                 shortage_filter="unknown", company=self.company
             )
+
+    def test_get_shopfloor_hub_context_includes_can_cancel_confirmations(self):
+        """get_shopfloor_hub_context exposes can_cancel_confirmations per user role."""
+        ctx_admin = get_shopfloor_hub_context(self.wo_name)
+        self.assertIn("can_cancel_confirmations", ctx_admin)
+        self.assertTrue(ctx_admin["can_cancel_confirmations"])
+
+        current_user = frappe.session.user
+        try:
+            frappe.set_user("test_operator@example.com")
+            with (
+                patch("frappe.has_permission", return_value=True),
+                patch.object(
+                    frappe.get_doc("Work Order", self.wo_name).__class__,
+                    "has_permission",
+                    return_value=True,
+                ),
+            ):
+                with patch("frappe.get_roles", return_value=["Manufacturing Manager"]):
+                    ctx_mgr = get_shopfloor_hub_context(self.wo_name)
+                    self.assertTrue(ctx_mgr["can_cancel_confirmations"])
+
+                with patch("frappe.get_roles", return_value=["Manufacturing User"]):
+                    ctx_user = get_shopfloor_hub_context(self.wo_name)
+                    self.assertFalse(ctx_user["can_cancel_confirmations"])
+
+                with patch(
+                    "frappe.get_roles", return_value=["KTA Çalışma Kartı Yöneticisi"]
+                ):
+                    ctx_ck = get_shopfloor_hub_context(self.wo_name)
+                    self.assertFalse(ctx_ck["can_cancel_confirmations"])
+        finally:
+            frappe.set_user(current_user)
+
+    def test_api_get_confirmations_for_management_and_bulk_cancel(self):
+        """get_confirmations_for_management filters, counts, permissions, and bulk cancel."""
+        se_cons = f"TEST-SE-MGMT-{frappe.generate_hash(length=6)}"
+        frappe.db.sql(
+            """
+            INSERT INTO `tabStock Entry` (
+                name, docstatus, purpose, stock_entry_type, work_order, company,
+                remarks, creation, modified, modified_by
+            ) VALUES (%s, 1, 'Material Consumption for Manufacture',
+                'Material Consumption for Manufacture', %s, %s, '', NOW(), NOW(), 'Administrator')
+            """,
+            (se_cons, self.wo_name, self.company),
+        )
+        frappe.db.commit()
+
+        with patch(
+            "erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry",
+            return_value=se_cons,
+        ):
+            res1 = submit_production_confirmation(
+                {
+                    "work_order": self.wo_name,
+                    "operation": self.op1,
+                    "job_card": self.jc1,
+                    "yield_qty": 20.0,
+                    "is_final_confirmation": 0,
+                }
+            )
+            conf1 = res1["confirmation"]
+
+        with patch(
+            "erpnextkta.kta_shopfloor.services.confirmation_service.BackflushService.create_consumption_entry",
+            return_value=None,
+        ):
+            res2 = submit_production_confirmation(
+                {
+                    "work_order": self.wo_name,
+                    "operation": self.op2,
+                    "job_card": self.jc2,
+                    "yield_qty": 15.0,
+                    "is_final_confirmation": 0,
+                }
+            )
+            conf2 = res2["confirmation"]
+
+        today_str = str(getdate())
+        frappe.db.set_value(
+            "KTA Production Confirmation",
+            conf1,
+            {"posting_date": today_str, "confirmed_by": "Administrator"},
+            update_modified=False,
+        )
+        frappe.db.set_value(
+            "KTA Production Confirmation",
+            conf2,
+            {"posting_date": add_days(today_str, -5), "confirmed_by": "Guest"},
+            update_modified=False,
+        )
+
+        # Invalid status_filter raises ValidationError
+        with self.assertRaises(frappe.ValidationError):
+            get_confirmations_for_management(
+                status_filter="invalid", company=self.company
+            )
+
+        # Base active query scoped to work_order
+        res_all_active = get_confirmations_for_management(
+            status_filter="active",
+            work_order=self.wo_name,
+            company=self.company,
+        )
+        self.assertEqual(
+            set(res_all_active.keys()),
+            {
+                "rows",
+                "counts",
+                "total_count",
+                "summary",
+                "filter_options",
+                "can_cancel",
+            },
+        )
+        self.assertEqual(res_all_active["counts"]["active"], 2)
+        self.assertEqual(res_all_active["counts"]["cancelled"], 0)
+        self.assertEqual(res_all_active["counts"]["all"], 2)
+        self.assertEqual(res_all_active["total_count"], 2)
+        self.assertEqual(res_all_active["summary"]["active_confirmations"], 2)
+        self.assertEqual(res_all_active["summary"]["unique_work_orders"], 1)
+        self.assertEqual(flt(res_all_active["summary"]["total_yield_qty"]), 35.0)
+        self.assertTrue(res_all_active["can_cancel"])
+        self.assertIn(self.op1, res_all_active["filter_options"]["operations"])
+        self.assertIn(self.op2, res_all_active["filter_options"]["operations"])
+
+        row_conf1 = next(r for r in res_all_active["rows"] if r["name"] == conf1)
+        self.assertTrue(any(se["name"] == se_cons for se in row_conf1["stock_entries"]))
+
+        # Filter by search, operation, confirmed_by, and date range
+        res_filtered = get_confirmations_for_management(
+            status_filter="active",
+            search=conf1,
+            operation=self.op1,
+            confirmed_by="Administrator",
+            from_date=add_days(today_str, -1),
+            to_date=add_days(today_str, 1),
+            company=self.company,
+        )
+        self.assertEqual(len(res_filtered["rows"]), 1)
+        self.assertEqual(res_filtered["rows"][0]["name"], conf1)
+
+        # Role checks for can_cancel and bulk_cancel_production_confirmations
+        current_user = frappe.session.user
+        try:
+            frappe.set_user("test_mgmt_viewer@example.com")
+            with patch("frappe.has_permission", return_value=True):
+                with patch("frappe.get_roles", return_value=["Manufacturing Manager"]):
+                    res_mgr = get_confirmations_for_management(
+                        work_order=self.wo_name, company=self.company
+                    )
+                    self.assertTrue(res_mgr["can_cancel"])
+
+                with patch("frappe.get_roles", return_value=["Manufacturing User"]):
+                    res_usr = get_confirmations_for_management(
+                        work_order=self.wo_name, company=self.company
+                    )
+                    self.assertFalse(res_usr["can_cancel"])
+                    with self.assertRaises(frappe.PermissionError):
+                        bulk_cancel_production_confirmations([conf1])
+
+                with patch(
+                    "frappe.get_roles", return_value=["KTA Çalışma Kartı Yöneticisi"]
+                ):
+                    res_ck = get_confirmations_for_management(
+                        work_order=self.wo_name, company=self.company
+                    )
+                    self.assertFalse(res_ck["can_cancel"])
+                    with self.assertRaises(frappe.PermissionError):
+                        bulk_cancel_production_confirmations([conf1])
+        finally:
+            frappe.set_user(current_user)
+
+        # Bulk cancel via API endpoint as Administrator
+        bulk_res = bulk_cancel_production_confirmations([conf1])
+        self.assertTrue(bulk_res["success"])
+        self.assertEqual(bulk_res["cancelled_count"], 1)
+
+        # Verify counts and cancelled tab after cancellation
+        res_cancelled = get_confirmations_for_management(
+            status_filter="cancelled",
+            work_order=self.wo_name,
+            company=self.company,
+        )
+        self.assertEqual(res_cancelled["counts"]["active"], 1)
+        self.assertEqual(res_cancelled["counts"]["cancelled"], 1)
+        self.assertEqual(res_cancelled["counts"]["all"], 2)
+        self.assertEqual(res_cancelled["summary"]["active_confirmations"], 0)
+        self.assertEqual(flt(res_cancelled["summary"]["total_yield_qty"]), 20.0)
+        self.assertEqual([r["name"] for r in res_cancelled["rows"]], [conf1])
