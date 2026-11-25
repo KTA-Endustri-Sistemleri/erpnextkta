@@ -513,3 +513,42 @@ Planlanan / Üretilen,Planlanan / Üretilen
 Geçersiz eksik malzeme filtresi: {0},Geçersiz eksik malzeme filtresi: {0}
 Oluşturma,Oluşturma
 Oluşturma Tarihi,Oluşturma Tarihi
+Teyitler,Teyitler
+Çoklu İş Emri Teyit İzleme ve Toplu Ters Kayıt Yönetimi,Çoklu İş Emri Teyit İzleme ve Toplu Ters Kayıt Yönetimi
+"İş Emri, Ürün veya Teyit No Ara…","İş Emri, Ürün veya Teyit No Ara…"
+Tüm Kullanıcılar,Tüm Kullanıcılar
+Aktif Teyit,Aktif Teyit
+Bu ekranda salt-okunur yetkiye sahipsiniz. İptal işlemi için Manufacturing Manager yetkisi gerekir.,Bu ekranda salt-okunur yetkiye sahipsiniz. İptal işlemi için Manufacturing Manager yetkisi gerekir.
+{0} Teyit Seçildi ({1} İş Emri),{0} Teyit Seçildi ({1} İş Emri)
+Seçilenleri İptal Et,Seçilenleri İptal Et
+Seçili filtrelere uygun üretim teyidi bulunmuyor.,Seçili filtrelere uygun üretim teyidi bulunmuyor.
+Tüm Aktif Teyitleri Seç,Tüm Aktif Teyitleri Seç
+İş Emri / Ürün,İş Emri / Ürün
+Bu İş Emrinin Tümünü Seç,Bu İş Emrinin Tümünü Seç
+Toplam {0} kayıttan {1} tanesi gösteriliyor.,Toplam {0} kayıttan {1} tanesi gösteriliyor.
+Daha Fazla Göster,Daha Fazla Göster
+Teyit listesi alınamadı.,Teyit listesi alınamadı.
+Toplu iptal işlemi sırasında bir hata oluştu.,Toplu iptal işlemi sırasında bir hata oluştu.
+Toplu Teyit İptali Onayı,Toplu Teyit İptali Onayı
+Toplu Teyit İptal Sonucu,Toplu Teyit İptal Sonucu
+Seçili teyitler için ters kayıt (storno) işlemi başlatılacak.,Seçili teyitler için ters kayıt (storno) işlemi başlatılacak.
+İşlem tamamlandı. Detaylar aşağıda listelenmiştir.,İşlem tamamlandı. Detaylar aşağıda listelenmiştir.
+Seçili Teyit,Seçili Teyit
+Seçilen üretim teyitleri ve ilişkili stok hareketleri ters kayıt (storno) ile kalıcı olarak iptal edilecektir. Bu işlem geri alınamaz.,Seçilen üretim teyitleri ve ilişkili stok hareketleri ters kayıt (storno) ile kalıcı olarak iptal edilecektir. Bu işlem geri alınamaz.
++{0} Kayıt Daha,+{0} Kayıt Daha
+Zincirleme İptal,Zincirleme İptal
+Hatalı,Hatalı
+İptal Ediliyor…,İptal Ediliyor…
+"Evet, Toplu İptal Et","Evet, Toplu İptal Et"
+İptal Edilen Stok Fişleri: {0},İptal Edilen Stok Fişleri: {0}
+Tetikleyen Teyit: {0},Tetikleyen Teyit: {0}
+Bilinmeyen Hata,Bilinmeyen Hata
+İptal edilecek en az bir üretim teyidi seçilmelidir.,İptal edilecek en az bir üretim teyidi seçilmelidir.
+Üretim teyidi iptal edilemedi.,Üretim teyidi iptal edilemedi.
+{0} İş Emri · {1} Teyit,{0} İş Emri · {1} Teyit
+Bu İş Emrinin Aktif Teyitlerini Seç,Bu İş Emrinin Aktif Teyitlerini Seç
+Son Teyit,Son Teyit
+{0} Teyit,{0} Teyit
+{0} İptal,{0} İptal
+{0} Seçili,{0} Seçili
+Tümünü İptal Et,Tümünü İptal Et

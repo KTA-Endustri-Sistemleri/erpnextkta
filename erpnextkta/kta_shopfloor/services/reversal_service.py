@@ -9,9 +9,17 @@ from erpnextkta.kta_shopfloor.services.confirmation_service import ConfirmationS
 
 ALLOWED_REVERSAL_ROLES = {
     "System Manager",
-    "KTA Çalışma Kartı Yöneticisi",
     "Manufacturing Manager",
 }
+
+
+def can_cancel_confirmations(user: str | None = None) -> bool:
+    """Return True when the given or current user is allowed to cancel confirmations."""
+    target_user = user or frappe.session.user or "Administrator"
+    if target_user == "Administrator":
+        return True
+    user_roles = set(frappe.get_roles(target_user))
+    return bool(user_roles & ALLOWED_REVERSAL_ROLES)
 
 
 class ReversalService:
@@ -20,6 +28,11 @@ class ReversalService:
     Cancels linked Stock Entries, rolls back Job Card and Work Order quantities,
     and marks KTA Production Confirmation document as cancelled.
     """
+
+    @staticmethod
+    def can_cancel_confirmations(user: str | None = None) -> bool:
+        """Check whether the given or current user has reversal permission."""
+        return can_cancel_confirmations(user=user)
 
     @staticmethod
     def cancel_confirmation(confirmation_name: str, user: str | None = None) -> dict:
@@ -117,6 +130,88 @@ class ReversalService:
             frappe.db.rollback(save_point=savepoint_name)
             raise
 
+    @staticmethod
+    def bulk_cancel_confirmations(
+        confirmation_names: list[str] | str, user: str | None = None
+    ) -> dict:
+        """Cancel multiple production confirmations in reverse-chronological order."""
+        _check_permission(user)
+        unique_names = _normalize_confirmation_names(confirmation_names)
+
+        rows = frappe.get_all(
+            "KTA Production Confirmation",
+            filters={"name": ["in", unique_names]},
+            fields=[
+                "name",
+                "work_order",
+                "operation",
+                "yield_qty",
+                "docstatus",
+                "creation",
+            ],
+        )
+        meta_map = {row.name: row for row in rows}
+        missing_names = [name for name in unique_names if name not in meta_map]
+        sorted_existing = sorted(
+            rows,
+            key=lambda r: (r.creation, r.name),
+            reverse=True,
+        )
+
+        cascade_parent_map: dict[str, str] = {}
+        cancelled: list[dict] = []
+        cascade_cancelled: list[dict] = []
+        failed: list[dict] = [
+            {
+                "confirmation": name,
+                "work_order": None,
+                "operation": None,
+                "yield_qty": 0.0,
+                "error": _("Üretim teyidi bulunamadı: {0}").format(name),
+            }
+            for name in missing_names
+        ]
+        affected_work_orders: set[str] = set()
+
+        for meta in sorted_existing:
+            conf_name = meta.name
+            if conf_name in cascade_parent_map:
+                if meta.work_order:
+                    affected_work_orders.add(meta.work_order)
+                cascade_cancelled.append(
+                    {
+                        "confirmation": conf_name,
+                        "work_order": meta.work_order,
+                        "operation": meta.operation,
+                        "yield_qty": flt(meta.yield_qty or 0),
+                        "cancelled_by": cascade_parent_map[conf_name],
+                    }
+                )
+                continue
+
+            _process_single_bulk_cancellation(
+                meta=meta,
+                user=user,
+                cascade_parent_map=cascade_parent_map,
+                cancelled=cancelled,
+                failed=failed,
+                affected_work_orders=affected_work_orders,
+            )
+
+        return {
+            "success": len(failed) == 0,
+            "partial": len(failed) > 0
+            and (len(cancelled) > 0 or len(cascade_cancelled) > 0),
+            "total_requested": len(unique_names),
+            "cancelled_count": len(cancelled),
+            "cascade_cancelled_count": len(cascade_cancelled),
+            "failed_count": len(failed),
+            "cancelled": cancelled,
+            "cascade_cancelled": cascade_cancelled,
+            "failed": failed,
+            "affected_work_orders": sorted(affected_work_orders),
+        }
+
 
 @frappe.whitelist()
 def cancel_confirmation(confirmation_name: str, user: str | None = None) -> dict:
@@ -126,11 +221,94 @@ def cancel_confirmation(confirmation_name: str, user: str | None = None) -> dict
     )
 
 
-def _check_permission(user: str | None = None) -> None:
-    target_user = user or frappe.session.user or "Administrator"
-    user_roles = set(frappe.get_roles(target_user))
+@frappe.whitelist()
+def bulk_cancel_confirmations(
+    confirmation_names: list[str] | str, user: str | None = None
+) -> dict:
+    """Whitelisted endpoint and function alias for bulk CORS confirmation cancellation."""
+    return ReversalService.bulk_cancel_confirmations(
+        confirmation_names=confirmation_names, user=user
+    )
 
-    if not (target_user == "Administrator" or (user_roles & ALLOWED_REVERSAL_ROLES)):
+
+def _normalize_confirmation_names(confirmation_names: list[str] | str) -> list[str]:
+    """Parse, strip, and deduplicate confirmation names while preserving input order."""
+    parsed = confirmation_names
+    if isinstance(parsed, str):
+        try:
+            parsed = frappe.parse_json(parsed)
+        except (ValueError, TypeError):
+            parsed = None
+
+    if not isinstance(parsed, (list, tuple)):
+        frappe.throw(
+            _("İptal edilecek en az bir üretim teyidi seçilmelidir."),
+            frappe.ValidationError,
+        )
+
+    unique_names: list[str] = []
+    seen: set[str] = set()
+    for raw in parsed:
+        name = str(raw).strip() if raw is not None else ""
+        if name and name not in seen:
+            seen.add(name)
+            unique_names.append(name)
+
+    if not unique_names:
+        frappe.throw(
+            _("İptal edilecek en az bir üretim teyidi seçilmelidir."),
+            frappe.ValidationError,
+        )
+
+    return unique_names
+
+
+def _process_single_bulk_cancellation(
+    meta,
+    user: str | None,
+    cascade_parent_map: dict[str, str],
+    cancelled: list[dict],
+    failed: list[dict],
+    affected_work_orders: set[str],
+) -> None:
+    """Execute single confirmation reversal and record outcome without aborting batch."""
+    conf_name = meta.name
+    try:
+        res = ReversalService.cancel_confirmation(conf_name, user=user)
+    except Exception as exc:  # noqa: BLE001
+        frappe.clear_messages()
+        err_msg = str(exc).strip() or _("Üretim teyidi iptal edilemedi.")
+        failed.append(
+            {
+                "confirmation": conf_name,
+                "work_order": meta.work_order,
+                "operation": meta.operation,
+                "yield_qty": flt(meta.yield_qty or 0),
+                "error": err_msg,
+            }
+        )
+        return
+
+    cancelled_catchups = res.get("cancelled_catchup_confirmations") or []
+    for c_name in cancelled_catchups:
+        cascade_parent_map.setdefault(c_name, conf_name)
+    if meta.work_order:
+        affected_work_orders.add(meta.work_order)
+
+    cancelled.append(
+        {
+            "confirmation": conf_name,
+            "work_order": meta.work_order,
+            "operation": meta.operation,
+            "yield_qty": flt(meta.yield_qty or 0),
+            "cancelled_stock_entries": res.get("cancelled_stock_entries") or [],
+            "cancelled_catchup_confirmations": cancelled_catchups,
+        }
+    )
+
+
+def _check_permission(user: str | None = None) -> None:
+    if not can_cancel_confirmations(user=user):
         frappe.throw(
             _("Üretim teyidini iptal etme yetkiniz bulunmamaktadır."),
             frappe.PermissionError,

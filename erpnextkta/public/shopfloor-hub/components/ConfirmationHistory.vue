@@ -8,9 +8,11 @@ const props = withDefaults(
   defineProps<{
     workOrder: string;
     refreshKey?: number;
+    canCancel?: boolean;
   }>(),
   {
     refreshKey: 0,
+    canCancel: true,
   }
 );
 
@@ -180,7 +182,7 @@ onMounted(() => fetchHistory());
             <th>{{ __('Kullanıcı') }}</th>
             <th>{{ __('İlişkili Stok Fişleri') }}</th>
             <th>{{ __('Durum') }}</th>
-            <th class="text-center">{{ __('İşlem') }}</th>
+            <th v-if="canCancel !== false" class="text-center">{{ __('İşlem') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -251,7 +253,7 @@ onMounted(() => fetchHistory());
             </td>
 
             <!-- İptal Aksiyonu -->
-            <td class="text-center">
+            <td v-if="canCancel !== false" class="text-center">
               <button
                 v-if="c.docstatus !== 2"
                 type="button"

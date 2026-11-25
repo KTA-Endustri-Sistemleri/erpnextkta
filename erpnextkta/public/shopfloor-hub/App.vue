@@ -14,6 +14,7 @@ import WorkspaceHeader from './components/WorkspaceHeader.vue';
 import ShopfloorAlerts from './components/ShopfloorAlerts.vue';
 import ReportsSidebar from './components/ReportsSidebar.vue';
 import ReportsWorkspace from './components/ReportsWorkspace.vue';
+import ConfirmationsManagementPanel from './components/ConfirmationsManagementPanel.vue';
 import { REPORT_CATALOG } from './reports/registry';
 import type {
   WorkOrderContext,
@@ -111,7 +112,7 @@ function clearSelection() {
 
 async function handleViewChange(view: WorkOrderViewMode) {
   activeView.value = view;
-  if (view === 'reports') return;
+  if (view === 'reports' || view === 'confirmations') return;
   if (
     (view === 'operations' || view === 'work_cards') &&
     context.value?.status === 'Draft'
@@ -125,6 +126,13 @@ async function handleViewChange(view: WorkOrderViewMode) {
 async function handleOpenWorkOrderFromReport(workOrderName: string, operationName?: string) {
   activeView.value = 'work_orders';
   await nextTick();
+  await loadWorkOrder(workOrderName, operationName);
+}
+
+async function handleOpenWorkOrderFromConfirmations(workOrderName: string, operationName?: string) {
+  activeView.value = 'operations';
+  await nextTick();
+  await sidebarRef.value?.fetchWorkOrders();
   await loadWorkOrder(workOrderName, operationName);
 }
 
@@ -296,7 +304,7 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
         @select-report="activeReportId = $event"
       />
       <WorkOrderSidebar
-        v-else
+        v-else-if="activeView !== 'confirmations'"
         ref="sidebarRef"
         :active-view="activeView"
         :current-work-order="selectedWorkOrder || context?.work_order"
@@ -310,6 +318,8 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
             {{
               activeView === 'reports'
                 ? __('Raporlar')
+                : activeView === 'confirmations'
+                ? __('Teyitler')
                 : activeView === 'work_cards'
                 ? __('Çalışma Kartları')
                 : __('Shopfloor Hub')
@@ -319,6 +329,8 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
             {{
               activeView === 'reports'
                 ? __('Üretim Teyitleri ve Saha Analiz Raporları')
+                : activeView === 'confirmations'
+                ? __('Çoklu İş Emri Teyit İzleme ve Toplu Ters Kayıt Yönetimi')
                 : activeView === 'work_cards'
                 ? __('Alt Operasyon Analitiği ve Tüketim Mutabakatı')
                 : __('Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi')
@@ -326,7 +338,7 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
           </template>
           <template #actions>
             <button
-              v-if="activeView !== 'reports' && (selectedWorkOrder || context)"
+              v-if="activeView !== 'reports' && activeView !== 'confirmations' && (selectedWorkOrder || context)"
               type="button"
               class="btn-clear-selection"
               @click="clearSelection"
@@ -350,6 +362,11 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
             @select-work-order="handleOpenWorkOrderFromReport"
           />
         </template>
+
+        <ConfirmationsManagementPanel
+          v-else-if="activeView === 'confirmations'"
+          @select-work-order="handleOpenWorkOrderFromConfirmations"
+        />
 
         <template v-else-if="activeView === 'work_orders'">
           <WorkOrderReleasePanel
@@ -407,6 +424,7 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
             <ConfirmationHistory
               :work-order="context.work_order"
               :refresh-key="historyRefreshKey"
+              :can-cancel="context.can_cancel_confirmations !== false"
               @confirmation-cancelled="refreshCurrentContext"
             />
           </div>

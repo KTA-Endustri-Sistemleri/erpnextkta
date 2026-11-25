@@ -183,6 +183,9 @@ def get_shopfloor_hub_context(barcode: str | None = None) -> dict:
         "selected_operation": selected_operation,
         "selected_job_card": selected_job_card,
         "operations": operations,
+        "can_cancel_confirmations": ReversalService.can_cancel_confirmations(
+            frappe.session.user
+        ),
     }
 
 
@@ -219,6 +222,15 @@ def cancel_co11n_confirmation(confirmation_name: str) -> dict:
     return cancel_production_confirmation(confirmation_name=confirmation_name)
 
 
+@frappe.whitelist(methods=["POST"])
+def bulk_cancel_production_confirmations(confirmation_names: list[str] | str) -> dict:
+    """Bulk cancel shopfloor production confirmations using Shopfloor CORS pattern."""
+    return ReversalService.bulk_cancel_confirmations(
+        confirmation_names=confirmation_names,
+        user=frappe.session.user,
+    )
+
+
 @frappe.whitelist()
 def check_confirmation_materials(
     work_order: str,
@@ -245,6 +257,28 @@ def stage_confirmation_materials(
         work_order=work_order,
         transfers=transfers,
     )
+
+
+def _resolve_target_company(company: str | None = None) -> str | None:
+    """Resolve target company from explicit value, user defaults, or active companies."""
+    target_company = company
+    if not target_company:
+        target_company = (
+            frappe.defaults.get_user_default("Company")
+            or frappe.defaults.get_user_default("company")
+            or frappe.db.get_single_value("Global Defaults", "default_company")
+        )
+        if not frappe.flags.in_test and (
+            not target_company or str(target_company).startswith("_Test")
+        ):
+            real_company = frappe.db.get_value(
+                "Company",
+                {"name": ["not like", "_Test%"], "is_group": 0},
+                "name",
+            )
+            if real_company:
+                target_company = real_company
+    return target_company
 
 
 @frappe.whitelist()
@@ -276,23 +310,7 @@ def get_active_work_orders(
     """
     filters: dict[str, object] = {}
 
-    target_company = company
-    if not target_company:
-        target_company = (
-            frappe.defaults.get_user_default("Company")
-            or frappe.defaults.get_user_default("company")
-            or frappe.db.get_single_value("Global Defaults", "default_company")
-        )
-        if not frappe.flags.in_test and (
-            not target_company or str(target_company).startswith("_Test")
-        ):
-            real_company = frappe.db.get_value(
-                "Company",
-                {"name": ["not like", "_Test%"], "is_group": 0},
-                "name",
-            )
-            if real_company:
-                target_company = real_company
+    target_company = _resolve_target_company(company)
 
     if target_company:
         filters["company"] = target_company
@@ -496,6 +514,105 @@ def release_work_order(work_order: str, allow_shortage: int = 0) -> dict:
     return release_work_order_service(work_order, allow_shortage=cint(allow_shortage))
 
 
+def _format_stock_entry_ref(name: str, purpose: str | None) -> dict:
+    """Format a Stock Entry reference dict for confirmation listings."""
+    is_consumption = purpose == "Material Consumption for Manufacture"
+    return {
+        "name": name,
+        "purpose": purpose,
+        "type": "consumption" if is_consumption else "manufacture",
+        "label": _("Tüketim") if is_consumption else _("Üretim"),
+    }
+
+
+def _attach_stock_entries_to_confirmations(
+    confirmations: list[dict], work_orders: list[str] | None = None
+) -> list[dict]:
+    """Attach linked consumption and manufacture Stock Entries to confirmation dicts."""
+    if not confirmations:
+        return confirmations
+
+    target_wos = (
+        list(dict.fromkeys(wo for wo in work_orders if wo))
+        if work_orders is not None
+        else list(
+            dict.fromkeys(
+                conf.get("work_order")
+                for conf in confirmations
+                if conf.get("work_order")
+            )
+        )
+    )
+
+    se_list = (
+        frappe.get_all(
+            "Stock Entry",
+            filters={"work_order": ["in", target_wos]},
+            fields=["name", "work_order", "purpose", "remarks"],
+            order_by="creation asc",
+        )
+        if target_wos
+        else []
+    )
+
+    se_by_wo: dict[str, list[dict]] = {}
+    known_se_names: set[str] = set()
+    for se in se_list:
+        known_se_names.add(se["name"])
+        se_by_wo.setdefault(se.get("work_order") or "", []).append(se)
+
+    missing_linked = list(
+        dict.fromkeys(
+            conf["stock_entry"]
+            for conf in confirmations
+            if conf.get("stock_entry") and conf["stock_entry"] not in known_se_names
+        )
+    )
+    extra_se_map: dict[str, dict] = {}
+    if missing_linked:
+        for se_doc in frappe.get_all(
+            "Stock Entry",
+            filters={"name": ["in", missing_linked]},
+            fields=["name", "purpose"],
+        ):
+            extra_se_map[se_doc["name"]] = se_doc
+
+    for conf in confirmations:
+        conf_name = conf["name"]
+        linked_se = conf.get("stock_entry")
+        wo_name = conf.get("work_order")
+        candidates = (
+            se_by_wo.get(wo_name, [])
+            if wo_name
+            else (se_by_wo.get(target_wos[0], []) if len(target_wos) == 1 else se_list)
+        )
+
+        matched_entries: list[dict] = []
+        seen_se_names: set[str] = set()
+        for se in candidates:
+            remarks = se.get("remarks") or ""
+            is_match = (conf_name in remarks) or (
+                bool(linked_se) and se["name"] == linked_se
+            )
+            if is_match and se["name"] not in seen_se_names:
+                seen_se_names.add(se["name"])
+                matched_entries.append(
+                    _format_stock_entry_ref(se["name"], se.get("purpose"))
+                )
+
+        if linked_se and linked_se not in seen_se_names and linked_se in extra_se_map:
+            se_doc = extra_se_map[linked_se]
+            seen_se_names.add(se_doc["name"])
+            matched_entries.append(
+                _format_stock_entry_ref(se_doc["name"], se_doc.get("purpose"))
+            )
+
+        conf["yield_qty"] = flt(conf.get("yield_qty") or 0)
+        conf["stock_entries"] = matched_entries
+
+    return confirmations
+
+
 @frappe.whitelist()
 def get_production_confirmations(work_order: str) -> list[dict]:
     """Retrieve production confirmations (KTA Production Confirmation) for a given Work Order,
@@ -510,6 +627,7 @@ def get_production_confirmations(work_order: str) -> list[dict]:
         filters={"work_order": work_order},
         fields=[
             "name",
+            "work_order",
             "operation",
             "yield_qty",
             "posting_date",
@@ -526,60 +644,9 @@ def get_production_confirmations(work_order: str) -> list[dict]:
     if not confirmations:
         return []
 
-    # Pre-fetch all Stock Entries related to this Work Order
-    se_list = frappe.get_all(
-        "Stock Entry",
-        filters={"work_order": work_order},
-        fields=["name", "purpose", "remarks"],
-        order_by="creation asc",
+    return _attach_stock_entries_to_confirmations(
+        confirmations, work_orders=[work_order]
     )
-
-    for conf in confirmations:
-        conf_name = conf["name"]
-        linked_se = conf.get("stock_entry")
-
-        matched_entries = []
-        seen_se_names = set()
-
-        for se in se_list:
-            remarks = se.get("remarks") or ""
-            is_match = (conf_name in remarks) or (
-                bool(linked_se) and se["name"] == linked_se
-            )
-            if is_match and se["name"] not in seen_se_names:
-                seen_se_names.add(se["name"])
-                purpose = se.get("purpose")
-                is_consumption = purpose == "Material Consumption for Manufacture"
-                matched_entries.append(
-                    {
-                        "name": se["name"],
-                        "purpose": purpose,
-                        "type": "consumption" if is_consumption else "manufacture",
-                        "label": _("Tüketim") if is_consumption else _("Üretim"),
-                    }
-                )
-
-        if linked_se and linked_se not in seen_se_names:
-            se_doc = frappe.db.get_value(
-                "Stock Entry", linked_se, ["name", "purpose"], as_dict=True
-            )
-            if se_doc:
-                seen_se_names.add(se_doc.name)
-                purpose = se_doc.purpose
-                is_consumption = purpose == "Material Consumption for Manufacture"
-                matched_entries.append(
-                    {
-                        "name": se_doc.name,
-                        "purpose": purpose,
-                        "type": "consumption" if is_consumption else "manufacture",
-                        "label": _("Tüketim") if is_consumption else _("Üretim"),
-                    }
-                )
-
-        conf["yield_qty"] = flt(conf.get("yield_qty") or 0)
-        conf["stock_entries"] = matched_entries
-
-    return confirmations
 
 
 @frappe.whitelist()
@@ -670,3 +737,271 @@ def get_material_shortage_report(
         search=search,
         company=company,
     )
+
+
+_MANAGEMENT_STATUS_FILTERS = ("active", "cancelled", "all")
+
+
+def _build_management_base_conditions(
+    company: str | None = None,
+) -> tuple[list[str], list]:
+    """Build company and submitted/cancelled base SQL conditions for confirmation queries."""
+    conditions = ["conf.docstatus IN (1, 2)"]
+    params: list = []
+
+    target_company = _resolve_target_company(company)
+    if target_company:
+        conditions.append("wo.company = %s")
+        params.append(target_company)
+    else:
+        active_companies = frappe.get_all(
+            "Company", filters={"is_group": 0}, pluck="name"
+        )
+        if active_companies:
+            placeholders = ", ".join(["%s"] * len(active_companies))
+            conditions.append(f"wo.company IN ({placeholders})")
+            params.extend(active_companies)
+
+    return conditions, params
+
+
+def _append_management_non_status_filters(
+    conditions: list[str],
+    params: list,
+    search: str | None = None,
+    operation: str | None = None,
+    confirmed_by: str | None = None,
+    work_order: str | None = None,
+    from_date: str | None = None,
+    to_date: str | None = None,
+) -> None:
+    """Append optional non-status SQL filter clauses and bound parameters."""
+    if search and str(search).strip():
+        term = f"%{str(search).strip()}%"
+        conditions.append(
+            "(conf.name LIKE %s OR conf.work_order LIKE %s "
+            "OR wo.production_item LIKE %s OR wo.item_name LIKE %s)"
+        )
+        params.extend([term, term, term, term])
+
+    if operation and str(operation).strip():
+        conditions.append("conf.operation = %s")
+        params.append(str(operation).strip())
+
+    if confirmed_by and str(confirmed_by).strip():
+        conditions.append("conf.confirmed_by = %s")
+        params.append(str(confirmed_by).strip())
+
+    if work_order and str(work_order).strip():
+        conditions.append("conf.work_order = %s")
+        params.append(str(work_order).strip())
+
+    if from_date and str(from_date).strip():
+        conditions.append("conf.posting_date >= %s")
+        params.append(str(from_date).strip())
+
+    if to_date and str(to_date).strip():
+        conditions.append("conf.posting_date <= %s")
+        params.append(str(to_date).strip())
+
+
+def _fetch_management_counts(where_sql: str, params: list) -> dict:
+    """Fetch active, cancelled, and all confirmation counts for non-status filters."""
+    row = frappe.db.sql(
+        f"""
+        SELECT
+            SUM(CASE WHEN conf.docstatus = 1 THEN 1 ELSE 0 END) AS active_count,
+            SUM(CASE WHEN conf.docstatus = 2 THEN 1 ELSE 0 END) AS cancelled_count,
+            COUNT(*) AS all_count
+        FROM `tabKTA Production Confirmation` conf
+        INNER JOIN `tabWork Order` wo ON wo.name = conf.work_order
+        WHERE {where_sql}
+        """,
+        tuple(params),
+        as_dict=True,
+    )
+    agg = row[0] if row else {}
+    return {
+        "active": cint(agg.get("active_count") or 0),
+        "cancelled": cint(agg.get("cancelled_count") or 0),
+        "all": cint(agg.get("all_count") or 0),
+    }
+
+
+def _fetch_management_summary(where_sql: str, params: list) -> dict:
+    """Fetch aggregate summary metrics over all matching rows for current status filter."""
+    row = frappe.db.sql(
+        f"""
+        SELECT
+            SUM(CASE WHEN conf.docstatus = 1 THEN 1 ELSE 0 END) AS active_confirmations,
+            COUNT(DISTINCT conf.work_order) AS unique_work_orders,
+            COALESCE(SUM(conf.yield_qty), 0) AS total_yield_qty
+        FROM `tabKTA Production Confirmation` conf
+        INNER JOIN `tabWork Order` wo ON wo.name = conf.work_order
+        WHERE {where_sql}
+        """,
+        tuple(params),
+        as_dict=True,
+    )
+    agg = row[0] if row else {}
+    return {
+        "active_confirmations": cint(agg.get("active_confirmations") or 0),
+        "unique_work_orders": cint(agg.get("unique_work_orders") or 0),
+        "total_yield_qty": flt(agg.get("total_yield_qty") or 0),
+    }
+
+
+def _fetch_management_filter_options(base_where_sql: str, base_params: list) -> dict:
+    """Fetch distinct operation and user filter options within company scope."""
+    op_rows = frappe.db.sql(
+        f"""
+        SELECT DISTINCT conf.operation
+        FROM `tabKTA Production Confirmation` conf
+        INNER JOIN `tabWork Order` wo ON wo.name = conf.work_order
+        WHERE {base_where_sql} AND COALESCE(conf.operation, '') != ''
+        """,
+        tuple(base_params),
+        as_dict=True,
+    )
+    operations = sorted(r["operation"] for r in op_rows if r.get("operation"))
+
+    user_rows = frappe.db.sql(
+        f"""
+        SELECT DISTINCT
+            conf.confirmed_by,
+            COALESCE(NULLIF(u.full_name, ''), conf.confirmed_by) AS full_name
+        FROM `tabKTA Production Confirmation` conf
+        INNER JOIN `tabWork Order` wo ON wo.name = conf.work_order
+        LEFT JOIN `tabUser` u ON u.name = conf.confirmed_by
+        WHERE {base_where_sql} AND COALESCE(conf.confirmed_by, '') != ''
+        """,
+        tuple(base_params),
+        as_dict=True,
+    )
+    users = sorted(
+        [
+            {
+                "value": r["confirmed_by"],
+                "label": r.get("full_name") or r["confirmed_by"],
+            }
+            for r in user_rows
+            if r.get("confirmed_by")
+        ],
+        key=lambda item: (item["label"] or "").lower(),
+    )
+    return {"operations": operations, "users": users}
+
+
+def _fetch_management_rows(where_sql: str, params: list, limit: int) -> list[dict]:
+    """Fetch paginated confirmation management rows and attach linked Stock Entries."""
+    rows = frappe.db.sql(
+        f"""
+        SELECT
+            conf.name,
+            conf.work_order,
+            wo.production_item,
+            wo.item_name,
+            wo.stock_uom,
+            wo.status AS wo_status,
+            conf.operation,
+            conf.job_card,
+            conf.yield_qty,
+            conf.posting_date,
+            conf.posting_time,
+            conf.confirmed_by,
+            COALESCE(NULLIF(u.full_name, ''), conf.confirmed_by) AS confirmed_by_name,
+            conf.is_final_confirmation,
+            conf.docstatus,
+            conf.milestone_confirmation,
+            conf.stock_entry,
+            conf.creation
+        FROM `tabKTA Production Confirmation` conf
+        INNER JOIN `tabWork Order` wo ON wo.name = conf.work_order
+        LEFT JOIN `tabUser` u ON u.name = conf.confirmed_by
+        WHERE {where_sql}
+        ORDER BY conf.creation DESC, conf.name DESC
+        LIMIT %s
+        """,
+        (*params, limit),
+        as_dict=True,
+    )
+
+    for row in rows:
+        row["yield_qty"] = flt(row.get("yield_qty") or 0)
+        row["posting_date"] = (
+            str(row.get("posting_date")) if row.get("posting_date") else ""
+        )
+        row["posting_time"] = (
+            str(row.get("posting_time")) if row.get("posting_time") else ""
+        )
+        row["confirmed_by_name"] = (
+            row.get("confirmed_by_name") or row.get("confirmed_by") or ""
+        )
+        row["is_final_confirmation"] = cint(row.get("is_final_confirmation") or 0)
+        row["docstatus"] = cint(row.get("docstatus") or 0)
+        row["creation"] = str(row.get("creation")) if row.get("creation") else ""
+
+    return _attach_stock_entries_to_confirmations(rows)
+
+
+@frappe.whitelist()
+def get_confirmations_for_management(
+    status_filter: str = "active",
+    search: str | None = None,
+    operation: str | None = None,
+    confirmed_by: str | None = None,
+    work_order: str | None = None,
+    from_date: str | None = None,
+    to_date: str | None = None,
+    company: str | None = None,
+    limit: int = 200,
+) -> dict:
+    """Retrieve production confirmations for Shopfloor Hub management & bulk reversal."""
+    frappe.has_permission("KTA Production Confirmation", "read", throw=True)
+    frappe.has_permission("Work Order", "read", throw=True)
+
+    if status_filter not in _MANAGEMENT_STATUS_FILTERS:
+        frappe.throw(
+            _("Geçersiz durum filtresi: {0}").format(status_filter),
+            frappe.ValidationError,
+        )
+
+    base_conditions, base_params = _build_management_base_conditions(company=company)
+    non_status_conditions = list(base_conditions)
+    non_status_params = list(base_params)
+    _append_management_non_status_filters(
+        non_status_conditions,
+        non_status_params,
+        search=search,
+        operation=operation,
+        confirmed_by=confirmed_by,
+        work_order=work_order,
+        from_date=from_date,
+        to_date=to_date,
+    )
+
+    non_status_where = " AND ".join(non_status_conditions)
+    counts = _fetch_management_counts(non_status_where, non_status_params)
+
+    full_conditions = list(non_status_conditions)
+    if status_filter == "active":
+        full_conditions.append("conf.docstatus = 1")
+    elif status_filter == "cancelled":
+        full_conditions.append("conf.docstatus = 2")
+    full_where = " AND ".join(full_conditions)
+
+    resolved_limit = max(1, min(cint(limit) or 200, 500))
+    rows = _fetch_management_rows(full_where, non_status_params, resolved_limit)
+    summary = _fetch_management_summary(full_where, non_status_params)
+    filter_options = _fetch_management_filter_options(
+        " AND ".join(base_conditions), base_params
+    )
+
+    return {
+        "rows": rows,
+        "counts": counts,
+        "total_count": counts[status_filter],
+        "summary": summary,
+        "filter_options": filter_options,
+        "can_cancel": ReversalService.can_cancel_confirmations(frappe.session.user),
+    }

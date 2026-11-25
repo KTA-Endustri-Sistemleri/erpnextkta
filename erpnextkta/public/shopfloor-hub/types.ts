@@ -1,7 +1,12 @@
 // Types for Shopfloor Hub Cockpit
 import type { Component } from "vue";
 
-export type WorkOrderViewMode = "work_orders" | "operations" | "work_cards" | "reports";
+export type WorkOrderViewMode =
+  | "work_orders"
+  | "operations"
+  | "confirmations"
+  | "work_cards"
+  | "reports";
 
 export interface LinkedStockEntry {
   name: string;
@@ -49,6 +54,7 @@ export interface WorkOrderContext {
   company?: string | null;
   selected_operation?: string | null;
   selected_job_card?: string | null;
+  can_cancel_confirmations?: boolean;
   operations: OperationInfo[];
 }
 
@@ -487,5 +493,114 @@ export interface MaterialShortageResponse {
   summary: MaterialShortageSummary;
   counts: MaterialShortageCounts;
   filter_options: MaterialShortageFilterOptions;
+}
+
+export type ConfirmationManagementStatusFilter = "active" | "cancelled" | "all";
+
+export interface ManagementConfirmationRow {
+  name: string;
+  work_order: string;
+  production_item: string;
+  item_name?: string | null;
+  stock_uom?: string | null;
+  wo_status?: string | null;
+  operation: string;
+  job_card?: string | null;
+  yield_qty: number;
+  posting_date: string;
+  posting_time?: string | null;
+  confirmed_by?: string | null;
+  confirmed_by_name?: string | null;
+  is_final_confirmation?: number | boolean;
+  docstatus: number;
+  milestone_confirmation?: string | null;
+  stock_entry?: string | null;
+  stock_entries?: LinkedStockEntry[];
+  creation?: string | null;
+}
+
+export interface ConfirmationWorkOrderGroup {
+  work_order: string;
+  production_item: string;
+  item_name: string;
+  stock_uom: string;
+  wo_status: string;
+  confirmations: ManagementConfirmationRow[];
+  active_count: number;
+  cancelled_count: number;
+  total_yield_qty: number;
+  last_confirmation_at: string;
+  last_posting_date: string;
+  last_posting_time: string;
+  last_confirmed_by: string;
+}
+
+export interface ConfirmationsManagementCounts {
+  active: number;
+  cancelled: number;
+  all: number;
+}
+
+export interface ConfirmationsManagementSummary {
+  active_confirmations: number;
+  unique_work_orders: number;
+  total_yield_qty: number;
+}
+
+export interface ConfirmationsUserOption {
+  value: string;
+  label: string;
+}
+
+export interface ConfirmationsManagementFilterOptions {
+  operations: string[];
+  users: ConfirmationsUserOption[];
+}
+
+export interface ConfirmationsManagementResponse {
+  rows: ManagementConfirmationRow[];
+  total_count: number;
+  counts: ConfirmationsManagementCounts;
+  summary: ConfirmationsManagementSummary;
+  filter_options: ConfirmationsManagementFilterOptions;
+  can_cancel: boolean;
+}
+
+export interface BulkCancelCancelledItem {
+  confirmation: string;
+  work_order: string | null;
+  operation: string | null;
+  yield_qty: number;
+  cancelled_stock_entries: string[];
+  cancelled_catchup_confirmations: string[];
+}
+
+export interface BulkCancelCascadeItem {
+  confirmation: string;
+  work_order: string | null;
+  operation: string | null;
+  yield_qty: number;
+  cancelled_by: string;
+}
+
+export interface BulkCancelFailedItem {
+  confirmation: string;
+  work_order: string | null;
+  operation: string | null;
+  yield_qty: number;
+  error: string;
+}
+
+export interface BulkCancelConfirmationsResponse {
+  success: boolean;
+  partial: boolean;
+  total_requested: number;
+  cancelled_count: number;
+  cascade_cancelled_count: number;
+  failed_count: number;
+  cancelled: BulkCancelCancelledItem[];
+  cascade_cancelled: BulkCancelCascadeItem[];
+  failed: BulkCancelFailedItem[];
+  affected_work_orders: string[];
 }
 

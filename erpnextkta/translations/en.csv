@@ -776,7 +776,6 @@ Krimp Ölçüm Protokol Belgesi,Crimping Measurement Protocol Document
 Krimp Protokol Belgesi,Crimping Protocol Document
 Enjeksiyon Ölçüm Protokol Belgesi,Injection Measurement Protocol Document
 Enjeksiyon Protokol Belgesi,Injection Protocol Document
-
 Kısmi Kabul Edildi,Partially Accepted
 <b>⚠️ Dikkat:</b> Bu kart <b>{0} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.,<b>⚠️ Warning:</b> This card has exceeded <b>{0} minutes</b>! Please finish if work is done.
 Alt Operasyon Kalite Onayları,Sub-Operation Quality Approvals
@@ -1354,3 +1353,42 @@ Planlanan / Üretilen,Planned / Produced
 Geçersiz eksik malzeme filtresi: {0},Invalid material shortage filter: {0}
 Oluşturma,Created
 Oluşturma Tarihi,Creation Date
+Teyitler,Confirmations
+Çoklu İş Emri Teyit İzleme ve Toplu Ters Kayıt Yönetimi,Multi-Work Order Confirmation Monitoring and Bulk Reversal Management
+"İş Emri, Ürün veya Teyit No Ara…","Search Work Order, Product or Confirmation No…"
+Tüm Kullanıcılar,All Users
+Aktif Teyit,Active Confirmations
+Bu ekranda salt-okunur yetkiye sahipsiniz. İptal işlemi için Manufacturing Manager yetkisi gerekir.,You have read-only access on this screen. Manufacturing Manager permission is required to cancel confirmations.
+{0} Teyit Seçildi ({1} İş Emri),{0} Confirmations Selected ({1} Work Orders)
+Seçilenleri İptal Et,Cancel Selected
+Seçili filtrelere uygun üretim teyidi bulunmuyor.,No production confirmations match the selected filters.
+Tüm Aktif Teyitleri Seç,Select All Active Confirmations
+İş Emri / Ürün,Work Order / Product
+Bu İş Emrinin Tümünü Seç,Select All for This Work Order
+Toplam {0} kayıttan {1} tanesi gösteriliyor.,Showing {1} of {0} total records.
+Daha Fazla Göster,Show More
+Teyit listesi alınamadı.,Failed to load confirmation list.
+Toplu iptal işlemi sırasında bir hata oluştu.,An error occurred during the bulk cancellation.
+Toplu Teyit İptali Onayı,Bulk Confirmation Cancellation Approval
+Toplu Teyit İptal Sonucu,Bulk Confirmation Cancellation Result
+Seçili teyitler için ters kayıt (storno) işlemi başlatılacak.,Reversal entries will be initiated for the selected confirmations.
+İşlem tamamlandı. Detaylar aşağıda listelenmiştir.,Operation completed. Details are listed below.
+Seçili Teyit,Selected Confirmations
+Seçilen üretim teyitleri ve ilişkili stok hareketleri ters kayıt (storno) ile kalıcı olarak iptal edilecektir. Bu işlem geri alınamaz.,The selected production confirmations and linked stock movements will be permanently cancelled via reversal entries. This action cannot be undone.
++{0} Kayıt Daha,+{0} More Records
+Zincirleme İptal,Cascade Cancelled
+Hatalı,Failed
+İptal Ediliyor…,Cancelling…
+"Evet, Toplu İptal Et","Yes, Bulk Cancel"
+İptal Edilen Stok Fişleri: {0},Cancelled Stock Entries: {0}
+Tetikleyen Teyit: {0},Triggered By Confirmation: {0}
+Bilinmeyen Hata,Unknown Error
+İptal edilecek en az bir üretim teyidi seçilmelidir.,At least one production confirmation must be selected for cancellation.
+Üretim teyidi iptal edilemedi.,Production confirmation could not be cancelled.
+{0} İş Emri · {1} Teyit,{0} Work Orders · {1} Confirmations
+Bu İş Emrinin Aktif Teyitlerini Seç,Select Active Confirmations for This Work Order
+Son Teyit,Last Confirmation
+{0} Teyit,{0} Confirmations
+{0} İptal,{0} Cancelled
+{0} Seçili,{0} Selected
+Tümünü İptal Et,Cancel All

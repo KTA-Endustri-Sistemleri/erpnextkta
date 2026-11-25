@@ -766,7 +766,6 @@ Krimp Ölçüm Protokol Belgesi,Crimp-Messprotokolldokument
 Krimp Protokol Belgesi,Crimp-Protokolldokument
 Enjeksiyon Ölçüm Protokol Belgesi,Spritzguss-Messprotokolldokument
 Enjeksiyon Protokol Belgesi,Spritzguss-Protokolldokument
-
 Kısmi Kabul Edildi,Teilweise akzeptiert
 <b>⚠️ Dikkat:</b> Bu kart <b>{0} dakikayı</b> aştı! Lütfen işlem bittiyse bitirin.,"<b>⚠️ Achtung:</b> Diese Karte hat <b>{0} Minuten</b> überschritten! Bitte beenden, falls die Arbeit abgeschlossen ist."
 Alt Operasyon Kalite Onayları,Qualitätsfreigaben für Untervorgänge
@@ -1343,3 +1342,42 @@ Planlanan / Üretilen,Geplant / Produziert
 Geçersiz eksik malzeme filtresi: {0},Ungültiger Materialfehlbestandsfilter: {0}
 Oluşturma,Erstellt
 Oluşturma Tarihi,Erstellungsdatum
+Teyitler,Rückmeldungen
+Çoklu İş Emri Teyit İzleme ve Toplu Ters Kayıt Yönetimi,Auftragsübergreifende Rückmeldeüberwachung und Massen-Storno-Verwaltung
+"İş Emri, Ürün veya Teyit No Ara…","Fertigungsauftrag, Produkt oder Rückmelde-Nr. suchen…"
+Tüm Kullanıcılar,Alle Benutzer
+Aktif Teyit,Aktive Rückmeldungen
+Bu ekranda salt-okunur yetkiye sahipsiniz. İptal işlemi için Manufacturing Manager yetkisi gerekir.,Sie haben auf diesem Bildschirm nur Lesezugriff. Für Stornierungen ist die Rolle Manufacturing Manager erforderlich.
+{0} Teyit Seçildi ({1} İş Emri),{0} Rückmeldungen ausgewählt ({1} Fertigungsaufträge)
+Seçilenleri İptal Et,Ausgewählte stornieren
+Seçili filtrelere uygun üretim teyidi bulunmuyor.,Keine Produktionsrückmeldungen entsprechen den ausgewählten Filtern.
+Tüm Aktif Teyitleri Seç,Alle aktiven Rückmeldungen auswählen
+İş Emri / Ürün,Fertigungsauftrag / Produkt
+Bu İş Emrinin Tümünü Seç,Alle für diesen Auftrag auswählen
+Toplam {0} kayıttan {1} tanesi gösteriliyor.,Es werden {1} von insgesamt {0} Datensätzen angezeigt.
+Daha Fazla Göster,Mehr anzeigen
+Teyit listesi alınamadı.,Rückmeldeliste konnte nicht geladen werden.
+Toplu iptal işlemi sırasında bir hata oluştu.,Bei der Massen-Stornierung ist ein Fehler aufgetreten.
+Toplu Teyit İptali Onayı,Bestätigung der Massen-Rückmeldestornierung
+Toplu Teyit İptal Sonucu,Ergebnis der Massen-Rückmeldestornierung
+Seçili teyitler için ters kayıt (storno) işlemi başlatılacak.,Für die ausgewählten Rückmeldungen wird ein Stornovorgang gestartet.
+İşlem tamamlandı. Detaylar aşağıda listelenmiştir.,Vorgang abgeschlossen. Die Details sind unten aufgeführt.
+Seçili Teyit,Ausgewählte Rückmeldungen
+Seçilen üretim teyitleri ve ilişkili stok hareketleri ters kayıt (storno) ile kalıcı olarak iptal edilecektir. Bu işlem geri alınamaz.,Die ausgewählten Produktionsrückmeldungen und verknüpften Lagerbewegungen werden durch Stornobuchungen dauerhaft storniert. Dieser Vorgang kann nicht rückgängig gemacht werden.
++{0} Kayıt Daha,+{0} weitere Datensätze
+Zincirleme İptal,Kaskaden-Storno
+Hatalı,Fehlgeschlagen
+İptal Ediliyor…,Wird storniert…
+"Evet, Toplu İptal Et","Ja, alle stornieren"
+İptal Edilen Stok Fişleri: {0},Stornierte Lagerbuchungen: {0}
+Tetikleyen Teyit: {0},Ausgelöst durch Rückmeldung: {0}
+Bilinmeyen Hata,Unbekannter Fehler
+İptal edilecek en az bir üretim teyidi seçilmelidir.,Mindestens eine Produktionsrückmeldung muss zur Stornierung ausgewählt werden.
+Üretim teyidi iptal edilemedi.,Die Produktionsrückmeldung konnte nicht storniert werden.
+{0} İş Emri · {1} Teyit,{0} Fertigungsaufträge · {1} Rückmeldungen
+Bu İş Emrinin Aktif Teyitlerini Seç,Aktive Rückmeldungen für diesen Auftrag auswählen
+Son Teyit,Letzte Rückmeldung
+{0} Teyit,{0} Rückmeldungen
+{0} İptal,{0} Storniert
+{0} Seçili,{0} Ausgewählt
+Tümünü İptal Et,Alle stornieren
