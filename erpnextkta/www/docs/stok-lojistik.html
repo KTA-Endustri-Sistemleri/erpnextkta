@@ -104,11 +104,26 @@
 
 <h2>🔄 7. Otomatik Malzeme Talebi (Re-Order) ve Görev Atama Sistemi</h2>
 
-<p>Sistemdeki MRP ve stok seviyesi (Re-Order) kurallarına göre otomatik olarak açılan Üretim (Manufacture) tipi Malzeme Taleplerinin yönetimi için özel bir iş akışı oluşturulmuştur:</p>
+<p>Sistemdeki MRP ve stok seviyesi (Re-Order) kurallarına göre otomatik olarak açılan Üretim (<code>Manufacture</code>) tipi Malzeme Taleplerinin hesaplanması, onaylanması ve temizlenmesi için KTA'ya özgü bir iş akışı ve hesaplama kuralı uygulanır:</p>
+
+<h3>Üretim (<code>Manufacture</code>) Tipi Otomatik Hesaplama Kuralı</h3>
 <ul>
-  <li><strong>Otomatik Taslak (Draft) Oluşumu:</strong> Sistem tarafından yaratılan üretim malzeme talepleri artık otomatik onaylanmak yerine "Taslak" (Draft) olarak bırakılır ve ilgili planlama personeline incelemesi için bir <strong>ToDo (Görev)</strong> atanır.</li>
-  <li><strong>Dinamik Görev Aktarımı:</strong> Personel talebi inceleyip "Onayla (Submit)" dediğinde, üzerindeki görev otomatik olarak kapanır ve üretim yöneticilerine "İş Emri Oluşturma" görevi açılır. (Görevli listesi <em>Assignment Rule</em> ekranından yönetilir).</li>
+  <li><strong>Hariç Tutulan Miktarlar ve Depolar:</strong> <code>Manufacture</code> tipi otomatik malzeme taleplerinde Satış Siparişi rezervleri (<code>reserved_qty</code>) ve red depoları projeksiyon hesabından hariç tutulur.</li>
+  <li><strong>Tetikleme Koşulu ve Talep Miktarı:</strong> Projeksiyon miktarı <code>reorder_level</code> değerinin kesin olarak altına (<code>&lt;</code>) düştüğünde (eşitlik durumunda talep oluşturulmaz), en az <code>reorder_qty</code> olmak üzere oluşan açık miktar (<code>reorder_level - projected_qty</code>) kadar üretim talebi açılır.</li>
+  <li><strong>Çekirdek Sürüm Bağımsızlığı:</strong> Bu hesaplama mantığı ERPNext çekirdek sürüm değişikliklerinden bağımsız olarak KTA kuralına göre çalışır; <code>Purchase</code>, <code>Material Transfer</code> gibi diğer talep tipleri standart kurallarla işlenmeye devam eder.</li>
+</ul>
+
+<h3>Taslak Oluşumu ve Dinamik Görev Aktarımı</h3>
+<ul>
+  <li><strong>Otomatik Taslak (Draft) Oluşumu:</strong> Sistem tarafından yaratılan üretim malzeme talepleri otomatik onaylanmak yerine "Taslak" (<code>Draft</code>) olarak bırakılır ve ilgili planlama personeline incelemesi için bir <strong>ToDo (Görev)</strong> atanır.</li>
+  <li><strong>Dinamik Görev Aktarımı:</strong> Personel talebi inceleyip "Onayla (Submit)" dediğinde, üzerindeki görev otomatik olarak kapanır ve üretim yöneticilerine "İş Emri Oluşturma" görevi açılır (görevli listesi <em>Assignment Rule</em> ekranından yönetilir).</li>
   <li><strong>Otomatik Kapanış:</strong> Üretim yöneticileri bu talep üzerinden <strong>İş Emri (Work Order)</strong> oluşturup %100 oranında onayladıklarında, üzerlerindeki görev arka planda otomatik olarak "Tamamlandı" statüsüne geçerek kapanır.</li>
+</ul>
+
+<h3>Onaylanmamış Eski Otomatik Taslakların Temizlenmesi</h3>
+<ul>
+  <li><strong>Günlük Otomatik Temizlik:</strong> Önceki günlerden onaylanmadan taslakta (<code>Draft</code>) kalan otomatik üretim malzeme talepleri ve bunlara bağlı görevler (<code>ToDo</code>), bir sonraki günün otomatik hesaplaması çalışırken sistem tarafından otomatik olarak temizlenir.</li>
+  <li><strong>Kapsam Dışı Kayıtlar:</strong> Kullanıcıların manuel olarak açtığı taslaklara veya <code>Purchase</code>, <code>Material Transfer</code> gibi diğer talep tiplerine dokunulmaz.</li>
 </ul>
 
 </div>

@@ -1,4 +1,5 @@
 from erpnextkta.overrides.print_settings import set_print_templates_for_item_table
+from erpnextkta.overrides.reorder_item import apply_reorder_item_override
 
 
 def apply():
@@ -15,27 +16,39 @@ def apply():
     apply_document_permission_override()
     apply_reorder_item_override()
 
+
 def apply_document_permission_override():
     try:
         import frappe
         import frappe.model.document
-        
-        if not hasattr(frappe.model.document.Document, "_original_has_permission"):
-            frappe.model.document.Document._original_has_permission = frappe.model.document.Document.has_permission
 
-            def custom_doc_has_permission(self, permtype="read", *, debug=False, user=None):
+        if not hasattr(frappe.model.document.Document, "_original_has_permission"):
+            frappe.model.document.Document._original_has_permission = (
+                frappe.model.document.Document.has_permission
+            )
+
+            def custom_doc_has_permission(
+                self, permtype="read", *, debug=False, user=None
+            ):
                 if self.flags.ignore_permissions or frappe.flags.ignore_permissions:
                     return True
-                return self._original_has_permission(permtype=permtype, debug=debug, user=user)
+                return self._original_has_permission(
+                    permtype=permtype, debug=debug, user=user
+                )
 
             frappe.model.document.Document.has_permission = custom_doc_has_permission
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         import frappe
-        frappe.log_error(f"Error applying Document permission override: {e}", "KTA Override Error")
+
+        frappe.log_error(
+            f"Error applying Document permission override: {e}", "KTA Override Error"
+        )
+
 
 def apply_job_card_override():
     try:
         from erpnext.manufacturing.doctype.job_card.job_card import JobCard
+
         if not hasattr(JobCard, "_original_validate_sequence_id"):
             JobCard._original_validate_sequence_id = JobCard.validate_sequence_id
 
@@ -45,15 +58,16 @@ def apply_job_card_override():
                 return self._original_validate_sequence_id()
 
             JobCard.validate_sequence_id = custom_validate_sequence_id
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         import frappe
+
         frappe.log_error(f"Error applying Job Card override: {e}", "KTA Override Error")
 
 
 def apply_bom_search_override():
     try:
-        import erpnext.stock.report.bom_search.bom_search as bom_search
         import frappe
+        from erpnext.stock.report.bom_search import bom_search
 
         if not hasattr(bom_search, "_original_execute"):
             bom_search._original_execute = bom_search.execute
@@ -65,7 +79,7 @@ def apply_bom_search_override():
                 # Create a dict copy of filters to avoid mutating the original (frappe.eval / execute passes dict-like object)
                 copied_filters = frappe._dict(filters)
                 only_default_boms = copied_filters.get("only_default_boms")
-                
+
                 if "only_default_boms" in copied_filters:
                     del copied_filters["only_default_boms"]
 
@@ -73,7 +87,13 @@ def apply_bom_search_override():
 
                 if only_default_boms:
                     # Find all active, default BOMs
-                    default_boms = set(frappe.get_all("BOM", filters={"is_default": 1, "is_active": 1}, pluck="name"))
+                    default_boms = set(
+                        frappe.get_all(
+                            "BOM",
+                            filters={"is_default": 1, "is_active": 1},
+                            pluck="name",
+                        )
+                    )
 
                     # Filter the rows, keeping only default BOMs or non-BOM rows (e.g. Product Bundles)
                     filtered_data = []
@@ -91,71 +111,9 @@ def apply_bom_search_override():
                 return columns, data
 
             bom_search.execute = custom_execute
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         import frappe
-        frappe.log_error(f"Error applying BOM Search override: {e}", "KTA Override Error")
 
-def apply_reorder_item_override():
-    try:
-        import erpnext.stock.reorder_item as reorder_item
-        import frappe
-        from frappe.utils import flt
-
-        if not hasattr(reorder_item, "_original_get_item_warehouse_projected_qty"):
-            reorder_item._original_get_item_warehouse_projected_qty = reorder_item.get_item_warehouse_projected_qty
-
-            def custom_get_item_warehouse_projected_qty(items_to_consider):
-                if not items_to_consider:
-                    return {}
-                    
-                # KTA Özel Mantığı: Satış Siparişlerini (reserved_qty) hesaplamaya dahil etme.
-                # Standart ERPNext gibi depo hiyerarşisini takip ederek (warehouse_group dahil) stok hesapla.
-                items_tuple = tuple(items_to_consider.keys())
-                item_warehouse_projected_qty = {}
-                
-                warehouse_parent_map = frappe._dict(
-                    frappe.get_all("Warehouse", fields=["name", "parent_warehouse"], as_list=True)
-                )
-
-                custom_data = frappe.db.sql("""
-                    select bin.item_code, bin.warehouse,
-                    sum(bin.actual_qty) + sum(bin.planned_qty) + sum(bin.indented_qty) + sum(bin.ordered_qty) - sum(bin.reserved_qty_for_production) - sum(bin.reserved_qty_for_sub_contract) as custom_projected
-                    from tabBin bin
-                    join tabWarehouse w on w.name = bin.warehouse
-                    where bin.item_code in ({})
-                    and (bin.warehouse != '' and bin.warehouse is not null)
-                    and w.is_rejected_warehouse = 0
-                    group by bin.item_code, bin.warehouse
-                """.format(", ".join(["%s"] * len(items_tuple))), items_tuple, as_dict=True)
-
-                for row in custom_data:
-                    item_code = row.item_code
-                    warehouse = row.warehouse
-                    
-                    # ERPNext standart kuralı (<=) yüzünden stok = reorder_level olduğunda sipariş açılmasını 
-                    # engellemek için çok küçük bir küsurat ekleyerek kuralı (<) şekline çeviriyoruz.
-                    projected_qty = flt(row.custom_projected) + 0.0001
-
-                    if item_code not in item_warehouse_projected_qty:
-                        item_warehouse_projected_qty[item_code] = {}
-
-                    if warehouse not in item_warehouse_projected_qty[item_code]:
-                        item_warehouse_projected_qty[item_code][warehouse] = projected_qty
-                    else:
-                        item_warehouse_projected_qty[item_code][warehouse] += projected_qty
-
-                    parent_warehouse = warehouse_parent_map.get(warehouse)
-
-                    while parent_warehouse:
-                        if not item_warehouse_projected_qty[item_code].get(parent_warehouse):
-                            item_warehouse_projected_qty[item_code][parent_warehouse] = projected_qty
-                        else:
-                            item_warehouse_projected_qty[item_code][parent_warehouse] += projected_qty
-                        parent_warehouse = warehouse_parent_map.get(parent_warehouse)
-                        
-                return item_warehouse_projected_qty
-
-            reorder_item.get_item_warehouse_projected_qty = custom_get_item_warehouse_projected_qty
-    except Exception as e:
-        import frappe
-        frappe.log_error(f"Error applying Reorder Item override: {e}", "KTA Override Error")
+        frappe.log_error(
+            f"Error applying BOM Search override: {e}", "KTA Override Error"
+        )
