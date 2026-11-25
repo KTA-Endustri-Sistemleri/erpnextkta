@@ -7,6 +7,8 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 
+from erpnextkta.kta_stock.setup import PDA_ROLE_STOCK_USER
+
 
 def get_leaf_warehouses(parent_warehouse: str | None) -> list[str]:
     """Return all leaf warehouses (is_group = 0) under the given warehouse or tree."""
@@ -783,6 +785,32 @@ def override_item_source(
     }
 
 
+_PICKING_ALLOWED_ROLES = frozenset(
+    {PDA_ROLE_STOCK_USER, "Stock User", "Stock Manager", "System Manager"}
+)
+
+
+def _require_replenishment_picking_access() -> None:
+    """Reject Guest and users lacking picking roles or Line Replenishment Order access."""
+    user = getattr(frappe.session, "user", None)
+    if not user or user == "Guest":
+        frappe.throw(
+            _("Bu işlem için yetkiniz bulunmamaktadır."),
+            frappe.PermissionError,
+        )
+
+    user_roles = set(frappe.get_roles(user))
+    if not (
+        user_roles.intersection(_PICKING_ALLOWED_ROLES)
+        or frappe.has_permission("KTA Line Replenishment Order", "read")
+        or frappe.has_permission("KTA Line Replenishment Order", "write")
+    ):
+        frappe.throw(
+            _("Bu işlem için yetkiniz bulunmamaktadır."),
+            frappe.PermissionError,
+        )
+
+
 @frappe.whitelist()
 def complete_line_replenishment_picking(
     order_name: str,
@@ -797,6 +825,7 @@ def complete_line_replenishment_picking(
     Updates the order status to Completed and links the Stock Entry.
     Returns the created Stock Entry name.
     """
+    _require_replenishment_picking_access()
     if not order_name:
         frappe.throw(
             _("Sipariş numarası (Order Name) zorunludur."),

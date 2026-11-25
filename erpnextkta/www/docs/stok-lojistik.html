@@ -131,7 +131,7 @@
 
 <h2>📐 8. 7+4 Kutu Barkod Standardı, LEGACY Dönüşümü ve Özel Stock Entry Tipleri</h2>
 
-<p>Fiziksel depo düzeninin mal kabulden üretime ve üretimden depoya iadeye kadar tüm hareketlerde bozulmadan korunması için <strong><code>7 Hane Lot + 4 Hane Kutu No</code></strong> standardı ve iki özel <code>Stock Entry Type</code> politikası uygulanır.</p>
+<p>Fiziksel depo düzeninin mal kabulden üretime ve üretimden depoya iadeye kadar tüm hareketlerde bozulmadan korunması için <strong><code>7 Hane Lot + 4 Hane Kutu No</code></strong> standardı ve üç özel <code>Stock Entry Type</code> politikası uygulanır.</p>
 
 <h3>7+4 Kutu Barkod Standardı ve LEGACY Dönüşümü</h3>
 <ul>
@@ -164,6 +164,12 @@
         <td><code>Repack</code></td>
         <td><span class="kta-doc-badge blue">Depo Giriş Etiketi</span></td>
         <td>Kısmi kutu/makara bölme ve <code>LEGACY</code> standartlaştırma hareketleri içindir. <strong>Tek belge = tek ürün ve tek kaynak kutu</strong> kuralıyla çalışır; üretilen yeni <code>000x</code> kutulara otomatik etiket basılır, kaynak kutunun kalan bakiyesi &gt; 0 ise eski etiketi güncellenir, 0 olduysa temizlenir.</td>
+      </tr>
+      <tr>
+        <td><code>Package Merge</code><br/><span class="kta-doc-badge purple">Koli Birleştirme</span></td>
+        <td><code>Repack</code></td>
+        <td><span class="kta-doc-badge blue">Depo Giriş Etiketi</span></td>
+        <td>Aynı ürüne ait <code>&gt;= 2</code> tam kutunun tek partide birleştirilmesi içindir. <strong>Tek belge = tek ürün</strong> kuralıyla çalışır; aynı ana lot birleşiminde aynı lottan ardışık kutu, karma/standart dışı lot birleşiminde onay sonrası yeni <code>7+4</code> karma lot ve <code>KARMA LOT</code> etiket referansı üretilir. İptal/silmede tüketilen kaynak kutu etiketleri geri yüklenir.</td>
       </tr>
       <tr>
         <td>Standart <code>Material Transfer</code> &amp; <code>Repack</code></td>
@@ -235,6 +241,91 @@
   <li><strong>Bağlantı Hatasının (<code>LinkExistsError</code>) Önlenmesi:</strong> Kullanıcılar artık sayım belgelerini geri alırken ilişkili etiket kayıtları nedeniyle oluşan <code>LinkExistsError</code> (<em>"Cannot delete or cancel because linked with KTA Stock Label"</em>) hatasıyla karşılaşmaz; sistem tüm geri alma (rollback) adımlarını arka planda kullanıcı müdahalesine gerek kalmadan yönetir.</li>
   <li><strong>Sıfır Bakiyeli Partilerin Pasife Alınması veya Silinmesi:</strong> Sayım esnasında üretilmiş olup defter bakiyesi sıfıra düşen (<code>Stock Ledger Entry</code> net bakiyesi <code>0</code> olan) bölünmüş partiler, belge silindiğinde (<code>on_trash</code>) sistemden tamamen silinir; belge iptal edildiğinde (<code>on_cancel</code>) ise stok defteri tutarlılığı ve denetim izlenebilirliği korunarak pasife alınır ve miktarları sıfırlanır (<code>disabled = 1, batch_qty = 0</code>). Yetim etiket kayıtları ise <code>LabelPrinter.clear_empty_labels()</code> ile temizlenir.</li>
 </ul>
+
+<hr />
+
+<h2>📱 10. Bağımsız PDA Depo Merkezi (<code>/pda</code>)</h2>
+
+<p>El terminalleri (Zebra, Honeywell vb.) ve mobil tarayıcılar için Desk arayüzünün ağır yükünden tamamen arındırılmış, PWA destekli (<code>manifest.webmanifest</code>, <code>pda-hub.bundle</code>) tam ekran operasyon merkezidir. Standart Desk navbar veya liste formlarını yüklemeden saniyeler içinde açılır; merkezi modül kayıt defteri (<code>PDA_MODULE_REGISTRY</code>) üzerinden rol bazlı olarak <strong>Stock</strong> ana menüsünü ve 5 saha depo ekranını tek kabukta birleştirir.</p>
+
+<div class="kta-doc-info success">
+  <strong>Doğrudan Erişim &amp; Saf Saha İzolasyonu:</strong> Yetkili cihazlarda doğrudan <strong><code>/pda</code></strong> adresinden tam ekran el terminali olarak açılır ve cihaz ana ekranına PWA olarak eklenebilir. Yalnızca <code>KTA PDA Stock User</code> (<code>desk_access = 0</code>, <code>home_page = "/pda"</code>) rolünü taşıyan saf <code>Website User</code> operatörleri, doğrudan <code>/login</code> üzerinden giriş yaptığında dahi <code>/app</code> Desk arayüzüne geçemeden otomatik olarak <code>/pda</code> ekranına yönlendirilir.
+</div>
+
+<h3>A. Rol Bazlı Yetkilendirme, Cihaz Güvenliği ve PIN Geçişi</h3>
+<ul>
+  <li><strong>Departmansız Rol Modeli (<code>ALL_PDA_ROLES</code>):</strong> Sabit departman filtresi kaldırılmıştır. Yalnızca <code>PDA_MODULE_REGISTRY</code> tarafından tanımlanan PDA rolleri (<strong><code>KTA PDA Stock User</code></strong>, <strong><code>Stock Manager</code></strong> veya <strong><code>System Manager</code></strong>) terminal girişine ve operatör listesine dahil edilir. Ofis kullanıcı profillerinde (Satış, Satınalma, Üretim, Standart Kullanıcı vb.) bulunan genel <code>Stock User</code> rolü <code>/pda</code> erişiminden ve PIN listesinden tamamen izole edilmiştir (<code>PermissionError</code>).</li>
+  <li><strong>30 Günlük Cihaz Çerezi (<code>kta_pda_device</code>):</strong> Yetkili bir PDA kullanıcısı cihazda ilk kez <code>/pda</code> sayfasını açtığında sunucu, HMAC-SHA256 ile imzalanmış HTTP-only bir cihaz çerezi tanımlar. Geçerli cihaz çerezi taşımayan anonim (<code>Guest</code>) istekleri portal tarafından <code>/login?redirect-to=/pda</code> adresine yönlendirilir ve API katmanında <code>PermissionError</code> ile reddedilir.</li>
+  <li><strong>Paylaşımlı Cihaz &amp; Gerçek Frappe Oturum Geçişi:</strong> Yetkili cihazda aktif <code>Employee</code> kaydı olan, etkin (<code>enabled = 1</code>) ve en az bir PDA rolüne sahip personeller departman kısıtı olmaksızın dokunmatik kart listesinde gösterilir. Operatör 4 haneli şahsi PIN kodunu (<code>Employee.custom_pda_pin</code>) girdiğinde arka planda <code>LoginManager.login_as</code> ile gerçek Frappe kullanıcı oturumu operatörün kendi hesabına geçer; oluşan tüm stok fişleri ve etiketlerde ekstra operatör alanına gerek kalmadan standart <code>owner</code> ve <code>modified_by</code> denetim izi tutulur.</li>
+  <li><strong>Saf <code>Website User</code> Rol Koruması (<code>pda_user_guard</code>):</strong> Bir operatörün <code>Employee</code> kartı (ör. PIN tanımlaması veya ad güncellemesi) kaydedildiğinde ERPNext çekirdeğinin otomatik olarak <code>Employee</code> (<code>desk_access = 1</code>) rolü eklemesi <code>doc_events</code> kancalarıyla engellenir. Böylece yalnızca <code>KTA PDA *</code> rolüne sahip saha operatörleri Desk erişimi kazanmadan <code>Website User</code> olarak kalır; Desk rollü yöneticiler veya doğrudan <code>User</code> formundan yapılan manuel rol atamaları etkilenmez.</li>
+  <li><strong>Brute-Force Koruması, 5 Dakikalık Kilit &amp; Devret:</strong> Üst üste <strong>5 hatalı PIN</strong> denemesinde hesap <code>pda_pin_fail</code> önbellek anahtarı üzerinden <strong>300 saniye</strong> kilitlenir. Sağ üstteki <strong>[Devret ↩]</strong> butonuna basıldığında veya <strong>300 saniye</strong> boyunca işlem yapılmadığında aktif kullanıcı oturumu sonlandırılır, tüm açık menü/kategori durumu temizlenir ve <code>kta_pda_device</code> çerezi korunarak taze <code>csrf_token</code> ile PIN ekranına dönülür.</li>
+  <li><strong>Zebra Yazıcı Eşitlemesi &amp; 8 DocType İzin Matrisi:</strong> Kurulum/migration (<code>setup_pda_roles_and_permissions</code> ve <code>setup_pda_stock_role_and_backfill</code>) sırasında saf <code>KTA PDA Stock User</code> rolüne 8 çekirdek belge için (<code>Stock Entry</code>, <code>Serial and Batch Bundle</code>, <code>Batch</code>, <code>Stock Ledger Entry</code>, <code>Item</code>, <code>Warehouse</code>, <code>KTA Stock Label</code>, <code>KTA Line Replenishment Order</code>) gerekli <code>Custom DocPerm</code> izinleri tanımlanır. Ayrıca <code>KTA Printer Permission</code> tablosunda <code>Stock User</code> yazıcı kısıtı bulunan Zebra yazıcılara <code>KTA PDA Stock User</code> izni idempotent olarak eklenir (izin satırı olmayan açık yazıcılara dokunulmaz).</li>
+</ul>
+
+<h3>B. Çok-Modüllü Ana Menü (<code>Stock</code>) ve İki Satırlı Çekmece Navigasyonu</h3>
+<ul>
+  <li><strong>Akıllı Açılış &amp; Yetki Filtresi:</strong> Oturum/PIN açılışı sonrasında sunucudan gelen yetkili <code>menu_categories</code> ağacına göre yalnızca kullanıcının yetkili olduğu kategoriler ve ekranlar gösterilir. Tek modül kategorisi (<strong>Stock</strong>) yetkisi varsa doğrudan 5 depo ekranı kartı açılır; birden fazla kategori yetkisinde önce ana modül kartları listelenir; hiç yetkili modül yoksa bilgilendirme ekranı (<em>Yetkili Modül Bulunamadı</em>) sunulur.</li>
+  <li><strong>İki Satırlı Üst Bar &amp; Adanmış Alt Bar (<code>.pda-topbar</code> + <code>.pda-subbar</code>):</strong> Dar el terminali ekranlarında (<code>360px–420px</code>) taşmayı önlemek için üst bar (<strong>Satır 1</strong>) yalnızca <strong>[☰ Menü]</strong> çekmece butonu, statik <strong>KTA PDA</strong> markası ve sağdaki operatör/sayaç/<strong>[Devret ↩]</strong> kontrollerini taşır. Bir modül ekranına veya çoklu kategori klasörüne girildiğinde hemen altında açılan adanmış alt bar (<strong>Satır 2</strong>), solunda <strong>[← Geri]</strong> butonu ve yanında tam genişlikte esneyen bağlamsal konum başlığını (ör. <code>Stock › Koli Birleştirme</code> veya <code>Ana Modüller › Stock</code>) gösterir; canlı açık ikmal emri sayısı çekmece ve kart rozetinde izlenir.</li>
+</ul>
+
+<h3>C. 5 Saha Depo Modülü (<code>Stock</code> Menüsü)</h3>
+<div class="kta-doc-table-wrap">
+  <table class="kta-doc-table">
+    <thead>
+      <tr>
+        <th>Modül</th>
+        <th>İş Akışı</th>
+        <th>Kritik Kurallar ve Davranış</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. Hat İkmal Toplama</strong><br/><span class="kta-doc-badge blue">Picking</span></td>
+        <td>Açık emir seç → Kutu/parti barkodu okut → Miktar doğrula → Hatta aktar</td>
+        <td>Açık <code>KTA Line Replenishment Order</code> kayıtlarını listeler, tolerans sınırını denetler ve mevcut hat ikmal toplama servisiyle tam uyumlu çalışır.</td>
+      </tr>
+      <tr>
+        <td><strong>2. Koli Bölme ve Etiketleme</strong><br/><span class="kta-doc-badge orange">Package Split</span></td>
+        <td>Kutu barkodu okut → Bölünecek adetleri gir → <code>Koli Böl ve Etiket Bas</code></td>
+        <td>Tek kısmi ayırma (ör. 1.000 adetten <code>200</code> ayırma) veya çoklu kırılım (<code>500, 300, 200</code>) destekler. Hedef yeni <code>7+4</code> kutular <code>KTAStockEntry.on_submit()</code> üzerinden tek sefer basılır (çift yazdırma yapılmaz); kalan kaynak bakiye &gt; 0 ise <em>"Kalan kaynak etiketini de yeniden bas"</em> seçeneğiyle yalnızca kaynak etiket yeniden kuyruğa eklenir.</td>
+      </tr>
+      <tr>
+        <td><strong>3. Koli Birleştirme</strong><br/><span class="kta-doc-badge purple">Package Merge</span></td>
+        <td>En az 2 kutu okut → (Opsiyonel) hedef raf gir → <code>Kolileri Birleştir</code></td>
+        <td>Aynı ürüne ait <code>&gt;= 2</code> farklı kutunun kaynak depolarındaki tam bakiyelerini tek yeni kutuda birleştirir. Opsiyonel hedef raf barkodu <code>resolve_warehouse_barcode</code> ile çözülür. Aynı ana lot kesintisiz ilerler; karma/standart dışı lot birleştirmede onay modalı açılır ve etikete <code>KARMA LOT</code> basılır.</td>
+      </tr>
+      <tr>
+        <td><strong>4. Depo Raf Transferi</strong><br/><span class="kta-doc-badge green">Material Transfer</span></td>
+        <td>Kutu barkodu okut → Hedef raf barkodu okut (ör. <code>110-W1A-01-01</code>, <code>170-W1F-12-01</code>) → Tamamla</td>
+        <td><strong>1 Kutu = 1 Parti</strong> tam kutu transferi zorunludur (kısmi miktarlarda önce Koli Bölme modülü kullanılır). Şirket soneksiz/sonekli ve SAP önekli raf barkodları (<code>resolve_warehouse_barcode</code>) NestedSet üst depo doğrulamasıyla tanınır; Taslak Sayım Kilidi ve GKK kalite onayı kontrolleri tam uygulanır.</td>
+      </tr>
+      <tr>
+        <td><strong>5. Stok ve Etiket Sorgula</strong><br/><span class="kta-doc-badge purple">Quick Lookup</span></td>
+        <td>Kutu, raf veya malzeme barkodu okut → Anlık kartı incele</td>
+        <td>Salt-okunur sorgu ekranında koli/parti (etiket, SUT, SKT, depolar), raf (<code>resolve_warehouse_barcode</code> ile çözümlenen <code>Bin</code> kalem listesi) veya malzeme bazlı anlık depo ve parti dağılımını gösterir.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="kta-doc-info">
+  <strong>SAP Önekli Raf Barkodu Çözümleme (<code>resolve_warehouse_barcode</code>):</strong>
+  <strong>Depo Raf Transferi</strong> (<code>pda_material_transfer</code>), <strong>Koli Birleştirme</strong> (<code>pda_package_merge</code>) ve <strong>Stok ve Etiket Sorgula</strong> (<code>pda_stock_lookup</code>) ekranları tüm raf barkodlarını ortak çözümleme kuralıyla işler:
+  <ul>
+    <li><strong>Birebir Eşleşme Önceliği:</strong> Önce <code>Warehouse</code> adı üzerinden tam eşleşme aranır; böylece <code>170-W1F-12-01</code> gibi adı zaten önekli olan mamul rafları birebir eşleşmeyle korunur.</li>
+    <li><strong>NestedSet (<code>lft</code>/<code>rgt</code>) Üst Depo Doğrulaması:</strong> Doğrudan eşleşme bulunmadığında eski SAP künye barkodları (<code>&lt;depo_kodu&gt;-&lt;raf_kodu&gt;</code>, örn. <code>110-W1A-01-01</code> → <code>W1A-01-01</code>, <code>110-W1F-01-01</code> → <code>W1F-01-01</code>) ERPNext <code>Warehouse</code> NestedSet (<code>lft</code>/<code>rgt</code>) ağacında ilgili üst depo altında yer aldığı doğrulanarak otomatik çözümlenir.</li>
+    <li><strong>Yanlış Önek &amp; Pasife Alınmış Raf Koruması:</strong> Yanlış depo öneki taşıyan barkodlar (örn. <code>170-W1F-01-01</code>) üst depo doğrulamasından geçemeyerek reddedilir. <code>110</code> altında yer alıp <code>170</code>'e devredilerek pasife alınmış rafların eski künyesi (<code>110-W1F-12-01</code>) okutulduğunda ise <code>170-W1F-12-01</code> rafına kayma olmadan net <strong>"Depo pasif durumda"</strong> uyarısı üretilir.</li>
+  </ul>
+</div>
+
+<div class="kta-doc-info">
+  <strong>Koli Birleştirme (<code>Package Merge</code>) Kuralları &amp; Denetim İzi:</strong>
+  <ul>
+    <li><strong>Tam Kutu &amp; Kilit Kuralları:</strong> Yalnızca aynı ürün koduna sahip en az 2 farklı <code>(parti, depo)</code> çifti birleştirilebilir; her kaynak kutunun seçili depodaki tam pozitif bakiyesi tüketilir (<code>1 Kutu = 1 Parti</code>). Tüm depolar aktif yaprak depo ve aynı şirket altında olmalıdır; opsiyonel hedef raf barkodu boş bırakılırsa ilk okutulan kolinin deposu kullanılır. Taslak Sayım Kilidi ve GKK kalite onayı (onaysız GKK engellenir) tam uygulanır.</li>
+    <li><strong>Aynı Ana Lot vs. Karma / Standart Dışı Lot:</strong> Tüm kaynak kutular standart <code>7+4</code> formatında ve aynı 7 haneli lot ön ekine sahipse uyarı olmadan aynı lottan ardışık kutu üretilir (orijinal mal kabul/üretim meta verileri ve en erken SKT devralınır). Farklı lot ön ekleri veya standart dışı (<code>LEGACY</code>) partiler tespit edildiğinde onay modalı açılır; kullanıcı riskleri onaylarsa (<code>allow_mixed_lots = 1</code>) en erken SKT (<code>min(expiry_date)</code>) ve ağırlıklı ortalama değerleme ile yeni <code>7+4</code> karma lot üretilir ve etiket kalite referansına <strong><code>KARMA LOT</code></strong> basılır.</li>
+    <li><strong>3 Katmanlı Denetim İzi &amp; İptal/Silme Geri Alma:</strong> Hareketler <code>Stock Entry Type = "Package Merge"</code>, detaylı kaynak/hedef dökümü içeren <code>Stock Entry.remarks</code> ve hedef <code>Batch.description</code> kayıtlarıyla izlenir. Belge iptal edilir veya silinirse oluşan hedef etiket temizlenip boş hedef parti pasife alınır ve bakiyesi dönen kaynak kutuların mal kabul/üretim kökenli <code>KTA Stock Label</code> kayıtları otomatik geri yüklenir.</li>
+  </ul>
+</div>
 
 </div>
 {% endblock %}

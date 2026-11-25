@@ -4,6 +4,7 @@ import frappe
 from frappe.utils import cint, flt, nowdate
 
 from erpnextkta.kta_stock.services.relabeling_service import (
+    create_package_merge_repack,
     create_package_split_repack,
 )
 from erpnextkta.kta_stock.setup import setup
@@ -161,7 +162,11 @@ class TestStockEntryLabeling(KTABaseTestCase):
         return se
 
     def _create_pr_with_box_batch(
-        self, item_code: str, warehouse: str, qty: float
+        self,
+        item_code: str,
+        warehouse: str,
+        qty: float,
+        split_qty: float | None = None,
     ) -> tuple[object, str]:
         supplier = self._ensure_supplier()
         currency = (
@@ -172,6 +177,7 @@ class TestStockEntryLabeling(KTABaseTestCase):
             or "Standard Buying"
         )
         posting_date = nowdate()
+        eff_split_qty = flt(split_qty if split_qty is not None else qty)
         pr = frappe.get_doc(
             {
                 "doctype": "Purchase Receipt",
@@ -192,7 +198,7 @@ class TestStockEntryLabeling(KTABaseTestCase):
                         "qty": flt(qty),
                         "rate": 10.0,
                         "warehouse": warehouse,
-                        "custom_split_qty": flt(qty),
+                        "custom_split_qty": eff_split_qty,
                         "custom_do_not_split": 0,
                     }
                 ],
@@ -527,3 +533,199 @@ class TestStockEntryLabeling(KTABaseTestCase):
         self.assertEqual(src_lbl_after_trash.reference_doctype, "Purchase Receipt")
         self.assertEqual(flt(src_lbl_after_trash.qty), 100.0)
         self.assertEqual(cint(frappe.db.get_value("Batch", child_batch, "disabled")), 1)
+
+    def test_package_merge_rejects_multiple_items_in_validate(self):
+        """Package Merge with two distinct item_code rows throws ValidationError in validate()."""
+        wh_src, wh_dst, _ = self._ensure_warehouses()
+        item_a = self._ensure_batch_item("_TEST-SELBL-MERGE-MULTI-A")
+        item_b = self._ensure_batch_item("_TEST-SELBL-MERGE-MULTI-B")
+
+        se = frappe.get_doc(
+            {
+                "doctype": "Stock Entry",
+                "stock_entry_type": "Package Merge",
+                "purpose": "Repack",
+                "company": self.COMPANY,
+                "posting_date": nowdate(),
+                "items": [
+                    {
+                        "item_code": item_a,
+                        "s_warehouse": wh_src,
+                        "qty": 10.0,
+                        "allow_zero_valuation_rate": 1,
+                    },
+                    {
+                        "item_code": item_b,
+                        "s_warehouse": wh_src,
+                        "qty": 10.0,
+                        "allow_zero_valuation_rate": 1,
+                    },
+                    {
+                        "item_code": item_a,
+                        "t_warehouse": wh_dst,
+                        "qty": 20.0,
+                        "is_finished_item": 1,
+                        "allow_zero_valuation_rate": 1,
+                    },
+                ],
+            }
+        )
+        with self.assertRaises(frappe.ValidationError) as exc:
+            se.insert(ignore_permissions=True)
+        self.assertIn("Package Merge", str(exc.exception))
+
+    def test_package_merge_same_lot_and_mixed_lot_cancel_and_trash_lifecycle(self):
+        """Package Merge cancel & trash disables target batch, avoids LinkExistsError, and restores PR labels."""
+        wh_src, wh_dst, _ = self._ensure_warehouses()
+
+        # Part A: Same-lot PR merge (2 x 50 boxes -> 0003 target 100 -> cancel -> trash)
+        item_same = self._ensure_batch_item("_TEST-SELBL-MERGE-SAME")
+        pr_same, box1 = self._create_pr_with_box_batch(
+            item_same, wh_src, 100.0, split_qty=50.0
+        )
+        base_lot = pr_same.items[0].batch_no
+        box2 = f"{base_lot}0002"
+
+        with patch(
+            "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+            return_value=MagicMock(),
+        ):
+            res_same = create_package_merge_repack(
+                item_code=item_same,
+                source_boxes=[
+                    {"batch_no": box1, "warehouse": wh_src},
+                    {"batch_no": box2, "warehouse": wh_src},
+                ],
+                target_warehouse=wh_dst,
+            )
+
+        self.assertFalse(res_same["is_mixed_lot"])
+        target_same = res_same["target_batch"]
+        self.assertEqual(target_same, f"{base_lot}0003")
+        self.assertFalse(
+            frappe.db.exists(
+                "KTA Stock Label",
+                {"sut_barcode": box1, "label_type": "Depo Giriş Etiketi"},
+            )
+        )
+        self.assertFalse(
+            frappe.db.exists(
+                "KTA Stock Label",
+                {"sut_barcode": box2, "label_type": "Depo Giriş Etiketi"},
+            )
+        )
+        target_same_lbl = frappe.db.get_value(
+            "KTA Stock Label",
+            {"sut_barcode": target_same, "label_type": "Depo Giriş Etiketi"},
+            ["reference_doctype", "reference_name", "qty", "target_warehouse"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(target_same_lbl)
+        self.assertEqual(target_same_lbl.reference_doctype, "Stock Entry")
+        self.assertEqual(target_same_lbl.reference_name, res_same["stock_entry"])
+        self.assertEqual(flt(target_same_lbl.qty), 100.0)
+
+        se_same = frappe.get_doc("Stock Entry", res_same["stock_entry"])
+        se_same.cancel()
+
+        self.assertFalse(
+            frappe.db.exists(
+                "KTA Stock Label",
+                {"sut_barcode": target_same, "label_type": "Depo Giriş Etiketi"},
+            )
+        )
+        self.assertEqual(cint(frappe.db.get_value("Batch", target_same, "disabled")), 1)
+        self.assertEqual(
+            flt(frappe.db.get_value("Batch", target_same, "batch_qty")), 0.0
+        )
+        for src_box in (box1, box2):
+            restored = frappe.db.get_value(
+                "KTA Stock Label",
+                {"sut_barcode": src_box, "label_type": "Depo Giriş Etiketi"},
+                ["reference_doctype", "reference_name", "qty", "target_warehouse"],
+                as_dict=True,
+            )
+            self.assertIsNotNone(restored)
+            self.assertEqual(restored.reference_doctype, "Purchase Receipt")
+            self.assertEqual(restored.reference_name, pr_same.name)
+            self.assertEqual(flt(restored.qty), 50.0)
+            self.assertEqual(restored.target_warehouse, wh_src)
+
+        se_same.reload()
+        se_same.delete()
+        self.assertFalse(frappe.db.exists("Stock Entry", res_same["stock_entry"]))
+
+        # Part B: Mixed-lot merge cancel & trash (clears Batch SE ref, no LinkExistsError)
+        item_mix = self._ensure_batch_item("_TEST-SELBL-MERGE-MIX")
+        pr_m1, mix1 = self._create_pr_with_box_batch(item_mix, wh_src, 30.0)
+        pr_m2, mix2 = self._create_pr_with_box_batch(item_mix, wh_src, 20.0)
+
+        with patch(
+            "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+            return_value=MagicMock(),
+        ):
+            res_mix = create_package_merge_repack(
+                item_code=item_mix,
+                source_boxes=[
+                    {"batch_no": mix1, "warehouse": wh_src},
+                    {"batch_no": mix2, "warehouse": wh_src},
+                ],
+                target_warehouse=wh_dst,
+                allow_mixed_lots=True,
+            )
+
+        self.assertTrue(res_mix["is_mixed_lot"])
+        target_mix = res_mix["target_batch"]
+        batch_ref = frappe.db.get_value(
+            "Batch", target_mix, ["reference_doctype", "reference_name"], as_dict=True
+        )
+        self.assertEqual(batch_ref.reference_doctype, "Stock Entry")
+        self.assertEqual(batch_ref.reference_name, res_mix["stock_entry"])
+
+        target_mix_lbl = frappe.db.get_value(
+            "KTA Stock Label",
+            {"sut_barcode": target_mix, "label_type": "Depo Giriş Etiketi"},
+            ["quality_ref", "qty", "reference_doctype", "reference_name"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(target_mix_lbl)
+        self.assertEqual(target_mix_lbl.quality_ref, "KARMA LOT")
+        self.assertEqual(flt(target_mix_lbl.qty), 50.0)
+
+        se_mix = frappe.get_doc("Stock Entry", res_mix["stock_entry"])
+        se_mix.cancel()
+        se_mix.reload()
+        se_mix.delete()
+
+        self.assertFalse(frappe.db.exists("Stock Entry", res_mix["stock_entry"]))
+        self.assertFalse(
+            frappe.db.exists(
+                "KTA Stock Label",
+                {"sut_barcode": target_mix, "label_type": "Depo Giriş Etiketi"},
+            )
+        )
+        mix_batch_after = frappe.db.get_value(
+            "Batch",
+            target_mix,
+            ["disabled", "batch_qty", "reference_doctype", "reference_name"],
+            as_dict=True,
+        )
+        self.assertEqual(cint(mix_batch_after.disabled), 1)
+        self.assertEqual(flt(mix_batch_after.batch_qty), 0.0)
+        self.assertIsNone(mix_batch_after.reference_doctype)
+        self.assertIsNone(mix_batch_after.reference_name)
+
+        for src_box, expected_pr, expected_qty in (
+            (mix1, pr_m1.name, 30.0),
+            (mix2, pr_m2.name, 20.0),
+        ):
+            restored = frappe.db.get_value(
+                "KTA Stock Label",
+                {"sut_barcode": src_box, "label_type": "Depo Giriş Etiketi"},
+                ["reference_doctype", "reference_name", "qty"],
+                as_dict=True,
+            )
+            self.assertIsNotNone(restored)
+            self.assertEqual(restored.reference_doctype, "Purchase Receipt")
+            self.assertEqual(restored.reference_name, expected_pr)
+            self.assertEqual(flt(restored.qty), expected_qty)

@@ -1911,3 +1911,199 @@ Sayımı Onayla ve Tamamla,Submit & Complete Reconciliation
 Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,Saves selected rows and prints labels without submitting draft reconciliation.
 İş Emri Etiketi,Work Order Label
 Depo Giriş Etiketi,Warehouse Entry Label
+Bu PDA terminaline erişim yetkiniz bulunmamaktadır.,You do not have permission to access this PDA terminal.
+Seçilen personel PDA girişi için yetkili veya aktif değil.,The selected employee is not authorized or active for PDA login.
+Çok fazla hatalı PIN denemesi. Lütfen 5 dakika sonra tekrar deneyin.,Too many failed PIN attempts. Please try again in 5 minutes.
+Bu personel için henüz PDA PIN kodu tanımlanmamış.,No PDA PIN code has been configured for this employee yet.
+Çok fazla hatalı PIN denemesi. Hesap 5 dakika süreyle kilitlendi.,Too many failed PIN attempts. Account locked for 5 minutes.
+Hatalı PIN kodu. Kalan deneme hakkı: {0}.,Incorrect PIN code. Remaining attempts: {0}.
+Personel seçimi zorunludur.,Employee selection is mandatory.
+PIN kodu tam olarak 4 sayısal rakamdan oluşmalıdır.,PIN code must consist of exactly 4 numeric digits.
+Bu işlem için yetkili stok kullanıcısı oturumu gereklidir.,An authorized stock user session is required for this operation.
+"Birden fazla depo eşleşti, lütfen şirket ekiyle tarayın: {0}","Multiple warehouses matched, please scan with company suffix: {0}"
+Depo barkodu bulunamadı: {0},Warehouse barcode not found: {0}
+Depo pasif durumda: {0},Warehouse is disabled: {0}
+Grup depo seçilemez: {0},Group warehouse cannot be selected: {0}
+Koli veya parti barkodu bulunamadı: {0},Box or batch barcode not found: {0}
+Bu partide kullanılabilir stok bakiyesi bulunmamaktadır: {0},No available stock balance found in this batch: {0}
+Geçersiz bölme miktarları biçimi.,Invalid split quantities format.
+En az bir bölme miktarı girilmelidir.,At least one split quantity must be entered.
+Bölme miktarları sıfırdan büyük olmalıdır.,Split quantities must be greater than zero.
+"Ürün, kaynak depo ve kaynak parti bilgileri zorunludur.","Item, source warehouse, and source batch are mandatory."
+Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır.,No available stock found for this batch in the source warehouse.
+Bölünecek toplam miktar ({0}) mevcut stoktan ({1}) fazla olamaz.,Total split quantity ({0}) cannot exceed available stock ({1}).
+Standart KTA kolisinin tamamı tek bir yeni koliye bölünemez.,An entire standard KTA box cannot be split into a single new box.
+PDA Koli Bölme: {0} ({1}),PDA Package Split: {0} ({1})
+"Ürün, parti, kaynak depo ve hedef depo bilgileri zorunludur.","Item, batch, source warehouse, and target warehouse are mandatory."
+Kaynak depo bulunamadı: {0},Source warehouse not found: {0}
+Kaynak depo işlem için uygun değil: {0},Source warehouse is not eligible for this transaction: {0}
+Hedef depo kaynak depo ile aynı olamaz.,Target warehouse cannot be the same as source warehouse.
+PDA depolar arası transfer işleminde kolinin tamamı ({0}) transfer edilmelidir.,The entire box ({0}) must be transferred in a PDA warehouse transfer.
+PDA Depo Transferi: {0} ({1} -> {2}),PDA Warehouse Transfer: {0} ({1} -> {2})
+Grup depo sorgulanamaz: {0},Group warehouse cannot be queried: {0}
+Barkod sistemde bulunamadı: {0},Barcode not found in the system: {0}
+KTA Depo Terminali,KTA Warehouse Terminal
+Bilgi,Information
+Sunucu isteği sırasında bir hata oluştu.,An error occurred during the server request.
+Bağlantı hatası oluştu.,A connection error occurred.
+Tamam,OK
+Onayla,Confirm
+Koli Bölme,Package Split
+Malzeme Transfer,Material Transfer
+Stok Sorgu,Stock Lookup
+KTA PDA,KTA PDA
+Menü,Menu
+Devret,Handover
+Depo İşlemleri,Warehouse Operations
+"Hoş geldiniz, {0}. Başlamak için işlem seçin.","Welcome, {0}. Select an operation to begin."
+Başlamak için işlem seçin.,Select an operation to begin.
+{0} Açık Emir,{0} Open Orders
+Açık ikmal emirlerini okutarak topla ve hatta aktar,Scan open replenishment orders to pick and transfer to lines
+Koli Bölme ve Etiketleme,Package Split & Labeling
+"Mevcut koliyi böl, yeni parti oluştur ve etiket bas","Split an existing box, create new batches, and print labels"
+Depo Raf Transferi,Warehouse Shelf Transfer
+Koli ve hedef raf okutarak raflar arası tam kutu taşı,Scan box and target shelf to move full boxes between shelves
+"Koli, raf veya ürün barkodu ile anlık bakiye görüntüle","View real-time balance by box, shelf, or item barcode"
+PIN doğrulanamadı.,Could not verify PIN.
+PIN doğrulaması başarısız oldu.,PIN verification failed.
+PDA Terminal Kilidi,PDA Terminal Lock
+Devam etmek için personel kartınızı seçin ve 4 haneli PIN kodunuzu girin.,Select your employee card and enter your 4-digit PIN code to continue.
+Oturum süresi doldu. PIN ile yeniden giriş yapın veya standart oturum açın.,Session expired. Log back in with PIN or use standard login.
+Personel Ara...,Search Employee...
+Yetkili ambar veya sevk personeli bulunamadı.,No authorized warehouse or dispatch employee found.
+PIN Hazır,PIN Ready
+PIN Yok,No PIN
+Farklı Kullanıcı ile Giriş Yap,Log In with Different User
+Personel Değiştir,Switch Employee
+Koli için kullanılabilir stok bakiyesi bulunamadı.,No available stock balance found for this box.
+Koli doğrulandı. Şimdi hedef raf barkodunu okutun.,Box verified. Now scan the target shelf barcode.
+Koli barkodu çözümlenemedi.,Could not resolve box barcode.
+Malzeme Transfer Ediliyor...,Transferring Material...
+Transfer tamamlandı. Sıradaki koliyi okutabilirsiniz.,Transfer completed. You can scan the next box.
+Koli transferi başarıyla tamamlandı.,Box transfer completed successfully.
+Transfer işlemi tamamlanamadı.,Transfer could not be completed.
+Son Transfer Tamamlandı,Last Transfer Completed
+1 Kutu = 1 Parti,1 Box = 1 Batch
+Parti Numarası,Batch Number
+Kaynak Raf,Source Shelf
+Transfer Edilecek Tam Kutu Miktarı,Full Box Qty to Transfer
+Adım 2: Hedef Raf Barkodu,Step 2: Target Shelf Barcode
+Hedef Raf Barkodu Okutun (Örn: 170-W1F-02-04)...,Scan Target Shelf Barcode (e.g. 170-W1F-02-04)...
+Adım 1: Koli Barkodu Okutun,Step 1: Scan Box Barcode
+Tam kutu raf transferi için önce taşımak istediğiniz koliyi okutun.,First scan the box you want to move for a full-box shelf transfer.
+Bölünecek toplam miktar mevcut bakiyeyi aşıyor.,Total split quantity exceeds available balance.
+Koli okutuldu ve bölme işlemi için hazır.,Box scanned and ready for splitting.
+Koli Bölünüyor ve Etiketler Hazırlanıyor...,Splitting Box and Preparing Labels...
+Koli bölme işlemi tamamlandı.,Box split completed.
+Koli bölme işlemi başarısız oldu.,Box split failed.
+Koli Bölme Tamamlandı,Package Split Completed
+Belge No,Document No
+Kaynak Parti,Source Batch
+Kalan Kaynak Miktar,Remaining Source Qty
+Oluşturulan Yeni Partiler,Created New Batches
+Kalan kaynak koli etiketi yazdırma kuyruğuna eklendi.,Remaining source box label added to print queue.
+Yeni Koli Okut,Scan New Box
+Mevcut Bakiye,Available Balance
+Bölünecek Koli Adetleri,Box Split Quantities
+Kutu Ekle,Add Box
+Bölünecek Miktar Girin...,Enter Split Qty...
+Kalan kaynak etiketini de yeniden bas,Also reprint remaining source label
+Koli Böl ve Etiket Bas,Split Box and Print Labels
+Koli Barkodu Okutun,Scan Box Barcode
+Bölmek istediğiniz kolinin etiketini veya parti numarasını okutun.,Scan the label or batch number of the box you want to split.
+Açık ikmal emirleri yüklenemedi.,Failed to load open replenishment orders.
+Emir detayları alınamadı.,Failed to fetch order details.
+Barkod tanınamadı veya sistemde bulunamadı.,Barcode could not be recognized or found in the system.
+Okutulan malzeme bu ikmal emrinde yer almıyor.,Scanned item is not in this replenishment order.
+Okutulan miktar tolerans sınırını aşıyor.,Scanned quantity exceeds tolerance limit.
+Malzeme okutuldu ve toplandı olarak işaretlendi.,Item scanned and marked as picked.
+Barkod çözümleme sırasında hata oluştu.,An error occurred while resolving the barcode.
+Girilen miktar tolerans sınırını aşıyor.,Entered quantity exceeds tolerance limit.
+Transfer için en az bir kalem seçilmelidir.,At least one item must be selected for transfer.
+Malzeme transferi başarıyla tamamlandı.,Material transfer completed successfully.
+Açık İkmal Emri Yok,No Open Replenishment Orders
+Yeni hat ikmal emri oluşturulduğunda burada listelenir.,New line replenishment orders will appear here when created.
+Okutulan barkod için kayıt bulunamadı.,No record found for scanned barcode.
+Stok sorgusu güncellendi.,Stock lookup updated.
+Stok sorgusu yapılamadı.,Stock lookup failed.
+Koli / Parti,Box / Batch
+Toplam Bakiye,Total Balance
+Etiket No,Label No
+SUT Barkodu,SUT Barcode
+Son Kullanma,Expiry Date
+Etiket Tipi,Label Type
+Bulunduğu Depolar,Stored Warehouses
+Aktif stok bakiyesi yok.,No active stock balance.
+Depo / Raf,Warehouse / Shelf
+Kalem Sayısı,Item Count
+Raftaki Malzemeler,Items on Shelf
+Bu rafta stok bulunmuyor.,No stock found on this shelf.
+Toplam Stok,Total Stock
+Depo Bakiyeleri,Warehouse Balances
+Depolarda stok bulunmuyor.,No stock found in warehouses.
+Parti Dağılımı,Batch Breakdown
+Stok ve Etiket Sorgula,Stock & Label Lookup
+"Koli, raf veya malzeme barkodunu okutarak anlık stok durumunu görüntüleyin.","Scan a box, shelf, or item barcode to view real-time stock status."
+Stock,Stock
+{0} İşlem,{0} Operations
+Ana Modüller,Main Modules
+Menüyü Kapat,Close Menu
+Yetkili Modül Bulunamadı,No Authorized Modules Found
+Size atanmış aktif bir PDA modülü bulunmamaktadır. Yöneticinizle iletişime geçin.,You do not have any active PDA modules assigned. Please contact your administrator.
+Bu PDA ekranına erişim yetkiniz bulunmamaktadır.,You do not have permission to access this PDA screen.
+Bu işlem için yetkili PDA kullanıcı oturumu gereklidir.,An authorized PDA user session is required for this operation.
+Bu işlem için yetkiniz bulunmamaktadır.,You do not have permission to perform this operation.
+Package Merge,Package Merge
+Ana Lot,Base Lot
+Aynı Ana Lot: {0} — Kesintisiz Birleştirme,Same Base Lot: {0} — Seamless Merge
+Aynı Lot Birleştirme,Same Lot Merge
+Aynı kaynak koli birden fazla kez eklenemez: {0},The same source box cannot be added more than once: {0}
+Aynı parti ve depo çifti birden fazla satırda seçilemez.,The same batch and warehouse pair cannot be selected in multiple rows.
+Aynı ürüne ait en az 2 koliyi okutarak tek partide birleştirin.,Scan at least 2 boxes of the same item to merge them into one batch.
+Birleştirilecek Kolileri Okutun,Scan Boxes to Merge
+Birleştirme için en az 2 kaynak koli seçilmelidir.,At least 2 source boxes must be selected for merging.
+Boş bırakılırsa ilk kolinin deposuna aktarılır...,Leave blank to transfer to the first box's warehouse...
+Bu koli zaten birleştirme listesine eklendi.,This box has already been added to the merge list.
+En yakın son kullanma tarihi (SKT) ve ağırlıklı ortalama maliyet devralınacaktır.,The earliest expiry date and weighted-average cost will be inherited.
+Farklı ana lotlara ait kolileri birleştirmek için karma lot onayı gereklidir.,Mixed lot confirmation is required to merge boxes from different base lots.
+Farklı ürün kodlarına ait koliler birleştirilemez.,Boxes with different item codes cannot be merged.
+"For job card {0}, you can only make {1} type stock entries","For job card {0}, you can only make {1} type stock entries"
+Geçersiz kaynak koli girdisi.,Invalid source box entry.
+Geçersiz kaynak koli listesi biçimi.,Invalid source box list format.
+Hedef Parti,Target Batch
+Hedef Raf,Target Shelf
+Hedef Raf Barkodu (Opsiyonel),Target Shelf Barcode (Optional)
+Her kaynak koli için parti ve depo bilgisi zorunludur.,Batch and warehouse details are required for each source box.
+Kaldır,Remove
+Kalite Referansı,Quality Reference
+Karma Lot Birleştirme,Mixed Lot Merge
+Karma Lot Birleştirme Uyarısı,Mixed Lot Merge Warning
+Karma veya standart dışı lot tespit edildi ({0}). Birleştirme öncesi onay gerekecektir.,Mixed or non-standard lot detected ({0}). Confirmation will be required before merging.
+Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır: {0},No available stock found for this batch in the source warehouse: {0}
+Kaynak parti detayları Stock Entry açıklamasına ve yeni parti kaydına işlenecektir.,Source batch details will be recorded in the Stock Entry remarks and the new batch record.
+Kaynak ve hedef depolar aynı şirket altında olmalıdır.,Source and target warehouses must belong to the same company.
+Koli Birleştirme,Package Merge
+Koli Birleştirme Tamamlandı,Package Merge Completed
+Koli birleştirme işlemi başarısız oldu.,Package merge failed.
+Koli birleştirme listesine eklendi.,Added to package merge list.
+Koli birleştirmede kaynak kolinin depodaki tam bakiyesi kullanılmalıdır: {0},Package merge must consume the full warehouse balance of the source box: {0}
+Koliler Birleştiriliyor ve Etiket Hazırlanıyor...,Merging Boxes and Preparing Label...
+Koliler başarıyla birleştirildi.,Boxes merged successfully.
+Kolileri Birleştir,Merge Boxes
+Mevcut kolileri tek partide birleştir ve etiket bas,Merge existing boxes into one batch and print label
+Onayla ve Birleştir,Confirm and Merge
+Parti bulunamadı: {0},Batch not found: {0}
+Purpose must be one of {0},Purpose must be one of {0}
+"Row #{0}: Operation {1} has not been sufficiently confirmed yet for Work Order {2}. Required finished goods qty: {3}, confirmed operation qty: {4}.","Row #{0}: Operation {1} has not been sufficiently confirmed yet for Work Order {2}. Required finished goods qty: {3}, confirmed operation qty: {4}."
+Standart Dışı,Non-Standard
+Tekil satınalma / üretim irsaliyesi ve GKK izlenebilirliği tek partide birleşecektir.,Individual purchase / manufacturing receipt and QC traceability will be consolidated into a single batch.
+Varsayılan: ilk kolinin deposu,Default: first box's warehouse
+Varsayılan: ilk kolinin deposu ({0}),Default: first box's warehouse ({0})
+Yeni Birleştirme Başlat,Start New Merge
+Yeni bir 7+4 karma lot numarası üretilecek ve etikete KARMA LOT ibaresi basılacaktır.,A new 7+4 mixed lot number will be generated and KARMA LOT will be printed on the label.
+{0} Koli Seçildi,{0} Boxes Selected
+{0} allows only one item per Stock Entry.,{0} allows only one item per Stock Entry.
+{0} depo bilgisi zorunludur.,{0} warehouse is required.
+{0} depo bulunamadı: {1},{0} warehouse not found: {1}
+{0} depo işlem için uygun değil: {1},{0} warehouse is not eligible for this transaction: {1}
+Ürün ve hedef depo bilgileri zorunludur.,Item and target warehouse details are required.

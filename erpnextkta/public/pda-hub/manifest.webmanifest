@@ -1,0 +1,10 @@
+{
+  "name": "KTA Depo Terminali",
+  "short_name": "KTA PDA",
+  "start_url": "/pda",
+  "scope": "/pda",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1e293b",
+  "background_color": "#f8fafc"
+}

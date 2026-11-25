@@ -1900,3 +1900,199 @@ Sayımı Onayla ve Tamamla,Inventur Abschließen & Bestätigen
 Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,"Speichert ausgewählte Zeilen und druckt Etiketten, ohne den Entwurf zu bestätigen."
 İş Emri Etiketi,Fertigungsauftragsetikett
 Depo Giriş Etiketi,Wareneingangsetikett
+Bu PDA terminaline erişim yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, auf dieses PDA-Terminal zuzugreifen."
+Seçilen personel PDA girişi için yetkili veya aktif değil.,Der ausgewählte Mitarbeiter ist für die PDA-Anmeldung nicht berechtigt oder nicht aktiv.
+Çok fazla hatalı PIN denemesi. Lütfen 5 dakika sonra tekrar deneyin.,Zu viele fehlgeschlagene PIN-Versuche. Bitte versuchen Sie es in 5 Minuten erneut.
+Bu personel için henüz PDA PIN kodu tanımlanmamış.,Für diesen Mitarbeiter wurde noch keine PDA-PIN festgelegt.
+Çok fazla hatalı PIN denemesi. Hesap 5 dakika süreyle kilitlendi.,Zu viele fehlgeschlagene PIN-Versuche. Konto für 5 Minuten gesperrt.
+Hatalı PIN kodu. Kalan deneme hakkı: {0}.,Falscher PIN-Code. Verbleibende Versuche: {0}.
+Personel seçimi zorunludur.,Die Mitarbeiterauswahl ist erforderlich.
+PIN kodu tam olarak 4 sayısal rakamdan oluşmalıdır.,Der PIN-Code muss genau aus 4 Ziffern bestehen.
+Bu işlem için yetkili stok kullanıcısı oturumu gereklidir.,Für diesen Vorgang ist eine autorisierte Lagerbenutzer-Sitzung erforderlich.
+"Birden fazla depo eşleşti, lütfen şirket ekiyle tarayın: {0}","Mehrere Lager gefunden, bitte mit Firmenzusatz scannen: {0}"
+Depo barkodu bulunamadı: {0},Lager-Barcode nicht gefunden: {0}
+Depo pasif durumda: {0},Lager ist deaktiviert: {0}
+Grup depo seçilemez: {0},Gruppenlager kann nicht ausgewählt werden: {0}
+Koli veya parti barkodu bulunamadı: {0},Gebinde- oder Chargenbarcode nicht gefunden: {0}
+Bu partide kullanılabilir stok bakiyesi bulunmamaktadır: {0},Für diese Charge ist kein verfügbarer Bestand vorhanden: {0}
+Geçersiz bölme miktarları biçimi.,Ungültiges Format für Teilmengen.
+En az bir bölme miktarı girilmelidir.,Mindestens eine Teilmenge muss eingegeben werden.
+Bölme miktarları sıfırdan büyük olmalıdır.,Teilmengen müssen größer als null sein.
+"Ürün, kaynak depo ve kaynak parti bilgileri zorunludur.","Artikel, Ausgangslager und Quellcharge sind erforderlich."
+Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır.,Für diese Charge ist im Ausgangslager kein verfügbarer Bestand vorhanden.
+Bölünecek toplam miktar ({0}) mevcut stoktan ({1}) fazla olamaz.,Die gesamte Teilmenge ({0}) darf den verfügbaren Bestand ({1}) nicht überschreiten.
+Standart KTA kolisinin tamamı tek bir yeni koliye bölünemez.,Ein vollständiges KTA-Standardgebinde kann nicht in ein einzelnes neues Gebinde geteilt werden.
+PDA Koli Bölme: {0} ({1}),PDA-Gebindeteilung: {0} ({1})
+"Ürün, parti, kaynak depo ve hedef depo bilgileri zorunludur.","Artikel, Charge, Ausgangslager und Ziellager sind erforderlich."
+Kaynak depo bulunamadı: {0},Ausgangslager nicht gefunden: {0}
+Kaynak depo işlem için uygun değil: {0},Ausgangslager ist für diesen Vorgang nicht geeignet: {0}
+Hedef depo kaynak depo ile aynı olamaz.,Ziellager darf nicht mit dem Ausgangslager identisch sein.
+PDA depolar arası transfer işleminde kolinin tamamı ({0}) transfer edilmelidir.,Bei einer PDA-Lagerumbuchung muss das gesamte Gebinde ({0}) umgebucht werden.
+PDA Depo Transferi: {0} ({1} -> {2}),PDA-Lagerumbuchung: {0} ({1} -> {2})
+Grup depo sorgulanamaz: {0},Gruppenlager kann nicht abgefragt werden: {0}
+Barkod sistemde bulunamadı: {0},Barcode wurde im System nicht gefunden: {0}
+KTA Depo Terminali,KTA Lagerterminal
+Bilgi,Information
+Sunucu isteği sırasında bir hata oluştu.,Bei der Serveranfrage ist ein Fehler aufgetreten.
+Bağlantı hatası oluştu.,Ein Verbindungsfehler ist aufgetreten.
+Tamam,OK
+Onayla,Bestätigen
+Koli Bölme,Gebindeteilung
+Malzeme Transfer,Materialumbuchung
+Stok Sorgu,Bestandsabfrage
+KTA PDA,KTA PDA
+Menü,Menü
+Devret,Übergabe
+Depo İşlemleri,Lagervorgänge
+"Hoş geldiniz, {0}. Başlamak için işlem seçin.","Willkommen, {0}. Wählen Sie einen Vorgang aus, um zu beginnen."
+Başlamak için işlem seçin.,"Wählen Sie einen Vorgang aus, um zu beginnen."
+{0} Açık Emir,{0} Offene Aufträge
+Açık ikmal emirlerini okutarak topla ve hatta aktar,"Offene Nachschubaufträge scannen, kommissionieren und an Linien übergeben"
+Koli Bölme ve Etiketleme,Gebindeteilung & Etikettierung
+"Mevcut koliyi böl, yeni parti oluştur ve etiket bas","Vorhandenes Gebinde teilen, neue Chargen erstellen und Etiketten drucken"
+Depo Raf Transferi,Lagerregal-Umbuchung
+Koli ve hedef raf okutarak raflar arası tam kutu taşı,"Gebinde und Zielregal scannen, um vollständige Gebinde umzulagern"
+"Koli, raf veya ürün barkodu ile anlık bakiye görüntüle","Echtzeitbestand per Gebinde-, Regal- oder Artikelbarcode anzeigen"
+PIN doğrulanamadı.,PIN konnte nicht überprüft werden.
+PIN doğrulaması başarısız oldu.,PIN-Überprüfung fehlgeschlagen.
+PDA Terminal Kilidi,PDA-Terminalsperre
+Devam etmek için personel kartınızı seçin ve 4 haneli PIN kodunuzu girin.,"Wählen Sie Ihre Mitarbeiterkarte und geben Sie Ihren 4-stelligen PIN-Code ein, um fortzufahren."
+Oturum süresi doldu. PIN ile yeniden giriş yapın veya standart oturum açın.,Sitzung abgelaufen. Melden Sie sich erneut mit PIN oder über die Standardanmeldung an.
+Personel Ara...,Mitarbeiter Suchen...
+Yetkili ambar veya sevk personeli bulunamadı.,Kein autorisierter Lager- oder Versandmitarbeiter gefunden.
+PIN Hazır,PIN Bereit
+PIN Yok,Keine PIN
+Farklı Kullanıcı ile Giriş Yap,Mit Anderem Benutzer Anmelden
+Personel Değiştir,Mitarbeiter Wechseln
+Koli için kullanılabilir stok bakiyesi bulunamadı.,Für dieses Gebinde wurde kein verfügbarer Bestand gefunden.
+Koli doğrulandı. Şimdi hedef raf barkodunu okutun.,Gebinde bestätigt. Scannen Sie jetzt den Zielregal-Barcode.
+Koli barkodu çözümlenemedi.,Gebindebarcode konnte nicht aufgelöst werden.
+Malzeme Transfer Ediliyor...,Material Wird Umgebucht...
+Transfer tamamlandı. Sıradaki koliyi okutabilirsiniz.,Umbuchung abgeschlossen. Sie können das nächste Gebinde scannen.
+Koli transferi başarıyla tamamlandı.,Gebindeumbuchung erfolgreich abgeschlossen.
+Transfer işlemi tamamlanamadı.,Umbuchung konnte nicht abgeschlossen werden.
+Son Transfer Tamamlandı,Letzte Umbuchung Abgeschlossen
+1 Kutu = 1 Parti,1 Gebinde = 1 Charge
+Parti Numarası,Chargennummer
+Kaynak Raf,Quellregal
+Transfer Edilecek Tam Kutu Miktarı,Vollgebindemenge für Umbuchung
+Adım 2: Hedef Raf Barkodu,Schritt 2: Zielregal-Barcode
+Hedef Raf Barkodu Okutun (Örn: 170-W1F-02-04)...,Zielregal-Barcode Scannen (z. B. 170-W1F-02-04)...
+Adım 1: Koli Barkodu Okutun,Schritt 1: Gebindebarcode Scannen
+Tam kutu raf transferi için önce taşımak istediğiniz koliyi okutun.,"Scannen Sie zuerst das Gebinde, das Sie per Vollgebinde-Umlagerung bewegen möchten."
+Bölünecek toplam miktar mevcut bakiyeyi aşıyor.,Die gesamte Teilmenge überschreitet den verfügbaren Bestand.
+Koli okutuldu ve bölme işlemi için hazır.,Gebinde gescannt und bereit zur Teilung.
+Koli Bölünüyor ve Etiketler Hazırlanıyor...,Gebinde Wird Geteilt und Etiketten Werden Erstellt...
+Koli bölme işlemi tamamlandı.,Gebindeteilung abgeschlossen.
+Koli bölme işlemi başarısız oldu.,Gebindeteilung fehlgeschlagen.
+Koli Bölme Tamamlandı,Gebindeteilung Abgeschlossen
+Belge No,Belegnummer
+Kaynak Parti,Quellcharge
+Kalan Kaynak Miktar,Verbleibende Quellmenge
+Oluşturulan Yeni Partiler,Neu Erstellte Chargen
+Kalan kaynak koli etiketi yazdırma kuyruğuna eklendi.,Etikett für verbleibendes Quellgebinde zur Druckwarteschlange hinzugefügt.
+Yeni Koli Okut,Neues Gebinde Scannen
+Mevcut Bakiye,Verfügbarer Bestand
+Bölünecek Koli Adetleri,Gebinde-Teilmengen
+Kutu Ekle,Gebinde Hinzufügen
+Bölünecek Miktar Girin...,Teilmenge Eingeben...
+Kalan kaynak etiketini de yeniden bas,Verbleibendes Quelletikett ebenfalls erneut drucken
+Koli Böl ve Etiket Bas,Gebinde Teilen und Etiketten Drucken
+Koli Barkodu Okutun,Gebindebarcode Scannen
+Bölmek istediğiniz kolinin etiketini veya parti numarasını okutun.,Scannen Sie das Etikett oder die Chargennummer des zu teilenden Gebindes.
+Açık ikmal emirleri yüklenemedi.,Offene Nachschubaufträge konnten nicht geladen werden.
+Emir detayları alınamadı.,Auftragsdetails konnten nicht geladen werden.
+Barkod tanınamadı veya sistemde bulunamadı.,Barcode konnte nicht erkannt oder im System gefunden werden.
+Okutulan malzeme bu ikmal emrinde yer almıyor.,Der gescannte Artikel ist in diesem Nachschubauftrag nicht enthalten.
+Okutulan miktar tolerans sınırını aşıyor.,Die gescannte Menge überschreitet die Toleranzgrenze.
+Malzeme okutuldu ve toplandı olarak işaretlendi.,Artikel gescannt und als kommissioniert markiert.
+Barkod çözümleme sırasında hata oluştu.,Beim Auflösen des Barcodes ist ein Fehler aufgetreten.
+Girilen miktar tolerans sınırını aşıyor.,Die eingegebene Menge überschreitet die Toleranzgrenze.
+Transfer için en az bir kalem seçilmelidir.,Für die Umbuchung muss mindestens ein Artikel ausgewählt werden.
+Malzeme transferi başarıyla tamamlandı.,Materialumbuchung erfolgreich abgeschlossen.
+Açık İkmal Emri Yok,Keine Offenen Nachschubaufträge
+Yeni hat ikmal emri oluşturulduğunda burada listelenir.,"Neue Liniennachschubaufträge werden hier angezeigt, sobald sie erstellt wurden."
+Okutulan barkod için kayıt bulunamadı.,Kein Eintrag für den gescannten Barcode gefunden.
+Stok sorgusu güncellendi.,Bestandsabfrage aktualisiert.
+Stok sorgusu yapılamadı.,Bestandsabfrage fehlgeschlagen.
+Koli / Parti,Gebinde / Charge
+Toplam Bakiye,Gesamtbestand
+Etiket No,Etiketten-Nr.
+SUT Barkodu,SUT-Barcode
+Son Kullanma,Ablaufdatum
+Etiket Tipi,Etikettentyp
+Bulunduğu Depolar,Lagerorte
+Aktif stok bakiyesi yok.,Kein aktiver Bestand vorhanden.
+Depo / Raf,Lager / Regal
+Kalem Sayısı,Artikelanzahl
+Raftaki Malzemeler,Artikel im Regal
+Bu rafta stok bulunmuyor.,In diesem Regal ist kein Bestand vorhanden.
+Toplam Stok,Gesamtbestand
+Depo Bakiyeleri,Lagerbestände
+Depolarda stok bulunmuyor.,In den Lagern ist kein Bestand vorhanden.
+Parti Dağılımı,Chargenverteilung
+Stok ve Etiket Sorgula,Bestands- & Etikettenabfrage
+"Koli, raf veya malzeme barkodunu okutarak anlık stok durumunu görüntüleyin.","Scannen Sie einen Gebinde-, Regal- oder Artikelbarcode, um den Echtzeitbestand anzuzeigen."
+Stock,Lager
+{0} İşlem,{0} Vorgänge
+Ana Modüller,Hauptmodule
+Menüyü Kapat,Menü Schließen
+Yetkili Modül Bulunamadı,Keine Berechtigten Module Gefunden
+Size atanmış aktif bir PDA modülü bulunmamaktadır. Yöneticinizle iletişime geçin.,Ihnen sind keine aktiven PDA-Module zugewiesen. Bitte wenden Sie sich an Ihren Administrator.
+Bu PDA ekranına erişim yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, auf diesen PDA-Bildschirm zuzugreifen."
+Bu işlem için yetkili PDA kullanıcı oturumu gereklidir.,Für diesen Vorgang ist eine autorisierte PDA-Benutzersitzung erforderlich.
+Bu işlem için yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, diesen Vorgang auszuführen."
+Package Merge,Gebindezusammenführung
+Ana Lot,Stammcharge
+Aynı Ana Lot: {0} — Kesintisiz Birleştirme,Gleiche Stammcharge: {0} — Nahtlose Zusammenführung
+Aynı Lot Birleştirme,Sortenreine Chargenzusammenführung
+Aynı kaynak koli birden fazla kez eklenemez: {0},Dasselbe Quellgebinde kann nicht mehrfach hinzugefügt werden: {0}
+Aynı parti ve depo çifti birden fazla satırda seçilemez.,Dasselbe Chargen- und Lagerpaar kann nicht in mehreren Zeilen ausgewählt werden.
+Aynı ürüne ait en az 2 koliyi okutarak tek partide birleştirin.,"Scannen Sie mindestens 2 Gebinde desselben Artikels, um sie zu einer Charge zusammenzuführen."
+Birleştirilecek Kolileri Okutun,Gebinde zum Zusammenführen Scannen
+Birleştirme için en az 2 kaynak koli seçilmelidir.,Zum Zusammenführen müssen mindestens 2 Quellgebinde ausgewählt werden.
+Boş bırakılırsa ilk kolinin deposuna aktarılır...,Leer lassen für Umbuchung in das Lager des ersten Gebindes...
+Bu koli zaten birleştirme listesine eklendi.,Dieses Gebinde wurde bereits zur Zusammenführungsliste hinzugefügt.
+En yakın son kullanma tarihi (SKT) ve ağırlıklı ortalama maliyet devralınacaktır.,Das früheste Verfallsdatum und die gewichteten Durchschnittskosten werden übernommen.
+Farklı ana lotlara ait kolileri birleştirmek için karma lot onayı gereklidir.,Zum Zusammenführen von Gebinden aus verschiedenen Stammchargen ist eine Mischchargen-Bestätigung erforderlich.
+Farklı ürün kodlarına ait koliler birleştirilemez.,Gebinde mit unterschiedlichen Artikelcodes können nicht zusammengeführt werden.
+"For job card {0}, you can only make {1} type stock entries",Für die Jobkarte {0} können Sie nur Lagerbuchungen vom Typ {1} erstellen
+Geçersiz kaynak koli girdisi.,Ungültiger Quellgebinde-Eintrag.
+Geçersiz kaynak koli listesi biçimi.,Ungültiges Format der Quellgebindeliste.
+Hedef Parti,Zielcharge
+Hedef Raf,Ziellagerort
+Hedef Raf Barkodu (Opsiyonel),Zielregal-Barcode (Optional)
+Her kaynak koli için parti ve depo bilgisi zorunludur.,Für jedes Quellgebinde sind Chargen- und Lagerdaten erforderlich.
+Kaldır,Entfernen
+Kalite Referansı,Qualitätsreferenz
+Karma Lot Birleştirme,Mischchargen-Zusammenführung
+Karma Lot Birleştirme Uyarısı,Warnung zur Mischchargen-Zusammenführung
+Karma veya standart dışı lot tespit edildi ({0}). Birleştirme öncesi onay gerekecektir.,Gemischte oder nicht standardmäßige Charge erkannt ({0}). Vor dem Zusammenführen ist eine Bestätigung erforderlich.
+Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır: {0},Im Quelllager ist kein verfügbarer Bestand für diese Charge vorhanden: {0}
+Kaynak parti detayları Stock Entry açıklamasına ve yeni parti kaydına işlenecektir.,Quellchargendetails werden in den Bemerkungen zur Lagerbuchung und im neuen Chargendatensatz erfasst.
+Kaynak ve hedef depolar aynı şirket altında olmalıdır.,Quell- und Ziellager müssen demselben Unternehmen angehören.
+Koli Birleştirme,Gebindezusammenführung
+Koli Birleştirme Tamamlandı,Gebindezusammenführung Abgeschlossen
+Koli birleştirme işlemi başarısız oldu.,Gebindezusammenführung fehlgeschlagen.
+Koli birleştirme listesine eklendi.,Zur Gebindezusammenführungsliste hinzugefügt.
+Koli birleştirmede kaynak kolinin depodaki tam bakiyesi kullanılmalıdır: {0},Bei der Gebindezusammenführung muss der vollständige Lagerbestand des Quellgebindes verwendet werden: {0}
+Koliler Birleştiriliyor ve Etiket Hazırlanıyor...,Gebinde Werden Zusammengeführt und Etikett Wird Vorbereitet...
+Koliler başarıyla birleştirildi.,Gebinde erfolgreich zusammengeführt.
+Kolileri Birleştir,Gebinde Zusammenführen
+Mevcut kolileri tek partide birleştir ve etiket bas,Bestehende Gebinde zu einer Charge zusammenführen und Etikett drucken
+Onayla ve Birleştir,Bestätigen und Zusammenführen
+Parti bulunamadı: {0},Charge nicht gefunden: {0}
+Purpose must be one of {0},Der Zweck muss einer der folgenden sein: {0}
+"Row #{0}: Operation {1} has not been sufficiently confirmed yet for Work Order {2}. Required finished goods qty: {3}, confirmed operation qty: {4}.","Zeile #{0}: Vorgang {1} wurde für den Fertigungsauftrag {2} noch nicht ausreichend bestätigt. Erforderliche Fertigwarenmenge: {3}, bestätigte Vorgangsmenge: {4}."
+Standart Dışı,Nicht-Standard
+Tekil satınalma / üretim irsaliyesi ve GKK izlenebilirliği tek partide birleşecektir.,Einzelne Einkaufs-/Fertigungsbelege und QC-Rückverfolgbarkeit werden in einer einzigen Charge zusammengefasst.
+Varsayılan: ilk kolinin deposu,Standard: Lager des ersten Gebindes
+Varsayılan: ilk kolinin deposu ({0}),Standard: Lager des ersten Gebindes ({0})
+Yeni Birleştirme Başlat,Neue Zusammenführung Starten
+Yeni bir 7+4 karma lot numarası üretilecek ve etikete KARMA LOT ibaresi basılacaktır.,Eine neue 7+4-Mischchargennummer wird generiert und KARMA LOT wird auf das Etikett gedruckt.
+{0} Koli Seçildi,{0} Gebinde Ausgewählt
+{0} allows only one item per Stock Entry.,{0} erlaubt nur einen Artikel pro Lagerbuchung.
+{0} depo bilgisi zorunludur.,{0}-Lager ist erforderlich.
+{0} depo bulunamadı: {1},{0}-Lager nicht gefunden: {1}
+{0} depo işlem için uygun değil: {1},{0}-Lager ist für diesen Vorgang nicht geeignet: {1}
+Ürün ve hedef depo bilgileri zorunludur.,Artikel- und Ziellagerdaten sind erforderlich.

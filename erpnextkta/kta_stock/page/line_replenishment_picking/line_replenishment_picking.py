@@ -2,16 +2,26 @@
 # See license.txt
 
 import frappe
+from erpnextkta.kta_stock.line_replenishment_service import (
+    _PICKING_ALLOWED_ROLES,
+    _require_replenishment_picking_access,
+)
 from frappe import _
 from frappe.utils import flt
 
 
 def get_context(context):
     """Context and permission gate for Line Replenishment Mobile PDA Picking."""
-    allowed_roles = {"Stock User", "Stock Manager", "System Manager"}
-    user_roles = set(frappe.get_roles())
+    user = getattr(frappe.session, "user", None)
+    if not user or user == "Guest":
+        frappe.throw(
+            _("Bu sayfaya erişim yetkiniz bulunmamaktadır."),
+            frappe.PermissionError,
+        )
+
+    user_roles = set(frappe.get_roles(user))
     if not (
-        user_roles.intersection(allowed_roles)
+        user_roles.intersection(_PICKING_ALLOWED_ROLES)
         or frappe.has_permission("Stock Entry", "read")
         or frappe.has_permission("KTA Line Replenishment Order", "read")
     ):
@@ -24,6 +34,7 @@ def get_context(context):
 @frappe.whitelist()
 def get_open_replenishment_orders() -> list[dict]:
     """Retrieve all open line replenishment orders for PDA picking."""
+    _require_replenishment_picking_access()
     return frappe.get_all(
         "KTA Line Replenishment Order",
         filters={"status": ["in", ["Draft", "In Progress"]]},
@@ -41,6 +52,7 @@ def get_open_replenishment_orders() -> list[dict]:
 @frappe.whitelist()
 def get_replenishment_order_details(order_name: str | None = None) -> dict | None:
     """Retrieve full line replenishment order details with item picking status."""
+    _require_replenishment_picking_access()
     if not order_name:
         return None
 
@@ -84,6 +96,7 @@ def resolve_scanned_barcode(barcode: str | None = None) -> dict:
     4. Item Barcode child table match
     """
     clean_code = (barcode or "").strip()
+    _require_replenishment_picking_access()
     if not clean_code:
         return {"item_code": None, "batch_no": None, "qty": 0.0}
 

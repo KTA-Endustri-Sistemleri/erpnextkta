@@ -285,6 +285,70 @@ class TestRelabelingService(KTABaseTestCase):
         self.assertEqual(cint(repack_type.custom_etiket_basilabilir), 0)
         self.assertFalse(repack_type.custom_etiket_sablonu)
 
+    def _ensure_test_employee(self):
+        employee_name = frappe.db.get_value(
+            "Employee",
+            {"first_name": "Test PDA Operator", "status": "Active"},
+            "name",
+        )
+        if employee_name:
+            return employee_name
+
+        if not frappe.db.exists("Gender", "Male"):
+            frappe.get_doc({"doctype": "Gender", "gender": "Male"}).insert(
+                ignore_permissions=True
+            )
+
+        company = frappe.db.get_value(
+            "Company", "_Test Company", "name"
+        ) or frappe.db.get_value("Company", {}, "name")
+        if not company:
+            from erpnextkta.tests.test_utils import create_test_company
+
+            company = create_test_company("_Test Company")
+        employee = frappe.get_doc(
+            {
+                "doctype": "Employee",
+                "first_name": "Test PDA Operator",
+                "gender": "Male",
+                "date_of_birth": "1990-01-01",
+                "date_of_joining": "2024-01-01",
+                "status": "Active",
+                "company": company,
+            }
+        )
+        employee.insert(ignore_permissions=True)
+        return employee.name
+
+    def test_setup_creates_employee_pda_pin_custom_field(self):
+        """setup_pda_custom_fields() creates Employee-custom_pda_pin Password field and supports encrypted PIN roundtrip."""
+        from frappe.utils.password import get_decrypted_password, set_encrypted_password
+
+        from erpnextkta.kta_stock.setup import setup_pda_custom_fields
+
+        setup_pda_custom_fields()
+        setup_pda_custom_fields()
+
+        self.assertTrue(frappe.db.exists("Custom Field", "Employee-custom_pda_pin"))
+        cf = frappe.get_doc("Custom Field", "Employee-custom_pda_pin")
+        self.assertEqual(cf.dt, "Employee")
+        self.assertEqual(cf.fieldname, "custom_pda_pin")
+        self.assertEqual(cf.fieldtype, "Password")
+        self.assertEqual(cf.label, "PDA PIN")
+        self.assertEqual(cf.insert_after, "attendance_device_id")
+        self.assertEqual(cf.description, "4 haneli PDA giriş PIN kodu")
+
+        employee_name = self._ensure_test_employee()
+        set_encrypted_password(
+            "Employee", employee_name, "4829", fieldname="custom_pda_pin"
+        )
+        self.assertEqual(
+            get_decrypted_password(
+                "Employee", employee_name, fieldname="custom_pda_pin"
+            ),
+            "4829",
+        )
+
     def test_is_standard_kta_box_batch_and_extract_base_lot(self):
         """Validates 7-char uppercase alphanumeric + 4-digit non-0000 box batch rule."""
         from erpnextkta.kta_stock.services.relabeling_service import (
@@ -808,3 +872,299 @@ class TestRelabelingService(KTABaseTestCase):
         self.assertEqual(lbl.target_warehouse, wh_src)
         self.assertEqual(lbl.label_type, "İş Emri Etiketi")
         self.assertEqual(lbl.work_order, wo.name)
+
+    def _ensure_zebra_templates(self):
+        if not frappe.db.exists("DocType", "KTA Zebra Templates"):
+            return
+        for tmpl_name in ("Depo Giriş Etiketi", "İş Emri Etiketi"):
+            if not frappe.db.exists("KTA Zebra Templates", tmpl_name):
+                frappe.get_doc(
+                    {
+                        "doctype": "KTA Zebra Templates",
+                        "doctype_name": tmpl_name,
+                        "zebra_template": "^XA^FD{data.item_code}|{data.sut_barcode}|{data.qty}^FS^XZ",
+                    }
+                ).insert(ignore_permissions=True, ignore_if_duplicate=True)
+            frappe.cache().delete_value(f"kta_zebra_template_{tmpl_name}")
+
+    def test_setup_creates_package_merge_stock_entry_type(self):
+        """setup() creates/updates Package Merge Stock Entry Type idempotently."""
+        setup()
+        setup()
+
+        merge_type = frappe.get_doc("Stock Entry Type", "Package Merge")
+        self.assertEqual(merge_type.purpose, "Repack")
+        self.assertEqual(cint(merge_type.is_standard), 0)
+        self.assertEqual(cint(merge_type.custom_etiket_basilabilir), 1)
+        self.assertEqual(merge_type.custom_etiket_sablonu, "Depo Giriş Etiketi")
+
+    def test_create_package_merge_repack_same_base_lot_inherits_meta_and_min_expiry(
+        self,
+    ):
+        """Same-lot Package Merge mints next box batch, inherits PR metadata & min expiry, and prints once."""
+        from erpnextkta.kta_stock.services.relabeling_service import (
+            create_package_merge_repack,
+            get_batch_ledger_balances,
+            upsert_box_label,
+        )
+
+        setup()
+        self._ensure_zebra_templates()
+        company, wh_src, wh_dst = self._ensure_test_warehouses()
+        uid = frappe.generate_hash("", 5).upper()
+        item_code = self._ensure_batch_item(f"_TEST-MERGE-SAME-{uid}")
+        supplier = (
+            frappe.db.get_value("Supplier", {}, "name")
+            or frappe.get_doc(
+                {
+                    "doctype": "Supplier",
+                    "supplier_name": f"_Test Supplier Merge {uid}",
+                    "supplier_group": frappe.db.get_value("Supplier Group", {}, "name")
+                    or "All Supplier Groups",
+                }
+            )
+            .insert(ignore_permissions=True)
+            .name
+        )
+
+        pr = self._create_test_purchase_receipt(
+            company=company,
+            supplier=supplier,
+            item_code=item_code,
+            warehouse=wh_src,
+            qty=100.0,
+            rate=12.0,
+            posting_date="2026-11-10",
+            delivery_note=f"IRS-MRG-{uid}",
+        )
+        pr.docstatus = 0
+
+        base_lot = f"M{frappe.generate_hash('', 6).upper()}"
+        b1 = f"{base_lot}0001"
+        b2 = f"{base_lot}0002"
+        self._create_batch(
+            b1,
+            item_code,
+            reference_doctype="Purchase Receipt",
+            reference_name=pr.name,
+            supplier=supplier,
+            manufacturing_date="2026-11-01",
+            expiry_date="2028-06-01",
+            stock_uom="Nos",
+        )
+        self._create_batch(
+            b2,
+            item_code,
+            reference_doctype="Purchase Receipt",
+            reference_name=pr.name,
+            supplier=supplier,
+            manufacturing_date="2026-11-01",
+            expiry_date="2028-02-15",
+            stock_uom="Nos",
+        )
+        self._receive_batch_stock(
+            item_code, wh_src, b1, 40.0, rate=12.0, company=company
+        )
+        self._receive_batch_stock(
+            item_code, wh_dst, b2, 60.0, rate=12.0, company=company
+        )
+        lbl1 = upsert_box_label(
+            item_code=item_code,
+            batch_no=b1,
+            qty=40.0,
+            target_warehouse=wh_src,
+            reference_doctype="Purchase Receipt",
+            reference_name=pr.name,
+            quality_ref=f"QI-MRG-{uid}",
+            supplier_delivery_note=f"IRS-MRG-{uid}",
+            posting_date="2026-11-10",
+        )
+        lbl2 = upsert_box_label(
+            item_code=item_code,
+            batch_no=b2,
+            qty=60.0,
+            target_warehouse=wh_dst,
+            reference_doctype="Purchase Receipt",
+            reference_name=pr.name,
+            quality_ref=f"QI-MRG-{uid}",
+            supplier_delivery_note=f"IRS-MRG-{uid}",
+            posting_date="2026-11-10",
+        )
+
+        mock_printer = MagicMock()
+        with patch(
+            "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+            return_value=mock_printer,
+        ):
+            res = create_package_merge_repack(
+                item_code=item_code,
+                source_boxes=[
+                    {"batch_no": b1, "warehouse": wh_src},
+                    {"batch_no": b2, "warehouse": wh_dst},
+                ],
+                target_warehouse=wh_dst,
+                allow_mixed_lots=False,
+            )
+
+        self.assertFalse(res["is_mixed_lot"])
+        self.assertEqual(res["base_lot"], base_lot)
+        self.assertEqual(res["target_batch"], f"{base_lot}0003")
+        self.assertEqual(flt(res["total_qty"]), 100.0)
+        self.assertEqual(res["target_warehouse"], wh_dst)
+        self.assertEqual(mock_printer.send_batch.call_count, 1)
+
+        se = frappe.get_doc("Stock Entry", res["stock_entry"])
+        self.assertEqual(se.docstatus, 1)
+        self.assertEqual(se.stock_entry_type, "Package Merge")
+        self.assertEqual(se.purpose, "Repack")
+        self.assertTrue(se.remarks.startswith("[KOLİ BİRLEŞTİRME]"))
+
+        target_batch_doc = frappe.get_doc("Batch", res["target_batch"])
+        self.assertEqual(str(target_batch_doc.expiry_date), "2028-02-15")
+        self.assertEqual(target_batch_doc.reference_doctype, "Purchase Receipt")
+        self.assertEqual(target_batch_doc.reference_name, pr.name)
+        self.assertEqual(target_batch_doc.description, se.remarks)
+
+        self.assertEqual(get_batch_ledger_balances(item_code, b1), [])
+        self.assertEqual(get_batch_ledger_balances(item_code, b2), [])
+        self.assertEqual(
+            get_batch_ledger_balances(item_code, res["target_batch"]),
+            [{"warehouse": wh_dst, "qty": 100.0}],
+        )
+        self.assertFalse(frappe.db.exists("KTA Stock Label", lbl1))
+        self.assertFalse(frappe.db.exists("KTA Stock Label", lbl2))
+
+        target_lbl = frappe.db.get_value(
+            "KTA Stock Label",
+            {"item_code": item_code, "batch": res["target_batch"]},
+            ["quality_ref", "supplier_delivery_note", "qty", "target_warehouse"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(target_lbl)
+        self.assertEqual(target_lbl.quality_ref, f"QI-MRG-{uid}")
+        self.assertEqual(target_lbl.supplier_delivery_note, f"IRS-MRG-{uid}")
+        self.assertEqual(flt(target_lbl.qty), 100.0)
+        self.assertEqual(target_lbl.target_warehouse, wh_dst)
+
+    def test_create_package_merge_repack_mixed_lots_requires_ack_and_sets_karma_lot(
+        self,
+    ):
+        """Mixed-lot and legacy merges require allow_mixed_lots, mint new 7+4 lot, keep weighted rate, and print KARMA LOT."""
+        from erpnextkta.kta_stock.services.relabeling_service import (
+            create_package_merge_repack,
+            is_standard_kta_box_batch,
+            upsert_box_label,
+        )
+
+        setup()
+        self._ensure_zebra_templates()
+        company, wh_src, wh_dst = self._ensure_test_warehouses()
+        uid = frappe.generate_hash("", 5).upper()
+        item_code = self._ensure_batch_item(f"_TEST-MERGE-MIXED-{uid}")
+
+        b1 = f"A{frappe.generate_hash('', 6).upper()}0001"
+        b2 = f"B{frappe.generate_hash('', 6).upper()}0002"
+        self._create_batch(b1, item_code, expiry_date="2028-09-01", stock_uom="Nos")
+        self._create_batch(b2, item_code, expiry_date="2028-03-10", stock_uom="Nos")
+        self._receive_batch_stock(
+            item_code, wh_src, b1, 40.0, rate=10.0, company=company
+        )
+        self._receive_batch_stock(
+            item_code, wh_src, b2, 60.0, rate=20.0, company=company
+        )
+        upsert_box_label(item_code, b1, 40.0, target_warehouse=wh_src)
+        upsert_box_label(item_code, b2, 60.0, target_warehouse=wh_src)
+
+        with self.assertRaises(frappe.ValidationError):
+            create_package_merge_repack(
+                item_code=item_code,
+                source_boxes=[
+                    {"batch_no": b1, "warehouse": wh_src},
+                    {"batch_no": b2, "warehouse": wh_src},
+                ],
+                target_warehouse=wh_dst,
+                allow_mixed_lots=0,
+            )
+
+        mock_printer = MagicMock()
+        with patch(
+            "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+            return_value=mock_printer,
+        ):
+            res = create_package_merge_repack(
+                item_code=item_code,
+                source_boxes=[
+                    {"batch_no": b1, "warehouse": wh_src},
+                    {"batch_no": b2, "warehouse": wh_src},
+                ],
+                target_warehouse=wh_dst,
+                allow_mixed_lots=1,
+            )
+
+        self.assertTrue(res["is_mixed_lot"])
+        self.assertTrue(is_standard_kta_box_batch(res["target_batch"]))
+        self.assertEqual(mock_printer.send_batch.call_count, 1)
+
+        se = frappe.get_doc("Stock Entry", res["stock_entry"])
+        self.assertTrue(se.remarks.startswith("[KARMA LOT BİRLEŞTİRME]"))
+        finished_row = next(r for r in se.items if r.t_warehouse)
+        self.assertEqual(flt(finished_row.basic_rate), 16.0)
+
+        target_batch_doc = frappe.get_doc("Batch", res["target_batch"])
+        self.assertEqual(str(target_batch_doc.expiry_date), "2028-03-10")
+        self.assertEqual(target_batch_doc.reference_doctype, "Stock Entry")
+        self.assertEqual(target_batch_doc.reference_name, se.name)
+        self.assertEqual(target_batch_doc.description, se.remarks)
+
+        target_lbl = frappe.db.get_value(
+            "KTA Stock Label",
+            {"item_code": item_code, "batch": res["target_batch"]},
+            ["quality_ref", "supplier_delivery_note", "qty"],
+            as_dict=True,
+        )
+        self.assertIsNotNone(target_lbl)
+        self.assertEqual(target_lbl.quality_ref, "KARMA LOT")
+        self.assertEqual(flt(target_lbl.qty), 100.0)
+
+        # Legacy batch mixed with standard batch also requires allow_mixed_lots=1 and mints 7+4 batch
+        legacy_batch = f"LEGACY-MRG-{uid}"
+        std_batch = f"C{frappe.generate_hash('', 6).upper()}0001"
+        self._create_batch(
+            legacy_batch, item_code, expiry_date="2028-11-11", stock_uom="Nos"
+        )
+        self._create_batch(
+            std_batch, item_code, expiry_date="2028-05-05", stock_uom="Nos"
+        )
+        self._receive_batch_stock(
+            item_code, wh_src, legacy_batch, 25.0, rate=10.0, company=company
+        )
+        self._receive_batch_stock(
+            item_code, wh_src, std_batch, 25.0, rate=10.0, company=company
+        )
+        with self.assertRaises(frappe.ValidationError):
+            create_package_merge_repack(
+                item_code=item_code,
+                source_boxes=[
+                    {"batch_no": legacy_batch, "warehouse": wh_src},
+                    {"batch_no": std_batch, "warehouse": wh_src},
+                ],
+                target_warehouse=wh_src,
+                allow_mixed_lots=False,
+            )
+
+        with patch(
+            "kta_system_utils.kta_zebra_utils.printer_manager.ZebraPrinterManager.get_printer_for_user",
+            return_value=mock_printer,
+        ):
+            legacy_res = create_package_merge_repack(
+                item_code=item_code,
+                source_boxes=[
+                    {"batch_no": legacy_batch, "warehouse": wh_src},
+                    {"batch_no": std_batch, "warehouse": wh_src},
+                ],
+                target_warehouse=wh_src,
+                allow_mixed_lots=True,
+            )
+        self.assertTrue(legacy_res["is_mixed_lot"])
+        self.assertTrue(is_standard_kta_box_batch(legacy_res["target_batch"]))
+        self.assertEqual(flt(legacy_res["total_qty"]), 50.0)

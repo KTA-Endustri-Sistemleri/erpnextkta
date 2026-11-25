@@ -3,7 +3,7 @@ import re
 import frappe
 from erpnext.stock.utils import get_incoming_rate
 from frappe import _
-from frappe.utils import cint, flt, nowtime, today
+from frappe.utils import cint, flt, getdate, nowtime, today
 
 from erpnextkta.kta_stock.batch_manager import BatchSplitManager
 
@@ -369,6 +369,14 @@ def resolve_batch_label_metadata(
                     if se_vals.get("posting_date"):
                         meta["gr_posting_date"] = str(se_vals.get("posting_date"))
                     meta["quality_ref"] = "ATLA 5/1"
+                    meta["supplier_delivery_note"] = "-"
+                elif se_type == "Package Merge":
+                    meta["label_type"] = resolve_item_default_label_type(item_code)
+                    meta["reference_doctype"] = "Stock Entry"
+                    meta["reference_name"] = ref_name
+                    if se_vals.get("posting_date"):
+                        meta["gr_posting_date"] = str(se_vals.get("posting_date"))
+                    meta["quality_ref"] = "KARMA LOT"
                     meta["supplier_delivery_note"] = "-"
 
             elif ref_dt == "Purchase Receipt" and ref_name:
@@ -838,4 +846,346 @@ def create_package_split_repack(
             {"batch_no": batch_no, "qty": flt(qty)}
             for batch_no, qty in zip(created_batches, normalized_qtys)
         ],
+    }
+
+
+def _validate_active_leaf_warehouse(
+    warehouse: str,
+    expected_company: str | None = None,
+    role_label: str = "Hedef",
+) -> str:
+    """Validate an active non-group warehouse and optional company match, returning its company."""
+    clean_wh = (warehouse or "").strip()
+    if not clean_wh:
+        frappe.throw(
+            _("{0} depo bilgisi zorunludur.").format(role_label),
+            frappe.ValidationError,
+        )
+
+    wh_meta = frappe.db.get_value(
+        "Warehouse",
+        clean_wh,
+        ["name", "company", "is_group", "disabled"],
+        as_dict=True,
+    )
+    if not wh_meta:
+        frappe.throw(
+            _("{0} depo bulunamadı: {1}").format(role_label, clean_wh),
+            frappe.ValidationError,
+        )
+    if cint(wh_meta.is_group) or cint(wh_meta.disabled):
+        frappe.throw(
+            _("{0} depo işlem için uygun değil: {1}").format(role_label, clean_wh),
+            frappe.ValidationError,
+        )
+    if expected_company and wh_meta.company != expected_company:
+        frappe.throw(
+            _("Kaynak ve hedef depolar aynı şirket altında olmalıdır."),
+            frappe.ValidationError,
+        )
+    return wh_meta.company
+
+
+def _normalize_merge_sources(
+    item_code: str,
+    source_boxes: list[dict],
+    expected_company: str,
+) -> list[dict]:
+    """Validate source boxes, prevent duplicates, and resolve full-box ledger balances."""
+    if not isinstance(source_boxes, (list, tuple)) or len(source_boxes) < 2:
+        frappe.throw(
+            _("Birleştirme için en az 2 kaynak koli seçilmelidir."),
+            frappe.ValidationError,
+        )
+
+    seen_pairs: set[tuple[str, str]] = set()
+    normalized: list[dict] = []
+    for box in source_boxes:
+        if not isinstance(box, dict):
+            frappe.throw(
+                _("Geçersiz kaynak koli girdisi."),
+                frappe.ValidationError,
+            )
+        batch_no = str(box.get("batch_no") or "").strip()
+        warehouse = str(box.get("warehouse") or "").strip()
+        if not batch_no or not warehouse:
+            frappe.throw(
+                _("Her kaynak koli için parti ve depo bilgisi zorunludur."),
+                frappe.ValidationError,
+            )
+
+        pair = (batch_no, warehouse)
+        if pair in seen_pairs:
+            frappe.throw(
+                _("Aynı kaynak koli birden fazla kez eklenemez: {0}").format(batch_no),
+                frappe.ValidationError,
+            )
+        seen_pairs.add(pair)
+
+        batch_item = frappe.db.get_value("Batch", batch_no, "item")
+        if not batch_item:
+            frappe.throw(
+                _("Parti bulunamadı: {0}").format(batch_no),
+                frappe.ValidationError,
+            )
+        if batch_item != item_code:
+            frappe.throw(
+                _("Farklı ürün kodlarına ait koliler birleştirilemez."),
+                frappe.ValidationError,
+            )
+
+        _validate_active_leaf_warehouse(
+            warehouse, expected_company=expected_company, role_label="Kaynak"
+        )
+        balances = get_batch_ledger_balances(item_code, batch_no)
+        available_qty = flt(
+            next(
+                (b.get("qty") for b in balances if b.get("warehouse") == warehouse), 0.0
+            )
+        )
+        if available_qty <= _EPSILON:
+            frappe.throw(
+                _(
+                    "Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır: {0}"
+                ).format(batch_no),
+                frappe.ValidationError,
+            )
+
+        supplied_qty = box.get("qty")
+        if (
+            supplied_qty is not None
+            and supplied_qty != ""
+            and abs(flt(supplied_qty) - available_qty) > _EPSILON
+        ):
+            frappe.throw(
+                _(
+                    "Koli birleştirmede kaynak kolinin depodaki tam bakiyesi kullanılmalıdır: {0}"
+                ).format(batch_no),
+                frappe.ValidationError,
+            )
+
+        normalized.append(
+            {
+                "batch_no": batch_no,
+                "warehouse": warehouse,
+                "qty": available_qty,
+            }
+        )
+
+    return normalized
+
+
+def _analyze_merge_lot_and_target(
+    item_code: str,
+    normalized_sources: list[dict],
+    allow_mixed_lots: bool | int,
+) -> tuple[bool, str, str, list[dict]]:
+    """Detect same-lot vs mixed-lot merge, enforce confirmation, and mint 1 target box batch."""
+    distinct_batches = list(dict.fromkeys(s["batch_no"] for s in normalized_sources))
+    all_standard = all(is_standard_kta_box_batch(b) for b in distinct_batches)
+    base_lots = {extract_base_lot(b) for b in distinct_batches}
+    is_mixed_lot = (not all_standard) or (len(base_lots) > 1)
+
+    if is_mixed_lot and not cint(allow_mixed_lots):
+        frappe.throw(
+            _(
+                "Farklı ana lotlara ait kolileri birleştirmek için karma lot onayı gereklidir."
+            ),
+            frappe.ValidationError,
+        )
+
+    batch_metas = [
+        frappe.db.get_value("Batch", b, list(_INHERITED_BATCH_FIELDS), as_dict=True)
+        or {}
+        for b in distinct_batches
+    ]
+    expiry_dates = [
+        getdate(m.get("expiry_date")) for m in batch_metas if m.get("expiry_date")
+    ]
+    min_expiry = str(min(expiry_dates)) if expiry_dates else None
+
+    if not is_mixed_lot:
+        base_lot = next(iter(base_lots))
+        source_meta: dict = {}
+        for field in _INHERITED_BATCH_FIELDS:
+            source_meta[field] = next(
+                (m.get(field) for m in batch_metas if m.get(field)), None
+            )
+        if min_expiry:
+            source_meta["expiry_date"] = min_expiry
+    else:
+        stock_uom = next(
+            (m.get("stock_uom") for m in batch_metas if m.get("stock_uom")), None
+        ) or frappe.db.get_value("Item", item_code, "stock_uom")
+        base_lot = generate_new_base_lot(
+            item_code=item_code, expiry_date=min_expiry, stock_uom=stock_uom
+        )
+        source_meta = {"expiry_date": min_expiry, "stock_uom": stock_uom}
+
+    target_batch = allocate_next_box_batches(
+        base_lot=base_lot,
+        count=1,
+        item_code=item_code,
+        source_meta=source_meta,
+    )[0]
+    return is_mixed_lot, base_lot, target_batch, batch_metas
+
+
+def _build_merge_audit_remarks(
+    item_uom: str,
+    normalized_sources: list[dict],
+    target_batch: str,
+    target_warehouse: str,
+    total_qty: float,
+    is_mixed_lot: bool,
+    remarks: str | None = None,
+) -> str:
+    """Build deterministic audit trail text for Stock Entry.remarks and Batch.description."""
+    audit_prefix = "[KARMA LOT BİRLEŞTİRME]" if is_mixed_lot else "[KOLİ BİRLEŞTİRME]"
+    src_parts = ", ".join(
+        f"{s['batch_no']} ({flt(s['qty'])} {item_uom} @ {s['warehouse']})"
+        for s in normalized_sources
+    )
+    audit_line = (
+        f"{audit_prefix} Kaynaklar: {src_parts} -> "
+        f"Hedef: {target_batch} ({total_qty} {item_uom} @ {target_warehouse})"
+    )
+    if remarks:
+        return f"{remarks}\n{audit_line}"
+    return audit_line
+
+
+def create_package_merge_repack(
+    item_code: str,
+    source_boxes: list[dict],
+    target_warehouse: str,
+    allow_mixed_lots: bool = False,
+    remarks: str | None = None,
+    posting_date: str | None = None,
+    ignore_reco_lock: bool = False,
+) -> dict:
+    """Create and submit a N-source -> 1-target Package Merge (Repack) Stock Entry."""
+    clean_item = (item_code or "").strip()
+    clean_target_wh = (target_warehouse or "").strip()
+    if not clean_item or not clean_target_wh:
+        frappe.throw(
+            _("Ürün ve hedef depo bilgileri zorunludur."), frappe.ValidationError
+        )
+
+    company = _validate_active_leaf_warehouse(clean_target_wh, role_label="Hedef")
+    normalized_sources = _normalize_merge_sources(clean_item, source_boxes, company)
+
+    sp_name = f"pkg_merge_{frappe.generate_hash('', 8)}"
+    frappe.db.savepoint(sp_name)
+    try:
+        is_mixed_lot, base_lot, target_batch, batch_metas = (
+            _analyze_merge_lot_and_target(
+                clean_item, normalized_sources, allow_mixed_lots
+            )
+        )
+
+        eff_posting_date = posting_date or today()
+        eff_posting_time = nowtime()
+        for src in normalized_sources:
+            src["rate"] = _resolve_source_valuation_rate(
+                item_code=clean_item,
+                source_warehouse=src["warehouse"],
+                posting_date=eff_posting_date,
+                posting_time=eff_posting_time,
+                total_split_qty=src["qty"],
+                company=company,
+                source_batch=src["batch_no"],
+            )
+
+        total_qty = flt(sum(s["qty"] for s in normalized_sources), 6)
+        weighted_rate = (
+            flt(sum(s["qty"] * s["rate"] for s in normalized_sources) / total_qty)
+            if total_qty > 0
+            else 0.0
+        )
+        item_uom = (
+            frappe.db.get_value("Item", clean_item, "stock_uom")
+            or batch_metas[0].get("stock_uom")
+            or "Nos"
+        )
+        final_remarks = _build_merge_audit_remarks(
+            item_uom=item_uom,
+            normalized_sources=normalized_sources,
+            target_batch=target_batch,
+            target_warehouse=clean_target_wh,
+            total_qty=total_qty,
+            is_mixed_lot=is_mixed_lot,
+            remarks=remarks,
+        )
+
+        se = frappe.new_doc("Stock Entry")
+        se.purpose = "Repack"
+        se.stock_entry_type = "Package Merge"
+        se.company = company
+        se.posting_date = eff_posting_date
+        se.posting_time = eff_posting_time
+        se.remarks = final_remarks
+
+        for src in normalized_sources:
+            se.append(
+                "items",
+                {
+                    "item_code": clean_item,
+                    "s_warehouse": src["warehouse"],
+                    "qty": src["qty"],
+                    "batch_no": src["batch_no"],
+                    "use_serial_batch_fields": 1,
+                    "allow_zero_valuation_rate": 1 if src["rate"] <= 0 else 0,
+                },
+            )
+        se.append(
+            "items",
+            {
+                "item_code": clean_item,
+                "t_warehouse": clean_target_wh,
+                "qty": total_qty,
+                "batch_no": target_batch,
+                "is_finished_item": 1,
+                "use_serial_batch_fields": 1,
+                "basic_rate": max(0.0, weighted_rate),
+                "allow_zero_valuation_rate": 1 if weighted_rate <= 0 else 0,
+            },
+        )
+
+        prev_flag = getattr(frappe.flags, "kta_ignore_reco_lock", False)
+        try:
+            if ignore_reco_lock:
+                frappe.flags.kta_ignore_reco_lock = True
+            se.insert(ignore_permissions=True)
+            batch_updates: dict[str, object] = {"description": final_remarks}
+            if is_mixed_lot:
+                batch_updates["reference_doctype"] = "Stock Entry"
+                batch_updates["reference_name"] = se.name
+            frappe.db.set_value(
+                "Batch", target_batch, batch_updates, update_modified=False
+            )
+            se.submit()
+        finally:
+            if ignore_reco_lock:
+                if prev_flag:
+                    frappe.flags.kta_ignore_reco_lock = prev_flag
+                else:
+                    frappe.flags.pop("kta_ignore_reco_lock", None)
+
+        for src_batch in dict.fromkeys(s["batch_no"] for s in normalized_sources):
+            sync_batch_label_to_ledger_balance(clean_item, src_batch)
+    except Exception:
+        frappe.db.rollback(save_point=sp_name)
+        raise
+
+    return {
+        "stock_entry": se.name,
+        "item_code": clean_item,
+        "base_lot": base_lot,
+        "target_batch": target_batch,
+        "target_warehouse": clean_target_wh,
+        "total_qty": total_qty,
+        "is_mixed_lot": is_mixed_lot,
+        "remarks": final_remarks,
+        "source_batches": [s["batch_no"] for s in normalized_sources],
     }

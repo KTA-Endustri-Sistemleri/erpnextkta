@@ -1089,3 +1089,205 @@ Sayımı Onayla ve Tamamla,Sayımı Onayla ve Tamamla
 Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.
 İş Emri Etiketi,İş Emri Etiketi
 Depo Giriş Etiketi,Depo Giriş Etiketi
+Barkod boş olamaz.,Barkod boş olamaz.
+İşlem yapılıyor...,İşlem yapılıyor...
+Hat İkmal Toplama,Hat İkmal Toplama
+Onay,Onay
+Hata,Hata
+Bu PDA terminaline erişim yetkiniz bulunmamaktadır.,Bu PDA terminaline erişim yetkiniz bulunmamaktadır.
+Seçilen personel PDA girişi için yetkili veya aktif değil.,Seçilen personel PDA girişi için yetkili veya aktif değil.
+Çok fazla hatalı PIN denemesi. Lütfen 5 dakika sonra tekrar deneyin.,Çok fazla hatalı PIN denemesi. Lütfen 5 dakika sonra tekrar deneyin.
+Bu personel için henüz PDA PIN kodu tanımlanmamış.,Bu personel için henüz PDA PIN kodu tanımlanmamış.
+Çok fazla hatalı PIN denemesi. Hesap 5 dakika süreyle kilitlendi.,Çok fazla hatalı PIN denemesi. Hesap 5 dakika süreyle kilitlendi.
+Hatalı PIN kodu. Kalan deneme hakkı: {0}.,Hatalı PIN kodu. Kalan deneme hakkı: {0}.
+Personel seçimi zorunludur.,Personel seçimi zorunludur.
+PIN kodu tam olarak 4 sayısal rakamdan oluşmalıdır.,PIN kodu tam olarak 4 sayısal rakamdan oluşmalıdır.
+Bu işlem için yetkili stok kullanıcısı oturumu gereklidir.,Bu işlem için yetkili stok kullanıcısı oturumu gereklidir.
+"Birden fazla depo eşleşti, lütfen şirket ekiyle tarayın: {0}","Birden fazla depo eşleşti, lütfen şirket ekiyle tarayın: {0}"
+Depo barkodu bulunamadı: {0},Depo barkodu bulunamadı: {0}
+Depo pasif durumda: {0},Depo pasif durumda: {0}
+Grup depo seçilemez: {0},Grup depo seçilemez: {0}
+Koli veya parti barkodu bulunamadı: {0},Koli veya parti barkodu bulunamadı: {0}
+Bu partide kullanılabilir stok bakiyesi bulunmamaktadır: {0},Bu partide kullanılabilir stok bakiyesi bulunmamaktadır: {0}
+Geçersiz bölme miktarları biçimi.,Geçersiz bölme miktarları biçimi.
+En az bir bölme miktarı girilmelidir.,En az bir bölme miktarı girilmelidir.
+Bölme miktarları sıfırdan büyük olmalıdır.,Bölme miktarları sıfırdan büyük olmalıdır.
+"Ürün, kaynak depo ve kaynak parti bilgileri zorunludur.","Ürün, kaynak depo ve kaynak parti bilgileri zorunludur."
+Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır.,Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır.
+Bölünecek toplam miktar ({0}) mevcut stoktan ({1}) fazla olamaz.,Bölünecek toplam miktar ({0}) mevcut stoktan ({1}) fazla olamaz.
+Standart KTA kolisinin tamamı tek bir yeni koliye bölünemez.,Standart KTA kolisinin tamamı tek bir yeni koliye bölünemez.
+PDA Koli Bölme: {0} ({1}),PDA Koli Bölme: {0} ({1})
+"Ürün, parti, kaynak depo ve hedef depo bilgileri zorunludur.","Ürün, parti, kaynak depo ve hedef depo bilgileri zorunludur."
+Kaynak depo bulunamadı: {0},Kaynak depo bulunamadı: {0}
+Kaynak depo işlem için uygun değil: {0},Kaynak depo işlem için uygun değil: {0}
+Hedef depo kaynak depo ile aynı olamaz.,Hedef depo kaynak depo ile aynı olamaz.
+PDA depolar arası transfer işleminde kolinin tamamı ({0}) transfer edilmelidir.,PDA depolar arası transfer işleminde kolinin tamamı ({0}) transfer edilmelidir.
+PDA Depo Transferi: {0} ({1} -> {2}),PDA Depo Transferi: {0} ({1} -> {2})
+Grup depo sorgulanamaz: {0},Grup depo sorgulanamaz: {0}
+Barkod sistemde bulunamadı: {0},Barkod sistemde bulunamadı: {0}
+KTA Depo Terminali,KTA Depo Terminali
+Bilgi,Bilgi
+Sunucu isteği sırasında bir hata oluştu.,Sunucu isteği sırasında bir hata oluştu.
+Bağlantı hatası oluştu.,Bağlantı hatası oluştu.
+Tamam,Tamam
+Onayla,Onayla
+Koli Bölme,Koli Bölme
+Malzeme Transfer,Malzeme Transfer
+Stok Sorgu,Stok Sorgu
+KTA PDA,KTA PDA
+Menü,Menü
+Devret,Devret
+Depo İşlemleri,Depo İşlemleri
+"Hoş geldiniz, {0}. Başlamak için işlem seçin.","Hoş geldiniz, {0}. Başlamak için işlem seçin."
+Başlamak için işlem seçin.,Başlamak için işlem seçin.
+{0} Açık Emir,{0} Açık Emir
+Açık ikmal emirlerini okutarak topla ve hatta aktar,Açık ikmal emirlerini okutarak topla ve hatta aktar
+Koli Bölme ve Etiketleme,Koli Bölme ve Etiketleme
+"Mevcut koliyi böl, yeni parti oluştur ve etiket bas","Mevcut koliyi böl, yeni parti oluştur ve etiket bas"
+Depo Raf Transferi,Depo Raf Transferi
+Koli ve hedef raf okutarak raflar arası tam kutu taşı,Koli ve hedef raf okutarak raflar arası tam kutu taşı
+"Koli, raf veya ürün barkodu ile anlık bakiye görüntüle","Koli, raf veya ürün barkodu ile anlık bakiye görüntüle"
+PIN doğrulanamadı.,PIN doğrulanamadı.
+PIN doğrulaması başarısız oldu.,PIN doğrulaması başarısız oldu.
+PDA Terminal Kilidi,PDA Terminal Kilidi
+Devam etmek için personel kartınızı seçin ve 4 haneli PIN kodunuzu girin.,Devam etmek için personel kartınızı seçin ve 4 haneli PIN kodunuzu girin.
+Oturum süresi doldu. PIN ile yeniden giriş yapın veya standart oturum açın.,Oturum süresi doldu. PIN ile yeniden giriş yapın veya standart oturum açın.
+Personel Ara...,Personel Ara...
+Yetkili ambar veya sevk personeli bulunamadı.,Yetkili ambar veya sevk personeli bulunamadı.
+PIN Hazır,PIN Hazır
+PIN Yok,PIN Yok
+Farklı Kullanıcı ile Giriş Yap,Farklı Kullanıcı ile Giriş Yap
+Personel Değiştir,Personel Değiştir
+Koli için kullanılabilir stok bakiyesi bulunamadı.,Koli için kullanılabilir stok bakiyesi bulunamadı.
+Koli doğrulandı. Şimdi hedef raf barkodunu okutun.,Koli doğrulandı. Şimdi hedef raf barkodunu okutun.
+Koli barkodu çözümlenemedi.,Koli barkodu çözümlenemedi.
+Malzeme Transfer Ediliyor...,Malzeme Transfer Ediliyor...
+Transfer tamamlandı. Sıradaki koliyi okutabilirsiniz.,Transfer tamamlandı. Sıradaki koliyi okutabilirsiniz.
+Koli transferi başarıyla tamamlandı.,Koli transferi başarıyla tamamlandı.
+Transfer işlemi tamamlanamadı.,Transfer işlemi tamamlanamadı.
+Son Transfer Tamamlandı,Son Transfer Tamamlandı
+1 Kutu = 1 Parti,1 Kutu = 1 Parti
+Parti Numarası,Parti Numarası
+Kaynak Raf,Kaynak Raf
+Transfer Edilecek Tam Kutu Miktarı,Transfer Edilecek Tam Kutu Miktarı
+Adım 2: Hedef Raf Barkodu,Adım 2: Hedef Raf Barkodu
+Hedef Raf Barkodu Okutun (Örn: 170-W1F-02-04)...,Hedef Raf Barkodu Okutun (Örn: 170-W1F-02-04)...
+Adım 1: Koli Barkodu Okutun,Adım 1: Koli Barkodu Okutun
+Tam kutu raf transferi için önce taşımak istediğiniz koliyi okutun.,Tam kutu raf transferi için önce taşımak istediğiniz koliyi okutun.
+Bölünecek toplam miktar mevcut bakiyeyi aşıyor.,Bölünecek toplam miktar mevcut bakiyeyi aşıyor.
+Koli okutuldu ve bölme işlemi için hazır.,Koli okutuldu ve bölme işlemi için hazır.
+Koli Bölünüyor ve Etiketler Hazırlanıyor...,Koli Bölünüyor ve Etiketler Hazırlanıyor...
+Koli bölme işlemi tamamlandı.,Koli bölme işlemi tamamlandı.
+Koli bölme işlemi başarısız oldu.,Koli bölme işlemi başarısız oldu.
+Koli Bölme Tamamlandı,Koli Bölme Tamamlandı
+Belge No,Belge No
+Kaynak Parti,Kaynak Parti
+Kalan Kaynak Miktar,Kalan Kaynak Miktar
+Oluşturulan Yeni Partiler,Oluşturulan Yeni Partiler
+Kalan kaynak koli etiketi yazdırma kuyruğuna eklendi.,Kalan kaynak koli etiketi yazdırma kuyruğuna eklendi.
+Yeni Koli Okut,Yeni Koli Okut
+Mevcut Bakiye,Mevcut Bakiye
+Bölünecek Koli Adetleri,Bölünecek Koli Adetleri
+Kutu Ekle,Kutu Ekle
+Bölünecek Miktar Girin...,Bölünecek Miktar Girin...
+Kalan kaynak etiketini de yeniden bas,Kalan kaynak etiketini de yeniden bas
+Koli Böl ve Etiket Bas,Koli Böl ve Etiket Bas
+Koli Barkodu Okutun,Koli Barkodu Okutun
+Bölmek istediğiniz kolinin etiketini veya parti numarasını okutun.,Bölmek istediğiniz kolinin etiketini veya parti numarasını okutun.
+Açık ikmal emirleri yüklenemedi.,Açık ikmal emirleri yüklenemedi.
+Emir detayları alınamadı.,Emir detayları alınamadı.
+Barkod tanınamadı veya sistemde bulunamadı.,Barkod tanınamadı veya sistemde bulunamadı.
+Okutulan malzeme bu ikmal emrinde yer almıyor.,Okutulan malzeme bu ikmal emrinde yer almıyor.
+Okutulan miktar tolerans sınırını aşıyor.,Okutulan miktar tolerans sınırını aşıyor.
+Malzeme okutuldu ve toplandı olarak işaretlendi.,Malzeme okutuldu ve toplandı olarak işaretlendi.
+Barkod çözümleme sırasında hata oluştu.,Barkod çözümleme sırasında hata oluştu.
+Girilen miktar tolerans sınırını aşıyor.,Girilen miktar tolerans sınırını aşıyor.
+Transfer için en az bir kalem seçilmelidir.,Transfer için en az bir kalem seçilmelidir.
+Malzeme transferi başarıyla tamamlandı.,Malzeme transferi başarıyla tamamlandı.
+Açık İkmal Emri Yok,Açık İkmal Emri Yok
+Yeni hat ikmal emri oluşturulduğunda burada listelenir.,Yeni hat ikmal emri oluşturulduğunda burada listelenir.
+Okutulan barkod için kayıt bulunamadı.,Okutulan barkod için kayıt bulunamadı.
+Stok sorgusu güncellendi.,Stok sorgusu güncellendi.
+Stok sorgusu yapılamadı.,Stok sorgusu yapılamadı.
+Koli / Parti,Koli / Parti
+Toplam Bakiye,Toplam Bakiye
+Etiket No,Etiket No
+SUT Barkodu,SUT Barkodu
+Son Kullanma,Son Kullanma
+Etiket Tipi,Etiket Tipi
+Bulunduğu Depolar,Bulunduğu Depolar
+Aktif stok bakiyesi yok.,Aktif stok bakiyesi yok.
+Depo / Raf,Depo / Raf
+Kalem Sayısı,Kalem Sayısı
+Raftaki Malzemeler,Raftaki Malzemeler
+Bu rafta stok bulunmuyor.,Bu rafta stok bulunmuyor.
+Toplam Stok,Toplam Stok
+Depo Bakiyeleri,Depo Bakiyeleri
+Depolarda stok bulunmuyor.,Depolarda stok bulunmuyor.
+Parti Dağılımı,Parti Dağılımı
+Stok ve Etiket Sorgula,Stok ve Etiket Sorgula
+"Koli, raf veya malzeme barkodunu okutarak anlık stok durumunu görüntüleyin.","Koli, raf veya malzeme barkodunu okutarak anlık stok durumunu görüntüleyin."
+Stock,Stok
+{0} İşlem,{0} İşlem
+Ana Modüller,Ana Modüller
+Menüyü Kapat,Menüyü Kapat
+Yetkili Modül Bulunamadı,Yetkili Modül Bulunamadı
+Size atanmış aktif bir PDA modülü bulunmamaktadır. Yöneticinizle iletişime geçin.,Size atanmış aktif bir PDA modülü bulunmamaktadır. Yöneticinizle iletişime geçin.
+Geri,Geri
+Bu PDA ekranına erişim yetkiniz bulunmamaktadır.,Bu PDA ekranına erişim yetkiniz bulunmamaktadır.
+Bu işlem için yetkili PDA kullanıcı oturumu gereklidir.,Bu işlem için yetkili PDA kullanıcı oturumu gereklidir.
+Bu işlem için yetkiniz bulunmamaktadır.,Bu işlem için yetkiniz bulunmamaktadır.
+Package Merge,Koli Birleştirme
+Ana Lot,Ana Lot
+Aynı Ana Lot: {0} — Kesintisiz Birleştirme,Aynı Ana Lot: {0} — Kesintisiz Birleştirme
+Aynı Lot Birleştirme,Aynı Lot Birleştirme
+Aynı kaynak koli birden fazla kez eklenemez: {0},Aynı kaynak koli birden fazla kez eklenemez: {0}
+Aynı parti ve depo çifti birden fazla satırda seçilemez.,Aynı parti ve depo çifti birden fazla satırda seçilemez.
+Aynı ürüne ait en az 2 koliyi okutarak tek partide birleştirin.,Aynı ürüne ait en az 2 koliyi okutarak tek partide birleştirin.
+Birleştirilecek Kolileri Okutun,Birleştirilecek Kolileri Okutun
+Birleştirme için en az 2 kaynak koli seçilmelidir.,Birleştirme için en az 2 kaynak koli seçilmelidir.
+Boş bırakılırsa ilk kolinin deposuna aktarılır...,Boş bırakılırsa ilk kolinin deposuna aktarılır...
+Bu koli zaten birleştirme listesine eklendi.,Bu koli zaten birleştirme listesine eklendi.
+En yakın son kullanma tarihi (SKT) ve ağırlıklı ortalama maliyet devralınacaktır.,En yakın son kullanma tarihi (SKT) ve ağırlıklı ortalama maliyet devralınacaktır.
+Farklı ana lotlara ait kolileri birleştirmek için karma lot onayı gereklidir.,Farklı ana lotlara ait kolileri birleştirmek için karma lot onayı gereklidir.
+Farklı ürün kodlarına ait koliler birleştirilemez.,Farklı ürün kodlarına ait koliler birleştirilemez.
+"For job card {0}, you can only make {1} type stock entries",{0} iş kartı için yalnızca {1} türünde stok fişi oluşturabilirsiniz
+Geçersiz kaynak koli girdisi.,Geçersiz kaynak koli girdisi.
+Geçersiz kaynak koli listesi biçimi.,Geçersiz kaynak koli listesi biçimi.
+Hedef Parti,Hedef Parti
+Hedef Raf,Hedef Raf
+Hedef Raf Barkodu (Opsiyonel),Hedef Raf Barkodu (Opsiyonel)
+Her kaynak koli için parti ve depo bilgisi zorunludur.,Her kaynak koli için parti ve depo bilgisi zorunludur.
+Kaldır,Kaldır
+Kalite Referansı,Kalite Referansı
+Karma Lot Birleştirme,Karma Lot Birleştirme
+Karma Lot Birleştirme Uyarısı,Karma Lot Birleştirme Uyarısı
+Karma veya standart dışı lot tespit edildi ({0}). Birleştirme öncesi onay gerekecektir.,Karma veya standart dışı lot tespit edildi ({0}). Birleştirme öncesi onay gerekecektir.
+Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır: {0},Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır: {0}
+Kaynak parti detayları Stock Entry açıklamasına ve yeni parti kaydına işlenecektir.,Kaynak parti detayları Stock Entry açıklamasına ve yeni parti kaydına işlenecektir.
+Kaynak ve hedef depolar aynı şirket altında olmalıdır.,Kaynak ve hedef depolar aynı şirket altında olmalıdır.
+Koli Birleştirme,Koli Birleştirme
+Koli Birleştirme Tamamlandı,Koli Birleştirme Tamamlandı
+Koli birleştirme işlemi başarısız oldu.,Koli birleştirme işlemi başarısız oldu.
+Koli birleştirme listesine eklendi.,Koli birleştirme listesine eklendi.
+Koli birleştirmede kaynak kolinin depodaki tam bakiyesi kullanılmalıdır: {0},Koli birleştirmede kaynak kolinin depodaki tam bakiyesi kullanılmalıdır: {0}
+Koliler Birleştiriliyor ve Etiket Hazırlanıyor...,Koliler Birleştiriliyor ve Etiket Hazırlanıyor...
+Koliler başarıyla birleştirildi.,Koliler başarıyla birleştirildi.
+Kolileri Birleştir,Kolileri Birleştir
+Mevcut kolileri tek partide birleştir ve etiket bas,Mevcut kolileri tek partide birleştir ve etiket bas
+Onayla ve Birleştir,Onayla ve Birleştir
+Parti bulunamadı: {0},Parti bulunamadı: {0}
+Purpose must be one of {0},Amaç şu değerlerden biri olmalıdır: {0}
+"Row #{0}: Operation {1} has not been sufficiently confirmed yet for Work Order {2}. Required finished goods qty: {3}, confirmed operation qty: {4}.","Satır #{0}: {2} İş Emri için {1} operasyonu henüz yeterli miktarda teyit edilmedi. Gerekli mamul miktarı: {3}, teyit edilen operasyon miktarı: {4}."
+Standart Dışı,Standart Dışı
+Tekil satınalma / üretim irsaliyesi ve GKK izlenebilirliği tek partide birleşecektir.,Tekil satınalma / üretim irsaliyesi ve GKK izlenebilirliği tek partide birleşecektir.
+Varsayılan: ilk kolinin deposu,Varsayılan: ilk kolinin deposu
+Varsayılan: ilk kolinin deposu ({0}),Varsayılan: ilk kolinin deposu ({0})
+Yeni Birleştirme Başlat,Yeni Birleştirme Başlat
+Yeni bir 7+4 karma lot numarası üretilecek ve etikete KARMA LOT ibaresi basılacaktır.,Yeni bir 7+4 karma lot numarası üretilecek ve etikete KARMA LOT ibaresi basılacaktır.
+{0} Koli Seçildi,{0} Koli Seçildi
+{0} allows only one item per Stock Entry.,{0} hareketi stok belgesi başına yalnızca bir ürün destekler.
+{0} depo bilgisi zorunludur.,{0} depo bilgisi zorunludur.
+{0} depo bulunamadı: {1},{0} depo bulunamadı: {1}
+{0} depo işlem için uygun değil: {1},{0} depo işlem için uygun değil: {1}
+Ürün ve hedef depo bilgileri zorunludur.,Ürün ve hedef depo bilgileri zorunludur.

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="{{ lang or 'tr' }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#1e293b" />
+    <link rel="manifest" href="/assets/erpnextkta/pda-hub/manifest.webmanifest" />
+    <title>{{ _("KTA Depo Terminali") }}</title>
+    {{ include_style("pda-hub.bundle.css") }}
+  </head>
+  <body>
+    <div id="pda-app"></div>
+    <script>
+      window.csrf_token = {{ csrf_token | json }};
+      window.build_version = {{ build_version | json }};
+      window.frappe = window.frappe || {};
+      window.frappe.dom = window.frappe.dom || {
+        set_style: function (css) {
+          if (!css) return null;
+          var s = document.createElement("style");
+          s.type = "text/css";
+          s.appendChild(document.createTextNode(css));
+          document.head.appendChild(s);
+          return s;
+        },
+      };
+      window.frappe.boot = {{ boot_json }};
+      window.frappe._messages =
+        (window.frappe.boot && window.frappe.boot["__" + "messages"]) || {};
+      window["__" + "KTA_PDA_BOOT__"] = {{ pda_boot_json }};
+    </script>
+    {{ include_script("pda-hub.bundle.js") }}
+  </body>
+</html>

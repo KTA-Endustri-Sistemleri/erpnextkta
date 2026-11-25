@@ -202,6 +202,13 @@ doc_events = {
     "Company": {
         "validate": "erpnextkta.overrides.company_wip_validation.validate_wip_consumption_account"
     },
+    "Employee": {
+        "before_save": "erpnextkta.kta_stock.pda_user_guard.mark_pure_pda_website_user_before_employee_save",
+        "on_update": "erpnextkta.kta_stock.pda_user_guard.clear_pure_pda_website_user_flag_after_employee_save",
+    },
+    "User": {
+        "before_validate": "erpnextkta.kta_stock.pda_user_guard.strip_auto_employee_role_for_pure_pda_user",
+    },
 }
 # Document Events
 # ---------------
@@ -392,6 +399,7 @@ fixtures = [
                     "Stock Entry Type-custom_etiket_sablonu",
                     "Company-custom_wip_consumption_account",
                     "Journal Entry Account-custom_work_order",
+                    "Employee-custom_pda_pin",
                 ],
             ]
         ],

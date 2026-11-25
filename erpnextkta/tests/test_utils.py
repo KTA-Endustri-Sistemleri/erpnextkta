@@ -367,6 +367,7 @@ def before_tests():
 	# Disable stale exchange rate checking in Accounts Settings
 	if frappe.db.exists("DocType", "Accounts Settings"):
 		frappe.db.set_single_value("Accounts Settings", "allow_stale", 1)
+		frappe.db.set_single_value("Accounts Settings", "delete_linked_ledger_entries", 1)
 
 	frappe.db.sql("UPDATE `tabProperty Setter` SET value = '0' WHERE property = 'reqd' AND value = '1'")
 
@@ -418,6 +419,10 @@ def before_tests():
 					}
 				).insert(ignore_permissions=True, ignore_if_duplicate=True)
 				frappe.cache().delete_value(f"kta_zebra_template_{tmpl_name}")
+
+	from erpnextkta.kta_stock.setup import setup as setup_kta_stock
+
+	setup_kta_stock()
 
 	frappe.db.commit()
 	frappe.clear_cache()

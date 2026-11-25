@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import flt
+from frappe.utils import cint, flt
 
 from erpnextkta.tests.test_utils import (
     KTABaseTestCase,
@@ -13,11 +13,28 @@ from erpnextkta.tests.test_utils import (
 class TestStockReconciliationOverride(KTABaseTestCase):
     def setUp(self):
         super().setUp()
+        self._prev_delete_linked_ledger_entries = frappe.db.get_single_value(
+            "Accounts Settings", "delete_linked_ledger_entries"
+        )
+        frappe.db.set_single_value(
+            "Accounts Settings", "delete_linked_ledger_entries", 1
+        )
+        frappe.clear_cache(doctype="Accounts Settings")
         self.company = create_test_company()
         self.item_group = create_test_item_group()
         self.item = create_test_item(self.item_group)
         frappe.db.set_value("Item", self.item, {"has_batch_no": 0, "has_serial_no": 0})
         self.warehouse = create_test_warehouse(self.company)
+
+    def tearDown(self):
+        if hasattr(self, "_prev_delete_linked_ledger_entries"):
+            frappe.db.set_single_value(
+                "Accounts Settings",
+                "delete_linked_ledger_entries",
+                cint(self._prev_delete_linked_ledger_entries or 0),
+            )
+            frappe.clear_cache(doctype="Accounts Settings")
+        super().tearDown()
 
     def _create_stock_reconciliation(self, qty=10, valuation_rate=100, batch_no=None):
         expense_account = frappe.db.get_value(
