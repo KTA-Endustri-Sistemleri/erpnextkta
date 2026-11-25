@@ -77,4 +77,24 @@ Zebra etiket basım işlemlerinde sunucu tıkanıklıklarını önlemek ve yazı
 Stock Reconciliation (Stok Mutabakatı) işlemlerinde binlerce satırlık veri güncellemelerinin sebep olduğu veritabanı darboğazları ve timeout sorunları için özel optimizasyon geliştirilmiştir:
 - **Toplu Sorgu Yükleme (Bulk Loading)**: Satırlar tek tek sorgulanmak yerine bellek üzerinde gruplanarak toplu şekilde veritabanından çekilir. Bu sayede veritabanı gidiş-dönüş (Round-Trip) maliyeti %90 oranında düşürülmüş ve arka plan işlem yükü minimize edilmiştir.
 
+---
+
+## 🔄 7. Otomatik Malzeme Talebi (Re-Order) ve Görev Atama Sistemi
+
+Sistemdeki MRP ve stok seviyesi (Re-Order) kurallarına göre otomatik olarak açılan Üretim (`Manufacture`) tipi Malzeme Taleplerinin hesaplanması, onaylanması ve temizlenmesi için KTA'ya özgü bir iş akışı ve hesaplama kuralı uygulanır:
+
+### Üretim (`Manufacture`) Tipi Otomatik Hesaplama Kuralı
+- **Hariç Tutulan Miktarlar ve Depolar:** `Manufacture` tipi otomatik malzeme taleplerinde Satış Siparişi rezervleri (`reserved_qty`) ve red depoları projeksiyon hesabından hariç tutulur.
+- **Tetikleme Koşulu ve Talep Miktarı:** Projeksiyon miktarı `reorder_level` değerinin kesin olarak altına (`<`) düştüğünde (eşitlik durumunda talep oluşturulmaz), en az `reorder_qty` olmak üzere oluşan açık miktar (`reorder_level - projected_qty`) kadar üretim talebi açılır.
+- **Çekirdek Sürüm Bağımsızlığı:** Bu hesaplama mantığı ERPNext çekirdek sürüm değişikliklerinden bağımsız olarak KTA kuralına göre çalışır; `Purchase`, `Material Transfer` gibi diğer talep tipleri standart kurallarla işlenmeye devam eder.
+
+### Taslak Oluşumu ve Dinamik Görev Aktarımı
+- **Otomatik Taslak (Draft) Oluşumu:** Sistem tarafından yaratılan üretim malzeme talepleri otomatik onaylanmak yerine "Taslak" (`Draft`) olarak bırakılır ve ilgili planlama personeline incelemesi için bir **ToDo (Görev)** atanır.
+- **Dinamik Görev Aktarımı:** Personel talebi inceleyip "Onayla (Submit)" dediğinde, üzerindeki görev otomatik olarak kapanır ve üretim yöneticilerine "İş Emri Oluşturma" görevi açılır (görevli listesi *Assignment Rule* ekranından yönetilir).
+- **Otomatik Kapanış:** Üretim yöneticileri bu talep üzerinden **İş Emri (Work Order)** oluşturup %100 oranında onayladıklarında, üzerlerindeki görev arka planda otomatik olarak "Tamamlandı" statüsüne geçerek kapanır.
+
+### Onaylanmamış Eski Otomatik Taslakların Temizlenmesi
+- **Günlük Otomatik Temizlik:** Önceki günlerden onaylanmadan taslakta (`Draft`) kalan otomatik üretim malzeme talepleri ve bunlara bağlı görevler (`ToDo`), bir sonraki günün otomatik hesaplaması çalışırken sistem tarafından otomatik olarak temizlenir.
+- **Kapsam Dışı Kayıtlar:** Kullanıcıların manuel olarak açtığı taslaklara veya `Purchase`, `Material Transfer` gibi diğer talep tiplerine dokunulmaz.
+
 </main>
