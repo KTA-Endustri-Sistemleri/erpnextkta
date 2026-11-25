@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 import frappe
 from frappe import _
 from frappe.utils import flt
@@ -444,30 +445,37 @@ def add_alt_operasyon_kaydi(
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def search_allowed_hammadde_items(doctype, txt, searchfield, start, page_len, filters):
-    calisma_karti = (filters or {}).get("calisma_karti")
-    alt_operasyon = extract_alt_op_code((filters or {}).get("alt_operasyon"))
-    hammadde_sira = (filters or {}).get("hammadde_sira") or "Tümü"
+    if isinstance(filters, str):
+        try:
+            filters = json.loads(filters)
+        except (ValueError, TypeError):
+            filters = {}
+    filters = filters if isinstance(filters, dict) else {}
+
+    calisma_karti = filters.get("calisma_karti")
+    alt_operasyon = extract_alt_op_code(filters.get("alt_operasyon"))
+    hammadde_sira = filters.get("hammadde_sira") or "Tümü"
     txt = (txt or "").strip()
     like = f"%{txt}%"
 
     allowed_items = get_allowed_items_with_groups(calisma_karti, alt_operasyon, hammadde_sira) if calisma_karti else []
-
-    if allowed_items:
-        items_placeholder = ", ".join(["%s"] * len(allowed_items))
-        return frappe.db.sql(
-            f"""
-            SELECT name, item_name, item_group
-            FROM `tabItem`
-            WHERE
-                name IN ({items_placeholder})
-                AND disabled = 0
-                AND (name LIKE %s OR item_name LIKE %s)
-            ORDER BY name ASC
-            LIMIT %s, %s
-            """,
-            tuple(allowed_items) + (like, like, int(start), int(page_len)),
-        )
+    if not allowed_items:
         return []
+
+    items_placeholder = ", ".join(["%s"] * len(allowed_items))
+    return frappe.db.sql(
+        f"""
+        SELECT name, item_name, item_group
+        FROM `tabItem`
+        WHERE
+            name IN ({items_placeholder})
+            AND disabled = 0
+            AND (name LIKE %s OR item_name LIKE %s)
+        ORDER BY name ASC
+        LIMIT %s, %s
+        """,
+        tuple(allowed_items) + (like, like, int(start), int(page_len)),
+    )
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
