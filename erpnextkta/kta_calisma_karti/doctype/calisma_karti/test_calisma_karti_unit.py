@@ -305,3 +305,138 @@ class TestShiftAutoCloseRejectedCards(KTAUnitTestCase):
 			auto_close_timed_out_cards()
 			self.assertEqual(len(calisma_karti_queried), 0)
 
+
+class TestSearchAllowedHammaddeItems(KTAUnitTestCase):
+	def test_empty_allowed_items_returns_empty_list_and_autosuggest_safe(self):
+		"""İzinli hammadde listesi boş olduğunda None yerine [] döndüğünü ve build_for_autosuggest'in hata vermediğini doğrular."""
+		from frappe.desk.search import build_for_autosuggest
+
+		from erpnextkta.kta_calisma_karti.api_impl.alt_operasyon import (
+			search_allowed_hammadde_items,
+		)
+
+		with (
+			patch("frappe.db.exists", return_value=True),
+			patch(
+				"erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.get_allowed_items_with_groups",
+				return_value=[],
+			) as mock_allowed,
+			patch("frappe.db.sql") as mock_sql,
+		):
+			res = search_allowed_hammadde_items(
+				doctype="Item",
+				txt="",
+				searchfield="name",
+				start=0,
+				page_len=10,
+				filters={
+					"calisma_karti": "CK-001",
+					"alt_operasyon": "OP30-0002",
+					"hammadde_sira": "Hammadde 1",
+				},
+			)
+
+		self.assertIsNotNone(res)
+		self.assertEqual(res, [])
+		mock_allowed.assert_called_once_with("CK-001", "OP30-0002", "Hammadde 1")
+		mock_sql.assert_not_called()
+		self.assertEqual(build_for_autosuggest(res, doctype="Item"), [])
+
+	def test_missing_or_empty_filters_returns_empty_list(self):
+		"""filters boş dict, None, geçersiz JSON veya calisma_karti eksik olduğunda [] döndüğünü doğrular."""
+		from erpnextkta.kta_calisma_karti.api_impl.alt_operasyon import (
+			search_allowed_hammadde_items,
+		)
+
+		for bad_filters in ({}, None, {"alt_operasyon": "OP30-0002"}, "{invalid-json"):
+			with (
+				patch("frappe.db.exists", return_value=True),
+				patch(
+					"erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.get_allowed_items_with_groups"
+				) as mock_allowed,
+				patch("frappe.db.sql") as mock_sql,
+			):
+				res = search_allowed_hammadde_items(
+					doctype="Item",
+					txt="",
+					searchfield="name",
+					start=0,
+					page_len=10,
+					filters=bad_filters,
+				)
+			self.assertEqual(res, [])
+			mock_allowed.assert_not_called()
+			mock_sql.assert_not_called()
+
+	def test_json_string_filters_parsed_and_alt_op_extracted(self):
+		"""JSON string filters'ın parse edilip extract_alt_op_code ve hammadde_sira ile iletildiğini doğrular."""
+		import json
+
+		from erpnextkta.kta_calisma_karti.api_impl.alt_operasyon import (
+			search_allowed_hammadde_items,
+		)
+
+		filters_json = json.dumps(
+			{
+				"calisma_karti": "CK-002",
+				"alt_operasyon": "Kesim [OP30-0002]",
+				"hammadde_sira": "Hammadde 1",
+			}
+		)
+
+		with (
+			patch("frappe.db.exists", return_value=True),
+			patch(
+				"erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.get_allowed_items_with_groups",
+				return_value=[],
+			) as mock_allowed,
+		):
+			res = search_allowed_hammadde_items(
+				doctype="Item",
+				txt="",
+				searchfield="name",
+				start=0,
+				page_len=10,
+				filters=filters_json,
+			)
+
+		self.assertEqual(res, [])
+		mock_allowed.assert_called_once_with("CK-002", "OP30-0002", "Hammadde 1")
+
+	def test_allowed_items_executes_sql_and_returns_rows(self):
+		"""İzinli hammadde listesi dolu olduğunda frappe.db.sql'in çalışıp satırları döndürdüğünü doğrular."""
+		from erpnextkta.kta_calisma_karti.api_impl.alt_operasyon import (
+			search_allowed_hammadde_items,
+		)
+
+		expected_rows = [("ITEM-001", "Kablo A", "Hammadde"), ("ITEM-002", "Kablo B", "Hammadde")]
+
+		with (
+			patch("frappe.db.exists", return_value=True),
+			patch(
+				"erpnextkta.kta_calisma_karti.api_impl.alt_operasyon.get_allowed_items_with_groups",
+				return_value=["ITEM-001", "ITEM-002"],
+			) as mock_allowed,
+			patch("frappe.db.sql", return_value=expected_rows) as mock_sql,
+		):
+			res = search_allowed_hammadde_items(
+				doctype="Item",
+				txt="ITEM",
+				searchfield="name",
+				start=0,
+				page_len=10,
+				filters={
+					"calisma_karti": "CK-003",
+					"alt_operasyon": "OP30-0002",
+					"hammadde_sira": "Hammadde 2",
+				},
+			)
+
+		mock_allowed.assert_called_once_with("CK-003", "OP30-0002", "Hammadde 2")
+		mock_sql.assert_called_once()
+		sql_query, sql_params = mock_sql.call_args[0]
+		self.assertIn("name IN (%s, %s)", sql_query)
+		self.assertEqual(sql_params, ("ITEM-001", "ITEM-002", "%ITEM%", "%ITEM%", 0, 10))
+		self.assertEqual(res, expected_rows)
+
+
