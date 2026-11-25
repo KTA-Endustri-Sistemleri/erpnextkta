@@ -11,6 +11,10 @@ import MaterialStagingModal from './components/MaterialStagingModal.vue';
 import WorkOrderReleasePanel from './components/WorkOrderReleasePanel.vue';
 import WorkCardAnalyticsPanel from './components/WorkCardAnalyticsPanel.vue';
 import WorkspaceHeader from './components/WorkspaceHeader.vue';
+import ShopfloorAlerts from './components/ShopfloorAlerts.vue';
+import ReportsSidebar from './components/ReportsSidebar.vue';
+import ReportsWorkspace from './components/ReportsWorkspace.vue';
+import { REPORT_CATALOG } from './reports/registry';
 import type {
   WorkOrderContext,
   OperationInfo,
@@ -25,6 +29,7 @@ import type {
 const __ = (...args: any[]) => (window as any).__(...args);
 
 const activeView = ref<WorkOrderViewMode>('work_orders');
+const activeReportId = ref<string>(REPORT_CATALOG[0]?.id || 'operation_completion');
 const sidebarRef = ref<InstanceType<typeof WorkOrderSidebar> | null>(null);
 const showCreateModal = ref<boolean>(false);
 const showStagingModal = ref<boolean>(false);
@@ -71,7 +76,7 @@ function selectOperation(op: OperationInfo | null) {
   isFinalConfirmation.value = false;
 }
 
-async function loadWorkOrder(woName: string) {
+async function loadWorkOrder(woName: string, preferredOperation?: string) {
   if (!woName) return;
   selectedWorkOrder.value = woName;
   loading.value = true;
@@ -83,7 +88,8 @@ async function loadWorkOrder(woName: string) {
     context.value = data;
     selectedWorkOrder.value = data.work_order;
     historyRefreshKey.value += 1;
-    const matched = (data.operations || []).find((op) => op.operation === data.selected_operation);
+    const targetOpName = preferredOperation || data.selected_operation;
+    const matched = (data.operations || []).find((op) => op.operation === targetOpName);
     selectOperation(matched || data.operations?.[0] || null);
   } catch (err: any) {
     console.error('loadWorkOrder error:', err);
@@ -105,6 +111,7 @@ function clearSelection() {
 
 async function handleViewChange(view: WorkOrderViewMode) {
   activeView.value = view;
+  if (view === 'reports') return;
   if (
     (view === 'operations' || view === 'work_cards') &&
     context.value?.status === 'Draft'
@@ -113,6 +120,12 @@ async function handleViewChange(view: WorkOrderViewMode) {
   }
   await nextTick();
   await sidebarRef.value?.fetchWorkOrders();
+}
+
+async function handleOpenWorkOrderFromReport(workOrderName: string, operationName?: string) {
+  activeView.value = 'work_orders';
+  await nextTick();
+  await loadWorkOrder(workOrderName, operationName);
 }
 
 function handleOpenCreateModal() {
@@ -276,7 +289,14 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
     <ShopfloorNavbar :active-view="activeView" @change-view="handleViewChange" />
 
     <div class="co11n-shell">
+      <ReportsSidebar
+        v-if="activeView === 'reports'"
+        :reports="REPORT_CATALOG"
+        :active-report-id="activeReportId"
+        @select-report="activeReportId = $event"
+      />
       <WorkOrderSidebar
+        v-else
         ref="sidebarRef"
         :active-view="activeView"
         :current-work-order="selectedWorkOrder || context?.work_order"
@@ -288,21 +308,25 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
         <WorkspaceHeader>
           <template #title>
             {{
-              activeView === 'work_cards'
+              activeView === 'reports'
+                ? __('Raporlar')
+                : activeView === 'work_cards'
                 ? __('Çalışma Kartları')
                 : __('Shopfloor Hub')
             }}
           </template>
           <template #subtitle>
             {{
-              activeView === 'work_cards'
+              activeView === 'reports'
+                ? __('Üretim Teyitleri ve Saha Analiz Raporları')
+                : activeView === 'work_cards'
                 ? __('Alt Operasyon Analitiği ve Tüketim Mutabakatı')
                 : __('Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi')
             }}
           </template>
           <template #actions>
             <button
-              v-if="selectedWorkOrder || context"
+              v-if="activeView !== 'reports' && (selectedWorkOrder || context)"
               type="button"
               class="btn-clear-selection"
               @click="clearSelection"
@@ -312,60 +336,22 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
           </template>
         </WorkspaceHeader>
 
-        <div v-if="errorMessage" class="co11n-alert alert-danger">
-          <div class="alert-content">
-            <span class="alert-icon">⚠️</span>
-            <div>{{ errorMessage }}</div>
-          </div>
-          <button type="button" class="alert-close" @click="errorMessage = null">✕</button>
-        </div>
+        <ShopfloorAlerts
+          :error-message="errorMessage"
+          :success-result="successResult"
+          @clear-error="errorMessage = null"
+          @clear-success="successResult = null"
+        />
 
-        <div v-if="successResult" class="co11n-alert alert-success">
-          <div class="alert-content">
-            <span class="alert-icon">✓</span>
-            <div>
-              <strong class="alert-title">{{ __('Teyit Başarıyla Tamamlandı') }}</strong>
-              <div class="alert-links">
-                <a
-                  :href="`/app/kta-production-confirmation/${successResult.confirmation}`"
-                  target="_blank"
-                  class="doc-link"
-                >
-                  📄 {{ __('Teyit Belgesi') }}: {{ successResult.confirmation }}
-                </a>
-                <template
-                  v-if="successResult.stock_entries && successResult.stock_entries.length > 0"
-                >
-                  <a
-                    v-for="se in successResult.stock_entries"
-                    :key="se.name"
-                    :href="`/app/stock-entry/${se.name}`"
-                    target="_blank"
-                    class="doc-link"
-                  >
-                    <span v-if="se.type === 'manufacture'">📦</span>
-                    <span v-else>⚙️</span>
-                    {{
-                      se.label ||
-                      (se.type === 'manufacture' ? __('Üretim Fişi') : __('Tüketim Fişi'))
-                    }}: {{ se.name }}
-                  </a>
-                </template>
-                <a
-                  v-else-if="successResult.stock_entry"
-                  :href="`/app/stock-entry/${successResult.stock_entry}`"
-                  target="_blank"
-                  class="doc-link"
-                >
-                  📦 {{ __('Stok Fişi') }}: {{ successResult.stock_entry }}
-                </a>
-              </div>
-            </div>
-          </div>
-          <button type="button" class="alert-close" @click="successResult = null">✕</button>
-        </div>
+        <template v-if="activeView === 'reports'">
+          <ReportsWorkspace
+            :reports="REPORT_CATALOG"
+            :active-report-id="activeReportId"
+            @select-work-order="handleOpenWorkOrderFromReport"
+          />
+        </template>
 
-        <template v-if="activeView === 'work_orders'">
+        <template v-else-if="activeView === 'work_orders'">
           <WorkOrderReleasePanel
             v-if="selectedWorkOrder"
             :work-order="selectedWorkOrder"
@@ -461,21 +447,13 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
 <style scoped>
 .shopfloor-hub-root { display: flex; flex-direction: column; width: 100%; height: calc(100vh - 60px); overflow: hidden; box-sizing: border-box; font-family: inherit; color: var(--text-color, #0f172a); }
 .co11n-shell { display: flex; flex: 1; min-height: 0; width: 100%; overflow: hidden; box-sizing: border-box; }
+@media (max-width: 700px) { .co11n-shell { flex-direction: column; } }
 .co11n-workspace { flex: 1; min-width: 0; height: 100%; overflow-y: auto; padding: 1.25rem 2rem 3rem; display: flex; flex-direction: column; gap: 1.25rem; box-sizing: border-box; }
 .btn-clear-selection { background: var(--bg-color, #f1f5f9); border: 1px solid var(--border-color, #cbd5e1); padding: 0.45rem 0.9rem; border-radius: 0.5rem; font-size: 0.82rem; font-weight: 700; color: var(--text-muted, #475569); cursor: pointer; transition: all 0.15s; }
 .btn-clear-selection:hover { background: #e2e8f0; color: #0f172a; }
 .co11n-content-flow { display: flex; flex-direction: column; gap: 1.25rem; }
 .co11n-ops-grid { display: grid; grid-template-columns: 1fr 420px; gap: 1.25rem; }
 @media (max-width: 1000px) { .co11n-ops-grid { grid-template-columns: 1fr; } }
-.co11n-alert { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.15rem; border-radius: 0.6rem; }
-.alert-danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
-.alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
-.alert-content { display: flex; align-items: center; gap: 0.75rem; }
-.alert-icon { font-size: 1.25rem; }
-.alert-title { font-size: 0.9rem; display: block; }
-.alert-links { display: flex; gap: 0.85rem; margin-top: 0.2rem; flex-wrap: wrap; }
-.doc-link { color: #15803d; font-weight: 600; text-decoration: underline; font-size: 0.82rem; }
-.alert-close { background: none; border: none; font-size: 1.15rem; cursor: pointer; color: inherit; opacity: 0.6; }
 .empty-state { text-align: center; padding: 5rem 1rem; background: var(--card-bg, #ffffff); border: 2px dashed var(--border-color, #e2e8f0); border-radius: 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
 .empty-icon { font-size: 3.5rem; margin-bottom: 0.5rem; }
 .empty-title { font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--text-color, #0f172a); }

@@ -431,3 +431,85 @@ Bu şablon ham yazdırma (Raw Printing) formatındadır; HTML önizleme destekle
 İş Emri Önizleme,İş Emri Önizleme
 Tam Sayfa Önizle,Tam Sayfa Önizle
 PDF İndir,PDF İndir
+Reports,Raporlar
+Raporlar,Raporlar
+Üretim Teyitleri ve Saha Analiz Raporları,Üretim Teyitleri ve Saha Analiz Raporları
+{0} Rapor,{0} Rapor
+Rapor Ara…,Rapor Ara…
+Aramanıza uygun rapor bulunamadı.,Aramanıza uygun rapor bulunamadı.
+Aktif,Aktif
+Bir Rapor Seçin,Bir Rapor Seçin
+Lütfen sol paneldeki katalogdan görüntülemek istediğiniz raporu seçin.,Lütfen sol paneldeki katalogdan görüntülemek istediğiniz raporu seçin.
+Üretim Teyitleri,Üretim Teyitleri
+İş Emri Operasyon Tamamlanma Özeti,İş Emri Operasyon Tamamlanma Özeti
+"Aktif iş emirlerinde teyit edilmiş tamamlanan ve kısmi operasyonların durumu, son onay bilgisi ve fiş detayları.","Aktif iş emirlerinde teyit edilmiş tamamlanan ve kısmi operasyonların durumu, son onay bilgisi ve fiş detayları."
+Bu ilerleme doğrudan standart Üretim (Manufacture) stok fişinden gelmektedir.,Bu ilerleme doğrudan standart Üretim (Manufacture) stok fişinden gelmektedir.
+Bu operasyon için onaylı üretim teyidi bulunamadı.,Bu operasyon için onaylı üretim teyidi bulunamadı.
+Teyit Eden,Teyit Eden
+Tamamlananlar,Tamamlananlar
+Kısmi Üretimler,Kısmi Üretimler
+Operasyon tamamlanma raporu alınamadı.,Operasyon tamamlanma raporu alınamadı.
+İş Emri Durumu,İş Emri Durumu
+Ürün Adı,Ürün Adı
+Planlanan,Planlanan
+Onaylı (CO11N),Onaylı (CO11N)
+İlerleme %,İlerleme %
+Teyit Sayısı,Teyit Sayısı
+Son Onay,Son Onay
+Kısmi,Kısmi
+CSV İndir,CSV İndir
+Tamamlanan Operasyon,Tamamlanan Operasyon
+Kısmi Operasyon,Kısmi Operasyon
+Aktif İş Emri,Aktif İş Emri
+Toplam Onaylanan Miktar,Toplam Onaylanan Miktar
+"İş Emri, Ürün, Operasyon veya Kullanıcı Ara…","İş Emri, Ürün, Operasyon veya Kullanıcı Ara…"
+Tüm Operasyonlar,Tüm Operasyonlar
+Tüm İş İstasyonları,Tüm İş İstasyonları
+Filtreleri Temizle,Filtreleri Temizle
+Rapor verileri yükleniyor…,Rapor verileri yükleniyor…
+Kayıt Bulunamadı,Kayıt Bulunamadı
+Seçili filtrelere uygun aktif iş emri operasyonu yok.,Seçili filtrelere uygun aktif iş emri operasyonu yok.
+Eski Usul,Eski Usul
+İş Emrine Git,İş Emrine Git
+Malzeme kontrolü sırasında hata oluştu.,Malzeme kontrolü sırasında hata oluştu.
+Geçersiz durum filtresi: {0},Geçersiz durum filtresi: {0}
+İş Emri,İş Emri
+Ürün Kodu,Ürün Kodu
+İş İstasyonu,İş İstasyonu
+Başlangıç,Başlangıç
+Bitiş,Bitiş
+Teyit Olmayanlar,Teyit Olmayanlar
+Teyit Olmayan Operasyon,Teyit Olmayan Operasyon
+Teyit Yok,Teyit Yok
+Eksik Malzemeliler,Eksik Malzemeliler
+Eksik Malzeme,Eksik Malzeme
+Evet,Evet
+Hayır,Hayır
+Tümünü Genişlet,Tümünü Genişlet
+Tümünü Daralt,Tümünü Daralt
+{0} Operasyon,{0} Operasyon
+Eksik Malzeme ile Açılan İş Emirleri,Eksik Malzeme ile Açılan İş Emirleri
+"Eksik hammadde ile serbest bırakılmış aktif iş emirlerinin canlı stok karşılama durumu, eksik kalemleri ve depo detayları.","Eksik hammadde ile serbest bırakılmış aktif iş emirlerinin canlı stok karşılama durumu, eksik kalemleri ve depo detayları."
+Malzeme ve Stok,Malzeme ve Stok
+Kalan İhtiyaç,Kalan İhtiyaç
+Hat Deposu,Hat Deposu
+Diğer Depolar,Diğer Depolar
+Stok Tamamlandı,Stok Tamamlandı
+Eksik malzeme raporu alınamadı.,Eksik malzeme raporu alınamadı.
+Üretilen,Üretilen
+Stok Durumu,Stok Durumu
+Hazırlık %,Hazırlık %
+Hammadde,Hammadde
+Hammadde Adı,Hammadde Adı
+Hammadde Birimi,Hammadde Birimi
+Kalem Durumu,Kalem Durumu
+Eksikle Açılan İş Emri,Eksikle Açılan İş Emri
+Toplam Eksik Kalem,Toplam Eksik Kalem
+"İş Emri, Ürün veya Hammadde Ara…","İş Emri, Ürün veya Hammadde Ara…"
+Tüm Kaynak Depolar,Tüm Kaynak Depolar
+Seçili filtrelere uygun eksik malzemeli aktif iş emri yok.,Seçili filtrelere uygun eksik malzemeli aktif iş emri yok.
+Planlanan / Üretilen,Planlanan / Üretilen
+{0}/{1} Eksik,{0}/{1} Eksik
+Geçersiz eksik malzeme filtresi: {0},Geçersiz eksik malzeme filtresi: {0}
+Oluşturma,Oluşturma
+Oluşturma Tarihi,Oluşturma Tarihi

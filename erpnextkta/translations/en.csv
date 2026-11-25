@@ -1278,3 +1278,79 @@ Bu şablon ham yazdırma (Raw Printing) formatındadır; HTML önizleme destekle
 İş Emri Önizleme,Work Order Preview
 Tam Sayfa Önizle,Full Page Preview
 PDF İndir,Download PDF
+Reports,Reports
+Raporlar,Reports
+Üretim Teyitleri ve Saha Analiz Raporları,Production Confirmations and Shopfloor Analysis Reports
+{0} Rapor,{0} Reports
+Rapor Ara…,Search Reports…
+Aramanıza uygun rapor bulunamadı.,No reports match your search.
+Aktif,Active
+Bir Rapor Seçin,Select a Report
+Lütfen sol paneldeki katalogdan görüntülemek istediğiniz raporu seçin.,Please select the report you want to view from the catalog in the left panel.
+Üretim Teyitleri,Production Confirmations
+İş Emri Operasyon Tamamlanma Özeti,Work Order Operation Completion Summary
+"Aktif iş emirlerinde teyit edilmiş tamamlanan ve kısmi operasyonların durumu, son onay bilgisi ve fiş detayları.","Status of confirmed completed and partial operations on active work orders, last confirmation info, and entry details."
+Bu ilerleme doğrudan standart Üretim (Manufacture) stok fişinden gelmektedir.,This progress comes directly from a standard Manufacture stock entry.
+Bu operasyon için onaylı üretim teyidi bulunamadı.,No submitted production confirmation found for this operation.
+Teyit Eden,Confirmed By
+Tamamlananlar,Completed
+Kısmi Üretimler,Partial Productions
+Operasyon tamamlanma raporu alınamadı.,Could not fetch operation completion report.
+İş Emri Durumu,Work Order Status
+Ürün Adı,Product Name
+Planlanan,Planned
+Onaylı (CO11N),Confirmed (CO11N)
+İlerleme %,Progress %
+Teyit Sayısı,Confirmation Count
+Son Onay,Last Confirmation
+Kısmi,Partial
+CSV İndir,Export CSV
+Tamamlanan Operasyon,Completed Operations
+Kısmi Operasyon,Partial Operations
+Aktif İş Emri,Active Work Orders
+Toplam Onaylanan Miktar,Total Confirmed Quantity
+"İş Emri, Ürün, Operasyon veya Kullanıcı Ara…","Search Work Order, Product, Operation or User…"
+Tüm Operasyonlar,All Operations
+Tüm İş İstasyonları,All Workstations
+Filtreleri Temizle,Clear Filters
+Rapor verileri yükleniyor…,Loading report data…
+Kayıt Bulunamadı,No Records Found
+Seçili filtrelere uygun aktif iş emri operasyonu yok.,No active work order operations match the selected filters.
+Eski Usul,Legacy
+İş Emrine Git,Go to Work Order
+Malzeme kontrolü sırasında hata oluştu.,An error occurred during material check.
+Geçersiz durum filtresi: {0},Invalid status filter: {0}
+Teyit Olmayanlar,Unconfirmed
+Teyit Olmayan Operasyon,Unconfirmed Operations
+Teyit Yok,Unconfirmed
+Eksik Malzemeliler,With Material Shortage
+Eksik Malzeme,Material Shortage
+Evet,Yes
+Hayır,No
+Tümünü Genişlet,Expand All
+Tümünü Daralt,Collapse All
+{0} Operasyon,{0} Operations
+Eksik Malzeme ile Açılan İş Emirleri,Work Orders Released with Material Shortage
+"Eksik hammadde ile serbest bırakılmış aktif iş emirlerinin canlı stok karşılama durumu, eksik kalemleri ve depo detayları.","Live stock coverage status, shortage items, and warehouse details of active work orders released with raw material shortage."
+Malzeme ve Stok,Materials & Stock
+Kalan İhtiyaç,Remaining Required
+Hat Deposu,Line Warehouse
+Diğer Depolar,Other Warehouses
+Stok Tamamlandı,Stock Complete
+Eksik malzeme raporu alınamadı.,Failed to load material shortage report.
+Üretilen,Produced
+Stok Durumu,Stock Status
+Hazırlık %,Readiness %
+Hammadde Adı,Raw Material Name
+Hammadde Birimi,Raw Material Unit
+Kalem Durumu,Item Status
+Eksikle Açılan İş Emri,Shortage-Released Work Orders
+Toplam Eksik Kalem,Total Shortage Items
+"İş Emri, Ürün veya Hammadde Ara…","Search Work Order, Product or Raw Material…"
+Tüm Kaynak Depolar,All Source Warehouses
+Seçili filtrelere uygun eksik malzemeli aktif iş emri yok.,No active shortage-released work orders match the selected filters.
+Planlanan / Üretilen,Planned / Produced
+{0}/{1} Eksik,{0}/{1} Shortage
+Geçersiz eksik malzeme filtresi: {0},Invalid material shortage filter: {0}
+Oluşturma,Created
+Oluşturma Tarihi,Creation Date
