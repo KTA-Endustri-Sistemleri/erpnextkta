@@ -283,6 +283,7 @@
   <ul>
     <li><strong>Doğrudan Adresleme:</strong> Depo personeline genel "Hammadde Ambarı" yerine tam koridor ve raf adresi (<code>W1A-01-01</code>) iletilir.</li>
     <li><strong>FEFO / FIFO Önceliği (<code>expiry_date → manufacturing_date → creation</code>):</strong> Aynı hammadde birden fazla rafta bulunuyorsa, motor (<code>allocate_fifo_batches</code> ve <code>bulk_allocate_fifo_batches</code>) önce son kullanma tarihi en yakın olanı (<code>expiry_date</code>), ardından üretim/irsaliye tarihi en eski olanı (<code>manufacturing_date</code>) ve son olarak kayıt zamanı en eski olanı (<code>creation</code>) sıralar. Bu sayede raf transferi, koli bölme/birleştirme (<code>manufacturing_date</code> mirası) ve geçmiş tarihli irsaliyelerde en eski irsaliye tarihli (ör. <code>IRS01</code>) koli daima ilk sırada kalır.</li>
+    <li><strong>Açık İkmal Rezervasyonu Hariç Tutma (<code>get_in_flight_reserved_stock</code>):</strong> Tüm hedef WIP hatlarındaki açık (<code>Draft</code> / <code>In Progress</code>, <code>docstatus = 0</code>) ikmal emirlerinin atlanmamış satırlarında ayrılmış partiler (<code>picked_batch_no</code> / <code>suggested_batch_no</code>) ve partisiz raf miktarları, sonraki FIFO tahsislerinden otomatik olarak düşülür; böylece aynı fiziksel koli/parti hiçbir zaman ikinci kez önerilmez.</li>
   </ul>
 
   <h3>3. Tam Koli / Parti Çıkışı (Bölmeme ve Yukarı Yuvarlama İlkesi):</h3>
@@ -308,20 +309,22 @@
   <h3>4. Açıkta Bekleyen Taslak İkmal Düşümü (Mükerrer Talep Engeli):</h3>
   <p>
     Üretim sahasında planlamacılar gün içinde defalarca hat açık taraması yapabilir.
-    Eğer ilgili hedef hat için sistemde henüz toplanmamış <strong>Taslak (Draft - docstatus = 0)</strong>
+    Eğer ilgili hedef hat için sistemde henüz tamamlanmamış <strong>Taslak veya Toplamada (<code>Draft</code> / <code>In Progress</code>, <code>docstatus = 0</code>)</strong>
     bir <code>KTA Line Replenishment Order</code> siparişi bulunuyorsa, bu siparişteki
     kalemlerin tekrar listelenmesi ve mükerrer sipariş açılması sahadaki malzeme fazlalığının
-    en büyük sebebidir. KTA İkmal Motoru açıkta bekleyen taslak miktarlarını netleştirir:
+    en büyük sebebidir. KTA İkmal Motoru açıkta bekleyen tüm <code>Draft</code> ve <code>In Progress</code>
+    ikmal miktarlarını netleştirir ve ayrılmış fiziksel kolileri bir sonraki FIFO önerisinden korur:
   </p>
   <div class="formula-box">
     Ham İhtiyaç Açığı (D_ham) = max(0, reserved_qty_for_production - actual_qty)<br>
-    Taslak İkmal Miktarı (Q_taslak) = &Sigma; (Açık Draft İkmal Emirlerindeki deficit_qty)<br>
+    Taslak İkmal Miktarı (Q_taslak) = &Sigma; (Açık Draft / In Progress İkmal Emirlerindeki is_skipped = 0 satırların deficit_qty toplamı)<br>
     Net İkmal Açığı (D_net) = max(0, D_ham - Q_taslak)
   </div>
   <ul>
-    <li><strong>Tam Karşılanan Talepler (D_net == 0):</strong> Açık ihtiyaç zaten onay bekleyen veya toplanmakta olan bir taslak ikmal emrinde mevcuttur. Kalem <code>covered_by_draft = True</code> ve <code>selectable = False</code> olarak işaretlenir. Arayüzde <span class="badge-doc-draft">⏳ Taslak İkmalde (LRO-...)</span> rozeti ile gösterilir ve seçim kutusu kilitlenir.</li>
-    <li><strong>Kısmi Karşılanan Talepler (D_net &gt; 0):</strong> Ham ihtiyaç taslak sipariş miktarından büyükse (örneğin 250 adet ihtiyaç, 200 adet taslakta bekliyor), yalnızca aradaki fark olan 50 adet net açık (D_net) için ana ambardan parti ve raf tahsisi yapılır ve <em>Kısmi Taslak</em> rozeti eklenir.</li>
-    <li><strong>Atlanan Kalemlerin Otomatik Yeniden Açığa Düşmesi:</strong> <code>_get_drafts_by_item()</code> yalnızca <code>docstatus = 0 AND status = 'Draft'</code> ikmal emirlerini açık hesabından düşer. PDA'da bir veya tüm satırlar atlanıp emir <code>Completed</code> ya da <code>Cancelled</code> durumuna geçtiğinde, atlanan kalemler bir sonraki ikmal taramasında otomatik olarak yeniden açık (<code>deficit</code>) listesine düşer.</li>
+    <li><strong>Tam Karşılanan Talepler (D_net == 0):</strong> Açık ihtiyaç zaten onay bekleyen (<code>Draft</code>) veya toplanmakta olan (<code>In Progress</code>) bir ikmal emrinde mevcuttur. Kalem <code>covered_by_draft = True</code> ve <code>selectable = False</code> olarak işaretlenir. Arayüzde <span class="badge-doc-draft">⏳ Taslak İkmalde (LRO-...)</span> rozeti ile gösterilir ve seçim kutusu kilitlenir.</li>
+    <li><strong>Kısmi Karşılanan Talepler (D_net &gt; 0):</strong> Ham ihtiyaç açık <code>Draft</code> / <code>In Progress</code> sipariş miktarından büyükse (örneğin 250 adet ihtiyaç, 200 adet açık siparişte bekliyor), yalnızca aradaki fark olan 50 adet net açık (D_net) için ana ambardan parti ve raf tahsisi yapılır ve <em>Kısmi Taslak</em> rozeti eklenir.</li>
+    <li><strong>Açık Emirlerdeki Parti ve Raf Rezervasyonu Koruması (<code>get_in_flight_reserved_stock</code>):</strong> Tüm hedef WIP departmanları genelinde herhangi bir açık (<code>Draft</code> / <code>In Progress</code>, <code>docstatus = 0</code>) ikmal emrindeki atlanmamış satırlarda rezerve edilmiş partiler (<code>picked_batch_no</code> / <code>suggested_batch_no</code>) ve partisiz raf miktarları, sonraki tüm FIFO tahsislerinden otomatik olarak hariç tutulur. Bu sayede hem aynı hattın kısmi taslak sonrası kalan farkı (<em>delta</em>) taranırken hem de farklı bir üretim departmanı için paralel ikmal listesi oluşturulurken aynı fiziksel koli/parti kesinlikle ikinci kez önerilmez; partili bir kalemde rezerve edilmemiş başka parti kalmamışsa sipariş oluşturma (<code>create_line_replenishment_order</code>) o kalemi atlar.</li>
+    <li><strong>Atlanan Kalemlerin Otomatik Yeniden Açığa Düşmesi:</strong> <code>_get_drafts_by_item()</code> yalnızca <code>docstatus = 0 AND status IN ('Draft', 'In Progress')</code> durumundaki emirlerin atlanmamış (<code>COALESCE(is_skipped, 0) = 0</code>) satırlarını açık hesabından düşer. PDA'da bir satır atlandığında (<code>is_skipped = 1</code>) veya tüm satırlar atlanıp emir <code>Completed</code> ya da <code>Cancelled</code> durumuna geçtiğinde, atlanan kalemler bir sonraki ikmal taramasında otomatik olarak yeniden açık (<code>deficit</code>) listesine düşer.</li>
   </ul>
 
   <h3>5. Sıfır Stoklu Kalemlerin Kesin Kilitlenmesi (Hard Selection Lock):</h3>
@@ -449,10 +452,14 @@
         tamamlanmış olanlar otomatik kilitlenir) <strong>⚡ Hat İkmal Emri Oluştur</strong>
         butonuna basılır. Sistem arka planda <code>source_parent_warehouse</code> değerini
         (eksikse NestedSet <code>lft/rgt</code> en yakın ortak grup ambarı — LCA fallback — ile
-        çözümleyerek) <code>allocate_fifo_batches</code> motoruna aktarır; böylece <code>110 HAMMADDE</code>
-        altındaki farklı raflara dağılmış tüm koliler eksiksiz biçimde ayrı toplama satırlarına
-        (<code>KTA Line Replenishment Item</code>) bölünerek resmi <code>KTA Line Replenishment Order</code>
-        belgesi <em>Draft</em> statüsünde oluşturulur.
+        çözümleyerek) <code>allocate_fifo_batches</code> motoruna aktarır; tüm hedef WIP hatlarındaki
+        açık (<code>Draft</code> / <code>In Progress</code>) emirlerde rezerve edilmiş partiler ve
+        partisiz raf miktarları (<code>get_in_flight_reserved_stock</code>) otomatik hariç tutulur.
+        Böylece <code>110 HAMMADDE</code> altındaki farklı raflara dağılmış tüm uygun koliler ayrı
+        toplama satırlarına (<code>KTA Line Replenishment Item</code>) bölünerek resmi
+        <code>KTA Line Replenishment Order</code> belgesi <em>Draft</em> statüsünde oluşturulur;
+        partili bir kalemde rezerve edilmemiş parti kalmamışsa bu kalem eski öneriye düşmeden
+        otomatik olarak atlanır.
       </p>
     </div>
   </div>

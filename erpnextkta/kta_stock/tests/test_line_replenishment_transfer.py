@@ -208,6 +208,7 @@ class TestLineReplenishmentTransfer(FrappeTestCase):
         doc = frappe.get_doc("KTA Line Replenishment Order", order_name)
         self.assertEqual(doc.status, "Draft")
         self.assertFalse(doc.stock_entry)
+        frappe.delete_doc("KTA Line Replenishment Order", order_name, force=True)
 
     def test_transfer_creates_and_submits_stock_entry(self):
         """Completing picking creates Material Transfer Stock Entry and marks order Completed."""

@@ -19,15 +19,16 @@ Sistem iki ana modül arasında açık sorumluluk ayrımı (Separation of Concer
 
 - **`kta_shopfloor` (Analitik & Masaüstü Kokpit Katmanı):**
   - Hedef hat bazlı rezervasyon açıklarını tespit eder (`services/reservation_deficit_service.py`).
-  - Açıkta bekleyen taslak (`Draft`) ikmal emirlerini düşerek net açığı hesaplar (`D_net = max(0, D_ham - Q_taslak)`).
-  - Ana hammadde ambarını (`get_central_warehouse`, varsayılan `110 HAMMADDE - KTA`) çözümler ve `bulk_allocate_fifo_batches` üzerinden raf/parti tahsisini alır.
+  - Açıkta bekleyen `Draft` ve `In Progress` ikmal emirlerinin atlanmamış (`COALESCE(is_skipped, 0) = 0`) satırlarını düşerek net açığı hesaplar (`D_net = max(0, D_ham - Q_taslak)`).
+  - Ana hammadde ambarını (`get_central_warehouse`, varsayılan `110 HAMMADDE - KTA`) çözümler ve `bulk_allocate_fifo_batches` üzerinden açık ikmal rezervasyonlarını hariç tutan raf/parti tahsisini alır.
   - Masaüstü planlama kokpitini (`/app/line-replenishment-hub` — `erpnextkta/public/line-replenishment-hub/`) barındırır.
   - Açık tarama API'sini (`erpnextkta.kta_shopfloor.api.get_line_deficits`) sunar.
 
 - **`kta_stock` (İkmal Siparişi, Parti Tahsisi & PDA Toplama Katmanı):**
   - İkmal emri DocType modellerini (`KTA Line Replenishment Order` & `KTA Line Replenishment Item`) yönetir.
   - Hiyerarşik yaprak ambar çözümlemesi (`get_leaf_warehouses`) ile grup ambarlarını eler.
-  - FIFO çoklu parti ve fiziksel raf tahsis motorunu (`allocate_fifo_batches` / `bulk_allocate_fifo_batches`) işletir.
+  - Açık (`Draft` / `In Progress`) emirlerde rezerve edilmiş partileri ve partisiz raf miktarlarını (`get_in_flight_reserved_stock`) tüm hedef departmanlar genelinde takip ederek çift tahsisi önler.
+  - FIFO çoklu parti ve fiziksel raf tahsis motorunu (`allocate_fifo_batches` / `bulk_allocate_fifo_batches` / `allocate_fifo_batch`) işletir.
   - Tam koli / makara bölmeme ilkesiyle partileri tam miktarıyla yukarı yuvarlar.
   - Mobil PDA toplama arayüzünü (`/app/line-replenishment-picking` — `erpnextkta/public/line-replenishment-pda/`) sağlar.
   - Sıfır manuel girişli barkod okuma, tolerans denetimi (+%15 veya +1 birim alt sınırı: `max(deficit * 1.15, deficit + 1.0)`) ve atomik `Stock Entry (Material Transfer)` fişini yürütür.
@@ -53,6 +54,7 @@ Sistem iki ana modül arasında açık sorumluluk ayrımı (Separation of Concer
 +------------------------------------+------------------------------------+
 |               kta_stock.line_replenishment_service                      |
 | - get_leaf_warehouses(parent) -> NestedSet lft/rgt ile Yaprak Raflar    |
+| - get_in_flight_reserved_stock() -> Tüm Açık Emirlerden Parti/Raf Kilidi|
 | - allocate_fifo_batches() -> Bölünmeyen Tam Parti & Raf Tahsisi (FIFO)  |
 | - create_line_replenishment_order() -> Çoklu Parti Ayrıştırmalı Taslak  |
 +------------------------------------+------------------------------------+
@@ -128,13 +130,13 @@ Hedef WIP deposundaki net açıkları tarar, açıkta bekleyen taslak ikmal sipa
   - `sourcing_strategy` (str, opsiyonel, kullanılmıyor): Geriye dönük API uyumluluğu için tutulur; dahili olarak `get_line_reservation_deficits(target_warehouse, **_kwargs)` imzasına aktarılır ve yok sayılır.
 - **Doğrulama:**
   - `target_warehouse` boş veya `is_group == 1` ise `frappe.ValidationError` fırlatır.
-- **Açıkta Bekleyen Taslak İkmal Düşümü (Mükerrer Sipariş Engeli):**
-  - Servis, hedef hatta ait tüm açık `Draft` (`docstatus = 0, status = 'Draft'`) ikmal siparişlerini sorgular:
-    `SELECT parent, item_code, suggested_batch_no, deficit_qty FROM tabKTA Line Replenishment Item WHERE docstatus = 0 AND parent IN (...)`
+- **Açıkta Bekleyen Taslak / Devam Eden İkmal Düşümü (Mükerrer Sipariş Engeli):**
+  - `_get_drafts_by_item(target_wh)` servisi, hedef hatta ait tüm açık `Draft` ve `In Progress` (`docstatus = 0, status IN ('Draft', 'In Progress')`) ikmal siparişlerindeki atlanmamış (`COALESCE(is_skipped, 0) = 0`) satırları sorgular:
+    `SELECT parent, item_code, suggested_batch_no, deficit_qty FROM tabKTA Line Replenishment Item WHERE docstatus = 0 AND COALESCE(is_skipped, 0) = 0 AND parent IN (SELECT name FROM tabKTA Line Replenishment Order WHERE target_warehouse = %s AND docstatus = 0 AND status IN ('Draft', 'In Progress'))`
   - Her hammadde için $Q_{\text{taslak}} = \sum \text{deficit\_qty}$ toplanır.
   - Net açık miktarı $D_{\text{net}} = \max(0, D_{\text{ham}} - Q_{\text{taslak}})$ formülüyle indirgenir.
   - **Tam Kapsanan Kalemler:** $D_{\text{ham}} > 0$ ve $D_{\text{net}} == 0$ ise `covered_by_draft = True`, `selectable = False` olarak döner; `draft_orders` listesi ve `draft_covered_qty` iletilir.
-  - **Kısmi Kapsanan Kalemler:** $D_{\text{net}} > 0$ ise yalnızca kalan delta miktar ($D_{\text{net}}$) `bulk_allocate_fifo_batches` motoruna gönderilir.
+  - **Kısmi Kapsanan Kalemler:** $D_{\text{net}} > 0$ ise yalnızca kalan delta miktar ($D_{\text{net}}$) `bulk_allocate_fifo_batches` motoruna gönderilir; motor `get_in_flight_reserved_stock` ile diğer açık (`Draft` / `In Progress`) emirlerde zaten ayrılmış olan parti ve raf stoklarını hariç tutarak yeni koli/raf önerir.
 - **Sıfır Stok Koruması:**
   - Kalemin ana ambar yaprak raflarında stoğu yoksa (`has_stock == False`), `selectable = False` olarak işaretlenir ve arayüzde kilitlenir.
 - **Dönüş Değeri (`list[dict]`):**
@@ -147,7 +149,24 @@ Grup ambarı hiyerarşisi altındaki tüm fiziksel yaprak rafları (`is_group = 
 - **Mantık:** Frappe `Warehouse` NestedSet indeksleri (`lft >= parent_lft AND rgt <= parent_rgt`) üzerinden 924'ün üzerindeki raf ambarını (`W1A-01-01`, `W1B-04-01` vb.) tek sorguda listeler.
 - **Grup Ambarı Yasağı:** ERPNext `Stock Entry` belgelerine asla grup ambarı yazılmamasını garanti eder.
 
-### 3.3 `erpnextkta.kta_stock.line_replenishment_service.allocate_fifo_batches` *(ve `bulk_allocate_fifo_batches`)*
+### 3.3 `erpnextkta.kta_stock.line_replenishment_service.get_in_flight_reserved_stock`
+Tüm hedef WIP departmanları genelinde açıkta bekleyen (`Draft` veya `In Progress`) ikmal emirlerince rezerve edilmiş partileri ve partisiz raf miktarlarını toplar.
+
+- **İmza:** `get_in_flight_reserved_stock(item_codes: list[str], exclude_order: str | None = None) -> tuple[dict[str, set[str]], dict[tuple[str, str], float]]`
+- **Girdi Parametreleri:**
+  - `item_codes` (list[str], zorunlu): Rezervasyonu kontrol edilecek hammadde kodları.
+  - `exclude_order` (str | None, opsiyonel): Hariç tutulacak ikmal siparişi adı (ör. mevcut taslak siparişte kaynak raf güncellenirken kendi satırlarının kendini engellememesi için).
+- **Sorgu ve Çözümleme Mantığı:**
+  - `tabKTA Line Replenishment Item` (`i`) ile `tabKTA Line Replenishment Order` (`o`) birleştirilerek **tüm** `target_warehouse` değerleri için `o.docstatus = 0 AND o.status IN ('Draft', 'In Progress') AND COALESCE(i.is_skipped, 0) = 0` satırları taranır (`exclude_order` verilmişse `o.name != %(exclude_order)s` eklenir).
+  - **Etkin Kaynak Raf:** `COALESCE(NULLIF(i.picked_source_warehouse, ''), i.suggested_source_warehouse)`
+  - **Etkin Parti:** `COALESCE(NULLIF(i.picked_batch_no, ''), i.suggested_batch_no)`
+  - **Partisiz Rezerve Miktar:** `COALESCE(i.is_picked, 0) = 1 AND COALESCE(i.picked_qty, 0) > 0` ise `i.picked_qty`, aksi durumda `i.deficit_qty` esas alınır.
+- **Dönüş Değeri:**
+  - `(reserved_batches_by_item, reserved_non_batch_qty)` ikilisi döner:
+    - `reserved_batches_by_item`: `{item_code: set[batch_no]}` (partili kalemlerde tekrar önerilmeyecek partiler).
+    - `reserved_non_batch_qty`: `{(item_code, source_warehouse): float}` (partisiz kalemlerde raftaki `actual_qty` değerinden düşülecek açık sipariş miktarları).
+
+### 3.4 `erpnextkta.kta_stock.line_replenishment_service.allocate_fifo_batches` *(ve `bulk_allocate_fifo_batches`, `allocate_fifo_batch`)*
 Hammadde açığı için ana ambar yaprak raflarından bölünmeyen tam partileri FIFO ile tahsis eder.
 
 - **Girdi Parametreleri (`allocate_fifo_batches`):**
@@ -155,18 +174,25 @@ Hammadde açığı için ana ambar yaprak raflarından bölünmeyen tam partiler
   - `parent_warehouse` (str, zorunlu): Kaynak ambar (Genellikle `110 HAMMADDE - KTA` veya tekil yaprak raf).
   - `required_qty` (float, zorunlu): Karşılanması gereken net açık miktarı.
   - `target_warehouse` (str, opsiyonel): Döngüsel ikmali önlemek için hariç tutulacak hedef hat deposu.
+  - `exclude_order` (str | None, opsiyonel): `get_in_flight_reserved_stock` çağrısına iletilen hariç tutulacak ikmal emri adı.
+- **Toplu ve Tekil Varyant İmzaları:**
+  - `bulk_allocate_fifo_batches(items_to_allocate, target_warehouse=None, exclude_order=None)`: Çoklu kalem için `get_in_flight_reserved_stock(all_item_codes, exclude_order=exclude_order)` çalıştırır; partili kalemlerde rezerve partileri eler, partisiz kalemleri `allocate_fifo_batches(..., exclude_order=exclude_order)` yoluna yönlendirir.
+  - `allocate_fifo_batch(item_code=None, warehouse=None, required_qty=0.0, exclude_order=None)`: Tekil ilk FIFO parti numarasını (`str | None`) döndürmek için `allocate_fifo_batches` üzerine sarıcı olarak çalışır ve verilen `exclude_order` değerini aktarır.
+- **Açık İkmal Rezervasyonu Filtresi:**
+  - Partili kalemlerde `reserved_batches_map.get(item_code, set())` kümesindeki partiler aday listesinden elenir; böylece kısmi taslak sonrası taramalarda veya farklı departmanların paralel ikmal listelerinde aynı koli/parti ikinci kez önerilmez.
+  - Partisiz kalemlerde her yaprak rafın kullanılabilir miktarı `actual_qty - reserved_non_batch_qty.get((item_code, shelf_wh), 0.0)` olarak hesaplanır.
 - **Parti ve Bakiye Çözümleme Katmanları:**
   1. Pozitif `tabBin` filtrelemesi ardından `tabStock Ledger Entry` + `tabSerial and Batch Entry` birleşik bakiye sorgusu.
   2. Fallback: ERPNext standart `get_batch_qty(item_code=item_code)` bakiye sorgusu.
   3. Partisiz kalemler (`has_batch_no == 0`) için: Yaprak ambar `tabBin` (ve fallback `tabStock Ledger Entry`) kayıtları.
 - **FIFO Sıralama Kuralı:**
-  `(expiry_date is None, expiry_date, creation, batch_no, warehouse)`
+  `(expiry_date is None, expiry_date, manufacturing_date is None, manufacturing_date, creation, batch_no, warehouse)`
 - **Bölmeme & Yukarı Yuvarlama Mantığı:**
   Aday partiler FIFO sırasıyla gezilir; koli/makara bölünmeden partinin tam miktarı (`cand["qty"]`) tahsis edilir ve `accumulated_qty >= required_qty` koşulu sağlandığında döngü sonlanır.
 - **Dönüş Değeri:**
   `list[{"warehouse": str, "batch_no": str | None, "allocated_qty": float}]`
 
-### 3.4 `erpnextkta.kta_stock.line_replenishment_service.create_line_replenishment_order`
+### 3.5 `erpnextkta.kta_stock.line_replenishment_service.create_line_replenishment_order`
 Seçilen açık kalemleri için FIFO parti ve raf tahsisini tamamlayarak `KTA Line Replenishment Order` üretir.
 
 - **Girdi Parametreleri:**
@@ -175,13 +201,14 @@ Seçilen açık kalemleri için FIFO parti ve raf tahsisini tamamlayarak `KTA Li
   - `company` (str, opsiyonel): Belirtilmezse hedef depo/varsayılan şirket çözümlenir.
   - `**_kwargs`: Eski istemci çağrılarından gelebilecek `sourcing_strategy` gibi artık kullanılmayan parametreleri sessizce yok saymak için geriye dönük uyumluluk sağlar.
 - **Çoklu Parti & Çoklu Raf Ayrıştırması:** Net açık birden fazla koli veya farklı yaprak raflar gerektiriyorsa (`allocated_batches.length > 1`), `_resolve_allocation_parent_warehouse` öncelikle `source_parent_warehouse` değerini (yoksa NestedSet `lft/rgt` üzerinden `_find_common_group_warehouse` LCA grup ambarı fallback'ini) kullanarak `allocate_fifo_batches` çağrısını `110 HAMMADDE` ağaç kapsamına genişletir; böylece farklı raflardaki tüm koliler için ayrı birer `KTA Line Replenishment Item` toplama satırı açılır.
-- **Sıfır Stok Güvenlik Doğrulaması:**
-  - Metot, gönderilen her kalemin yaprak raflardaki (`get_warehouse_leaf_stock`) stok durumunu denetler.
-  - Stoğu 0 olan kalemler filtrelenir; eğer seçilen kalemlerin hiçbirinde stok yoksa işlem `frappe.ValidationError` ile engellenir (*"Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı."*).
+- **Açık Rezervasyon & Sıfır Stok Güvenlik Doğrulaması:**
+  - Partili kalemlerde (`has_batch_no = 1` ve `allocation_parent_wh` tanımlı), `allocate_fifo_batches` boş dönerse (ör. tüm mevcut partiler başka açık `Draft` / `In Progress` emirlerde rezerve edilmişse) istemciden gelen bayat `suggested_batch_no` değerine geri düşülmez; kalem doğrudan atlanır (`continue`).
+  - Partisiz kalemlerde `get_warehouse_leaf_stock` sonucu `get_in_flight_reserved_stock([item_code])` üzerinden `wh_scope` içindeki rezerve miktarlar düşülerek netleştirilir (`leaf_stock <= 0` ise kalem atlanır).
+  - İşlenebilir hiç kalem kalmazsa işlem `frappe.ValidationError` ile engellenir (*"Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı."*).
 - **Dönüş Değeri (`str`):**
   - Oluşturulan belgenin adı (örn. `"LRO-2026-00001"`).
 
-### 3.5 `erpnextkta.kta_stock.line_replenishment_service.complete_line_replenishment_picking`
+### 3.6 `erpnextkta.kta_stock.line_replenishment_service.complete_line_replenishment_picking`
 Mobil PDA üzerinden toplanan partileri doğrular, tolerans denetimi yapar ve resmi transfer fişini submit eder.
 
 - **Sıfır Manuel Giriş Denetimi:** Depocunun PDA'da barkod okuttuğu parti (`resolve_scanned_barcode`), sipariş satırındaki partiyle eşleştiği anda satır tam miktar üzerinden onaylanır.
@@ -189,14 +216,14 @@ Mobil PDA üzerinden toplanan partileri doğrular, tolerans denetimi yapar ve re
 - **Fiziksel Raf Çıkışı:** Üretilen `Stock Entry (Material Transfer)` belgesinde kaynak ambar olarak doğrudan fiziksel yaprak raflar (`W1A-01-01 - KTA`), hedef ambar olarak tekil WIP deposu yer alır.
 - **Dönüş Değeri (`str`):** Oluşturulan ve submit edilen `Stock Entry` adı.
 
-### 3.6 `erpnextkta.kta_stock.line_replenishment_service.cancel_line_replenishment_order`
+### 3.7 `erpnextkta.kta_stock.line_replenishment_service.cancel_line_replenishment_order`
 İkmal siparişini ve varsa bağlı `Stock Entry` belgesini Frappe standartlarında iptal eder.
 
 - **Girdi Parametreleri:** `order_name` (str, zorunlu)
 - **Dönüş Değeri (`str`):** İptal edilen sipariş adı.
 
-### 3.7 Diğer Yardımcı & PDA Uç Noktaları
-- `erpnextkta.kta_stock.line_replenishment_service.override_item_source(order_name, item_code, new_source_warehouse, new_batch_no=None)`: Yalnızca `Draft` siparişte satırın kaynak rafını değiştirir ve yeni parti verilmemişse `allocate_fifo_batch` ile yeni FIFO partisini atar.
+### 3.8 Diğer Yardımcı & PDA Uç Noktaları
+- `erpnextkta.kta_stock.line_replenishment_service.override_item_source(order_name, item_code, new_source_warehouse, new_batch_no=None)`: Yalnızca `Draft` siparişte satırın kaynak rafını değiştirir; `new_batch_no` verilmemişse `allocate_fifo_batch(item_code=item_code, warehouse=new_source_warehouse, required_qty=row.deficit_qty, exclude_order=order.name)` çağrısı ile mevcut siparişin kendi rezervasyonunu hariç tutup diğer açık siparişlerin rezervasyonlarını koruyarak yeni FIFO partisini atar.
 - `erpnextkta.kta_stock.page.line_replenishment_picking.line_replenishment_picking.get_open_replenishment_orders()`: `Draft` / `In Progress` durumundaki açık ikmal emirlerini döner.
 - `erpnextkta.kta_stock.page.line_replenishment_picking.line_replenishment_picking.get_replenishment_order_details(order_name)`: Sipariş başlığı ve satır detaylarını döner.
 - `erpnextkta.kta_stock.page.line_replenishment_picking.line_replenishment_picking.resolve_scanned_barcode(barcode)`: `Item`, `KTA Stock Label` (`sut_barcode` / `name`), `Batch` (`name` / `batch_id`) ve `Item Barcode` üzerinden barkodu çözümler.

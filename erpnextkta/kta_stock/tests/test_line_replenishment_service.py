@@ -9,6 +9,7 @@ from erpnextkta.kta_stock.line_replenishment_service import (
     allocate_fifo_batches,
     bulk_allocate_fifo_batches,
     create_line_replenishment_order,
+    get_in_flight_reserved_stock,
     get_warehouse_leaf_stock,
     override_item_source,
 )
@@ -291,6 +292,7 @@ class TestLineReplenishmentService(FrappeTestCase):
         self.assertNotIn(zero_item, item_codes)
         self.assertIn("_TEST-LRO-NO-BATCH", item_codes)
         self.assertEqual(doc.total_deficit_qty, 15.0)
+        frappe.delete_doc("KTA Line Replenishment Order", order_name, force=True)
 
     def test_get_warehouse_leaf_stock(self):
         """get_warehouse_leaf_stock accurately calculates leaf warehouse stock balances."""
@@ -346,6 +348,7 @@ class TestLineReplenishmentService(FrappeTestCase):
         self.assertEqual(len(doc.items), 2)
         self.assertEqual(doc.items[0].deficit_qty, 45.0)
         self.assertEqual(doc.items[1].deficit_qty, 55.0)
+        frappe.delete_doc("KTA Line Replenishment Order", order_name, force=True)
 
     def test_create_order_ignores_legacy_sourcing_kwargs(self):
         """Legacy sourcing kwargs and removed item keys are safely ignored."""
@@ -372,6 +375,7 @@ class TestLineReplenishmentService(FrappeTestCase):
         self.assertFalse(item_meta.has_field("sourcing_type"))
         self.assertFalse(item_meta.has_field("free_stock_qty"))
         self.assertEqual(doc.total_deficit_qty, 20.0)
+        frappe.delete_doc("KTA Line Replenishment Order", order_name, force=True)
 
     def test_allocate_fifo_batch(self):
         """allocate_fifo_batch returns None for non-batch item, and oldest batch for batch item."""
@@ -637,6 +641,7 @@ class TestLineReplenishmentService(FrappeTestCase):
         # Total deficit and picked are 30.0
         self.assertEqual(doc.total_deficit_qty, 30.0)
         self.assertEqual(doc.total_picked_qty, 30.0)
+        frappe.delete_doc("KTA Line Replenishment Order", order_name, force=True)
 
     def test_fifo_prioritizes_manufacturing_date_over_creation_and_preserves_after_shelf_transfer(
         self,
@@ -908,6 +913,9 @@ class TestLineReplenishmentService(FrappeTestCase):
         self.assertEqual(doc_a.items[1].deficit_qty, 100.0)
         self.assertEqual(doc_a.total_deficit_qty, 150.0)
 
+        # Release Test Case A's in-flight reservation before Test Case B re-allocates the same boxes
+        frappe.delete_doc("KTA Line Replenishment Order", order_a_name, force=True)
+
         # Test Case B: omitted source_parent_warehouse falls back via allocated_batches LCA
         order_b_name = create_line_replenishment_order(
             target_warehouse=self.fifo_target_wh,
@@ -930,3 +938,475 @@ class TestLineReplenishmentService(FrappeTestCase):
         self.assertEqual(doc_b.items[1].suggested_batch_no, b2.name)
         self.assertEqual(doc_b.items[1].deficit_qty, 100.0)
         self.assertEqual(doc_b.total_deficit_qty, 150.0)
+        frappe.delete_doc("KTA Line Replenishment Order", order_b_name, force=True)
+
+    def _create_test_item_with_batches(
+        self, prefix: str, batches: list[tuple[str, str, int, float]]
+    ) -> tuple[str, list[str]]:
+        """Create a unique batch-tracked Item and receive given (suffix, shelf, expiry_days, qty) batches."""
+        from frappe.utils import add_days, nowdate, nowtime
+
+        uid = frappe.generate_hash("", 5).upper()
+        item_code = f"_TEST-LRO-{prefix}-{uid}"
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": item_code,
+                "item_name": item_code,
+                "item_group": create_test_item_group(),
+                "stock_uom": "Nos",
+                "is_stock_item": 1,
+                "has_batch_no": 1,
+                "create_new_batch": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        batch_names: list[str] = []
+        for suffix, shelf_wh, expiry_days, qty in batches:
+            batch_doc = frappe.get_doc(
+                {
+                    "doctype": "Batch",
+                    "batch_id": f"{prefix}-{suffix}-{uid}",
+                    "item": item_code,
+                    "manufacturing_date": "2026-01-10",
+                    "expiry_date": add_days(nowdate(), expiry_days),
+                    "batch_qty": 0,
+                }
+            ).insert(ignore_permissions=True)
+            batch_names.append(batch_doc.name)
+
+            se = frappe.get_doc(
+                {
+                    "doctype": "Stock Entry",
+                    "stock_entry_type": "Material Receipt",
+                    "purpose": "Material Receipt",
+                    "company": self.company,
+                    "posting_date": nowdate(),
+                    "posting_time": nowtime(),
+                    "items": [
+                        {
+                            "item_code": item_code,
+                            "t_warehouse": shelf_wh,
+                            "qty": qty,
+                            "allow_zero_valuation_rate": 1,
+                            "batch_no": batch_doc.name,
+                            "use_serial_batch_fields": 1,
+                        }
+                    ],
+                }
+            )
+            se.insert(ignore_permissions=True)
+            se.submit()
+
+        return item_code, batch_names
+
+    def test_allocate_and_bulk_allocate_skip_batches_reserved_in_draft_and_in_progress_orders(
+        self,
+    ):
+        """Draft (any target wh) and In Progress orders reserve batches; skipped/Completed/Cancelled do not."""
+        item_code, (b1, b2, b3, b4) = self._create_test_item_with_batches(
+            "EXCB",
+            [
+                ("B1", self.fifo_shelf_a, 30, 20.0),
+                ("B2", self.fifo_shelf_a, 60, 20.0),
+                ("B3", self.fifo_shelf_b, 90, 20.0),
+                ("B4", self.fifo_shelf_b, 120, 20.0),
+            ],
+        )
+
+        # Draft order targeting a DIFFERENT warehouse still reserves B1 globally
+        draft_order = frappe.get_doc(
+            {
+                "doctype": "KTA Line Replenishment Order",
+                "target_warehouse": self.target_wh,
+                "company": self.company,
+                "status": "Draft",
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "uom": "Nos",
+                        "deficit_qty": 20.0,
+                        "suggested_source_warehouse": self.fifo_shelf_a,
+                        "suggested_batch_no": b1,
+                    }
+                ],
+            }
+        ).insert(ignore_permissions=True)
+
+        # In Progress order reserves picked_batch_no B2; is_skipped=1 row must NOT reserve B3
+        in_progress_order = frappe.get_doc(
+            {
+                "doctype": "KTA Line Replenishment Order",
+                "target_warehouse": self.sibling_wh,
+                "company": self.company,
+                "status": "In Progress",
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "uom": "Nos",
+                        "deficit_qty": 20.0,
+                        "suggested_source_warehouse": self.fifo_shelf_a,
+                        "suggested_batch_no": b1,
+                        "is_picked": 1,
+                        "picked_qty": 20.0,
+                        "picked_source_warehouse": self.fifo_shelf_a,
+                        "picked_batch_no": b2,
+                    },
+                    {
+                        "item_code": item_code,
+                        "uom": "Nos",
+                        "deficit_qty": 20.0,
+                        "suggested_source_warehouse": self.fifo_shelf_b,
+                        "suggested_batch_no": b3,
+                        "is_skipped": 1,
+                    },
+                ],
+            }
+        ).insert(ignore_permissions=True)
+
+        # Completed and Cancelled orders must NOT reserve B3 or B4
+        completed_order = frappe.get_doc(
+            {
+                "doctype": "KTA Line Replenishment Order",
+                "target_warehouse": self.target_wh,
+                "company": self.company,
+                "status": "Completed",
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "uom": "Nos",
+                        "deficit_qty": 20.0,
+                        "suggested_source_warehouse": self.fifo_shelf_b,
+                        "suggested_batch_no": b3,
+                    }
+                ],
+            }
+        ).insert(ignore_permissions=True)
+
+        cancelled_order = frappe.get_doc(
+            {
+                "doctype": "KTA Line Replenishment Order",
+                "target_warehouse": self.target_wh,
+                "company": self.company,
+                "status": "Cancelled",
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "uom": "Nos",
+                        "deficit_qty": 20.0,
+                        "suggested_source_warehouse": self.fifo_shelf_b,
+                        "suggested_batch_no": b4,
+                    }
+                ],
+            }
+        ).insert(ignore_permissions=True)
+
+        reserved_batches, reserved_non_batch = get_in_flight_reserved_stock([item_code])
+        self.assertEqual(reserved_batches.get(item_code), {b1, b2})
+        self.assertEqual(reserved_non_batch, {})
+
+        single_alloc = allocate_fifo_batches(
+            item_code=item_code,
+            parent_warehouse=self.fifo_group_wh,
+            required_qty=25.0,
+            target_warehouse=self.fifo_target_wh,
+        )
+        self.assertEqual([a["batch_no"] for a in single_alloc], [b3, b4])
+
+        bulk_alloc = bulk_allocate_fifo_batches(
+            [
+                {
+                    "item_code": item_code,
+                    "parent_warehouse": self.fifo_group_wh,
+                    "required_qty": 25.0,
+                }
+            ],
+            target_warehouse=self.fifo_target_wh,
+        )
+        self.assertEqual([a["batch_no"] for a in bulk_alloc[item_code]], [b3, b4])
+
+        for ord_doc in (
+            draft_order,
+            in_progress_order,
+            completed_order,
+            cancelled_order,
+        ):
+            frappe.delete_doc("KTA Line Replenishment Order", ord_doc.name, force=True)
+
+    def test_create_order_does_not_double_allocate_reserved_batch_and_skips_when_none_left(
+        self,
+    ):
+        """Sequential orders allocate distinct batches and raise ValidationError when none remain."""
+        item_code, (b1, b2) = self._create_test_item_with_batches(
+            "DBL",
+            [
+                ("B1", self.fifo_shelf_a, 30, 30.0),
+                ("B2", self.fifo_shelf_b, 60, 40.0),
+            ],
+        )
+
+        # 1st order allocates B1
+        order_1_name = create_line_replenishment_order(
+            target_warehouse=self.fifo_target_wh,
+            items=[
+                {
+                    "item_code": item_code,
+                    "deficit_qty": 25.0,
+                    "suggested_source_warehouse": self.fifo_group_wh,
+                }
+            ],
+            company=self.company,
+        )
+        doc_1 = frappe.get_doc("KTA Line Replenishment Order", order_1_name)
+        self.assertEqual(len(doc_1.items), 1)
+        self.assertEqual(doc_1.items[0].suggested_batch_no, b1)
+        self.assertEqual(doc_1.items[0].suggested_source_warehouse, self.fifo_shelf_a)
+
+        # 2nd order skips reserved B1 (even if stale suggested_batch_no=B1 is sent) and gets B2
+        order_2_name = create_line_replenishment_order(
+            target_warehouse=self.target_wh,
+            items=[
+                {
+                    "item_code": item_code,
+                    "deficit_qty": 25.0,
+                    "suggested_source_warehouse": self.fifo_group_wh,
+                    "suggested_batch_no": b1,
+                }
+            ],
+            company=self.company,
+        )
+        doc_2 = frappe.get_doc("KTA Line Replenishment Order", order_2_name)
+        self.assertEqual(len(doc_2.items), 1)
+        self.assertEqual(doc_2.items[0].suggested_batch_no, b2)
+        self.assertEqual(doc_2.items[0].suggested_source_warehouse, self.fifo_shelf_b)
+
+        # 3rd order has zero unreserved batches left -> must NOT fall back to stale B1
+        with self.assertRaises(frappe.ValidationError):
+            create_line_replenishment_order(
+                target_warehouse=self.sibling_wh,
+                items=[
+                    {
+                        "item_code": item_code,
+                        "deficit_qty": 25.0,
+                        "suggested_source_warehouse": self.fifo_group_wh,
+                        "suggested_batch_no": b1,
+                    }
+                ],
+                company=self.company,
+            )
+
+        # Mixed payload skips exhausted batch item and creates order with available non-batch item
+        order_3_name = create_line_replenishment_order(
+            target_warehouse=self.sibling_wh,
+            items=[
+                {
+                    "item_code": item_code,
+                    "deficit_qty": 25.0,
+                    "suggested_source_warehouse": self.fifo_group_wh,
+                    "suggested_batch_no": b1,
+                },
+                {
+                    "item_code": "_TEST-LRO-ITEM-2",
+                    "deficit_qty": 10.0,
+                    "suggested_source_warehouse": self.central_wh,
+                },
+            ],
+            company=self.company,
+        )
+        doc_3 = frappe.get_doc("KTA Line Replenishment Order", order_3_name)
+        self.assertEqual([r.item_code for r in doc_3.items], ["_TEST-LRO-ITEM-2"])
+
+        for ord_name in (order_1_name, order_2_name, order_3_name):
+            frappe.delete_doc("KTA Line Replenishment Order", ord_name, force=True)
+
+    def test_non_batch_in_flight_qty_deducted_from_shelf_allocation(self):
+        """In-flight non-batch reservations are deducted per shelf in allocation and fallback."""
+        from frappe.utils import nowdate, nowtime
+
+        uid = frappe.generate_hash("", 5).upper()
+        item_code = f"_TEST-LRO-NBEXC-{uid}"
+        frappe.get_doc(
+            {
+                "doctype": "Item",
+                "item_code": item_code,
+                "item_name": item_code,
+                "item_group": create_test_item_group(),
+                "stock_uom": "Nos",
+                "is_stock_item": 1,
+                "has_batch_no": 0,
+            }
+        ).insert(ignore_permissions=True)
+
+        for shelf_wh, qty in ((self.fifo_shelf_a, 50.0), (self.fifo_shelf_b, 30.0)):
+            se = frappe.get_doc(
+                {
+                    "doctype": "Stock Entry",
+                    "stock_entry_type": "Material Receipt",
+                    "purpose": "Material Receipt",
+                    "company": self.company,
+                    "posting_date": nowdate(),
+                    "posting_time": nowtime(),
+                    "items": [
+                        {
+                            "item_code": item_code,
+                            "t_warehouse": shelf_wh,
+                            "qty": qty,
+                            "allow_zero_valuation_rate": 1,
+                        }
+                    ],
+                }
+            )
+            se.insert(ignore_permissions=True)
+            se.submit()
+
+        # Reserve 35.0 on fifo_shelf_a via Draft order (15.0 remains on shelf A, 30.0 on shelf B)
+        order_1_name = create_line_replenishment_order(
+            target_warehouse=self.fifo_target_wh,
+            items=[
+                {
+                    "item_code": item_code,
+                    "deficit_qty": 35.0,
+                    "suggested_source_warehouse": self.fifo_shelf_a,
+                }
+            ],
+            company=self.company,
+        )
+
+        allocs = allocate_fifo_batches(
+            item_code=item_code,
+            parent_warehouse=self.fifo_group_wh,
+            required_qty=40.0,
+            target_warehouse=self.fifo_target_wh,
+        )
+        alloc_by_wh = {a["warehouse"]: a["allocated_qty"] for a in allocs}
+        self.assertEqual(alloc_by_wh.get(self.fifo_shelf_a), 15.0)
+        self.assertEqual(alloc_by_wh.get(self.fifo_shelf_b), 25.0)
+
+        # Reserve the remaining 15.0 on shelf A and 30.0 on shelf B (In Progress with picked_qty)
+        order_2 = frappe.get_doc(
+            {
+                "doctype": "KTA Line Replenishment Order",
+                "target_warehouse": self.target_wh,
+                "company": self.company,
+                "status": "In Progress",
+                "items": [
+                    {
+                        "item_code": item_code,
+                        "uom": "Nos",
+                        "deficit_qty": 15.0,
+                        "suggested_source_warehouse": self.fifo_shelf_a,
+                        "is_picked": 1,
+                        "picked_qty": 15.0,
+                        "picked_source_warehouse": self.fifo_shelf_a,
+                    },
+                    {
+                        "item_code": item_code,
+                        "uom": "Nos",
+                        "deficit_qty": 20.0,
+                        "suggested_source_warehouse": self.fifo_shelf_b,
+                        "is_picked": 1,
+                        "picked_qty": 30.0,
+                        "picked_source_warehouse": self.fifo_shelf_b,
+                    },
+                ],
+            }
+        ).insert(ignore_permissions=True)
+
+        self.assertEqual(
+            allocate_fifo_batches(
+                item_code=item_code,
+                parent_warehouse=self.fifo_group_wh,
+                required_qty=10.0,
+                target_warehouse=self.fifo_target_wh,
+            ),
+            [],
+        )
+
+        with self.assertRaises(frappe.ValidationError):
+            create_line_replenishment_order(
+                target_warehouse=self.sibling_wh,
+                items=[
+                    {
+                        "item_code": item_code,
+                        "deficit_qty": 10.0,
+                        "suggested_source_warehouse": self.fifo_group_wh,
+                    }
+                ],
+                company=self.company,
+            )
+
+        frappe.delete_doc("KTA Line Replenishment Order", order_1_name, force=True)
+        frappe.delete_doc("KTA Line Replenishment Order", order_2.name, force=True)
+
+    def test_override_item_source_excludes_other_orders_but_allows_self_order(self):
+        """override_item_source excludes other orders' batches while keeping own batch eligible."""
+        item_code, (b1, b2, b3, b4) = self._create_test_item_with_batches(
+            "OVRD",
+            [
+                ("B1", self.fifo_shelf_a, 30, 20.0),
+                ("B2", self.fifo_shelf_a, 60, 20.0),
+                ("B3", self.fifo_shelf_b, 90, 20.0),
+                ("B4", self.fifo_shelf_b, 120, 20.0),
+            ],
+        )
+
+        order_1_name = create_line_replenishment_order(
+            target_warehouse=self.fifo_target_wh,
+            items=[
+                {
+                    "item_code": item_code,
+                    "deficit_qty": 20.0,
+                    "suggested_source_warehouse": self.fifo_shelf_a,
+                }
+            ],
+            company=self.company,
+        )
+        doc_1 = frappe.get_doc("KTA Line Replenishment Order", order_1_name)
+        self.assertEqual(doc_1.items[0].suggested_batch_no, b1)
+
+        order_2_name = create_line_replenishment_order(
+            target_warehouse=self.target_wh,
+            items=[
+                {
+                    "item_code": item_code,
+                    "deficit_qty": 20.0,
+                    "suggested_source_warehouse": self.fifo_shelf_a,
+                }
+            ],
+            company=self.company,
+        )
+        doc_2 = frappe.get_doc("KTA Line Replenishment Order", order_2_name)
+        self.assertEqual(doc_2.items[0].suggested_batch_no, b2)
+
+        # Re-evaluating on shelf_a must exclude order_1's B1 but still allow order_2's own B2
+        res_self = override_item_source(
+            order_name=order_2_name,
+            item_code=item_code,
+            new_source_warehouse=self.fifo_shelf_a,
+        )
+        self.assertEqual(res_self["suggested_batch_no"], b2)
+
+        # Order 3 reserves B3 on shelf_b; overriding order_2 to shelf_b must skip B3 and pick B4
+        order_3_name = create_line_replenishment_order(
+            target_warehouse=self.sibling_wh,
+            items=[
+                {
+                    "item_code": item_code,
+                    "deficit_qty": 20.0,
+                    "suggested_source_warehouse": self.fifo_shelf_b,
+                }
+            ],
+            company=self.company,
+        )
+        doc_3 = frappe.get_doc("KTA Line Replenishment Order", order_3_name)
+        self.assertEqual(doc_3.items[0].suggested_batch_no, b3)
+
+        res_other = override_item_source(
+            order_name=order_2_name,
+            item_code=item_code,
+            new_source_warehouse=self.fifo_shelf_b,
+        )
+        self.assertEqual(res_other["suggested_batch_no"], b4)
+
+        for ord_name in (order_1_name, order_2_name, order_3_name):
+            frappe.delete_doc("KTA Line Replenishment Order", ord_name, force=True)

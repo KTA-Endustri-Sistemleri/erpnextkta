@@ -176,17 +176,18 @@ def _get_deficit_bin_rows(target_wh: str) -> list[dict]:
 
 
 def _get_drafts_by_item(target_wh: str) -> dict[str, list]:
-    """Fetch in-flight draft replenishment order items grouped by item_code."""
+    """Fetch in-flight Draft and In Progress replenishment order items grouped by item_code."""
     rows = frappe.db.sql(
         """
         SELECT parent, item_code, suggested_batch_no, deficit_qty
         FROM `tabKTA Line Replenishment Item`
         WHERE docstatus = 0
+          AND COALESCE(is_skipped, 0) = 0
           AND parent IN (
             SELECT name FROM `tabKTA Line Replenishment Order`
             WHERE target_warehouse = %s
               AND docstatus = 0
-              AND status = 'Draft'
+              AND status IN ('Draft', 'In Progress')
           )
         """,
         (target_wh,),

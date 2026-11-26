@@ -74,12 +74,74 @@ def get_leaf_warehouses(parent_warehouse: str | None) -> list[str]:
     return leaf_warehouses
 
 
+def get_in_flight_reserved_stock(
+    item_codes: list[str],
+    exclude_order: str | None = None,
+) -> tuple[dict[str, set[str]], dict[tuple[str, str], float]]:
+    """Return reserved batch numbers and non-batch quantities from Draft / In Progress orders."""
+    if not item_codes:
+        return {}, {}
+
+    deduped_codes = list({c for c in item_codes if c})
+    if not deduped_codes:
+        return {}, {}
+
+    params: dict = {"item_codes": tuple(deduped_codes)}
+    exclude_clause = ""
+    if exclude_order:
+        exclude_clause = "AND o.name != %(exclude_order)s"
+        params["exclude_order"] = exclude_order
+
+    rows = frappe.db.sql(
+        f"""
+        SELECT
+            i.item_code,
+            COALESCE(NULLIF(i.picked_source_warehouse, ''), i.suggested_source_warehouse) AS source_warehouse,
+            COALESCE(NULLIF(i.picked_batch_no, ''), i.suggested_batch_no) AS reserved_batch_no,
+            CASE
+                WHEN COALESCE(i.is_picked, 0) = 1 AND COALESCE(i.picked_qty, 0) > 0
+                THEN i.picked_qty
+                ELSE i.deficit_qty
+            END AS reserved_qty
+        FROM `tabKTA Line Replenishment Item` i
+        JOIN `tabKTA Line Replenishment Order` o ON o.name = i.parent
+        WHERE o.docstatus = 0
+          AND o.status IN ('Draft', 'In Progress')
+          AND COALESCE(i.is_skipped, 0) = 0
+          AND i.item_code IN %(item_codes)s
+          {exclude_clause}
+        """,
+        params,
+        as_dict=True,
+    )
+
+    reserved_batches_by_item: dict[str, set[str]] = {}
+    reserved_non_batch_qty: dict[tuple[str, str], float] = {}
+
+    for row in rows:
+        item_code = row.get("item_code")
+        if not item_code:
+            continue
+        reserved_batch = (row.get("reserved_batch_no") or "").strip()
+        source_wh = (row.get("source_warehouse") or "").strip()
+        if reserved_batch:
+            reserved_batches_by_item.setdefault(item_code, set()).add(reserved_batch)
+        elif source_wh:
+            key = (item_code, source_wh)
+            reserved_non_batch_qty[key] = reserved_non_batch_qty.get(key, 0.0) + flt(
+                row.get("reserved_qty") or 0
+            )
+
+    return reserved_batches_by_item, reserved_non_batch_qty
+
+
 @frappe.whitelist()
 def allocate_fifo_batches(
     item_code: str | None = None,
     parent_warehouse: str | None = None,
     required_qty: float = 0.0,
     target_warehouse: str | None = None,
+    exclude_order: str | None = None,
 ) -> list[dict]:
     """Allocate full FIFO batches from leaf warehouses under parent_warehouse.
 
@@ -116,6 +178,9 @@ def allocate_fifo_batches(
         search_warehouses = [w for w in search_warehouses if w != target_warehouse]
 
     has_batch = frappe.db.get_value("Item", item_code, "has_batch_no")
+    reserved_batches_map, reserved_non_batch_qty = get_in_flight_reserved_stock(
+        [item_code], exclude_order=exclude_order
+    )
 
     if not has_batch:
         bins = frappe.get_all(
@@ -151,7 +216,9 @@ def allocate_fifo_batches(
             shelf_wh = b.get("warehouse")
             if shelf_wh == parent_warehouse and parent_is_group:
                 shelf_wh = fallback_leaf
-            avail = flt(b.get("actual_qty") or 0)
+            avail = flt(b.get("actual_qty") or 0) - flt(
+                reserved_non_batch_qty.get((item_code, shelf_wh), 0.0)
+            )
             if avail <= 0:
                 continue
             needed = req_qty - accumulated_qty
@@ -244,7 +311,13 @@ def allocate_fifo_batches(
     if not available_batches:
         return []
 
-    candidate_batch_nos = list({b_no for (_, b_no) in available_batches})
+    reserved_batches = reserved_batches_map.get(item_code, set())
+    candidate_batch_nos = list(
+        {b_no for (_wh, b_no) in available_batches if b_no not in reserved_batches}
+    )
+    if not candidate_batch_nos:
+        return []
+
     batch_records = frappe.get_all(
         "Batch",
         filters={"name": ["in", candidate_batch_nos], "disabled": 0},
@@ -254,6 +327,8 @@ def allocate_fifo_batches(
 
     active_candidates = []
     for (wh, b_no), qty in available_batches.items():
+        if b_no in reserved_batches:
+            continue
         if b_no in batch_meta:
             meta = batch_meta[b_no]
             active_candidates.append(
@@ -294,6 +369,7 @@ def allocate_fifo_batches(
 def bulk_allocate_fifo_batches(
     items_to_allocate: list[dict],
     target_warehouse: str | None = None,
+    exclude_order: str | None = None,
 ) -> dict[str, list[dict]]:
     """Bulk allocate FIFO batches for multiple items in high-performance batch queries.
 
@@ -312,6 +388,9 @@ def bulk_allocate_fifo_batches(
     # 1. Resolve item batch properties and warehouses
     items_by_code = {item["item_code"]: item for item in items_to_allocate}
     all_item_codes = list(items_by_code.keys())
+    reserved_batches_map, _reserved_non_batch_qty = get_in_flight_reserved_stock(
+        all_item_codes, exclude_order=exclude_order
+    )
 
     item_has_batch = {
         d.name: bool(d.has_batch_no)
@@ -360,12 +439,21 @@ def bulk_allocate_fifo_batches(
 
     for c in non_batch_item_codes:
         item_req = items_by_code[c]
-        allocated_map[c] = allocate_fifo_batches(
-            item_code=c,
-            parent_warehouse=item_req["parent_warehouse"],
-            required_qty=item_req["required_qty"],
-            target_warehouse=target_warehouse,
-        )
+        if exclude_order:
+            allocated_map[c] = allocate_fifo_batches(
+                item_code=c,
+                parent_warehouse=item_req["parent_warehouse"],
+                required_qty=item_req["required_qty"],
+                target_warehouse=target_warehouse,
+                exclude_order=exclude_order,
+            )
+        else:
+            allocated_map[c] = allocate_fifo_batches(
+                item_code=c,
+                parent_warehouse=item_req["parent_warehouse"],
+                required_qty=item_req["required_qty"],
+                target_warehouse=target_warehouse,
+            )
 
     if not batch_item_codes or not all_candidate_whs:
         return allocated_map
@@ -387,12 +475,21 @@ def bulk_allocate_fifo_batches(
         # No positive bins found, fall back to individual allocation
         for c in batch_item_codes:
             item_req = items_by_code[c]
-            allocated_map[c] = allocate_fifo_batches(
-                item_code=c,
-                parent_warehouse=item_req["parent_warehouse"],
-                required_qty=item_req["required_qty"],
-                target_warehouse=target_warehouse,
-            )
+            if exclude_order:
+                allocated_map[c] = allocate_fifo_batches(
+                    item_code=c,
+                    parent_warehouse=item_req["parent_warehouse"],
+                    required_qty=item_req["required_qty"],
+                    target_warehouse=target_warehouse,
+                    exclude_order=exclude_order,
+                )
+            else:
+                allocated_map[c] = allocate_fifo_batches(
+                    item_code=c,
+                    parent_warehouse=item_req["parent_warehouse"],
+                    required_qty=item_req["required_qty"],
+                    target_warehouse=target_warehouse,
+                )
         return allocated_map
 
     tuple_str = ", ".join(
@@ -449,6 +546,8 @@ def bulk_allocate_fifo_batches(
     for b in batches_data:
         i_code = b.item_code
         b_no = b.batch_no
+        if b_no in reserved_batches_map.get(i_code, set()):
+            continue
         wh = b.warehouse
         qty = flt(b.qty)
 
@@ -509,6 +608,7 @@ def allocate_fifo_batch(
     item_code: str | None = None,
     warehouse: str | None = None,
     required_qty: float = 0.0,
+    exclude_order: str | None = None,
 ) -> str | None:
     """Find the oldest active batch with positive balance in the given warehouse or tree.
 
@@ -518,11 +618,15 @@ def allocate_fifo_batch(
     if not item_code or not warehouse:
         return None
 
-    allocations = allocate_fifo_batches(
-        item_code=item_code,
-        parent_warehouse=warehouse,
-        required_qty=required_qty or 1.0,
-    )
+    alloc_kwargs: dict = {
+        "item_code": item_code,
+        "parent_warehouse": warehouse,
+        "required_qty": required_qty or 1.0,
+    }
+    if exclude_order:
+        alloc_kwargs["exclude_order"] = exclude_order
+
+    allocations = allocate_fifo_batches(**alloc_kwargs)
     if allocations:
         return allocations[0].get("batch_no")
     return None
@@ -734,7 +838,7 @@ def create_line_replenishment_order(
             frappe.db.get_value(
                 "Item",
                 item_code,
-                ["item_name", "stock_uom"],
+                ["item_name", "stock_uom", "has_batch_no"],
                 as_dict=True,
             )
             or {}
@@ -777,6 +881,9 @@ def create_line_replenishment_order(
                     }
                 )
         else:
+            if cint(item_meta.get("has_batch_no") or 0) and allocation_parent_wh:
+                continue
+
             leaf_stock = (
                 get_warehouse_leaf_stock(
                     item_code=item_code,
@@ -786,6 +893,21 @@ def create_line_replenishment_order(
                 if allocation_parent_wh
                 else 0.0
             )
+            if allocation_parent_wh:
+                _reserved_batches, reserved_non_batch_qty = (
+                    get_in_flight_reserved_stock([item_code])
+                )
+                wh_scope = set(get_leaf_warehouses(allocation_parent_wh)) | {
+                    allocation_parent_wh
+                }
+                if target_wh:
+                    wh_scope.discard(target_wh)
+                reserved_total = sum(
+                    qty
+                    for (ic, wh), qty in reserved_non_batch_qty.items()
+                    if ic == item_code and wh in wh_scope
+                )
+                leaf_stock -= flt(reserved_total)
 
             if leaf_stock <= 0:
                 continue
@@ -867,6 +989,7 @@ def override_item_source(
                     item_code=item_code,
                     warehouse=new_source_warehouse,
                     required_qty=row.deficit_qty,
+                    exclude_order=order.name,
                 )
             updated_batch = row.suggested_batch_no
 

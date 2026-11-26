@@ -560,3 +560,198 @@ class TestReservationDeficitService(FrappeTestCase):
         )
         self.assertEqual(row["suggested_source_warehouse"], shelf_1_wh)
         self.assertEqual(row["suggested_batch_no"], batch_1)
+
+    def test_in_progress_order_deducts_deficit_and_skipped_items_are_ignored(self):
+        """In Progress orders deduct non-skipped rows from d_net and ignore is_skipped=1 rows."""
+        item_active = "_TEST-DEF-ITEM-A"
+        item_skipped = "_TEST-DEF-ITEM-B"
+        self._set_bin_quantities(item_active, self.target_wh, 5.0, 20.0)
+        self._set_bin_quantities(item_skipped, self.target_wh, 2.0, 10.0)
+
+        in_progress_order = frappe.get_doc(
+            {
+                "doctype": "KTA Line Replenishment Order",
+                "target_warehouse": self.target_wh,
+                "company": self.company,
+                "status": "In Progress",
+                "items": [
+                    {
+                        "item_code": item_active,
+                        "item_name": f"Test Item {item_active}",
+                        "uom": "Nos",
+                        "reserved_qty": 20.0,
+                        "line_actual_qty": 5.0,
+                        "deficit_qty": 10.0,
+                        "is_skipped": 0,
+                    },
+                    {
+                        "item_code": item_skipped,
+                        "item_name": f"Test Item {item_skipped}",
+                        "uom": "Nos",
+                        "reserved_qty": 10.0,
+                        "line_actual_qty": 2.0,
+                        "deficit_qty": 8.0,
+                        "is_skipped": 1,
+                    },
+                ],
+            }
+        )
+        in_progress_order.flags.ignore_permissions = True
+        in_progress_order.insert()
+
+        try:
+            with patch(
+                "erpnextkta.kta_stock.line_replenishment_service.allocate_fifo_batches",
+                return_value=[],
+            ):
+                results = get_line_reservation_deficits(self.target_wh)
+
+            res_map = {d["item_code"]: d for d in results}
+
+            self.assertIn(item_active, res_map)
+            active_row = res_map[item_active]
+            self.assertFalse(active_row["covered_by_draft"])
+            self.assertEqual(active_row["draft_covered_qty"], 10.0)
+            self.assertEqual(active_row["deficit_qty"], 5.0)
+            self.assertIn(in_progress_order.name, active_row["draft_orders"])
+
+            self.assertIn(item_skipped, res_map)
+            skipped_row = res_map[item_skipped]
+            self.assertFalse(skipped_row["covered_by_draft"])
+            self.assertEqual(skipped_row["draft_covered_qty"], 0.0)
+            self.assertEqual(skipped_row["deficit_qty"], 8.0)
+            self.assertEqual(skipped_row["draft_orders"], [])
+        finally:
+            if frappe.db.exists("KTA Line Replenishment Order", in_progress_order.name):
+                in_progress_order.delete(force=True)
+
+    def test_partial_draft_excludes_already_reserved_batch_and_suggests_next_fifo_batch(
+        self,
+    ):
+        """Partial draft covering B1 excludes B1 from FIFO allocation and suggests B2."""
+        from erpnextkta.kta_stock.line_replenishment_service import get_leaf_warehouses
+
+        uid = frappe.generate_hash(length=6)
+        item_group = create_test_item_group()
+        item_code = f"_TEST-DEF-PARTIAL-{uid}"
+        batch_1 = f"_TEST-PARTIAL-B1-{uid}"
+        batch_2 = f"_TEST-PARTIAL-B2-{uid}"
+
+        leaf_whs = get_leaf_warehouses(self.central_wh)
+        self.assertTrue(leaf_whs)
+        shelf_wh = "W1A-01-01 - KTA" if "W1A-01-01 - KTA" in leaf_whs else leaf_whs[0]
+        se_company = (
+            frappe.db.get_value("Warehouse", shelf_wh, "company") or self.company
+        )
+
+        created_stock_entries = []
+        draft_order = None
+
+        try:
+            item_doc = frappe.get_doc(
+                {
+                    "doctype": "Item",
+                    "item_code": item_code,
+                    "item_name": f"Test Partial Draft Item {uid}",
+                    "item_group": item_group,
+                    "stock_uom": "Nos",
+                    "is_stock_item": 1,
+                    "has_batch_no": 1,
+                    "create_new_batch": 1,
+                    "valuation_rate": 10.0,
+                }
+            )
+            item_doc.flags.ignore_permissions = True
+            item_doc.insert()
+
+            for b_no, exp_date in [
+                (batch_1, add_days(nowdate(), 30)),
+                (batch_2, add_days(nowdate(), 60)),
+            ]:
+                b_doc = frappe.new_doc("Batch")
+                b_doc.name = b_no
+                b_doc.batch_id = b_no
+                b_doc.item = item_code
+                b_doc.expiry_date = exp_date
+                b_doc.flags.ignore_permissions = True
+                b_doc.insert()
+
+            for b_no, qty in [(batch_1, 250.0), (batch_2, 200.0)]:
+                se = frappe.new_doc("Stock Entry")
+                se.purpose = "Material Receipt"
+                se.stock_entry_type = "Material Receipt"
+                se.company = se_company
+                se.append(
+                    "items",
+                    {
+                        "item_code": item_code,
+                        "t_warehouse": shelf_wh,
+                        "qty": qty,
+                        "basic_rate": 10.0,
+                        "uom": "Nos",
+                        "conversion_factor": 1.0,
+                        "batch_no": b_no,
+                        "use_serial_batch_fields": 1,
+                    },
+                )
+                se.flags.ignore_permissions = True
+                se.insert()
+                se.submit()
+                created_stock_entries.append(se)
+
+            self._set_bin_quantities(item_code, self.target_wh, 0.0, 413.0)
+
+            draft_order = frappe.get_doc(
+                {
+                    "doctype": "KTA Line Replenishment Order",
+                    "target_warehouse": self.target_wh,
+                    "company": self.company,
+                    "status": "Draft",
+                    "items": [
+                        {
+                            "item_code": item_code,
+                            "item_name": f"Test Partial Draft Item {uid}",
+                            "uom": "Nos",
+                            "reserved_qty": 413.0,
+                            "line_actual_qty": 0.0,
+                            "deficit_qty": 250.0,
+                            "suggested_source_warehouse": shelf_wh,
+                            "suggested_batch_no": batch_1,
+                        }
+                    ],
+                }
+            )
+            draft_order.flags.ignore_permissions = True
+            draft_order.insert()
+
+            results = get_line_reservation_deficits(self.target_wh)
+            res_map = {d["item_code"]: d for d in results}
+
+            self.assertIn(item_code, res_map)
+            row = res_map[item_code]
+            self.assertFalse(row["covered_by_draft"])
+            self.assertEqual(row["deficit_qty"], 163.0)
+            self.assertIn(draft_order.name, row["draft_orders"])
+            self.assertEqual(row["suggested_batch_no"], batch_2)
+            self.assertNotEqual(row["suggested_batch_no"], batch_1)
+        finally:
+            if draft_order and frappe.db.exists(
+                "KTA Line Replenishment Order", draft_order.name
+            ):
+                draft_order.delete(force=True)
+            for se in reversed(created_stock_entries):
+                if frappe.db.exists("Stock Entry", se.name):
+                    se_doc = frappe.get_doc("Stock Entry", se.name)
+                    if se_doc.docstatus == 1:
+                        se_doc.cancel()
+                    se_doc.delete(force=True)
+            frappe.db.delete("Stock Ledger Entry", {"item_code": item_code})
+            frappe.db.delete(
+                "Serial and Batch Entry", {"batch_no": ["in", [batch_1, batch_2]]}
+            )
+            frappe.db.delete("Bin", {"item_code": item_code})
+            for b_no in [batch_1, batch_2]:
+                if frappe.db.exists("Batch", b_no):
+                    frappe.delete_doc("Batch", b_no, force=True)
+            if frappe.db.exists("Item", item_code):
+                frappe.delete_doc("Item", item_code, force=True)
