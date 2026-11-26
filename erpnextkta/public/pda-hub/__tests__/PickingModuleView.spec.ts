@@ -605,4 +605,151 @@ describe("PickingModuleView (Approach A UX, Strict FIFO & Skip RBAC)", () => {
 
     wrapper.unmount();
   });
+
+  it("restores document.activeElement to #pda-barcode-input after initial order load, scans, and FIFO/Skip modal confirm & cancel", async () => {
+    const order = makeOrderDetails({
+      can_skip_items: true,
+      items: [
+        makeOrderDetails().items[1], // ROW-02: BATCH-01
+        makeOrderDetails().items[0], // ROW-10: BATCH-02
+      ],
+    });
+    setupFrappeMock(order, (barcode) => {
+      if (barcode === "BATCH-01") {
+        return {
+          item_code: "ITEM-A",
+          batch_no: "BATCH-01",
+          qty: 500,
+          warehouse: "W1A-02-01 - KTA",
+          has_batch_no: 1,
+        };
+      }
+      if (barcode === "BATCH-ALT") {
+        return {
+          item_code: "ITEM-A",
+          batch_no: "BATCH-ALT",
+          qty: 500,
+          warehouse: "W1C-04-02 - KTA",
+          has_batch_no: 1,
+        };
+      }
+      return { item_code: null, batch_no: null, qty: 0 };
+    });
+
+    const wrapper = mount(PickingModuleView, { attachTo: document.body });
+    await flushPromises();
+
+    const scanInput = wrapper.find("#pda-barcode-input").element as HTMLInputElement;
+    expect(document.activeElement).toBe(scanInput);
+
+    // 1. Successful scan (including Tab-terminated scanner) keeps focus & clears input
+    (wrapper.find("#pda-order-select").element as HTMLSelectElement).focus();
+    expect(document.activeElement).not.toBe(scanInput);
+    await wrapper.find("#pda-barcode-input").setValue("BATCH-01");
+    await wrapper.find("#pda-barcode-input").trigger("keydown.tab");
+    await flushPromises();
+    expect(document.activeElement).toBe(scanInput);
+    expect(scanInput.value).toBe("");
+
+    // 2. Duplicate scan restores focus & clears input
+    scanInput.blur();
+    await wrapper.find("#pda-barcode-input").setValue("BATCH-01");
+    await wrapper.find("#pda-barcode-input").trigger("keydown.enter");
+    await flushPromises();
+    expect(document.activeElement).toBe(scanInput);
+    expect(scanInput.value).toBe("");
+
+    // 3. Error / unknown scan restores focus & clears input
+    scanInput.blur();
+    await wrapper.find("#pda-barcode-input").setValue("UNKNOWN");
+    await wrapper.find("#pda-barcode-input").trigger("keydown.enter");
+    await flushPromises();
+    expect(document.activeElement).toBe(scanInput);
+    expect(scanInput.value).toBe("");
+
+    // 4. FIFO modal cancel & confirm restore focus to #pda-barcode-input
+    await wrapper.find("#pda-barcode-input").setValue("BATCH-ALT");
+    await wrapper.find("#pda-barcode-input").trigger("keydown.enter");
+    await flushPromises();
+    const fifoCancelBtn = document.body.querySelector(
+      '[data-testid="fifo-override-cancel-btn"]',
+    ) as HTMLButtonElement;
+    fifoCancelBtn.focus();
+    fifoCancelBtn.click();
+    await flushPromises();
+    expect(document.activeElement).toBe(scanInput);
+
+    await wrapper.find("#pda-barcode-input").setValue("BATCH-ALT");
+    await wrapper.find("#pda-barcode-input").trigger("keydown.enter");
+    await flushPromises();
+    const fifoConfirmBtn = document.body.querySelector(
+      '[data-testid="fifo-override-confirm-btn"]',
+    ) as HTMLButtonElement;
+    fifoConfirmBtn.focus();
+    fifoConfirmBtn.click();
+    await flushPromises();
+    expect(document.activeElement).toBe(scanInput);
+
+    // 5. Undo and Skip modal cancel & confirm restore focus to #pda-barcode-input
+    await wrapper.find('[data-testid="tab-picked"]').trigger("click");
+    await wrapper
+      .find('[data-testid="picking-card-ROW-10"] [data-testid="card-undo-btn"]')
+      .trigger("click");
+    await flushPromises();
+    expect(document.activeElement).toBe(scanInput);
+
+    await wrapper.find('[data-testid="tab-pending"]').trigger("click");
+    await wrapper
+      .find('[data-testid="picking-card-ROW-10"] [data-testid="card-skip-btn"]')
+      .trigger("click");
+    await flushPromises();
+    const skipCancelBtn = document.body.querySelector(
+      '[data-testid="skip-item-cancel-btn"]',
+    ) as HTMLButtonElement;
+    skipCancelBtn.focus();
+    skipCancelBtn.click();
+    await flushPromises();
+    expect(document.activeElement).toBe(scanInput);
+
+    await wrapper
+      .find('[data-testid="picking-card-ROW-10"] [data-testid="card-skip-btn"]')
+      .trigger("click");
+    await flushPromises();
+    const skipConfirmBtn = document.body.querySelector(
+      '[data-testid="skip-item-confirm-btn"]',
+    ) as HTMLButtonElement;
+    skipConfirmBtn.focus();
+    skipConfirmBtn.click();
+    await flushPromises();
+    expect(document.activeElement).toBe(scanInput);
+
+    wrapper.unmount();
+  });
+
+  it("groups top controls (#pda-order-select, #pda-barcode-input) and picking tabs inside .pda-sticky-header", async () => {
+    const order = makeOrderDetails();
+    setupFrappeMock(order, () => ({ item_code: null, batch_no: null, qty: 0 }));
+
+    const hubWrapper = mount(PickingModuleView, { attachTo: document.body });
+    await flushPromises();
+
+    const hubSticky = hubWrapper.find(".pda-sticky-header");
+    expect(hubSticky.exists()).toBe(true);
+    expect(hubSticky.find("#pda-order-select").exists()).toBe(true);
+    expect(hubSticky.find("#pda-barcode-input").exists()).toBe(true);
+    expect(hubSticky.find('[data-testid="tab-pending"]').exists()).toBe(true);
+    expect(hubSticky.find('[data-testid="tab-picked"]').exists()).toBe(true);
+    hubWrapper.unmount();
+
+    const pdaWrapper = mount(PdaApp, { attachTo: document.body });
+    await flushPromises();
+
+    const pdaSticky = pdaWrapper.find(".pda-sticky-header");
+    expect(pdaSticky.exists()).toBe(true);
+    expect(pdaSticky.find("#pda-order-select").exists()).toBe(true);
+    expect(pdaSticky.find("#pda-barcode-input").exists()).toBe(true);
+    expect(pdaSticky.find('[data-testid="tab-pending"]').exists()).toBe(true);
+    expect(pdaSticky.find('[data-testid="tab-picked"]').exists()).toBe(true);
+    pdaWrapper.unmount();
+  });
 });

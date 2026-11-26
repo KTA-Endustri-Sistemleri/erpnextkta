@@ -38,27 +38,45 @@ onMounted(() => void loadOpenOrders());
     </header>
 
     <main class="pda-main">
-      <div class="pda-top-controls">
-        <OrderSelector
-          :orders="orders"
-          :selected-order-name="selectedOrderName"
-          :active-order="activeOrder"
-          :loading="loadingOrders || loadingOrderDetails"
-          :picked-count="pickedCount"
-          :skipped-count="skippedCount"
-          :total-count="totalCount"
-          @select="onSelectOrder"
-          @refresh="loadOpenOrders"
-        />
-        <BarcodeScannerBar
-          v-if="activeOrder"
-          ref="scannerBarRef"
-          :disabled="loadingOrderDetails || submittingTransfer || Boolean(fifoModalCandidate) || Boolean(skipModalItem)"
-          :feedback-msg="feedbackMsg"
-          :feedback-type="feedbackType"
-          @scan="onBarcodeScan"
-          @clear="clearFeedback"
-        />
+      <div class="pda-sticky-header">
+        <div class="pda-top-controls">
+          <OrderSelector
+            :orders="orders"
+            :selected-order-name="selectedOrderName"
+            :active-order="activeOrder"
+            :loading="loadingOrders || loadingOrderDetails"
+            :picked-count="pickedCount"
+            :skipped-count="skippedCount"
+            :total-count="totalCount"
+            @select="onSelectOrder"
+            @refresh="loadOpenOrders"
+          />
+          <BarcodeScannerBar
+            v-if="activeOrder"
+            ref="scannerBarRef"
+            :disabled="loadingOrderDetails || submittingTransfer || Boolean(fifoModalCandidate) || Boolean(skipModalItem)"
+            :feedback-msg="feedbackMsg"
+            :feedback-type="feedbackType"
+            @scan="onBarcodeScan"
+            @clear="clearFeedback"
+          />
+        </div>
+
+        <div
+          v-if="activeOrder && !loadingOrderDetails && totalCount > 0"
+          class="pda-tabs-bar"
+          role="tablist"
+        >
+          <button type="button" role="tab" data-testid="tab-pending" :class="['pda-tab-btn', { active: activeTab === 'pending' }]" @click="activeTab = 'pending'">
+            {{ __("Bekleyen ({0})", [pendingCount]) }}
+          </button>
+          <button type="button" role="tab" data-testid="tab-picked" :class="['pda-tab-btn', { active: activeTab === 'picked' }]" @click="activeTab = 'picked'">
+            {{ __("Toplanan ({0})", [pickedCount]) }}
+          </button>
+          <button v-if="skippedCount > 0" type="button" role="tab" data-testid="tab-skipped" :class="['pda-tab-btn', { active: activeTab === 'skipped' }]" @click="activeTab = 'skipped'">
+            {{ __("Atlanan ({0})", [skippedCount]) }}
+          </button>
+        </div>
       </div>
 
       <template v-if="activeOrder">
@@ -77,18 +95,6 @@ onMounted(() => void loadOpenOrders());
             :class="['pda-ready-banner', allSkipped ? 'ready-amber' : 'ready-green']"
           >
             {{ allSkipped ? __("Tüm kalemler atlandı — Emri iptal edebilirsiniz") : __("Tüm kalemler işlendi — Transferi tamamlamaya hazır") }}
-          </div>
-
-          <div class="pda-tabs-bar" role="tablist">
-            <button type="button" role="tab" data-testid="tab-pending" :class="['pda-tab-btn', { active: activeTab === 'pending' }]" @click="activeTab = 'pending'">
-              {{ __("Bekleyen ({0})", [pendingCount]) }}
-            </button>
-            <button type="button" role="tab" data-testid="tab-picked" :class="['pda-tab-btn', { active: activeTab === 'picked' }]" @click="activeTab = 'picked'">
-              {{ __("Toplanan ({0})", [pickedCount]) }}
-            </button>
-            <button v-if="skippedCount > 0" type="button" role="tab" data-testid="tab-skipped" :class="['pda-tab-btn', { active: activeTab === 'skipped' }]" @click="activeTab = 'skipped'">
-              {{ __("Atlanan ({0})", [skippedCount]) }}
-            </button>
           </div>
 
           <div v-if="visibleItems.length > 0" :class="['items-list', { 'is-pending-grid': activeTab === 'pending' }]">
@@ -138,15 +144,22 @@ onMounted(() => void loadOpenOrders());
 .header-title { margin: 0; font-size: 1.15rem; font-weight: 700; }
 .header-badge { background-color: #2563eb; color: #ffffff; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
 .pda-main { flex: 1; width: 100%; min-width: 0; max-width: 100%; overflow-x: clip; padding: 12px 12px 112px; display: flex; flex-direction: column; gap: 10px; }
-.pda-top-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
+.pda-sticky-header {
   position: sticky;
   top: 52px;
   z-index: 28;
   background: var(--bg-color, #f8fafc);
   padding: 4px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+.pda-top-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
 }
 .pda-ready-banner { padding: 9px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; }
 .ready-green { background: rgba(22, 163, 74, 0.14); border: 1px solid rgba(22, 163, 74, 0.35); color: var(--pda-success, #16a34a); }

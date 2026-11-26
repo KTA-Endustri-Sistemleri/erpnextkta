@@ -19,6 +19,7 @@
         autocorrect="off"
         spellcheck="false"
         @keydown.enter.prevent="onEnter"
+        @keydown.tab="onTabKey"
       />
       <button
         v-if="barcodeVal"
@@ -42,18 +43,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, nextTick, watch } from "vue";
 
 const __ = (...args: any[]) => (window as any).__(...args);
 
 interface Props {
   disabled?: boolean;
+  autoFocusOnEnable?: boolean;
   feedbackMsg?: string;
   feedbackType?: "success" | "error" | "info" | "";
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
+  autoFocusOnEnable: true,
   feedbackMsg: "",
   feedbackType: "",
 });
@@ -65,12 +68,29 @@ const emit = defineEmits<{
 
 const barcodeVal = ref<string>("");
 const inputRef = ref<HTMLInputElement | null>(null);
+let focusTimer: ReturnType<typeof setTimeout> | null = null;
+
+function applyFocus() {
+  if (!inputRef.value || props.disabled) return;
+  try {
+    inputRef.value.focus({ preventScroll: true });
+  } catch {
+    inputRef.value.focus();
+  }
+}
 
 function onEnter() {
   const code = barcodeVal.value.trim();
   if (code) {
     barcodeVal.value = "";
     emit("scan", code);
+  }
+}
+
+function onTabKey(e: KeyboardEvent) {
+  if ((barcodeVal.value || "").trim().length > 0) {
+    e.preventDefault();
+    onEnter();
   }
 }
 
@@ -84,12 +104,27 @@ function focusInput(clear = false) {
   if (clear) {
     barcodeVal.value = "";
   }
+  if (focusTimer) {
+    clearTimeout(focusTimer);
+    focusTimer = null;
+  }
   nextTick(() => {
-    if (inputRef.value && !props.disabled) {
-      inputRef.value.focus();
-    }
+    applyFocus();
+    focusTimer = setTimeout(() => {
+      focusTimer = null;
+      applyFocus();
+    }, 50);
   });
 }
+
+watch(
+  () => props.disabled,
+  (isDisabled, wasDisabled) => {
+    if (wasDisabled && !isDisabled && props.autoFocusOnEnable) {
+      focusInput(false);
+    }
+  },
+);
 
 defineExpose({
   focusInput,
@@ -98,6 +133,13 @@ defineExpose({
 
 onMounted(() => {
   focusInput();
+});
+
+onUnmounted(() => {
+  if (focusTimer) {
+    clearTimeout(focusTimer);
+    focusTimer = null;
+  }
 });
 </script>
 

@@ -211,12 +211,14 @@ export function useLineReplenishmentPicking(
       }
 
       activeOrder.value = order;
-      focusScanner(false);
     } catch (err: any) {
       activeOrder.value = null;
       showFeedback(err?.message || __("Emir detayları alınamadı."), "error");
     } finally {
       loadingOrderDetails.value = false;
+      if (activeOrder.value) {
+        focusScanner(true);
+      }
     }
   }
 
@@ -257,7 +259,6 @@ export function useLineReplenishmentPicking(
           __("Barkod tanınamadı veya sistemde bulunamadı."),
           "error",
         );
-        focusScanner(true);
         return;
       }
 
@@ -270,7 +271,6 @@ export function useLineReplenishmentPicking(
           __("Okutulan malzeme bu ikmal emrinde yer almıyor."),
           "error",
         );
-        focusScanner(true);
         return;
       }
 
@@ -288,7 +288,6 @@ export function useLineReplenishmentPicking(
             __("Bu koli ({0}) zaten okutuldu.", [resolved.batch_no]),
             "info",
           );
-          focusScanner(true);
           return;
         }
       }
@@ -307,7 +306,6 @@ export function useLineReplenishmentPicking(
           __("Bu koli ({0}) zaten okutuldu.", [resolved.item_code]),
           "info",
         );
-        focusScanner(true);
         return;
       }
 
@@ -315,7 +313,6 @@ export function useLineReplenishmentPicking(
       if (resolved.batch_disabled) {
         playBeep(false);
         showFeedback(__("Okutulan parti pasif durumdadır."), "error");
-        focusScanner(true);
         return;
       }
 
@@ -327,7 +324,6 @@ export function useLineReplenishmentPicking(
           ]),
           "error",
         );
-        focusScanner(true);
         return;
       }
 
@@ -340,7 +336,6 @@ export function useLineReplenishmentPicking(
           __("Bu partinin uygun kaynak raflarda kullanılabilir bakiyesi yok."),
           "error",
         );
-        focusScanner(true);
         return;
       }
 
@@ -356,7 +351,6 @@ export function useLineReplenishmentPicking(
           ),
           "error",
         );
-        focusScanner(true);
         return;
       }
 
@@ -387,7 +381,6 @@ export function useLineReplenishmentPicking(
             ]),
             "success",
           );
-          focusScanner(true);
           return;
         }
 
@@ -398,7 +391,6 @@ export function useLineReplenishmentPicking(
         if (!candidateRow) {
           playBeep(false);
           showFeedback(__("Bu malzemenin bekleyen kolisi kalmadı."), "error");
-          focusScanner(true);
           return;
         }
 
@@ -412,7 +404,6 @@ export function useLineReplenishmentPicking(
       if (!nonBatchRow) {
         playBeep(false);
         showFeedback(__("Bu malzemenin bekleyen kolisi kalmadı."), "error");
-        focusScanner(true);
         return;
       }
 
@@ -423,7 +414,6 @@ export function useLineReplenishmentPicking(
       if (isOverTolerance(nextQty, nonBatchRow.deficit_qty)) {
         playBeep(false);
         showFeedback(__("Okutulan miktar tolerans sınırını aşıyor."), "error");
-        focusScanner(true);
         return;
       }
 
@@ -438,14 +428,20 @@ export function useLineReplenishmentPicking(
       playBeep(true);
       highlightCard(nonBatchRow.name);
       showFeedback(__("Okutuldu: {0}", [nonBatchRow.item_code]), "success");
-      focusScanner(true);
     } catch (err: any) {
       playBeep(false);
       showFeedback(
         err?.message || __("Barkod çözümleme sırasında hata oluştu."),
         "error",
       );
-      focusScanner(true);
+    } finally {
+      if (
+        !fifoModalCandidate.value &&
+        !skipModalItem.value &&
+        activeOrder.value
+      ) {
+        focusScanner(true);
+      }
     }
   }
 
@@ -501,7 +497,7 @@ export function useLineReplenishmentPicking(
 
   function cancelSkipItem() {
     skipModalItem.value = null;
-    focusScanner(false);
+    focusScanner(true);
   }
 
   function undoRow(row: PickingItem) {
@@ -514,7 +510,7 @@ export function useLineReplenishmentPicking(
     row.picked_source_warehouse = "";
     row.picked_qty = row.deficit_qty;
     clearFeedback();
-    focusScanner(false);
+    focusScanner(true);
   }
 
   function onUpdateNonBatchQty(row: PickingItem, newQty: number) {
@@ -546,7 +542,7 @@ export function useLineReplenishmentPicking(
     playBeep(true);
     highlightCard(row.name);
     showFeedback(__("Onaylandı: {0}", [row.item_code]), "success");
-    focusScanner(false);
+    focusScanner(true);
   }
 
   async function executeCompleteTransfer() {

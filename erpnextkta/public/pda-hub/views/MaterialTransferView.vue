@@ -153,6 +153,7 @@ function resetBox() {
     <BarcodeScannerBar
       ref="scannerBarRef"
       :disabled="scanning || submitting"
+      :auto-focus-on-enable="!scannedBox"
       :feedback-msg="feedbackMsg"
       :feedback-type="feedbackType"
       @scan="onScanBox"
