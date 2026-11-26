@@ -767,14 +767,19 @@ def _resolve_box_label_and_batch(
         )
         return linked_label, batch_doc.name, batch_doc.item
 
-    if fallback_label_name and frappe.db.exists("KTA Stock Label", code):
+    if (
+        fallback_label_name
+        and code.isascii()
+        and code.isdigit()
+        and frappe.db.exists("KTA Stock Label", code)
+    ):
         by_name = frappe.db.get_value(
             "KTA Stock Label",
             {"name": code, "label_type": ["in", list(_LABEL_TYPES)]},
             label_fields,
             as_dict=True,
         )
-        if by_name and by_name.batch:
+        if by_name and str(by_name.name) == code and by_name.batch:
             item_code = by_name.item_code or frappe.db.get_value(
                 "Batch", by_name.batch, "item"
             )

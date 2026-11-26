@@ -1653,3 +1653,35 @@ class TestPdaService(KTABaseTestCase):
         )
         self.assertFalse(frappe.db.exists("KTA Stock Label", lbl1.name))
         self.assertFalse(frappe.db.exists("KTA Stock Label", lbl2.name))
+
+    def test_box_label_name_fallback_rejects_numeric_prefix_alphanumeric_barcodes(self):
+        from erpnextkta.kta_stock.services.pda_service import (
+            pda_scan_box,
+            pda_stock_lookup,
+        )
+
+        uid = frappe.generate_hash("", 5)
+        company, _, wh_a, _, _, _ = self._ensure_pda_test_warehouses(f"lblcast_{uid}")
+        item_code = self._ensure_pda_batch_item(f"_TEST-PDA-LBLCAST-{uid}")
+        std_batch = f"C{frappe.generate_hash('', 6).upper()}0001"
+        self._ensure_batch(std_batch, item_code)
+        self._receive_batch_stock(item_code, wh_a, std_batch, 25.0, company=company)
+        lbl = self._create_box_label(item_code, std_batch, 25.0, wh_a)
+
+        label_id = str(lbl.name)
+        self.assertTrue(label_id.isascii() and label_id.isdigit())
+
+        prefixed_barcode = f"{label_id}-W1F-01-01"
+        with self.assertRaises(frappe.ValidationError):
+            pda_stock_lookup(prefixed_barcode)
+        with self.assertRaises(frappe.ValidationError):
+            pda_scan_box(prefixed_barcode)
+
+        scan_res = pda_scan_box(label_id)
+        self.assertEqual(scan_res["label_name"], label_id)
+        self.assertEqual(scan_res["batch_no"], std_batch)
+
+        lookup_res = pda_stock_lookup(label_id)
+        self.assertEqual(lookup_res["kind"], "batch")
+        self.assertEqual(lookup_res["label_name"], label_id)
+        self.assertEqual(lookup_res["batch_no"], std_batch)
