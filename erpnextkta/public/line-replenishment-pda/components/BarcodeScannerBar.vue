@@ -103,10 +103,14 @@ onMounted(() => {
 
 <style scoped>
 .barcode-scan-card {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   background: var(--card-bg, #ffffff);
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 10px;
-  padding: 12px;
+  padding: 8px 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
@@ -117,7 +121,7 @@ onMounted(() => {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-color, #1e293b);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .scan-icon {
@@ -128,13 +132,19 @@ onMounted(() => {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .barcode-input {
   width: 100%;
-  min-height: 48px;
-  padding: 10px 42px 10px 14px;
-  font-size: 1.02rem;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 42px;
+  padding: 8px 38px 8px 12px;
+  font-size: 0.96rem;
   font-family: monospace, var(--font-family, sans-serif);
   font-weight: 600;
   border: 2px solid var(--border-color, #94a3b8);
@@ -235,7 +245,7 @@ onMounted(() => {
 
 @media (min-width: 768px) {
   .barcode-scan-card {
-    padding: 10px;
+    padding: 8px 10px;
   }
 
   .barcode-input {

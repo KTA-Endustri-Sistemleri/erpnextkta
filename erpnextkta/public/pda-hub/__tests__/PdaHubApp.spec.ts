@@ -104,6 +104,7 @@ describe("PdaHubApp", () => {
   });
 
   afterEach(() => {
+    Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
     localStorage.removeItem("kta_pda_theme");
     localStorage.removeItem("kta_pda_sound");
     document.documentElement.removeAttribute("data-theme");
@@ -476,6 +477,67 @@ describe("PdaHubApp", () => {
     await flushPromises();
     expect(document.documentElement.lang).toBe("tr");
     expect(wrapper.find('[data-testid="operator-card"]').exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("auto-hides subbar on downward scroll and restores it on upward scroll or near top", async () => {
+    Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+    window.__KTA_PDA_BOOT__ = makeBoot({
+      is_locked: false,
+      active_operator: {
+        name: "EMP-0001",
+        employee: "EMP-0001",
+        employee_name: "Ali Yılmaz",
+        department: "Depo",
+        user_id: "ali@example.com",
+        has_pin: true,
+      },
+      menu_categories: [STOCK_CATEGORY],
+    });
+
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("get_open_replenishment_orders")) {
+        return { ok: true, status: 200, json: async () => ({ message: [] }) };
+      }
+      return { ok: true, status: 200, json: async () => ({ message: {} }) };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const wrapper = mount(PdaHubApp);
+    await wrapper.find('[data-testid="module-card-picking"]').trigger("click");
+    await flushPromises();
+
+    const shell = wrapper.find(".pda-hub-shell");
+    const subbar = wrapper.find('[data-testid="pda-subbar"]');
+    expect(subbar.exists()).toBe(true);
+    expect(subbar.classes()).not.toContain("is-hidden");
+    expect((shell.element as HTMLElement).style.getPropertyValue("--pda-sticky-top")).toBe("100px");
+
+    const triggerScroll = async (y: number) => {
+      Object.defineProperty(window, "scrollY", { value: y, configurable: true });
+      window.dispatchEvent(new Event("scroll"));
+      await flushPromises();
+    };
+
+    // Scroll down past 48px -> subbar hides, sticky top shifts to 56px
+    await triggerScroll(80);
+    expect(subbar.classes()).toContain("is-hidden");
+    expect((shell.element as HTMLElement).style.getPropertyValue("--pda-sticky-top")).toBe("56px");
+
+    // Scroll back up (lastY - currentY > 4) -> subbar reappears, sticky top restores to 100px
+    await triggerScroll(60);
+    expect(subbar.classes()).not.toContain("is-hidden");
+    expect((shell.element as HTMLElement).style.getPropertyValue("--pda-sticky-top")).toBe("100px");
+
+    // Scroll down again, then return near top (<= 24px) -> subbar reappears
+    await triggerScroll(120);
+    expect(subbar.classes()).toContain("is-hidden");
+    expect((shell.element as HTMLElement).style.getPropertyValue("--pda-sticky-top")).toBe("56px");
+
+    await triggerScroll(16);
+    expect(subbar.classes()).not.toContain("is-hidden");
+    expect((shell.element as HTMLElement).style.getPropertyValue("--pda-sticky-top")).toBe("100px");
+
     wrapper.unmount();
   });
 });

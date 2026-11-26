@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import type {
   PdaBootData,
   PdaMenuCategory,
@@ -16,6 +16,7 @@ import {
 } from "./utils/frappeShim";
 import { applyTheme, getStoredTheme } from "./utils/pdaPreferences";
 import { useInactivityLock } from "./composables/useInactivityLock";
+import { useScrollSubbar } from "./composables/useScrollSubbar";
 import PdaOverlays from "./components/PdaOverlays.vue";
 import PdaMenuDrawer from "./components/PdaMenuDrawer.vue";
 import PinLockScreen from "./components/PinLockScreen.vue";
@@ -151,6 +152,11 @@ const showSubbar = computed(
     activeModule.value !== "home" ||
     (menuCategories.value.length > 1 && selectedCategoryKey.value !== null),
 );
+
+const { isSubbarHidden, resetSubbar } = useScrollSubbar(() => !isLocked.value && showSubbar.value);
+watch([isLocked, activeModule, selectedCategoryKey], () => resetSubbar());
+
+const stickyTopPx = computed(() => (showSubbar.value && !isSubbarHidden.value ? "100px" : "56px"));
 
 function handleSubbarBack() {
   if (activeModule.value !== "home") {
@@ -296,7 +302,7 @@ function onSelectAllModulesFromDrawer() {
       @unlocked="handleUnlocked"
     />
 
-    <div v-else class="pda-hub-shell">
+    <div v-else class="pda-hub-shell" :style="{ '--pda-sticky-top': stickyTopPx }">
       <header class="pda-topbar">
         <div class="pda-topbar-left">
           <button
@@ -329,7 +335,11 @@ function onSelectAllModulesFromDrawer() {
         </div>
       </header>
 
-      <nav v-if="showSubbar" class="pda-subbar" data-testid="pda-subbar">
+      <nav
+        v-if="showSubbar"
+        :class="['pda-subbar', { 'is-hidden': isSubbarHidden }]"
+        data-testid="pda-subbar"
+      >
         <button
           type="button"
           class="pda-subbar-back-btn"
@@ -389,8 +399,8 @@ function onSelectAllModulesFromDrawer() {
 </template>
 
 <style scoped>
-.pda-hub-root { min-height: 100vh; background: var(--bg-color); color: var(--text-color); }
-.pda-hub-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.pda-hub-root { min-height: 100vh; overflow-x: clip; background: var(--bg-color); color: var(--text-color); }
+.pda-hub-shell { min-height: 100vh; overflow-x: clip; display: flex; flex-direction: column; }
 .pda-topbar {
   position: sticky;
   top: 0;
@@ -418,7 +428,9 @@ function onSelectAllModulesFromDrawer() {
   padding: 6px 12px;
   background: var(--pda-surface-alt);
   border-bottom: 1px solid var(--border-color);
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
+.pda-subbar.is-hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
 .pda-subbar-back-btn {
   flex-shrink: 0;
   min-height: 34px;

@@ -116,9 +116,19 @@ onMounted(() => void loadOpenOrders());
 </template>
 
 <style scoped>
-.pda-picking-view { min-height: calc(100vh - 56px); padding: 10px 12px 112px; background: var(--bg-color); color: var(--text-color); }
-.pda-picking-container { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-.pda-top-controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.pda-picking-view { min-height: calc(100vh - 56px); padding: 10px 12px 112px; overflow-x: clip; max-width: 100%; background: var(--bg-color); color: var(--text-color); }
+.pda-picking-container { width: 100%; min-width: 0; max-width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.pda-top-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  position: sticky;
+  top: var(--pda-sticky-top, 100px);
+  z-index: 30;
+  background: var(--bg-color);
+  padding: 4px 0 8px;
+  transition: top 0.2s ease;
+}
 .pda-ready-banner { padding: 9px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; }
 .ready-green { background: rgba(22, 163, 74, 0.14); border: 1px solid rgba(22, 163, 74, 0.35); color: var(--pda-success); }
 .ready-amber { background: rgba(217, 119, 6, 0.16); border: 1px solid rgba(217, 119, 6, 0.4); color: #b45309; }
@@ -143,7 +153,7 @@ onMounted(() => void loadOpenOrders());
 @media (min-width: 768px) {
   .pda-picking-view { padding: 12px 16px 84px; }
   .pda-picking-container { max-width: 960px; margin: 0 auto; }
-  .pda-top-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; }
+  .pda-top-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: stretch; gap: 10px; }
   .pda-picking-list.is-pending-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
 </style>

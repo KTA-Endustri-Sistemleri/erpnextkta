@@ -132,13 +132,22 @@ onMounted(() => void loadOpenOrders());
 </template>
 
 <style scoped>
-.line-replenishment-pda-app { min-height: 100vh; display: flex; flex-direction: column; background-color: var(--bg-color, #f8fafc); color: var(--text-color, #0f172a); }
+.line-replenishment-pda-app { min-height: 100vh; display: flex; flex-direction: column; overflow-x: clip; max-width: 100%; background-color: var(--bg-color, #f8fafc); color: var(--text-color, #0f172a); }
 .pda-header { background-color: #1e293b; color: #ffffff; padding: 12px 16px; border-bottom: 2px solid #334155; position: sticky; top: 0; z-index: 30; }
 .header-content { max-width: 960px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
 .header-title { margin: 0; font-size: 1.15rem; font-weight: 700; }
 .header-badge { background-color: #2563eb; color: #ffffff; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
-.pda-main { flex: 1; width: 100%; padding: 12px 12px 112px; display: flex; flex-direction: column; gap: 10px; }
-.pda-top-controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.pda-main { flex: 1; width: 100%; min-width: 0; max-width: 100%; overflow-x: clip; padding: 12px 12px 112px; display: flex; flex-direction: column; gap: 10px; }
+.pda-top-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  position: sticky;
+  top: 52px;
+  z-index: 28;
+  background: var(--bg-color, #f8fafc);
+  padding: 4px 0 8px;
+}
 .pda-ready-banner { padding: 9px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; }
 .ready-green { background: rgba(22, 163, 74, 0.14); border: 1px solid rgba(22, 163, 74, 0.35); color: var(--pda-success, #16a34a); }
 .ready-amber { background: rgba(217, 119, 6, 0.16); border: 1px solid rgba(217, 119, 6, 0.4); color: #b45309; }
@@ -151,7 +160,7 @@ onMounted(() => void loadOpenOrders());
 .empty-icon { font-size: 2.2rem; display: block; margin-bottom: 8px; }
 @media (min-width: 768px) {
   .pda-main { max-width: 960px; margin: 0 auto; padding: 12px 16px 84px; }
-  .pda-top-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; }
+  .pda-top-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: stretch; gap: 10px; }
   .items-list.is-pending-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
 </style>

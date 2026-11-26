@@ -113,17 +113,24 @@ function getStatusClass(status?: string): string {
 
 <style scoped>
 .order-selector-card {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   background: var(--card-bg, #ffffff);
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 10px;
-  padding: 12px;
+  padding: 8px 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .selector-field {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .selector-label {
@@ -133,18 +140,26 @@ function getStatusClass(status?: string): string {
 }
 
 .selector-row {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .order-select {
-  flex: 1;
+  flex: 1 1 0;
+  width: 0;
   min-width: 0;
-  min-height: 44px;
-  padding: 8px 12px;
-  font-size: 0.95rem;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   border: 1px solid var(--border-color, #cbd5e1);
   border-radius: 6px;
   background-color: var(--control-bg, #ffffff);
@@ -158,8 +173,9 @@ function getStatusClass(status?: string): string {
 }
 
 .btn-refresh {
-  min-width: 44px;
-  min-height: 44px;
+  flex-shrink: 0;
+  min-width: 40px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -293,7 +309,7 @@ function getStatusClass(status?: string): string {
 
 @media (min-width: 768px) {
   .order-selector-card {
-    padding: 10px;
+    padding: 8px 10px;
   }
 
   .order-select,
