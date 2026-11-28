@@ -199,6 +199,7 @@ doc_events = {
     },
     "Company": {
         "validate": "erpnextkta.overrides.company_wip_validation.validate_wip_consumption_account"
+    },
     "Item": {
         "validate": "erpnextkta.overrides.item.validate_item_sourcing_strategy"
     }
