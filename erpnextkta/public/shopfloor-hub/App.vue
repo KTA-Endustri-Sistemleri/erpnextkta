@@ -10,6 +10,7 @@ import CreateWorkOrderModal from './components/CreateWorkOrderModal.vue';
 import MaterialStagingModal from './components/MaterialStagingModal.vue';
 import WorkOrderReleasePanel from './components/WorkOrderReleasePanel.vue';
 import WorkCardAnalyticsPanel from './components/WorkCardAnalyticsPanel.vue';
+import LineTransfersPanel from './components/LineTransfersPanel.vue';
 import WorkspaceHeader from './components/WorkspaceHeader.vue';
 import ShopfloorAlerts from './components/ShopfloorAlerts.vue';
 import ReportsSidebar from './components/ReportsSidebar.vue';
@@ -37,6 +38,7 @@ const showStagingModal = ref<boolean>(false);
 const currentShortages = ref<MaterialShortageItem[]>([]);
 const stagingSubmitting = ref<boolean>(false);
 const selectedWorkOrder = ref<string | null>(null);
+const lineTransferTargetWarehouse = ref<string>('');
 const loading = ref<boolean>(false);
 const submitting = ref<boolean>(false);
 const errorMessage = ref<string | null>(null);
@@ -50,7 +52,9 @@ const historyRefreshKey = ref<number>(0);
 function callFrappe<T = any>(method: string, args: Record<string, any> = {}): Promise<T> {
   return new Promise((resolve, reject) => {
     frappe.call({
-      method, args, quiet: true,
+      method,
+      args,
+      quiet: true,
       callback: (r: { message?: T }) => {
         if ((window as any).frappe) (window as any).frappe.messages = [];
         resolve(r.message as T);
@@ -112,11 +116,13 @@ function clearSelection() {
 
 async function handleViewChange(view: WorkOrderViewMode) {
   activeView.value = view;
+  if (view === 'line_transfers') {
+    lineTransferTargetWarehouse.value = '';
+    errorMessage.value = null;
+    return;
+  }
   if (view === 'reports' || view === 'confirmations') return;
-  if (
-    (view === 'operations' || view === 'work_cards') &&
-    context.value?.status === 'Draft'
-  ) {
+  if ((view === 'operations' || view === 'work_cards') && context.value?.status === 'Draft') {
     clearSelection();
   }
   await nextTick();
@@ -136,6 +142,29 @@ async function handleOpenWorkOrderFromConfirmations(workOrderName: string, opera
   await loadWorkOrder(workOrderName, operationName);
 }
 
+function handleOpenLineTransfers(targetWarehouse: string) {
+  lineTransferTargetWarehouse.value = targetWarehouse || '';
+  activeView.value = 'line_transfers';
+}
+
+const HEADER_TITLES: Record<WorkOrderViewMode, () => string> = {
+  work_orders: () => __('Shopfloor Hub'),
+  operations: () => __('Shopfloor Hub'),
+  confirmations: () => __('Teyitler'),
+  work_cards: () => __('Çalışma Kartları'),
+  line_transfers: () => __('Hatlar Arası Transfer'),
+  reports: () => __('Raporlar'),
+};
+
+const HEADER_SUBTITLES: Record<WorkOrderViewMode, () => string> = {
+  work_orders: () => __('Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi'),
+  operations: () => __('Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi'),
+  confirmations: () => __('Çoklu İş Emri Teyit İzleme ve Toplu Ters Kayıt Yönetimi'),
+  work_cards: () => __('Alt Operasyon Analitiği ve Tüketim Mutabakatı'),
+  line_transfers: () => __('Üretim Hatları Arası Serbest Stok ve Açık Karşılama Yönetimi'),
+  reports: () => __('Üretim Teyitleri ve Saha Analiz Raporları'),
+};
+
 function handleOpenCreateModal() {
   showCreateModal.value = true;
 }
@@ -151,9 +180,7 @@ async function handleWorkOrderReleased(workOrderName: string) {
 }
 
 async function handleRefreshCurrentWorkOrder() {
-  if (selectedWorkOrder.value) {
-    await loadWorkOrder(selectedWorkOrder.value);
-  }
+  if (selectedWorkOrder.value) await loadWorkOrder(selectedWorkOrder.value);
   await sidebarRef.value?.fetchWorkOrders();
 }
 
@@ -187,7 +214,6 @@ async function executeConfirmation(qty: number) {
   submitting.value = true;
   errorMessage.value = null;
   successResult.value = null;
-
   try {
     const payload = {
       work_order: context.value.work_order,
@@ -230,7 +256,6 @@ async function submitConfirmation() {
   submitting.value = true;
   errorMessage.value = null;
   successResult.value = null;
-
   try {
     const check = await callFrappe<MaterialShortageCheckResponse>(
       'erpnextkta.kta_shopfloor.api.check_confirmation_materials',
@@ -241,7 +266,6 @@ async function submitConfirmation() {
         is_final_confirmation: isFinalConfirmation.value ? 1 : 0,
       }
     );
-
     if (check?.has_shortage && Array.isArray(check.shortages) && check.shortages.length > 0) {
       currentShortages.value = check.shortages;
       showStagingModal.value = true;
@@ -254,29 +278,27 @@ async function submitConfirmation() {
     submitting.value = false;
     return;
   }
-
   await executeConfirmation(qty);
 }
 
-async function handleConfirmStage(transfers: MaterialTransferItem[]) {
+async function handleConfirmStage(transfers: MaterialTransferItem[], allowReservedOverride: boolean) {
   if (!context.value || !selectedOperation.value) return;
   const qty = Number(yieldQty.value);
   stagingSubmitting.value = true;
   errorMessage.value = null;
-
   try {
     const res = await callFrappe<MaterialStagingResponse>(
       'erpnextkta.kta_shopfloor.api.stage_confirmation_materials',
       {
         work_order: context.value.work_order,
         transfers,
+        allow_reserved_override: allowReservedOverride ? 1 : 0,
       }
     );
-
     if (res && res.success) {
       showStagingModal.value = false;
       (window as any).frappe?.show_alert?.({
-        message: __('Hat İkmali Yapıldı: {0}', [res.stock_entry]),
+        message: __('Hatlar Arası Transfer Yapıldı: {0}', [res.stock_entry]),
         indicator: 'blue',
       });
       await executeConfirmation(qty);
@@ -304,7 +326,7 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
         @select-report="activeReportId = $event"
       />
       <WorkOrderSidebar
-        v-else-if="activeView !== 'confirmations'"
+        v-else-if="activeView !== 'confirmations' && activeView !== 'line_transfers'"
         ref="sidebarRef"
         :active-view="activeView"
         :current-work-order="selectedWorkOrder || context?.work_order"
@@ -314,31 +336,16 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
 
       <main class="co11n-workspace">
         <WorkspaceHeader>
-          <template #title>
-            {{
-              activeView === 'reports'
-                ? __('Raporlar')
-                : activeView === 'confirmations'
-                ? __('Teyitler')
-                : activeView === 'work_cards'
-                ? __('Çalışma Kartları')
-                : __('Shopfloor Hub')
-            }}
-          </template>
-          <template #subtitle>
-            {{
-              activeView === 'reports'
-                ? __('Üretim Teyitleri ve Saha Analiz Raporları')
-                : activeView === 'confirmations'
-                ? __('Çoklu İş Emri Teyit İzleme ve Toplu Ters Kayıt Yönetimi')
-                : activeView === 'work_cards'
-                ? __('Alt Operasyon Analitiği ve Tüketim Mutabakatı')
-                : __('Gerçek Zamanlı İş Emri Yürütme ve Üretim Teyidi')
-            }}
-          </template>
+          <template #title>{{ HEADER_TITLES[activeView]() }}</template>
+          <template #subtitle>{{ HEADER_SUBTITLES[activeView]() }}</template>
           <template #actions>
             <button
-              v-if="activeView !== 'reports' && activeView !== 'confirmations' && (selectedWorkOrder || context)"
+              v-if="
+                activeView !== 'reports' &&
+                activeView !== 'confirmations' &&
+                activeView !== 'line_transfers' &&
+                (selectedWorkOrder || context)
+              "
               type="button"
               class="btn-clear-selection"
               @click="clearSelection"
@@ -349,6 +356,7 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
         </WorkspaceHeader>
 
         <ShopfloorAlerts
+          v-if="activeView !== 'line_transfers'"
           :error-message="errorMessage"
           :success-result="successResult"
           @clear-error="errorMessage = null"
@@ -368,6 +376,10 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
           @select-work-order="handleOpenWorkOrderFromConfirmations"
         />
 
+        <template v-else-if="activeView === 'line_transfers'">
+          <LineTransfersPanel :initial-target-warehouse="lineTransferTargetWarehouse" />
+        </template>
+
         <template v-else-if="activeView === 'work_orders'">
           <WorkOrderReleasePanel
             v-if="selectedWorkOrder"
@@ -377,28 +389,21 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
             @released="handleWorkOrderReleased"
             @switch-to-operations="handleSwitchToOperations"
             @refresh="handleRefreshCurrentWorkOrder"
+            @open-line-transfers="handleOpenLineTransfers"
           />
           <div v-else class="empty-state">
             <div class="empty-icon">⚡</div>
             <h3 class="empty-title">{{ __('Work Orders') }}</h3>
-            <p class="empty-desc">
-              {{ __('Lütfen sol listeden bir iş emri seçin veya yeni bir iş emri açın.') }}
-            </p>
+            <p class="empty-desc">{{ __('Lütfen sol listeden bir iş emri seçin veya yeni bir iş emri açın.') }}</p>
           </div>
         </template>
 
         <template v-else-if="activeView === 'work_cards'">
-          <WorkCardAnalyticsPanel
-            v-if="selectedWorkOrder"
-            :work-order="selectedWorkOrder"
-            :loading-work-order="loading"
-          />
+          <WorkCardAnalyticsPanel v-if="selectedWorkOrder" :work-order="selectedWorkOrder" :loading-work-order="loading" />
           <div v-else class="empty-state">
             <div class="empty-icon">⏱️</div>
             <h3 class="empty-title">{{ __('Work Cards') }}</h3>
-            <p class="empty-desc">
-              {{ __('Lütfen sol paneldeki listeden bir İş Emri seçin.') }}
-            </p>
+            <p class="empty-desc">{{ __('Lütfen sol paneldeki listeden bir İş Emri seçin.') }}</p>
           </div>
         </template>
 
@@ -406,12 +411,7 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
           <div v-if="context" class="co11n-content-flow">
             <WoStatsCard :context="context" />
             <div class="co11n-ops-grid">
-              <OperationsList
-                :operations="context.operations"
-                :selected-operation="selectedOperation"
-                :target-qty="context.qty"
-                @select="selectOperation"
-              />
+              <OperationsList :operations="context.operations" :selected-operation="selectedOperation" :target-qty="context.qty" @select="selectOperation" />
               <ConfirmationPanel
                 v-model="yieldQty"
                 v-model:is-final-confirmation="isFinalConfirmation"
@@ -428,29 +428,20 @@ async function handleConfirmStage(transfers: MaterialTransferItem[]) {
               @confirmation-cancelled="refreshCurrentContext"
             />
           </div>
-
           <div v-else-if="loading" class="empty-state">
             <div class="workspace-spinner" />
             <h3 class="empty-title">{{ __('İş Emri Yükleniyor…') }}</h3>
           </div>
-
           <div v-else class="empty-state">
             <div class="empty-icon">👈</div>
             <h3 class="empty-title">{{ __('Bir İş Emri Seçin') }}</h3>
-            <p class="empty-desc">
-              {{ __('Lütfen sol paneldeki listeden işlem yapmak istediğiniz bir İş Emri seçin.') }}
-            </p>
+            <p class="empty-desc">{{ __('Lütfen sol paneldeki listeden işlem yapmak istediğiniz bir İş Emri seçin.') }}</p>
           </div>
         </template>
       </main>
     </div>
 
-    <CreateWorkOrderModal
-      :show="showCreateModal"
-      @close="showCreateModal = false"
-      @created="handleWorkOrderCreated"
-    />
-
+    <CreateWorkOrderModal :show="showCreateModal" @close="showCreateModal = false" @created="handleWorkOrderCreated" />
     <MaterialStagingModal
       :show="showStagingModal"
       :work-order="context?.work_order || ''"

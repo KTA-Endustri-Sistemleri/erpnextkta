@@ -1,0 +1,20 @@
+{
+ "doctype": "Page",
+ "icon": "octicon octicon-package",
+ "module": "kta_stock",
+ "name": "line-replenishment-picking",
+ "page_name": "line-replenishment-picking",
+ "roles": [
+  {
+   "role": "Stock User"
+  },
+  {
+   "role": "Stock Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "standard": "Yes",
+ "title": "Line Replenishment Picking"
+}

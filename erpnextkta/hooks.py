@@ -1,4 +1,5 @@
-from . import __version__ as app_version
+from . import __version__ as app_version  # noqa: F401
+
 app_name = "erpnextkta"
 app_title = "erpnextkta"
 app_publisher = "KTA Endüstri Sistemleri"
@@ -29,9 +30,9 @@ required_apps = ["frappe", "erpnext", "kta_system_utils"]
 # app_include_css = "erpnextkta.bundle.css"
 # app_include_js = "/assets/erpnextkta/js/erpnextkta.js"
 app_include_js = [
-                  "/assets/erpnextkta/js/material_transfer_patch.js",
-                  "/assets/erpnextkta/js/kta_report_utils.js",
-                  "/assets/erpnextkta/js/kta_report_overrides.js"
+    "/assets/erpnextkta/js/material_transfer_patch.js",
+    "/assets/erpnextkta/js/kta_report_utils.js",
+    "/assets/erpnextkta/js/kta_report_overrides.js",
 ]
 
 # include js, css files in header of web template
@@ -46,7 +47,7 @@ app_include_js = [
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
 # include js in page
-page_js = {"query-report" : "public/js/kta_report_utils.js"}
+page_js = {"query-report": "public/js/kta_report_utils.js"}
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
@@ -94,6 +95,7 @@ page_js = {"query-report" : "public/js/kta_report_utils.js"}
 after_migrate = [
     "erpnextkta.overrides.apply",
     "erpnextkta.kta_calisma_karti.setup.setup",
+    "erpnextkta.kta_stock.setup.setup",
 ]
 
 # Uninstallation
@@ -161,23 +163,23 @@ doc_events = {
     "Job Card": {
         # "on_update": "erpnextkta.overrides.job_card_status.update_work_order_status",
         "validate": "erpnextkta.kta_calisma_karti.api_impl.job_card_sync.distribute_completed_qty",
-        "before_update_after_submit": "erpnextkta.kta_calisma_karti.api_impl.job_card_sync.distribute_completed_qty"
+        "before_update_after_submit": "erpnextkta.kta_calisma_karti.api_impl.job_card_sync.distribute_completed_qty",
     },
     "Quality Inspection": {
         "on_update": "erpnextkta.kta_calisma_karti.api_impl.qc.sync_qi_to_calisma_karti",
-        "on_submit": "erpnextkta.kta_calisma_karti.api_impl.qc.sync_qi_to_calisma_karti"
+        "on_submit": "erpnextkta.kta_calisma_karti.api_impl.qc.sync_qi_to_calisma_karti",
     },
     "Stock Reconciliation": {
         "on_update": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
         "on_cancel": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
         "on_trash": "erpnextkta.kta_stock.realtime.stock_reco_dashboard.on_update",
-        "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_unique_draft_stock_reco_per_set_warehouse"
+        "validate": "erpnextkta.kta_stock.services.stock_reconciliation_lock.validate_unique_draft_stock_reco_per_set_warehouse",
     },
     "Stock Entry": {
-        "validate": "erpnextkta.rest-api.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
+        "validate": "erpnextkta.kta_stock.services.stock_reconciliation_lock.validate_stock_entry_warehouse_lock",
         "on_update": "erpnextkta.kta_calisma_karti.api_impl.hurda.sync_stock_entry_to_calisma_karti",
         "on_trash": "erpnextkta.kta_calisma_karti.api_impl.hurda.on_stock_entry_trash",
-        "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer"
+        "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer",
     },
     "Delivery Note": {
         "before_submit": "erpnextkta.kta_stock.quality_inspection_validator.validate_batch_qi_on_transfer"
@@ -199,7 +201,14 @@ doc_events = {
     },
     "Company": {
         "validate": "erpnextkta.overrides.company_wip_validation.validate_wip_consumption_account"
-    }
+    },
+    "Employee": {
+        "before_save": "erpnextkta.kta_stock.pda_user_guard.mark_pure_pda_website_user_before_employee_save",
+        "on_update": "erpnextkta.kta_stock.pda_user_guard.clear_pure_pda_website_user_flag_after_employee_save",
+    },
+    "User": {
+        "before_validate": "erpnextkta.kta_stock.pda_user_guard.strip_auto_employee_role_for_pure_pda_user",
+    },
 }
 # Document Events
 # ---------------
@@ -217,15 +226,15 @@ doc_events = {
 # ---------------
 
 scheduler_events = {
-# 	"all": [
-# 		"erpnextkta.tasks.all"
-# 	],
-# 	"daily": [
-# 		"erpnextkta.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"erpnextkta.tasks.hourly"
-# 	],
+    # 	"all": [
+    # 		"erpnextkta.tasks.all"
+    # 	],
+    # 	"daily": [
+    # 		"erpnextkta.tasks.daily"
+    # 	],
+    # 	"hourly": [
+    # 		"erpnextkta.tasks.hourly"
+    # 	],
     "cron": {
         # Vardiya sonları: her gün 00:15 ve 16:15 (Toleranslı kapanma için)
         "15 0,16 * * *": ["erpnextkta.tasks.auto_close_timed_out_cards"],
@@ -236,12 +245,10 @@ scheduler_events = {
         # Her sabah 08:30'da amirlere günlük hatalı kart raporu gönder
         "30 8 * * *": ["erpnextkta.tasks.send_daily_calisma_karti_error_report"],
     },
-    "weekly": [
-        "erpnextkta.tasks.weekly"
-    ],
-# 	"monthly": [
-# 		"erpnextkta.tasks.monthly"
-# 	],
+    "weekly": ["erpnextkta.tasks.weekly"],
+    # 	"monthly": [
+    # 		"erpnextkta.tasks.monthly"
+    # 	],
 }
 
 # Testing
@@ -254,7 +261,6 @@ before_tests = "erpnextkta.tests.test_utils.before_tests"
 override_whitelisted_methods = {
     "erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice": "erpnextkta.overrides.make_purchase_invoice.make_purchase_invoice"
 }
-
 
 
 # App başlatıldığında çalışacak fonksiyonlar
@@ -270,7 +276,7 @@ override_whitelisted_methods = {
 override_doctype_dashboards = {
     "Work Order": "erpnextkta.overrides.work_order_dashboard.get_dashboard_data",
     "Job Card": "erpnextkta.overrides.job_card_dashboard.get_dashboard_data",
-    "User": "erpnextkta.overrides.user_dashboard.get_dashboard_data"
+    "User": "erpnextkta.overrides.user_dashboard.get_dashboard_data",
 }
 
 # exempt linked doctypes from being automatically cancelled
@@ -280,7 +286,7 @@ override_doctype_dashboards = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-# ignore_links_on_delete = ["Communication", "ToDo"]
+ignore_links_on_delete = ["KTA Stock Label", "KTA Print Log"]
 
 # Request Events
 # ----------------
@@ -337,30 +343,17 @@ update_website_context = "erpnextkta.middlewares.update_website_context"
 
 fixtures = [
     "KTA Olcu Metodu",
-#    "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri",
-#    "TR Gumruk Idareleri",
-#    "Asset Category",
-#    "KTA Ithalat Kisa Malzeme Aciklamalari",
+    #    "TR Gumruk ve Dis Ticaret Bolge Mudurlukleri",
+    #    "TR Gumruk Idareleri",
+    #    "Asset Category",
+    #    "KTA Ithalat Kisa Malzeme Aciklamalari",
     "Customs Tariff Number",
-    {
-        "doctype": "Client Script",
-        "filters": [
-            ["name", "like", "KTA%"]
-        ]
-    },
-
+    {"doctype": "Client Script", "filters": [["name", "like", "KTA%"]]},
     {
         "doctype": "Custom DocPerm",
-        "filters": [
-            ["parent", "in", ["Asset Maintenance", "Asset Maintenance Log"]]
-        ]
+        "filters": [["parent", "in", ["Asset Maintenance", "Asset Maintenance Log"]]],
     },
-    {
-        "doctype": "Role Profile",
-        "filters": [
-            ["name", "like", "KTA%"]
-        ]
-    },
+    {"doctype": "Role Profile", "filters": [["name", "like", "KTA%"]]},
     {
         "doctype": "Custom Field",
         "filters": [
@@ -406,6 +399,7 @@ fixtures = [
                     "Stock Entry Type-custom_etiket_sablonu",
                     "Company-custom_wip_consumption_account",
                     "Journal Entry Account-custom_work_order",
+                    "Employee-custom_pda_pin",
                 ],
             ]
         ],
@@ -430,26 +424,25 @@ fixtures = [
     {
         "doctype": "Assignment Rule",
         "filters": [
-            ["name", "in", ["Material Request for Re-Order", "Material Request for Re-Order (Draft)"]]
-        ]
+            [
+                "name",
+                "in",
+                [
+                    "Material Request for Re-Order",
+                    "Material Request for Re-Order (Draft)",
+                ],
+            ]
+        ],
     },
-
-    {
-        "doctype": "Document Naming Rule",
-        "filters": [
-            ["document_type", "=", "Item"]
-        ]
-    }
+    {"doctype": "Document Naming Rule", "filters": [["document_type", "=", "Item"]]},
 ]
 doctype_js = {
     "Calisma Karti": "erpnextkta/kta_calisma_karti/doctype/calisma_karti/calisma_karti.js",
     "Job Card": "public/js/job_card.js",
     "Stock Reconciliation": "public/js/stock_reconciliation.js",
     "Purchase Receipt": "public/js/purchase_receipt.js",
-    "Item": "public/js/item.js"
+    "Item": "public/js/item.js",
 }
-doctype_list_js = {
-    "Purchase Receipt": "public/js/purchase_receipt_list.js"
-}
+doctype_list_js = {"Purchase Receipt": "public/js/purchase_receipt_list.js"}
 
 extend_boot_session = "erpnextkta.boot.boot_session"

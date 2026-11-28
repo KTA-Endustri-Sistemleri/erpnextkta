@@ -9,6 +9,12 @@ from frappe import _
 from frappe.utils import cint, flt
 
 from erpnextkta.kta_stock.batch_manager import BatchSplitManager
+from erpnextkta.kta_stock.services.relabeling_service import (
+    delete_labels_with_print_logs,
+    get_batch_ledger_balances,
+    sync_batch_label_to_ledger_balance,
+    upsert_box_label,
+)
 from erpnextkta.overrides.company_wip_validation import (
     get_validated_wip_consumption_account,
 )
@@ -770,16 +776,49 @@ class KTAStockEntry(StockEntry):
 
     def validate(self):
         self._apply_wip_consumption_account()
+        self._validate_single_item_package_split()
 
         # 1. Standart ERPNext kontrollerini yap
         super().validate()
 
         # 2. Sadece Manufacture tipinde ve Draft (0) durumundaysa calis
-        if self.purpose == "Manufacture" and self.work_order and self.docstatus == 0:
+        if (
+            self.purpose == "Manufacture"
+            and self.work_order
+            and self.docstatus == 0
+            and not self.get("__splitting_batches")
+        ):
             # 3. Sonsuz dongu korumasi (Flag)
-            if not self.get("__splitting_batches"):
-                self.set("__splitting_batches", True)
-                BatchSplitManager.split_manufacturing_batches(self)
+            self.set("__splitting_batches", True)
+            BatchSplitManager.split_manufacturing_batches(self)
+
+    def _validate_single_item_package_split(self):
+        """Ensure Package Split / Package Merge Stock Entries operate on a single item code."""
+        if self.stock_entry_type not in ("Package Split", "Package Merge"):
+            return
+
+        items = self.get("items") or []
+        distinct_target_items = {
+            d.get("item_code")
+            for d in items
+            if d.get("t_warehouse") and d.get("item_code")
+        }
+        distinct_source_items = {
+            d.get("item_code")
+            for d in items
+            if d.get("s_warehouse") and d.get("item_code")
+        }
+        distinct_all_items = {d.get("item_code") for d in items if d.get("item_code")}
+        if (
+            len(distinct_target_items) > 1
+            or len(distinct_source_items) > 1
+            or len(distinct_all_items) > 1
+        ):
+            frappe.throw(
+                _("{0} allows only one item per Stock Entry.").format(
+                    self.stock_entry_type
+                )
+            )
 
     def update_stock_ledger(
         self, allow_negative_stock=False, via_landed_cost_voucher=False
@@ -791,20 +830,45 @@ class KTAStockEntry(StockEntry):
 
     def on_submit(self):
         super().on_submit()
+        if not self.stock_entry_type:
+            return
+
+        is_printable = bool(
+            cint(
+                frappe.db.get_value(
+                    "Stock Entry Type",
+                    self.stock_entry_type,
+                    "custom_etiket_basilabilir",
+                )
+            )
+        )
+        if not is_printable:
+            return
+
         frappe.enqueue(
             "erpnextkta.overrides.KTAStockEntry.print_labels_on_submit",
             stock_entry=self.name,
             user=frappe.session.user,
             queue="short",
             timeout=120,
-            now=frappe.flags.in_test,
-            enqueue_after_commit=True,
+            now=bool(frappe.flags.in_test),
+            enqueue_after_commit=not bool(frappe.flags.in_test),
         )
 
     def on_cancel(self):
         batches_to_disable = []
         if self.purpose == "Manufacture":
             batches_to_disable = self._get_generated_batches()
+
+        relabeling_types = (
+            "Return from Production Supply",
+            "Package Split",
+            "Package Merge",
+        )
+        touched_pairs: set[tuple[str, str]] = set()
+        target_pairs: set[tuple[str, str]] = set()
+        if self.stock_entry_type in relabeling_types:
+            touched_pairs, target_pairs = self._collect_touched_item_batches()
 
         super().on_cancel()
 
@@ -820,10 +884,30 @@ class KTAStockEntry(StockEntry):
                         update_modified=False,
                     )
 
+        if self.stock_entry_type in relabeling_types:
+            self._clear_batch_reference_links()
+            self._sync_relabeling_on_cleanup(
+                touched_pairs,
+                target_pairs,
+                disable_empty_targets=self.stock_entry_type
+                in ("Package Split", "Package Merge"),
+            )
+
     def on_trash(self):
         batches_to_delete = []
         if self.purpose == "Manufacture":
             batches_to_delete = self._get_generated_batches()
+
+        relabeling_types = (
+            "Return from Production Supply",
+            "Package Split",
+            "Package Merge",
+        )
+        touched_pairs: set[tuple[str, str]] = set()
+        target_pairs: set[tuple[str, str]] = set()
+        if self.stock_entry_type in relabeling_types:
+            touched_pairs, target_pairs = self._collect_touched_item_batches()
+            self._clear_batch_reference_links()
 
         self._delete_associated_labels()
         super().on_trash()
@@ -842,36 +926,175 @@ class KTAStockEntry(StockEntry):
                             update_modified=False,
                         )
 
+        if self.stock_entry_type in relabeling_types:
+            self._sync_relabeling_on_cleanup(
+                touched_pairs,
+                target_pairs,
+                disable_empty_targets=(
+                    self.stock_entry_type in ("Package Split", "Package Merge")
+                    and self.docstatus == 2
+                ),
+            )
+
+    def _clear_batch_reference_links(self) -> None:
+        """Clear Stock Entry back-links on Batch records so trash never fails with LinkExistsError."""
+        linked_batches = frappe.get_all(
+            "Batch",
+            filters={"reference_doctype": "Stock Entry", "reference_name": self.name},
+            pluck="name",
+        )
+        for batch_name in linked_batches:
+            frappe.db.set_value(
+                "Batch",
+                batch_name,
+                {"reference_doctype": None, "reference_name": None},
+                update_modified=False,
+            )
+
     def _delete_associated_labels(self):
         labels = frappe.get_all(
             "KTA Stock Label",
             filters={"reference_doctype": "Stock Entry", "reference_name": self.name},
             pluck="name",
         )
-        for label in labels:
-            logs = frappe.get_all(
-                "KTA Print Log",
-                filters={"label_doctype": "KTA Stock Label", "label_name": label},
-                pluck="name",
-            )
-            for log in logs:
-                try:
-                    frappe.delete_doc(
-                        "KTA Print Log", log, ignore_permissions=True, force=True
-                    )
-                except Exception:
-                    frappe.log_error(
-                        f"Failed to delete KTA Print Log {log} for label {label} (Stock Entry {self.name}).\n{frappe.get_traceback()}",
-                        "KTAStockEntry cleanup",
-                    )
-            try:
-                frappe.delete_doc(
-                    "KTA Stock Label", label, ignore_permissions=True, force=True
+        delete_labels_with_print_logs(labels)
+
+    def _collect_touched_item_batches(
+        self,
+    ) -> tuple[set[tuple[str, str]], set[tuple[str, str]]]:
+        """Collect all (item_code, batch_no) pairs and target pairs from rows and bundles."""
+        touched_pairs: set[tuple[str, str]] = set()
+        target_pairs: set[tuple[str, str]] = set()
+        target_row_names: set[str] = set()
+
+        for row in self.get("items") or []:
+            item_code = row.get("item_code")
+            batch_no = row.get("batch_no")
+            is_target = bool(row.get("t_warehouse"))
+            if is_target and row.get("name"):
+                target_row_names.add(row.get("name"))
+
+            if item_code and batch_no:
+                touched_pairs.add((item_code, batch_no))
+                if is_target:
+                    target_pairs.add((item_code, batch_no))
+
+            bundle_name = row.get("serial_and_batch_bundle")
+            if bundle_name:
+                self._add_bundle_entries(
+                    bundle_name,
+                    item_code,
+                    is_target=is_target,
+                    touched_pairs=touched_pairs,
+                    target_pairs=target_pairs,
                 )
-            except Exception:
-                frappe.log_error(
-                    f"Failed to delete KTA Stock Label {label} (Stock Entry {self.name}).\n{frappe.get_traceback()}",
-                    "KTAStockEntry cleanup",
+
+        db_bundles = frappe.get_all(
+            "Serial and Batch Bundle",
+            filters={"voucher_type": "Stock Entry", "voucher_no": self.name},
+            fields=["name", "item_code", "type_of_transaction", "voucher_detail_no"],
+        )
+        for bundle in db_bundles:
+            b_name = bundle.get("name")
+            b_item = bundle.get("item_code")
+            if not b_name or not b_item:
+                continue
+            is_inward_bundle = (
+                bundle.get("type_of_transaction") == "Inward"
+                or bundle.get("voucher_detail_no") in target_row_names
+            )
+            self._add_bundle_entries(
+                b_name,
+                b_item,
+                is_target=is_inward_bundle,
+                touched_pairs=touched_pairs,
+                target_pairs=target_pairs,
+            )
+
+        return touched_pairs, target_pairs
+
+    @staticmethod
+    def _add_bundle_entries(
+        bundle_name: str,
+        item_code: str | None,
+        is_target: bool,
+        touched_pairs: set[tuple[str, str]],
+        target_pairs: set[tuple[str, str]],
+    ) -> None:
+        if not item_code:
+            return
+        entries = frappe.get_all(
+            "Serial and Batch Entry",
+            filters={
+                "parent": bundle_name,
+                "parenttype": "Serial and Batch Bundle",
+            },
+            fields=["batch_no", "is_outward"],
+        )
+        for entry in entries:
+            entry_batch = entry.get("batch_no")
+            if not entry_batch:
+                continue
+            touched_pairs.add((item_code, entry_batch))
+            if is_target and not cint(entry.get("is_outward")):
+                target_pairs.add((item_code, entry_batch))
+
+    @staticmethod
+    def _sync_relabeling_on_cleanup(
+        touched_pairs: set[tuple[str, str]],
+        target_pairs: set[tuple[str, str]],
+        disable_empty_targets: bool = False,
+    ) -> None:
+        for item_code, batch_no in sorted(touched_pairs):
+            sync_batch_label_to_ledger_balance(item_code, batch_no)
+            if (item_code, batch_no) not in target_pairs:
+                balances = get_batch_ledger_balances(item_code, batch_no)
+                total_qty = flt(sum(flt(b["qty"]) for b in balances))
+                if total_qty > 1e-6:
+                    existing_label = frappe.get_all(
+                        "KTA Stock Label",
+                        filters={
+                            "label_type": [
+                                "in",
+                                ["Depo Giriş Etiketi", "İş Emri Etiketi"],
+                            ],
+                            "item_code": item_code,
+                        },
+                        or_filters=[
+                            ["batch", "=", batch_no],
+                            ["sut_barcode", "=", batch_no],
+                        ],
+                        limit=1,
+                    )
+                    if not existing_label:
+                        positive_balances = [
+                            b for b in balances if flt(b["qty"]) > 1e-6
+                        ]
+                        best_wh = max(positive_balances, key=lambda b: flt(b["qty"]))[
+                            "warehouse"
+                        ]
+                        upsert_box_label(
+                            item_code=item_code,
+                            batch_no=batch_no,
+                            qty=total_qty,
+                            target_warehouse=best_wh,
+                            fallback_ref="TRANSFER",
+                        )
+
+        if not disable_empty_targets:
+            return
+
+        for item_code, batch_no in sorted(target_pairs):
+            if not frappe.db.exists("Batch", batch_no):
+                continue
+            balances = get_batch_ledger_balances(item_code, batch_no)
+            total_qty = flt(sum(flt(b["qty"]) for b in balances))
+            if total_qty <= 1e-6:
+                frappe.db.set_value(
+                    "Batch",
+                    batch_no,
+                    {"batch_qty": 0, "disabled": 1},
+                    update_modified=False,
                 )
 
     def _get_generated_batches(self):

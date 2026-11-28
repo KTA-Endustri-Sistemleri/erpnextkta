@@ -6,6 +6,7 @@ export type WorkOrderViewMode =
   | "operations"
   | "confirmations"
   | "work_cards"
+  | "line_transfers"
   | "reports";
 
 export interface LinkedStockEntry {
@@ -92,6 +93,8 @@ export interface OtherWarehouseStock {
   warehouse: string;
   actual_qty: number;
   available_qty: number;
+  reserved_qty?: number;
+  free_qty?: number;
 }
 
 export interface ItemAlternativeOption {
@@ -135,6 +138,8 @@ export interface MaterialAvailabilityItem {
   line_reserved_qty?: number;
   other_warehouses_qty?: number;
   other_warehouses?: OtherWarehouseStock[];
+  has_sibling_line_stock?: boolean;
+  sibling_line_warehouses?: OtherWarehouseStock[];
   shortage_qty: number;
   coverage_percent: number;
   is_available?: boolean;
@@ -182,6 +187,7 @@ export interface MaterialShortageItem {
   target_warehouse: string;
   source_warehouse: string | null;
   source_available_qty: number;
+  source_actual_qty?: number;
   available_sources: OtherWarehouseStock[];
   stock_uom: string;
 }
@@ -602,5 +608,122 @@ export interface BulkCancelConfirmationsResponse {
   cascade_cancelled: BulkCancelCascadeItem[];
   failed: BulkCancelFailedItem[];
   affected_work_orders: string[];
+}
+
+export type LineTransferSubMode = "deficit_pull" | "idle_push";
+
+export interface ProductionWarehouseOption {
+  warehouse: string;
+  label: string;
+}
+
+export interface LineTransferSourceOption {
+  warehouse: string;
+  actual_qty: number;
+  reserved_qty: number;
+  free_qty: number;
+  available_qty: number;
+}
+
+export interface LineTransferDeficitItem {
+  item_code: string;
+  item_name: string;
+  uom: string;
+  target_warehouse: string;
+  line_actual_qty: number;
+  reserved_qty: number;
+  deficit_qty: number;
+  suggested_source_warehouse: string;
+  suggested_qty: number;
+  uses_reserved_stock: boolean;
+  default_selected: boolean;
+  available_sources: LineTransferSourceOption[];
+}
+
+export interface AvailableBatchOption {
+  batch_no: string;
+  qty: number;
+}
+
+export interface LineIdleStockItem {
+  item_code: string;
+  item_name: string;
+  uom: string;
+  source_warehouse: string;
+  actual_qty: number;
+  reserved_qty: number;
+  free_qty: number;
+  suggested_target_warehouse: string;
+  target_deficit_qty: number;
+  suggested_qty: number;
+  available_batches?: AvailableBatchOption[];
+}
+
+export interface ManualTransferItemOption {
+  item_code: string;
+  item_name: string;
+  uom: string;
+  actual_qty: number;
+  reserved_qty: number;
+  free_qty: number;
+}
+
+export interface LineTransferPayloadItem {
+  item_code: string;
+  qty: number;
+  source_warehouse: string;
+  target_warehouse: string;
+  split_packages?: number | boolean;
+}
+
+export interface LineTransferResponse {
+  success: boolean;
+  stock_entry: string;
+  stock_entries?: string[];
+  split_stock_entries?: string[];
+  printed_labels?: number;
+  transferred_items: LineTransferPayloadItem[];
+  used_reserved_stock?: boolean;
+  message?: string;
+}
+
+export interface RawMaterialReturnWarehouseOption {
+  warehouse: string;
+  label: string;
+}
+
+export interface ProductionSupplyReturnPayloadItem {
+  item_code: string;
+  qty: number;
+  source_warehouse: string;
+  target_warehouse?: string;
+  batch_no?: string | null;
+}
+
+export interface ProductionSupplyReturnResponse {
+  success: boolean;
+  stock_entries: string[];
+  return_stock_entry?: string | null;
+  split_stock_entries: string[];
+  printed_labels: number;
+  returned_items?: any[];
+  used_reserved_stock?: boolean;
+  message?: string;
+}
+
+export interface SupplyReturnDraftInput {
+  item: LineIdleStockItem;
+  qty: number;
+}
+
+export interface ReservedStockWarning {
+  item_code: string;
+  item_name?: string;
+  uom?: string;
+  source_warehouse: string;
+  target_warehouse: string;
+  qty: number;
+  free_qty: number;
+  actual_qty: number;
 }
 

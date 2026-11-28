@@ -27,6 +27,7 @@ title: "ERPNext için üretim odaklı KTA özelleştirmeleri"
 
   - [🚀 KTA Çalışma Kartı Kullanım Kılavuzu](kta_calisma_karti_kilavuzu.html)
   - [⚡ Shopfloor Hub (CO11N) Üretim Teyit Kılavuzu](kta_shopfloor_hub_kilavuzu.html)
+  - [🚛 Hat İkmal Yönetimi (Line Replenishment)](developer_guides/line_replenishment_guide.html)
   - [📐 KTA Çalışma Kartı Mimarisi ve Algoritma Akışı](kta_calisma_karti_mimarisi_ve_akisi.html)
   - [📏 KTA Kalite Yönetimi (Krimp & Test Masası) Kılavuzu](kta_kalite_kilavuzu.html)
   - [🧬 Modüller ve Teknik Yapı](modules.html)

@@ -1,0 +1,617 @@
+{% extends "erpnextkta/www/docs/kta_docs_base.html" %}
+{% set active_page = "line_replenishment" %}
+
+{% block doc_content %}
+<style>
+  .rep-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .rep-badge.blue { background: #dbeafe; color: #1e40af; }
+  .rep-badge.green { background: #dcfce7; color: #166534; }
+  .rep-badge.amber { background: #fef3c7; color: #92400e; }
+  .rep-badge.purple { background: #f3e8ff; color: #6b21a8; }
+  .rep-badge.cyan { background: #cffafe; color: #155e75; }
+  .badge-doc-draft {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #f5f3ff;
+    border: 1px solid #c4b5fd;
+    color: #6d28d9;
+  }
+  .badge-doc-nostock {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+  }
+
+  .flow-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin: 24px 0;
+  }
+  .flow-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .flow-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.08);
+    border-color: #cbd5e1;
+  }
+  .flow-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .flow-card-icon {
+    font-size: 26px;
+  }
+  .flow-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+  .flow-card-desc {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .step-container {
+    margin: 28px 0;
+    border-left: 3px solid #3b82f6;
+    padding-left: 20px;
+  }
+  .step-item {
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .step-item:last-child {
+    margin-bottom: 0;
+  }
+  .step-item::before {
+    content: '';
+    position: absolute;
+    left: -27px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #3b82f6;
+    border: 2px solid #ffffff;
+  }
+
+  .formula-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-family: monospace;
+    font-size: 13.5px;
+    color: #0f172a;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  .callout-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin: 20px 0;
+    color: #1e3a8a;
+  }
+  .callout-box.warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+  .callout-box.success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+  }
+  .callout-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .doc-table th, .doc-table td {
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    text-align: left;
+  }
+  .doc-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-weight: 700;
+  }
+</style>
+
+<div class="kta-doc-hero">
+  <span class="kta-doc-hero-icon">🚛</span>
+  <h1>Hat İkmal (Line Replenishment) Yönetimi</h1>
+  <p>
+    Üretim hatlarındaki hammadde açıklarını proaktif tespit eden, yalnızca ana hammadde
+    ambarının (<code>110 HAMMADDE</code>) yaprak raflarından FIFO tam koli/makara tahsisi yapan ve
+    mobil PDA ile tek adımda malzeme transferi fişi üreten %100 saf ana ambar hat ikmal sistemi.
+  </p>
+  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px;">
+    <span class="rep-badge blue">v15.0 Entegre</span>
+    <span class="rep-badge green">Saf Ana Ambar İkmali (110)</span>
+    <span class="rep-badge purple">924+ Raf Çözümlemesi</span>
+    <span class="rep-badge amber">Tam Koli Bölmeme (FIFO)</span>
+    <span class="rep-badge cyan">Sıfır Manuel Girişli PDA</span>
+  </div>
+</div>
+
+<div class="kta-doc-section">
+
+  <!-- BÖLÜM 1 -->
+  <h2>🎯 Bölüm 1: Genel Bakış & Proaktif Ana Ambar Hat İkmali</h2>
+  <p>
+    Geleneksel üretim sahalarında malzeme ikmali genellikle <strong>reaktif</strong> yürütülür:
+    Operatör hattaki hammadde tükendiğinde üretimi durdurur, depocuya telefon eder veya ambar
+    alanına giderek malzeme talebinde bulunur. Bu yaklaşım ciddi <em>bekleme israfına (muda)</em>,
+    makine duruşlarına ve hat liderlerinin zaman kaybına yol açar.
+  </p>
+  <p>
+    <strong>KTA Line Replenishment Modeli</strong>, bu süreci baştan sona tersine çevirerek
+    ana hammadde ambarından (<code>110 HAMMADDE</code>) hatlara yönelik
+    <strong>proaktif çekme (Pull / Staging)</strong> prensibine dönüştürür:
+  </p>
+
+  <div class="flow-card-grid">
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">⏱️</span>
+        <h3 class="flow-card-title">Vardiya Öncesi İkmal</h3>
+      </div>
+      <p class="flow-card-desc">
+        Hat lideri veya ambar sorumlusu, vardiya başlamadan önce planlanan iş emirlerinin
+        rezervasyon açıklarını masaüstü kokpitten tarar ve eksikleri hat başlamadan önce
+        ana ambardan ikmal eder.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🏭</span>
+        <h3 class="flow-card-title">Saf Ana Ambar & FIFO Raf Tahsisi</h3>
+      </div>
+      <p class="flow-card-desc">
+        Sistem yalnızca <code>110 HAMMADDE</code> altındaki fiziksel yaprak rafları
+        (<code>W1A-01-01</code> vb.) tarar; FIFO sırasıyla tam koli/makara bölmeden net açığı
+        karşılayacak raf ve parti önerilerini oluşturur.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">📱</span>
+        <h3 class="flow-card-title">Mobil PDA ile Sıfır Hata</h3>
+      </div>
+      <p class="flow-card-desc">
+        Ambar personeli el terminali veya tabletle fiziksel raf yürüyüş sırasına göre koli/SUT
+        barkodlarını okutur; partili ürünlerde sıfır manuel giriş, tek tıkla onaylı FIFO sapma
+        denetimi ve yetkili yönetici için eksik ürün atlama RBAC'ı ile tek tuşla transfer fişi üretir.
+      </p>
+    </div>
+  </div>
+
+  <div class="callout-box">
+    <div class="callout-title">🔄 Üretim Hatları Arası Transferler (150x ↔ 150x) Nereden Yapılır?</div>
+    <p>
+      Ana hammadde ambarından hatlara yapılan planlı çekme ikmalleri (<code>110 HAMMADDE → 150x</code>)
+      <strong>Line Replenishment Hub</strong> (<code>/app/line-replenishment-hub</code>) ve bağımsız
+      <strong>PDA Depo Merkezi</strong> (<code>/pda</code> → <em>Hat İkmal Toplama</em> / legacy
+      <code>/app/line-replenishment-picking</code>) ekranlarından depo ekibince kapalı koli/makara FIFO disipliniyle yürütülür.
+    </p>
+    <p style="margin-top: 8px;">
+      Üretim hatları arasındaki anlık serbest stok aktarımları, açık karşılama ve öncelik
+      kaydırmalı transferler (<code>150x ↔ 150x</code>) ise artık sipariş veya PDA adımı olmadan tek
+      adımda <strong><a href="/docs/shopfloor-hub">Shopfloor Hub (<code>/app/shopfloor_hub</code>) → 🔄 Hatlar Arası Transfer (Line Transfers)</a></strong>
+      sekmesinden arka plan LIFO parti tahsisiyle gerçekleştirilmektedir.
+    </p>
+  </div>
+
+  <hr />
+
+  <!-- BÖLÜM 2 -->
+  <h2>📦 Bölüm 2: Ana Ambar Hat İkmali Motoru (Pure Central Store Netting & FIFO)</h2>
+  <p>
+    KTA Hat İkmal Motoru (<code>ReservationDeficitService</code> &amp; <code>line_replenishment_service</code>),
+    seçilen tekil <code>150x</code> üretim hattının açık üretim rezervasyonlarını tarar, açıkta bekleyen
+    taslak ikmal siparişlerini düşer ve yalnızca <strong>110 HAMMADDE</strong> altındaki yaprak raflardan
+    FIFO tam koli/parti tahsisi yapar.
+  </p>
+
+  <h3>1. Net Rezervasyon Açığı Hesaplaması:</h3>
+  <div class="formula-box">
+    Net Açık Miktarı (Deficit Qty) = reserved_qty_for_production - actual_qty<br>
+    Kural: Sadece (deficit_qty &gt; 0) olan kalemler ikmal listesine dahil edilir.<br>
+    Eğer actual_qty &gt;= reserved_qty_for_production ise satır listelenmez.
+  </div>
+
+  <h3>2. 924+ Raf Lokasyonu Çözümlemesi (Exact Shelf Resolution):</h3>
+  <p>
+    KTA ana hammadde ambarı (<code>110 HAMMADDE - KTA</code>), fiziksel olarak tek bir açık alan
+    değil; hiyerarşik <strong>924'ün üzerinde yaprak raf ambarından</strong>
+    (Örn: <code>W1A-01-01</code>, <code>W1B-04-01</code>, <code>W1E-08-02</code>) oluşan devasa
+    bir depolama matrisidir.
+  </p>
+  <p>
+    Hat ikmal motoru, genel bir ambar kodu yerine NestedSet hiyerarşik ağaç sorguları
+    (<code>lft &gt;= parent_lft AND rgt &lt;= parent_rgt</code>) yürüterek malzemenin bulunduğu
+    <strong>en güncel fiziksel raf lokasyonunu</strong> anlık tespit eder:
+  </p>
+  <ul>
+    <li><strong>Doğrudan Adresleme:</strong> Depo personeline genel "Hammadde Ambarı" yerine tam koridor ve raf adresi (<code>W1A-01-01</code>) iletilir.</li>
+    <li><strong>FEFO / FIFO Önceliği (<code>expiry_date → manufacturing_date → creation</code>):</strong> Aynı hammadde birden fazla rafta bulunuyorsa, motor (<code>allocate_fifo_batches</code> ve <code>bulk_allocate_fifo_batches</code>) önce son kullanma tarihi en yakın olanı (<code>expiry_date</code>), ardından üretim/irsaliye tarihi en eski olanı (<code>manufacturing_date</code>) ve son olarak kayıt zamanı en eski olanı (<code>creation</code>) sıralar. Bu sayede raf transferi, koli bölme/birleştirme (<code>manufacturing_date</code> mirası) ve geçmiş tarihli irsaliyelerde en eski irsaliye tarihli (ör. <code>IRS01</code>) koli daima ilk sırada kalır.</li>
+    <li><strong>Açık İkmal Rezervasyonu Hariç Tutma (<code>get_in_flight_reserved_stock</code>):</strong> Tüm hedef WIP hatlarındaki açık (<code>Draft</code> / <code>In Progress</code>, <code>docstatus = 0</code>) ikmal emirlerinin atlanmamış satırlarında ayrılmış partiler (<code>picked_batch_no</code> / <code>suggested_batch_no</code>) ve partisiz raf miktarları, sonraki FIFO tahsislerinden otomatik olarak düşülür; böylece aynı fiziksel koli/parti hiçbir zaman ikinci kez önerilmez.</li>
+  </ul>
+
+  <h3>3. Tam Koli / Parti Çıkışı (Bölmeme ve Yukarı Yuvarlama İlkesi):</h3>
+  <p>
+    Kablo gruplama ve montaj operasyonlarında, hammadde ambarında kablo makarası kesmek
+    veya mühürlü konnektör kolilerini açıp adet saymak kabul edilemez bir zaman ve fire kaybıdır.
+    Bu nedenle KTA Hat İkmal Sistemi <strong>Tam Koli / Parti Çıkışı (No Drum/Batch Splitting)</strong>
+    ilkesini benimser:
+  </p>
+  <div class="formula-box">
+    Örnek Vaka: Net İhtiyaç = 29 Metre<br>
+    Raftaki Partiler: Parti A = 15m, Parti B = 15m<br>
+    Geleneksel Yaklaşım: 15m + 14m (Makara kesilerek 1m ambarda atıl kalır)<br>
+    <strong>KTA Tam Koli İlkesi: 15m + 15m = 30m Tam Çıkış (Yukarı Yuvarlama)</strong><br>
+    Sonuç: 2 ayrı bağımsız satır halinde tam koli ikmali, ambarda sıfır açık bakiye!
+  </div>
+  <p>
+    Açık miktar için yeterli tekil parti bulunamadığında, sistem FIFO sırasına göre birden
+    fazla partiyi bütün olarak listeler ve toplam miktar ihtiyacı karşılayacak şekilde
+    yukarı yuvarlanır.
+  </p>
+
+  <h3>4. Açıkta Bekleyen Taslak İkmal Düşümü (Mükerrer Talep Engeli):</h3>
+  <p>
+    Üretim sahasında planlamacılar gün içinde defalarca hat açık taraması yapabilir.
+    Eğer ilgili hedef hat için sistemde henüz tamamlanmamış <strong>Taslak veya Toplamada (<code>Draft</code> / <code>In Progress</code>, <code>docstatus = 0</code>)</strong>
+    bir <code>KTA Line Replenishment Order</code> siparişi bulunuyorsa, bu siparişteki
+    kalemlerin tekrar listelenmesi ve mükerrer sipariş açılması sahadaki malzeme fazlalığının
+    en büyük sebebidir. KTA İkmal Motoru açıkta bekleyen tüm <code>Draft</code> ve <code>In Progress</code>
+    ikmal miktarlarını netleştirir ve ayrılmış fiziksel kolileri bir sonraki FIFO önerisinden korur:
+  </p>
+  <div class="formula-box">
+    Ham İhtiyaç Açığı (D_ham) = max(0, reserved_qty_for_production - actual_qty)<br>
+    Taslak İkmal Miktarı (Q_taslak) = &Sigma; (Açık Draft / In Progress İkmal Emirlerindeki is_skipped = 0 satırların deficit_qty toplamı)<br>
+    Net İkmal Açığı (D_net) = max(0, D_ham - Q_taslak)
+  </div>
+  <ul>
+    <li><strong>Tam Karşılanan Talepler (D_net == 0):</strong> Açık ihtiyaç zaten onay bekleyen (<code>Draft</code>) veya toplanmakta olan (<code>In Progress</code>) bir ikmal emrinde mevcuttur. Kalem <code>covered_by_draft = True</code> ve <code>selectable = False</code> olarak işaretlenir. Arayüzde <span class="badge-doc-draft">⏳ Taslak İkmalde (LRO-...)</span> rozeti ile gösterilir ve seçim kutusu kilitlenir.</li>
+    <li><strong>Kısmi Karşılanan Talepler (D_net &gt; 0):</strong> Ham ihtiyaç açık <code>Draft</code> / <code>In Progress</code> sipariş miktarından büyükse (örneğin 250 adet ihtiyaç, 200 adet açık siparişte bekliyor), yalnızca aradaki fark olan 50 adet net açık (D_net) için ana ambardan parti ve raf tahsisi yapılır ve <em>Kısmi Taslak</em> rozeti eklenir.</li>
+    <li><strong>Açık Emirlerdeki Parti ve Raf Rezervasyonu Koruması (<code>get_in_flight_reserved_stock</code>):</strong> Tüm hedef WIP departmanları genelinde herhangi bir açık (<code>Draft</code> / <code>In Progress</code>, <code>docstatus = 0</code>) ikmal emrindeki atlanmamış satırlarda rezerve edilmiş partiler (<code>picked_batch_no</code> / <code>suggested_batch_no</code>) ve partisiz raf miktarları, sonraki tüm FIFO tahsislerinden otomatik olarak hariç tutulur. Bu sayede hem aynı hattın kısmi taslak sonrası kalan farkı (<em>delta</em>) taranırken hem de farklı bir üretim departmanı için paralel ikmal listesi oluşturulurken aynı fiziksel koli/parti kesinlikle ikinci kez önerilmez; partili bir kalemde rezerve edilmemiş başka parti kalmamışsa sipariş oluşturma (<code>create_line_replenishment_order</code>) o kalemi atlar.</li>
+    <li><strong>Atlanan Kalemlerin Otomatik Yeniden Açığa Düşmesi:</strong> <code>_get_drafts_by_item()</code> yalnızca <code>docstatus = 0 AND status IN ('Draft', 'In Progress')</code> durumundaki emirlerin atlanmamış (<code>COALESCE(is_skipped, 0) = 0</code>) satırlarını açık hesabından düşer. PDA'da bir satır atlandığında (<code>is_skipped = 1</code>) veya tüm satırlar atlanıp emir <code>Completed</code> ya da <code>Cancelled</code> durumuna geçtiğinde, atlanan kalemler bir sonraki ikmal taramasında otomatik olarak yeniden açık (<code>deficit</code>) listesine düşer.</li>
+  </ul>
+
+  <h3>5. Sıfır Stoklu Kalemlerin Kesin Kilitlenmesi (Hard Selection Lock):</h3>
+  <p>
+    Ana ambar (<code>110 HAMMADDE</code>) yaprak raflarında stoğu tükenmiş (<code>has_stock == False</code>)
+    olan kalemlerin ikmal emrine dahil edilmesi depo personelinin olmayan malzemeyi aramasına
+    ve sistemde hayali toplama emirleri oluşmasına neden olur. Sistem çift katmanlı kilit uygular:
+  </p>
+  <ul>
+    <li><strong>Kullanıcı Arayüzü Koruması (Desktop Hub):</strong> Ana ambarda stok bakiyesi 0 olan kalemlerin satır seçim kutusu (<code>checkbox</code>) doğrudan <code>disabled</code> yapılır. "Tümünü Seç / Kaldır" onay kutusu yalnızca seçilebilir (<code>selectable == True</code>) satırları işaretler. Satırda <span class="badge-doc-nostock">🔴 Stok Yok</span> rozeti gösterilir.</li>
+    <li><strong>Backend API Güvenlik Doğrulaması:</strong> <code>create_line_replenishment_order</code> servisi, istemciden iletilen tüm kalemlerin yaprak raf stoklarını teyit eder. Eğer gönderilen kalemlerin hiçbirinde stok bulunamıyorsa işlem anında engellenir ve <code>frappe.ValidationError</code> fırlatılır.</li>
+  </ul>
+
+  <hr />
+
+  <!-- BÖLÜM 3 -->
+  <h2>🔒 Bölüm 3: Zorunlu Tekil Hedef WIP Ambarı İlkesi</h2>
+  <p>
+    KTA Line Replenishment mimarisinde, gerek analitik servisler gerekse kullanıcı arayüzleri
+    düzeyinde <strong>tek bir hedef WIP ambarı seçimi zorunludur</strong>. Karma çekme listeleri
+    veya grup ambarlarına transfer kesin olarak engellenmiştir.
+  </p>
+
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>Gerekçe</th>
+        <th>Açıklama</th>
+        <th>Sağlanan Kazanım</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Tek Forklift Rotası</strong></td>
+        <td>
+          Toplama emri tek bir hatta teslim edilecek şekilde optimize edilir. Operatör
+          farklı hatlar arasında bölünmeden malzemeyi tek seferde teslim noktasına ulaştırır.
+        </td>
+        <td>%40 daha hızlı fiziksel intikal</td>
+      </tr>
+      <tr>
+        <td><strong>Hat Liderine Net Teslimat</strong></td>
+        <td>
+          Toplanan malzemeler doğrudan ilgili hat amirinin sorumluluk alanına girer.
+          Kimin hangi malzemeyi teslim aldığı belirsizliği tamamen ortadan kalkar.
+        </td>
+        <td>Sıfır kayıp / sahipsiz koli</td>
+      </tr>
+      <tr>
+        <td><strong>Atomik Stok Fişi</strong></td>
+        <td>
+          ERPNext üzerinde üretilen <code>Stock Entry (Material Transfer)</code> belgesi
+          tek bir <code>to_warehouse</code> içerir. Muhasebe ve denetim kayıtları temiz kalır.
+        </td>
+        <td>Tam maliyet ve lokasyon izlenebilirliği</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-box warning">
+    <div class="callout-title">⚠️ Güvenlik Kilidi: Grup Ambarı Yasağı & Yaprak Raf Güvencesi</div>
+    <p>
+      ERPNext standartlarında <code>Stock Entry</code> belgelerine grup ambarları
+      (<code>is_group = 1</code>) yazılamaz; aksi takdirde sistem stok hareketi oluşmasını engeller.
+      KTA Hat İkmal Sistemi çift taraflı koruma uygular:
+    </p>
+    <ul>
+      <li><strong>Kaynak Tarafı:</strong> Üst ambar olarak <code>110 HAMMADDE - KTA</code> seçilse dahi sistem arka planda <code>get_leaf_warehouses</code> motorunu çalıştırır ve transfer fişine yalnızca fiziksel yaprak rafları (<code>W1A-01-01</code> vb.) atar.</li>
+      <li><strong>Hedef Tarafı:</strong> Hedef ambar olarak genel bir başlık (örneğin <code>150 ÜRETİM</code>) seçildiğinde sistem anında <code>frappe.ValidationError</code> fırlatarak işlemi durdurur; yalnızca tekil hat deposuna (<code>1501 PANO MONTAJ</code>) izin verir.</li>
+    </ul>
+  </div>
+
+  <hr />
+
+  <!-- BÖLÜM 4 -->
+  <h2>🖥️ Bölüm 4: Masaüstü Hat İkmal Kokpiti Kullanımı (Line Replenishment Hub)</h2>
+  <p>
+    Masaüstü kokpiti (<code>/app/line-replenishment-hub</code>), üretim planlamacıları ve ambar
+    yöneticilerinin yalnızca ana hammadde ambarından (<code>110 HAMMADDE</code>) hatlara yönelik
+    ikmal açıklarını izleyip ikmal emirleri oluşturduğu kumanda merkezidir:
+  </p>
+
+  <div class="step-container">
+    <div class="step-item">
+      <h4>1. Tekil Hedef Hat Seçimi</h4>
+      <p>
+        Üstteki <strong>Hızlı Hat Seçimi</strong> butonlarından veya <strong>🔍 Diğer Depo...</strong>
+        seçeneğinden ikmal yapılacak tekil <code>150x</code> üretim hattı (Örn: <code>1501 KESMELER - KTA</code>)
+        seçilir. Kokpit %100 ana hammadde ambarı odaklı olduğu için ayrı bir tedarik stratejisi seçimi gerekmez.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>2. Otomatik Açık Taraması ve Yenileme</h4>
+      <p>
+        Hedef hat seçildiği anda (veya sağ üstteki <strong>🔄 Yenile</strong> butonuna basıldığında)
+        sistem <code>get_line_deficits</code> servisini çağırarak hedef hattın tüm açık iş emirlerini,
+        taslak ikmal siparişlerini ve <code>110 HAMMADDE</code> raf stoklarını FIFO netting algoritmasıyla
+        sorgular. Net açığı olan malzemeler tabloya dökülür.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>3. Ana Ambar Raf / Parti Önerileri & Taslak Koruması</h4>
+      <p>
+        Tabloda her kalem için <strong>Net Açık (Deficit)</strong>, <strong>Hat Stoğu</strong>,
+        <strong>⚡ Depodan Çıkacak Miktar</strong> ve <strong>Ana Ambar Raf / Parti</strong> sütununda
+        önerilen fiziksel yaprak raf ile parti bilgisi (<code>🏢 W1A-01-01</code>, <code>🏷️ Parti No</code>)
+        gösterilir. Bir açık tek koli ile karşılanamayıp birden fazla koli veya farklı raflardan
+        tahsis gerektiriyorsa (<code>allocated_batches.length &gt; 1</code>), Hub (<code>DeficitTable.vue</code>)
+        hücrede <code>📦 N Koli</code> (birden fazla rafta ise <code>📦 N Koli · M Raf</code>) rozetini ve
+        tüm raf/parti/miktar kırılımını açıp kapatan (<code>+N koli daha</code> / <code>Gizle</code>)
+        genişletilebilir listeyi sunar. Açıkta bekleyen bir taslak ikmal emrinde bulunan malzemeler
+        <span class="badge-doc-draft">⏳ Taslak İkmalde</span> rozetine bürünür ve mükerrer talep
+        oluşması engellenir. Ana ambar raflarında stoğu bulunmayan malzemeler ise
+        <span class="badge-doc-nostock">🔴 Stok Yok</span> uyarısıyla seçimden kilitlenir; kısmi stok
+        durumunda <em>Kısmi Stok</em> ve varsa <em>Kısmi Taslak</em> rozetleri gösterilir.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <h4>4. Hat İkmal Emri Oluşturma (Create Replenishment Order)</h4>
+      <p>
+        Yalnızca seçilebilir ve ana ambarda stoğu olan kalemler işaretlenerek (sıfır stoklu ve taslakta
+        tamamlanmış olanlar otomatik kilitlenir) <strong>⚡ Hat İkmal Emri Oluştur</strong>
+        butonuna basılır. Sistem arka planda <code>source_parent_warehouse</code> değerini
+        (eksikse NestedSet <code>lft/rgt</code> en yakın ortak grup ambarı — LCA fallback — ile
+        çözümleyerek) <code>allocate_fifo_batches</code> motoruna aktarır; tüm hedef WIP hatlarındaki
+        açık (<code>Draft</code> / <code>In Progress</code>) emirlerde rezerve edilmiş partiler ve
+        partisiz raf miktarları (<code>get_in_flight_reserved_stock</code>) otomatik hariç tutulur.
+        Böylece <code>110 HAMMADDE</code> altındaki farklı raflara dağılmış tüm uygun koliler ayrı
+        toplama satırlarına (<code>KTA Line Replenishment Item</code>) bölünerek resmi
+        <code>KTA Line Replenishment Order</code> belgesi <em>Draft</em> statüsünde oluşturulur;
+        partili bir kalemde rezerve edilmemiş parti kalmamışsa bu kalem eski öneriye düşmeden
+        otomatik olarak atlanır.
+      </p>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- BÖLÜM 5 -->
+  <h2>📱 Bölüm 5: Mobil El Terminali (PDA) & Tablet ile Barkodlu Toplama</h2>
+  <p>
+    Ambar operatörleri için tasarlanan bağımsız <strong><code>/pda</code> → Hat İkmal Toplama</strong>
+    ekranı (<code>PickingModuleView.vue</code>) ve masaüstü/legacy <code>/app/line-replenishment-picking</code>
+    sayfası (<code>PdaApp.vue</code>), ortak <code>useLineReplenishmentPicking</code> iş mantığını paylaşarak
+    el terminalleri ve tabletlerde %100 tutarlı çalışır.
+  </p>
+
+  <div class="flow-card-grid">
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🧭</span>
+        <h3 class="flow-card-title">Yaklaşım A: Doğal Raf Yürüyüş Sırası & Sekmeler</h3>
+      </div>
+      <p class="flow-card-desc">
+        Bekleyen kartlar doğal alfanümerik raf sırasıyla (<code>W1A-02-01 → W1A-10-01</code>) dizilir.
+        <code>Bekleyen / Toplanan / Atlanan</code> sekmeleriyle liste yönetilir; okutulan veya atlanan
+        kartlar tek satırlık kompakt özet satırına katlanır (<code>↩ Geri Al</code> destekli).
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">📦</span>
+        <h3 class="flow-card-title">Partili Kalemde Sıfır Manuel Giriş</h3>
+      </div>
+      <p class="flow-card-desc">
+        Partili (<code>1 Kutu = 1 Parti</code>) ürünlerde manuel <em>Toplandı</em> onay kutusu,
+        <code>- / +</code> düğmeleri ve <em>Tümünü Al</em> kaldırılmıştır; toplama yalnızca fiziksel
+        koli/SUT parti barkodu okutularak yapılır. Yalnızca partisiz (<code>has_batch_no = 0</code>)
+        ürünlerde miktar girişi + <code>✓ Onayla</code> (<code>+%15</code> tolerans) istisnası sunulur.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">⚠️</span>
+        <h3 class="flow-card-title">Katı FIFO & Tek Tıkla FIFO Sapma Onayı</h3>
+      </div>
+      <p class="flow-card-desc">
+        Önerilen FIFO partisi okutulursa satır sessizce onaylanır. Farklı bir parti okutulduğunda
+        canlı raf ve tam koli bakiyesi doğrulamalı <strong>FIFO Sapma Uyarı Modalı</strong> açılır;
+        tek tıkla onaylandığında <code>Stock Entry.remarks</code> ve
+        <code>KTA Line Replenishment Order.remarks</code> içine <code>[FIFO SAPMASI]</code> denetim kaydı işlenir.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🛡️</span>
+        <h3 class="flow-card-title">Çift Okutma, Hedef & Eksik Ürün Atlama RBAC</h3>
+      </div>
+      <p class="flow-card-desc">
+        Aynı koliyi ikinci kez okutmada miktar ikiye katlanmaz; pasif parti, sıfır bakiye ve
+        zaten hedef hattaki (<code>already_in_target</code>) koliler engellenir. Bulunmayan kalemler
+        yalnızca <strong><code>Stock Manager</code> / <code>System Manager</code></strong> tarafından
+        <code>Atla</code> ile geçilebilir (<code>PermissionError</code> korumalı).
+      </p>
+    </div>
+  </div>
+
+  <h3>📱 Tablet Yerleşimi, Sabit Alt Bar & Eksik Ürün Atlama Kuralları</h3>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>Özellik / Kural</th>
+        <th>Uygulama Davranışı</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Tablet (<code>&gt;= 768px</code>) & Sabit Alt Bar UX</strong></td>
+        <td>
+          <code>768px</code> ve üzeri ekranlarda ana içerik <code>960px</code> kapsayıcıda ortalanır,
+          sipariş seçici ile barkod çubuğu yan yana, bekleyen kartlar ise <strong>2 kolonlu grid</strong>
+          düzeninde gösterilir. <code>TransferFooter</code> viewport altına sabitlenir
+          (<code>position: fixed; bottom: 0</code>) ve sayfa sonuna kaydırıldığında asla yukarı kaymaz.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Tam Koli Doğrulaması &amp; FIFO Sapması</strong></td>
+        <td>
+          Partili kalemlerde okutulan kolinin canlı kaynak raftaki tam bakiye ile birebir eşleşmesi
+          (<code>1 Kutu = 1 Parti</code>) zorunludur. Alternatif FIFO partisinin kapalı koli bakiyesi
+          başlangıç açığının <code>%15</code> üstünde olsa bile gerçek tam koli bakiyesi esas alınarak kabul edilir;
+          satırda <code>is_fifo_override = 1</code> ve <code>⚠️ FIFO Sapması</code> rozeti işlenir.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Kısmi Atlama vs. Tüm Satırları Atlama</strong></td>
+        <td>
+          <code>Stock Manager</code> bazı satırları <code>Atla</code> ile geçerse yalnızca toplanan koliler
+          için <code>Stock Entry</code> oluşturulur (<code>Completed</code>). Tüm satırlar atlanırsa alt buton
+          <strong>Emri İptal Et (Tümü Atlandı)</strong> durumuna geçer; boş <code>Stock Entry</code> oluşturulmadan
+          emir <code>Cancelled</code> olarak kapatılır ve <code>[ATLANAN KALEMLER]</code> notu kaydedilir.
+        </td>
+      </tr>
+      <tr>
+        <td><strong><code>KTA Line Replenishment Item</code> Yeni Alanları</strong></td>
+        <td>
+          Alt tabloda izlenebilirlik için <code>is_skipped</code> (Atlandı mı),
+          <code>skipped_by</code> (Atlayan Kullanıcı) ve <code>is_fifo_override</code> (FIFO Sapması)
+          alanları tutulur. Atlanan kalemler bir sonraki ikmal taramasında otomatik olarak yeniden açığa düşer.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout-box success">
+    <div class="callout-title">🎉 Sıfır Ekstra Evrak Yükü & Tam Denetim İzi</div>
+    <p>
+      Operatörün ERPNext stok fişi ekranına gidip tek tek kaynak depo, hedef depo ve parti
+      seçmesine gerek kalmaz. PDA ekranında barkodlar okutulup transfer tamamlandığında tüm
+      muhasebe, stok defteri ve <code>[FIFO SAPMASI]</code> / <code>[ATLANAN KALEMLER]</code> denetim
+      kayıtları anında resmileşir.
+    </p>
+  </div>
+
+  <hr />
+
+  <!-- BÖLÜM 6 -->
+  <h2>🛡️ Bölüm 6: İptal & Ters Kayıt Güvencesi (Atomic Rollback)</h2>
+  <p>
+    Sistemde oluşturulan ikmal emirleri ve transfer fişleri tam atomik bütünlük içindedir:
+  </p>
+  <ul>
+    <li>
+      <strong>Otomatik Stock Entry İptali:</strong> Tamamlanmış (Completed) bir Hat İkmal Emri
+      iptal edildiğinde (Cancelled), bağlı bulunan <code>Stock Entry (Material Transfer)</code>
+      belgesi de Frappe standartlarında otomatik olarak iptal edilir (cancel).
+    </li>
+    <li>
+      <strong>Tüm Satırlar Atlandığında Boş Fiş Oluşturmama:</strong> Tüm kalemler yetkili yönetici
+      tarafından atlandığında sistem boş <code>Stock Entry</code> üretmeden emri doğrudan
+      <code>Cancelled</code> olarak kapatır; atlanan kalemler bir sonraki taramada yeniden listelenir.
+    </li>
+    <li>
+      <strong>Stokların Eski Kaynağa Dönüşü:</strong> İptal edilen transfer fişinin tüm parti
+      ve seri numaralı bakiyeleri kaynak ambarlara (<code>110 HAMMADDE</code>) geri iade edilir.
+    </li>
+    <li>
+      <strong>Hatalı Durum Koruması:</strong> Zaten iptal edilmiş veya henüz transferi
+      yapılmamış siparişlerde çift iptal girişimleri engellenir.
+    </li>
+  </ul>
+
+</div>
+{% endblock %}

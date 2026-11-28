@@ -1417,3 +1417,806 @@ Unit Rate,Einzelpreis
 Unassigned Operation,Nicht Zugewiesener Vorgang
 Show Operation & Material Breakdown,Vorgangs- und Materialaufschlüsselung Anzeigen
 WIP Return / Adjustment,WIP-Rückgabe / Korrektur
+Line Replenishment Hub,Liniennachschub-Hub
+Line Replenishment Picking,Liniennachschub-Kommissionierung
+Line Replenishment Order,Liniennachschubauftrag
+Smart Sourcing (WIP First),Smart Sourcing (Zuerst WIP)
+Direct Central Store,Direktes Zentrallager
+Line Transfer,Linientransfer
+Central Warehouse,Zentrallager
+Scan Deficits,Fehlbestände scannen
+Create Replenishment Order,Nachschubauftrag erstellen
+Complete Transfer,Transfer abschließen
+Override to Central,Alles auf Zentrallager umstellen
+Target Line Warehouse,Ziellinienlager
+Deficit Qty,Fehlmenge
+Picked Qty,Kommissionierte Menge
+Tolerance Warning,Toleranzwarnung
+Barcode Scanner,Barcodescanner
+Select Replenishment Order,Nachschubauftrag auswählen
+Hat İkmal Kokpiti,Liniennachschub-Hub
+Hat İkmal Toplama,Liniennachschub-Kommissionierung
+Hat İkmal Emri,Liniennachschubauftrag
+Akıllı Kaynak (Önce WIP),Smart Sourcing (Zuerst WIP)
+Doğrudan Ana Ambar,Direktes Zentrallager
+Hatlar Arası Dengeleme,Linientransfer
+Açıkları Tara,Fehlbestände scannen
+Hat İkmal Emri Oluştur,Nachschubauftrag Erstellen
+Transferi Tamamla,Transfer Abschließen
+Tümünü Ana Ambara Çevir,Alle auf Zentrallager umstellen
+Hedef Hat Deposu,Ziellinienlager
+Net Açık Miktarı,Fehlmenge
+Toplanan Miktar,Kommissionierte Menge
+Tolerans Uyarısı,Toleranzwarnung
+Barkod Okuyucu,Barcodescanner
+İkmal Emri Seçin,Nachschubauftrag auswählen
+Hedef WIP Deposu,Ziel-WIP-Lager
+Tedarik Stratejisi,Beschaffungsstrategie
+Açıkları Yenile,Fehlbestände Aktualisieren
+Hedef Depo Seçimi Zorunlu,Auswahl Des Ziellagers Erforderlich
+Hedef WIP Deposu Seçin,Ziel-WIP-Lager Auswählen
+Rezervasyon Açığı Bulunmamaktadır,Keine Reservierungsfehlbestände Vorhanden
+Açık Olan Hammaddeler,Fehlende Rohstoffe
+Toplam Net Açık,Gesamte Nettofehlmenge
+🔄 Hat İçi Dengeleme,🔄 Linienausgleich
+📦 Ana Ambar Tedariki,📦 Zentrallagerbeschaffung
+Ana Ambara Çevir,Auf Zentrallager umstellen
+Hat Transferi,Linientransfer
+Kalem Seçilmedi,Kein Artikel ausgewählt
+Toplandı,Kommissioniert
+Parti (Batch),Charge
+Belirtilmedi,Nicht Angegeben
+Tolerans,Toleranz
+Toplanan Miktar:,Kommissionierte Menge:
+Tolerans Aşıldı!,Toleranz überschritten!
+Transfer Tamamlandı:,Transfer abgeschlossen:
+Raf Lokasyonu,Regalplatz
+Shelf Location,Regalplatz
+Tam Koli Çıkışı,Komplette Chargenausgabe
+Full Batch Issue,Komplette Chargenausgabe
+Parti No,Chargennummer
+Batch No,Chargennummer
+Hat İkmal Emri raf ve parti tahsislerine göre başarıyla oluşturuldu: {0},Liniennachschubauftrag erfolgreich basierend auf Regalplatz- und Chargenzuweisungen erstellt: {0}
+Switch All to Central Warehouse,Alle auf Zentrallager umstellen
+Taslak İkmalde,Im Entwurfsnachschub
+In Draft Replenishment,Im Entwurfsnachschub
+Depoda Stok Yok (Seçilemez),Nicht auf Lager (Nicht wählbar)
+Out of Stock (Not Selectable),Nicht auf Lager (Nicht wählbar)
+Mükerrer Talep Engellendi,Doppelte Anforderung blockiert
+Duplicate Request Blocked,Doppelte Anforderung blockiert
+Seçilen hammaddelerin hiçbirinde depoda veya hatlarda mevcut stok bulunamadı.,Keiner der ausgewählten Artikel ist im Lager oder in den Linien verfügbar.
+None of the selected items have available stock in the warehouse or sibling lines.,Keiner der ausgewählten Artikel ist im Lager oder in den Linien verfügbar.
+-- Sipariş Seçiniz --,-- Auftrag Auswählen --
+Aktif İkmal Siparişi,Aktiver Nachschubauftrag
+Ana Ambar,Zentrallager
+Artır (+1),Erhöhen (+1)
+Azalt (-1),Verringern (-1)
+Açık siparişler:,Offene Aufträge:
+Açıklar Taranıyor...,Fehlbestände Werden Gescannt...
+Aşağıdaki kalemler için toplanan miktar %15 tolerans sınırını aşıyor: {0},Kommissionierte Menge überschreitet das Toleranzlimit von +15% für folgende Artikel: {0}
+Barkod Okut (PDA Scanner),Barcode Scannen (PDA Scanner)
+Barkod eşleşmedi veya bu sipariş listesinde yok: {0},Barcode stimmt nicht überein oder ist nicht in dieser Auftragsliste: {0}
+Barkod sorgulanırken hata oluştu.,Beim Abfragen des Barcodes ist ein Fehler aufgetreten.
+Belirtilmemiş,Nicht Angegeben
+Birim:,Einheit:
+Bu siparişte toplanacak kalem bulunamadı.,In diesem Auftrag wurden keine zu kommissionierenden Artikel gefunden.
+Depodan Çıkacak Miktar,Ausgabemenge
+Diğer Depo...,Anderes Lager...
+Eşleşti: {0}{1},Übereinstimmung: {0}{1}
+Hammadde Kodu & Adı,Rohmaterialcode & -name
+Hat Rezervasyon Açıkları ve Çekme İkmal Yönetimi,Linienreservierungs-Fehlbestände und Pull-Nachschubverwaltung
+Hat Stoğu,Linienbestand
+Hat rezervasyon açıkları taranırken bir hata oluştu.,Beim Scannen von Linienreservierungs-Fehlbeständen ist ein Fehler aufgetreten.
+Hat rezervasyonları ve ambar stok durumu sorgulanıyor.,Linienreservierungen und Lagerbestandsstatus werden abgefragt.
+Hat İkmal Emri Oluşturuldu,Nachschubauftrag Erstellt
+Hat İkmal Emri Oluşturuluyor...,Nachschubauftrag Wird Erstellt...
+Hat İkmal Emri başarıyla oluşturuldu: {0},Nachschubauftrag erfolgreich erstellt: {0}
+Hat İkmal Toplama (PDA),Liniennachschub-Kommissionierung (PDA)
+Hedef Depo Seçin,Ziellager Auswählen
+Hedef WIP Ambarını Girin (örn. 1501 KESMELER - KTA):,Ziel-WIP-Lager eingeben (z. B. 1501 KESMELER - KTA):
+Hızlı Hat Seçimi:,Schnelle Linienauswahl:
+Kaynak Depo / Raf,Quelllager / Regal
+Kaynak Tipi,Quelltyp
+Kodu Kopyala,Code Kopieren
+Kopyalandı: {0},Kopiert: {0}
+Kısmi Stok,Teilbestand
+Kısmi Taslak:,Teilentwurf:
+Lütfen hammadde rezervasyon açıklarını görüntülemek için yukarıdaki hızlı butonlardan veya diğer ambar seçeneğinden bir üretim hattı seçin.,"Bitte wählen Sie eine Produktionslinie aus den obigen Schnellschaltflächen oder anderen Lageroptionen aus, um Fehlbestände an Rohmaterialreservierungen anzuzeigen."
+Lütfen önce bir Hedef WIP Deposu seçin.,Bitte wählen Sie zuerst ein Ziel-WIP-Lager aus.
+Lütfen önce bir ikmal siparişi seçiniz.,Bitte wählen Sie zuerst einen Nachschubauftrag aus.
+Maks,Max
+Malzeme Transferi Gerçekleştiriliyor...,Materialtransfer Wird Ausgeführt...
+Net Açık (Deficit),Netto-Fehlbestand
+Oluşturuluyor...,Wird Erstellt...
+Parti,Charge
+Raf,Regal
+Seçilen hatta üretim emirleri için rezerve edilmiş tüm hammaddeler hat stoğunda mevcuttur veya bekleyen açık bulunmamaktadır.,Alle für Fertigungsaufträge auf der ausgewählten Linie reservierten Rohmaterialien sind im Linienbestand verfügbar oder es liegen keine offenen Fehlbestände vor.
+Seçilen kalemler için Malzeme Transferi (Stock Entry) oluşturulsun mu?,Materialtransfer (Stock Entry) für die ausgewählten Artikel erstellen?
+Sipariş Kalemleri Yükleniyor...,Auftragspositionen Werden Geladen...
+Stok Yok,Kein Bestand
+Strateji,Strategie
+Taranıyor...,Wird Gescannt...
+Tolerans Aşıldı! (+%15 Üzeri),Toleranz Überschritten! (Über +15%)
+Toplama yapmak için yukarıdan açık bir sipariş seçin.,"Wählen Sie oben einen offenen Auftrag aus, um mit der Kommissionierung zu beginnen."
+Transfer Tamamlandı: {0},Transfer Abgeschlossen: {0}
+Tüm kalemler toplanmalı ve miktarlar sıfırdan büyük olmalıdır: {0},Alle Positionen müssen kommissioniert werden und die Mengen müssen größer als null sein: {0}
+Tüm kalemler toplanmalıdır,Alle Positionen müssen kommissioniert werden
+Tümünü Al,Alles Entnehmen
+Tümünü Seç / Kaldır,Alle Auswählen / Abwählen
+Uygula,Anwenden
+{0} / {1} Kalem Toplandı,{0} / {1} Positionen Kommissioniert
+{0} adet seçilmemiş veya temin edilemeyen kalem hariç tutuldu,{0} nicht ausgewählte oder nicht verfügbare Artikel ausgeschlossen
+"{0} hammadde seçildi, toplam {1} adet aktarılacak","{0} Rohmaterialien ausgewählt, insgesamt {1} Einheiten werden übertragen"
+Ürün / SUT / Parti Barkodu Okutun...,Artikel- / SUT- / Chargenbarcode Scannen...
+İkmal Emri listesi güncellendi: {0},Nachschubauftragsliste aktualisiert: {0}
+İlerleme,Fortschritt
+KTA Line Replenishment Order,KTA Liniennachschubauftrag
+KTA Line Replenishment Item,KTA Liniennachschub-Position
+Line Replenishment Item,Liniennachschub-Position
+Return from Production Supply,Rückgabe aus Produktionsversorgungsbereich
+Package Split,Gebindeteilung
+Package Split allows only one item per Stock Entry.,Bei der Gebindeteilung ist nur ein Artikel pro Lagerbuchung zulässig.
+Benzersiz 7 haneli lot ön eki üretilemedi.,Eindeutiges 7-stelliges Chargenpräfix konnte nicht erzeugt werden.
+Lot {0} için maksimum koli soneki (9999) aşıldı.,Maximales Gebindesuffix (9999) für Charge {0} überschritten.
+"Ürün, kaynak depo ve hedef depo zorunludur.","Artikel, Ausgangslager und Ziellager sind erforderlich."
+Bölme miktarları boş olamaz ve tüm değerler sıfırdan büyük olmalıdır.,Teilmengen dürfen nicht leer sein und müssen alle größer als null sein.
+"Kaynak depoda yeterli stok yok. Mevcut: {0}, İstenen: {1}","Unzureichender Bestand im Ausgangslager. Verfügbar: {0}, Angefordert: {1}"
+Line Transfers,Linienumbuchung
+Hatlar Arası Transfer,Linienumbuchung
+Hatlar Arası Hızlı Transfer,Schnelle Linienumbuchung
+Hatlar Arası Transfer Yapıldı: {0},Linienumbuchung Durchgeführt: {0}
+Hatlar Arası Transfer Tamamlandı: {0},Linienumbuchung Abgeschlossen: {0}
+Hatlar Arası Transfer Başarıyla Tamamlandı,Linienumbuchung Erfolgreich Abgeschlossen
+Üretim Hatları Arası Serbest Stok ve Açık Karşılama Yönetimi,Verwaltung von Freiem Bestand und Fehlbestandsdeckung Zwischen Produktionslinien
+Ana Hammadde Ambarından Hatlara Çekme İkmal Yönetimi,Pull-Nachschubverwaltung vom Zentrallager zu den Produktionslinien
+Ana Ambar Raf / Parti,Zentrallager-Regal / Charge
+Açık Karşılama,Fehlbestandsdeckung
+Atıl Hat Stoğu,Ungenutzter Linienbestand
+Manuel Transfer,Manuelle Umbuchung
+Manuel Hat Transferi,Manuelle Linienumbuchung
+Hat Seçimi,Linienauswahl
+Hedef Üretim Hattı,Ziel-Produktionslinie
+Kaynak Üretim Hattı,Quell-Produktionslinie
+Hedef Üretim Hattı Seçin,Ziel-Produktionslinie Auswählen
+Kaynak Üretim Hattı Seçin,Quell-Produktionslinie Auswählen
+Diğer Üretim Deposu...,Anderes Produktionslager...
+Üretim Deposu Seçin,Produktionslager Auswählen
+Üretim Deposu Girin (örn. 1501 KESMELER - KTA):,Produktionslager eingeben (z. B. 1501 KESMELER - KTA):
+Hat Stoğu / Açık,Linienbestand / Fehlbestand
+Kaynak 150x Hat,Quell-Linie 150x
+Hedef 150x Hat,Ziellinie 150x
+Aktarılacak Miktar,Zu Übertragende Menge
+Gönderilecek Miktar,Zu Sendende Menge
+Fiziksel / Rezerve / Boşta (Serbest),Physisch / Reserviert / Frei
+Serbest / Fiziksel,Frei / Physisch
+Serbestten Hazır,Frei Verfügbar
+Öncelik Kaydırma (Rezerve),Prioritätsverschiebung (Reserviert)
+Öncelik Kaydırma (Rezerve Stok Kullanımı) Onayı,Bestätigung der Prioritätsverschiebung (Reservierter Bestand)
+Onayla ve Transfer Et,Bestätigen und Übertragen
+Seçilenleri Hatta Aktar,Ausgewählte an Linie Übertragen
+Seçilenleri Gönder,Ausgewählte Senden
+⚡ Transferi Başlat,⚡ Umbuchung Starten
+Kardeş Hattan Transfer Yap,Von Schwesterlinie Übertragen
+Kaynak hattın rezerve stoğundan öncelik kaydırarak kullanmayı onaylıyorum,Ich bestätige die Verwendung des reservierten Bestands der Quelllinie durch Prioritätsverschiebung
+Kardeş Hatlardan Karşılanacak Açık Yok,Keine Fehlbestände aus Schwesterlinien Zu Decken
+Atıl Serbest Stok Bulunamadı,Kein Ungenutzter Freier Bestand Gefunden
+Hat Açıkları Taranıyor...,Linienfehlbestände Werden Gescannt...
+Atıl Stoklar Taranıyor...,Ungenutzte Bestände Werden Gescannt...
+-- Hedef Hat Seçin --,-- Ziellinie Auswählen --
+-- Kaynak Hat Seçin --,-- Quell-Linie Auswählen --
+Açık,Fehlbestand
+Açık:,Fehlbestand:
+Hat:,Linie:
+Fiziksel,Physisch
+Rezerve,Reserviert
+Eklendi,Hinzugefügt
+Geçersiz Miktar,Ungültige Menge
+Geçersiz miktar,Ungültige Menge
+Kaynak Hat,Quell-Linie
+Kaynak Hat Stok Listesi,Bestandsliste der Quell-Linie
+Malzeme,Material
+Rezerve aşımı,Reservierungsüberschreitung
+Rezerve stok kullanılacak,Reservierter Bestand wird verwendet
+Satırı Kaldır,Zeile Entfernen
+Stok sınırı aşıldı veya geçersiz,Bestandsgrenze überschritten oder ungültig
+Transfer Edilecek Kalemler ({0}),Zu Übertragende Artikel ({0})
+Transfer Ediliyor...,Wird Übertragen...
+Transfer Modu,Umbuchungsmodus
+Transfer Yapılıyor...,Umbuchung Läuft...
+Transfer tamamlanamadı.,Umbuchung konnte nicht abgeschlossen werden.
+Hat transfer listesi yüklenirken bir hata oluştu.,Beim Laden der Linienumbuchungsliste ist ein Fehler aufgetreten.
+Hatlar arası transfer sırasında bir hata oluştu.,Während der Linienumbuchung ist ein Fehler aufgetreten.
+Kaynak depodaki malzemeler yüklenemedi.,Materialien im Quelllager konnten nicht geladen werden.
+Kaynak hatta stoklu hammadde kodu veya adı ara...,Auf Quell-Linie verfügbaren Rohmaterialcode oder -namen suchen...
+Gösterilecek stoklu malzeme bulunamadı.,Keine lagerhaltigen Materialien zum Anzeigen gefunden.
+Hatta boşta bekleyen (serbest) stokları diğer hatlara göndermek için yukarıdan bir kaynak hat seçin.,"Wählen Sie oben eine Quell-Linie aus, um ungenutzte (freie) Bestände an andere Linien zu senden."
+Kardeş üretim hatlarından karşılanabilecek hammadde açıklarını görmek için yukarıdan bir hedef hat seçin.,"Wählen Sie oben eine Ziellinie aus, um Rohmaterial-Fehlbestände anzuzeigen, die aus Schwesterlinien gedeckt werden können."
+Seçilen hatta bekleyen üretim açığı bulunmuyor veya diğer üretim hatlarında kullanılabilir stok mevcut değil.,Für die ausgewählte Linie liegen keine offenen Produktionsfehlbestände vor oder es ist kein nutzbarer Bestand in anderen Produktionslinien verfügbar.
+Seçilen hattaki rezerve dışı serbest stoklar analiz ediliyor.,Unreservierte freie Bestände auf der ausgewählten Linie werden analysiert.
+Üretim hatlarındaki serbest ve rezerve stoklar kontrol ediliyor.,Freie und reservierte Bestände in den Produktionslinien werden geprüft.
+Bu üretim hattında iş emri rezervasyonu dışında boşta bekleyen hammadde bulunmamaktadır.,Auf dieser Produktionslinie befinden sich keine ungenutzten Rohstoffe außerhalb von Fertigungsauftragsreservierungen.
+Aşağıdaki kalemlerde istenen transfer miktarı kaynak hattaki serbest (rezerve dışı) stoğu aşmaktadır. Onaylarsanız diğer iş emirlerine rezerve edilmiş stoktan öncelik kaydırılarak transfer yapılacaktır.,Die angeforderte Umbuchungsmenge übersteigt bei den folgenden Artikeln den freien (unreservierten) Bestand der Quell-Linie. Bei Bestätigung wird für andere Fertigungsaufträge reservierter Bestand durch Prioritätsverschiebung umgebucht.
+Bazı malzemeler için diğer üretim hatlarında stok bulunamadı. Hammadde deposundan doğrudan hatlar arası transfer yapılamaz. Lütfen depo biriminden hatlar arası transfer veya ambar ikmali talep ediniz.,Für einige Materialien wurde in anderen Produktionslinien kein Bestand gefunden. Eine direkte Linienumbuchung aus dem Rohmateriallager ist nicht zulässig. Bitte fordern Sie beim Lagerteam eine Liniennachschublieferung an.
+Seçili kaynak hatlarda serbest stok yetersiz; transfer için başka iş emirlerine rezerve edilmiş stoktan öncelik kaydırılacak.,"Der freie Bestand auf den ausgewählten Quell-Linien reicht nicht aus; Bestand, der für andere Fertigungsaufträge reserviert ist, wird durch Prioritätsverschiebung übertragen."
+Üretim hattında teyit için gereken hammadde yetersiz. Diğer üretim hatlarından hatlar arası transfer yaparak teyidi tamamlayabilirsiniz.,Das Rohmaterial auf der Produktionslinie reicht für die Rückmeldung nicht aus. Sie können die Rückmeldung durch eine Linienumbuchung von anderen Produktionslinien abschließen.
+Üretim hatları arasında serbest veya onaylı stok aktarımı,Freie oder genehmigte Bestandsumbuchung zwischen Produktionslinien
+Seçili satırlarda geçerli bir hedef hat ve miktar belirtin,Geben Sie für die ausgewählten Zeilen eine gültige Ziellinie und Menge an
+Seçili satırlarda stok sınırını aşan veya geçersiz miktar var,Ausgewählte Zeilen enthalten eine ungültige Menge oder überschreiten das Bestandslimit
+"{0} kalem seçildi, toplam {1} miktar aktarılacak","{0} Artikel ausgewählt, insgesamt {1} Menge wird übertragen"
+"{0} kalem seçildi, toplam {1} miktar gönderilecek","{0} Artikel ausgewählt, insgesamt {1} Menge wird gesendet"
+{0} kalemde rezerve stok kullanılacak,Reservierter Bestand wird bei {0} Artikel(n) verwendet
+Önerilen Açık:,Vorgeschlagener Fehlbestand:
+Geçerli bir hedef depo zorunludur: {0},Ein gültiges Ziellager ist erforderlich: {0}
+Geçerli bir kaynak depo zorunludur: {0},Ein gültiges Quelllager ist erforderlich: {0}
+Geçerli bir malzeme kodu zorunludur: {0},Ein gültiger Artikelcode ist erforderlich: {0}
+Geçerli bir üretim/hat deposu seçilmelidir (hammadde veya grup depoları seçilemez): {0},Es muss ein gültiges Produktions-/Linienlager ausgewählt werden (Rohmaterial- oder Gruppenlager können nicht ausgewählt werden): {0}
+Geçerli bir İş Emri zorunludur: {0},Ein gültiger Fertigungsauftrag ist erforderlich: {0}
+Hammadde veya grup depolarına hat transferi yapılamaz. Hedef yalnızca geçerli bir üretim deposu olabilir: {0},Eine Linienumbuchung an Rohmaterial- oder Gruppenlager ist nicht möglich. Das Ziel darf nur ein gültiges Produktionslager sein: {0}
+Hammadde veya grup depolarından hat transferi yapılamaz. Kaynak yalnızca geçerli bir üretim deposu olabilir: {0},Eine Linienumbuchung aus Rohmaterial- oder Gruppenlagern ist nicht möglich. Die Quelle darf nur ein gültiges Produktionslager sein: {0}
+Hat transferi oluşturma yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, Linienumbuchungen zu erstellen."
+Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0},Liniennachschub-Umbuchung (Shopfloor Hub) - Fertigungsauftrag: {0}
+Hatlar Arası Transfer (Line Transfer),Linienumbuchung
+Kaynak depo ({0}) ve hedef depo ({1}) aynı şirkete ait olmalıdır.,Quelllager ({0}) und Ziellager ({1}) müssen zum selben Unternehmen gehören.
+Kaynak depo ve hedef depo aynı olamaz: {0},Quelllager und Ziellager dürfen nicht identisch sein: {0}
+"Kaynak depoda ({0}) {1} için yeterli geçerli parti stoğu bulunamadı. Mevcut: {2}, İstenen: {3}","Unzureichender gültiger Chargenbestand für {1} im Quelllager ({0}). Verfügbar: {2}, Angefordert: {3}"
+"Kaynak depoda ({0}) {1} için yeterli stok yok. Mevcut: {2}, İstenen: {3}","Unzureichender Bestand für {1} im Quelllager ({0}). Verfügbar: {2}, Angefordert: {3}"
+Kaynak depoda ({0}) {1} kaleminin serbest stoğu ({2}) yetersiz; {3} miktarında başka iş emirlerine rezerve stok kullanılacak. Devam etmek için rezerve stok kullanımını onaylayın.,"Der freie Bestand ({2}) für Artikel {1} im Quelllager ({0}) reicht nicht aus; {3} aus für andere Fertigungsaufträge reserviertem Bestand wird verwendet. Bestätigen Sie die Verwendung von reserviertem Bestand, um fortzufahren."
+Transfer edilecek geçerli malzeme bulunamadı.,Keine gültigen Materialien für die Umbuchung gefunden.
+Transfer edilecek malzeme listesi boş olamaz.,Die Liste der umzubuchenden Materialien darf nicht leer sein.
+Transfer miktarı sıfırdan büyük olmalıdır.,Die Umbuchungsmenge muss größer als null sein.
+{0} numaralı hat transferi başarıyla tamamlandı.,Linienumbuchung {0} wurde erfolgreich abgeschlossen.
+"""{0}"" alternatifi iş emrine başarıyla atandı.","Alternative ""{0}"" wurde dem Fertigungsauftrag erfolgreich zugewiesen."
+"""{0}"" numaralı teyit belgesini ve ilişkili stok hareketlerini ters kayıt (storno) ile iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.","Möchten Sie den Rückmeldebeleg ""{0}"" und die zugehörigen Bestandsbewegungen wirklich stornieren? Dieser Vorgang kann nicht rückgängig gemacht werden."
+"""{0}"" satırındaki muadil hammadde yerine orijinal ""{1}"" koduna dönmek istediğinize emin misiniz?","Möchten Sie das Ersatzmaterial in Zeile ""{0}"" wirklich auf den ursprünglichen Code ""{1}"" zurücksetzen?"
+'{0}' kalemi '{1}' için onaylı bir alternatif değildir.,Artikel '{0}' ist keine genehmigte Alternative für '{1}'.
+Alternatif Kodu & Adı,Alternativcode & -name
+Alternatif atanırken bir hata oluştu.,Beim Zuweisen der Alternative ist ein Fehler aufgetreten.
+Alternatifler yüklenirken bir hata oluştu.,Beim Laden der Alternativen ist ein Fehler aufgetreten.
+Eylem,Aktion
+Geri Yükleniyor…,Wird Wiederhergestellt…
+Grup ambarı hedef WIP deposu olarak seçilemez: {0},Ein Gruppenlager kann nicht als Ziel-WIP-Lager ausgewählt werden: {0}
+Grup ambarı hedef ambar olarak seçilemez: {0},Ein Gruppenlager kann nicht als Ziellager ausgewählt werden: {0}
+Hedef WIP deposu seçimi zorunludur.,Die Auswahl des Ziel-WIP-Lagers ist erforderlich.
+Hedef ambar (Target Warehouse) seçimi zorunludur.,Die Auswahl des Ziellagers ist erforderlich.
+Hedef miktar güncellenirken bir hata oluştu.,Beim Aktualisieren der Zielmenge ist ein Fehler aufgetreten.
+Kalem {0} ikmal siparişinde bulunamadı.,Artikel {0} wurde im Nachschubauftrag nicht gefunden.
+Kalem {0} için fazla toplama izin verilen %15 toleransı aşmaktadır.,Die Überkommissionierung für Artikel {0} überschreitet die zulässige Toleranz von 15 %.
+Kart,Karte
+Kaynak ambar {0} grup ambarıdır ve altında yaprak ambar bulunamadı.,Das Quelllager {0} ist ein Gruppenlager und es wurden keine Einzellager darunter gefunden.
+Malzeme Adı,Materialname
+Malzeme Kodu,Materialcode
+Mevcut Kalem:,Aktueller Artikel:
+Muadil,Alternative
+Muadil Seç,Alternative Auswählen
+Muadili Değiştir,Alternative Ändern
+Onaylı Muadil Seç,Genehmigte Alternative Auswählen
+Onaylı Muadili İncele / Seç,Genehmigte Alternative Prüfen / Auswählen
+Operatör Dağılımını Gizle,Bedieneraufschlüsselung Ausblenden
+Operatör Dağılımını Göster,Bedieneraufschlüsselung Anzeigen
+Orijinal hammaddeye dönülürken bir hata oluştu.,Beim Zurücksetzen auf das ursprüngliche Rohmaterial ist ein Fehler aufgetreten.
+Orijinal reçete hammaddesi ({0}) geri yüklendi.,Ursprüngliches Stücklisten-Rohmaterial ({0}) wiederhergestellt.
+Orijinal: {0},Original: {0}
+Sadece Taslak (Draft) durumdaki siparişlerin kaynak ambarı değiştirilebilir.,Nur bei Aufträgen im Entwurfsstatus kann das Quelllager geändert werden.
+Satır #{0}: '{1}' hammaddesi yerine alternatif '{2}' atandı.,Zeile #{0}: Alternative '{2}' anstelle von Rohmaterial '{1}' zugewiesen.
+Satır #{0}: Alternatif '{1}' iptal edilerek orijinal '{2}' geri yüklendi.,Zeile #{0}: Alternative '{1}' storniert und Original '{2}' wiederhergestellt.
+Satırda kayıtlı orijinal hammadde bulunamadı.,Kein ursprüngliches Rohmaterial in dieser Zeile erfasst.
+Seçiliyor…,Wird Ausgewählt…
+Sipariş numarası (Order Name) zorunludur.,Auftragsnummer (Order Name) ist erforderlich.
+"Sipariş {0} zaten {1} durumunda, işlem yapılamaz.",Auftrag {0} befindet sich bereits im Status {1} und kann nicht verarbeitet werden.
+Ters Kayıt (Storno) ile Bu Teyidi İptal Et,Diese Rückmeldung Per Storno Aufheben
+Tüketilen Miktar,Verbrauchte Menge
+Tüketim veya transfer yapılmış satır değiştirilemez.,Eine Zeile mit Verbrauch oder Umbuchung kann nicht geändert werden.
+Tüketim veya transfer yapılmış satır geri yüklenemez.,Eine Zeile mit Verbrauch oder Umbuchung kann nicht wiederhergestellt werden.
+Yalnızca taslak iş emirlerinde hammadde alternatifi değiştirilebilir.,Materialalternativen können nur bei Entwurfs-Fertigungsaufträgen geändert werden.
+Yalnızca taslak iş emirlerinde orijinal kalem geri yüklenebilir.,Ursprüngliche Artikel können nur bei Entwurfs-Fertigungsaufträgen wiederhergestellt werden.
+dk,Min.
+Çift Yönlü Muadil,Beidseitige Alternative
+İkmal kalemleri (Items) boş olamaz.,Nachschubpositionen dürfen nicht leer sein.
+İkmal listesinde açık miktarı (deficit_qty > 0) olan en az bir kalem bulunmalıdır.,Die Nachschubliste muss mindestens einen Artikel mit Fehlmenge (deficit_qty > 0) enthalten.
+İş Emri satırı bulunamadı: {0},Fertigungsauftragszeile nicht gefunden: {0}
+Target Warehouse is mandatory.,Ziellager ist erforderlich.
+Order Details,Auftragsdetails
+Total Deficit Qty,Gesamte Fehlmenge
+Total Picked Qty,Gesamte Kommissionierte Menge
+Items to Replenish,Nachzufüllende Artikel
+Replenishment Items,Nachschubpositionen
+Shelf & Batch Allocation,Regal- & Chargenzuweisung
+Line Actual Qty,Aktuelle Linienmenge
+Suggested Source Warehouse,Vorgeschlagenes Quelllager
+Suggested Batch No,Vorgeschlagene Chargennr.
+Picked Source Warehouse,Kommissioniertes Quelllager
+Picked Batch No,Kommissionierte Chargennr.
+Is Picked,Kommissioniert
+Quantities & Transfer,Mengen & Umbuchung
+Milestone Confirmation,Meilenstein-Rückmeldung
+Genel Bilgiler,Allgemeine Informationen
+Saat,Uhrzeit
+Üretim Miktarı ve Sarfiyat,Produktionsmenge & Verbrauch
+Serbest Stok,Freier Bestand
+Talep Edilen,Angefordert
+Malzeme Ara,Artikel Suchen
+Depo iadesi oluşturma yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, eine Lagerrückgabe zu erstellen."
+Hatlar Arası Koli Bölme Transferi: {0} -> {1},Linienumbuchung mit Gebindeteilung: {0} -> {1}
+İade miktarı sıfırdan büyük olmalıdır.,Die Rückgabemenge muss größer als null sein.
+Geçerli bir kaynak üretim deposu zorunludur: {0},Ein gültiges Quell-Produktionslager ist erforderlich: {0}
+Depo iadesi yalnızca geçerli üretim hatlarından yapılabilir: {0},Eine Lagerrückgabe kann nur von gültigen Produktionslinien durchgeführt werden: {0}
+Hedef depo geçerli bir 110 hammadde yaprak rafı olmalıdır: {0},Das Ziellager muss ein gültiges 110-Rohstoff-Regallager sein: {0}
+Parti takipsiz kalem için parti seçilemez: {0},Für einen Artikel ohne Chargenführung kann keine Charge ausgewählt werden: {0}
+İade edilecek geçerli malzeme bulunamadı.,Keine gültigen Artikel für die Rückgabe gefunden.
+Geçerli ve aktif bir parti seçilmelidir: {0},Es muss eine gültige und aktive Charge ausgewählt werden: {0}
+Seçilen partinin son kullanma tarihi dolmuştur: {0},Das Verfallsdatum der ausgewählten Charge ist abgelaufen: {0}
+"Seçilen parti ({0}) için kaynak depoda ({1}) yeterli bakiye yok. Mevcut: {2}, İstenen: {3}","Unzureichender Bestand für die ausgewählte Charge ({0}) im Quelllager ({1}). Verfügbar: {2}, Angefordert: {3}"
+Üretim Tedarik Alanından Koli Bölme İadesi: {0} -> {1},Gebindeteilungs-Rückgabe aus Produktionsversorgungsbereich: {0} -> {1}
+Üretim Tedarik Alanından Depo İadesi (150x -> 110),Lagerrückgabe aus Produktionsversorgungsbereich (150x -> 110)
+{0} numaralı depo iadesi başarıyla tamamlandı.,Lagerrückgabe {0} erfolgreich abgeschlossen.
+110 hammadde iade rafları yüklenemedi.,110-Rohstoff-Rückgaberegale konnten nicht geladen werden.
+Seçili parti bakiyesi aşıldı ({0}),Bestand der ausgewählten Charge überschritten ({0})
+Hat stoğu sınırı aşıldı,Linienbestandsgrenze überschritten
+Üretim Tedarik Alanından Depoya İade (110),Rückgabe aus Produktionsversorgungsbereich ins Lager (110)
+Kaynak Üretim Hattı: {0},Quell-Produktionslinie: {0}
+Tam kalan standart kutular Return from Production Supply fişiyle iade edilir; kısmi bölünen veya LEGACY partiler otomatik Package Split ile 110 depoya etiketlenerek aktarılır.,Vollständig verbleibende Standardgebinde werden per Return from Production Supply zurückgegeben; teilgeteilte oder LEGACY-Chargen werden automatisch per Package Split etikettiert ins Lager 110 umgebucht.
+Hedef 110 Hammadde Rafı,Ziel-110-Rohstoffregal
+-- Hedef 110 Rafı Seçin --,-- Ziel-110-Regal Auswählen --
+İade nedeni veya not ekleyin...,Rückgabegrund oder Notiz Hinzufügen...
+İade edilecek kalem bulunmuyor.,Keine Artikel zur Rückgabe vorhanden.
+Kaynak Kutu / Parti,Quellgebinde / Charge
+İade Miktarı,Rückgabemenge
+Otomatik (LIFO — Yeni Açılan İlk),Automatisch (LIFO — Zuletzt Geöffnete Zuerst)
+İade İşleniyor...,Rückgabe Wird Verarbeitet...
+↩️ Depoya İade Et,↩️ Ins Lager Zurückgeben
+Hat Açığı,Liniendefizit
+Yeni Koliye Böl ve Etiket Bas,In Neues Gebinde Teilen und Etikett Drucken
+Hat transferi için seçili satırlarda hedef hat belirtin,Geben Sie für ausgewählte Zeilen eine Ziellinie für die Linienumbuchung an
+Depoya İade (110),Rückgabe ins Lager (110)
+Depoya iade işlemi başarıyla tamamlandı.,Lagerrückgabe erfolgreich abgeschlossen.
+Depoya iade işlemi tamamlanamadı.,Lagerrückgabe konnte nicht abgeschlossen werden.
+Depoya iade işlemi sırasında bir hata oluştu.,Bei der Lagerrückgabe ist ein Fehler aufgetreten.
+Depoya İade İşlemi Tamamlandı,Lagerrückgabe Abgeschlossen
+{0} adet etiket yazdırıldı / kuyruğa alındı.,{0} Etiketten gedruckt / in Warteschlange.
+Lütfen en az bir satır seçin.,Bitte wählen Sie mindestens eine Zeile aus.
+Seçilen satır bulunamadı: {0},Ausgewählte Zeile nicht gefunden: {0}
+Seçilen ürün/depo satırı bulunamadı: {0} ({1}),Ausgewählte Artikel-/Lagerzeile nicht gefunden: {0} ({1})
+Tüm kutu miktarları sıfırdan büyük olmalıdır.,Alle Gebindemengen müssen größer als null sein.
+Kutu kırılım toplamı ({0}) satır miktarı ({1}) ile eşleşmiyor.,Summe der Gebindeaufteilung ({0}) stimmt nicht mit der Zeilenmenge ({1}) überein.
+Yalnızca Taslak (Draft) sayım belgeleri bu işlemle onaylanabilir.,Nur Entwurf-Zählbelege können mit dieser Aktion gebucht werden.
+Seçili satır miktarı sıfırdan büyük olmalıdır.,Die Menge der ausgewählten Zeile muss größer als null sein.
+Bu işlem yalnızca onaylanmış (Submitted) sayım belgeleri için kullanılabilir.,Diese Aktion kann nur für gebuchte Zählbelege verwendet werden.
+Parti numarası olmayan satır için etiketleme/bölme yapılamaz: {0},Etikettierung/Teilung ist für eine Zeile ohne Chargennummer nicht möglich: {0}
+Sayım sonrası koli bölme ({0}),Gebindeteilung nach Zählung ({0})
+Sayım sonrası standart koli dönüştürme ({0}),Standardgebinde-Umwandlung nach Zählung ({0})
+Sayım ve Etiket Merkezinde Aç,Im Zähl- und Etiketten-Hub Öffnen
+Sayım belgeleri yüklenemedi.,Zählbelege konnten nicht geladen werden.
+Belge etiket önizlemesi alınamadı.,Etikettenvorschau des Belegs konnte nicht geladen werden.
+"{0} etiket işlendi, {1} baskı kuyruğa alındı.","{0} Etiketten verarbeitet, {1} Drucke in Warteschlange."
+Etiketleme işlemi sırasında bir hata oluştu.,Beim Etikettierungsvorgang ist ein Fehler aufgetreten.
+Toplu sayım oluşturma arka plan görevi sıraya alındı.,Der Hintergrundjob zum Erstellen der Sammelzählung wurde in die Warteschlange gestellt.
+KTA Sayım ve Etiket Merkezi,KTA Zähl- und Etiketten-Hub
+Canlı,Live
+Çevrimdışı,Offline
+Sayım Operasyonları & Etiketleme,Zähloperationen & Etikettierung
+Fark & Anomali Analizi,Abweichungs- & Anomalieanalyse
+Toplu Sayım Oluştur,Sammelzählung Erstellen
+Etiketleme Tamamlandı:,Etikettierung Abgeschlossen:
+{0} etiket oluşturuldu/güncellendi · {1} baskı Zebra kuyruğuna eklendi.,{0} Etiketten erstellt/aktualisiert · {1} Drucke zur Zebra-Warteschlange hinzugefügt.
+Oluşan Stok Fişleri:,Erstellte Lagerbuchungen:
+Depo grupları yüklenemedi.,Lagergruppen konnten nicht geladen werden.
+Şirket listesi yüklenemedi.,Firmenliste konnte nicht geladen werden.
+"Lütfen şirket, depo grubu ve tarih alanlarını doldurun.","Bitte füllen Sie die Felder Firma, Lagergruppe und Datum aus."
+Toplu sayım belgeleri kuyruğa alınırken bir hata oluştu.,Beim Einreihen der Sammelzählungsbelege in die Warteschlange ist ein Fehler aufgetreten.
+Depo Grubundan Toplu Sayım Oluştur,Sammelzählung aus Lagergruppe Erstellen
+Seçilen depo grubundaki tüm alt depolar için taslak sayım belgesi oluşturulur.,Für alle untergeordneten Lager der ausgewählten Lagergruppe wird ein Entwurf-Zählbeleg erstellt.
+Şirket,Firma
+-- Şirket Seçin --,-- Firma Auswählen --
+Depo grubu adıyla filtrele...,Nach Lagergruppenname Filtern...
+-- Depo Grubu Seçin --,-- Lagergruppe Auswählen --
+Sayım Tarihi,Zähldatum
+Sayım Saati,Zählzeit
+⚡ Toplu Sayım Başlat,⚡ Sammelzählung Starten
+Sayım Belgeleri,Zählbelege
+Belgeleri Yenile,Belege Aktualisieren
+Belge No veya Depo Ara...,Belegnummer oder Lager Suchen...
+Sayım belgeleri yükleniyor...,Zählbelege werden geladen...
+Eşleşen sayım belgesi bulunamadı.,Kein passender Zählbeleg gefunden.
+Onaylı,Gebucht
+Çoklu Depo,Mehrere Lager
+Uyumlu,Gültig
+Miktar Değişti,Menge Geändert
+Etiket Eksik,Etikett Fehlt
+LEGACY / Partisiz,LEGACY / Ohne Charge
+Sayım Belgesi Seçin,Zählbeleg Auswählen
+Etiket sağlığını incelemek ve toplu barkod basımı yapmak için soldaki listeden bir sayım belgesi seçin.,"Wählen Sie links einen Zählbeleg aus der Liste aus, um den Etikettenstatus zu prüfen und Barcodes gesammelt zu drucken."
+Etiket Önizlemesi Yükleniyor...,Etikettenvorschau Wird Geladen...
+Toplam,Gesamt
+Değişen,Geändert
+Fiziksel Kutu Esas,Nach Physischem Gebinde
+Sistem Partisi Esas,Nach Systemcharge
+Pozitif Stok Kalemi Bulunamadı,Keine Positiven Bestandspositionen Gefunden
+Bu sayım belgesinde miktarı sıfırdan büyük kalem yer almıyor.,In diesem Zählbeleg gibt es keine Positionen mit einer Menge größer als null.
+Malzeme & Depo,Artikel & Lager
+Parti & Etiket Durumu,Charge & Etikettenstatus
+Sistem / Etiket Miktarı,System- / Etikettenmenge
+Kutu Kırılımı,Gebindeaufteilung
+Partisiz,Ohne Charge
+Standart Koliye Çevir,In Standardgebinde Umwandeln
+Kutu Böl,Gebinde Teilen
+Kalan Fark,Verbleibende Differenz
+Etiketleri Zebra Yazıcıya Gönder,Etiketten an Zebra-Drucker Senden
+{0} satır seçili · {1} etiket üretilecek,{0} Zeilen ausgewählt · {1} Etiketten werden erstellt
+Seçili satırlarda kutu kırılım toplamı sistem miktarıyla eşleşmiyor,Summe der Gebindeaufteilung stimmt bei ausgewählten Zeilen nicht mit der Systemmenge überein
+Onayla ve Etiketleri Bas,Buchen und Etiketten Drucken
+Etiketleri Güncelle ve Bas,Etiketten Aktualisieren und Drucken
+Yenilendi,Aktualisiert
+CSV dışa aktarıldı,CSV exportiert
+Ürün mevcut listede bulunamadı: {0},Artikel in der aktuellen Liste nicht gefunden: {0}
+Son güncelleme: {0},Zuletzt aktualisiert: {0}
+CSV Dışa Aktar,CSV Exportieren
+Yıl,Jahr
+Eşik (Mutlak Fark),Schwellenwert (Abs. Differenz)
+Yön,Richtung
+"Ürün kodu, adı veya depo...","Artikelcode, Name oder Lager..."
+Etkilenen Ürünler,Betroffene Artikel
+Filtrelenmiş görünüm,Gefilterte Ansicht
+Depolar,Lager
+Hareket gören,Mit Bewegungen
+Belge (Ürün Başı Maks),Belege (Max. pro Artikel)
+En yüksek sıklık,Höchste Häufigkeit
+Toplam +,Gesamt +
+Artı farklar toplamı,Summe positiver Differenzen
+Toplam −,Gesamt −
+Eksi farklar toplamı,Summe negativer Differenzen
+Net,Netto
+Taslak: {0} • Onaylı: {1},Entwurf: {0} • Gebucht: {1}
+Açık: %{0},Offen: {0}%
+Anomaliler,Anomalien
+Otomatik Kural Analizi,Automatische Regelanalyse
+Skor: {0},Score: {0}
+Mevcut filtreler için anomali tespit edilmedi.,Für die aktuellen Filter wurden keine Anomalien erkannt.
+En Yüksek Riskler,Höchste Risiken
+{0} belge • {1} depo,{0} Belege • {1} Lager
+Mevcut filtreler için kayıt yok.,Keine Einträge für die aktuellen Filter gefunden.
+Ürünler,Artikel
+{0} satır,{0} Zeilen
+Belgeler,Belege
+Veri bulunamadı.,Keine Daten gefunden.
+Risk,Risiko
+Depo Dağılımı,Lagerverteilung
+Depo verisi bulunamadı.,Keine Lagerdaten gefunden.
+Belge,Beleg
+Fark,Differenz
+Belge bulunamadı.,Keine Belege gefunden.
+{0} depolar arasında hem + hem − fark gösteriyor.,{0} weist sowohl + als auch − Differenzen zwischen Lagern auf.
+"Hareketin %{0} kadarı ""{1}"" deposundan ({2}).","{0}% der Bewegung stammt aus dem Lager ""{1}"" ({2})."
+Sık değişiklik,Häufige Änderungen
+{0} kalemi {1} belgede yer alıyor (yüksek denetim riski).,Artikel {0} erscheint in {1} Belegen (hohes Prüfungsrisiko).
+Gidiş-geliş hareketi,Hin- und Herbewegung
+Toplam hareket {0} ancak net {1} (oran %{2}).,"Gesamtbewegung beträgt {0}, aber Netto ist {1} (Verhältnis {2}%)."
+{0} belgesi ürün hareketinin %{1} kadarını oluşturuyor ({2}).,Beleg {0} macht {1}% der Artikelbewegung aus ({2}).
+Belgeler arası gidiş-geliş,Belegübergreifende Hin- und Herbewegung
+Toplam belge hareketi {0} ancak net {1} (oran %{2}).,"Gesamte Belegbewegung beträgt {0}, aber Netto ist {1} (Verhältnis {2}%)."
+Etiket Miktarı,Etikettenmenge
+Taslakta Kaydet & Etiket Bas,Entwurf Speichern & Etiketten Drucken
+Sayımı Onayla ve Tamamla,Inventur Abschließen & Bestätigen
+"Taslak güncellendi: {0} etiket işlendi, {1} baskı kuyruğa alındı.","Entwurf aktualisiert: {0} Etiketten verarbeitet, {1} Druckaufträge in Warteschlange."
+Taslak sayımı onaylamadan sadece seçili satırları kaydeder ve etiket basar.,"Speichert ausgewählte Zeilen und druckt Etiketten, ohne den Entwurf zu bestätigen."
+İş Emri Etiketi,Fertigungsauftragsetikett
+Depo Giriş Etiketi,Wareneingangsetikett
+Bu PDA terminaline erişim yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, auf dieses PDA-Terminal zuzugreifen."
+Seçilen personel PDA girişi için yetkili veya aktif değil.,Der ausgewählte Mitarbeiter ist für die PDA-Anmeldung nicht berechtigt oder nicht aktiv.
+Çok fazla hatalı PIN denemesi. Lütfen 5 dakika sonra tekrar deneyin.,Zu viele fehlgeschlagene PIN-Versuche. Bitte versuchen Sie es in 5 Minuten erneut.
+Bu personel için henüz PDA PIN kodu tanımlanmamış.,Für diesen Mitarbeiter wurde noch keine PDA-PIN festgelegt.
+Çok fazla hatalı PIN denemesi. Hesap 5 dakika süreyle kilitlendi.,Zu viele fehlgeschlagene PIN-Versuche. Konto für 5 Minuten gesperrt.
+Hatalı PIN kodu. Kalan deneme hakkı: {0}.,Falscher PIN-Code. Verbleibende Versuche: {0}.
+Personel seçimi zorunludur.,Die Mitarbeiterauswahl ist erforderlich.
+PIN kodu tam olarak 4 sayısal rakamdan oluşmalıdır.,Der PIN-Code muss genau aus 4 Ziffern bestehen.
+Bu işlem için yetkili stok kullanıcısı oturumu gereklidir.,Für diesen Vorgang ist eine autorisierte Lagerbenutzer-Sitzung erforderlich.
+"Birden fazla depo eşleşti, lütfen şirket ekiyle tarayın: {0}","Mehrere Lager gefunden, bitte mit Firmenzusatz scannen: {0}"
+Depo barkodu bulunamadı: {0},Lager-Barcode nicht gefunden: {0}
+Depo pasif durumda: {0},Lager ist deaktiviert: {0}
+Grup depo seçilemez: {0},Gruppenlager kann nicht ausgewählt werden: {0}
+Koli veya parti barkodu bulunamadı: {0},Gebinde- oder Chargenbarcode nicht gefunden: {0}
+Bu partide kullanılabilir stok bakiyesi bulunmamaktadır: {0},Für diese Charge ist kein verfügbarer Bestand vorhanden: {0}
+Geçersiz bölme miktarları biçimi.,Ungültiges Format für Teilmengen.
+En az bir bölme miktarı girilmelidir.,Mindestens eine Teilmenge muss eingegeben werden.
+Bölme miktarları sıfırdan büyük olmalıdır.,Teilmengen müssen größer als null sein.
+"Ürün, kaynak depo ve kaynak parti bilgileri zorunludur.","Artikel, Ausgangslager und Quellcharge sind erforderlich."
+Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır.,Für diese Charge ist im Ausgangslager kein verfügbarer Bestand vorhanden.
+Bölünecek toplam miktar ({0}) mevcut stoktan ({1}) fazla olamaz.,Die gesamte Teilmenge ({0}) darf den verfügbaren Bestand ({1}) nicht überschreiten.
+Standart KTA kolisinin tamamı tek bir yeni koliye bölünemez.,Ein vollständiges KTA-Standardgebinde kann nicht in ein einzelnes neues Gebinde geteilt werden.
+PDA Koli Bölme: {0} ({1}),PDA-Gebindeteilung: {0} ({1})
+"Ürün, parti, kaynak depo ve hedef depo bilgileri zorunludur.","Artikel, Charge, Ausgangslager und Ziellager sind erforderlich."
+Kaynak depo bulunamadı: {0},Ausgangslager nicht gefunden: {0}
+Kaynak depo işlem için uygun değil: {0},Ausgangslager ist für diesen Vorgang nicht geeignet: {0}
+Hedef depo kaynak depo ile aynı olamaz.,Ziellager darf nicht mit dem Ausgangslager identisch sein.
+PDA depolar arası transfer işleminde kolinin tamamı ({0}) transfer edilmelidir.,Bei einer PDA-Lagerumbuchung muss das gesamte Gebinde ({0}) umgebucht werden.
+PDA Depo Transferi: {0} ({1} -> {2}),PDA-Lagerumbuchung: {0} ({1} -> {2})
+Grup depo sorgulanamaz: {0},Gruppenlager kann nicht abgefragt werden: {0}
+Barkod sistemde bulunamadı: {0},Barcode wurde im System nicht gefunden: {0}
+KTA Depo Terminali,KTA Lagerterminal
+Bilgi,Information
+Sunucu isteği sırasında bir hata oluştu.,Bei der Serveranfrage ist ein Fehler aufgetreten.
+Bağlantı hatası oluştu.,Ein Verbindungsfehler ist aufgetreten.
+Tamam,OK
+Onayla,Bestätigen
+Koli Bölme,Gebindeteilung
+Malzeme Transfer,Materialumbuchung
+Stok Sorgu,Bestandsabfrage
+KTA PDA,KTA PDA
+Menü,Menü
+Devret,Übergabe
+Depo İşlemleri,Lagervorgänge
+"Hoş geldiniz, {0}. Başlamak için işlem seçin.","Willkommen, {0}. Wählen Sie einen Vorgang aus, um zu beginnen."
+Başlamak için işlem seçin.,"Wählen Sie einen Vorgang aus, um zu beginnen."
+{0} Açık Emir,{0} Offene Aufträge
+Açık ikmal emirlerini okutarak topla ve hatta aktar,"Offene Nachschubaufträge scannen, kommissionieren und an Linien übergeben"
+Koli Bölme ve Etiketleme,Gebindeteilung & Etikettierung
+"Mevcut koliyi böl, yeni parti oluştur ve etiket bas","Vorhandenes Gebinde teilen, neue Chargen erstellen und Etiketten drucken"
+Depo Raf Transferi,Lagerregal-Umbuchung
+Koli ve hedef raf okutarak raflar arası tam kutu taşı,"Gebinde und Zielregal scannen, um vollständige Gebinde umzulagern"
+"Koli, raf veya ürün barkodu ile anlık bakiye görüntüle","Echtzeitbestand per Gebinde-, Regal- oder Artikelbarcode anzeigen"
+PIN doğrulanamadı.,PIN konnte nicht überprüft werden.
+PIN doğrulaması başarısız oldu.,PIN-Überprüfung fehlgeschlagen.
+PDA Terminal Kilidi,PDA-Terminalsperre
+Devam etmek için personel kartınızı seçin ve 4 haneli PIN kodunuzu girin.,"Wählen Sie Ihre Mitarbeiterkarte und geben Sie Ihren 4-stelligen PIN-Code ein, um fortzufahren."
+Oturum süresi doldu. PIN ile yeniden giriş yapın veya standart oturum açın.,Sitzung abgelaufen. Melden Sie sich erneut mit PIN oder über die Standardanmeldung an.
+Personel Ara...,Mitarbeiter Suchen...
+Yetkili ambar veya sevk personeli bulunamadı.,Kein autorisierter Lager- oder Versandmitarbeiter gefunden.
+PIN Hazır,PIN Bereit
+PIN Yok,Keine PIN
+Farklı Kullanıcı ile Giriş Yap,Mit Anderem Benutzer Anmelden
+Personel Değiştir,Mitarbeiter Wechseln
+Koli için kullanılabilir stok bakiyesi bulunamadı.,Für dieses Gebinde wurde kein verfügbarer Bestand gefunden.
+Koli doğrulandı. Şimdi hedef raf barkodunu okutun.,Gebinde bestätigt. Scannen Sie jetzt den Zielregal-Barcode.
+Koli barkodu çözümlenemedi.,Gebindebarcode konnte nicht aufgelöst werden.
+Malzeme Transfer Ediliyor...,Material Wird Umgebucht...
+Transfer tamamlandı. Sıradaki koliyi okutabilirsiniz.,Umbuchung abgeschlossen. Sie können das nächste Gebinde scannen.
+Koli transferi başarıyla tamamlandı.,Gebindeumbuchung erfolgreich abgeschlossen.
+Transfer işlemi tamamlanamadı.,Umbuchung konnte nicht abgeschlossen werden.
+Son Transfer Tamamlandı,Letzte Umbuchung Abgeschlossen
+1 Kutu = 1 Parti,1 Gebinde = 1 Charge
+Parti Numarası,Chargennummer
+Kaynak Raf,Quellregal
+Transfer Edilecek Tam Kutu Miktarı,Vollgebindemenge für Umbuchung
+Adım 2: Hedef Raf Barkodu,Schritt 2: Zielregal-Barcode
+Hedef Raf Barkodu Okutun (Örn: 170-W1F-02-04)...,Zielregal-Barcode Scannen (z. B. 170-W1F-02-04)...
+Adım 1: Koli Barkodu Okutun,Schritt 1: Gebindebarcode Scannen
+Tam kutu raf transferi için önce taşımak istediğiniz koliyi okutun.,"Scannen Sie zuerst das Gebinde, das Sie per Vollgebinde-Umlagerung bewegen möchten."
+Bölünecek toplam miktar mevcut bakiyeyi aşıyor.,Die gesamte Teilmenge überschreitet den verfügbaren Bestand.
+Koli okutuldu ve bölme işlemi için hazır.,Gebinde gescannt und bereit zur Teilung.
+Koli Bölünüyor ve Etiketler Hazırlanıyor...,Gebinde Wird Geteilt und Etiketten Werden Erstellt...
+Koli bölme işlemi tamamlandı.,Gebindeteilung abgeschlossen.
+Koli bölme işlemi başarısız oldu.,Gebindeteilung fehlgeschlagen.
+Koli Bölme Tamamlandı,Gebindeteilung Abgeschlossen
+Belge No,Belegnummer
+Kaynak Parti,Quellcharge
+Kalan Kaynak Miktar,Verbleibende Quellmenge
+Oluşturulan Yeni Partiler,Neu Erstellte Chargen
+Kalan kaynak koli etiketi yazdırma kuyruğuna eklendi.,Etikett für verbleibendes Quellgebinde zur Druckwarteschlange hinzugefügt.
+Yeni Koli Okut,Neues Gebinde Scannen
+Mevcut Bakiye,Verfügbarer Bestand
+Bölünecek Koli Adetleri,Gebinde-Teilmengen
+Kutu Ekle,Gebinde Hinzufügen
+Bölünecek Miktar Girin...,Teilmenge Eingeben...
+Kalan kaynak etiketini de yeniden bas,Verbleibendes Quelletikett ebenfalls erneut drucken
+Koli Böl ve Etiket Bas,Gebinde Teilen und Etiketten Drucken
+Koli Barkodu Okutun,Gebindebarcode Scannen
+Bölmek istediğiniz kolinin etiketini veya parti numarasını okutun.,Scannen Sie das Etikett oder die Chargennummer des zu teilenden Gebindes.
+Açık ikmal emirleri yüklenemedi.,Offene Nachschubaufträge konnten nicht geladen werden.
+Emir detayları alınamadı.,Auftragsdetails konnten nicht geladen werden.
+Barkod tanınamadı veya sistemde bulunamadı.,Barcode konnte nicht erkannt oder im System gefunden werden.
+Okutulan malzeme bu ikmal emrinde yer almıyor.,Der gescannte Artikel ist in diesem Nachschubauftrag nicht enthalten.
+Okutulan miktar tolerans sınırını aşıyor.,Die gescannte Menge überschreitet die Toleranzgrenze.
+Malzeme okutuldu ve toplandı olarak işaretlendi.,Artikel gescannt und als kommissioniert markiert.
+Barkod çözümleme sırasında hata oluştu.,Beim Auflösen des Barcodes ist ein Fehler aufgetreten.
+Girilen miktar tolerans sınırını aşıyor.,Die eingegebene Menge überschreitet die Toleranzgrenze.
+Transfer için en az bir kalem seçilmelidir.,Für die Umbuchung muss mindestens ein Artikel ausgewählt werden.
+Malzeme transferi başarıyla tamamlandı.,Materialumbuchung erfolgreich abgeschlossen.
+Açık İkmal Emri Yok,Keine Offenen Nachschubaufträge
+Yeni hat ikmal emri oluşturulduğunda burada listelenir.,"Neue Liniennachschubaufträge werden hier angezeigt, sobald sie erstellt wurden."
+Okutulan barkod için kayıt bulunamadı.,Kein Eintrag für den gescannten Barcode gefunden.
+Stok sorgusu güncellendi.,Bestandsabfrage aktualisiert.
+Stok sorgusu yapılamadı.,Bestandsabfrage fehlgeschlagen.
+Koli / Parti,Gebinde / Charge
+Toplam Bakiye,Gesamtbestand
+Etiket No,Etiketten-Nr.
+SUT Barkodu,SUT-Barcode
+Son Kullanma,Ablaufdatum
+Etiket Tipi,Etikettentyp
+Bulunduğu Depolar,Lagerorte
+Aktif stok bakiyesi yok.,Kein aktiver Bestand vorhanden.
+Depo / Raf,Lager / Regal
+Kalem Sayısı,Artikelanzahl
+Raftaki Malzemeler,Artikel im Regal
+Bu rafta stok bulunmuyor.,In diesem Regal ist kein Bestand vorhanden.
+Toplam Stok,Gesamtbestand
+Depo Bakiyeleri,Lagerbestände
+Depolarda stok bulunmuyor.,In den Lagern ist kein Bestand vorhanden.
+Parti Dağılımı,Chargenverteilung
+Stok ve Etiket Sorgula,Bestands- & Etikettenabfrage
+"Koli, raf veya malzeme barkodunu okutarak anlık stok durumunu görüntüleyin.","Scannen Sie einen Gebinde-, Regal- oder Artikelbarcode, um den Echtzeitbestand anzuzeigen."
+Stock,Lager
+{0} İşlem,{0} Vorgänge
+Ana Modüller,Hauptmodule
+Menüyü Kapat,Menü Schließen
+Yetkili Modül Bulunamadı,Keine Berechtigten Module Gefunden
+Size atanmış aktif bir PDA modülü bulunmamaktadır. Yöneticinizle iletişime geçin.,Ihnen sind keine aktiven PDA-Module zugewiesen. Bitte wenden Sie sich an Ihren Administrator.
+Bu PDA ekranına erişim yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, auf diesen PDA-Bildschirm zuzugreifen."
+Bu işlem için yetkili PDA kullanıcı oturumu gereklidir.,Für diesen Vorgang ist eine autorisierte PDA-Benutzersitzung erforderlich.
+Bu işlem için yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, diesen Vorgang auszuführen."
+Package Merge,Gebindezusammenführung
+Ana Lot,Stammcharge
+Aynı Ana Lot: {0} — Kesintisiz Birleştirme,Gleiche Stammcharge: {0} — Nahtlose Zusammenführung
+Aynı Lot Birleştirme,Sortenreine Chargenzusammenführung
+Aynı kaynak koli birden fazla kez eklenemez: {0},Dasselbe Quellgebinde kann nicht mehrfach hinzugefügt werden: {0}
+Aynı parti ve depo çifti birden fazla satırda seçilemez.,Dasselbe Chargen- und Lagerpaar kann nicht in mehreren Zeilen ausgewählt werden.
+Aynı ürüne ait en az 2 koliyi okutarak tek partide birleştirin.,"Scannen Sie mindestens 2 Gebinde desselben Artikels, um sie zu einer Charge zusammenzuführen."
+Birleştirilecek Kolileri Okutun,Gebinde zum Zusammenführen Scannen
+Birleştirme için en az 2 kaynak koli seçilmelidir.,Zum Zusammenführen müssen mindestens 2 Quellgebinde ausgewählt werden.
+Boş bırakılırsa ilk kolinin deposuna aktarılır...,Leer lassen für Umbuchung in das Lager des ersten Gebindes...
+Bu koli zaten birleştirme listesine eklendi.,Dieses Gebinde wurde bereits zur Zusammenführungsliste hinzugefügt.
+En yakın son kullanma tarihi (SKT) ve ağırlıklı ortalama maliyet devralınacaktır.,Das früheste Verfallsdatum und die gewichteten Durchschnittskosten werden übernommen.
+Farklı ana lotlara ait kolileri birleştirmek için karma lot onayı gereklidir.,Zum Zusammenführen von Gebinden aus verschiedenen Stammchargen ist eine Mischchargen-Bestätigung erforderlich.
+Farklı ürün kodlarına ait koliler birleştirilemez.,Gebinde mit unterschiedlichen Artikelcodes können nicht zusammengeführt werden.
+"For job card {0}, you can only make {1} type stock entries",Für die Jobkarte {0} können Sie nur Lagerbuchungen vom Typ {1} erstellen
+Geçersiz kaynak koli girdisi.,Ungültiger Quellgebinde-Eintrag.
+Geçersiz kaynak koli listesi biçimi.,Ungültiges Format der Quellgebindeliste.
+Hedef Parti,Zielcharge
+Hedef Raf,Ziellagerort
+Hedef Raf Barkodu (Opsiyonel),Zielregal-Barcode (Optional)
+Her kaynak koli için parti ve depo bilgisi zorunludur.,Für jedes Quellgebinde sind Chargen- und Lagerdaten erforderlich.
+Kaldır,Entfernen
+Kalite Referansı,Qualitätsreferenz
+Karma Lot Birleştirme,Mischchargen-Zusammenführung
+Karma Lot Birleştirme Uyarısı,Warnung zur Mischchargen-Zusammenführung
+Karma veya standart dışı lot tespit edildi ({0}). Birleştirme öncesi onay gerekecektir.,Gemischte oder nicht standardmäßige Charge erkannt ({0}). Vor dem Zusammenführen ist eine Bestätigung erforderlich.
+Kaynak depoda bu parti için kullanılabilir stok bulunmamaktadır: {0},Im Quelllager ist kein verfügbarer Bestand für diese Charge vorhanden: {0}
+Kaynak parti detayları Stock Entry açıklamasına ve yeni parti kaydına işlenecektir.,Quellchargendetails werden in den Bemerkungen zur Lagerbuchung und im neuen Chargendatensatz erfasst.
+Kaynak ve hedef depolar aynı şirket altında olmalıdır.,Quell- und Ziellager müssen demselben Unternehmen angehören.
+Koli Birleştirme,Gebindezusammenführung
+Koli Birleştirme Tamamlandı,Gebindezusammenführung Abgeschlossen
+Koli birleştirme işlemi başarısız oldu.,Gebindezusammenführung fehlgeschlagen.
+Koli birleştirme listesine eklendi.,Zur Gebindezusammenführungsliste hinzugefügt.
+Koli birleştirmede kaynak kolinin depodaki tam bakiyesi kullanılmalıdır: {0},Bei der Gebindezusammenführung muss der vollständige Lagerbestand des Quellgebindes verwendet werden: {0}
+Koliler Birleştiriliyor ve Etiket Hazırlanıyor...,Gebinde Werden Zusammengeführt und Etikett Wird Vorbereitet...
+Koliler başarıyla birleştirildi.,Gebinde erfolgreich zusammengeführt.
+Kolileri Birleştir,Gebinde Zusammenführen
+Mevcut kolileri tek partide birleştir ve etiket bas,Bestehende Gebinde zu einer Charge zusammenführen und Etikett drucken
+Onayla ve Birleştir,Bestätigen und Zusammenführen
+Parti bulunamadı: {0},Charge nicht gefunden: {0}
+Purpose must be one of {0},Der Zweck muss einer der folgenden sein: {0}
+"Row #{0}: Operation {1} has not been sufficiently confirmed yet for Work Order {2}. Required finished goods qty: {3}, confirmed operation qty: {4}.","Zeile #{0}: Vorgang {1} wurde für den Fertigungsauftrag {2} noch nicht ausreichend bestätigt. Erforderliche Fertigwarenmenge: {3}, bestätigte Vorgangsmenge: {4}."
+Standart Dışı,Nicht-Standard
+Tekil satınalma / üretim irsaliyesi ve GKK izlenebilirliği tek partide birleşecektir.,Einzelne Einkaufs-/Fertigungsbelege und QC-Rückverfolgbarkeit werden in einer einzigen Charge zusammengefasst.
+Varsayılan: ilk kolinin deposu,Standard: Lager des ersten Gebindes
+Varsayılan: ilk kolinin deposu ({0}),Standard: Lager des ersten Gebindes ({0})
+Yeni Birleştirme Başlat,Neue Zusammenführung Starten
+Yeni bir 7+4 karma lot numarası üretilecek ve etikete KARMA LOT ibaresi basılacaktır.,Eine neue 7+4-Mischchargennummer wird generiert und KARMA LOT wird auf das Etikett gedruckt.
+{0} Koli Seçildi,{0} Gebinde Ausgewählt
+{0} allows only one item per Stock Entry.,{0} erlaubt nur einen Artikel pro Lagerbuchung.
+{0} depo bilgisi zorunludur.,{0}-Lager ist erforderlich.
+{0} depo bulunamadı: {1},{0}-Lager nicht gefunden: {1}
+{0} depo işlem için uygun değil: {1},{0}-Lager ist für diesen Vorgang nicht geeignet: {1}
+Ürün ve hedef depo bilgileri zorunludur.,Artikel- und Ziellagerdaten sind erforderlich.
+Çok fazla hatalı hesap şifresi denemesi. Lütfen 5 dakika sonra tekrar deneyin.,Zu viele fehlgeschlagene Kontopasswort-Versuche. Bitte versuchen Sie es in 5 Minuten erneut.
+Hesap şifresi zorunludur.,Das Kontopasswort ist erforderlich.
+Çok fazla hatalı hesap şifresi denemesi. Hesap 5 dakika süreyle kilitlendi.,Zu viele fehlgeschlagene Kontopasswort-Versuche. Das Konto wurde für 5 Minuten gesperrt.
+Hesap şifresi hatalı. Kalan deneme hakkı: {0}.,Falsches Kontopasswort. Verbleibende Versuche: {0}.
+Bu kullanıcıya bağlı aktif personel kaydı bulunamadı.,Kein aktiver Mitarbeiterdatensatz für diesen Benutzer gefunden.
+Yeni PIN kodları birbiriyle eşleşmiyor.,Die neuen PIN-Codes stimmen nicht überein.
+Mevcut PIN veya hesap şifresi doğrulaması zorunludur.,Eine Verifizierung über die aktuelle PIN oder das Kontopasswort ist erforderlich.
+Operatör PIN sıfırlama yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, Bediener-PINs zurückzusetzen."
+Kendi PIN kodunuzu yönetici sıfırlamasıyla değiştiremezsiniz.,Sie können Ihre eigene PIN nicht über das Zurücksetzen durch Administratoren ändern.
+Bu operatörün PIN kodunu sıfırlama yetkiniz bulunmamaktadır.,"Sie sind nicht berechtigt, die PIN dieses Bedieners zurückzusetzen."
+Varsayılan ve yedek yazıcı aynı olamaz.,Standard- und Ersatzdrucker dürfen nicht identisch sein.
+Zebra yazıcı bulunamadı: {0},Zebra-Drucker nicht gefunden: {0}
+Seçilen yazıcı için yazdırma yetkiniz yok: {0},Sie haben keine Druckberechtigung für den ausgewählten Drucker: {0}
+Desteklenmeyen dil seçimi: {0},Nicht unterstützte Sprachauswahl: {0}
+Ayarlar,Einstellungen
+AYARLAR,Einstellungen
+Kullanıcı & Cihaz Ayarları,Benutzer- & Geräteeinstellungen
+Hızlı geçiş için 4 haneli PDA PIN kodunuz henüz tanımlı değil.,Ihre 4-stellige PDA-PIN für den schnellen Wechsel ist noch nicht festgelegt.
+Şimdi Belirle,Jetzt Festlegen
+Mevcut PIN kodu 4 sayısal rakamdan oluşmalıdır.,Die aktuelle PIN muss aus 4 Ziffern bestehen.
+PDA PIN kodunuz güncellendi.,Ihre PDA-PIN wurde aktualisiert.
+PIN güncellenemedi.,PIN konnte nicht aktualisiert werden.
+Lütfen bir operatör seçiniz.,Bitte wählen Sie einen Bediener aus.
+Operatör PIN kodu sıfırlandı.,Bediener-PIN wurde zurückgesetzt.
+Operatör PIN sıfırlanamadı.,Bediener-PIN konnte nicht zurückgesetzt werden.
+Kişisel PDA PIN Kodu,Persönlicher PDA-PIN-Code
+Bu kullanıcıya bağlı aktif personel kartı bulunmadığından kişisel PIN tanımlanamaz.,"Eine persönliche PIN kann nicht festgelegt werden, da diesem Benutzer kein aktiver Mitarbeiterdatensatz zugeordnet ist."
+Mevcut PIN İle,Mit Aktueller PIN
+PIN'imi Unuttum (Şifre İle),PIN Vergessen (Mit Passwort)
+Mevcut 4 Haneli PIN,Aktuelle 4-Stellige PIN
+Frappe Hesap Şifreniz,Ihr Frappe-Kontopasswort
+Yeni 4 Haneli PIN,Neue 4-Stellige PIN
+Yeni PIN Tekrar,Neue PIN Wiederholen
+PIN Güncelle,PIN Aktualisieren
+PIN Oluştur,PIN Erstellen
+Operatör PIN Sıfırlama (Yönetici),Bediener-PIN Zurücksetzen (Manager)
+Sıfırlama yetkiniz kapsamında başka aktif PDA operatörü bulunamadı.,Keine weiteren aktiven PDA-Bediener in Ihrem Berechtigungsbereich gefunden.
+Operatör Seçimi,Bediener Auswählen
+-- Operatör Seçiniz --,-- Bediener Auswählen --
+Operatör PIN'ini Sıfırla,Bediener-PIN Zurücksetzen
+Ayar bilgileri alınamadı.,Einstellungsinformationen konnten nicht abgerufen werden.
+Ayar bilgileri yüklenemedi.,Einstellungsinformationen konnten nicht geladen werden.
+Zebra yazıcı tercihleri kaydedildi.,Zebra-Druckereinstellungen gespeichert.
+Yazıcı tercihleri kaydedilemedi.,Druckereinstellungen konnten nicht gespeichert werden.
+Yazıcı bağlantısı test edilemedi.,Druckerverbindung konnte nicht getestet werden.
+Arayüz dili güncellendi.,Oberflächensprache aktualisiert.
+Dil güncellenemedi.,Sprache konnte nicht aktualisiert werden.
+Ayarlar yükleniyor...,Einstellungen werden geladen...
+Zebra Yazıcı Tercihleri,Zebra-Druckereinstellungen
+Varsayılan Yazıcı,Standarddrucker
+-- Seçilmedi --,-- Nicht Ausgewählt --
+Yedek Yazıcı,Ersatzdrucker
+Bağlantıyı Test Et,Verbindung Testen
+Yazıcı Tercihlerini Kaydet,Druckereinstellungen Speichern
+Terminal & Görünüm,Terminal & Erscheinungsbild
+Tema,Design
+Açık Tema,Helles Design
+Koyu Tema,Dunkles Design
+Sesli Uyarılar,Akustische Hinweise
+Sesli Uyarılar Açık,Akustische Hinweise Ein
+Sesli Uyarılar Kapalı,Akustische Hinweise Aus
+Arayüz Dili,Oberflächensprache
+({0} Atlandı),({0} Übersprungen)
+Atla,Überspringen
+Atlanan ({0}),Übersprungen ({0})
+Atlandı,Übersprungen
+Aynı koli/parti ({0}) birden fazla satırda kullanılamaz.,Dasselbe Paket/dieselbe Charge ({0}) kann nicht in mehreren Zeilen verwendet werden.
+Bekleyen ({0}),Ausstehend ({0})
+Bu değişim Stock Entry notlarına otomatik kaydedilecektir.,Diese Änderung wird automatisch in den Stock-Entry-Bemerkungen gespeichert.
+Bu kalem mevcut transferden hariç tutulacak ve bir sonraki ikmal taramasında otomatik olarak yeniden listelenecektir.,Dieser Artikel wird vom aktuellen Transfer ausgeschlossen und erscheint automatisch beim nächsten Nachschub-Scan wieder.
+Bu koli ({0}) zaten okutuldu.,Dieses Paket ({0}) wurde bereits gescannt.
+Bu koli zaten hedef üretim hattında ({0}) bulunuyor.,Dieses Paket befindet sich bereits an der Zielproduktionslinie ({0}).
+Bu malzeme parti takiplidir. Lütfen koli/SUT parti barkodunu okutun.,Dieser Artikel ist chargenpflichtig. Bitte scannen Sie den Paket-/SUT-Chargen-Barcode.
+Bu malzemenin bekleyen kolisi kalmadı.,Für diesen Artikel sind keine ausstehenden Pakete mehr vorhanden.
+Bu partinin uygun kaynak raflarda kullanılabilir bakiyesi yok.,Diese Charge hat keinen verfügbaren Bestand in zulässigen Quellregalen.
+Bu sekmede gösterilecek kalem yok.,In diesem Tab sind keine Artikel anzuzeigen.
+Eksik Kalem Atlama Onayı,Bestätigung zum Überspringen Fehlender Artikel
+Emri İptal Et (Tümü Atlandı),Auftrag Stornieren (Alle Übersprungen)
+FIFO Sapması,FIFO-Abweichung
+FIFO Sapması Tespit Edildi,FIFO-Abweichung Erkannt
+FIFO sapması onaylandı: {0} [{1}],FIFO-Abweichung bestätigt: {0} [{1}]
+Geri Al,Rückgängig
+Girilen miktar sıfırdan büyük olmalıdır.,Die eingegebene Menge muss größer als null sein.
+Gönderilen kalem ikmal emrindeki bekleyen bir satırla eşleşmedi.,Der gesendete Artikel stimmt mit keiner ausstehenden Zeile im Nachschubauftrag überein.
+Kalem atlama işlemi için Stok Yöneticisi (Stock Manager) yetkisi gereklidir.,Für das Überspringen von Artikeln ist die Berechtigung Stock Manager erforderlich.
+Kalem atlandı: {0},Artikel übersprungen: {0}
+Kalem {0} için kaynak ambar zorunludur.,Das Quelllager ist für Artikel {0} erforderlich.
+Kalem {0} için toplama veya atlama durumu net olmalıdır.,Der Kommissionier- oder Überspringstatus muss für Artikel {0} eindeutig sein.
+Kalem {0} için toplanan miktar sıfırdan büyük olmalıdır.,Die kommissionierte Menge für Artikel {0} muss größer als null sein.
+Kalemi Atla,Artikel Überspringen
+Kaynak ambar bulunamadı: {0},Quelllager nicht gefunden: {0}
+Kaynak ambar hedef ambar ({0}) ile aynı olamaz.,Das Quelllager darf nicht mit dem Ziellager ({0}) identisch sein.
+Kaynak ambar {0} transfer için uygun değil.,Quelllager {0} ist für den Transfer nicht geeignet.
+Okutulan Koli,Gescanntes Paket
+Okutulan parti pasif durumdadır.,Die gescannte Charge ist deaktiviert.
+Okutulan parti {0} pasif durumdadır.,Die gescannte Charge {0} ist deaktiviert.
+Okutuldu: {0},Gescannt: {0}
+Okutuldu: {0} [{1}],Gescannt: {0} [{1}]
+Onaylandı: {0},Bestätigt: {0}
+Parti takipli kalem {0} için parti numarası zorunludur.,Für den chargenpflichtigen Artikel {0} ist eine Chargennummer erforderlich.
+Parti {0} için kaynak rafta ({1}) kullanılabilir bakiye kalmamış.,Für Charge {0} ist im Quellregal ({1}) kein verfügbarer Bestand mehr vorhanden.
+Parti {0} ürün {1} ile eşleşmiyor.,Charge {0} stimmt nicht mit Artikel {1} überein.
+Partili kalemde yalnızca tam koli bakiyesi ({0}) transfer edilebilir.,Bei einem chargenpflichtigen Artikel kann nur der volle Paketbestand ({0}) transferiert werden.
+Toplanan ({0}),Kommissioniert ({0})
+Toplanan kalem kaydı geçersiz formatta.,Der Eintrag des kommissionierten Artikels hat ein ungültiges Format.
+Toplanan kalem listesi geçersiz formatta.,Die Liste der kommissionierten Artikel hat ein ungültiges Format.
+Toplanan: {0} / {1},Kommissioniert: {0} / {1}
+Tüm kalemler atlandı — Emri iptal edebilirsiniz,Alle Artikel übersprungen — Sie können den Auftrag stornieren
+Tüm kalemler atlandığı için ikmal emri iptal edildi.,"Nachschubauftrag storniert, da alle Artikel übersprungen wurden."
+Tüm kalemler atlandığı için ikmal emri iptal edilsin mi?,Alle Artikel wurden übersprungen. Nachschubauftrag stornieren?
+Tüm kalemler işlendi — Transferi tamamlamaya hazır,Alle Artikel bearbeitet — Bereit zum Abschließen des Transfers
+Yine de Kullan (FIFO Sapması),Trotzdem Verwenden (FIFO-Abweichung)
+{0} / {1} Tamamlandı,{0} / {1} Abgeschlossen
+{0} koli bekliyor,{0} Pakete ausstehend
+Önerilen FIFO,Vorgeschlagenes FIFO
+İkmal Emri İptal Ediliyor...,Nachschubauftrag wird storniert...
+İkmal emrindeki tüm satırlar toplanmalı veya atlanmalıdır. Eksik kalem: {0},Alle Zeilen im Nachschubauftrag müssen kommissioniert oder übersprungen werden. Fehlender Artikel: {0}
+Is Skipped,Übersprungen
+Skipped By,Übersprungen von
+FIFO Override,FIFO-Abweichung
+{0} Koli,{0} Kartons
+{0} Raf,{0} Regale
+Gizle,Ausblenden
++{0} koli daha,+{0} weitere Kartons

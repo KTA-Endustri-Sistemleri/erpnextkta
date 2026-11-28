@@ -8,8 +8,10 @@ from frappe import _
 from frappe.utils import cint, flt, nowdate, nowtime
 
 from erpnextkta.kta_shopfloor.services.backflush_service import BackflushService
-from erpnextkta.kta_shopfloor.services.work_order_service import (
-    _get_other_warehouses_stock,
+from erpnextkta.kta_shopfloor.services.line_transfer_service import (
+    execute_line_transfer,
+    get_sibling_production_sources,
+    is_valid_production_warehouse,
 )
 
 
@@ -276,46 +278,47 @@ class ConfirmationService:
 
             if actual_qty < req_qty:
                 shortage_qty = flt(req_qty - max(0.0, actual_qty), 4)
-                _other_avail_qty, other_warehouses = _get_other_warehouses_stock(
+                raw_prod_warehouses = get_sibling_production_sources(
                     item_code, wo.company, target_wh
                 )
-
-                # User rule: Replenishment is strictly between production/WIP warehouses
                 prod_warehouses = []
-                for w in other_warehouses:
-                    if not _is_production_warehouse(w["warehouse"], target_wh):
-                        continue
-                    usable_qty = _get_consumable_warehouse_qty(
-                        item_code, w["warehouse"]
+                for w in raw_prod_warehouses:
+                    usable_qty = flt(
+                        _get_consumable_warehouse_qty(item_code, w["warehouse"]), 4
                     )
                     if usable_qty <= 0:
                         continue
+                    reserved_qty = flt(w.get("reserved_qty") or 0.0, 4)
+                    free_qty = flt(max(0.0, usable_qty - reserved_qty), 4)
                     prod_warehouses.append(
                         {
                             **w,
                             "actual_qty": usable_qty,
-                            "available_qty": min(
-                                flt(w.get("available_qty", usable_qty)),
-                                usable_qty,
-                            ),
+                            "reserved_qty": reserved_qty,
+                            "free_qty": free_qty,
+                            "available_qty": free_qty,
                         }
                     )
-                prod_warehouses.sort(key=lambda w: flt(w["actual_qty"]), reverse=True)
-
-                suggested_source = (
-                    prod_warehouses[0]["warehouse"] if prod_warehouses else None
+                prod_warehouses.sort(
+                    key=lambda s: (-s["free_qty"], -s["actual_qty"], s["warehouse"])
                 )
+
+                best_source = prod_warehouses[0] if prod_warehouses else None
+                suggested_source = best_source["warehouse"] if best_source else None
                 suggested_avail = (
-                    flt(prod_warehouses[0]["actual_qty"], 4) if prod_warehouses else 0.0
+                    flt(best_source["free_qty"], 4) if best_source else 0.0
+                )
+                suggested_actual = (
+                    flt(best_source["actual_qty"], 4) if best_source else 0.0
                 )
 
                 available_sources = [
                     {
                         "warehouse": w["warehouse"],
                         "actual_qty": flt(w["actual_qty"], 4),
-                        "available_qty": flt(
-                            w.get("available_qty", w["actual_qty"]), 4
-                        ),
+                        "reserved_qty": flt(w["reserved_qty"], 4),
+                        "free_qty": flt(w["free_qty"], 4),
+                        "available_qty": flt(w["free_qty"], 4),
                     }
                     for w in prod_warehouses
                 ]
@@ -330,6 +333,7 @@ class ConfirmationService:
                         "target_warehouse": target_wh,
                         "source_warehouse": suggested_source,
                         "source_available_qty": suggested_avail,
+                        "source_actual_qty": suggested_actual,
                         "available_sources": available_sources,
                         "stock_uom": data["stock_uom"],
                     }
@@ -344,6 +348,7 @@ class ConfirmationService:
     def stage_confirmation_materials(
         work_order: str,
         transfers: list[dict] | str,
+        allow_reserved_override: int | bool = 0,
     ) -> dict:
         """Create and submit a Material Transfer for Manufacture Stock Entry to replenish line stock."""
         if not work_order or not frappe.db.exists("Work Order", work_order):
@@ -355,138 +360,11 @@ class ConfirmationService:
         wo = frappe.get_doc("Work Order", work_order)
         wo.check_permission("write")
 
-        if isinstance(transfers, str):
-            try:
-                transfers_list = json.loads(transfers)
-            except (json.JSONDecodeError, TypeError, ValueError):
-                transfers_list = frappe.parse_json(transfers)
-        else:
-            transfers_list = transfers
-
-        if not transfers_list or not isinstance(transfers_list, list):
-            frappe.throw(
-                _("Transfer edilecek malzeme listesi boş olamaz."),
-                frappe.ValidationError,
-            )
-
-        validated_items: list[dict] = []
-        for t in transfers_list:
-            if not isinstance(t, dict):
-                continue
-            item_code = t.get("item_code")
-            if not item_code or not frappe.db.exists("Item", item_code):
-                frappe.throw(
-                    _("Geçerli bir malzeme kodu zorunludur: {0}").format(item_code),
-                    frappe.ValidationError,
-                )
-
-            qty = flt(t.get("qty"))
-            if qty <= 0:
-                frappe.throw(
-                    _("Transfer miktarı sıfırdan büyük olmalıdır."),
-                    frappe.ValidationError,
-                )
-
-            source_wh = t.get("source_warehouse")
-            target_wh = t.get("target_warehouse")
-            if not source_wh or not frappe.db.exists("Warehouse", source_wh):
-                frappe.throw(
-                    _("Geçerli bir kaynak depo zorunludur: {0}").format(source_wh),
-                    frappe.ValidationError,
-                )
-            if not target_wh or not frappe.db.exists("Warehouse", target_wh):
-                frappe.throw(
-                    _("Geçerli bir hedef depo zorunludur: {0}").format(target_wh),
-                    frappe.ValidationError,
-                )
-            if source_wh == target_wh:
-                frappe.throw(
-                    _("Kaynak depo ve hedef depo aynı olamaz: {0}").format(source_wh),
-                    frappe.ValidationError,
-                )
-
-            if not _is_production_warehouse(source_wh, target_wh):
-                frappe.throw(
-                    _(
-                        "Hammadde depolarından doğrudan hat transferi yapılamaz. Transfer sadece üretim depoları arasında yapılabilir: {0}"
-                    ).format(source_wh),
-                    frappe.ValidationError,
-                )
-
-            src_actual_qty = _get_consumable_warehouse_qty(item_code, source_wh)
-            if src_actual_qty < qty:
-                frappe.throw(
-                    _(
-                        "Kaynak depoda ({0}) {1} için yeterli stok yok. Mevcut: {2}, İstenen: {3}"
-                    ).format(source_wh, item_code, src_actual_qty, qty),
-                    frappe.ValidationError,
-                )
-
-            item_uom = frappe.db.get_value("Item", item_code, "stock_uom") or "Nos"
-            validated_items.append(
-                {
-                    "item_code": item_code,
-                    "qty": qty,
-                    "source_warehouse": source_wh,
-                    "target_warehouse": target_wh,
-                    "stock_uom": item_uom,
-                }
-            )
-
-        if not validated_items:
-            frappe.throw(
-                _("Transfer edilecek geçerli malzeme bulunamadı."),
-                frappe.ValidationError,
-            )
-
-        se = frappe.new_doc("Stock Entry")
-        se.purpose = "Material Transfer for Manufacture"
-        se.stock_entry_type = "Material Transfer for Manufacture"
-        se.work_order = wo.name
-        se.company = wo.company
-
-        sources = {d["source_warehouse"] for d in validated_items}
-        targets = {d["target_warehouse"] for d in validated_items}
-        if len(sources) == 1:
-            se.from_warehouse = next(iter(sources))
-        if len(targets) == 1:
-            se.to_warehouse = next(iter(targets))
-
-        for d in validated_items:
-            se.append(
-                "items",
-                {
-                    "item_code": d["item_code"],
-                    "s_warehouse": d["source_warehouse"],
-                    "t_warehouse": d["target_warehouse"],
-                    "qty": d["qty"],
-                    "transfer_qty": d["qty"],
-                    "stock_uom": d["stock_uom"],
-                    "uom": d["stock_uom"],
-                    "conversion_factor": 1.0,
-                },
-            )
-
-        se.remarks = _("Hat İkmal Transferi (Shopfloor Hub) - İş Emri: {0}").format(
-            wo.name
+        return execute_line_transfer(
+            transfers=transfers,
+            allow_reserved_override=allow_reserved_override,
+            work_order=wo.name,
         )
-        if hasattr(se, "set_stock_entry_type"):
-            se.set_stock_entry_type()
-        if hasattr(se, "calculate_rate_and_amount"):
-            se.calculate_rate_and_amount(raise_error_if_no_rate=False)
-
-        se.flags.ignore_permissions = True
-        se.insert(ignore_permissions=True)
-        se.submit()
-
-        return {
-            "success": True,
-            "stock_entry": se.name,
-            "transferred_items": transfers_list,
-            "message": _(
-                "{0} numaralı hat ikmal transferi başarıyla tamamlandı."
-            ).format(se.name),
-        }
 
 
 @frappe.whitelist()
@@ -515,11 +393,13 @@ def check_confirmation_materials(
 def stage_confirmation_materials(
     work_order: str,
     transfers: list[dict] | str,
+    allow_reserved_override: int | bool = 0,
 ) -> dict:
     """Create and submit a Material Transfer for Manufacture Stock Entry to replenish line stock."""
     return ConfirmationService.stage_confirmation_materials(
         work_order=work_order,
         transfers=transfers,
+        allow_reserved_override=allow_reserved_override,
     )
 
 
@@ -880,67 +760,8 @@ def _update_work_order_progress(
 def _is_production_warehouse(
     warehouse: str | None, target_warehouse: str | None = None
 ) -> bool:
-    """Check if a warehouse is a production/line warehouse (WIP / Üretim),
-
-    and NOT a raw material / central store (Hammadde / Stores / Giriş).
-    """
-    if not warehouse:
-        return False
-
-    wh_data = frappe.db.get_value(
-        "Warehouse",
-        warehouse,
-        ["name", "warehouse_name", "parent_warehouse", "warehouse_type"],
-        as_dict=True,
-    )
-    if not wh_data:
-        return False
-
-    name_lower = (wh_data.name or "").lower()
-    wh_title_lower = (wh_data.warehouse_name or "").lower()
-    parent_lower = (wh_data.parent_warehouse or "").lower()
-
-    # 1. Blacklist keywords: raw materials, central stores, reception
-    forbidden_keywords = [
-        "hammadde",
-        "raw material",
-        "tesellum",
-        "tesellüm",
-        "giriş",
-        "giris",
-        "ana depo",
-        "central",
-        "stores",
-    ]
-    for kw in forbidden_keywords:
-        if kw in name_lower or kw in wh_title_lower:
-            return False
-
-    # 2. Whitelist keywords: production, WIP, shopfloor
-    allowed_keywords = [
-        "üretim",
-        "uretim",
-        "production",
-        "wip",
-        "work in progress",
-    ]
-    for kw in allowed_keywords:
-        if kw in name_lower or kw in wh_title_lower or kw in parent_lower:
-            return True
-
-    # 3. Same parent warehouse as target line warehouse
-    if target_warehouse:
-        target_parent = frappe.db.get_value(
-            "Warehouse", target_warehouse, "parent_warehouse"
-        )
-        if (
-            target_parent
-            and wh_data.parent_warehouse
-            and target_parent == wh_data.parent_warehouse
-        ):
-            return True
-
-    return False
+    """Delegate production warehouse validation to line_transfer_service."""
+    return is_valid_production_warehouse(warehouse, peer_warehouse=target_warehouse)
 
 
 def _get_consumable_warehouse_qty(item_code: str, warehouse: str) -> float:
