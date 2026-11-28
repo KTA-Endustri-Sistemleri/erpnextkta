@@ -1381,3 +1381,39 @@ Son Teyit,Letzte Rückmeldung
 {0} İptal,{0} Storniert
 {0} Seçili,{0} Ausgewählt
 Tümünü İptal Et,Alle stornieren
+WIP Consumption Account,WIP-Verbrauchskonto
+Non-Stock balance sheet account used as Difference Account for Work Order Material Consumption and FG-only Manufacture entries.,"Nicht-Bestands-Bilanzkonto, das als Differenzkonto für Materialverbrauchsbuchungen von Fertigungsaufträgen und reine Fertigwarenbuchungen verwendet wird."
+WIP Consumption Account {0} must belong to Company {1}.,Das WIP-Verbrauchskonto {0} muss zu Unternehmen {1} gehören.
+WIP Consumption Account {0} cannot be a Group account.,Das WIP-Verbrauchskonto {0} darf kein Gruppenkonto sein.
+"WIP Consumption Account {0} cannot be a Stock-type account. ERPNext forbids Stock-type accounts as Difference Account, and 151 Stock warehouse accounts cannot be used.","Das WIP-Verbrauchskonto {0} darf kein Konto vom Typ Bestand sein. ERPNext verbietet Bestandskonten als Differenzkonto, und 151-Bestandslagerkonten können nicht verwendet werden."
+Default WIP account {0} for Company {1} cannot be a Group or Stock-type account.,Das Standard-WIP-Konto {0} für Unternehmen {1} darf kein Gruppen- oder Bestandskonto sein.
+KTA WIP Valuation Report,KTA WIP-Bewertungsbericht
+Company,Unternehmen
+As Of Date,Stichtag
+Work Order,Fertigungsauftrag
+Work Order Status,Fertigungsauftragsstatus
+Only Open WIP,Nur Offener WIP
+Production Item,Produktionsartikel
+Item Name,Artikelname
+Qty To Manufacture,Zu Fertigende Menge
+Produced Qty,Gefertigte Menge
+Consumed Value,Verbrauchswert
+FG Transferred Value,Übertragener Fertigwarenwert
+WIP Balance,WIP-Saldo
+WIP Account (151),WIP-Konto (151)
+Adjustment Account (710.20),Abstimmkonto (710.20)
+Last Posting Date,Letztes Buchungsdatum
+Total Open WIP,Offener WIP Gesamt
+Stopped WOs With Open WIP,Gestoppte Aufträge Mit Offenem WIP
+Stopped WOs WIP Value,WIP-Wert Gestoppter Aufträge
+Stopped,Gestoppt
+Closed,Geschlossen
+Cancelled,Storniert
+Work Order / Operation / Material,Fertigungsauftrag / Vorgang / Material
+Item / Material,Artikel / Material
+Consumed Qty,Verbrauchte Menge
+UOM,Einheit
+Unit Rate,Einzelpreis
+Unassigned Operation,Nicht Zugewiesener Vorgang
+Show Operation & Material Breakdown,Vorgangs- und Materialaufschlüsselung Anzeigen
+WIP Return / Adjustment,WIP-Rückgabe / Korrektur
