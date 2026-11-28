@@ -430,3 +430,119 @@ class TestBackflushService(KTATestCase):
         self.assertEqual(len(items_final), 1)
         self.assertEqual(items_final[0]["item_code"], "_TEST_RM_OP10")
         self.assertEqual(flt(items_final[0]["qty"]), 810.0)
+
+    @patch(
+        "erpnextkta.kta_shopfloor.services.backflush_service.get_validated_wip_consumption_account"
+    )
+    @patch("erpnextkta.kta_shopfloor.services.backflush_service.frappe.get_doc")
+    @patch("erpnextkta.kta_shopfloor.services.backflush_service.frappe.new_doc")
+    def test_create_consumption_entry_sets_wip_expense_account_when_configured(
+        self, mock_new_doc, mock_get_doc, mock_get_wip
+    ):
+        """Consumption entry sets expense_account to WIP account when configured, else omits it."""
+        mock_get_doc.return_value = self.mock_wo
+
+        # Case 1: WIP account configured
+        mock_get_wip.return_value = "151.01.002 - WIP - TKTA"
+        mock_se = MagicMock()
+        mock_se.name = "MAT-STE-WIP-001"
+        mock_se.items = []
+        mock_se.meta.has_field.return_value = True
+        mock_se.append.side_effect = lambda field, row: mock_se.items.append(
+            frappe._dict(row)
+        )
+        mock_new_doc.return_value = mock_se
+
+        create_consumption_entry(self.mock_wo, "0010 Kesim", yield_qty=50.0)
+        self.assertEqual(
+            mock_se.items[0].get("expense_account"), "151.01.002 - WIP - TKTA"
+        )
+
+        # Case 2: WIP account is None -> expense_account not injected
+        mock_get_wip.return_value = None
+        mock_se_none = MagicMock()
+        mock_se_none.name = "MAT-STE-WIP-002"
+        mock_se_none.items = []
+        mock_se_none.meta.has_field.return_value = True
+        mock_se_none.append.side_effect = lambda field, row: mock_se_none.items.append(
+            frappe._dict(row)
+        )
+        mock_new_doc.return_value = mock_se_none
+
+        create_consumption_entry(self.mock_wo, "0010 Kesim", yield_qty=50.0)
+        self.assertNotIn("expense_account", mock_se_none.items[0])
+
+    @patch(
+        "erpnextkta.kta_shopfloor.services.backflush_service.get_validated_wip_consumption_account"
+    )
+    @patch("erpnextkta.kta_shopfloor.services.backflush_service.frappe.db.exists")
+    @patch("erpnextkta.kta_shopfloor.services.backflush_service.frappe.get_doc")
+    @patch("erpnextkta.kta_shopfloor.services.backflush_service.frappe.new_doc")
+    def test_create_finished_goods_entry_sets_wip_expense_account_for_fg_only(
+        self, mock_new_doc, mock_get_doc, mock_exists, mock_get_wip
+    ):
+        """FG-only Manufacture entry sets expense_account before calculate_rate_and_amount."""
+        mock_get_doc.return_value = self.mock_wo
+        mock_exists.return_value = "MAT-STE-CONS-001"
+        mock_get_wip.return_value = "151.01.002 - WIP - TKTA"
+
+        rm_row = frappe._dict(
+            {
+                "item_code": "_TEST_RM_WIRE",
+                "s_warehouse": self.wip_warehouse,
+                "t_warehouse": "",
+                "is_finished_item": 0,
+                "is_scrap_item": 0,
+            }
+        )
+        fg_row = frappe._dict(
+            {
+                "item_code": self.item,
+                "s_warehouse": "",
+                "t_warehouse": self.wip_warehouse,
+                "is_finished_item": 1,
+                "is_scrap_item": 0,
+            }
+        )
+
+        mock_se = MagicMock()
+        mock_se.name = "MFG-STE-WIP-001"
+        mock_se.flags = frappe._dict()
+        mock_se.meta.has_field.return_value = True
+        mock_se.items = []
+        expense_at_calc = []
+
+        def fake_get_items():
+            mock_se.items = [rm_row, fg_row]
+
+        def capture_expense_at_calc(**kwargs):
+            expense_at_calc.append(mock_se.items[0].get("expense_account"))
+
+        mock_se.get_items.side_effect = fake_get_items
+        mock_se.calculate_rate_and_amount.side_effect = capture_expense_at_calc
+        mock_new_doc.return_value = mock_se
+
+        create_finished_goods_entry(self.mock_wo, yield_qty=100.0, is_final=True)
+
+        self.assertEqual(len(mock_se.items), 1)
+        self.assertEqual(
+            mock_se.items[0].get("expense_account"), "151.01.002 - WIP - TKTA"
+        )
+        self.assertEqual(expense_at_calc, ["151.01.002 - WIP - TKTA"])
+
+        # Fallback manual FG row when get_items() leaves items empty & wip_account is None
+        mock_get_wip.return_value = None
+        mock_exists.return_value = False
+        mock_se_none = MagicMock()
+        mock_se_none.name = "MFG-STE-WIP-002"
+        mock_se_none.flags = frappe._dict()
+        mock_se_none.meta.has_field.return_value = True
+        mock_se_none.items = []
+        mock_se_none.append.side_effect = lambda field, row: mock_se_none.items.append(
+            frappe._dict(row)
+        )
+        mock_new_doc.return_value = mock_se_none
+
+        create_finished_goods_entry(self.mock_wo, yield_qty=10.0, is_final=True)
+        self.assertEqual(len(mock_se_none.items), 1)
+        self.assertNotIn("expense_account", mock_se_none.items[0])

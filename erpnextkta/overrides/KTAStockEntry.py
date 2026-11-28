@@ -9,6 +9,9 @@ from frappe import _
 from frappe.utils import cint, flt
 
 from erpnextkta.kta_stock.batch_manager import BatchSplitManager
+from erpnextkta.overrides.company_wip_validation import (
+    get_validated_wip_consumption_account,
+)
 
 
 class KTAStockEntry(StockEntry):
@@ -190,22 +193,82 @@ class KTAStockEntry(StockEntry):
                 )
 
     def _get_total_consumed_cost(self) -> float:
-        """Return total actual cost of submitted Material Consumption entries for the Work Order."""
+        """Return net actual cost of submitted consumption minus WIP return receipts."""
         if not self.work_order:
             return 0.0
         res = frappe.db.sql(
             """
-			SELECT COALESCE(SUM(COALESCE(detail.valuation_rate, 0) * COALESCE(detail.transfer_qty, 0)), 0)
+			SELECT COALESCE(
+				SUM(
+					COALESCE(
+						sle_agg.sle_val,
+						COALESCE(detail.valuation_rate, 0) * COALESCE(detail.transfer_qty, 0)
+					)
+				),
+				0
+			)
 			FROM `tabStock Entry` entry
 			INNER JOIN `tabStock Entry Detail` detail ON detail.parent = entry.name
+			LEFT JOIN (
+				SELECT sle.voucher_detail_no,
+					SUM(-COALESCE(sle.stock_value_difference, 0)) AS sle_val
+				FROM `tabStock Ledger Entry` sle
+				INNER JOIN `tabStock Entry` se_sle ON se_sle.name = sle.voucher_no
+				WHERE sle.voucher_type = 'Stock Entry'
+					AND sle.is_cancelled = 0
+					AND se_sle.work_order = %s
+					AND se_sle.purpose = 'Material Consumption for Manufacture'
+					AND se_sle.docstatus = 1
+				GROUP BY sle.voucher_detail_no
+			) sle_agg ON sle_agg.voucher_detail_no = detail.name
 			WHERE entry.work_order = %s
 				AND entry.purpose = 'Material Consumption for Manufacture'
 				AND entry.docstatus = 1
 				AND IFNULL(detail.s_warehouse, '') != ''
 			""",
-            (self.work_order,),
+            (self.work_order, self.work_order),
         )
-        return flt(res[0][0]) if res else 0.0
+        total_consumed = flt(res[0][0]) if res else 0.0
+
+        total_returned = 0.0
+        wip_account = get_validated_wip_consumption_account(self.company)
+        if wip_account:
+            ret_res = frappe.db.sql(
+                """
+				SELECT COALESCE(
+					SUM(
+						COALESCE(
+							sle_agg.sle_val,
+							COALESCE(detail.valuation_rate, 0) * COALESCE(detail.transfer_qty, 0)
+						)
+					),
+					0
+				)
+				FROM `tabStock Entry` entry
+				INNER JOIN `tabStock Entry Detail` detail ON detail.parent = entry.name
+				LEFT JOIN (
+					SELECT sle.voucher_detail_no,
+						SUM(COALESCE(sle.stock_value_difference, 0)) AS sle_val
+					FROM `tabStock Ledger Entry` sle
+					INNER JOIN `tabStock Entry` se_sle ON se_sle.name = sle.voucher_no
+					WHERE sle.voucher_type = 'Stock Entry'
+						AND sle.is_cancelled = 0
+						AND se_sle.work_order = %s
+						AND se_sle.purpose = 'Material Receipt'
+						AND se_sle.docstatus = 1
+					GROUP BY sle.voucher_detail_no
+				) sle_agg ON sle_agg.voucher_detail_no = detail.name
+				WHERE entry.work_order = %s
+					AND entry.purpose = 'Material Receipt'
+					AND entry.docstatus = 1
+					AND IFNULL(detail.s_warehouse, '') = ''
+					AND detail.expense_account = %s
+				""",
+                (self.work_order, self.work_order, wip_account),
+            )
+            total_returned = flt(ret_res[0][0]) if ret_res else 0.0
+
+        return max(0.0, total_consumed - total_returned)
 
     def _get_previous_fg_only_manufacture_cost(self) -> float:
         """Return already-allocated cost from prior submitted FG-only Manufacture entries."""
@@ -306,7 +369,9 @@ class KTAStockEntry(StockEntry):
             return flt(
                 (flt(finished_item_qty) / flt(wo_qty))
                 * sum(
-                    flt(r.get("valuation_rate")) * flt(r.get("transfer_qty"))
+                    flt(r["actual_cost"])
+                    if r.get("actual_cost") is not None
+                    else flt(r.get("valuation_rate")) * flt(r.get("transfer_qty"))
                     for r in consumption_rows
                 )
             )
@@ -357,15 +422,31 @@ class KTAStockEntry(StockEntry):
 				detail.original_item
 				{custom_orig_select},
 				COALESCE(detail.valuation_rate, 0) AS valuation_rate,
-				COALESCE(detail.transfer_qty, 0) AS transfer_qty
+				COALESCE(detail.transfer_qty, 0) AS transfer_qty,
+				COALESCE(
+					sle_agg.sle_val,
+					COALESCE(detail.valuation_rate, 0) * COALESCE(detail.transfer_qty, 0)
+				) AS actual_cost
 			FROM `tabStock Entry` entry
 			INNER JOIN `tabStock Entry Detail` detail ON detail.parent = entry.name
+			LEFT JOIN (
+				SELECT sle.voucher_detail_no,
+					SUM(-COALESCE(sle.stock_value_difference, 0)) AS sle_val
+				FROM `tabStock Ledger Entry` sle
+				INNER JOIN `tabStock Entry` se_sle ON se_sle.name = sle.voucher_no
+				WHERE sle.voucher_type = 'Stock Entry'
+					AND sle.is_cancelled = 0
+					AND se_sle.work_order = %s
+					AND se_sle.purpose = 'Material Consumption for Manufacture'
+					AND se_sle.docstatus = 1
+				GROUP BY sle.voucher_detail_no
+			) sle_agg ON sle_agg.voucher_detail_no = detail.name
 			WHERE entry.work_order = %s
 				AND entry.purpose = 'Material Consumption for Manufacture'
 				AND entry.docstatus = 1
 				AND IFNULL(detail.s_warehouse, '') != ''
 			""",
-            (self.work_order,),
+            (self.work_order, self.work_order),
             as_dict=True,
         )
 
@@ -408,7 +489,11 @@ class KTAStockEntry(StockEntry):
             if not key:
                 continue
             qty = flt(row.get("transfer_qty"))
-            cost = flt(row.get("valuation_rate")) * qty
+            cost = (
+                flt(row["actual_cost"])
+                if row.get("actual_cost") is not None
+                else flt(row.get("valuation_rate")) * qty
+            )
             cost_by_key[key] = cost_by_key.get(key, 0.0) + cost
             qty_by_key[key] = qty_by_key.get(key, 0.0) + qty
         return cost_by_key, qty_by_key
@@ -587,7 +672,87 @@ class KTAStockEntry(StockEntry):
 
         return matched_items
 
+    def _apply_wip_consumption_account(self) -> None:
+        """Route Work Order consumption and FG-only Manufacture entries to Company WIP account."""
+        wip_account = get_validated_wip_consumption_account(self.company)
+        if not wip_account:
+            return
+
+        if not self.work_order or not self.get("items"):
+            return
+
+        if self.purpose == "Material Consumption for Manufacture":
+            for d in self.items:
+                if d.get("s_warehouse") and not d.get("t_warehouse"):
+                    d.expense_account = wip_account
+            return
+
+        if (
+            self.purpose == "Manufacture"
+            and all(not d.get("s_warehouse") for d in self.items)
+            and any(d.get("t_warehouse") for d in self.items)
+        ):
+            for d in self.items:
+                if d.get("t_warehouse"):
+                    d.expense_account = wip_account
+
+    def _is_wip_return_receipt(self) -> bool:
+        """Return True if this Material Receipt returns consumed stock against WIP account."""
+        if self.purpose != "Material Receipt" or not self.work_order:
+            return False
+
+        wip_account = get_validated_wip_consumption_account(self.company)
+        if not wip_account:
+            return False
+
+        return any(
+            d.get("t_warehouse")
+            and not d.get("s_warehouse")
+            and d.get("expense_account") == wip_account
+            for d in (self.get("items") or [])
+        )
+
+    def validate_work_order(self):
+        """Retain Work Order link on WIP return Material Receipt entries."""
+        if self._is_wip_return_receipt():
+            wo = frappe.db.get_value(
+                "Work Order",
+                self.work_order,
+                ["name", "docstatus", "company"],
+                as_dict=True,
+            )
+            if not wo:
+                frappe.throw(
+                    _("Work Order {0} does not exist.").format(
+                        frappe.bold(self.work_order)
+                    )
+                )
+            if cint(wo.docstatus) != 1:
+                frappe.throw(
+                    _("Work Order {0} must be submitted.").format(
+                        frappe.bold(self.work_order)
+                    )
+                )
+            if wo.company != self.company:
+                frappe.throw(
+                    _("Work Order {0} does not belong to Company {1}.").format(
+                        frappe.bold(self.work_order), frappe.bold(self.company)
+                    )
+                )
+            return
+
+        super().validate_work_order()
+
+    def update_work_order(self):
+        """Skip Work Order status/qty updates for WIP return Material Receipt entries."""
+        if self._is_wip_return_receipt():
+            return
+
+        super().update_work_order()
+
     def validate(self):
+        self._apply_wip_consumption_account()
+
         # 1. Standart ERPNext kontrollerini yap
         super().validate()
 

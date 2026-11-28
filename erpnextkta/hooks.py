@@ -196,6 +196,9 @@ doc_events = {
     },
     "Asset Maintenance": {
         "on_update": "erpnextkta.kta_asset_maintenance.events.on_asset_maintenance_update"
+    },
+    "Company": {
+        "validate": "erpnextkta.overrides.company_wip_validation.validate_wip_consumption_account"
     }
 }
 # Document Events
@@ -401,6 +404,8 @@ fixtures = [
                     "Asset Maintenance Task-custom_event_id",
                     "Stock Entry Type-custom_etiket_basilabilir",
                     "Stock Entry Type-custom_etiket_sablonu",
+                    "Company-custom_wip_consumption_account",
+                    "Journal Entry Account-custom_work_order",
                 ],
             ]
         ],
