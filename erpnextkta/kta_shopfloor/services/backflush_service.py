@@ -4,6 +4,41 @@
 import frappe
 from frappe.utils import flt
 
+from erpnextkta.overrides.company_wip_validation import (
+    get_validated_wip_consumption_account,
+)
+
+
+def _row_get(row, fieldname: str):
+    """Safely read a field from a Document or dict-like Stock Entry row."""
+    if isinstance(row, dict):
+        return row.get(fieldname)
+    return getattr(row, fieldname, None)
+
+
+def _row_set(row, fieldname: str, value) -> None:
+    """Safely set a field on a Document or dict-like Stock Entry row."""
+    if isinstance(row, dict):
+        row[fieldname] = value
+    else:
+        setattr(row, fieldname, value)
+
+
+def _apply_wip_account_to_fg_only_items(se, wip_account: str | None) -> None:
+    """Set expense_account on incoming FG/scrap rows when Stock Entry is FG-only."""
+    items = getattr(se, "items", None)
+    if not wip_account or not items:
+        return
+
+    has_source = any(bool(_row_get(d, "s_warehouse")) for d in items)
+    has_target = any(bool(_row_get(d, "t_warehouse")) for d in items)
+    if has_source or not has_target:
+        return
+
+    for d in items:
+        if _row_get(d, "t_warehouse"):
+            _row_set(d, "expense_account", wip_account)
+
 
 class BackflushService:
     """Service handling proportional BOM raw material backflushing, FIFO allocation
@@ -215,24 +250,26 @@ class BackflushService:
                 se.custom_confirmation = confirmation_name
             se.remarks = f"KTA Production Confirmation: {confirmation_name}"
 
+        wip_account = get_validated_wip_consumption_account(company)
+
         for rm in raw_materials:
-            se.append(
-                "items",
-                {
-                    "item_code": rm["item_code"],
-                    "item_name": rm.get("item_name"),
-                    "description": rm.get("description"),
-                    "qty": rm["qty"],
-                    "uom": rm.get("uom") or rm.get("stock_uom"),
-                    "stock_uom": rm.get("stock_uom"),
-                    "conversion_factor": rm.get("conversion_factor", 1.0),
-                    "s_warehouse": rm.get("s_warehouse") or rm.get("source_warehouse"),
-                    "t_warehouse": "",
-                    "original_item": rm.get("original_item"),
-                    "custom_original_item": rm.get("custom_original_item")
-                    or rm.get("original_item"),
-                },
-            )
+            item_row = {
+                "item_code": rm["item_code"],
+                "item_name": rm.get("item_name"),
+                "description": rm.get("description"),
+                "qty": rm["qty"],
+                "uom": rm.get("uom") or rm.get("stock_uom"),
+                "stock_uom": rm.get("stock_uom"),
+                "conversion_factor": rm.get("conversion_factor", 1.0),
+                "s_warehouse": rm.get("s_warehouse") or rm.get("source_warehouse"),
+                "t_warehouse": "",
+                "original_item": rm.get("original_item"),
+                "custom_original_item": rm.get("custom_original_item")
+                or rm.get("original_item"),
+            }
+            if wip_account:
+                item_row["expense_account"] = wip_account
+            se.append("items", item_row)
 
         if hasattr(se, "set_stock_entry_type"):
             se.set_stock_entry_type()
@@ -352,6 +389,9 @@ class BackflushService:
                     "allow_zero_valuation_rate": 1,
                 },
             )
+
+        wip_account = get_validated_wip_consumption_account(company)
+        _apply_wip_account_to_fg_only_items(se, wip_account)
 
         if hasattr(se, "calculate_rate_and_amount"):
             se.calculate_rate_and_amount(raise_error_if_no_rate=False)
