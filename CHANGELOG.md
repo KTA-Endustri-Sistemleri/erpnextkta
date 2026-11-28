@@ -3,6 +3,87 @@
 
 
 
+## 🚀 v4.7.0 (2026-11-28)
+
+
+
+
+
+  
+
+    
+    
+    
+
+### 🔧 Chores
+
+    
+      
+      
+        
+- **shopfloor**: add dynamic WIP discrepancy reconciliation patch
+      
+      
+    
+      
+      
+        
+- **accounting**: add master defaults, 2026 patches, and WIP docs
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Continuous integration
+
+    
+      
+      
+        
+- **deploy**: stash local bench changes and force checkout on deploy
+      
+      
+    
+
+  
+
+  
+
+    
+    
+    
+
+### 🔧 Features
+
+    
+      
+      
+        
+- **shopfloor**: add KTA WIP Valuation Report with tree breakdown
+      
+      
+    
+      
+      
+        
+- **shopfloor**: add WIP consumption accounting and SLE-exact costing
+      
+      
+    
+
+  
+
+
+---
+
+
 ## 🚀 v4.6.0 (2026-11-25)
 
 
