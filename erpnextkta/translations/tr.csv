@@ -552,3 +552,39 @@ Son Teyit,Son Teyit
 {0} İptal,{0} İptal
 {0} Seçili,{0} Seçili
 Tümünü İptal Et,Tümünü İptal Et
+WIP Consumption Account,WIP Tüketim Hesabı
+Non-Stock balance sheet account used as Difference Account for Work Order Material Consumption and FG-only Manufacture entries.,İş Emri Malzeme Tüketimi ve yalnızca mamul girişi içeren Üretim fişlerinde Fark Hesabı olarak kullanılan Stok tipi olmayan bilanço hesabı.
+WIP Consumption Account {0} must belong to Company {1}.,"WIP Tüketim Hesabı ({0}), {1} şirketine ait olmalıdır."
+WIP Consumption Account {0} cannot be a Group account.,WIP Tüketim Hesabı ({0}) bir Grup hesabı olamaz.
+"WIP Consumption Account {0} cannot be a Stock-type account. ERPNext forbids Stock-type accounts as Difference Account, and 151 Stock warehouse accounts cannot be used.","WIP Tüketim Hesabı ({0}) Stok tipinde bir hesap olamaz. ERPNext, Stok tipindeki hesapların Fark Hesabı olarak kullanılmasına izin vermez ve 151 Stok ambar hesapları seçilemez."
+Default WIP account {0} for Company {1} cannot be a Group or Stock-type account.,{1} şirketi için varsayılan WIP hesabı ({0}) Grup veya Stok tipinde bir hesap olamaz.
+KTA WIP Valuation Report,KTA WIP Değerleme Raporu
+Company,Şirket
+As Of Date,Tarih İtibarıyla
+Work Order,İş Emri
+Work Order Status,İş Emri Durumu
+Only Open WIP,Yalnızca Açık WIP
+Production Item,Üretim Kalemi
+Item Name,Ürün Adı
+Qty To Manufacture,Üretilecek Miktar
+Produced Qty,Üretilen Miktar
+Consumed Value,Tüketim Tutarı
+FG Transferred Value,Mamule Aktarılan Tutar
+WIP Balance,WIP Bakiyesi
+WIP Account (151),WIP Hesabı (151)
+Adjustment Account (710.20),Düzeltme Hesabı (710.20)
+Last Posting Date,Son Kayıt Tarihi
+Total Open WIP,Toplam Açık WIP
+Stopped WOs With Open WIP,Açık WIP'li Durdurulmuş İş Emirleri
+Stopped WOs WIP Value,Durdurulmuş İş Emirleri WIP Tutarı
+Stopped,Durduruldu
+Closed,Kapatıldı
+Cancelled,İptal Edildi
+Work Order / Operation / Material,İş Emri / Operasyon / Malzeme
+Item / Material,Ürün / Malzeme
+Consumed Qty,Tüketilen Miktar
+UOM,Birim
+Unit Rate,Birim Fiyat
+Unassigned Operation,Atanmamış Operasyon
+Show Operation & Material Breakdown,Operasyon ve Malzeme Kırılımını Göster
+WIP Return / Adjustment,WIP İade / Düzeltme
