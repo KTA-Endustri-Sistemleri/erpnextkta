@@ -1229,6 +1229,114 @@ flowchart TD
     </ul>
   </div>
 
+  <h3>E. WIP Tüketim Hesabı Yönlendirmesi (<code>151</code> WIP vs. <code>710.20</code> Düzeltme Hesabı)</h3>
+  <p>
+    Operasyon bazlı backflush modelinde hammadde tüketimleri ile son operasyondaki mamul girişleri ayrı zamanlarda gerçekleştiği için, üretim süreci devam ederken oluşan ara değerlerin envanter düzeltme hesabında (örneğin <code>710.20</code>) geçici olarak birikmesi yerine bilançodaki Yarı Mamul (WIP) hesabında takip edilmesi sağlanır.
+  </p>
+
+  <div class="flow-card-grid">
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🏦</span>
+        <h4 class="flow-card-title">Company &rarr; WIP Consumption Account</h4>
+      </div>
+      <p class="flow-card-desc">
+        <code>Company</code> kartında <code>stock_adjustment_account</code> alanının hemen altında yer alan <strong>WIP Consumption Account</strong> (<code>custom_wip_consumption_account</code>) alanına ilgili şirkete ait, <strong>grup olmayan</strong> (<code>is_group = 0</code>) ve <strong>Stok tipinde olmayan</strong> (<code>account_type != "Stock"</code>) bir bilanço/varlık hesabı (örneğin <code>151.01.002 - ÜRETİM SÜRECİNDEKİ TÜKETİMLER (WIP)</code>) tanımlanır.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🔄</span>
+        <h4 class="flow-card-title">Operasyonel Backflush &rarr; 151 WIP Akışı</h4>
+      </div>
+      <p class="flow-card-desc">
+        Ara operasyonlarda oluşan <code>Material Consumption for Manufacture</code> fişleri tüketilen hammaddeleri hammadde stok hesabından düşüp <strong><code>151</code> WIP</strong> hesabına borç kaydeder. Son operasyonda (örneğin <code>OP30</code>) veya final/kısa kapanışta kesilen <code>FG-Only Manufacture</code> fişi ise mamul bedelini <strong><code>151</code> WIP</strong> hesabından alacaklandırarak Bitmiş Ürün Stok hesabına aktarır ve açık WIP bakiyesini sıfırlar.
+      </p>
+    </div>
+
+    <div class="flow-card">
+      <div class="flow-card-header">
+        <span class="flow-card-icon">🛡️</span>
+        <h4 class="flow-card-title">Fason Hesap Ayrımı &amp; Fallback</h4>
+      </div>
+      <p class="flow-card-desc">
+        ERPNext, fark/gider hesabında (<code>expense_account</code>) <code>Stock</code> tipli hesaplara izin vermez; bu nedenle fason sevkiyat stok ambarı hesabı (örneğin <code>151.01.001</code>) burada seçilemez ve ayrı tutulur. <code>custom_wip_consumption_account</code> boş bırakılırsa sistem otomatik olarak şirketin varsayılan fark/düzeltme hesabına (<code>710.20</code>) düşer. Klasik karma <code>Manufacture</code> fişlerine (hem hammadde çıkışı hem mamul girişi içerenlere) ise hiç dokunulmaz.
+      </p>
+    </div>
+  </div>
+
+  <div class="callout-box">
+    <div class="callout-title">🧮 Yevmiye Akışı ve Açık Dönem Geriye Dönük Hizalama (Backfill)</div>
+    <ul>
+      <li>
+        <strong>Kısmi Operasyonlarda Açık WIP:</strong> Örneğin <code>OP10</code> hammadde tükettiğinde <code>151</code> WIP hesabı borç bakiyesi taşır; <code>OP30</code> üzerinden tüm mamul girişi (veya son/kısa kapanış teyidi) tamamlandığında <code>151</code> WIP bakiyesi <code>0.00</code> olarak kapanır.
+      </li>
+      <li>
+        <strong>Açık Dönem Backfill Yaması:</strong> <code>erpnextkta.patches.v4_6.backfill_shopfloor_wip_account</code> geçiş yaması, şirket altında <code>151.01</code> grup hesabı varsa varsayılan <code>151.01.002</code> WIP hesabını oluşturup bağlar ve <code>2026-11-23</code> tarihinden itibaren açık dönemdeki (<code>Period Closing Voucher</code> ve <code>Accounts Settings.acc_frozen_upto</code> kilitlerine saygı duyarak) uygun tüketim ve <code>FG-Only Manufacture</code> fişlerini geriye dönük olarak WIP hesabına hizalar.
+      </li>
+      <li>
+        <strong>Eşlik Eden Ana Veri ve 2026 Yeniden Sınıflandırma Yamaları:</strong> <code>erpnextkta.patches.v4_6.fix_accounting_master_defaults</code> yaması şirket ve ürün grubu (<code>HAMMADDELER</code> / <code>ÜRÜNLER</code>) varsayılan maliyet hesaplarını (<code>620.01</code>, <code>621.01</code>, <code>731.01</code>) hizalarken, <code>erpnextkta.patches.v4_6.post_2026_accounting_reclassifications</code> yaması 2026 açık dönemine ait depo hesap geçişi (<code>150.01.001 &rarr; 150.01.004</code>), klasik <code>Manufacture</code> ayna kapanışı (<code>710.20 &harr; 197.01.001</code>), Ocak–Şubat raf transferi (<code>710.20 &rarr; 150.01.001</code>) ve teslimat SMM sınıflandırmalarını (<code>710.20 &rarr; 621.01</code> ile çoklu döviz uyumlu <code>600/601 &rarr; 620.01</code>) idempotent olarak mahsuplaştırır.
+      </li>
+    </ul>
+  </div>
+
+  <h3>F. Salt-Okunur <code>KTA WIP Valuation Report</code> (İş Emri WIP Değerleme Raporu)</h3>
+  <p>
+    Muhasebe ve üretim kontrol ekiplerinin sahadaki açık üretim değerini muhasebe defteriyle birebir (GL-exact) izleyebilmesi için <strong>Rapor &rarr; KTA WIP Valuation Report</strong> ekranı sunulur. Rapor tamamen <strong>salt-okunurdur</strong> (yalnızca analiz amaçlıdır; otomatik veya taslak mahsup fişi oluşturmaz).
+  </p>
+
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th style="width: 220px;">Bileşen</th>
+        <th>Alanlar / Davranış</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Filtreler</strong></td>
+        <td>
+          <code>Company</code> (Şirket), <code>As Of Date</code> (Tarih İtibarıyla), <code>Work Order</code> (İş Emri), <code>Work Order Status</code> (<code>In Process</code>, <code>Not Started</code>, <code>Completed</code>, <code>Stopped</code>, <code>Closed</code>, <code>Cancelled</code>), <code>Only Open WIP</code> (Yalnızca Açık WIP — varsayılan olarak işaretlidir), <code>Show Operation &amp; Material Breakdown</code> (Operasyon ve Malzeme Kırılımını Göster — varsayılan olarak işaretlidir).
+        </td>
+      </tr>
+      <tr>
+        <td><strong>3 Seviyeli Ağaç Kırılımı</strong></td>
+        <td>
+          Rapor <code>Work Order</code> (Seviye 0) &rarr; <code>Operation</code> (Seviye 1) &rarr; <code>Raw Material</code> (Seviye 2) biçiminde açılabilir ağaç (<code>initial_depth = 0</code>) yapısında sunulur. Seviye 0 satırları GL-exact iş emri toplamlarını korur; Seviye 1 operasyon bazında <code>Consumed Value</code> özetini, Seviye 2 ise <code>Material Consumption for Manufacture</code> ve <code>Stock Ledger Entry</code> kayıtlarından gelen <code>Consumed Qty</code>, <code>UOM</code>, ağırlıklı <code>Unit Rate</code> (<code>Consumed Value / Consumed Qty</code>) ve SLE-exact <code>Consumed Value</code> tutarını listeler. Operasyonu eşleşmeyen tüketimler <code>Unassigned Operation</code> altında toplanır.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Tablo Sütunları</strong></td>
+        <td>
+          <code>Work Order / Operation / Material</code>, <code>Item / Material</code>, <code>Item Name</code>, <code>Work Order Status</code>, <code>Qty To Manufacture</code>, <code>Produced Qty</code>, <code>Consumed Qty</code>, <code>UOM</code>, <code>Unit Rate</code>, <code>Consumed Value</code>, <code>FG Transferred Value</code>, <code>WIP Return / Adjustment</code> (WIP İade / Düzeltme), <code>WIP Balance</code> (<code>Consumed Value - FG Transferred Value + WIP Return / Adjustment</code>), <code>WIP Account (151)</code>, <code>Adjustment Account (710.20)</code>, <code>Last Posting Date</code>.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Özet KPI Kartları &amp; Çift Sayım Koruması</strong></td>
+        <td>
+          <code>report_summary</code> kartları (<strong>Total Open WIP</strong>, <strong>WIP Account (151)</strong>, <strong>Adjustment Account (710.20)</strong>, <strong>Stopped WOs With Open WIP</strong> ve <strong>Stopped WOs WIP Value</strong>) ile alt <code>Total</code> satırı hesaplamalarında yalnızca Seviye 0 iş emri satırları esas alınır; ağaç kırılımı açıkken çift sayım (double-counting) yapılmaz.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Açık WIP Uyarısı (<code>Stopped</code> / <code>Closed</code> / <code>Completed</code> / <code>Cancelled</code>)</strong></td>
+        <td>
+          Durumu <code>Stopped</code>, <code>Closed</code>, <code>Completed</code> veya <code>Cancelled</code> olup üzerinde <code>0,01</code> TL üzeri açık WIP bakiyesi (<code>|WIP Balance| &gt; 0.01</code>) kalan iş emirleri raporda kırmızı durum rozeti, turuncu satır vurgusu ve kırmızı <code>WIP Balance</code> tutarıyla öne çıkarılır; böylece kapatılmadan durdurulmuş veya kapanış sonrası bakiye kalmış iş emirleri kolayca tespit edilir.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>SLE-Exact Maliyetleme &amp; WIP Kapatma / Mutabakat Yolları</strong></td>
+        <td>
+          <ul>
+            <li><strong>Kesin SLE Maliyet Havuzu:</strong> <code>KTAStockEntry</code> içindeki mamul maliyetleme havuzu (<code>_get_total_consumed_cost</code> / <code>_get_submitted_consumption_rows</code>) tahmini <code>Stock Entry Detail</code> satırları yerine kesin <code>Stock Ledger Entry</code> (<code>-stock_value_difference</code>) tutarlarını esas alır; böylece depo stoğu sıfırlandığında dahi <code>151.01.002</code> hesabında artı veya eksi değerleme farkı kalmaz.</li>
+            <li><strong>Fiziksel Hammadde İadesi (<code>Material Receipt</code>):</strong> İş emrine bağlı (<code>work_order</code> dolu) ve <code>expense_account</code> olarak şirketin <code>custom_wip_consumption_account</code> (<code>151.01.002</code>) hesabı seçili <code>Material Receipt</code> Stock Entry fişleri, iş emri <code>Closed</code>, <code>Stopped</code> veya <code>Completed</code> durumunda olsa dahi iş emri statüsünü bozmadan kabul edilir ve <strong><code>WIP Return / Adjustment</code></strong> kolonuna yansır.</li>
+            <li><strong>Hurda / Değerleme Farkı Mahsubu (<code>Journal Entry</code>):</strong> Hurda giderleştirme veya değerleme farkı mahsubu için <code>Journal Entry Account</code> satırındaki <code>custom_work_order</code> (<code>Work Order</code>) alanı ile kesilen <code>Journal Entry</code> kayıtları da <strong><code>WIP Return / Adjustment</code></strong> kolonu üzerinden iş emri WIP bakiyesine işlenir.</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
   <hr />
 
   <h2>🔄 6. Hatalı Teyitlerin İptali ve Ters Kayıt (SAP CORS)</h2>
