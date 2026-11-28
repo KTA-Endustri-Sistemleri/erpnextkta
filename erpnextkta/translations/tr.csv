@@ -588,3 +588,38 @@ Unit Rate,Birim Fiyat
 Unassigned Operation,Atanmamış Operasyon
 Show Operation & Material Breakdown,Operasyon ve Malzeme Kırılımını Göster
 WIP Return / Adjustment,WIP İade / Düzeltme
+Produced / Confirmed Qty,Üretilen / Teyit Edilen Miktar
+Include Classic Manufacture,Klasik Üretimleri Dahil Et
+Required Qty,Gereken Miktar
+Remaining Qty,Kalan Miktar
+View Mode,Görünüm Modu
+Tree View,Ağaç Görünümü
+Flat 2D (Pivot),Düz 2B Tablo (Pivot)
+Export 2D Excel,2B Excel İndir
+Posting Date,Kayıt Tarihi
+FG Item Code,Mamul Kodu
+FG Item Name,Mamul Adı
+Planned Qty,Planlanan Miktar
+FG Produced / Confirmed Qty,Mamul Üretilen / Teyit Edilen Miktar
+WO Consumed Value,İş Emri Tüketim Tutarı
+WO FG / Output Value,İş Emri Mamul / Çıktı Tutarı
+WO Classic FG / Output Value,İş Emri Klasik Mamul / Çıktı Tutarı
+WO Scrap Value,İş Emri Hurda Tutarı
+WO WIP Balance,İş Emri WIP Bakiyesi
+Op Sequence,Operasyon Sırası
+Op Confirmed Qty,Operasyon Teyit Miktarı
+Raw Material Code,Hammadde Kodu
+Raw Material Name,Hammadde Adı
+Raw Material Value,Hammadde Tutarı
+Consumption Source,Tüketim Kaynağı
+BOM Only (Unconsumed),Yalnızca Reçete (Tüketilmemiş)
+Shopfloor Confirmation,Shopfloor Teyidi
+Classic Manufacture,Klasik Üretim
+KTA WIP Valuation 2D,KTA WIP Değerleme 2B
+Not permitted,Yetkiniz Yok
+Shopfloor + Classic,Üretim Teyidi + Klasik
+Total,Toplam
+Operation,Operasyon
+In-WIP Qty,Yarımamül Miktarı
+Op WIP Qty,Op. Yarımamül Miktarı
+Raw Material WIP Value,Hammadde Yarımamül Tutarı

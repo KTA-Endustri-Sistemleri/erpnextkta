@@ -510,7 +510,7 @@ class TestWIPReconciliationPatch(KTABaseTestCase):
         )
 
     def _report_rows_by_wo(self, as_of_date: str) -> dict[str, dict]:
-        _, data, _, _, _ = execute_wip_report(
+        _, data, _, _, *_ = execute_wip_report(
             {
                 "company": self.company,
                 "as_of_date": as_of_date,
@@ -518,7 +518,7 @@ class TestWIPReconciliationPatch(KTABaseTestCase):
                 "show_consumption_details": 0,
             }
         )
-        return {r["work_order"]: r for r in data if r.get("indent") == 0}
+        return {r["work_order"]: r for r in data if r.get("row_type") == "work_order"}
 
     def test_step1_drift_reconciliation_dry_run_apply_idempotency_and_in_process_follow_up(
         self,

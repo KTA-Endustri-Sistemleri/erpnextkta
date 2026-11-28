@@ -1428,3 +1428,38 @@ Unit Rate,Unit Rate
 Unassigned Operation,Unassigned Operation
 Show Operation & Material Breakdown,Show Operation & Material Breakdown
 WIP Return / Adjustment,WIP Return / Adjustment
+Produced / Confirmed Qty,Produced / Confirmed Qty
+Include Classic Manufacture,Include Classic Manufacture
+Required Qty,Required Qty
+Remaining Qty,Remaining Qty
+View Mode,View Mode
+Tree View,Tree View
+Flat 2D (Pivot),Flat 2D (Pivot)
+Export 2D Excel,Export 2D Excel
+Posting Date,Posting Date
+FG Item Code,FG Item Code
+FG Item Name,FG Item Name
+Planned Qty,Planned Qty
+FG Produced / Confirmed Qty,FG Produced / Confirmed Qty
+WO Consumed Value,WO Consumed Value
+WO FG / Output Value,WO FG / Output Value
+WO Classic FG / Output Value,WO Classic FG / Output Value
+WO Scrap Value,WO Scrap Value
+WO WIP Balance,WO WIP Balance
+Op Sequence,Op Sequence
+Op Confirmed Qty,Op Confirmed Qty
+Raw Material Code,Raw Material Code
+Raw Material Name,Raw Material Name
+Raw Material Value,Raw Material Value
+Consumption Source,Consumption Source
+BOM Only (Unconsumed),BOM Only (Unconsumed)
+Shopfloor Confirmation,Shopfloor Confirmation
+Classic Manufacture,Classic Manufacture
+KTA WIP Valuation 2D,KTA WIP Valuation 2D
+Not permitted,Not permitted
+Shopfloor + Classic,Shopfloor + Classic
+Total,Total
+Operation,Operation
+In-WIP Qty,In-WIP Qty
+Op WIP Qty,Op WIP Qty
+Raw Material WIP Value,Raw Material WIP Value

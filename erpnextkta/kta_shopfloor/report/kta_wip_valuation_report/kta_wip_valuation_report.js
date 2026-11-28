@@ -51,6 +51,19 @@ frappe.query_reports["KTA WIP Valuation Report"] = {
 			fieldtype: "Check",
 			default: 1,
 		},
+		{
+			fieldname: "include_classic_manufacture",
+			label: __("Include Classic Manufacture"),
+			fieldtype: "Check",
+			default: 1,
+		},
+		{
+			fieldname: "view_mode",
+			label: __("View Mode"),
+			fieldtype: "Select",
+			options: "Tree View\nFlat 2D (Pivot)",
+			default: "Tree View",
+		},
 	],
 
 	tree: true,
@@ -58,9 +71,26 @@ frappe.query_reports["KTA WIP Valuation Report"] = {
 	parent_field: "parent_node",
 	initial_depth: 0,
 
+	onload: function (report) {
+		report.page.add_inner_button(__("Export 2D Excel"), function () {
+			const filters = report.get_values() || {};
+			open_url_post(
+				"/api/method/erpnextkta.kta_shopfloor.report.kta_wip_valuation_report.kta_wip_valuation_report.export_flat_2d_excel",
+				{ filters: JSON.stringify(filters) }
+			);
+		});
+	},
+
 	formatter: function (value, row, column, data, default_formatter) {
 		if (value === null || value === undefined || value === "") {
 			return "";
+		}
+
+		if (data && data.row_type === "total") {
+			value = default_formatter(value, row, column, data);
+			return value !== null && value !== undefined && value !== ""
+				? `<strong>${value}</strong>`
+				: "";
 		}
 
 		if (data && data.row_type && column.fieldname === "work_order") {
@@ -83,7 +113,7 @@ frappe.query_reports["KTA WIP Valuation Report"] = {
 			value = default_formatter(value, row, column, data);
 		}
 
-		if (!data || !data.row_type) {
+		if (!data) {
 			return value;
 		}
 
@@ -93,26 +123,61 @@ frappe.query_reports["KTA WIP Valuation Report"] = {
 			"Completed",
 			"Cancelled",
 		]);
-		const isTerminalOpenWip =
-			data.indent === 0 &&
-			terminalStatuses.has(data.wo_status) &&
-			Math.abs(flt(data.wip_balance)) > 0.01;
 
-		if (column.fieldname === "wo_status" && data.wo_status) {
-			const translatedStatus = __(data.wo_status);
-			if (isTerminalOpenWip) {
-				return `<span class="indicator-pill red">${frappe.utils.escape_html(
-					translatedStatus
-				)}</span>`;
+		if (data.row_type) {
+			const isTerminalOpenWip =
+				data.indent === 0 &&
+				terminalStatuses.has(data.wo_status) &&
+				Math.abs(flt(data.wip_balance)) > 0.01;
+
+			if (column.fieldname === "wo_status" && data.wo_status) {
+				const translatedStatus = __(data.wo_status);
+				if (isTerminalOpenWip) {
+					return `<span class="indicator-pill red">${frappe.utils.escape_html(
+						translatedStatus
+					)}</span>`;
+				}
+				return frappe.utils.escape_html(translatedStatus);
 			}
-			return frappe.utils.escape_html(translatedStatus);
+
+			if (isTerminalOpenWip) {
+				if (column.fieldname === "wip_balance") {
+					return `<span style="color: var(--red-600); font-weight: 600;">${value}</span>`;
+				}
+				return `<span style="background-color: var(--bg-orange); display: inline-block; width: 100%;">${value}</span>`;
+			}
+
+			return value;
 		}
 
-		if (isTerminalOpenWip) {
-			if (column.fieldname === "wip_balance") {
-				return `<span style="color: var(--red-600); font-weight: 600;">${value}</span>`;
+		if (data.wo_wip_balance !== undefined) {
+			const isFlatTerminalOpenWip =
+				terminalStatuses.has(data.wo_status) &&
+				Math.abs(flt(data.wo_wip_balance)) > 0.01;
+
+			if (column.fieldname === "work_order" && data.work_order) {
+				value = frappe.utils.get_form_link("Work Order", data.work_order, true);
+			} else if (column.fieldname === "wo_status" && data.wo_status) {
+				const translatedStatus = __(data.wo_status);
+				if (isFlatTerminalOpenWip) {
+					return `<span class="indicator-pill red">${frappe.utils.escape_html(
+						translatedStatus
+					)}</span>`;
+				}
+				return frappe.utils.escape_html(translatedStatus);
+			} else if (
+				column.fieldname === "consumption_source" &&
+				data.consumption_source
+			) {
+				return frappe.utils.escape_html(__(data.consumption_source));
 			}
-			return `<span style="background-color: var(--bg-orange); display: inline-block; width: 100%;">${value}</span>`;
+
+			if (isFlatTerminalOpenWip) {
+				if (column.fieldname === "wo_wip_balance") {
+					return `<span style="color: var(--red-600); font-weight: 600;">${value}</span>`;
+				}
+				return `<span style="background-color: var(--bg-orange); display: inline-block; width: 100%;">${value}</span>`;
+			}
 		}
 
 		return value;

@@ -1417,3 +1417,38 @@ Unit Rate,Einzelpreis
 Unassigned Operation,Nicht Zugewiesener Vorgang
 Show Operation & Material Breakdown,Vorgangs- und Materialaufschlüsselung Anzeigen
 WIP Return / Adjustment,WIP-Rückgabe / Korrektur
+Produced / Confirmed Qty,Produzierte / Bestätigte Menge
+Include Classic Manufacture,Klassische Fertigung Einbeziehen
+Required Qty,Bedarfsmenge
+Remaining Qty,Restmenge
+View Mode,Ansichtsmodus
+Tree View,Baumansicht
+Flat 2D (Pivot),Flache 2D-Ansicht (Pivot)
+Export 2D Excel,2D-Excel Exportieren
+Posting Date,Buchungsdatum
+FG Item Code,Fertigwaren-Artikelcode
+FG Item Name,Fertigwaren-Artikelname
+Planned Qty,Geplante Menge
+FG Produced / Confirmed Qty,Fertigwaren Produzierte / Bestätigte Menge
+WO Consumed Value,Auftrag-Verbrauchswert
+WO FG / Output Value,Auftrag-Fertigwaren- / Ausgabewert
+WO Classic FG / Output Value,Auftrag Klassischer Fertigwaren- / Ausgabewert
+WO Scrap Value,Auftrag-Ausschusswert
+WO WIP Balance,Auftrag-WIP-Saldo
+Op Sequence,Vorgangsfolge
+Op Confirmed Qty,Bestätigte Vorgangsmenge
+Raw Material Code,Rohstoffcode
+Raw Material Name,Rohstoffname
+Raw Material Value,Rohstoffwert
+Consumption Source,Verbrauchsquelle
+BOM Only (Unconsumed),Nur Stückliste (Unverbraucht)
+Shopfloor Confirmation,Shopfloor-Rückmeldung
+Classic Manufacture,Klassische Fertigung
+KTA WIP Valuation 2D,KTA WIP-Bewertung 2D
+Not permitted,Nicht Berechtigt
+Shopfloor + Classic,Shopfloor + Klassisch
+Total,Gesamt
+Operation,Vorgang
+In-WIP Qty,Menge In WIP
+Op WIP Qty,Vorgang WIP-Menge
+Raw Material WIP Value,Rohstoff-WIP-Wert
