@@ -268,7 +268,25 @@ class KTAStockEntry(StockEntry):
             )
             total_returned = flt(ret_res[0][0]) if ret_res else 0.0
 
-        return max(0.0, total_consumed - total_returned)
+        total_je_adj = 0.0
+        if wip_account and frappe.db.has_column(
+            "Journal Entry Account", "custom_work_order"
+        ):
+            je_res = frappe.db.sql(
+                """
+				SELECT COALESCE(SUM(COALESCE(jea.debit, 0) - COALESCE(jea.credit, 0)), 0)
+				FROM `tabJournal Entry Account` jea
+				INNER JOIN `tabJournal Entry` je ON je.name = jea.parent
+				WHERE je.docstatus = 1
+					AND je.company = %s
+					AND jea.custom_work_order = %s
+					AND jea.account = %s
+				""",
+                (self.company, self.work_order, wip_account),
+            )
+            total_je_adj = flt(je_res[0][0]) if je_res else 0.0
+
+        return max(0.0, total_consumed - total_returned + total_je_adj)
 
     def _get_previous_fg_only_manufacture_cost(self) -> float:
         """Return already-allocated cost from prior submitted FG-only Manufacture entries."""

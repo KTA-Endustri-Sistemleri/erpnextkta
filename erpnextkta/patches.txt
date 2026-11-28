@@ -27,3 +27,4 @@ erpnextkta.patches.v4_4.normalize_bom_operation_sequences
 erpnextkta.patches.v4_6.backfill_shopfloor_wip_account
 erpnextkta.patches.v4_6.fix_accounting_master_defaults
 erpnextkta.patches.v4_6.post_2026_accounting_reclassifications
+erpnextkta.patches.v4_6.reconcile_shopfloor_wip_discrepancies
